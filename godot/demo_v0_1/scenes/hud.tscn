@@ -1,0 +1,115 @@
+[gd_scene load_steps=2 format=3 uid="uid://imdoingdemov01hud"]
+
+[ext_resource type="Script" path="res://scripts/hud.gd" id="1_hud"]
+
+[node name="HUD" type="CanvasLayer"]
+layer = 12
+script = ExtResource("1_hud")
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="Banner" type="Label" parent="Root"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -280.0
+offset_top = -40.0
+offset_right = 280.0
+offset_bottom = 40.0
+theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(0.96, 0.95, 0.92, 1)
+text = "店鋪經營回合  ·  Demo v0.1"
+horizontal_alignment = 1
+
+[node name="Right" type="PanelContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -300.0
+offset_top = 12.0
+offset_right = -12.0
+offset_bottom = -12.0
+
+[node name="Margin" type="MarginContainer" parent="Root/Right"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 10
+
+[node name="VBox" type="VBoxContainer" parent="Root/Right/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Title" type="Label" parent="Root/Right/Margin/VBox"]
+layout_mode = 2
+text = "imdoing Demo v0.1"
+
+[node name="Hint" type="Label" parent="Root/Right/Margin/VBox"]
+layout_mode = 2
+autowrap_mode = 3
+text = "WASD 移動
+K 輕按衝刺 / 長按奔跑
+J 執貨即時 · 長按上架
+Q/E 或 1-3 選乾貨
+STR/AGI/INT = 10"
+
+[node name="State" type="Label" parent="Root/Right/Margin/VBox"]
+layout_mode = 2
+text = "狀態  IDLE"
+
+[node name="Stamina" type="ProgressBar" parent="Root/Right/Margin/VBox"]
+custom_minimum_size = Vector2(0, 16)
+layout_mode = 2
+show_percentage = false
+
+[node name="Speed" type="Label" parent="Root/Right/Margin/VBox"]
+layout_mode = 2
+text = "速度"
+
+[node name="Carry" type="Label" parent="Root/Right/Margin/VBox"]
+layout_mode = 2
+text = "負重"
+
+[node name="HudCaption" type="Label" parent="Root/Right/Margin/VBox"]
+layout_mode = 2
+text = "迷你攜帶清單（FILO 末項先上架）"
+
+[node name="HudList" type="ItemList" parent="Root/Right/Margin/VBox"]
+custom_minimum_size = Vector2(0, 88)
+layout_mode = 2
+
+[node name="Target" type="Label" parent="Root/Right/Margin/VBox"]
+layout_mode = 2
+autowrap_mode = 3
+text = "目標"
+
+[node name="Progress" type="ProgressBar" parent="Root/Right/Margin/VBox"]
+custom_minimum_size = Vector2(0, 14)
+layout_mode = 2
+show_percentage = false
+
+[node name="Stock" type="Label" parent="Root/Right/Margin/VBox"]
+layout_mode = 2
+autowrap_mode = 3
+text = "庫存"
+
+[node name="Log" type="ItemList" parent="Root/Right/Margin/VBox"]
+custom_minimum_size = Vector2(0, 140)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Out" type="Label" parent="Root/Right/Margin/VBox"]
+layout_mode = 2
+autowrap_mode = 3
+text = "範圍外：技能、等級、限時準備、客人、收錢、清潔、打擊。"
