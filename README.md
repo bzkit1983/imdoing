@@ -1,2 +1,2 @@
-# bzgameproject
+# iamdoing
 Repository for game project
