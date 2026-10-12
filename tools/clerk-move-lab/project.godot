@@ -1,0 +1,26 @@
+; Engine configuration file.
+; Demo v0.1 Clerk Move Lab — keyboard movement, run, dash.
+config_version=5
+
+[application]
+
+config/name="Clerk Move Lab"
+config/description="Demo v0.1 movement sandbox: WASD, tap K dash, hold K run"
+run/main_scene="res://scenes/move_lab.tscn"
+config/features=PackedStringArray("4.7", "Forward Plus")
+config/icon="res://icon.svg"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[physics]
+
+2d/default_gravity=0.0
+
+[rendering]
+
+textures/canvas_textures/default_texture_filter=0

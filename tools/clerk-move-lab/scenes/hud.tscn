@@ -1,0 +1,77 @@
+[gd_scene load_steps=2 format=3 uid="uid://clerkmovelabhud"]
+
+[ext_resource type="Script" path="res://scripts/hud.gd" id="1_hud"]
+
+[node name="HUD" type="CanvasLayer"]
+layer = 10
+script = ExtResource("1_hud")
+
+[node name="Panel" type="PanelContainer" parent="."]
+offset_left = 980.0
+offset_top = 24.0
+offset_right = 1260.0
+offset_bottom = 430.0
+
+[node name="Margin" type="MarginContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+text = "Clerk Move Lab"
+
+[node name="Hint" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+autowrap_mode = 3
+text = "WASD 移動
+K 輕按放開 = 衝刺
+K 長按 = 奔跑（扣氣力）
+能力值鎖定 STR 10 / AGI 10"
+
+[node name="State" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+text = "狀態  IDLE"
+
+[node name="StaminaLabel" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+text = "氣力"
+
+[node name="Stamina" type="ProgressBar" parent="Panel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+max_value = 100.0
+value = 100.0
+show_percentage = false
+
+[node name="Speed" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+text = "速度  0 px/s"
+
+[node name="Carry" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+text = "負重  0 / 16 件"
+
+[node name="CarrySlider" type="HSlider" parent="Panel/Margin/VBox"]
+layout_mode = 2
+max_value = 24.0
+
+[node name="Mult" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+autowrap_mode = 3
+text = "倍率  ×1.00"
+
+[node name="Dirt" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+text = "污物  未接觸"
+
+[node name="Skip" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+autowrap_mode = 3
+text = "未實作（v0.1 無客人 / 無技能）：人群減速、撞客人、技能 AGI。"
