@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Restock Stack Lab · 上架系統實驗室</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="top">
+        <div>
+          <p class="kicker">imdoing · Demo v0.1</p>
+          <h1>Restock Stack Lab</h1>
+          <p class="sub">執貨 → FILO 攜帶清單 → 上架。對照設計文件的規則沙盒。</p>
+        </div>
+        <div class="top-actions">
+          <label class="cap">
+            STR 負重
+            <input id="carry-cap" type="number" min="4" max="40" step="4" value="16" />
+            <span>件</span>
+          </label>
+          <button type="button" id="btn-example">載入文件例子</button>
+          <button type="button" id="btn-undo">Undo</button>
+          <button type="button" id="btn-reset" class="ghost">Reset</button>
+        </div>
+      </header>
+
+      <section class="stage">
+        <article class="panel restock">
+          <h2>補貨點 · 乾貨</h2>
+          <p class="hint">面向補貨點按行動鍵選貨。每次提取 <strong>1 箱 = 4 件</strong>。</p>
+          <div id="sku-buttons" class="sku-grid"></div>
+          <p id="carry-count" class="status"></p>
+          <p id="carry-status" class="status"></p>
+        </article>
+
+        <article class="panel clerk">
+          <h2>店員</h2>
+          <div class="clerk-visual">
+            <div id="box-stack" class="box-stack" aria-label="手持貨箱"></div>
+            <div class="clerk-body">
+              <div class="head"></div>
+              <div class="torso"></div>
+            </div>
+          </div>
+          <div class="hud">
+            <h3>迷你攜帶清單</h3>
+            <p class="hint">相同貨品連續合併顯示。資料仍按「一件一件」排列，最後一件才能上架。</p>
+            <ol id="hud-list" class="hud-list"></ol>
+            <p id="hud-empty" class="empty">空手 — 不能對貨架互動</p>
+          </div>
+        </article>
+
+        <article class="panel shelves">
+          <h2>乾貨貨架 × 6</h2>
+          <p class="hint">空架：上清單最後貨品。已有貨：只能補同樣貨品，否則顯示 ✕。</p>
+          <div id="shelf-grid" class="shelf-grid"></div>
+        </article>
+      </section>
+
+      <section class="bottom">
+        <article class="panel rules">
+          <h2>鎖定中的規則</h2>
+          <ul>
+            <li>攜帶清單是 <strong>FILO</strong>：最後拿的貨最先上架。</li>
+            <li>同 SKU 連續時，一次上架會一路補到清單出現不同貨品，或貨架滿。</li>
+            <li>貨箱內 4 件全部上架後，該箱從手上消失。</li>
+            <li>STR 預設 10；本工具把負重設成可調（預設 16 件 = 4 箱），設計文件尚未寫死數值。</li>
+          </ul>
+        </article>
+        <article class="panel log">
+          <h2>規則日誌</h2>
+          <ol id="log" class="log-list"></ol>
+        </article>
+      </section>
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>
