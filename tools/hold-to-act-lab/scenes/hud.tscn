@@ -1,0 +1,79 @@
+[gd_scene load_steps=2 format=3 uid="uid://holdtoactlabhud"]
+
+[ext_resource type="Script" path="res://scripts/hud.gd" id="1_hud"]
+
+[node name="HUD" type="CanvasLayer"]
+layer = 10
+script = ExtResource("1_hud")
+
+[node name="Panel" type="PanelContainer" parent="."]
+offset_left = 980.0
+offset_top = 24.0
+offset_right = 1260.0
+offset_bottom = 696.0
+
+[node name="Margin" type="MarginContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+text = "Hold-to-Act Lab"
+
+[node name="Hint" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+autowrap_mode = 3
+text = "WASD 走近並面向目標
+J 執貨 = 即時（無圈）
+J 長按上架 = Loading Circle
+中途放手 = 整圈重置
+1 / 2 / 3 選 罐頭 / 零食 / 杯麵"
+
+[node name="Target" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+autowrap_mode = 3
+text = "目標"
+
+[node name="Carry" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+text = "攜帶  空手"
+
+[node name="ProgressLabel" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+text = "上架進度"
+
+[node name="Progress" type="ProgressBar" parent="Panel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+show_percentage = false
+
+[node name="Agi" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+text = "AGI  10"
+
+[node name="AgiSlider" type="HSlider" parent="Panel/Margin/VBox"]
+layout_mode = 2
+min_value = 1.0
+max_value = 20.0
+value = 10.0
+
+[node name="Time" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+autowrap_mode = 3
+text = "上架圈  0.90s"
+
+[node name="Log" type="ItemList" parent="Panel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 180)
+layout_mode = 2
+
+[node name="Skip" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+autowrap_mode = 3
+text = "v0.1 不做：清潔 / 收錢 / 打擊（需要方向指令）。"
