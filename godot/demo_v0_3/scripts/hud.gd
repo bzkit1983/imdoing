@@ -2,6 +2,7 @@ extends CanvasLayer
 
 const Tuning = preload("res://scripts/tuning.gd")
 const Skills = preload("res://scripts/skills.gd")
+const UiFont = preload("res://scripts/ui_font.gd")
 
 var game: Node
 var player: CharacterBody2D
@@ -34,6 +35,7 @@ func setup(g: Node, p: CharacterBody2D) -> void:
 	_log.focus_mode = Control.FOCUS_NONE
 	_hud_list.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_log.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_apply_cjk_fonts($Root)
 	player.connect("stats_changed", _refresh)
 	player.connect("log_line", _on_log)
 	player.connect("skill_cast", _on_skill_cast)
@@ -44,6 +46,19 @@ func setup(g: Node, p: CharacterBody2D) -> void:
 	tw.tween_interval(1.8)
 	tw.tween_property(_banner, "modulate:a", 0.0, 0.7)
 	_refresh()
+
+
+func _apply_cjk_fonts(node: Node) -> void:
+	if node is Label:
+		var lab := node as Label
+		var size := lab.get_theme_font_size("font_size")
+		if size <= 0:
+			size = 14
+		UiFont.apply_label(lab, size)
+	if node is ItemList:
+		(node as ItemList).add_theme_font_override("font", UiFont.font())
+	for child in node.get_children():
+		_apply_cjk_fonts(child)
 
 
 func show_closeout() -> void:

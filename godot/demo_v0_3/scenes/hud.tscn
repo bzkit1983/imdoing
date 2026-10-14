@@ -104,7 +104,7 @@ anchor_bottom = 1.0
 offset_left = -292.0
 offset_top = 10.0
 offset_right = -10.0
-offset_bottom = -278.0
+offset_bottom = -420.0
 
 [node name="Margin" type="MarginContainer" parent="Root/Right"]
 layout_mode = 2

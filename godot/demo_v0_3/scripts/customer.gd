@@ -1,6 +1,7 @@
 extends CharacterBody2D
 
 const Tuning = preload("res://scripts/tuning.gd")
+const UiFont = preload("res://scripts/ui_font.gd")
 
 enum State { ENTER, SEEK, LINGER, THINK, TO_CASHIER, QUEUE, PAYING, LEAVE }
 
@@ -282,14 +283,14 @@ func _build_visual() -> void:
 	add_child(_body)
 	_mood_label = Label.new()
 	_mood_label.position = Vector2(-40, -52)
-	_mood_label.add_theme_font_size_override("font_size", 12)
+	UiFont.apply_label(_mood_label, 12)
 	_mood_label.add_theme_color_override("font_color", Color("7ecbff"))
 	_mood_label.add_theme_color_override("font_outline_color", Color("121212"))
 	_mood_label.add_theme_constant_override("outline_size", 6)
 	add_child(_mood_label)
 	_list_label = Label.new()
 	_list_label.position = Vector2(-48, -38)
-	_list_label.add_theme_font_size_override("font_size", 12)
+	UiFont.apply_label(_list_label, 12)
 	_list_label.add_theme_color_override("font_color", Color("ffe566"))
 	_list_label.add_theme_color_override("font_outline_color", Color("121212"))
 	_list_label.add_theme_constant_override("outline_size", 6)

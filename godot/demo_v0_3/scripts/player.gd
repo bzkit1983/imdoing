@@ -7,6 +7,7 @@ const CircleScript = preload("res://scripts/loading_circle.gd")
 const BoxStackScript = preload("res://scripts/box_stack.gd")
 const PromptScript = preload("res://scripts/command_prompt.gd")
 const MenuScript = preload("res://scripts/skill_menu.gd")
+const UiFont = preload("res://scripts/ui_font.gd")
 
 signal stats_changed
 signal log_line(text: String)
@@ -704,7 +705,7 @@ func _spawn_dollar() -> void:
 	var lab := Label.new()
 	lab.text = "$"
 	lab.position = Vector2(-6, -90)
-	lab.add_theme_font_size_override("font_size", 28)
+	UiFont.apply_label(lab, 28)
 	lab.add_theme_color_override("font_color", Color("e8c36a"))
 	add_child(lab)
 	var tw := create_tween()

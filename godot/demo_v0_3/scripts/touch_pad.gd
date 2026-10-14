@@ -1,13 +1,19 @@
 extends CanvasLayer
 ## Circular virtual stick (left) + Xbox-style ABXY diamond (right).
+## Sized for thumbs on iPhone, inset from home-indicator / edges.
 
 signal stick_changed(axis: Vector2)
 signal hold_changed(action: String, pressed: bool)
 
-const FACE := 64.0
-const FACE_GAP := 74.0
-const STICK := 148.0
-const KNOB := 56.0
+const UiFont = preload("res://scripts/ui_font.gd")
+
+const FACE := 96.0
+const FACE_GAP := 112.0
+const STICK := 240.0
+const KNOB := 104.0
+const EDGE_X := 56.0
+const EDGE_Y := 84.0
+const ULT := 76.0
 
 var _stick_touch := -1
 var _knob: Panel
@@ -27,10 +33,10 @@ func _build() -> void:
 
 	_base = Control.new()
 	_base.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
-	_base.offset_left = 24
-	_base.offset_top = -24 - STICK
-	_base.offset_right = 24 + STICK
-	_base.offset_bottom = -24
+	_base.offset_left = EDGE_X
+	_base.offset_top = -EDGE_Y - STICK
+	_base.offset_right = EDGE_X + STICK
+	_base.offset_bottom = -EDGE_Y
 	_base.mouse_filter = Control.MOUSE_FILTER_STOP
 	root.add_child(_base)
 	_base.add_child(_circle_panel(Vector2.ZERO, Vector2(STICK, STICK), Color(0.12, 0.16, 0.14, 0.5), Color(0.96, 0.95, 0.92, 0.28)))
@@ -47,10 +53,10 @@ func _build() -> void:
 	var diamond := Control.new()
 	diamond.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
 	var dsize := FACE + FACE_GAP * 2.0
-	diamond.offset_left = -28 - dsize
-	diamond.offset_top = -28 - dsize - 52
-	diamond.offset_right = -28
-	diamond.offset_bottom = -28
+	diamond.offset_left = -EDGE_X - dsize
+	diamond.offset_top = -EDGE_Y - dsize
+	diamond.offset_right = -EDGE_X
+	diamond.offset_bottom = -EDGE_Y
 	diamond.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(diamond)
 
@@ -62,13 +68,13 @@ func _build() -> void:
 
 	var rb := Control.new()
 	rb.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-	rb.offset_left = -28 - 56
-	rb.offset_top = -28 - dsize - 52 - 64
-	rb.offset_right = -28
-	rb.offset_bottom = -28 - dsize - 52 - 8
+	rb.offset_left = -EDGE_X - ULT
+	rb.offset_top = -EDGE_Y - dsize - 16 - ULT
+	rb.offset_right = -EDGE_X
+	rb.offset_bottom = -EDGE_Y - dsize - 16
 	rb.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(rb)
-	_face_btn(rb, Vector2.ZERO, "ult", "RB\n奧義", Color("c0392b"), Vector2(56, 56))
+	_face_btn(rb, Vector2.ZERO, "ult", "RB\n奧義", Color("c0392b"), Vector2(ULT, ULT))
 
 
 func _circle_panel(pos: Vector2, size: Vector2, fill: Color, border: Color) -> Panel:
@@ -95,7 +101,7 @@ func _face_btn(parent: Control, pos: Vector2, action: String, caption: String, t
 	b.size = size
 	b.text = caption
 	b.focus_mode = Control.FOCUS_NONE
-	b.add_theme_font_size_override("font_size", 12)
+	UiFont.apply_button(b, 16 if size.x < 90.0 else 18)
 	b.add_theme_color_override("font_color", Color("f4f1ea"))
 	b.add_theme_color_override("font_pressed_color", Color("121212"))
 	b.add_theme_color_override("font_hover_color", Color("ffffff"))
@@ -120,7 +126,7 @@ func _btn_style(fill: Color, alpha: float, size: Vector2) -> StyleBoxFlat:
 	s.corner_radius_bottom_right = r
 	s.set_border_width_all(2)
 	s.border_color = Color(1, 1, 1, 0.35)
-	s.set_content_margin_all(4)
+	s.set_content_margin_all(6)
 	return s
 
 

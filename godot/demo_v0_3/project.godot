@@ -24,6 +24,16 @@ window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 window/handheld/orientation=4
 
+[gui]
+
+theme/custom="res://themes/default.tres"
+theme/custom_font="res://fonts/NotoSansTC-Regular.otf"
+
+[internationalization]
+
+locale/fallback="zh_TW"
+locale/include_text_server_data=true
+
 [input_devices]
 
 pointing/emulate_touch_from_mouse=true

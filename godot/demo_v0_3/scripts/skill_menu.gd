@@ -2,6 +2,7 @@ extends Node2D
 ## Radial labels while holding the skill key (up/right/down/left = slots 2–5).
 
 const Skills = preload("res://scripts/skills.gd")
+const UiFont = preload("res://scripts/ui_font.gd")
 
 var open: bool = false
 var dim: Array[bool] = [false, false, false, false]
@@ -33,7 +34,7 @@ func _draw() -> void:
 	_draw_slot(Vector2(88, 0), names[1], dim[1], cds[1], "右")
 	_draw_slot(Vector2(0, 70), names[2], dim[2], cds[2], "下")
 	_draw_slot(Vector2(-88, 0), names[3], dim[3], cds[3], "左")
-	var font := ThemeDB.fallback_font
+	var font := UiFont.font()
 	draw_string(font, Vector2(-36, -8), "技能1 輕放", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color("f4f1ea"))
 
 
@@ -45,7 +46,7 @@ func _draw_slot(p: Vector2, title: String, passive: bool, cd: float, dir: String
 	var r := Rect2(p + Vector2(-54, -22), Vector2(108, 40))
 	draw_rect(r, bg)
 	draw_rect(r, col, false, 1.6)
-	var font := ThemeDB.fallback_font
+	var font := UiFont.font()
 	var line := "%s %s" % [dir, title]
 	if cd > 0.05 and not passive:
 		line = "%s %.0f" % [title, cd]

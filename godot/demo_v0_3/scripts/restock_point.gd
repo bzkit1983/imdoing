@@ -1,6 +1,7 @@
 extends StaticBody2D
 
 const Tuning = preload("res://scripts/tuning.gd")
+const UiFont = preload("res://scripts/ui_font.gd")
 
 var kind: String = "restock"
 var category: String = Tuning.CAT_DRY
@@ -129,7 +130,7 @@ func _draw_sku_list(canvas: CanvasItem) -> void:
 	var origin := Vector2(-w * 0.5, -hy - h - 10.0)
 	canvas.draw_rect(Rect2(origin, Vector2(w, h)), Color(0.07, 0.08, 0.07, 0.94))
 	canvas.draw_rect(Rect2(origin, Vector2(w, h)), Color("f4d35e"), false, 2.0)
-	var font := ThemeDB.fallback_font
+	var font := UiFont.font()
 	canvas.draw_string(font, origin + Vector2(8, 16), "選貨  ↑↓", HORIZONTAL_ALIGNMENT_LEFT, w - 16, 12, Color("f4d35e"))
 	for i in list.size():
 		var sku := list[i]
