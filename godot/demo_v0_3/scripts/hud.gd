@@ -53,10 +53,12 @@ func _apply_cjk_fonts(node: Node) -> void:
 		var lab := node as Label
 		var size := lab.get_theme_font_size("font_size")
 		if size <= 0:
-			size = 14
+			size = UiFont.BODY
 		UiFont.apply_label(lab, size)
 	if node is ItemList:
-		(node as ItemList).add_theme_font_override("font", UiFont.font())
+		var lst := node as ItemList
+		lst.add_theme_font_override("font", UiFont.font())
+		lst.add_theme_font_size_override("font_size", UiFont.BODY)
 	for child in node.get_children():
 		_apply_cjk_fonts(child)
 
@@ -83,7 +85,7 @@ func _on_log(text: String) -> void:
 
 func _on_skill_cast(skill_name: String, is_ult: bool) -> void:
 	_cast.text = skill_name
-	_cast.add_theme_font_size_override("font_size", 52 if is_ult else 36)
+	_cast.add_theme_font_size_override("font_size", 72 if is_ult else 56)
 	_cast.modulate = Color("c0392b" if is_ult else "f4d35e")
 	_cast.modulate.a = 1.0
 	_cast.scale = Vector2(0.55, 0.55)

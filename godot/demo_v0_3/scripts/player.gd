@@ -705,7 +705,7 @@ func _spawn_dollar() -> void:
 	var lab := Label.new()
 	lab.text = "$"
 	lab.position = Vector2(-6, -90)
-	UiFont.apply_label(lab, 28)
+	UiFont.apply_label(lab, UiFont.TITLE)
 	lab.add_theme_color_override("font_color", Color("e8c36a"))
 	add_child(lab)
 	var tw := create_tween()

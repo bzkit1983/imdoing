@@ -7,13 +7,13 @@ signal hold_changed(action: String, pressed: bool)
 
 const UiFont = preload("res://scripts/ui_font.gd")
 
-const FACE := 96.0
-const FACE_GAP := 112.0
-const STICK := 240.0
-const KNOB := 104.0
-const EDGE_X := 56.0
-const EDGE_Y := 84.0
-const ULT := 76.0
+const FACE := 140.0
+const FACE_GAP := 164.0
+const STICK := 360.0
+const KNOB := 156.0
+const EDGE_X := 40.0
+const EDGE_Y := 64.0
+const ULT := 112.0
 
 var _stick_touch := -1
 var _knob: Panel
@@ -101,7 +101,7 @@ func _face_btn(parent: Control, pos: Vector2, action: String, caption: String, t
 	b.size = size
 	b.text = caption
 	b.focus_mode = Control.FOCUS_NONE
-	UiFont.apply_button(b, 16 if size.x < 90.0 else 18)
+	UiFont.apply_button(b, UiFont.BUTTON)
 	b.add_theme_color_override("font_color", Color("f4f1ea"))
 	b.add_theme_color_override("font_pressed_color", Color("121212"))
 	b.add_theme_color_override("font_hover_color", Color("ffffff"))

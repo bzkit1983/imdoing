@@ -241,7 +241,7 @@ func _make_shelves(cat: String, start: Vector2, count: int, start_index: int) ->
 		node.body = node.get_node("Body")
 		var lab := Label.new()
 		lab.position = Vector2(-58, -18)
-		UiFont.apply_label(lab, 13)
+		UiFont.apply_label(lab, UiFont.WORLD)
 		lab.add_theme_color_override("font_color", Color("fff4c2"))
 		lab.add_theme_color_override("font_outline_color", Color("121212"))
 		lab.add_theme_constant_override("outline_size", 5)
@@ -343,7 +343,7 @@ func _caption(pos: Vector2, text: String) -> Label:
 	l.text = text
 	l.position = pos
 	l.z_index = 3
-	UiFont.apply_label(l, 13)
+	UiFont.apply_label(l, UiFont.WORLD)
 	l.add_theme_color_override("font_color", Color("fff4c2"))
 	l.add_theme_color_override("font_outline_color", Color("121212"))
 	l.add_theme_constant_override("outline_size", 5)
