@@ -120,9 +120,10 @@ func _draw_sku_list(canvas: CanvasItem) -> void:
 	if not picking:
 		return
 	var list := skus()
-	var w := 240.0
-	var row := 36.0
-	var h := 44.0 + row * float(list.size())
+	var fs := UiFont.px(UiFont.BODY)
+	var w := float(maxi(280, fs * 8))
+	var row := float(fs + 12)
+	var h := float(fs + 16) + row * float(list.size())
 	var hy := 40.0
 	if body:
 		for pt in body.polygon:
@@ -131,15 +132,15 @@ func _draw_sku_list(canvas: CanvasItem) -> void:
 	canvas.draw_rect(Rect2(origin, Vector2(w, h)), Color(0.07, 0.08, 0.07, 0.94))
 	canvas.draw_rect(Rect2(origin, Vector2(w, h)), Color("f4d35e"), false, 2.0)
 	var font := UiFont.font()
-	canvas.draw_string(font, origin + Vector2(10, 28), "選貨  ↑↓", HORIZONTAL_ALIGNMENT_LEFT, w - 20, UiFont.BODY, Color("f4d35e"))
+	canvas.draw_string(font, origin + Vector2(12, fs + 4), "選貨  ↑↓", HORIZONTAL_ALIGNMENT_LEFT, w - 24, fs, Color("f4d35e"))
 	for i in list.size():
 		var sku := list[i]
-		var p := origin + Vector2(10, 56 + row * float(i))
+		var p := origin + Vector2(12, float(fs + 20) + row * float(i))
 		var col := Color("f4d35e") if i == cursor else Color("f4f1ea")
 		if i == cursor:
-			canvas.draw_rect(Rect2(origin + Vector2(4, 36 + row * float(i)), Vector2(w - 8, row)), Color("f4d35e", 0.22))
+			canvas.draw_rect(Rect2(origin + Vector2(4, float(fs + 8) + row * float(i)), Vector2(w - 8, row)), Color("f4d35e", 0.22))
 		var line := "%s  %d箱" % [Tuning.sku_name(sku), remaining(sku)]
-		canvas.draw_string(font, p, line, HORIZONTAL_ALIGNMENT_LEFT, w - 20, UiFont.WORLD, col)
+		canvas.draw_string(font, p, line, HORIZONTAL_ALIGNMENT_LEFT, w - 24, UiFont.px(UiFont.WORLD), col)
 
 
 func _refresh() -> void:

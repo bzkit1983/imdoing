@@ -36,6 +36,7 @@ func setup(g: Node, p: CharacterBody2D) -> void:
 	_hud_list.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_log.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_apply_cjk_fonts($Root)
+	get_viewport().size_changed.connect(func() -> void: _apply_cjk_fonts($Root))
 	player.connect("stats_changed", _refresh)
 	player.connect("log_line", _on_log)
 	player.connect("skill_cast", _on_skill_cast)
@@ -51,14 +52,17 @@ func setup(g: Node, p: CharacterBody2D) -> void:
 func _apply_cjk_fonts(node: Node) -> void:
 	if node is Label:
 		var lab := node as Label
-		var size := lab.get_theme_font_size("font_size")
+		var size := int(lab.get_meta("cjk_design", 0))
 		if size <= 0:
-			size = UiFont.BODY
+			size = lab.get_theme_font_size("font_size")
+			if size <= 0:
+				size = UiFont.BODY
+			lab.set_meta("cjk_design", size)
 		UiFont.apply_label(lab, size)
 	if node is ItemList:
 		var lst := node as ItemList
 		lst.add_theme_font_override("font", UiFont.font())
-		lst.add_theme_font_size_override("font_size", UiFont.BODY)
+		lst.add_theme_font_size_override("font_size", UiFont.px(UiFont.BODY))
 	for child in node.get_children():
 		_apply_cjk_fonts(child)
 
@@ -85,7 +89,7 @@ func _on_log(text: String) -> void:
 
 func _on_skill_cast(skill_name: String, is_ult: bool) -> void:
 	_cast.text = skill_name
-	_cast.add_theme_font_size_override("font_size", 72 if is_ult else 56)
+	_cast.add_theme_font_size_override("font_size", UiFont.px(72 if is_ult else 56))
 	_cast.modulate = Color("c0392b" if is_ult else "f4d35e")
 	_cast.modulate.a = 1.0
 	_cast.scale = Vector2(0.55, 0.55)

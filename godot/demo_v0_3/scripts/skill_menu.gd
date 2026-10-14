@@ -35,7 +35,8 @@ func _draw() -> void:
 	_draw_slot(Vector2(0, 110), names[2], dim[2], cds[2], "下")
 	_draw_slot(Vector2(-130, 0), names[3], dim[3], cds[3], "左")
 	var font := UiFont.font()
-	draw_string(font, Vector2(-70, -8), "技能1 輕放", HORIZONTAL_ALIGNMENT_LEFT, -1, UiFont.BODY, Color("f4f1ea"))
+	var fs := UiFont.px(UiFont.BODY)
+	draw_string(font, Vector2(-90, -8), "技能1 輕放", HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color("f4f1ea"))
 
 
 func _draw_slot(p: Vector2, title: String, passive: bool, cd: float, dir: String) -> void:
@@ -43,13 +44,14 @@ func _draw_slot(p: Vector2, title: String, passive: bool, cd: float, dir: String
 	if cd > 0.05 and not passive:
 		col = Color("c45c26")
 	var bg := Color(0.05, 0.07, 0.06, 0.82)
-	var r := Rect2(p + Vector2(-90, -32), Vector2(180, 60))
+	var fs := UiFont.px(UiFont.BODY)
+	var r := Rect2(p + Vector2(-120, -40), Vector2(240, 80))
 	draw_rect(r, bg)
 	draw_rect(r, col, false, 2.0)
 	var font := UiFont.font()
 	var line := "%s %s" % [dir, title]
 	if cd > 0.05 and not passive:
 		line = "%s %.0f" % [title, cd]
-	draw_string(font, p + Vector2(-84, -4), line, HORIZONTAL_ALIGNMENT_LEFT, 170, UiFont.BODY, col)
+	draw_string(font, p + Vector2(-112, -4), line, HORIZONTAL_ALIGNMENT_LEFT, 220, fs, col)
 	if passive:
-		draw_string(font, p + Vector2(-84, 22), "被動", HORIZONTAL_ALIGNMENT_LEFT, 170, 22, Color("8a8a8a"))
+		draw_string(font, p + Vector2(-112, 28), "被動", HORIZONTAL_ALIGNMENT_LEFT, 220, UiFont.px(22), Color("8a8a8a"))
