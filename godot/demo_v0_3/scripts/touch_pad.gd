@@ -91,10 +91,15 @@ func _build() -> void:
 	_face_btn(diamond, Vector2(mid + _gap, mid), "cancel", "B\n取消", Color("c45c26"))
 	_face_btn(diamond, Vector2(mid - _gap, mid), "dash", "X\n衝刺", Color("3d7ea6"))
 	_face_btn(diamond, Vector2(mid, mid - _gap), "skill", "Y\n技能", Color("e8c36a"))
-	var y_c := Vector2(mid + _face * 0.5, mid - _gap + _face * 0.5)
-	var b_c := Vector2(mid + _gap + _face * 0.5, mid + _face * 0.5)
-	var pocket := (y_c + b_c) * 0.5 - Vector2(_ult, _ult) * 0.5
-	_face_btn(diamond, pocket, "ult", "RB\n奧義", Color("c0392b"), Vector2(_ult, _ult))
+	var rb := Control.new()
+	rb.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	rb.offset_right = -8.0
+	rb.offset_bottom = -_edge_y - dsize + _face * 0.15
+	rb.offset_left = rb.offset_right - _ult
+	rb.offset_top = rb.offset_bottom - _ult
+	rb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(rb)
+	_face_btn(rb, Vector2.ZERO, "ult", "RB\n奧義", Color("c0392b"), Vector2(_ult, _ult))
 
 
 func _circle_panel(pos: Vector2, size: Vector2, fill: Color, border: Color) -> Panel:

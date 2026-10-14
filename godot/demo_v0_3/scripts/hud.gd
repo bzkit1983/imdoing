@@ -89,7 +89,7 @@ func _on_log(text: String) -> void:
 
 func _on_skill_cast(skill_name: String, is_ult: bool) -> void:
 	_cast.text = skill_name
-	_cast.add_theme_font_size_override("font_size", UiFont.px(40 if is_ult else 32))
+	_cast.add_theme_font_size_override("font_size", UiFont.px(44 if is_ult else 34))
 	_cast.modulate = Color("c0392b" if is_ult else "f4d35e")
 	_cast.modulate.a = 1.0
 	_cast.scale = Vector2(0.55, 0.55)

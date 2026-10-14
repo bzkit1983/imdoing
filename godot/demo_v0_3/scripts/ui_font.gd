@@ -4,11 +4,11 @@ extends RefCounted
 
 const FACE := preload("res://fonts/NotoSansTC-Regular.otf")
 
-const BODY := 20
-const TITLE := 24
-const WORLD := 18
+const BODY := 24
+const TITLE := 28
+const WORLD := 22
 const BUTTON := 24
-const HUGE := 40
+const HUGE := 44
 
 
 static func font() -> Font:

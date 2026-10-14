@@ -54,6 +54,7 @@ const DIRT_MULT := 0.55
 const SPEED_MAX_MULT := 5.0
 const SPEED_FLOOR := 48.0
 
+const CAMERA_ZOOM := 1.22
 const INTERACT_RANGE := 100.0
 const FACE_DOT := 0.18
 const SKU_PICK_HOLD := 0.18

@@ -54,6 +54,7 @@ func _ready() -> void:
 	_player.interactables = nodes
 	_player.paid.connect(_on_paid)
 	var cam := Camera2D.new()
+	cam.zoom = Vector2(Tuning.CAMERA_ZOOM, Tuning.CAMERA_ZOOM)
 	cam.position_smoothing_enabled = true
 	cam.position_smoothing_speed = 7.5
 	_player.add_child(cam)

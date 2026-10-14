@@ -823,11 +823,12 @@ func _cast_ultimate() -> void:
 func _play_zoom(ult: bool) -> void:
 	if camera == null:
 		return
-	var z := 1.55 if ult else 1.32
+	var base := Tuning.CAMERA_ZOOM
+	var z := base * (1.28 if ult else 1.12)
 	var tw := create_tween()
 	tw.tween_property(camera, "zoom", Vector2(z, z), 0.18)
 	tw.tween_interval(0.22 if ult else 0.12)
-	tw.tween_property(camera, "zoom", Vector2.ONE, 0.28)
+	tw.tween_property(camera, "zoom", Vector2(base, base), 0.28)
 
 
 func _reset_hold() -> void:

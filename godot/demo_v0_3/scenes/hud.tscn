@@ -25,7 +25,7 @@ offset_left = -420.0
 offset_top = -48.0
 offset_right = 420.0
 offset_bottom = 48.0
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 28
 theme_override_colors/font_color = Color(0.96, 0.95, 0.92, 1)
 text = "店鋪經營回合  ·  Demo v0.3"
 horizontal_alignment = 1
@@ -64,7 +64,7 @@ script = ExtResource("2_clock")
 
 [node name="Time" type="Label" parent="Root/Left"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 28
 text = "06:00"
 
 [node name="Phase" type="Label" parent="Root/Left"]
