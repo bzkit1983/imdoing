@@ -44,9 +44,9 @@ func _metrics() -> void:
 	# ~250 CSS px stick, ~110 CSS px face buttons.
 	_stick = clampf(250.0 / fit, 480.0, 760.0)
 	_face = clampf(110.0 / fit, 200.0, 320.0)
-	_gap = _face * 1.15
+	_gap = _face * 0.70
 	_knob_s = _stick * 0.44
-	_ult = _face * 0.78
+	_ult = _face * 0.62
 	_edge_x = 24.0
 	_edge_y = 40.0
 
@@ -64,7 +64,7 @@ func _build() -> void:
 	_base.offset_top = -_edge_y - _stick
 	_base.offset_right = _edge_x + _stick
 	_base.offset_bottom = -_edge_y
-	_base.mouse_filter = Control.MOUSE_FILTER_STOP
+	_base.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(_base)
 	_base.add_child(_circle_panel(Vector2.ZERO, Vector2(_stick, _stick), Color(0.12, 0.16, 0.14, 0.5), Color(0.96, 0.95, 0.92, 0.28)))
 	_knob = _circle_panel(
@@ -75,7 +75,6 @@ func _build() -> void:
 	)
 	_knob.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_base.add_child(_knob)
-	_base.gui_input.connect(_on_stick_input)
 
 	var diamond := Control.new()
 	diamond.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
@@ -92,16 +91,10 @@ func _build() -> void:
 	_face_btn(diamond, Vector2(mid + _gap, mid), "cancel", "B\n取消", Color("c45c26"))
 	_face_btn(diamond, Vector2(mid - _gap, mid), "dash", "X\n衝刺", Color("3d7ea6"))
 	_face_btn(diamond, Vector2(mid, mid - _gap), "skill", "Y\n技能", Color("e8c36a"))
-
-	var rb := Control.new()
-	rb.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-	rb.offset_left = -_edge_x - _ult
-	rb.offset_top = -_edge_y - dsize - 12 - _ult
-	rb.offset_right = -_edge_x
-	rb.offset_bottom = -_edge_y - dsize - 12
-	rb.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_child(rb)
-	_face_btn(rb, Vector2.ZERO, "ult", "RB\n奧義", Color("c0392b"), Vector2(_ult, _ult))
+	var y_c := Vector2(mid + _face * 0.5, mid - _gap + _face * 0.5)
+	var b_c := Vector2(mid + _gap + _face * 0.5, mid + _face * 0.5)
+	var pocket := (y_c + b_c) * 0.5 - Vector2(_ult, _ult) * 0.5
+	_face_btn(diamond, pocket, "ult", "RB\n奧義", Color("c0392b"), Vector2(_ult, _ult))
 
 
 func _circle_panel(pos: Vector2, size: Vector2, fill: Color, border: Color) -> Panel:
@@ -163,33 +156,61 @@ func _emit_hold(action: String, pressed: bool) -> void:
 	hold_changed.emit(action, pressed)
 
 
-func _on_stick_input(event: InputEvent) -> void:
+func _to_stick_local(vp: Vector2) -> Vector2:
+	return _base.get_global_transform_with_canvas().affine_inverse() * vp
+
+
+func _input(event: InputEvent) -> void:
 	if _base == null:
 		return
+	var idx := -2
+	var pos := Vector2.ZERO
+	var pressed := false
+	var released := false
+	var moved := false
 	if event is InputEventScreenTouch:
 		var t := event as InputEventScreenTouch
-		if t.pressed:
-			_stick_touch = t.index
-			_apply_stick(_base.get_local_mouse_position())
-		elif t.index == _stick_touch:
-			_stick_touch = -1
-			_reset_stick()
+		idx = t.index
+		pos = t.position
+		pressed = t.pressed
+		released = not t.pressed
 	elif event is InputEventScreenDrag:
 		var d := event as InputEventScreenDrag
-		if d.index == _stick_touch:
-			_apply_stick(_base.get_local_mouse_position())
+		idx = d.index
+		pos = d.position
+		moved = true
+		pressed = true
 	elif event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
 		if mb.button_index != MOUSE_BUTTON_LEFT:
 			return
-		if mb.pressed:
-			_stick_touch = 0
-			_apply_stick(mb.position)
-		else:
-			_stick_touch = -1
-			_reset_stick()
-	elif event is InputEventMouseMotion and _stick_touch == 0:
-		_apply_stick((event as InputEventMouseMotion).position)
+		idx = 0
+		pos = mb.position
+		pressed = mb.pressed
+		released = not mb.pressed
+	elif event is InputEventMouseMotion:
+		var mm := event as InputEventMouseMotion
+		if mm.button_mask & MOUSE_BUTTON_MASK_LEFT == 0:
+			return
+		idx = 0
+		pos = mm.position
+		moved = true
+		pressed = true
+	else:
+		return
+	var local := _to_stick_local(pos)
+	var pad := Rect2(Vector2(-36, -36), _base.size + Vector2(72, 72))
+	var on_left := pos.x < get_viewport().get_visible_rect().size.x * 0.48
+	if released and idx == _stick_touch:
+		_stick_touch = -1
+		_reset_stick()
+		return
+	if idx == _stick_touch and (moved or pressed):
+		_apply_stick(local)
+		return
+	if pressed and not moved and on_left and pad.has_point(local):
+		_stick_touch = idx
+		_apply_stick(local)
 
 
 func _apply_stick(local: Vector2) -> void:

@@ -221,10 +221,12 @@ func speed_mult() -> float:
 
 
 func _in_dir_mode() -> bool:
-	if ult_prep or skill_menu_open or _restock_picking:
+	if ult_prep or skill_menu_open or _restock_picking or _l_held or _u_held:
 		return true
-	if _j_held and target != null and String(target.get("kind")) == "cashier":
-		return true
+	if _j_held and target != null:
+		var kind := String(target.get("kind"))
+		if kind == "cashier" or kind == "restock":
+			return true
 	return command_lock
 
 
@@ -417,7 +419,7 @@ func _poll_stick_cardinal() -> void:
 		_cardinal_armed = true
 		return
 	var v := stick_axis + _pad_analog_axis()
-	if v.length() < 0.55:
+	if v.length() < 0.42:
 		_cardinal_armed = true
 		return
 	if not _cardinal_armed:

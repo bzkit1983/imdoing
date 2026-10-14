@@ -1,15 +1,14 @@
 extends RefCounted
 ## Bundled Traditional Chinese font so Web / iPhone Safari can render 中文.
-## Sizes are at least 2× the previous design, and grow further if the
-## 1280×720 viewport is scaled down (iPhone 12 portrait especially).
+## Interface type stays modest; virtual-button captions keep a larger size.
 
 const FACE := preload("res://fonts/NotoSansTC-Regular.otf")
 
-const BODY := 28
-const TITLE := 36
-const WORLD := 26
+const BODY := 20
+const TITLE := 24
+const WORLD := 18
 const BUTTON := 24
-const HUGE := 56
+const HUGE := 40
 
 
 static func font() -> Font:
@@ -24,10 +23,15 @@ static func fit() -> float:
 
 
 static func px(size: int) -> int:
-	var doubled := size * 2
-	# Keep ~22 CSS pixels even when the canvas is shrunk on a phone.
-	var min_game := int(ceil(22.0 / maxf(fit(), 0.25)))
-	return maxi(doubled, min_game)
+	var f := maxf(fit(), 0.25)
+	if float(size) * f >= 13.0:
+		return size
+	return int(ceil(13.0 / f))
+
+
+static func px_btn(size: int) -> int:
+	var f := maxf(fit(), 0.25)
+	return maxi(int(round(float(size) * 2.0)), int(ceil(15.0 / f)))
 
 
 static func apply_label(lab: Label, size: int = BODY) -> void:
@@ -37,4 +41,4 @@ static func apply_label(lab: Label, size: int = BODY) -> void:
 
 static func apply_button(btn: Button, size: int = BUTTON) -> void:
 	btn.add_theme_font_override("font", FACE)
-	btn.add_theme_font_size_override("font_size", px(size))
+	btn.add_theme_font_size_override("font_size", px_btn(size))
