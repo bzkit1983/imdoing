@@ -23,7 +23,7 @@ const EQUIPPED: Array[Dictionary] = [
 		"name": "頂硬上",
 		"kind": "active",
 		"lv": 3,
-		"carry_add": 60,
+		"carry_add": 60,  # boxes; stacks on top of STR cap
 		"duration": ACTIVE_DURATION,
 		"cd": ACTIVE_CD,
 	},
@@ -69,8 +69,8 @@ const ULTIMATE := {
 	"name": "The World!",
 	"kind": "ultimate",
 	"lv": 3,
+	# Remaining world rate. LV1 0.5, LV2 0.2, LV3 0. Player actions stay at real-time.
 	"clock_scale": 0.0,
-	"customer_move_pct": -1.0,
 	"duration": ULT_DURATION,
 	"cd": ULT_CD,
 	"seq": [DIR_UP, DIR_UP, DIR_DOWN, DIR_DOWN, DIR_LEFT, DIR_RIGHT, DIR_LEFT, DIR_RIGHT],

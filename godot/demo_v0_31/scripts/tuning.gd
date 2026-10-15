@@ -1,0 +1,208 @@
+extends RefCounted
+## Demo v0.31 playable defaults. See docs/demo/demov0_31scope.md.
+
+const STR := 20
+const AGI := 20
+const INT := 20
+
+const CAT_DRY := "dry"
+const CAT_FROZEN := "frozen"
+
+const DRY_SKUS: Array[String] = ["can", "snack", "cup"]
+const FROZEN_SKUS: Array[String] = ["drink", "milk", "soda"]
+const SELLABLE_SKUS: Array[String] = ["can", "snack", "cup", "drink", "milk", "soda"]
+
+const SKU_NAME := {
+	"can": "罐頭", "snack": "零食", "cup": "杯麵",
+	"drink": "支裝凍飲", "milk": "牛奶", "soda": "汽水",
+}
+const SKU_COLOR := {
+	"can": Color("c45c26"),
+	"snack": Color("e8c36a"),
+	"cup": Color("3d7ea6"),
+	"drink": Color("7ec8e3"),
+	"milk": Color("3a7ca5"),
+	"soda": Color("c0392b"),
+}
+const SKU_PRICE := {
+	"can": 30, "snack": 15, "cup": 8,
+	"drink": 8, "milk": 10, "soda": 20,
+}
+const SKU_COST := {
+	"can": 10, "snack": 5, "cup": 3,
+	"drink": 2, "milk": 3, "soda": 6,
+}
+
+const BOX_SIZE := 4
+const SHELF_CAP := 12
+const RESTOCK_BOXES := 99
+const STR_EFFECT_CAP := 50
+
+## Collision edge of the clerk; 1 身位. AGI 10 walk = 3 body-lengths / sec.
+const BODY_LENGTH := 26.0
+const WALK_SPEED := 3.0 * BODY_LENGTH
+const AGI_MOVE_REF := 10
+const AGI_EFFECT_CAP := 50
+const RUN_SPEED_MULT := 1.75
+const DASH_DISTANCE := 140.0
+const DASH_TIME := 0.12
+const RUN_HOLD_THRESHOLD := 0.18
+const STAMINA_PER_STR := 10.0
+const RUN_STAMINA_PER_SEC := 20.0
+const DASH_STAMINA_COST := 50.0
+const STAMINA_REGEN_PER_SEC := 16.0
+const STAMINA_REGEN_DELAY := 0.35
+const OVERWEIGHT_AT_CAP_MULT := 0.62
+const OVERWEIGHT_OVER_CAP_MULT := 0.42
+const DIRT_MULT := 0.55
+const SPEED_MAX_MULT := 5.0
+const SPEED_FLOOR := 48.0
+
+const CAMERA_ZOOM := 1.22
+const INTERACT_RANGE := 100.0
+const FACE_DOT := 0.18
+const SKU_PICK_HOLD := 0.18
+const RESTOCK_SECONDS_AT_10 := 2.0
+const RESTOCK_SECONDS_AT_50 := 0.2
+const CLEAN_SECONDS_AT_10 := 5.0
+const CLEAN_SECONDS_AT_50 := 1.0
+const CHECKOUT_SECONDS_AT_10 := 2.0
+const CHECKOUT_SECONDS_AT_50 := 0.2
+const CD_RATE_AT_10 := 1.0
+const CD_RATE_AT_50 := 1.5
+const INT_EFFECT_CAP := 50
+
+const RESTOCK_REAL_SEC := 30.0
+const OPEN_REAL_SEC := 180.0
+const GAME_START_HOUR := 6.0
+const OPEN_HOUR := 8.0
+const CLOSE_HOUR := 22.0
+
+const CUSTOMER_AGI := 10
+const CUSTOMER_SPAWN_MIN := 5.0
+const CUSTOMER_SPAWN_MAX := 5.0
+const CUSTOMER_CAP := 15
+const LIST_MIN := 2
+const LIST_MAX := 8
+const LIST_HARD_MAX := 15
+const LINGER_SEC := 1.0
+const THINK_SEC := 3.0
+const DISSAT_MAX := 100.0
+const DISSAT_MISS := 18.0
+const DISSAT_QUEUE_PER_SEC := 100.0 / 15.0
+const DISSAT_DIRT_PER_SEC := 8.0
+const CUSTOMER_ARRIVE_DIST := 40.0
+const CUSTOMER_SHELF_REACH := 80.0
+const LAYER_WALLS := 1
+const LAYER_FURNITURE := 2
+const LAYER_CUSTOMERS := 4
+
+
+static func agi_mult(agi: int = AGI) -> float:
+	return float(agi) / float(AGI_MOVE_REF)
+
+
+static func str_for_effects(str_stat: int = STR) -> int:
+	return mini(maxi(str_stat, 0), STR_EFFECT_CAP)
+
+
+static func stamina_max(str_stat: int = STR) -> float:
+	return STAMINA_PER_STR * float(str_for_effects(str_stat))
+
+
+static func dash_charges_from_str(str_stat: int = STR) -> int:
+	return str_for_effects(str_stat) / 5
+
+
+static func run_seconds_from_str(str_stat: int = STR) -> float:
+	return float(str_for_effects(str_stat)) / 2.0
+
+
+static func carry_boxes_from_str(str_stat: int = STR) -> int:
+	return 1 + str_for_effects(str_stat) / 5
+
+
+static func carry_items_from_str(str_stat: int = STR) -> int:
+	return carry_boxes_from_str(str_stat) * BOX_SIZE
+
+
+static func agi_for_effects(agi: int = AGI) -> int:
+	return mini(maxi(agi, 0), AGI_EFFECT_CAP)
+
+
+static func _agi_circle_seconds(at_10: float, at_50: float, agi: int) -> float:
+	var a := float(agi_for_effects(agi))
+	return at_10 + (at_50 - at_10) * (a - 10.0) / 40.0
+
+
+static func restock_seconds(agi: int = AGI) -> float:
+	return _agi_circle_seconds(RESTOCK_SECONDS_AT_10, RESTOCK_SECONDS_AT_50, agi)
+
+
+static func clean_seconds(agi: int = AGI) -> float:
+	return _agi_circle_seconds(CLEAN_SECONDS_AT_10, CLEAN_SECONDS_AT_50, agi)
+
+
+static func int_for_effects(int_stat: int = INT) -> int:
+	return mini(maxi(int_stat, 0), INT_EFFECT_CAP)
+
+
+static func checkout_seconds(int_stat: int = INT) -> float:
+	var a := float(int_for_effects(int_stat))
+	return CHECKOUT_SECONDS_AT_10 + (CHECKOUT_SECONDS_AT_50 - CHECKOUT_SECONDS_AT_10) * (a - 10.0) / 40.0
+
+
+static func cd_rate(int_stat: int = INT) -> float:
+	var a := float(int_for_effects(int_stat))
+	return CD_RATE_AT_10 + (CD_RATE_AT_50 - CD_RATE_AT_10) * (a - 10.0) / 40.0
+
+
+static func cd_seconds(listed: float, int_stat: int = INT) -> float:
+	return listed / cd_rate(int_stat)
+
+
+static func sku_name(id: String) -> String:
+	return String(SKU_NAME.get(id, id))
+
+
+static func sku_price(id: String) -> int:
+	return int(SKU_PRICE.get(id, 0))
+
+
+static func category_of(sku: String) -> String:
+	if sku in DRY_SKUS:
+		return CAT_DRY
+	if sku in FROZEN_SKUS:
+		return CAT_FROZEN
+	return ""
+
+
+static func skus_for(category: String) -> Array[String]:
+	if category == CAT_FROZEN:
+		return FROZEN_SKUS
+	return DRY_SKUS
+
+
+static func command_count(item_count: int) -> int:
+	if item_count <= 2:
+		return 1
+	if item_count <= 5:
+		return 2
+	if item_count <= 8:
+		return 3
+	if item_count <= 10:
+		return 4
+	return 5
+
+
+static func dir_name(code: int) -> String:
+	match code:
+		0:
+			return "上"
+		1:
+			return "下"
+		2:
+			return "左"
+		3:
+			return "右"
+	return "?"

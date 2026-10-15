@@ -53,6 +53,7 @@ var _u_held: bool = false
 var _ult_index: int = 0
 var _cd: Dictionary = {}
 var _buffs: Dictionary = {}
+var _cust_speed_q: Array[String] = []
 var _cardinal_armed: bool = true
 var _passive_checkout_pct: float = 0.0
 var _restock_picking: bool = false
@@ -91,17 +92,26 @@ func on_dirt() -> bool:
 	return dirt_contacts > 0
 
 
-func carry_cap() -> int:
-	var n := Tuning.CARRY_CAP
+func carry_boxes() -> int:
+	var n := Tuning.carry_boxes_from_str()
 	if _buffs.has("carry_boost"):
 		n += int(Skills.slot(0).get("carry_add", 0))
 	return n
 
 
-func move_pct_bonus() -> float:
+func carry_cap() -> int:
+	return carry_boxes() * Tuning.BOX_SIZE
+
+
+func move_speed_rate() -> float:
+	var rate := 1.0
 	if _buffs.has("move_boost"):
-		return float(Skills.slot(1).get("move_pct", 0.0))
-	return 0.0
+		rate *= 1.0 + float(Skills.slot(1).get("move_pct", 0.0))
+	for sk in Skills.EQUIPPED:
+		if String(sk.get("kind")) != "passive":
+			continue
+		rate *= 1.0 + float(sk.get("move_pct", 0.0))
+	return rate
 
 
 func restock_seconds_now() -> float:
@@ -110,14 +120,29 @@ func restock_seconds_now() -> float:
 		var sk := Skills.slot(4)
 		if bool(sk.get("restock_instant", false)):
 			return 0.0
-		return base * float(sk.get("restock_circle_mult", 1.0))
+		base *= float(sk.get("restock_circle_mult", 1.0))
+	var restock_pct := 0.0
+	for sk in Skills.EQUIPPED:
+		if String(sk.get("kind")) != "passive":
+			continue
+		restock_pct += float(sk.get("restock_pct", 0.0))
+	if restock_pct > 0.0:
+		base /= 1.0 + restock_pct
 	return base
 
 
 func checkout_seconds_now() -> float:
 	var sec := Tuning.checkout_seconds()
-	var pct := _passive_checkout_pct
-	return sec / (1.0 + pct)
+	var rate := 1.0
+	if _passive_checkout_pct > 0.0:
+		rate *= 1.0 + _passive_checkout_pct
+	for sk in Skills.EQUIPPED:
+		var sid := String(sk.get("id"))
+		if String(sk.get("kind")) != "active" or not _buffs.has(sid):
+			continue
+		if sk.has("checkout_pct"):
+			rate *= 1.0 + float(sk.get("checkout_pct"))
+	return sec / rate
 
 
 func cd_left(skill_id: String) -> float:
@@ -143,7 +168,7 @@ func role_status_text() -> String:
 	var bits: PackedStringArray = []
 	bits.append("STR%d AGI%d INT%d" % [Tuning.STR, Tuning.AGI, Tuning.INT])
 	if _buffs.has("carry_boost"):
-		bits.append("負重+60 %.0fs" % _buffs["carry_boost"])
+		bits.append("負重+60箱 %.0fs" % _buffs["carry_boost"])
 	if _buffs.has("move_boost"):
 		bits.append("移速+60%% %.0fs" % _buffs["move_boost"])
 	if _buffs.has("instant_restock"):
@@ -208,13 +233,11 @@ func move_state() -> String:
 
 func speed_mult() -> float:
 	var m := Tuning.agi_mult()
-	m *= 1.0 + move_pct_bonus()
+	m *= move_speed_rate()
 	var n := inventory.count()
 	var cap := carry_cap()
 	if n > cap:
 		m *= Tuning.OVERWEIGHT_OVER_CAP_MULT
-	elif n >= cap:
-		m *= Tuning.OVERWEIGHT_AT_CAP_MULT
 	if on_dirt():
 		m *= Tuning.DIRT_MULT
 	return clampf(m, 0.0, Tuning.SPEED_MAX_MULT)
@@ -350,6 +373,98 @@ func _physics_process(delta: float) -> void:
 	stats_changed.emit()
 
 
+func _enqueue_cust_speed(skill_id: String) -> void:
+	if not _cust_speed_q.has(skill_id):
+		_cust_speed_q.append(skill_id)
+
+
+func _customer_move_kind(skill_id: String) -> String:
+	if skill_id == "the_world":
+		var scale := float(Skills.ULTIMATE.get("clock_scale", 0.0))
+		if scale <= 0.001:
+			return "stop"
+		if scale < 1.0:
+			return "slow"
+		return ""
+	for sk in Skills.EQUIPPED:
+		if String(sk.get("id")) != skill_id:
+			continue
+		var pct := float(sk.get("customer_move_pct", 0.0))
+		if pct > 0.0:
+			return "fast"
+		if pct < 0.0:
+			return "slow"
+	return ""
+
+
+func _customer_move_mult_now() -> float:
+	var kinds: PackedStringArray = []
+	for id in _cust_speed_q:
+		if not _buffs.has(id):
+			continue
+		var k := _customer_move_kind(id)
+		if k != "" and not kinds.has(k):
+			kinds.append(k)
+	if kinds.has("stop"):
+		return 1.0
+	var mixed := kinds.has("fast") and kinds.has("slow")
+	if mixed:
+		for id in _cust_speed_q:
+			if not _buffs.has(id):
+				continue
+			var k := _customer_move_kind(id)
+			if k == "fast":
+				return 1.0 + _cust_move_pct(id)
+			if k == "slow":
+				return 1.0
+		return 1.0
+	var m := 1.0
+	for id in _cust_speed_q:
+		if not _buffs.has(id):
+			continue
+		if _customer_move_kind(id) != "fast":
+			continue
+		m *= 1.0 + _cust_move_pct(id)
+	return m
+
+
+func _world_clock_now() -> float:
+	if not _buffs.has("the_world"):
+		return 1.0
+	var scale := float(Skills.ULTIMATE.get("clock_scale", 0.0))
+	if scale <= 0.001:
+		return 0.0
+	var has_fast := false
+	var has_slow := false
+	for id in _cust_speed_q:
+		if not _buffs.has(id):
+			continue
+		var k := _customer_move_kind(id)
+		if k == "fast":
+			has_fast = true
+		elif k == "slow":
+			has_slow = true
+	if has_fast and has_slow:
+		for id in _cust_speed_q:
+			if not _buffs.has(id):
+				continue
+			var k := _customer_move_kind(id)
+			if k == "fast":
+				return 1.0
+			if k == "slow":
+				return scale
+	return scale
+
+
+func _cust_move_pct(skill_id: String) -> float:
+	if skill_id == "the_world":
+		return 0.0
+	for sk in Skills.EQUIPPED:
+		if String(sk.get("id")) == skill_id:
+			return float(sk.get("customer_move_pct", 0.0))
+	return 0.0
+
+
 func _tick_buffs(delta: float) -> void:
 	var gone: Array[String] = []
 	for id in _buffs.keys():
@@ -360,12 +475,13 @@ func _tick_buffs(delta: float) -> void:
 		_buffs.erase(id)
 	for id in _cd.keys():
 		_cd[id] = maxf(0.0, float(_cd[id]) - delta)
-	clock_scale = 0.0 if _buffs.has("the_world") else 1.0
-	customer_move_mult = 1.0
-	if _buffs.has("metal_rush"):
-		customer_move_mult += float(Skills.slot(2).get("customer_move_pct", 0.0))
-	if _buffs.has("the_world"):
-		customer_move_mult = 0.0
+	clock_scale = _world_clock_now()
+	customer_move_mult = _customer_move_mult_now()
+	var keep_q: Array[String] = []
+	for id in _cust_speed_q:
+		if _buffs.has(id):
+			keep_q.append(id)
+	_cust_speed_q = keep_q
 
 
 func _move_axis() -> Vector2:
@@ -474,7 +590,6 @@ func _try_dash() -> void:
 func _tick_dash(delta: float) -> void:
 	_dash_left -= delta
 	var speed := Tuning.DASH_DISTANCE / Tuning.DASH_TIME
-	speed = minf(speed, Tuning.WALK_SPEED * Tuning.SPEED_MAX_MULT)
 	velocity = _dash_dir * speed
 	move_and_slide()
 	if _dash_left <= 0.0:
@@ -576,7 +691,7 @@ func _try_pickup() -> void:
 		return
 	_pickup_used = true
 	if not inventory.can_take_box(carry_cap()):
-		log_line.emit("負重不足：一箱需要 %d 件空位（%d/%d）" % [Tuning.BOX_SIZE, inventory.count(), carry_cap()])
+		log_line.emit("負重不足：%d/%d 箱" % [inventory.count() / Tuning.BOX_SIZE, carry_boxes()])
 		return
 	if not bool(target.call("take_box")):
 		log_line.emit("%s 補貨點已空" % Tuning.sku_name(String(target.call("selected_sku"))))
@@ -802,8 +917,10 @@ func _cast_slot(i: int) -> void:
 	if cd_left(sid) > 0.05:
 		log_line.emit("%s 冷卻中 %.0fs" % [String(sk.get("name")), cd_left(sid)])
 		return
-	_cd[sid] = float(sk.get("cd", Skills.ACTIVE_CD))
+	_cd[sid] = Tuning.cd_seconds(float(sk.get("cd", Skills.ACTIVE_CD)))
 	_buffs[sid] = float(sk.get("duration", Skills.ACTIVE_DURATION))
+	if sk.has("customer_move_pct"):
+		_enqueue_cust_speed(sid)
 	log_line.emit("施放 %s LV%d" % [String(sk.get("name")), int(sk.get("lv", 3))])
 	skill_cast.emit(String(sk.get("name")), false)
 	_play_zoom(false)
@@ -812,8 +929,9 @@ func _cast_slot(i: int) -> void:
 func _cast_ultimate() -> void:
 	var sk: Dictionary = Skills.ULTIMATE
 	var sid := String(sk.get("id"))
-	_cd[sid] = float(sk.get("cd", Skills.ULT_CD))
+	_cd[sid] = Tuning.cd_seconds(float(sk.get("cd", Skills.ULT_CD)))
 	_buffs[sid] = float(sk.get("duration", Skills.ULT_DURATION))
+	_enqueue_cust_speed(sid)
 	log_line.emit("奧義 %s LV%d — 時停" % [String(sk.get("name")), int(sk.get("lv", 3))])
 	skill_cast.emit(String(sk.get("name")), true)
 	_play_zoom(true)

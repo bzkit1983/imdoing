@@ -295,6 +295,11 @@ func _build_visual() -> void:
 	_list_label.add_theme_color_override("font_outline_color", Color("121212"))
 	_list_label.add_theme_constant_override("outline_size", 6)
 	add_child(_list_label)
+	var track := ColorRect.new()
+	track.size = Vector2(28, 4)
+	track.position = Vector2(-14, 14)
+	track.color = Color("1b2420")
+	add_child(track)
 	_bar = ColorRect.new()
 	_bar.size = Vector2(28, 4)
 	_bar.position = Vector2(-14, 14)
@@ -312,7 +317,11 @@ func _refresh_labels() -> void:
 		_mood_label.text = mood
 	if _bar:
 		var t := clampf(dissatisfaction / Tuning.DISSAT_MAX, 0.0, 1.0)
-		_bar.size.x = 28.0
-		_bar.color = Color("2a9d8f").lerp(Color("c45c26"), t)
+		var remain := 1.0 - t
+		_bar.size.x = 28.0 * remain
+		var green := Color("2a9d8f")
+		var yellow := Color("e8c36a")
+		var red := Color("c45c26")
+		_bar.color = green.lerp(yellow, t / 0.5) if t < 0.5 else yellow.lerp(red, (t - 0.5) / 0.5)
 	if _body:
 		_body.color = Color("c45c26") if dissatisfaction > Tuning.DISSAT_MAX * 0.7 else Color("6b5b95")

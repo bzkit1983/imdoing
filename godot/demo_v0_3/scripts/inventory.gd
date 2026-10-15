@@ -13,7 +13,7 @@ func is_empty() -> bool:
 	return items.is_empty()
 
 
-func can_take_box(cap: int = Tuning.CARRY_CAP) -> bool:
+func can_take_box(cap: int = Tuning.carry_items_from_str()) -> bool:
 	return cap - items.size() >= Tuning.BOX_SIZE
 
 

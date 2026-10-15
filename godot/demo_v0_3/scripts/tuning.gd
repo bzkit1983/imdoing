@@ -36,16 +36,20 @@ const SKU_COST := {
 const BOX_SIZE := 4
 const SHELF_CAP := 12
 const RESTOCK_BOXES := 99
-const CARRY_CAP := 16
+const STR_EFFECT_CAP := 50
 
-const WALK_SPEED := 180.0
+## Collision edge of the clerk; 1 身位. AGI 10 walk = 3 body-lengths / sec.
+const BODY_LENGTH := 26.0
+const WALK_SPEED := 3.0 * BODY_LENGTH
+const AGI_MOVE_REF := 10
+const AGI_EFFECT_CAP := 50
 const RUN_SPEED_MULT := 1.75
 const DASH_DISTANCE := 140.0
 const DASH_TIME := 0.12
 const RUN_HOLD_THRESHOLD := 0.18
-const STAMINA_MAX := 100.0
-const RUN_STAMINA_PER_SEC := 22.0
-const DASH_STAMINA_COST := 28.0
+const STAMINA_PER_STR := 10.0
+const RUN_STAMINA_PER_SEC := 20.0
+const DASH_STAMINA_COST := 50.0
 const STAMINA_REGEN_PER_SEC := 16.0
 const STAMINA_REGEN_DELAY := 0.35
 const OVERWEIGHT_AT_CAP_MULT := 0.62
@@ -58,8 +62,15 @@ const CAMERA_ZOOM := 1.22
 const INTERACT_RANGE := 100.0
 const FACE_DOT := 0.18
 const SKU_PICK_HOLD := 0.18
-const RESTOCK_SECONDS_AT_10 := 0.9
-const CHECKOUT_SECONDS_AT_10 := 0.85
+const RESTOCK_SECONDS_AT_10 := 2.0
+const RESTOCK_SECONDS_AT_50 := 0.2
+const CLEAN_SECONDS_AT_10 := 5.0
+const CLEAN_SECONDS_AT_50 := 1.0
+const CHECKOUT_SECONDS_AT_10 := 2.0
+const CHECKOUT_SECONDS_AT_50 := 0.2
+const CD_RATE_AT_10 := 1.0
+const CD_RATE_AT_50 := 1.5
+const INT_EFFECT_CAP := 50
 
 const RESTOCK_REAL_SEC := 30.0
 const OPEN_REAL_SEC := 180.0
@@ -78,7 +89,7 @@ const LINGER_SEC := 1.0
 const THINK_SEC := 3.0
 const DISSAT_MAX := 100.0
 const DISSAT_MISS := 18.0
-const DISSAT_QUEUE_PER_SEC := 5.0
+const DISSAT_QUEUE_PER_SEC := 100.0 / 15.0
 const DISSAT_DIRT_PER_SEC := 8.0
 const CUSTOMER_ARRIVE_DIST := 40.0
 const CUSTOMER_SHELF_REACH := 80.0
@@ -88,19 +99,66 @@ const LAYER_CUSTOMERS := 4
 
 
 static func agi_mult(agi: int = AGI) -> float:
-	return float(agi) / 10.0
+	return float(agi) / float(AGI_MOVE_REF)
+
+
+static func str_for_effects(str_stat: int = STR) -> int:
+	return mini(maxi(str_stat, 0), STR_EFFECT_CAP)
 
 
 static func stamina_max(str_stat: int = STR) -> float:
-	return STAMINA_MAX * (float(str_stat) / 10.0)
+	return STAMINA_PER_STR * float(str_for_effects(str_stat))
+
+
+static func dash_charges_from_str(str_stat: int = STR) -> int:
+	return str_for_effects(str_stat) / 5
+
+
+static func run_seconds_from_str(str_stat: int = STR) -> float:
+	return float(str_for_effects(str_stat)) / 2.0
+
+
+static func carry_boxes_from_str(str_stat: int = STR) -> int:
+	return 1 + str_for_effects(str_stat) / 5
+
+
+static func carry_items_from_str(str_stat: int = STR) -> int:
+	return carry_boxes_from_str(str_stat) * BOX_SIZE
+
+
+static func agi_for_effects(agi: int = AGI) -> int:
+	return mini(maxi(agi, 0), AGI_EFFECT_CAP)
+
+
+static func _agi_circle_seconds(at_10: float, at_50: float, agi: int) -> float:
+	var a := float(agi_for_effects(agi))
+	return at_10 + (at_50 - at_10) * (a - 10.0) / 40.0
 
 
 static func restock_seconds(agi: int = AGI) -> float:
-	return RESTOCK_SECONDS_AT_10 * (10.0 / float(maxi(1, agi)))
+	return _agi_circle_seconds(RESTOCK_SECONDS_AT_10, RESTOCK_SECONDS_AT_50, agi)
+
+
+static func clean_seconds(agi: int = AGI) -> float:
+	return _agi_circle_seconds(CLEAN_SECONDS_AT_10, CLEAN_SECONDS_AT_50, agi)
+
+
+static func int_for_effects(int_stat: int = INT) -> int:
+	return mini(maxi(int_stat, 0), INT_EFFECT_CAP)
 
 
 static func checkout_seconds(int_stat: int = INT) -> float:
-	return CHECKOUT_SECONDS_AT_10 * (10.0 / float(maxi(1, int_stat)))
+	var a := float(int_for_effects(int_stat))
+	return CHECKOUT_SECONDS_AT_10 + (CHECKOUT_SECONDS_AT_50 - CHECKOUT_SECONDS_AT_10) * (a - 10.0) / 40.0
+
+
+static func cd_rate(int_stat: int = INT) -> float:
+	var a := float(int_for_effects(int_stat))
+	return CD_RATE_AT_10 + (CD_RATE_AT_50 - CD_RATE_AT_10) * (a - 10.0) / 40.0
+
+
+static func cd_seconds(listed: float, int_stat: int = INT) -> float:
+	return listed / cd_rate(int_stat)
 
 
 static func sku_name(id: String) -> String:

@@ -135,7 +135,10 @@ func _refresh() -> void:
 	_stamina.max_value = Tuning.stamina_max()
 	_stamina.value = float(player.get("stamina"))
 	var inv = player.get("inventory")
-	_carry.text = "負重  %d / %d" % [inv.count(), int(player.call("carry_cap"))]
+	_carry.text = "負重  %d / %d 箱" % [
+		int(inv.count()) / Tuning.BOX_SIZE,
+		int(player.call("carry_boxes")),
+	]
 	_hud_list.clear()
 	if inv.is_empty():
 		_hud_list.add_item("空手")
