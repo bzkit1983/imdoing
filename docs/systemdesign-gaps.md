@@ -35,10 +35,10 @@
 | 已處理 | 規則含糊 | The World「變慢 50%／80%」語意不清 | 減慢 X%＝世界流速剩 (100−X)%（LV1 50%、LV2 20%、LV3 0%）。時鐘、生成、不滿、排隊、客人動作一併變慢。玩家行動／Circle／CD／持續仍用現實秒。 | playerultimateskills.md, customer.md |
 | P1 | 規則含糊 | Yes! My Lord! 破壞購物／收銀規則 | 「無視購買上限」搶最近貨架：是否清空貨架、是否加入該客人清單、沒錢／未開發 SKU、搶完是否仍要收銀指令、與清單上限 15 件關係。 | playerultimateskills.md, customer.md, cashiersystem.md |
 | P1 | 規則含糊 | 全體集資「一半客人」沒有選法 | LV1 只處理排隊。LV2 全店一半：進位、是否含離開中、是否略過指令與 Circle、營業額是否全額、購物未完成者是否白送。 | playerultimateskills.md, cashiersystem.md |
-| P1 | 規則含糊 | 衝刺撞飛與客人尋路互相打架 | 購物客人不互撞以免堵塞；衝刺卻 Screen KO 撞飛。不滿四種貨品條件（空手／錯貨／對貨／齊貨）沒有數值。路人減速「唔該借借」與撞飛如何並行。小偷被撞飛後是否算打擊。 | playermovement.md, customer.md, playeraction.md |
+| P1 | 規則含糊 | 衝刺撞飛與客人尋路互相打架 | 購物客人不互撞以免堵塞；衝刺卻 Screen KO 撞飛。不滿四種貨品條件（空手／錯貨／對貨／齊貨）沒有數值。路人減速「唔該借借」與撞飛如何並行。小偷撞飛：Demo v0.5 視作逃走（已偷貨算被偷，不算打擊成功）。 | playermovement.md, customer.md, thiefsystem.md |
 | P1 | 缺檔／缺系統 | 劇情／事件層沒有設計檔 | 三層循環的第一層：特殊過關條件、特別客人、購物異常。playerlevel 說劇情跟級數走。沒有事件表、觸發、失敗條件。 | gameconcept.md, playerlevel.md |
 | 已處理 | 缺檔／缺系統 | 清潔只有行動列 | `cleaningsystem.md`：三類污物、50% 減速、長按＋轉搖桿清潔計、AGI 加快計量。生成頻率／同時上限／不滿與氣力點數長線仍可再拍（Demo v0.4 已有試玩數字）。 | cleaningsystem.md, playeraction.md, playerstats.md |
-| P1 | 缺檔／缺系統 | 打擊只有行動列，沒有系統 | 小偷出現率、行為、打擊指令、霸王色「減少 50%」的基數皆無。 | playeraction.md, customer.md, playerpassiveskills.md, playermovement.md |
+| 已處理 | 缺檔／缺系統 | 打擊只有行動列 | `thiefsystem.md`：小偷有清單、不付款、被偷另計；抓住後連按扣血、STR 加快、5 秒失敗倒地。出現間隔／同時上限長線仍可再拍（Demo v0.5 已有試玩數字）。霸王色基數仍未定（本 Demo 未裝備）。 | thiefsystem.md, playeraction.md, playermovement.md |
 | P1 | 缺檔／缺系統 | 店員是誰 | gameconcept 寫「貨架清空後店員補貨」「店員收錢」「店員管理」。是玩家角色、可雇 NPC，還是導出角色（playerexport）？NPC AI、工資、能否收銀未定。 | gameconcept.md, playerexport.md |
 | P1 | 缺檔／缺系統 | 幫忙取貨與 COMBO 交貨沒有規則 | 核心節奏寫客人找不到貨可幫忙提取、清單貨物可一口氣交付 COMBO。沒有互動對象、指令、計分、與收銀／不滿的關係。 | gameconcept.md, customer.md, playeraction.md |
 | P1 | 缺檔／缺系統 | 店面空間與擴張未定義 | 無格線、走道、初始傢俬上限、增購收銀機／貨架規則、品質與容量表。冰櫃種類有了，沒有溫度、腐壞或與凍櫃的操作差異。 | replenishmentsystem.md, stocksystem.md, cashiersystem.md |
@@ -59,7 +59,7 @@ gameconcept 的三層循環裡，只有「經營回合」有較完整的拆檔�
 
 - **循環與進度：** 劇情／事件、過關與失敗、經營值、角色級數表、存檔
 - **準備回合：** 配點 UI、技能裝備畫面、採購、開發新貨、擴張與貨架擺放、外觀
-- **店內系統：** 小偷與打擊、店員 AI、幫忙取貨與 COMBO 交貨、多收銀台規則、冰櫃特殊規則（清潔已有 `cleaningsystem.md`）
+- **店內系統：** 店員 AI、幫忙取貨與 COMBO 交貨、多收銀台規則、冰櫃特殊規則（清潔／小偷已有系統檔）
 - **幾乎是空檔：** `playerexport.md` 只有一句。Voxel Art 只在概念出現，沒有製作規範
 
 # 已有檔但仍寫不進程式的數值
@@ -81,4 +81,4 @@ gameconcept 的三層循環裡，只有「經營回合」有較完整的拆檔�
 2. ~~定不滿量表~~ **已處理：** 0–100 累積怒氣；安撫減少目前不滿；儀表相反顯示；排隊 15 秒滿。找不到貨／污物長線數字仍可再拍。
 3. ~~能力值換算表~~ **已處理**（STR／AGI／INT 主表）。Buff／時停如何相乘仍見 P1。
 4. 資金與準備回合最小閉環（沒有這層，採購成本與擴張都是空的）。
-5. 補小偷／打擊，或從長線行動表刪掉，避免操作與技能（霸王色）懸空。清潔已有系統檔。
+5. 資金與準備回合仍優先。小偷／清潔已有系統檔；霸王色出現率基數可後補。
