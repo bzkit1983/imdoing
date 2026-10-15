@@ -243,6 +243,10 @@ func speed_mult() -> float:
 	return clampf(m, 0.0, Tuning.SPEED_MAX_MULT)
 
 
+func _shelving() -> bool:
+	return _j_held and target != null and String(target.get("kind")) == "shelf"
+
+
 func _in_dir_mode() -> bool:
 	if ult_prep or skill_menu_open or _restock_picking or _l_held or _u_held:
 		return true
@@ -485,7 +489,7 @@ func _tick_buffs(delta: float) -> void:
 
 
 func _move_axis() -> Vector2:
-	if _in_dir_mode():
+	if _in_dir_mode() or _shelving():
 		return Vector2.ZERO
 	var v := _key_move_axis() + _pad_move_axis() + stick_axis
 	if v.length_squared() > 1.0:
@@ -553,7 +557,7 @@ func _tick_move(delta: float) -> void:
 	var axis := _move_axis()
 	if axis != Vector2.ZERO:
 		facing = axis
-		if _j_held and not command_lock:
+		if _j_held and not command_lock and not _shelving():
 			_reset_hold()
 	var want_run := _running and axis != Vector2.ZERO
 	if want_run:
