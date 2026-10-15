@@ -7,4 +7,4 @@ Repository for game project
 - `godot/demo_v0_3` — 技能 LV3、觸控搖桿／按鍵、GitHub Pages（已完成，見 `docs/demo/demov0_3scope.md`）
 - GitHub Pages（iPhone）：https://bzkit1983.github.io/imdoing/play-v03/
 
-設計文件在 `docs/systemdesign/`。
+設計文件在 `docs/systemdesign/`。長線設計缺口檢視：`docs/systemdesign-gaps.md`。
