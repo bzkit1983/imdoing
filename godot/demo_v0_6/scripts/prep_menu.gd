@@ -97,8 +97,8 @@ func _refresh() -> void:
 	match _page:
 		"scenario":
 			_title.text = "Demo v0.6　選擇劇本"
-			_info.text = "劇本1 的 $1000 剛好只夠一台收銀機，買了就沒錢進貨。完整循環請用劇本2 或劇本3。"
-			_add("劇本1　從新開始　資金 $1000　LV1　空店", "sc", 1)
+			_info.text = "劇本1 從空店開始，資金 $10000。劇本2、3 帶現成店面和店員。"
+			_add("劇本1　從新開始　資金 $10000　LV1　空店", "sc", 1)
 			_add("劇本2　LV5　資金 $10000　店規模 2　1 名店員", "sc", 2)
 			_add("劇本3　LV10　資金 $99999　三圍 30　店規模 3　2 名店員", "sc", 3)
 		"home":
@@ -144,8 +144,6 @@ func _header() -> String:
 
 
 func _home_info() -> String:
-	if state.scenario == 1 and state.money <= 1000 and state.placed.is_empty():
-		return "劇本1：$1000 買收銀機後無法再買貨架或罐頭。這是設計數字，不是操作故障。"
 	if state.level_note != "":
 		return state.level_note
 	return "開店前配置角色、進貨、店面和店員。關店後回到這裡，營業額入帳。"

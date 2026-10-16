@@ -26,7 +26,7 @@ const FURNITURE := {
 }
 
 var scenario: int = 1
-var money: int = 1000
+var money: int = 10000
 var xp: int = 0
 var level: int = 1
 var unspent: int = 0
@@ -73,7 +73,7 @@ func apply_scenario(id: int) -> void:
 
 
 func _scenario_new() -> void:
-	money = 1000
+	money = 10000
 	level = 1
 	xp = 0
 	unspent = 0
