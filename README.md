@@ -8,6 +8,7 @@ Repository for game project
 - `godot/demo_v0_31` — 對齊長線數值與技能疊加（見 `docs/demo/demov0_31scope.md`）
 - `godot/demo_v0_4` — 三類污物與清潔小遊戲（見 `docs/demo/demov0_4scope.md`）
 - `godot/demo_v0_5` — 小偷與連打打擊（見 `docs/demo/demov0_5scope.md`）
-- GitHub Pages（iPhone）：https://bzkit1983.github.io/imdoing/play-v05/
+- `godot/demo_v0_6` — 準備回合、資金、等級、店舖設計、店員（見 `docs/demo/demov0_6scope.md`）
+- GitHub Pages（iPhone）：https://bzkit1983.github.io/imdoing/play-v06/
 
 設計文件在 `docs/systemdesign/`。長線設計缺口檢視：`docs/systemdesign-gaps.md`。Alpha 計劃（系統先可玩，再接 Voxel）：`docs/alpha/plan.md`。
