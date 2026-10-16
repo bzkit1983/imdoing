@@ -41,11 +41,11 @@ const SKU_COST := {
 	"icecream": 20, "meat": 15, "rice": 50,
 }
 const SKU_DEVELOP := {
-	"can": 100, "snack": 200, "cup": 300,
+	"can": 0, "snack": 200, "cup": 300,
 	"drink": 400, "milk": 500, "soda": 600,
 	"icecream": 700, "meat": 800, "rice": 900,
 }
-## Character level that unlocks development. Canned and microwave rice were missing in shopprogress.
+## Canned goods are initial stock: no develop fee. Microwave rice still has no listed level (treated as LV9).
 const SKU_UNLOCK_LV := {
 	"can": 1, "snack": 2, "cup": 3,
 	"drink": 4, "milk": 5, "soda": 6,
@@ -66,6 +66,8 @@ const RUN_SPEED_MULT := 1.75
 const DASH_DISTANCE := 140.0
 const DASH_TIME := 0.12
 const RUN_HOLD_THRESHOLD := 0.18
+## Long-press cancel (B or ;) drops the top carried box. A tap still only cancels.
+const DROP_HOLD_SEC := 0.45
 const STAMINA_PER_STR := 10.0
 const RUN_STAMINA_PER_SEC := 20.0
 const DASH_STAMINA_COST := 50.0

@@ -69,6 +69,9 @@ var _restock_aborted: bool = false
 var _fighting: bool = false
 var _fight_release: bool = false
 var _stun_pending: float = Tuning.STUN_SEC
+var _cancel_held: bool = false
+var _cancel_time: float = 0.0
+var _cancel_dropped: bool = false
 
 
 func _ready() -> void:
@@ -334,8 +337,13 @@ func set_hold(action: String, pressed: bool) -> void:
 		"ult":
 			_on_ult_hold(pressed)
 		"cancel":
+			_cancel_held = pressed
 			if pressed:
+				_cancel_time = 0.0
+				_cancel_dropped = false
 				_cancel_input()
+			else:
+				_cancel_time = 0.0
 
 
 func move_state() -> String:
@@ -425,9 +433,8 @@ func _on_key_event(key_event: InputEventKey) -> void:
 		set_hold("ult", key_event.pressed)
 		get_viewport().set_input_as_handled()
 	elif key == KEY_SEMICOLON or key == KEY_BACKSPACE:
-		if key_event.pressed:
-			_cancel_input()
-			get_viewport().set_input_as_handled()
+		set_hold("cancel", key_event.pressed)
+		get_viewport().set_input_as_handled()
 	elif key_event.pressed:
 		_handle_hotkeys(key)
 
@@ -438,8 +445,7 @@ func _on_pad_button(pad: InputEventJoypadButton) -> void:
 		JOY_BUTTON_A:
 			set_hold("interact", pad.pressed)
 		JOY_BUTTON_B:
-			if pad.pressed:
-				_cancel_input()
+			set_hold("cancel", pad.pressed)
 		JOY_BUTTON_X:
 			set_hold("dash", pad.pressed)
 		JOY_BUTTON_Y:
@@ -461,6 +467,38 @@ func _on_pad_button(pad: InputEventJoypadButton) -> void:
 		_:
 			return
 	get_viewport().set_input_as_handled()
+
+
+func _tick_cancel_hold(delta: float) -> void:
+	if _cancel_dropped:
+		return
+	_cancel_time += delta
+	if _cancel_time < Tuning.DROP_HOLD_SEC:
+		return
+	_cancel_dropped = true
+	_discard_top_box()
+
+
+func _round_active() -> bool:
+	var game := get_tree().get_first_node_in_group("game")
+	if game == null:
+		return true
+	var phase := String(game.get("phase"))
+	return phase == "restock" or phase == "open"
+
+
+func _discard_top_box() -> void:
+	if not _round_active():
+		return
+	if _stun_left > 0.0 or _slip_left > 0.0 or _fighting:
+		return
+	if inventory.is_empty():
+		log_line.emit("手上沒有貨箱")
+		return
+	var run: Dictionary = inventory.trailing_run()
+	var name := Tuning.sku_name(String(run["id"]))
+	_drop_top_box()
+	log_line.emit("丟掉 %s 1箱 — 掉在腳邊，可以再撿" % name)
 
 
 func _cancel_input() -> void:
@@ -489,6 +527,8 @@ func _physics_process(delta: float) -> void:
 		_k_time += delta
 		if _k_time >= Tuning.RUN_HOLD_THRESHOLD:
 			_running = stamina > 1.0
+	if _cancel_held:
+		_tick_cancel_hold(delta)
 	if _l_held and _sick_left <= 0.0 and _stun_left <= 0.0:
 		_l_time += delta
 		if not skill_menu_open and _l_time >= Skills.HOLD_MENU_SEC:

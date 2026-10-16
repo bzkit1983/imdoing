@@ -70,6 +70,13 @@ func apply_scenario(id: int) -> void:
 			_scenario_late()
 		_:
 			_scenario_new()
+	_grant_initial_goods()
+
+
+func _grant_initial_goods() -> void:
+	developed["can"] = true
+	if not stock.has("can"):
+		stock["can"] = 0
 
 
 func _scenario_new() -> void:
@@ -229,6 +236,11 @@ func sku_unlocked(sku: String) -> bool:
 
 
 func develop(sku: String) -> String:
+	if sku == "can":
+		developed["can"] = true
+		if not stock.has("can"):
+			stock["can"] = 0
+		return "罐頭是初始貨物，不用開發"
 	if developed.has(sku):
 		return "已開發"
 	if not sku_unlocked(sku):

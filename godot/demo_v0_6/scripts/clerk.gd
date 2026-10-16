@@ -12,6 +12,7 @@ var _path_i: int = 0
 var _goal: Vector2 = Vector2.ZERO
 var _timer: float = 0.0
 var _shelf: Node2D
+var _plan_sku: String = ""
 var _box_sku: String = ""
 var _box_n: int = 0
 
@@ -90,49 +91,122 @@ func _tick_restock(delta: float) -> void:
 		_timer = 0.0
 		if _box_n <= 0:
 			_box_sku = ""
+			_plan_sku = ""
 			_shelf = null
 		elif placed == 0:
 			_drop_box()
 		return
-	_shelf = _find_shelf()
-	if _shelf == null:
+	var job := _find_job()
+	if job.is_empty():
 		return
+	_shelf = job["shelf"]
+	_plan_sku = String(job["sku"])
 	var cat := String(_shelf.get("category"))
 	var point: Node2D = _game.call("restock_for", cat)
 	if point == null:
-		_shelf = null
+		_clear_plan()
 		return
 	if not _follow(point.global_position + Vector2(70, 0), delta):
 		return
-	var sku := String(_shelf.get("sku"))
-	if not bool(_game.state.consume_box(sku)):
-		_shelf = null
+	if not bool(_game.state.consume_box(_plan_sku)):
+		_clear_plan()
 		return
 	_game.call("sync_stock")
-	_box_sku = sku
+	_box_sku = _plan_sku
 	_box_n = Tuning.BOX_SIZE
 	_timer = 0.0
 	_clear_path()
 
 
-func _find_shelf() -> Node2D:
-	var best: Node2D = null
+func _find_job() -> Dictionary:
+	var present := _skus_on_shelves()
+	var held := _reserved_by_others()
+	var reserved_sku: Dictionary = held["sku"]
+	var reserved_shelf: Dictionary = held["shelf"]
+	var best_shelf: Node2D = null
+	var best_sku := ""
 	var best_d := 99999.0
+	var best_empty := false
+	for s in _game.shelves:
+		if s == null or reserved_shelf.has(s):
+			continue
+		if int(s.get("count")) + Tuning.BOX_SIZE > Tuning.SHELF_CAP:
+			continue
+		var sku := String(s.get("sku"))
+		var pick := ""
+		var is_empty := sku == ""
+		if is_empty:
+			pick = _missing_sku(String(s.get("category")), present, reserved_sku)
+		elif int(_game.state.stock.get(sku, 0)) > 0 and not reserved_sku.has(sku):
+			pick = sku
+		if pick == "":
+			continue
+		var d := global_position.distance_squared_to(s.global_position)
+		var better := best_shelf == null
+		if not better and is_empty != best_empty:
+			better = is_empty
+		elif not better and d < best_d:
+			better = true
+		if better:
+			best_shelf = s
+			best_sku = pick
+			best_d = d
+			best_empty = is_empty
+	if best_shelf == null:
+		return {}
+	return {"shelf": best_shelf, "sku": best_sku}
+
+
+func _missing_sku(category: String, present: Dictionary, reserved: Dictionary) -> String:
+	for sku in Tuning.skus_for(category):
+		if not _game.state.developed.has(sku):
+			continue
+		if present.has(sku) or reserved.has(sku):
+			continue
+		if int(_game.state.stock.get(sku, 0)) <= 0:
+			continue
+		return sku
+	return ""
+
+
+func _skus_on_shelves() -> Dictionary:
+	var on := {}
 	for s in _game.shelves:
 		if s == null:
 			continue
 		var sku := String(s.get("sku"))
-		if sku == "":
+		if sku != "":
+			on[sku] = true
+	return on
+
+
+func _reserved_by_others() -> Dictionary:
+	var sku := {}
+	var shelf := {}
+	var parent := get_parent()
+	if parent == null:
+		return {"sku": sku, "shelf": shelf}
+	for c in parent.get_children():
+		if c == self:
 			continue
-		if int(s.get("count")) + Tuning.BOX_SIZE > Tuning.SHELF_CAP:
+		var role = c.get("role")
+		if typeof(role) != TYPE_STRING or role != "restock":
 			continue
-		if int(_game.state.stock.get(sku, 0)) <= 0:
-			continue
-		var d := global_position.distance_squared_to(s.global_position)
-		if d < best_d:
-			best_d = d
-			best = s
-	return best
+		var planned := str(c.get("_plan_sku"))
+		if planned != "":
+			sku[planned] = true
+		var carried := str(c.get("_box_sku"))
+		if carried != "":
+			sku[carried] = true
+		var target = c.get("_shelf")
+		if target != null:
+			shelf[target] = true
+	return {"sku": sku, "shelf": shelf}
+
+
+func _clear_plan() -> void:
+	_plan_sku = ""
+	_shelf = null
 
 
 func _drop_box() -> void:
@@ -141,6 +215,7 @@ func _drop_box() -> void:
 		# Partial items are not a full box; leave them out of stock rather than invent a box.
 	_box_n = 0
 	_box_sku = ""
+	_plan_sku = ""
 	_shelf = null
 	_timer = 0.0
 
