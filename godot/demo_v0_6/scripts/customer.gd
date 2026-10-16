@@ -153,6 +153,9 @@ func is_at_register() -> bool:
 func _physics_process(delta: float) -> void:
 	if _game == null:
 		return
+	if _game.has_method("asking_early_close") and bool(_game.asking_early_close()):
+		velocity = Vector2.ZERO
+		return
 	var td := float(_game.call("world_delta", delta))
 	if String(_game.get("phase")) == "closed" and state != State.LEAVE and state != State.FLEE and state != State.FIGHT:
 		if is_thief:
@@ -434,7 +437,16 @@ func _roll_list() -> Array[String]:
 		pool = _game.sellable()
 	if pool.is_empty():
 		return []
-	var n := randi_range(Tuning.THIEF_LIST_MIN if is_thief else Tuning.LIST_MIN, Tuning.THIEF_LIST_MAX if is_thief else Tuning.LIST_MAX)
+	var lo := Tuning.LIST_MIN
+	var hi := Tuning.LIST_MAX
+	if is_thief:
+		lo = Tuning.THIEF_LIST_MIN
+		hi = Tuning.THIEF_LIST_MAX
+	elif _game and _game.has_method("customer_list_bounds"):
+		var bounds: Vector2i = _game.customer_list_bounds()
+		lo = bounds.x
+		hi = bounds.y
+	var n := randi_range(lo, hi)
 	n = mini(n, Tuning.LIST_HARD_MAX)
 	var out: Array[String] = []
 	for i in n:

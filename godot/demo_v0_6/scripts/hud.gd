@@ -6,6 +6,7 @@ const UiFont = preload("res://scripts/ui_font.gd")
 
 var game: Node
 var player: CharacterBody2D
+var _skip: Button
 
 @onready var _clock: Control = $Root/Left/Clock
 @onready var _time: Label = $Root/Left/Time
@@ -42,6 +43,7 @@ func setup(g: Node, p: CharacterBody2D) -> void:
 	player.connect("skill_cast", _on_skill_cast)
 	_close.visible = false
 	_cast.modulate.a = 0.0
+	_build_skip()
 	_banner.text = "店鋪經營回合  ·  Demo v0.6"
 	var tw := create_tween()
 	tw.tween_interval(1.8)
@@ -78,6 +80,42 @@ func show_closeout() -> void:
 
 func _process(_delta: float) -> void:
 	_refresh_left()
+	if _skip:
+		var running := game != null and (String(game.phase) == "restock" or String(game.phase) == "open")
+		_skip.visible = running
+
+
+func _build_skip() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 25
+	add_child(layer)
+	var host := Control.new()
+	host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(host)
+	host.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var btn := Button.new()
+	btn.text = "馬上完成營運"
+	btn.focus_mode = Control.FOCUS_NONE
+	host.add_child(btn)
+	btn.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	btn.offset_left = -210.0
+	btn.offset_top = 10.0
+	btn.offset_right = 210.0
+	btn.offset_bottom = 78.0
+	UiFont.apply_button(btn, 20)
+	var box := StyleBoxFlat.new()
+	box.bg_color = Color("f4d35e")
+	box.set_corner_radius_all(10)
+	for state_name in ["normal", "hover", "pressed", "focus"]:
+		btn.add_theme_stylebox_override(state_name, box)
+	btn.add_theme_color_override("font_color", Color("1c241f"))
+	btn.pressed.connect(_on_skip_operate)
+	_skip = btn
+
+
+func _on_skip_operate() -> void:
+	if game and game.has_method("skip_operate"):
+		game.skip_operate()
 
 
 func _on_log(text: String) -> void:

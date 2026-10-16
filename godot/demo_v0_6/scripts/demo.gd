@@ -45,6 +45,14 @@ var _hud: CanvasLayer
 var _dirts: Array[Node2D] = []
 var _dirt_spawn_in: float = Tuning.DIRT_SPAWN_SEC
 var _thief_spawn_in: float = Tuning.THIEF_SPAWN_FIRST
+var _early_open: bool = false
+var _early_latched: bool = false
+var _early_closed: bool = false
+var _skip_xp: int = 0
+var _early_focus: int = 0
+var _early_layer: CanvasLayer
+var _early_yes: Button
+var _early_no: Button
 
 
 func _ready() -> void:
@@ -57,7 +65,11 @@ func _ready() -> void:
 
 
 func _begin_day() -> void:
+	if _prep:
+		_prep.set_process_unhandled_input(false)
 	_clear_world()
+	_early_closed = false
+	_skip_xp = 0
 	revenue = 0
 	served = 0
 	angry_left = 0
@@ -70,8 +82,8 @@ func _begin_day() -> void:
 	real_time = 0.0
 	phase = "restock"
 	_spawn_in = 2.0
-	_dirt_spawn_in = Tuning.DIRT_SPAWN_SEC
-	_thief_spawn_in = Tuning.THIEF_SPAWN_FIRST
+	_dirt_spawn_in = state.dirt_spawn_sec()
+	_thief_spawn_in = state.thief_spawn_first()
 	FLOOR_SIZE = Vector2(state.grid_w, state.grid_h) * StateScript.CELL
 	_world = Node2D.new()
 	_world.name = "World"
@@ -106,7 +118,22 @@ func _begin_day() -> void:
 	pad.name = "TouchPad"
 	add_child(pad)
 	pad.stick_changed.connect(func(axis: Vector2) -> void: _player.stick_axis = axis)
-	pad.hold_changed.connect(func(action: String, pressed: bool) -> void: _player.set_hold(action, pressed))
+	pad.hold_changed.connect(func(action: String, pressed: bool) -> void:
+		if _early_open and pressed:
+			if action == "interact":
+				if _early_focus == 0:
+					_confirm_early_close()
+				else:
+					_decline_early_close()
+			elif action == "cancel":
+				_decline_early_close()
+			return
+		if phase == "closed" and pressed and (action == "interact" or action == "cancel"):
+			_return_to_prep()
+			return
+		if _player:
+			_player.set_hold(action, pressed)
+	)
 	_spawn_clerks()
 	for i in Tuning.DIRT_START_COUNT:
 		_try_spawn_dirt()
@@ -129,6 +156,11 @@ func _clear_world() -> void:
 	cashier = null
 	_player = null
 	_customers = null
+	_early_open = false
+	_early_latched = false
+	_early_layer = null
+	_early_yes = null
+	_early_no = null
 
 
 func _build_furniture(nodes: Array[Node2D]) -> void:
@@ -182,6 +214,10 @@ func sellable() -> Array[String]:
 	return state.sellable()
 
 
+func customer_list_bounds() -> Vector2i:
+	return Vector2i(state.customer_list_min(), state.customer_list_max())
+
+
 func queue_dissat_blocked() -> bool:
 	return state.has_flag("no_queue_dissat")
 
@@ -226,26 +262,217 @@ func sync_stock() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _early_open:
+		_early_input(event)
+		return
 	if phase != "closed":
 		return
 	var go := false
 	if event is InputEventKey and event.pressed and not event.echo:
 		var k := (event as InputEventKey).physical_keycode
-		go = k == KEY_J or k == KEY_ENTER or k == KEY_SEMICOLON
+		go = k == KEY_J or k == KEY_ENTER or k == KEY_SEMICOLON or k == KEY_BACKSPACE
 	elif event is InputEventJoypadButton and event.pressed:
 		var b := (event as InputEventJoypadButton).button_index
 		go = b == JOY_BUTTON_A or b == JOY_BUTTON_B
 	if not go:
+		return
+	_return_to_prep()
+	get_viewport().set_input_as_handled()
+
+
+func _return_to_prep() -> void:
+	if phase != "closed":
 		return
 	phase = "prep"
 	_clear_world()
 	_prep.visible = true
 	_prep.set_process_unhandled_input(true)
 	_prep._show_page("home")
+
+
+func asking_early_close() -> bool:
+	return _early_open
+
+
+func _consider_early_close() -> bool:
+	if not _restocks_cleared() or not _registers_idle():
+		_early_latched = false
+		return false
+	if _early_latched:
+		return false
+	_show_early_dialog()
+	return true
+
+
+func _restocks_cleared() -> bool:
+	if _player == null or state == null:
+		return false
+	var saw := false
+	for n in _player.interactables:
+		if n == null or not is_instance_valid(n):
+			continue
+		if String(n.get("kind")) != "restock":
+			continue
+		saw = true
+		if not n.has_method("skus"):
+			return false
+		for sku in n.skus():
+			if int(state.stock.get(sku, 0)) > 0:
+				return false
+	return saw
+
+
+func _registers_idle() -> bool:
+	for c in cashiers:
+		if c != null and is_instance_valid(c) and c.queue.size() > 0:
+			return false
+	return true
+
+
+func _show_early_dialog() -> void:
+	_early_open = true
+	_early_focus = 0
+	if _player and _player.has_method("set_hold"):
+		_player.set_hold("interact", false)
+		_player.set_hold("cancel", false)
+		_player.set_hold("dash", false)
+		_player.set_hold("skill", false)
+		_player.set_hold("ult", false)
+	if _early_layer != null and is_instance_valid(_early_layer):
+		_early_layer.visible = true
+		_paint_early_focus()
+		return
+	var layer := CanvasLayer.new()
+	layer.layer = 50
+	add_child(layer)
+	var shade := ColorRect.new()
+	shade.color = Color(0, 0, 0, 0.55)
+	shade.mouse_filter = Control.MOUSE_FILTER_STOP
+	layer.add_child(shade)
+	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var card := ColorRect.new()
+	card.color = Color("1c241f")
+	card.position = Vector2(240, 150)
+	card.size = Vector2(800, 420)
+	layer.add_child(card)
+	var title := Label.new()
+	title.text = "提早關店"
+	title.position = Vector2(36, 28)
+	title.size = Vector2(720, 56)
+	UiFont.apply_label(title, 36)
+	title.add_theme_color_override("font_color", Color("f4d35e"))
+	card.add_child(title)
+	var body := Label.new()
+	body.text = "所有補貨架都沒有貨了，收銀機也沒有人排隊。\n要提早關店，並結算今天嗎？"
+	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	body.position = Vector2(36, 108)
+	body.size = Vector2(720, 110)
+	UiFont.apply_label(body, 26)
+	body.add_theme_color_override("font_color", Color("f4f1ea"))
+	card.add_child(body)
+	var hint := Label.new()
+	hint.text = "A／D 選擇　　J 確定　　; 取消"
+	hint.position = Vector2(36, 228)
+	hint.size = Vector2(720, 40)
+	UiFont.apply_label(hint, 22)
+	hint.add_theme_color_override("font_color", Color("c8c2b4"))
+	card.add_child(hint)
+	_early_yes = _early_choice("提早關店", Vector2(36, 290), _confirm_early_close)
+	_early_no = _early_choice("繼續營業", Vector2(400, 290), _decline_early_close)
+	card.add_child(_early_yes)
+	card.add_child(_early_no)
+	_early_layer = layer
+	_paint_early_focus()
+
+
+func _early_choice(text: String, at: Vector2, cb: Callable) -> Button:
+	var btn := Button.new()
+	btn.text = text
+	btn.position = at
+	btn.size = Vector2(360, 88)
+	btn.focus_mode = Control.FOCUS_NONE
+	UiFont.apply_button(btn, 22)
+	btn.pressed.connect(cb)
+	return btn
+
+
+func _paint_early_focus() -> void:
+	_style_early_btn(_early_yes, _early_focus == 0)
+	_style_early_btn(_early_no, _early_focus == 1)
+
+
+func _style_early_btn(btn: Button, on: bool) -> void:
+	if btn == null:
+		return
+	var box := StyleBoxFlat.new()
+	box.bg_color = Color("f4d35e") if on else Color("24302a")
+	box.set_corner_radius_all(10)
+	for state_name in ["normal", "hover", "pressed", "focus"]:
+		btn.add_theme_stylebox_override(state_name, box)
+	btn.add_theme_color_override("font_color", Color("1c241f") if on else Color("f4f1ea"))
+
+
+func _early_input(event: InputEvent) -> void:
+	var press := false
+	var key := 0
+	var joy := -1
+	if event is InputEventKey:
+		var k := event as InputEventKey
+		if k.echo:
+			get_viewport().set_input_as_handled()
+			return
+		press = k.pressed
+		key = k.physical_keycode
+	elif event is InputEventJoypadButton:
+		var pad := event as InputEventJoypadButton
+		press = pad.pressed
+		joy = pad.button_index
+	else:
+		return
 	get_viewport().set_input_as_handled()
+	if not press:
+		return
+	if key == KEY_A or key == KEY_LEFT or joy == JOY_BUTTON_DPAD_LEFT:
+		_early_focus = 0
+		_paint_early_focus()
+	elif key == KEY_D or key == KEY_RIGHT or joy == JOY_BUTTON_DPAD_RIGHT:
+		_early_focus = 1
+		_paint_early_focus()
+	elif key == KEY_J or key == KEY_ENTER or joy == JOY_BUTTON_A:
+		if _early_focus == 0:
+			_confirm_early_close()
+		else:
+			_decline_early_close()
+	elif key == KEY_SEMICOLON or key == KEY_BACKSPACE or joy == JOY_BUTTON_B:
+		_decline_early_close()
+
+
+func _confirm_early_close() -> void:
+	if not _early_open:
+		return
+	_hide_early_dialog()
+	_early_closed = true
+	phase = "closed"
+	game_hours = Tuning.CLOSE_HOUR
+	_finish_day()
+
+
+func _decline_early_close() -> void:
+	if not _early_open:
+		return
+	_early_latched = true
+	_hide_early_dialog()
+
+
+func _hide_early_dialog() -> void:
+	_early_open = false
+	if _early_layer != null and is_instance_valid(_early_layer):
+		_early_layer.visible = false
 
 
 func world_delta(delta: float) -> float:
+	if _early_open:
+		return 0.0
 	if _player == null:
 		return delta
 	return delta * float(_player.get("clock_scale"))
@@ -258,7 +485,7 @@ func customer_move_mult() -> float:
 
 
 func _process(delta: float) -> void:
-	if phase == "prep" or phase == "closed":
+	if phase == "prep" or phase == "closed" or _early_open:
 		return
 	real_time += world_delta(delta)
 	if real_time < Tuning.RESTOCK_REAL_SEC:
@@ -269,6 +496,8 @@ func _process(delta: float) -> void:
 		phase = "open"
 		var t := (real_time - Tuning.RESTOCK_REAL_SEC) / Tuning.OPEN_REAL_SEC
 		game_hours = lerpf(Tuning.OPEN_HOUR, Tuning.CLOSE_HOUR, t)
+		if _consider_early_close():
+			return
 		_spawn_in -= world_delta(delta)
 		if _spawn_in <= 0.0:
 			_spawn_customer()
@@ -276,7 +505,7 @@ func _process(delta: float) -> void:
 		_thief_spawn_in -= world_delta(delta)
 		if _thief_spawn_in <= 0.0:
 			_spawn_thief()
-			_thief_spawn_in = Tuning.THIEF_SPAWN_SEC
+			_thief_spawn_in = state.thief_spawn_sec()
 	else:
 		phase = "closed"
 		game_hours = Tuning.CLOSE_HOUR
@@ -285,7 +514,7 @@ func _process(delta: float) -> void:
 	_dirt_spawn_in -= world_delta(delta)
 	if _dirt_spawn_in <= 0.0:
 		_try_spawn_dirt()
-		_dirt_spawn_in = Tuning.DIRT_SPAWN_SEC
+		_dirt_spawn_in = state.dirt_spawn_sec()
 
 
 func find_shelf(sku: String) -> Node2D:
@@ -398,18 +627,35 @@ func _on_paid(amount: int) -> void:
 	served += 1
 
 
+func skip_operate() -> void:
+	if _settled or (phase != "restock" and phase != "open"):
+		return
+	if _early_open:
+		_hide_early_dialog()
+	_skip_xp = 400
+	phase = "closed"
+	game_hours = Tuning.CLOSE_HOUR
+	_finish_day()
+
+
 func _finish_day() -> void:
 	if _settled:
 		return
 	_settled = true
-	var result: Dictionary = state.settle(revenue, served, thieves_caught, cleaned)
+	var result: Dictionary = state.settle(revenue, served, thieves_caught, cleaned, _skip_xp)
 	if _hud:
 		_hud.show_closeout()
 		var loss := "虧損（營業額低於進貨）" if bool(result["loss"]) else "未虧損"
-		_hud._close_text.text = "關店結算　%s\n營業額 $%d　入帳後資金 $%d\n進貨成本 $%d\n成功收銀 %d　生氣離開 %d\n被偷 %d 件 $%d　抓住 %d／逃走 %d\n經驗 +%d　%s\n按 J／A 返回準備" % [
-			loss, revenue, state.money, int(result["spent"]), served, angry_left,
+		var head := "關店結算"
+		if _early_closed:
+			head = "提早關店結算"
+		elif _skip_xp > 0:
+			head = "測試結算"
+		var bonus := "（含測試 +%d）" % _skip_xp if _skip_xp > 0 else ""
+		_hud._close_text.text = "%s　%s\n營業額 $%d　入帳後資金 $%d\n進貨成本 $%d\n成功收銀 %d　生氣離開 %d\n被偷 %d 件 $%d　抓住 %d／逃走 %d\n經驗 +%d%s　%s\n按 J／A 返回準備" % [
+			head, loss, revenue, state.money, int(result["spent"]), served, angry_left,
 			stolen_count, stolen_value, thieves_caught, thieves_escaped,
-			int(result["xp"]), state.level_note
+			int(result["xp"]), bonus, state.level_note
 		]
 
 

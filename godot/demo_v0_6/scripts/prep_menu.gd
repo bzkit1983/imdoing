@@ -27,6 +27,14 @@ var _qty_focus: int = 2
 var _hold_type: String = ""
 var _hold_rot: int = 0
 var _cursor := Vector2i(2, 2)
+var _drag_on: bool = false
+var _drag_moved: bool = false
+var _drag_inside: bool = false
+var _drag_type: String = ""
+var _drag_rot: int = 0
+var _drag_from: int = -1
+var _drag_grab := Vector2i.ZERO
+var _drag_press := Vector2.ZERO
 var _msg: String = ""
 var _list: ItemList
 var _info: Label
@@ -54,6 +62,8 @@ var _dlg_gate: int = 0
 var _dlg_wait: int = 0
 var _pending: Dictionary = {}
 var _swallow_click: bool = false
+var _confirm_latch: bool = false
+var _building: bool = false
 var _suppress_select: bool = false
 
 
@@ -102,8 +112,9 @@ func _build() -> void:
 	add_child(_list)
 	_stats_panel = VBoxContainer.new()
 	_stats_panel.position = Vector2(24, 186)
-	_stats_panel.size = Vector2(720, 250)
-	_stats_panel.add_theme_constant_override("separation", 12)
+	_stats_panel.size = Vector2(720, 360)
+	_stats_panel.clip_contents = true
+	_stats_panel.add_theme_constant_override("separation", 8)
 	_stats_panel.visible = false
 	_stats_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_stats_panel)
@@ -182,6 +193,8 @@ func _build_dialog() -> void:
 
 
 func _show_page(page: String) -> void:
+	# The confirm key that opened this page must not also activate the new page.
+	_confirm_latch = true
 	_close_dialog()
 	_page = page
 	_index = 0
@@ -190,6 +203,7 @@ func _show_page(page: String) -> void:
 	_on_size_btns = false
 	if page != "layout":
 		_hold_type = ""
+		_cancel_drag()
 	if page == "stats":
 		_on_stats_btns = true
 		_stat_row = 0
@@ -200,6 +214,7 @@ func _show_page(page: String) -> void:
 
 
 func _refresh() -> void:
+	_building = true
 	_rows.clear()
 	_list.clear()
 	var qty_on := _page == "stock" and _qty_sku != ""
@@ -209,12 +224,15 @@ func _refresh() -> void:
 	_qty_panel.visible = qty_on
 	_list.visible = not qty_on
 	if _page == "stats":
-		_list.position = Vector2(24, 440)
-		_list.size = Vector2(1232, 196)
+		_list.position = Vector2(24, 430)
+		_list.size = Vector2(1232, 220)
+		_list.z_index = 2
 	elif _page == "layout":
+		_list.z_index = 0
 		_list.position = Vector2(24, 360)
 		_list.size = Vector2(520, 276)
 	else:
+		_list.z_index = 0
 		_list.position = Vector2(24, 168)
 		_list.size = Vector2(1232, 430)
 	match _page:
@@ -234,7 +252,7 @@ func _refresh() -> void:
 			_add("擴張店面　現時 LV%d　%d×%d" % [state.shop_scale, state.grid_w, state.grid_h], "go", "expand")
 			_add("店舖設計", "go", "layout")
 			_add("店員　%d 人" % state.clerks.size(), "go", "clerks")
-			_add("開始營業", "go", "confirm")
+			_add("開始營業", "try_open", null)
 		"stats":
 			_fill_stats()
 		"skills":
@@ -258,6 +276,7 @@ func _refresh() -> void:
 			_list.deselect_all()
 		else:
 			_select_row(_index)
+	_building = false
 	_grid.queue_redraw()
 
 
@@ -288,33 +307,49 @@ func _add(label: String, action: String, arg = null) -> void:
 
 func _fill_stats() -> void:
 	_title.text = "角色能力"
-	_info.text = _pair(_header(), _msg if _msg != "" else "每一行後面按 + 加一點、按 - 減一點。左右切換，確定也會分配。")
+	_info.text = _pair(_header(), _msg if _msg != "" else "按 + 加一點，按 - 減一點。向下可到重置和返回。")
+	_list.visible = false
 	_clear(_stats_panel)
 	_add_stat_row("STR", "str", state.str_stat, 0)
 	_add_stat_row("AGI", "agi", state.agi_stat, 1)
 	_add_stat_row("INT", "int", state.int_stat, 2)
-	_add("重置能力值", "reset", null)
-	_add("返回", "go", "home")
+	_stats_panel.add_child(_step_button("重置能力值", _stat_row == 3, _on_stat_reset, 64, 420))
+	_stats_panel.add_child(_step_button("返回", _stat_row == 4, _on_stat_back, 64, 420))
 
 
 func _add_stat_row(title: String, stat: String, value: int, row: int) -> void:
 	var line := HBoxContainer.new()
 	line.add_theme_constant_override("separation", 14)
 	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	line.add_child(_name_label("%s  %d" % [title, value], 220))
-	line.add_child(_step_button("+", _on_stats_btns and _stat_row == row and _stat_side == 1, _on_stat_pressed.bind(stat, 1, row)))
-	line.add_child(_step_button("-", _on_stats_btns and _stat_row == row and _stat_side == -1, _on_stat_pressed.bind(stat, -1, row)))
+	line.add_child(_name_label("%s  %d" % [title, value], 220, 64))
+	line.add_child(_step_button("+", _stat_row == row and _stat_side == 1, _on_stat_pressed.bind(stat, 1, row), 64))
+	line.add_child(_step_button("-", _stat_row == row and _stat_side == -1, _on_stat_pressed.bind(stat, -1, row), 64))
 	_stats_panel.add_child(line)
 
 
 func _on_stat_pressed(stat: String, delta: int, row: int) -> void:
-	if _dlg_open:
+	if _dlg_open or _swallow_click or _confirm_latch or _building:
 		return
 	_on_stats_btns = true
 	_stat_row = row
 	_stat_side = delta
 	_msg = state.spend_point(stat, delta)
 	_refresh()
+
+
+func _on_stat_reset() -> void:
+	if _dlg_open or _swallow_click:
+		return
+	_stat_row = 3
+	state.reset_stats()
+	_msg = ""
+	_refresh()
+
+
+func _on_stat_back() -> void:
+	if _dlg_open or _swallow_click:
+		return
+	_show_page("home")
 
 
 func _fill_skills() -> void:
@@ -468,14 +503,16 @@ func _fill_expand() -> void:
 func _fill_layout() -> void:
 	_title.text = "店舖設計"
 	if _hold_type != "":
-		_info.text = "正在放 %s。移動游標後確定放置，X／K 轉向。" % state.FURNITURE[_hold_type]["name"]
+		_info.text = "正在放 %s。拖到右圖放開，或移動游標後確定。X／K 轉向。" % state.FURNITURE[_hold_type]["name"]
+	elif _msg != "":
+		_info.text = _msg
 	else:
-		_info.text = _msg if _msg != "" else "左邊調闊度和長度。選未放置的物品再拿到右圖。"
+		_info.text = "拖動左邊的物品放到右圖。圖上的物品可以拖去別的格子，拖出圖外或輕點就收回。"
 	_build_size()
 	for type in state.FURNITURE.keys():
 		var n := state.unplaced(type)
 		if n > 0:
-			_add("拿起 %s　×%d" % [state.FURNITURE[type]["name"], n], "hold", type)
+			_add("拖放 %s　×%d" % [state.FURNITURE[type]["name"], n], "hold", type)
 	_add("收回游標上的物品", "pickup", null)
 	_add("返回", "go", "home")
 
@@ -575,10 +612,19 @@ func _activate() -> void:
 	if _dlg_open:
 		_dialog_accept()
 		return
-	if _page == "stats" and _on_stats_btns:
-		var keys := ["str", "agi", "int"]
-		_msg = state.spend_point(keys[_stat_row], _stat_side)
-		_refresh()
+	if _confirm_latch:
+		return
+	if _page == "stats":
+		if _stat_row <= 2:
+			var keys := ["str", "agi", "int"]
+			_msg = state.spend_point(keys[_stat_row], _stat_side)
+			_refresh()
+		elif _stat_row == 3:
+			state.reset_stats()
+			_msg = ""
+			_refresh()
+		else:
+			_show_page("home")
 		return
 	if _page == "layout" and _hold_type != "":
 		try_place()
@@ -653,8 +699,17 @@ func _activate() -> void:
 		"fire":
 			state.fire(int(arg))
 			_refresh()
+		"try_open":
+			var blocks := state.open_blockers()
+			if blocks.is_empty():
+				_show_page("confirm")
+			else:
+				_popup_info("不能開店", "\n".join(blocks))
 		"open":
-			state.begin_day()
+			var open_msg := state.begin_day()
+			if open_msg != "":
+				_popup_info("不能開店", open_msg)
+				return
 			visible = false
 			set_process_unhandled_input(false)
 			start_day.emit()
@@ -984,6 +1039,8 @@ func _process(_delta: float) -> void:
 		return
 	if _swallow_click and not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
 		_swallow_click = false
+	if _confirm_latch:
+		_confirm_latch = false
 	if _dlg_open:
 		if _dlg_gate == 1:
 			_dlg_wait += 1
@@ -1082,33 +1139,16 @@ func _move_qty(x: int, y: int) -> void:
 
 
 func _move_stats(x: int, y: int) -> void:
-	if _on_stats_btns:
-		if x < 0:
-			_stat_side = -1
-		elif x > 0:
-			_stat_side = 1
-		elif y < 0:
-			_stat_row = maxi(0, _stat_row - 1)
-		elif y > 0:
-			if _stat_row < 2:
-				_stat_row += 1
-			else:
-				_on_stats_btns = false
-				_index = 0
-		_refresh()
-		return
-	if y < 0 and _index <= 0:
-		_on_stats_btns = true
-		_stat_row = 2
-		_refresh()
-		return
-	if _rows.is_empty():
-		return
-	if y < 0 or x < 0:
-		_index = posmod(_index - 1, _rows.size())
-	elif y > 0 or x > 0:
-		_index = posmod(_index + 1, _rows.size())
-	_select_row(_index)
+	_msg = ""
+	if y < 0:
+		_stat_row = maxi(0, _stat_row - 1)
+	elif y > 0:
+		_stat_row = mini(4, _stat_row + 1)
+	elif x < 0 and _stat_row <= 2:
+		_stat_side = -1
+	elif x > 0 and _stat_row <= 2:
+		_stat_side = 1
+	_refresh()
 
 
 func _move_layout(x: int, y: int) -> void:
@@ -1143,6 +1183,10 @@ func _move_layout(x: int, y: int) -> void:
 
 
 func _rotate() -> void:
+	if _drag_on:
+		_drag_rot = (_drag_rot + 1) % 4
+		_grid.queue_redraw()
+		return
 	if _hold_type == "":
 		return
 	_hold_rot = (_hold_rot + 1) % 4
@@ -1171,6 +1215,135 @@ func _back() -> void:
 		_show_page("home")
 
 
+func _input(event: InputEvent) -> void:
+	if not visible or _page != "layout" or _dlg_open or state == null:
+		return
+	if event is InputEventMouseButton and (event as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT:
+		var mb := event as InputEventMouseButton
+		if mb.pressed:
+			_press_layout(mb.position)
+		else:
+			_release_layout(mb.position)
+	elif event is InputEventMouseMotion and _drag_on:
+		var mm := event as InputEventMouseMotion
+		if mm.position.distance_to(_drag_press) >= 6.0:
+			_drag_moved = true
+		if _drag_moved:
+			_track_drag(mm.position)
+			get_viewport().set_input_as_handled()
+
+
+func _press_layout(screen: Vector2) -> void:
+	_cancel_drag()
+	var grid_local := _to_local(_grid, screen)
+	if Rect2(Vector2.ZERO, _grid.size).has_point(grid_local):
+		var cell := _cell_of(grid_local)
+		var hit := state.item_at(cell.x, cell.y)
+		if hit >= 0:
+			var it: Dictionary = state.placed[hit]
+			_drag_on = true
+			_drag_type = String(it["type"])
+			_drag_rot = int(it["rot"])
+			_drag_from = hit
+			_drag_grab = cell - Vector2i(int(it["x"]), int(it["y"]))
+			_drag_press = screen
+			_drag_inside = true
+			_cursor = Vector2i(int(it["x"]), int(it["y"]))
+			get_viewport().set_input_as_handled()
+		return
+	var list_local := _to_local(_list, screen)
+	if not Rect2(Vector2.ZERO, _list.size).has_point(list_local):
+		return
+	var row := _row_at(list_local)
+	if row < 0 or row >= _rows.size():
+		return
+	if String(_rows[row]["action"]) != "hold":
+		return
+	_drag_on = true
+	_drag_type = String(_rows[row]["arg"])
+	_drag_rot = 0
+	_drag_from = -1
+	_drag_grab = Vector2i.ZERO
+	_drag_press = screen
+	_drag_inside = false
+
+
+func _release_layout(screen: Vector2) -> void:
+	if not _drag_on:
+		return
+	var from := _drag_from
+	var typ := _drag_type
+	var rot := _drag_rot
+	var moved := _drag_moved
+	var grab := _drag_grab
+	_cancel_drag()
+	if not moved:
+		if from >= 0:
+			state.remove_at(from)
+			_msg = "已收回"
+			_hold_type = ""
+			_refresh()
+			get_viewport().set_input_as_handled()
+		return
+	get_viewport().set_input_as_handled()
+	var grid_local := _to_local(_grid, screen)
+	var inside := Rect2(Vector2.ZERO, _grid.size).has_point(grid_local)
+	if not inside:
+		if from >= 0:
+			state.remove_at(from)
+			_msg = "已收回"
+		_hold_type = ""
+		_refresh()
+		return
+	var cell := _cell_of(grid_local) - grab
+	if from >= 0:
+		_msg = state.move_item(from, cell.x, cell.y, rot)
+		if _msg == "":
+			_msg = "已移動"
+	else:
+		_msg = state.place_item(typ, cell.x, cell.y, rot)
+		if _msg == "":
+			_msg = "已放置"
+	_hold_type = ""
+	_cursor = cell
+	_refresh()
+
+
+func _track_drag(screen: Vector2) -> void:
+	var grid_local := _to_local(_grid, screen)
+	_drag_inside = Rect2(Vector2.ZERO, _grid.size).has_point(grid_local)
+	if not _drag_inside:
+		_grid.queue_redraw()
+		return
+	_cursor = _cell_of(grid_local) - _drag_grab
+	_grid.queue_redraw()
+
+
+func _cancel_drag() -> void:
+	_drag_on = false
+	_drag_moved = false
+	_drag_inside = false
+	_drag_type = ""
+	_drag_from = -1
+	_drag_grab = Vector2i.ZERO
+
+
+func _to_local(ctrl: Control, screen: Vector2) -> Vector2:
+	return ctrl.get_global_transform_with_canvas().affine_inverse() * screen
+
+
+func _cell_of(local: Vector2) -> Vector2i:
+	var cell := _cell_px()
+	return Vector2i(int(floor(local.x / cell)), int(floor(local.y / cell)))
+
+
+func _row_at(local: Vector2) -> int:
+	for i in _list.item_count:
+		if _list.get_item_rect(i).has_point(local):
+			return i
+	return -1
+
+
 func try_place() -> void:
 	if _dlg_open:
 		return
@@ -1189,14 +1362,15 @@ func try_place() -> void:
 
 func _clear(node: Node) -> void:
 	for c in node.get_children():
+		c.set_block_signals(true)
 		node.remove_child(c)
 		c.free()
 
 
-func _name_label(text: String, width: float) -> Label:
+func _name_label(text: String, width: float, tall: float = 72.0) -> Label:
 	var lab := Label.new()
 	lab.text = text
-	lab.custom_minimum_size = Vector2(width, 72)
+	lab.custom_minimum_size = Vector2(width, tall)
 	lab.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	UiFont.apply_label(lab, PREP_TITLE)
 	lab.add_theme_color_override("font_color", Color("f4f1ea"))
@@ -1204,8 +1378,8 @@ func _name_label(text: String, width: float) -> Label:
 	return lab
 
 
-func _step_button(text: String, on: bool, cb: Callable) -> Button:
-	var btn := _bare_button(text, 84, 72)
+func _step_button(text: String, on: bool, cb: Callable, tall: float = 72.0, wide: float = 84.0) -> Button:
+	var btn := _bare_button(text, wide, tall)
 	_paint_btn(btn, on)
 	btn.pressed.connect(cb)
 	return btn
@@ -1239,6 +1413,8 @@ class GridView extends Control:
 	var host: CanvasLayer
 
 	func _gui_input(event: InputEvent) -> void:
+		if host._drag_on:
+			return
 		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			var cell: float = host._cell_px()
 			host._cursor = Vector2i(int(event.position.x / cell), int(event.position.y / cell))
@@ -1255,7 +1431,13 @@ class GridView extends Control:
 				draw_rect(r, Color("24302a"))
 		for d in st.door_cells():
 			draw_rect(Rect2(Vector2(d.x, d.y) * cell, Vector2(cell - 1, cell - 1)), Color("3a2a1e"))
-		for it in st.placed:
+		var skip := -1
+		if host._drag_on and host._drag_moved:
+			skip = int(host._drag_from)
+		for i in st.placed.size():
+			if i == skip:
+				continue
+			var it: Dictionary = st.placed[i]
 			var col := Color("5c4033")
 			var t := String(it["type"])
 			if t.begins_with("shelf"):
@@ -1263,11 +1445,21 @@ class GridView extends Control:
 			elif t.begins_with("restock"):
 				col = Color("c45c26")
 			draw_rect(Rect2(Vector2(int(it["x"]), int(it["y"])) * cell, Vector2(int(it["w"]), int(it["h"])) * cell - Vector2(2, 2)), col)
-		if host._hold_type != "":
-			var fp: Vector2i = st.footprint(host._hold_type, host._hold_rot)
-			var ok: bool = st.can_place(host._hold_type, host._cursor.x, host._cursor.y, host._hold_rot)
+		var ghost := ""
+		var rot := 0
+		var ignore := -1
+		if host._drag_on and host._drag_moved and host._drag_inside:
+			ghost = host._drag_type
+			rot = host._drag_rot
+			ignore = host._drag_from
+		elif host._hold_type != "":
+			ghost = host._hold_type
+			rot = host._hold_rot
+		if ghost != "":
+			var fp: Vector2i = st.footprint(ghost, rot)
+			var ok: bool = st.can_place(ghost, host._cursor.x, host._cursor.y, rot, ignore)
 			draw_rect(Rect2(Vector2(host._cursor) * cell, Vector2(fp) * cell), Color("7ec8e3" if ok else "c0392b", 0.65))
-		else:
+		elif not host._drag_on:
 			draw_rect(Rect2(Vector2(host._cursor) * cell, Vector2(cell - 1, cell - 1)), Color("f4d35e", 0.8), false, 2.0)
 
 

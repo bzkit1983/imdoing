@@ -351,6 +351,21 @@ func place_item(type: String, x: int, y: int, rot: int) -> String:
 	return ""
 
 
+func move_item(index: int, x: int, y: int, rot: int) -> String:
+	if index < 0 or index >= placed.size():
+		return "放不下"
+	var type := String(placed[index]["type"])
+	if not can_place(type, x, y, rot, index):
+		return "放不下"
+	var fp := footprint(type, rot)
+	placed[index]["x"] = x
+	placed[index]["y"] = y
+	placed[index]["rot"] = rot
+	placed[index]["w"] = fp.x
+	placed[index]["h"] = fp.y
+	return ""
+
+
 func remove_at(index: int) -> void:
 	if index >= 0 and index < placed.size():
 		placed.remove_at(index)
@@ -395,6 +410,29 @@ func expand() -> String:
 
 func cashier_count() -> int:
 	return placed_count("cashier")
+
+
+## Reasons the operate round cannot start. Empty means the layout is ready.
+## A pair is one placed restock point plus one placed shelf of the same category.
+func open_blockers() -> PackedStringArray:
+	var out: PackedStringArray = []
+	if cashier_count() < 1:
+		out.append("店舖內要放置至少一台收銀機。")
+	if not _has_matching_pair():
+		out.append("店舖內要放置至少一組同類型的補貨架和貨架。乾貨、凍櫃、冰櫃都可以，但補貨架和貨架要同一類。")
+	return out
+
+
+func _has_matching_pair() -> bool:
+	var pairs := [
+		["restock_dry", "shelf_dry"],
+		["restock_frozen", "shelf_frozen"],
+		["restock_ice", "shelf_ice"],
+	]
+	for pair in pairs:
+		if placed_count(String(pair[0])) > 0 and placed_count(String(pair[1])) > 0:
+			return true
+	return false
 
 
 func hire_limit() -> int:
@@ -498,13 +536,16 @@ func thief_spawn_rate() -> float:
 
 
 func begin_day() -> String:
+	var blocks := open_blockers()
+	if not blocks.is_empty():
+		return "\n".join(blocks)
 	var wage := WAGE * clerks.size()
 	money -= wage
 	return ""
 
 
-func settle(revenue: int, served: int, caught: int, cleaned: int) -> Dictionary:
-	var gain_xp := XP_CLOSE + served * XP_SERVE + caught * XP_CATCH + cleaned * XP_CLEAN
+func settle(revenue: int, served: int, caught: int, cleaned: int, bonus_xp: int = 0) -> Dictionary:
+	var gain_xp := XP_CLOSE + served * XP_SERVE + caught * XP_CATCH + cleaned * XP_CLEAN + bonus_xp
 	xp += gain_xp
 	var ups := 0
 	while level < 10:
@@ -543,6 +584,26 @@ func guest_cap() -> int:
 
 func spawn_every() -> float:
 	return 5.0 if scenario == 3 else 10.0
+
+
+func customer_list_min() -> int:
+	return 1 if scenario == 1 else Tuning.LIST_MIN
+
+
+func customer_list_max() -> int:
+	return 3 if scenario == 1 else Tuning.LIST_MAX
+
+
+func dirt_spawn_sec() -> float:
+	return Tuning.DIRT_SPAWN_SEC * 2.0 if scenario == 1 else Tuning.DIRT_SPAWN_SEC
+
+
+func thief_spawn_first() -> float:
+	return Tuning.THIEF_SPAWN_FIRST * 2.0 if scenario == 1 else Tuning.THIEF_SPAWN_FIRST
+
+
+func thief_spawn_sec() -> float:
+	return Tuning.THIEF_SPAWN_SEC * 2.0 if scenario == 1 else Tuning.THIEF_SPAWN_SEC
 
 
 func sellable() -> Array[String]:

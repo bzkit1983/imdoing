@@ -413,6 +413,11 @@ func _on_key_event(key_event: InputEventKey) -> void:
 	if key_event.echo:
 		return
 	var key: int = key_event.physical_keycode
+	# Early-close dialog and closeout own confirm and cancel.
+	if _asking_early():
+		return
+	if not _round_active() and (key == KEY_J or key == KEY_ENTER or key == KEY_SEMICOLON or key == KEY_BACKSPACE):
+		return
 	# Keyboard directions are WASD only — never Xbox A/B/X/Y.
 	if key_event.pressed:
 		var dir := _dir_from_key(key)
@@ -440,6 +445,11 @@ func _on_key_event(key_event: InputEventKey) -> void:
 
 
 func _on_pad_button(pad: InputEventJoypadButton) -> void:
+	# Early-close dialog and closeout own A and B.
+	if _asking_early():
+		return
+	if not _round_active() and (pad.button_index == JOY_BUTTON_A or pad.button_index == JOY_BUTTON_B):
+		return
 	# Xbox layout: A/B/X/Y are actions. D-pad is directions.
 	match pad.button_index:
 		JOY_BUTTON_A:
@@ -487,6 +497,11 @@ func _round_active() -> bool:
 	return phase == "restock" or phase == "open"
 
 
+func _asking_early() -> bool:
+	var game := get_tree().get_first_node_in_group("game")
+	return game != null and game.has_method("asking_early_close") and bool(game.asking_early_close())
+
+
 func _discard_top_box() -> void:
 	if not _round_active():
 		return
@@ -518,6 +533,9 @@ func _cancel_input() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if _asking_early():
+		velocity = Vector2.ZERO
+		return
 	_tick_buffs(delta)
 	_tick_status(delta)
 	command_lock = _j_held and is_instance_valid(target) and String(target.get("kind")) == "cashier" and not skill_menu_open and not ult_prep

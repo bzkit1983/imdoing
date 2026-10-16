@@ -47,6 +47,9 @@ func setup(game: Node, at: Vector2, job: String, reg: Node2D) -> void:
 func _physics_process(delta: float) -> void:
 	if _game == null or String(_game.get("phase")) == "closed" or String(_game.get("phase")) == "prep":
 		return
+	if _game.has_method("asking_early_close") and bool(_game.asking_early_close()):
+		velocity = Vector2.ZERO
+		return
 	if role == "cashier":
 		_tick_cashier(delta)
 	else:
