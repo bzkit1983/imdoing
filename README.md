@@ -10,4 +10,4 @@ Repository for game project
 - `godot/demo_v0_5` — 小偷與連打打擊（見 `docs/demo/demov0_5scope.md`）
 - GitHub Pages（iPhone）：https://bzkit1983.github.io/imdoing/play-v05/
 
-設計文件在 `docs/systemdesign/`。長線設計缺口檢視：`docs/systemdesign-gaps.md`。
+設計文件在 `docs/systemdesign/`。長線設計缺口檢視：`docs/systemdesign-gaps.md`。Alpha 計劃（系統先可玩，再接 Voxel）：`docs/alpha/plan.md`。
