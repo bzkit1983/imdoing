@@ -57,9 +57,11 @@ const SHELF_CAP := 12
 const RESTOCK_BOXES := 99
 const STR_EFFECT_CAP := 50
 
-## Collision edge of the clerk; 1 身位. AGI 10 walk = 3 body-lengths / sec.
+## Collision edge of the clerk; 1 身位. Shared AGI 10 rate = 3 body-lengths / sec.
+## The player walks at twice that rate. Customers and clerks stay on WALK_SPEED.
 const BODY_LENGTH := 26.0
 const WALK_SPEED := 3.0 * BODY_LENGTH
+const PLAYER_MOVE_MULT := 2.0
 const AGI_MOVE_REF := 10
 const AGI_EFFECT_CAP := 50
 const RUN_SPEED_MULT := 1.75

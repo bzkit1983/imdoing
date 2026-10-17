@@ -780,9 +780,10 @@ func _tick_move(delta: float) -> void:
 		else:
 			stamina = maxf(0.0, stamina - Tuning.RUN_STAMINA_PER_SEC * delta)
 			_regen_delay = Tuning.STAMINA_REGEN_DELAY
-	var walk := Tuning.WALK_SPEED * speed_mult()
+	var walk := Tuning.WALK_SPEED * Tuning.PLAYER_MOVE_MULT * speed_mult()
 	var target_speed := walk * (Tuning.RUN_SPEED_MULT if want_run else 1.0)
-	target_speed = clampf(target_speed, Tuning.SPEED_FLOOR, Tuning.WALK_SPEED * Tuning.SPEED_MAX_MULT)
+	var speed_cap := Tuning.WALK_SPEED * Tuning.PLAYER_MOVE_MULT * Tuning.SPEED_MAX_MULT
+	target_speed = clampf(target_speed, Tuning.SPEED_FLOOR, speed_cap)
 	if axis == Vector2.ZERO:
 		velocity = velocity.move_toward(Vector2.ZERO, walk * 8.0 * delta)
 	else:
