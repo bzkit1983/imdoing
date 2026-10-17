@@ -212,6 +212,9 @@ func _refresh() -> void:
 		_target.text = "目標  小偷 · 空手長按抓住後連按行動打擊"
 	else:
 		var sku := String(t.get("sku"))
-		_target.text = "目標  貨架 · %s" % ("空架" if sku == "" else "%s %d/%d" % [Tuning.sku_name(sku), int(t.get("count")), Tuning.SHELF_CAP])
+		var cap := int(t.get("capacity"))
+		if cap <= 0:
+			cap = Tuning.SHELF_CAP
+		_target.text = "目標  貨架 · %s" % ("空架 %d件" % cap if sku == "" else "%s %d/%d" % [Tuning.sku_name(sku), int(t.get("count")), cap])
 	_progress.value = float(player.get("hold_progress")) * 100.0
 	_progress.modulate = Color("e07a5f") if bool(player.get("blocked_mismatch")) else Color("f4d35e")

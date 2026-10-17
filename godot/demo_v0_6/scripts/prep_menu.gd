@@ -498,7 +498,7 @@ func _qty_apply(focus_i: int) -> void:
 
 func _fill_furn() -> void:
 	_title.text = "購入商店物品"
-	_info.text = _pair(_header(), _msg if _msg != "" else "買入後到店舖設計才放進店裡。凍櫃 LV4、冰櫃 LV7 才開放。")
+	_info.text = _pair(_header(), _msg if _msg != "" else "買入後到店舖設計才放進店裡。展示貨架有 4、8、12、24 件，越大越貴。凍櫃 LV4、冰櫃 LV7 才開放。")
 	for type in state.FURNITURE.keys():
 		var spec: Dictionary = state.FURNITURE[type]
 		if not state.furniture_unlocked(type):

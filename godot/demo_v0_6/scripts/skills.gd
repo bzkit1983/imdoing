@@ -127,8 +127,8 @@ const PASSIVES: Array[Dictionary] = [
 
 const ULTS: Array[Dictionary] = [
 	{"id": "the_world", "name": "The World!", "kind": "ultimate", "lv": 3, "cost": 0, "clock_scale": 0.0, "duration": ULT_DURATION, "cd": ULT_CD, "seq": [0, 0, 1, 1, 2, 3, 2, 3], "blurb": "時停 10 秒。指令上上下下左右左右"},
-	{"id": "yes_my_lord", "name": "Yes! My Lord!", "kind": "ultimate", "lv": 3, "cost": 0, "unimplemented": true, "duration": 10.0, "cd": ULT_CD, "seq": [0, 2, 1, 3, 0, 2, 1, 3], "blurb": "搶購規則長線未定，裝備後不會發動"},
-	{"id": "fundraise", "name": "全體集資", "kind": "ultimate", "lv": 3, "cost": 0, "unimplemented": true, "duration": 0.0, "cd": ULT_CD, "seq": [0, 1, 0, 1, 2, 3, 2, 3], "blurb": "自動收銀規則長線未定，裝備後不會發動"},
+	{"id": "yes_my_lord", "name": "Yes! My Lord!", "kind": "ultimate", "lv": 3, "cost": 0, "duration": 10.0, "cd": ULT_CD, "seq": [0, 2, 1, 3, 0, 2, 1, 3], "blurb": "LV3：客人搶空最近貨架 10 秒，然後去排隊。指令上左下右上左下右"},
+	{"id": "fundraise", "name": "全體集資", "kind": "ultimate", "lv": 3, "cost": 0, "duration": 0.0, "cd": ULT_CD, "seq": [0, 1, 0, 1, 2, 3, 2, 3], "blurb": "LV3：在店客人立刻按已取貨全額付款，不含離開與小偷。指令上下上下左右左右"},
 ]
 
 

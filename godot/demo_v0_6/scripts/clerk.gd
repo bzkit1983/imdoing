@@ -133,7 +133,10 @@ func _find_job() -> Dictionary:
 	for s in _game.shelves:
 		if s == null or reserved_shelf.has(s):
 			continue
-		if int(s.get("count")) + Tuning.BOX_SIZE > Tuning.SHELF_CAP:
+		var cap := int(s.get("capacity"))
+		if cap <= 0:
+			cap = Tuning.SHELF_CAP
+		if int(s.get("count")) + Tuning.BOX_SIZE > cap:
 			continue
 		var sku := String(s.get("sku"))
 		var pick := ""

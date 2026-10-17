@@ -45,11 +45,11 @@ const SKU_DEVELOP := {
 	"drink": 400, "milk": 500, "soda": 600,
 	"icecream": 700, "meat": 800, "rice": 900,
 }
-## Canned goods are initial stock: no develop fee. Microwave rice still has no listed level (treated as LV9).
+## Canned goods are initial stock: no develop fee. Microwave rice unlocks at character LV10.
 const SKU_UNLOCK_LV := {
 	"can": 1, "snack": 2, "cup": 3,
 	"drink": 4, "milk": 5, "soda": 6,
-	"icecream": 7, "meat": 8, "rice": 9,
+	"icecream": 7, "meat": 8, "rice": 10,
 }
 
 const BOX_SIZE := 4

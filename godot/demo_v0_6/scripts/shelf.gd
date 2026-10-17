@@ -6,6 +6,7 @@ var kind: String = "shelf"
 var category: String = Tuning.CAT_DRY
 var sku: String = ""
 var count: int = 0
+var capacity: int = Tuning.SHELF_CAP
 var shelf_index: int = 1
 var label: Label
 var body: Polygon2D
@@ -15,7 +16,7 @@ var facing: Vector2 = Vector2.UP
 func can_accept(item_sku: String) -> bool:
 	if Tuning.category_of(item_sku) != category:
 		return false
-	if count >= Tuning.SHELF_CAP:
+	if count >= capacity:
 		return false
 	return sku == "" or sku == item_sku
 
@@ -23,12 +24,24 @@ func can_accept(item_sku: String) -> bool:
 func add_items(item_sku: String, n: int) -> int:
 	if not can_accept(item_sku):
 		return 0
-	var space := Tuning.SHELF_CAP - count
+	var space := capacity - count
 	var placed := mini(n, space)
 	sku = item_sku
 	count += placed
 	_refresh()
 	return placed
+
+
+func take_all() -> Array[String]:
+	var out: Array[String] = []
+	if sku == "" or count <= 0:
+		return out
+	for _i in count:
+		out.append(sku)
+	sku = ""
+	count = 0
+	_refresh()
+	return out
 
 
 func take_one(want: String) -> bool:
@@ -65,6 +78,6 @@ func _refresh() -> void:
 		kind_name = "冰櫃貨架"
 	if label:
 		if sku == "":
-			label.text = "%s %d\n空架" % [kind_name, shelf_index]
+			label.text = "%s %d\n空架　%d件" % [kind_name, shelf_index, capacity]
 		else:
-			label.text = "%s %d\n%s %d/%d" % [kind_name, shelf_index, Tuning.sku_name(sku), count, Tuning.SHELF_CAP]
+			label.text = "%s %d\n%s %d/%d" % [kind_name, shelf_index, Tuning.sku_name(sku), count, capacity]

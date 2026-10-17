@@ -3,7 +3,7 @@ extends CharacterBody2D
 const Tuning = preload("res://scripts/tuning.gd")
 const UiFont = preload("res://scripts/ui_font.gd")
 
-enum State { ENTER, SEEK, LINGER, THINK, TO_CASHIER, QUEUE, PAYING, LEAVE, FIGHT, FLEE }
+enum State { ENTER, SEEK, LINGER, THINK, TO_CASHIER, QUEUE, PAYING, LEAVE, FIGHT, FLEE, RAID }
 
 var state: int = State.ENTER
 var shopping: Array[String] = []
@@ -35,6 +35,7 @@ var _hp_bar: ColorRect
 var _timer_lab: Label
 var _flee_dir: Vector2 = Vector2.UP
 var _flee_left: float = 0.0
+var raided: bool = false
 
 
 func setup(game: Node, door: Vector2, thief: bool = false) -> void:
@@ -165,6 +166,17 @@ func _physics_process(delta: float) -> void:
 	if on_dirt() and state != State.LEAVE and state != State.FIGHT and state != State.FLEE and not is_thief:
 		dissatisfaction = minf(Tuning.DISSAT_MAX, dissatisfaction + _dirt_dissat_rate() * td)
 		mood = _dirt_mood()
+	if _lord_pull():
+		if state != State.RAID:
+			if state == State.PAYING and _game.has_method("release_player_checkout"):
+				_game.call("release_player_checkout")
+			if _reg():
+				_reg().dequeue(self)
+			state = State.RAID
+			mood = "搶購！"
+			_clear_route()
+	elif state == State.RAID:
+		_end_raid()
 	match state:
 		State.ENTER:
 			if _follow_to(_game.inside_pos(), delta):
@@ -199,6 +211,8 @@ func _physics_process(delta: float) -> void:
 		State.LEAVE:
 			if _follow_to(_game.call("exit_pos"), delta):
 				queue_free()
+		State.RAID:
+			_tick_raid(delta)
 	if not is_thief and dissatisfaction >= Tuning.DISSAT_MAX and state != State.LEAVE:
 		_leave(true)
 	_refresh_labels()
@@ -270,6 +284,45 @@ func _after_think() -> void:
 		_timer = Tuning.THINK_SEC
 		dissatisfaction = minf(Tuning.DISSAT_MAX, dissatisfaction + Tuning.DISSAT_MISS)
 		mood = "還是找不到…"
+
+
+func _lord_pull() -> bool:
+	if is_thief or _game == null:
+		return false
+	if state == State.LEAVE or state == State.FLEE or state == State.FIGHT:
+		return false
+	return _game.has_method("yes_my_lord_on") and bool(_game.call("yes_my_lord_on"))
+
+
+func grab_items(items: Array) -> void:
+	for sku in items:
+		cart.append(String(sku))
+	if items.size() > 0:
+		raided = true
+
+
+func _tick_raid(delta: float) -> void:
+	var shelf: Node2D = _game.call("nearest_stocked_shelf", global_position)
+	if shelf == null:
+		velocity = Vector2.ZERO
+		return
+	var stand: Vector2 = _game.call("shelf_stand", shelf)
+	if _follow_to(stand, delta):
+		var items: Array = shelf.call("take_all")
+		grab_items(items)
+		if items.size() > 0:
+			mood = "搶到%d件" % items.size()
+		_clear_route()
+
+
+func _end_raid() -> void:
+	_clear_route()
+	if not _join_register():
+		mood = "沒有收銀機"
+		_leave(false)
+		return
+	state = State.TO_CASHIER
+	mood = "去付款"
 
 
 func _join_register() -> bool:
@@ -532,7 +585,10 @@ func _refresh_labels() -> void:
 				loot.append(Tuning.sku_name(sku))
 			_list_label.text = "小偷  " + ("、".join(bits) if bits.size() else "得手 " + ("、".join(loot) if loot.size() else "空手"))
 		else:
-			_list_label.text = "、".join(bits) if bits.size() else "（清單完成）"
+			var line := "、".join(bits) if bits.size() else "（清單完成）"
+			if raided:
+				line += "　已取%d" % cart.size()
+			_list_label.text = line
 	if _mood_label:
 		_mood_label.text = mood
 	if _bar and not is_thief:

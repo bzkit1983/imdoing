@@ -6,6 +6,7 @@ const StateScript = preload("res://scripts/game_state.gd")
 const PlayerScript = preload("res://scripts/player.gd")
 const RestockScript = preload("res://scripts/restock_point.gd")
 const ShelfScript = preload("res://scripts/shelf.gd")
+const Fundraise = preload("res://scripts/fundraise.gd")
 const DirtScript = preload("res://scripts/dirt.gd")
 const DroppedBoxScript = preload("res://scripts/dropped_box.gd")
 const CashierScript = preload("res://scripts/cashier.gd")
@@ -180,11 +181,11 @@ func _build_furniture(nodes: Array[Node2D]) -> void:
 			nodes.append(_restock(r, cat))
 		elif t.begins_with("shelf"):
 			var cat := Tuning.CAT_DRY
-			if t.ends_with("frozen"):
+			if t.contains("frozen"):
 				cat = Tuning.CAT_FROZEN
-			elif t.ends_with("ice"):
+			elif t.contains("ice"):
 				cat = Tuning.CAT_ICE
-			nodes.append(_make_shelf(r, cat, shelf_i, rot))
+			nodes.append(_make_shelf(r, cat, shelf_i, rot, state.shelf_capacity(t)))
 			shelf_i += 1
 		elif t == "cashier":
 			var node := _make_cashier(r, rot, reg_i)
@@ -208,6 +209,45 @@ func _spawn_clerks() -> void:
 
 func note_clean() -> void:
 	cleaned += 1
+
+
+func yes_my_lord_on() -> bool:
+	return _player != null and _player.buff_left("yes_my_lord") > 0.05
+
+
+func release_player_checkout() -> void:
+	if _player and _player.has_method("release_checkout"):
+		_player.release_checkout()
+
+
+func nearest_stocked_shelf(from: Vector2) -> Node2D:
+	var best: Node2D = null
+	var best_d := INF
+	for s in shelves:
+		if s == null or not is_instance_valid(s):
+			continue
+		if int(s.get("count")) <= 0:
+			continue
+		var d := from.distance_squared_to(s.global_position)
+		if d < best_d:
+			best = s
+			best_d = d
+	return best
+
+
+func cast_fundraise(level: int) -> void:
+	if _customers == null:
+		return
+	var picked: Array = Fundraise.choose(_customers.get_children(), level)
+	var total := 0
+	for c in picked:
+		var amount := int(c.call("cart_total"))
+		total += amount
+		_on_paid(amount)
+		c.finish_paid()
+	release_player_checkout()
+	if _player:
+		_player.log_line.emit("全體集資　%d 人　+$%d" % [picked.size(), total])
 
 
 func sellable() -> Array[String]:
@@ -761,10 +801,11 @@ func _facing(rot: int) -> Vector2:
 			return Vector2.UP
 
 
-func _make_shelf(r: Rect2, cat: String, index: int, rot: int) -> Node2D:
+func _make_shelf(r: Rect2, cat: String, index: int, rot: int, cap: int = Tuning.SHELF_CAP) -> Node2D:
 	_obstacles.append(r)
 	var node: StaticBody2D = ShelfScript.new()
 	node.category = cat
+	node.capacity = cap
 	node.shelf_index = index
 	node.facing = _facing(rot)
 	var color := Color("2f5d50")

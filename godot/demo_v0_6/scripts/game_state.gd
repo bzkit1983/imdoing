@@ -20,9 +20,18 @@ const FURNITURE := {
 	"restock_dry": {"name": "乾貨補貨架", "price": 500, "w": 2, "h": 2, "unlock": 1},
 	"restock_frozen": {"name": "凍櫃補貨架", "price": 700, "w": 2, "h": 2, "unlock": 4},
 	"restock_ice": {"name": "冰櫃補貨架", "price": 800, "w": 2, "h": 2, "unlock": 7},
-	"shelf_dry": {"name": "乾貨貨架", "price": 100, "w": 2, "h": 1, "unlock": 1},
-	"shelf_frozen": {"name": "凍櫃貨架", "price": 200, "w": 2, "h": 1, "unlock": 4},
-	"shelf_ice": {"name": "冰櫃貨架", "price": 300, "w": 2, "h": 1, "unlock": 7},
+	"shelf_dry_4": {"name": "乾貨類貨架（4件）", "price": 40, "w": 2, "h": 1, "unlock": 1, "cap": 4},
+	"shelf_dry_8": {"name": "乾貨類貨架（8件）", "price": 70, "w": 2, "h": 1, "unlock": 1, "cap": 8},
+	"shelf_dry_12": {"name": "乾貨類貨架（12件）", "price": 100, "w": 2, "h": 1, "unlock": 1, "cap": 12},
+	"shelf_dry_24": {"name": "乾貨類貨架（24件）", "price": 200, "w": 2, "h": 1, "unlock": 1, "cap": 24},
+	"shelf_frozen_4": {"name": "凍櫃類貨架（4件）", "price": 70, "w": 2, "h": 1, "unlock": 4, "cap": 4},
+	"shelf_frozen_8": {"name": "凍櫃類貨架（8件）", "price": 130, "w": 2, "h": 1, "unlock": 4, "cap": 8},
+	"shelf_frozen_12": {"name": "凍櫃類貨架（12件）", "price": 200, "w": 2, "h": 1, "unlock": 4, "cap": 12},
+	"shelf_frozen_24": {"name": "凍櫃類貨架（24件）", "price": 400, "w": 2, "h": 1, "unlock": 4, "cap": 24},
+	"shelf_ice_4": {"name": "冰櫃類貨架（4件）", "price": 100, "w": 2, "h": 1, "unlock": 7, "cap": 4},
+	"shelf_ice_8": {"name": "冰櫃類貨架（8件）", "price": 200, "w": 2, "h": 1, "unlock": 7, "cap": 8},
+	"shelf_ice_12": {"name": "冰櫃類貨架（12件）", "price": 300, "w": 2, "h": 1, "unlock": 7, "cap": 12},
+	"shelf_ice_24": {"name": "冰櫃類貨架（24件）", "price": 600, "w": 2, "h": 1, "unlock": 7, "cap": 24},
 }
 
 var scenario: int = 1
@@ -112,13 +121,13 @@ func _scenario_mid() -> void:
 	for sku in ["can", "snack", "cup", "drink", "milk"]:
 		developed[sku] = true
 		stock[sku] = 50
-	owned = {"cashier": 1, "restock_dry": 1, "restock_frozen": 1, "shelf_dry": 2, "shelf_frozen": 2}
+	owned = {"cashier": 1, "restock_dry": 1, "restock_frozen": 1, "shelf_dry_12": 2, "shelf_frozen_12": 2}
 	_place("restock_frozen", 1, 1, 0)
 	_place("restock_dry", 1, 5, 0)
-	_place("shelf_frozen", 5, 2, 0)
-	_place("shelf_frozen", 8, 2, 0)
-	_place("shelf_dry", 5, 6, 0)
-	_place("shelf_dry", 8, 6, 0)
+	_place("shelf_frozen_12", 5, 2, 0)
+	_place("shelf_frozen_12", 8, 2, 0)
+	_place("shelf_dry_12", 5, 6, 0)
+	_place("shelf_dry_12", 8, 6, 0)
 	_place("cashier", 10, 12, 0)
 	clerks.append({"role": "restock", "register": 0})
 
@@ -143,17 +152,17 @@ func _scenario_late() -> void:
 	owned = {
 		"cashier": 2,
 		"restock_dry": 1, "restock_frozen": 1, "restock_ice": 1,
-		"shelf_dry": 2, "shelf_frozen": 2, "shelf_ice": 2,
+		"shelf_dry_12": 2, "shelf_frozen_12": 2, "shelf_ice_12": 2,
 	}
 	_place("restock_ice", 1, 1, 0)
 	_place("restock_frozen", 1, 4, 0)
 	_place("restock_dry", 1, 7, 0)
-	_place("shelf_ice", 5, 1, 0)
-	_place("shelf_ice", 8, 1, 0)
-	_place("shelf_frozen", 5, 4, 0)
-	_place("shelf_frozen", 8, 4, 0)
-	_place("shelf_dry", 5, 8, 0)
-	_place("shelf_dry", 8, 8, 0)
+	_place("shelf_ice_12", 5, 1, 0)
+	_place("shelf_ice_12", 8, 1, 0)
+	_place("shelf_frozen_12", 5, 4, 0)
+	_place("shelf_frozen_12", 8, 4, 0)
+	_place("shelf_dry_12", 5, 8, 0)
+	_place("shelf_dry_12", 8, 8, 0)
 	_place("cashier", 14, 16, 0)
 	_place("cashier", 14, 18, 0)
 	clerks.append({"role": "cashier", "register": 0})
@@ -429,14 +438,36 @@ func open_blockers() -> PackedStringArray:
 	return out
 
 
+func shelf_capacity(type: String) -> int:
+	if FURNITURE.has(type) and FURNITURE[type].has("cap"):
+		return int(FURNITURE[type]["cap"])
+	return Tuning.SHELF_CAP
+
+
+func _furn_category(type: String) -> String:
+	if type.contains("frozen"):
+		return Tuning.CAT_FROZEN
+	if type.contains("ice"):
+		return Tuning.CAT_ICE
+	if type.contains("dry"):
+		return Tuning.CAT_DRY
+	return ""
+
+
 func _has_matching_pair() -> bool:
-	var pairs := [
-		["restock_dry", "shelf_dry"],
-		["restock_frozen", "shelf_frozen"],
-		["restock_ice", "shelf_ice"],
-	]
-	for pair in pairs:
-		if placed_count(String(pair[0])) > 0 and placed_count(String(pair[1])) > 0:
+	var restock := {}
+	var shelf := {}
+	for it in placed:
+		var t := String(it["type"])
+		var cat := _furn_category(t)
+		if cat == "":
+			continue
+		if t.begins_with("restock"):
+			restock[cat] = true
+		elif t.begins_with("shelf"):
+			shelf[cat] = true
+	for cat in restock.keys():
+		if shelf.has(cat):
 			return true
 	return false
 

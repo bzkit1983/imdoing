@@ -271,6 +271,8 @@ func store_status_text() -> String:
 	var bits: PackedStringArray = []
 	if _buffs.has("the_world"):
 		bits.append("The World! 時停 %.0fs" % _buffs["the_world"])
+	if _buffs.has("yes_my_lord"):
+		bits.append("Yes! My Lord! %.0fs" % _buffs["yes_my_lord"])
 	if _buffs.has("metal_rush"):
 		bits.append("金屬狂潮 +150%% %.0fs" % _buffs["metal_rush"])
 	if bits.is_empty():
@@ -1095,7 +1097,7 @@ func _tick_restock(delta: float) -> void:
 	var run: Dictionary = inventory.trailing_run()
 	var sku := String(run["id"])
 	if not bool(target.call("can_accept", sku)):
-		if int(target.get("count")) >= Tuning.SHELF_CAP:
+		if int(target.get("count")) >= int(target.get("capacity")):
 			log_line.emit("貨架已滿")
 			_j_held = false
 			_reset_hold()
@@ -1393,6 +1395,26 @@ func _cast_slot(i: int) -> void:
 	_play_zoom(false)
 
 
+func release_checkout() -> void:
+	seq_index = 0
+	seq_done = false
+	hold_progress = 0.0
+	_j_held = false
+	if _prompt and not ult_prep:
+		_prompt.active = false
+		_prompt.fail_at = -1
+
+
+func _lord_seconds(lv: int) -> float:
+	match lv:
+		1:
+			return 3.0
+		2:
+			return 5.0
+		_:
+			return 10.0
+
+
 func _cast_ultimate() -> void:
 	var sk: Dictionary = _ult_sk()
 	if bool(sk.get("unimplemented", false)):
@@ -1400,10 +1422,27 @@ func _cast_ultimate() -> void:
 		_prompt.active = false
 		return
 	var sid := String(sk.get("id"))
+	var lv := int(sk.get("lv", 3))
 	_cd[sid] = Tuning.cd_seconds(float(sk.get("cd", Skills.ULT_CD)), _int_now())
+	var game := get_tree().get_first_node_in_group("game")
+	if sid == "fundraise":
+		if game and game.has_method("cast_fundraise"):
+			game.call("cast_fundraise", lv)
+		log_line.emit("奧義 全體集資 LV%d" % lv)
+		skill_cast.emit(String(sk.get("name")), true)
+		_play_zoom(true)
+		_prompt.active = false
+		return
+	if sid == "yes_my_lord":
+		_buffs[sid] = _lord_seconds(lv)
+		log_line.emit("奧義 Yes! My Lord! LV%d — 客人搶購 %.0f 秒" % [lv, _lord_seconds(lv)])
+		skill_cast.emit(String(sk.get("name")), true)
+		_play_zoom(true)
+		_prompt.active = false
+		return
 	_buffs[sid] = float(sk.get("duration", Skills.ULT_DURATION))
 	_enqueue_cust_speed(sid)
-	log_line.emit("奧義 %s LV%d — 時停" % [String(sk.get("name")), int(sk.get("lv", 3))])
+	log_line.emit("奧義 %s LV%d — 時停" % [String(sk.get("name")), lv])
 	skill_cast.emit(String(sk.get("name")), true)
 	_play_zoom(true)
 	_prompt.active = false
