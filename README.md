@@ -9,6 +9,8 @@ Repository for game project
 - `godot/demo_v0_4` — 三類污物與清潔小遊戲（見 `docs/demo/demov0_4scope.md`）
 - `godot/demo_v0_5` — 小偷與連打打擊（見 `docs/demo/demov0_5scope.md`）
 - `godot/demo_v0_6` — 準備回合、資金、等級、店舖設計、店員（見 `docs/demo/demov0_6scope.md`）
+- `godot/alpha_v0_1` — 同一套開店流程，畫面換成 Voxel（見 `docs/alpha/voxel-v0.1.md`）
 - GitHub Pages（iPhone）：https://bzkit1983.github.io/imdoing/play-v06/
+- Alpha v0.1：https://bzkit1983.github.io/imdoing/play-alpha-v01/
 
 設計文件在 `docs/systemdesign/`。長線設計缺口檢視：`docs/systemdesign-gaps.md`。Alpha 計劃（系統先可玩，再接 Voxel）：`docs/alpha/plan.md`。
