@@ -380,10 +380,16 @@ func item_at(x: int, y: int) -> int:
 	return -1
 
 
+func area_cap() -> int:
+	var side := int(SCALE_MAX[shop_scale])
+	return side * side
+
+
 func set_grid(w: int, h: int) -> String:
-	var cap := int(SCALE_MAX[shop_scale])
-	w = clampi(w, 8, cap)
-	h = clampi(h, 8, cap)
+	if w < 8 or h < 8:
+		return "闊度和長度最少是 8。"
+	if w * h > area_cap():
+		return "總面積超過規模上限"
 	for it in placed:
 		if int(it["x"]) + int(it["w"]) > w or int(it["y"]) + int(it["h"]) > h:
 			return "有傢俬在新邊界外，先收回"

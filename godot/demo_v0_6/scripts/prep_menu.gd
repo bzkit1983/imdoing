@@ -491,7 +491,7 @@ func _fill_furn() -> void:
 
 func _fill_expand() -> void:
 	_title.text = "擴張店面"
-	_info.text = "現時規模 LV%d　地圖 %d×%d。闊度和長度在店舖設計裡調。\nLV2＝$3000、上限 15，要角色 LV4。LV3＝$6000、上限 20，要角色 LV7。" % [state.shop_scale, state.grid_w, state.grid_h]
+	_info.text = "現時規模 LV%d　地圖 %d×%d　總面積 %d／%d。闊度和長度在店舖設計裡調，一邊減少就能加另一邊。\nLV2＝$3000、總面積 225，要角色 LV4。LV3＝$6000、總面積 400，要角色 LV7。" % [state.shop_scale, state.grid_w, state.grid_h, state.grid_w * state.grid_h, state.area_cap()]
 	if state.shop_scale < 3:
 		var nxt := state.shop_scale + 1
 		_add("擴張到規模 LV%d　$%d" % [nxt, int(state.SCALE_COST[nxt])], "expand", null)
@@ -521,6 +521,9 @@ func _build_size() -> void:
 	_clear(_size_panel)
 	_add_size_row("闊度", "w", state.grid_w, 0)
 	_add_size_row("長度", "h", state.grid_h, 1)
+	var area := _name_label("總面積  %d／%d" % [state.grid_w * state.grid_h, state.area_cap()], 420, 48)
+	area.add_theme_color_override("font_color", Color("f4d35e"))
+	_size_panel.add_child(area)
 
 
 func _add_size_row(title: String, axis: String, value: int, row: int) -> void:
@@ -547,12 +550,7 @@ func _nudge_grid(axis: String, delta: int) -> void:
 	var h := state.grid_h
 	var cur := w if axis == "w" else h
 	var label := "闊度" if axis == "w" else "長度"
-	var cap := int(state.SCALE_MAX[state.shop_scale])
 	var nxt := cur + delta
-	if nxt > cap:
-		_popup_info("不能調整", "%s已是規模 LV%d 的上限 %d。要再加大，先擴張店面。" % [label, state.shop_scale, cap])
-		_refresh()
-		return
 	if nxt < 8:
 		_popup_info("不能調整", "%s最少是 8。" % label)
 		_refresh()
@@ -561,6 +559,10 @@ func _nudge_grid(axis: String, delta: int) -> void:
 		w = nxt
 	else:
 		h = nxt
+	if w * h > state.area_cap():
+		_popup_info("不能調整", "加了%s之後總面積是 %d，超過規模 LV%d 的上限 %d。先縮小另一邊，或擴張店面。" % [label, w * h, state.shop_scale, state.area_cap()])
+		_refresh()
+		return
 	var msg := state.set_grid(w, h)
 	if msg != "":
 		_popup_info("不能調整", "有傢俬超出新的邊界，先在圖上收回再縮小。")
@@ -826,7 +828,7 @@ func _ask_expand() -> void:
 		_popup_info("資金不足", _funds_line("擴張到規模 LV%d" % nxt, price))
 		return
 	var cap := int(state.SCALE_MAX[nxt])
-	_popup_confirm("確認購入", "擴張到規模 LV%d，地圖上限變為 %d×%d，支付 $%d？" % [nxt, cap, cap, price], {"action": "expand"})
+	_popup_confirm("確認購入", "擴張到規模 LV%d，總面積上限變為 %d（現成 %d×%d），支付 $%d？" % [nxt, cap * cap, cap, cap, price], {"action": "expand"})
 
 
 func _try_hire() -> void:
