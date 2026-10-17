@@ -37,6 +37,10 @@ var _drag_grab := Vector2i.ZERO
 var _drag_press := Vector2.ZERO
 var _msg: String = ""
 var _list: ItemList
+var _back_btn: Button
+var _click_arm: int = -1
+var _list_dragging: bool = false
+var _list_press := Vector2.ZERO
 var _info: Label
 var _title: Label
 var _grid: Control
@@ -78,6 +82,7 @@ func setup(host: Node) -> void:
 func _build() -> void:
 	var bg := ColorRect.new()
 	bg.color = Color("141c18")
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
 	_title = Label.new()
@@ -87,13 +92,15 @@ func _build() -> void:
 	_title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	UiFont.apply_label(_title, PREP_TITLE)
 	_title.add_theme_color_override("font_color", Color("f4d35e"))
+	_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_title)
 	_info = Label.new()
 	_info.position = Vector2(24, 76)
-	_info.size = Vector2(1232, 100)
+	_info.size = Vector2(960, 100)
 	_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	UiFont.apply_label(_info, PREP_INFO)
 	_info.add_theme_color_override("font_color", Color("f4f1ea"))
+	_info.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_info)
 	_list = ItemList.new()
 	_list.position = Vector2(24, 168)
@@ -109,7 +116,16 @@ func _build() -> void:
 	_list.add_theme_color_override("font_selected_color", Color("1c241f"))
 	_list.add_theme_color_override("font_hovered_color", Color("f4d35e"))
 	_list.item_selected.connect(_on_click)
+	_list.gui_input.connect(_on_list_gui_input)
+	var bar := _list.get_v_scroll_bar()
+	bar.custom_minimum_size = Vector2(36, 0)
 	add_child(_list)
+	_back_btn = _bare_button("返回", 240, 56)
+	_back_btn.position = Vector2(1000, 88)
+	_back_btn.z_index = 8
+	_paint_btn(_back_btn, true)
+	_back_btn.button_down.connect(_on_back_button)
+	add_child(_back_btn)
 	_stats_panel = VBoxContainer.new()
 	_stats_panel.position = Vector2(24, 186)
 	_stats_panel.size = Vector2(720, 360)
@@ -144,6 +160,7 @@ func _build() -> void:
 	hint.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	UiFont.apply_label(hint, PREP_HINT)
 	hint.add_theme_color_override("font_color", Color("c8d4c5"))
+	hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(hint)
 	_build_dialog()
 
@@ -223,6 +240,8 @@ func _refresh() -> void:
 	_size_panel.visible = _page == "layout"
 	_qty_panel.visible = qty_on
 	_list.visible = not qty_on
+	if _back_btn:
+		_back_btn.visible = _page != "scenario" and _page != "home"
 	if _page == "stats":
 		_list.position = Vector2(24, 430)
 		_list.size = Vector2(1232, 220)
@@ -601,13 +620,56 @@ func _select_row(index: int) -> void:
 
 
 func _on_click(index: int) -> void:
-	if _dlg_open or _swallow_click or _suppress_select:
+	if _dlg_open or _swallow_click or _suppress_select or _list_dragging:
 		return
-	# Block the same press from activating whatever appears under the cursor.
-	_swallow_click = true
 	_index = index
 	_on_size_btns = false
-	_activate()
+	# Wait until the finger lifts, so a scroll does not also open the row.
+	_click_arm = index
+
+
+func _on_back_button() -> void:
+	if _dlg_open:
+		return
+	_back()
+
+
+func _try_back_click(event: InputEvent) -> bool:
+	if _back_btn == null or not _back_btn.visible or not visible or _dlg_open:
+		return false
+	if not (event is InputEventMouseButton):
+		return false
+	var mb := event as InputEventMouseButton
+	if mb.button_index != MOUSE_BUTTON_LEFT or not mb.pressed:
+		return false
+	if not _back_btn.get_global_rect().has_point(mb.position):
+		return false
+	get_viewport().set_input_as_handled()
+	_back()
+	return true
+
+
+func _on_list_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and (event as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			_list_press = event.position
+			_list_dragging = false
+		return
+	if not (event is InputEventMouseMotion):
+		return
+	if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+		return
+	var motion := event as InputEventMouseMotion
+	if not _list_dragging and _list_press.distance_to(motion.position) < 18.0:
+		return
+	_list_dragging = true
+	_click_arm = -1
+	# A layout drag is placing an item, so the list itself should stay still.
+	if _drag_on:
+		return
+	var scroll := _list.get_v_scroll_bar()
+	scroll.value -= motion.relative.y
+	_list.accept_event()
 
 
 func _activate() -> void:
@@ -1041,6 +1103,16 @@ func _process(_delta: float) -> void:
 		return
 	if _swallow_click and not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
 		_swallow_click = false
+	if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+		if _click_arm >= 0:
+			var armed := _click_arm
+			_click_arm = -1
+			if not _list_dragging:
+				_swallow_click = true
+				_index = armed
+				_on_size_btns = false
+				_activate()
+		_list_dragging = false
 	if _confirm_latch:
 		_confirm_latch = false
 	if _dlg_open:
@@ -1218,6 +1290,8 @@ func _back() -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if _try_back_click(event):
+		return
 	if not visible or _page != "layout" or _dlg_open or state == null:
 		return
 	if event is InputEventMouseButton and (event as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT:
@@ -1278,6 +1352,9 @@ func _release_layout(screen: Vector2) -> void:
 	var rot := _drag_rot
 	var moved := _drag_moved
 	var grab := _drag_grab
+	if moved:
+		_list_dragging = true
+		_click_arm = -1
 	_cancel_drag()
 	if not moved:
 		if from >= 0:
@@ -1391,7 +1468,9 @@ func _bare_button(text: String, wide: float, tall: float) -> Button:
 	var btn := Button.new()
 	btn.text = text
 	btn.custom_minimum_size = Vector2(wide, tall)
+	btn.size = Vector2(wide, tall)
 	btn.focus_mode = Control.FOCUS_NONE
+	btn.mouse_filter = Control.MOUSE_FILTER_STOP
 	btn.add_theme_font_override("font", UiFont.font())
 	btn.add_theme_font_size_override("font_size", UiFont.px(PREP_BTN))
 	return btn
