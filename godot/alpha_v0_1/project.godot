@@ -11,9 +11,10 @@ config_version=5
 [application]
 
 config/name="imdoing Alpha v0.1"
-config/description="Voxel blockout of the shop people and objects"
-run/main_scene="res://scenes/preview.tscn"
+config/description="Demo v0.6 shop loop, drawn with the voxel blockouts"
+run/main_scene="res://scenes/demo.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
+config/icon="res://icon.svg"
 
 [display]
 
@@ -21,9 +22,32 @@ window/size/viewport_width=1280
 window/size/viewport_height=720
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+window/handheld/orientation=4
+
+[gui]
+
+theme/custom="res://themes/default.tres"
+theme/custom_font="res://fonts/NotoSansTC-Regular.otf"
+
+[internationalization]
+
+locale/fallback="zh_TW"
+locale/include_text_server_data=true
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
+
+[physics]
+
+2d/default_gravity=0.0
 
 [rendering]
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
-environment/defaults/default_clear_color=Color(0.08, 0.11, 0.1, 1)
+renderer/rendering_method.web="gl_compatibility"
+textures/vram_compression/import_etc2_astc=true
+textures/vram_compression/import_s3tc_bptc=true
+textures/canvas_textures/default_texture_filter=0
+environment/defaults/default_clear_color=Color(0.11, 0.14, 0.13, 1)
