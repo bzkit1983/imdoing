@@ -5,6 +5,7 @@
 - 已發佈的 Demo（`godot/demo_v0_1` 至 `godot/demo_v0_5`）保持不動
 - 長線設計仍以 `docs/systemdesign/` 為準；本檔補上缺口清單裡尚未寫進系統檔的決定
 - 缺口對照：`docs/systemdesign-gaps.md`（2026-10-16）
+- 技術設計審查（可持續開發／效能／Steam·Switch·Xbox）：`docs/alpha/tech-review-v0.1.md`
 
 # 版本目標
 
