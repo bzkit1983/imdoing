@@ -27,6 +27,8 @@ Repository for game project
 
 ## 設計文件
 
-- 長線規則：`docs/systemdesign/`
+- 長線規則：`docs/systemdesign/`（含 [`savesystem.md`](docs/systemdesign/savesystem.md)、[`control.md`](docs/systemdesign/control.md)）
 - 缺口檢視：`docs/systemdesign-gaps.md`
-- Alpha 計劃：`docs/alpha/plan.md`
+- Alpha 計劃／審查：`docs/alpha/plan.md`、`docs/alpha/tech-review-v0.1.md`
+- 近期實作對照：`docs/alpha/implementation-status.md`
+- 版控：`docs/versioning.md`
