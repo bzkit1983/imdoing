@@ -1,17 +1,19 @@
 extends CanvasLayer
-## Shop-prep menus. Uses InputMap: move_*, interact, cancel, rotate.
+## Shop-prep coordinator. Shell UI lives in scenes/prep_menu.tscn; pages in scripts/prep/.
+## InputMap via Controls: move_*, interact, cancel, rotate.
 
 const Tuning = preload("res://scripts/tuning.gd")
 const Skills = preload("res://scripts/skills.gd")
 const UiFont = preload("res://scripts/ui_font.gd")
 const StateScript = preload("res://scripts/game_state.gd")
+const PrepWidgets = preload("res://scripts/prep/prep_widgets.gd")
+const PrepPages = preload("res://scripts/prep/prep_pages.gd")
+const PrepGridView = preload("res://scripts/prep/prep_grid_view.gd")
 
-const PREP_TITLE := 40
-const PREP_INFO := 28
-const PREP_LIST := 32
-const PREP_HINT := 24
-const PREP_BTN := 32
-const PREP_NUM := 44
+const PREP_TITLE := PrepWidgets.PREP_TITLE
+const PREP_INFO := PrepWidgets.PREP_INFO
+const PREP_LIST := PrepWidgets.PREP_LIST
+const PREP_HINT := PrepWidgets.PREP_HINT
 
 signal start_day
 
@@ -43,7 +45,7 @@ var _list_dragging: bool = false
 var _list_press := Vector2.ZERO
 var _info: Label
 var _title: Label
-var _grid: Control
+var _grid: PrepGridView
 var _stats_panel: VBoxContainer
 var _stat_row: int = 0
 var _stat_side: int = 1
@@ -75,7 +77,7 @@ func setup(host: Node) -> void:
 	demo = host
 	state = host.state
 	layer = 30
-	_build()
+	_bind_nodes()
 	var load_err := state.load_from_disk()
 	if load_err == "":
 		_msg = "已讀取存檔（劇本 %d　LV%d　$%d）" % [state.scenario, state.level, state.money]
@@ -84,134 +86,52 @@ func setup(host: Node) -> void:
 		_show_page("scenario")
 
 
-func _build() -> void:
-	var bg := ColorRect.new()
-	bg.color = Color("141c18")
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(bg)
-	_title = Label.new()
-	_title.position = Vector2(24, 16)
-	_title.size = Vector2(1232, 56)
-	_title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+func _bind_nodes() -> void:
+	_title = %Title
+	_info = %Info
+	_list = %List
+	_back_btn = %BackBtn
+	_stats_panel = %StatsPanel
+	_size_panel = %SizePanel
+	_qty_panel = %QtyPanel
+	_grid = %LayoutGrid
+	_shade = %DialogShade
+	_box = %DialogBox
+	_dlg_title = %DialogTitle
+	_dlg_body = %DialogBody
+	_dlg_yes = %DialogYes
+	_dlg_no = %DialogNo
+	_grid.host = self
+	_list.item_selected.connect(_on_click)
+	_list.gui_input.connect(_on_list_gui_input)
+	_back_btn.button_down.connect(_on_back_button)
+	_dlg_yes.pressed.connect(_on_dlg_yes)
+	_dlg_no.pressed.connect(_on_dlg_no)
 	UiFont.apply_label(_title, PREP_TITLE)
 	_title.add_theme_color_override("font_color", Color("f4d35e"))
-	_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_title)
-	_info = Label.new()
-	_info.position = Vector2(24, 76)
-	_info.size = Vector2(960, 100)
-	_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	UiFont.apply_label(_info, PREP_INFO)
 	_info.add_theme_color_override("font_color", Color("f4f1ea"))
-	_info.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_info)
-	_list = ItemList.new()
-	_list.position = Vector2(24, 168)
-	_list.size = Vector2(1232, 430)
-	_list.clip_contents = true
-	_list.allow_reselect = true
-	_list.focus_mode = Control.FOCUS_NONE
-	_list.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_list.add_theme_font_override("font", UiFont.font())
 	_list.add_theme_font_size_override("font_size", UiFont.px(PREP_LIST))
 	_list.add_theme_constant_override("v_separation", 6)
 	_list.add_theme_color_override("font_color", Color("f4f1ea"))
 	_list.add_theme_color_override("font_selected_color", Color("1c241f"))
 	_list.add_theme_color_override("font_hovered_color", Color("f4d35e"))
-	_list.item_selected.connect(_on_click)
-	_list.gui_input.connect(_on_list_gui_input)
 	var bar := _list.get_v_scroll_bar()
 	bar.custom_minimum_size = Vector2(36, 0)
-	add_child(_list)
-	_back_btn = _bare_button("返回", 240, 56)
-	_back_btn.position = Vector2(1000, 88)
-	_back_btn.z_index = 8
-	_paint_btn(_back_btn, true)
-	_back_btn.button_down.connect(_on_back_button)
-	add_child(_back_btn)
-	_stats_panel = VBoxContainer.new()
-	_stats_panel.position = Vector2(24, 186)
-	_stats_panel.size = Vector2(720, 360)
-	_stats_panel.clip_contents = true
-	_stats_panel.add_theme_constant_override("separation", 8)
-	_stats_panel.visible = false
-	_stats_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_stats_panel)
-	_size_panel = VBoxContainer.new()
-	_size_panel.position = Vector2(24, 186)
-	_size_panel.size = Vector2(520, 180)
-	_size_panel.add_theme_constant_override("separation", 12)
-	_size_panel.visible = false
-	_size_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_size_panel)
-	_qty_panel = VBoxContainer.new()
-	_qty_panel.position = Vector2(24, 190)
-	_qty_panel.size = Vector2(1100, 320)
-	_qty_panel.add_theme_constant_override("separation", 18)
-	_qty_panel.visible = false
-	_qty_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_qty_panel)
-	_grid = GridView.new()
-	_grid.position = Vector2(560, 186)
-	_grid.size = Vector2(690, 470)
-	_grid.host = self
-	add_child(_grid)
-	var hint := Label.new()
-	hint.position = Vector2(24, 668)
-	hint.size = Vector2(1232, 40)
-	hint.text = "方向移動　行動確定　取消返回　店舖設計時 轉向（預設 K／X）"
-	hint.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	UiFont.apply_label(hint, PREP_HINT)
-	hint.add_theme_color_override("font_color", Color("c8d4c5"))
-	hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(hint)
-	_build_dialog()
-
-
-func _build_dialog() -> void:
-	_shade = ColorRect.new()
-	_shade.color = Color(0, 0, 0, 0.62)
-	_shade.visible = false
-	_shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_shade.z_index = 20
-	add_child(_shade)
-	_shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_box = Control.new()
-	_box.position = Vector2(190, 150)
-	_box.size = Vector2(900, 400)
-	_box.visible = false
-	_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_box.z_index = 21
-	add_child(_box)
-	var card := ColorRect.new()
-	card.color = Color("1c241f")
-	card.position = Vector2.ZERO
-	card.size = _box.size
-	card.mouse_filter = Control.MOUSE_FILTER_STOP
-	_box.add_child(card)
-	_dlg_title = Label.new()
-	_dlg_title.position = Vector2(36, 28)
-	_dlg_title.size = Vector2(828, 52)
+	PrepWidgets.paint_btn(_back_btn, true)
+	UiFont.apply_button(_back_btn, PrepWidgets.PREP_BTN)
+	UiFont.apply_label(%Hint, PREP_HINT)
+	%Hint.text = "方向移動　行動確定　取消返回　店舖設計時 轉向（預設 K／X）"
+	%Hint.add_theme_color_override("font_color", Color("c8d4c5"))
 	UiFont.apply_label(_dlg_title, PREP_TITLE)
 	_dlg_title.add_theme_color_override("font_color", Color("f4d35e"))
-	_box.add_child(_dlg_title)
-	_dlg_body = Label.new()
-	_dlg_body.position = Vector2(36, 100)
-	_dlg_body.size = Vector2(828, 140)
-	_dlg_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	UiFont.apply_label(_dlg_body, PREP_INFO)
 	_dlg_body.add_theme_color_override("font_color", Color("f4f1ea"))
-	_box.add_child(_dlg_body)
-	_dlg_yes = _bare_button("確定", 280, 80)
-	_dlg_yes.position = Vector2(140, 280)
-	_dlg_yes.pressed.connect(_on_dlg_yes)
-	_box.add_child(_dlg_yes)
-	_dlg_no = _bare_button("取消", 280, 80)
-	_dlg_no.position = Vector2(480, 280)
-	_dlg_no.pressed.connect(_on_dlg_no)
-	_box.add_child(_dlg_no)
+	UiFont.apply_button(_dlg_yes, PrepWidgets.PREP_BTN)
+	UiFont.apply_button(_dlg_no, PrepWidgets.PREP_BTN)
+	PrepWidgets.paint_btn(_dlg_yes, true)
+	PrepWidgets.paint_btn(_dlg_no, false)
 
 
 func _show_page(page: String) -> void:
@@ -239,61 +159,8 @@ func _refresh() -> void:
 	_building = true
 	_rows.clear()
 	_list.clear()
-	var qty_on := _page == "stock" and _qty_sku != ""
-	_grid.visible = _page == "layout"
-	_stats_panel.visible = _page == "stats"
-	_size_panel.visible = _page == "layout"
-	_qty_panel.visible = qty_on
-	_list.visible = not qty_on
-	if _back_btn:
-		_back_btn.visible = _page != "scenario" and _page != "home"
-	if _page == "stats":
-		_list.position = Vector2(24, 430)
-		_list.size = Vector2(1232, 220)
-		_list.z_index = 2
-	elif _page == "layout":
-		_list.z_index = 0
-		_list.position = Vector2(24, 360)
-		_list.size = Vector2(520, 276)
-	else:
-		_list.z_index = 0
-		_list.position = Vector2(24, 168)
-		_list.size = Vector2(1232, 430)
-	match _page:
-		"scenario":
-			_title.text = "選擇劇本"
-			_info.text = "劇本1 從空店開始，資金 $10000。劇本2、3 帶現成店面和店員。"
-			_add("劇本1　從新開始　資金 $10000　LV1　空店", "sc", 1)
-			_add("劇本2　LV5　資金 $10000　店規模 2　1 名店員", "sc", 2)
-			_add("劇本3　LV10　資金 $99999　三圍 30　店規模 3　2 名店員", "sc", 3)
-		"home":
-			_title.text = "營運準備"
-			_info.text = _pair(_header(), _msg if _msg != "" else _home_info())
-			_add("角色能力", "go", "stats")
-			_add("裝備技能　COST %d/5" % state.cost_sum(), "go", "skills")
-			_add("開發／採購貨品", "go", "stock")
-			_add("購入商店物品", "go", "furn")
-			_add("擴張店面　現時 LV%d　%d×%d" % [state.shop_scale, state.grid_w, state.grid_h], "go", "expand")
-			_add("店舖設計", "go", "layout")
-			_add("店員　%d 人" % state.clerks.size(), "go", "clerks")
-			_add("開始營業", "try_open", null)
-			_add("清除存檔並重選劇本", "wipe_save", null)
-		"stats":
-			_fill_stats()
-		"skills":
-			_fill_skills()
-		"stock":
-			_fill_stock()
-		"furn":
-			_fill_furn()
-		"expand":
-			_fill_expand()
-		"layout":
-			_fill_layout()
-		"clerks":
-			_fill_clerks()
-		"confirm":
-			_fill_confirm()
+	PrepPages.apply_panel_layout(self)
+	PrepPages.fill(self, _page)
 	if _rows.size() > 0 and _list.visible:
 		_index = clampi(_index, 0, _rows.size() - 1)
 		var on_btns := (_page == "stats" and _on_stats_btns) or (_page == "layout" and _on_size_btns)
@@ -330,28 +197,6 @@ func _add(label: String, action: String, arg = null) -> void:
 	_list.add_item(label)
 
 
-func _fill_stats() -> void:
-	_title.text = "角色能力"
-	_info.text = _pair(_header(), _msg if _msg != "" else "按 + 加一點，按 - 減一點。向下可到重置和返回。")
-	_list.visible = false
-	_clear(_stats_panel)
-	_add_stat_row("STR", "str", state.str_stat, 0)
-	_add_stat_row("AGI", "agi", state.agi_stat, 1)
-	_add_stat_row("INT", "int", state.int_stat, 2)
-	_stats_panel.add_child(_step_button("重置能力值", _stat_row == 3, _on_stat_reset, 64, 420))
-	_stats_panel.add_child(_step_button("返回", _stat_row == 4, _on_stat_back, 64, 420))
-
-
-func _add_stat_row(title: String, stat: String, value: int, row: int) -> void:
-	var line := HBoxContainer.new()
-	line.add_theme_constant_override("separation", 14)
-	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	line.add_child(_name_label("%s  %d" % [title, value], 220, 64))
-	line.add_child(_step_button("+", _stat_row == row and _stat_side == 1, _on_stat_pressed.bind(stat, 1, row), 64))
-	line.add_child(_step_button("-", _stat_row == row and _stat_side == -1, _on_stat_pressed.bind(stat, -1, row), 64))
-	_stats_panel.add_child(line)
-
-
 func _on_stat_pressed(stat: String, delta: int, row: int) -> void:
 	if _dlg_open or _swallow_click or _confirm_latch or _building:
 		return
@@ -375,105 +220,6 @@ func _on_stat_back() -> void:
 	if _dlg_open or _swallow_click:
 		return
 	_show_page("home")
-
-
-func _fill_skills() -> void:
-	_title.text = "裝備技能"
-	var ult_name := String(state.ult_skill().get("name", ""))
-	_info.text = "COST %d/5　奧義 %s\n選一格再選技能。奧義不佔 COST。" % [state.cost_sum(), ult_name]
-	for i in 5:
-		var id := state.slots[i]
-		var name := "空"
-		var kind := ""
-		if id != "":
-			var sk := Skills.by_id(id)
-			name = String(sk.get("name"))
-			kind = _kind_label(String(sk.get("kind"))) + "　"
-		_add("技能%d　%s%s" % [i + 1, kind, name], "pick_slot", i)
-	var ult := state.ult_skill()
-	_add("奧義　%s" % String(ult.get("name")), "pick_slot", 5)
-	_add("返回", "go", "home")
-
-
-func _fill_stock() -> void:
-	if _qty_sku != "":
-		var name := Tuning.sku_name(_qty_sku)
-		var each := int(Tuning.SKU_COST.get(_qty_sku, 0))
-		_title.text = "採購 %s" % name
-		_info.text = "庫存 %d 箱　$%d／箱。中間是箱數（01–99），按按鈕加減。" % [int(state.stock.get(_qty_sku, 0)), each]
-		_build_qty(each * _qty_boxes)
-		return
-	_title.text = "開發／採購"
-	_info.text = _pair(_header(), _msg if _msg != "" else "罐頭是初始貨物，不用開發就能採購。其他未開發的先付開發費。")
-	for sku in Tuning.SELLABLE_SKUS:
-		if not state.sku_unlocked(sku):
-			_add("%s　LV%d 開放" % [Tuning.sku_name(sku), int(Tuning.SKU_UNLOCK_LV[sku])], "locked_sku", sku)
-		elif not state.developed.has(sku):
-			_add("開發 %s　$%d" % [Tuning.sku_name(sku), int(Tuning.SKU_DEVELOP[sku])], "dev", sku)
-		else:
-			_add("採購 %s　庫存 %d 箱　$%d/箱" % [Tuning.sku_name(sku), int(state.stock.get(sku, 0)), int(Tuning.SKU_COST[sku])], "qty", sku)
-	_add("返回", "go", "home")
-
-
-func _build_qty(total: int) -> void:
-	_clear(_qty_panel)
-	var steps := HBoxContainer.new()
-	steps.add_theme_constant_override("separation", 16)
-	steps.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	steps.add_child(_qty_button("-10", 0))
-	steps.add_child(_qty_button("-1", 1))
-	steps.add_child(_qty_figure())
-	steps.add_child(_qty_button("+1", 2))
-	steps.add_child(_qty_button("+10", 3))
-	_qty_panel.add_child(steps)
-	var sum := Label.new()
-	sum.text = "合計 $%d" % total
-	sum.custom_minimum_size = Vector2(400, 48)
-	UiFont.apply_label(sum, PREP_TITLE)
-	sum.add_theme_color_override("font_color", Color("e07a5f") if total > state.money else Color("f4d35e"))
-	_qty_panel.add_child(sum)
-	var acts := HBoxContainer.new()
-	acts.add_theme_constant_override("separation", 24)
-	acts.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var ok := _bare_button("確定購買", 280, 80)
-	_paint_btn(ok, _qty_focus == 4)
-	ok.pressed.connect(_on_qty_pressed.bind(4))
-	acts.add_child(ok)
-	var cancel := _bare_button("取消", 280, 80)
-	_paint_btn(cancel, _qty_focus == 5)
-	cancel.pressed.connect(_on_qty_pressed.bind(5))
-	acts.add_child(cancel)
-	_qty_panel.add_child(acts)
-
-
-func _qty_figure() -> Control:
-	var holder := Panel.new()
-	holder.custom_minimum_size = Vector2(210, 84)
-	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color("0e1612")
-	sb.border_color = Color("f4d35e")
-	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(10)
-	holder.add_theme_stylebox_override("panel", sb)
-	var num := Label.new()
-	num.text = "%02d 箱" % _qty_boxes
-	num.position = Vector2(0, 0)
-	num.size = Vector2(210, 84)
-	num.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	num.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	UiFont.apply_label(num, PREP_NUM)
-	num.add_theme_color_override("font_color", Color("f4f1ea"))
-	num.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	holder.add_child(num)
-	return holder
-
-
-func _qty_button(text: String, focus_i: int) -> Button:
-	var btn := _bare_button(text, 120, 84)
-	_paint_btn(btn, _qty_focus == focus_i)
-	btn.pressed.connect(_on_qty_pressed.bind(focus_i))
-	return btn
 
 
 func _on_qty_pressed(focus_i: int) -> void:
@@ -500,65 +246,6 @@ func _qty_apply(focus_i: int) -> void:
 		5:
 			_qty_sku = ""
 	_refresh()
-
-
-func _fill_furn() -> void:
-	_title.text = "購入商店物品"
-	_info.text = _pair(_header(), _msg if _msg != "" else "買入後到店舖設計才放進店裡。展示貨架有 4、8、12、24 件，越大越貴。凍櫃 LV4、冰櫃 LV7 才開放。")
-	for type in state.FURNITURE.keys():
-		var spec: Dictionary = state.FURNITURE[type]
-		if not state.furniture_unlocked(type):
-			_add("%s　LV%d 開放　$%d" % [spec["name"], int(spec["unlock"]), int(spec["price"])], "locked_furn", type)
-		else:
-			_add("購入 %s　$%d　擁有 %d　未放置 %d" % [spec["name"], int(spec["price"]), int(state.owned.get(type, 0)), state.unplaced(type)], "buy_f", type)
-	_add("返回", "go", "home")
-
-
-func _fill_expand() -> void:
-	_title.text = "擴張店面"
-	_info.text = "現時規模 LV%d　地圖 %d×%d　總面積 %d／%d。闊度和長度在店舖設計裡調，一邊減少就能加另一邊。\nLV2＝$3000、總面積 225，要角色 LV4。LV3＝$6000、總面積 400，要角色 LV7。" % [state.shop_scale, state.grid_w, state.grid_h, state.grid_w * state.grid_h, state.area_cap()]
-	if state.shop_scale < 3:
-		var nxt := state.shop_scale + 1
-		_add("擴張到規模 LV%d　$%d" % [nxt, int(state.SCALE_COST[nxt])], "expand", null)
-	else:
-		_add("已是最大規模", "expand_max", null)
-	_add("返回", "go", "home")
-
-
-func _fill_layout() -> void:
-	_title.text = "店舖設計"
-	if _hold_type != "":
-		_info.text = "正在放 %s。拖到右圖放開，或移動游標後確定。X／K 轉向。" % state.FURNITURE[_hold_type]["name"]
-	elif _msg != "":
-		_info.text = _msg
-	else:
-		_info.text = "拖動左邊的物品放到右圖。圖上的物品可以拖去別的格子，拖出圖外或輕點就收回。"
-	_build_size()
-	for type in state.FURNITURE.keys():
-		var n := state.unplaced(type)
-		if n > 0:
-			_add("拖放 %s　×%d" % [state.FURNITURE[type]["name"], n], "hold", type)
-	_add("收回游標上的物品", "pickup", null)
-	_add("返回", "go", "home")
-
-
-func _build_size() -> void:
-	_clear(_size_panel)
-	_add_size_row("闊度", "w", state.grid_w, 0)
-	_add_size_row("長度", "h", state.grid_h, 1)
-	var area := _name_label("總面積  %d／%d" % [state.grid_w * state.grid_h, state.area_cap()], 420, 48)
-	area.add_theme_color_override("font_color", Color("f4d35e"))
-	_size_panel.add_child(area)
-
-
-func _add_size_row(title: String, axis: String, value: int, row: int) -> void:
-	var line := HBoxContainer.new()
-	line.add_theme_constant_override("separation", 14)
-	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	line.add_child(_name_label("%s  %d" % [title, value], 180))
-	line.add_child(_step_button("+", _on_size_btns and _size_row == row and _size_side == 1, _on_size_pressed.bind(axis, 1, row)))
-	line.add_child(_step_button("-", _on_size_btns and _size_row == row and _size_side == -1, _on_size_pressed.bind(axis, -1, row)))
-	_size_panel.add_child(line)
 
 
 func _on_size_pressed(axis: String, delta: int, row: int) -> void:
@@ -594,28 +281,6 @@ func _nudge_grid(axis: String, delta: int) -> void:
 	else:
 		_msg = ""
 	_refresh()
-
-
-func _fill_clerks() -> void:
-	_title.text = "店員"
-	_info.text = "現有 %d／上限 %d　每日開工每人扣 $%d\n人數不能多過已放置的收銀機，也不能超過店舖規模。" % [state.clerks.size(), state.hire_limit(), state.WAGE]
-	_add("召募", "hire", null)
-	for i in state.clerks.size():
-		var c: Dictionary = state.clerks[i]
-		var role := "收銀" if String(c["role"]) == "cashier" else "補貨"
-		_add("店員%d　%s　收銀機 %d　（確定切崗位）" % [i + 1, role, int(c["register"]) + 1], "role", i)
-		if String(c["role"]) == "cashier":
-			_add("　改派收銀機", "reg", i)
-		_add("　解僱店員%d" % (i + 1), "fire", i)
-	_add("返回", "go", "home")
-
-
-func _fill_confirm() -> void:
-	_title.text = "開始營業？"
-	var wage := state.WAGE * state.clerks.size()
-	_info.text = "開工扣工資 $%d。結算時營業額入帳；若營業額低於本輪進貨成本會標虧損，遊戲繼續。" % wage
-	_add("開始　工資後資金約 $%d" % (state.money - wage), "open", null)
-	_add("返回", "go", "home")
 
 
 func _select_row(index: int) -> void:
@@ -725,7 +390,7 @@ func _activate() -> void:
 			state.reset_stats()
 			_refresh()
 		"pick_slot":
-			_fill_skill_pick(int(arg))
+			PrepPages.fill_skill_pick(self, int(arg))
 		"equip":
 			var equip_msg := state.equip(int(arg[0]), String(arg[1]))
 			_show_page("skills")
@@ -793,47 +458,6 @@ func _activate() -> void:
 			start_day.emit()
 		_:
 			pass
-
-
-func _fill_skill_pick(slot_i: int) -> void:
-	_page = "skill_pick"
-	_qty_panel.visible = false
-	_size_panel.visible = false
-	_stats_panel.visible = false
-	_grid.visible = false
-	_list.visible = true
-	_list.position = Vector2(24, 168)
-	_list.size = Vector2(1232, 430)
-	_rows.clear()
-	_list.clear()
-	_title.text = "選擇技能"
-	_info.text = "格 %s。名字前面是性質：主動、被動或奧義。COST 合計不能超過 5。" % ("奧義" if slot_i == 5 else str(slot_i + 1))
-	var pool: Array = []
-	if slot_i == 5:
-		pool.append_array(Skills.ULTS)
-	else:
-		pool.append_array(Skills.ACTIVES)
-		pool.append_array(Skills.PASSIVES)
-	for sk in pool:
-		_add("%s　%s　COST%d　%s" % [_kind_label(String(sk["kind"])), sk["name"], int(sk["cost"]), sk["blurb"]], "equip", [slot_i, sk["id"]])
-	if slot_i < 5:
-		_add("卸下", "unequip", slot_i)
-	_add("返回", "go", "skills")
-	_index = 0
-	if _rows.size():
-		_select_row(0)
-
-
-func _kind_label(kind: String) -> String:
-	match kind:
-		"active":
-			return "主動"
-		"passive":
-			return "被動"
-		"ultimate":
-			return "奧義"
-		_:
-			return kind
 
 
 func _locked_sku_body(sku: String) -> String:
@@ -995,8 +619,8 @@ func _open_dialog(title: String, body: String, info: bool, pending: Dictionary) 
 
 
 func _paint_dialog() -> void:
-	_paint_btn(_dlg_yes, _dlg_info or _dlg_focus == 0)
-	_paint_btn(_dlg_no, not _dlg_info and _dlg_focus == 1)
+	PrepWidgets.paint_btn(_dlg_yes, _dlg_info or _dlg_focus == 0)
+	PrepWidgets.paint_btn(_dlg_no, not _dlg_info and _dlg_focus == 1)
 
 
 func _close_dialog() -> void:
@@ -1415,110 +1039,6 @@ func try_place() -> void:
 		_hold_type = ""
 	_refresh()
 
-
-func _clear(node: Node) -> void:
-	for c in node.get_children():
-		c.set_block_signals(true)
-		node.remove_child(c)
-		c.free()
-
-
-func _name_label(text: String, width: float, tall: float = 72.0) -> Label:
-	var lab := Label.new()
-	lab.text = text
-	lab.custom_minimum_size = Vector2(width, tall)
-	lab.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	UiFont.apply_label(lab, PREP_TITLE)
-	lab.add_theme_color_override("font_color", Color("f4f1ea"))
-	lab.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	return lab
-
-
-func _step_button(text: String, on: bool, cb: Callable, tall: float = 72.0, wide: float = 84.0) -> Button:
-	var btn := _bare_button(text, wide, tall)
-	_paint_btn(btn, on)
-	btn.pressed.connect(cb)
-	return btn
-
-
-func _bare_button(text: String, wide: float, tall: float) -> Button:
-	var btn := Button.new()
-	btn.text = text
-	btn.custom_minimum_size = Vector2(wide, tall)
-	btn.size = Vector2(wide, tall)
-	btn.focus_mode = Control.FOCUS_NONE
-	btn.mouse_filter = Control.MOUSE_FILTER_STOP
-	btn.add_theme_font_override("font", UiFont.font())
-	btn.add_theme_font_size_override("font_size", UiFont.px(PREP_BTN))
-	return btn
-
-
-func _paint_btn(btn: Button, on: bool) -> void:
-	var bg := StyleBoxFlat.new()
-	bg.bg_color = Color("f4d35e") if on else Color("24302a")
-	bg.set_corner_radius_all(10)
-	btn.add_theme_stylebox_override("normal", bg)
-	btn.add_theme_stylebox_override("hover", bg)
-	btn.add_theme_stylebox_override("pressed", bg)
-	btn.add_theme_stylebox_override("focus", bg)
-	var col := Color("1c241f") if on else Color("f4f1ea")
-	btn.add_theme_color_override("font_color", col)
-	btn.add_theme_color_override("font_hover_color", Color("1c241f") if on else Color("f4d35e"))
-	btn.add_theme_color_override("font_pressed_color", Color("1c241f"))
-
-
-class GridView extends Control:
-	var host: CanvasLayer
-
-	func _gui_input(event: InputEvent) -> void:
-		if host._drag_on:
-			return
-		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-			var cell: float = host._cell_px()
-			host._cursor = Vector2i(int(event.position.x / cell), int(event.position.y / cell))
-			host.try_place()
-
-	func _draw() -> void:
-		if host == null or not host.state or host._page != "layout":
-			return
-		var st: StateScript = host.state
-		var cell: float = host._cell_px()
-		for y in st.grid_h:
-			for x in st.grid_w:
-				var r := Rect2(Vector2(x, y) * cell, Vector2(cell - 1, cell - 1))
-				draw_rect(r, Color("24302a"))
-		for d in st.door_cells():
-			draw_rect(Rect2(Vector2(d.x, d.y) * cell, Vector2(cell - 1, cell - 1)), Color("3a2a1e"))
-		var skip := -1
-		if host._drag_on and host._drag_moved:
-			skip = int(host._drag_from)
-		for i in st.placed.size():
-			if i == skip:
-				continue
-			var it: Dictionary = st.placed[i]
-			var col := Color("5c4033")
-			var t := String(it["type"])
-			if t.begins_with("shelf"):
-				col = Color("2f5d50")
-			elif t.begins_with("restock"):
-				col = Color("c45c26")
-			draw_rect(Rect2(Vector2(int(it["x"]), int(it["y"])) * cell, Vector2(int(it["w"]), int(it["h"])) * cell - Vector2(2, 2)), col)
-		var ghost := ""
-		var rot := 0
-		var ignore := -1
-		if host._drag_on and host._drag_moved and host._drag_inside:
-			ghost = host._drag_type
-			rot = host._drag_rot
-			ignore = host._drag_from
-		elif host._hold_type != "":
-			ghost = host._hold_type
-			rot = host._hold_rot
-		if ghost != "":
-			var fp: Vector2i = st.footprint(ghost, rot)
-			var ok: bool = st.can_place(ghost, host._cursor.x, host._cursor.y, rot, ignore)
-			draw_rect(Rect2(Vector2(host._cursor) * cell, Vector2(fp) * cell), Color("7ec8e3" if ok else "c0392b", 0.65))
-		elif not host._drag_on:
-			draw_rect(Rect2(Vector2(host._cursor) * cell, Vector2(cell - 1, cell - 1)), Color("f4d35e", 0.8), false, 2.0)
 
 
 func _cell_px() -> float:

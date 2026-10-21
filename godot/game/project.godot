@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 Controls="*res://scripts/controls.gd"
+PlatformServices="*res://scripts/platform_services.gd"
 
 [display]
 
@@ -31,7 +32,7 @@ window/handheld/orientation=4
 [gui]
 
 theme/custom="res://themes/default.tres"
-theme/custom_font="res://fonts/NotoSansTC-Regular.otf"
+theme/custom_font="res://fonts/NotoSansTC-Game.otf"
 
 [internationalization]
 

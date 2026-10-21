@@ -1,16 +1,16 @@
 # 長線設計文件缺口
 
-- 對照日：2026-10-17
-- 範圍：只讀 `docs/systemdesign/`（**27** 檔），**不含** Demo scope
+- 對照日：2026-10-21（補存檔／InputMap／活線路徑）
+- 範圍：只讀 `docs/systemdesign/`（含 `savesystem.md`），**不含** Demo scope
 - 問題是文件本身的矛盾、缺系統與未定義，不是 Demo 實作差異（Demo 試玩數字只當「長線未定」的註記）
 
 | 設計檔 | 記下的問題 | 建議先拍板 (P0) | 缺整塊系統 |
 | --- | --- | --- | --- |
-| 27 | 見下表 | 0 | 6 |
+| 28 | 見下表 | 0 | 見下（存檔已補） |
 
 **一局時長已拍板：** 現實 30 秒上貨 + 3 分鐘營運。
 
-**資金、準備回合、店舖設計、店員已有檔。** 雇員上限已暫時跟到規模 LV3。經驗來源已跟 `ecosystem.md`，只增不減。開放表裡叮叮飯、收銀機、規模等級和起始資金已寫。幫忙取貨、COMBO 和全部 P2 見 `docs/alpha/design.md`。客人流量、污物與小偷流量見 `docs/beta/design.md`。
+**資金、準備回合、店舖設計、店員、存檔已有檔。** 操作以 InputMap 為準。雇員上限已暫時跟到規模 LV3。經驗來源已跟 `ecosystem.md`，只增不減。開放表裡叮叮飯、收銀機、規模等級和起始資金已寫。幫忙取貨、COMBO 和全部 P2 見 `docs/alpha/design.md`。客人流量、污物與小偷流量見 `docs/beta/design.md`。工程活線見 `docs/versioning.md`。
 
 用語：P0 不定則長線系統互相卡住；P1 已有系統但規則或數值不夠寫程式。Alpha、Beta 是改放到該版本才設計，不在這份長線清單裡先拍。
 
@@ -63,16 +63,19 @@
 | Alpha | 規則含糊 | 小偷與污物／時停以外的世界規則 | 留待 Alpha 設計，見 `docs/alpha/design.md`。小偷踩污物、是否算全體客人、是否佔在店人數，未寫。 | thiefsystem.md, customer.md, playeractiveskills.md |
 | Alpha | 用詞／錯字 | 攜帶清單 FILO 說明含混 | 留待 Alpha 設計，見 `docs/alpha/design.md`。標籤仍是 First In Last Out，例子已是堆疊。 | replenishmentsystem.md |
 | Alpha | 缺檔／缺系統 | 角色導出只有一句 | 留待 Alpha 設計，見 `docs/alpha/design.md`。雇員欄規則已有。連線、檔案、權限仍無。 | playerexport.md, clerksystem.md |
-| Alpha | 缺檔／缺系統 | HUD 以外的介面層空白 | 留待 Alpha 設計，見 `docs/alpha/design.md`。暫停、設定、失敗／過關、存檔、教學、技能演出期間能否操作，未寫。 | storeoperationphase.md, playerskills.md, control.md, playersetup.md |
+| 已處理 | 缺檔／缺系統 | 存檔 | 已有 `savesystem.md`：`user://save.json` + `version`；關店與準備結束寫入。活線已實作。 | savesystem.md, storepreparationphase.md, storeoperationphase.md |
+| 已處理 | 規則含糊 | 操作是否綁死鍵位 | 長線以 InputMap 為準（`control.md`）；預設仍 WASD／Xbox。活線 Autoload `Controls`。 | control.md |
+| Alpha | 缺檔／缺系統 | HUD 以外的介面層空白 | 存檔／InputMap 已補。仍缺：暫停、設定、失敗／過關、教學、技能演出期間能否操作。 | storeoperationphase.md, playerskills.md, control.md, playersetup.md |
 | Alpha | 用詞／錯字 | 用詞與錯字會改規則解讀 | 留待 Alpha 改回原檔，見 `docs/alpha/design.md`。以為→以下；三能種力值；奧義「技令」；衝刺句子斷掉。 | storeoperationphase.md, gameconcept.md, playerultimateskills.md, playermovement.md |
 
 # 缺了整份檔的系統
 
 經營回合與準備回合的主循環已有拆檔（含清潔、小偷、採購、店舖設計、店員）。下列主題被點名，但沒有對應設計，或檔案仍是一句。
 
-- **循環與進度：** 劇情／事件表、過關與失敗、經營值、技能解鎖表。存檔留待 Alpha
+- **循環與進度：** 劇情／事件表、過關與失敗、經營值、技能解鎖表。~~存檔~~ 見 `savesystem.md`
 - **店內系統：** 冰櫃與凍櫃的操作差異。幫忙取貨與 COMBO 留待 Alpha
 - **幾乎是空檔：** 角色導出的連線與檔案留待 Alpha。Voxel 初模和給設計師加細節的規矩在 `docs/alpha/voxel-v0.1.md`。外觀配置只有一句
+- **工程路徑：** Demo／Alpha 專案目錄已凍結；v1 只改 `godot/game`（`docs/versioning.md`）
 
 # 已有檔但仍寫不進程式的數值
 

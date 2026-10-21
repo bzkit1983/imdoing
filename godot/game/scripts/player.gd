@@ -11,6 +11,9 @@ const MenuScript = preload("res://scripts/skill_menu.gd")
 const UiFont = preload("res://scripts/ui_font.gd")
 
 signal stats_changed
+
+## Last HUD right-panel fingerprint; emit stats_changed only when it changes.
+var _hud_fp: String = ""
 signal log_line(text: String)
 signal paid(amount: int)
 signal skill_cast(skill_name: String, is_ult: bool)
@@ -526,6 +529,48 @@ func _physics_process(delta: float) -> void:
 		if skill_menu_open:
 			_menu.set_slots(_loadout(), _cd)
 	_update_visuals()
+	_emit_stats_if_changed()
+
+
+func _hud_fingerprint() -> String:
+	var inv_bits: PackedStringArray = []
+	for g in inventory.grouped():
+		inv_bits.append("%s:%d" % [String(g["id"]), int(g["count"])])
+	var tinfo := "-"
+	if is_instance_valid(target):
+		var k := String(target.get("kind"))
+		tinfo = "%s:%d" % [k, target.get_instance_id()]
+		match k:
+			"restock":
+				tinfo += ":%s" % String(target.call("selected_sku"))
+			"dirt":
+				tinfo += ":%s" % String(target.call("type_name"))
+			"drop":
+				tinfo += ":%s:%d" % [String(target.get("sku")), int(target.get("count"))]
+			"shelf":
+				var cap := int(target.get("capacity"))
+				if cap <= 0:
+					cap = Tuning.SHELF_CAP
+				tinfo += ":%s:%d:%d" % [String(target.get("sku")), int(target.get("count")), cap]
+			"thief":
+				tinfo += ":%.0f:%.1f" % [float(target.get("fight_hp")), float(target.get("fight_left"))]
+	return "%s|%.2f|%.2f|%d|%s|%.2f|%s|%s" % [
+		move_state(),
+		snappedf(stamina, 0.25),
+		snappedf(stamina_max_now(), 0.25),
+		int(carry_boxes()),
+		",".join(inv_bits),
+		snappedf(hold_progress, 0.01),
+		str(blocked_mismatch),
+		tinfo,
+	]
+
+
+func _emit_stats_if_changed() -> void:
+	var fp := _hud_fingerprint()
+	if fp == _hud_fp:
+		return
+	_hud_fp = fp
 	stats_changed.emit()
 
 
@@ -1176,7 +1221,7 @@ func _try_command(dir: int) -> void:
 	else:
 		_prompt.fail_at = seq_index
 		seq_index = 0
-		log_line.emit("指令錯誤 ✕ 同一串重來")
+		log_line.emit("指令錯誤 × 同一串重來")
 
 
 func _finish_checkout(cust) -> void:
@@ -1276,7 +1321,7 @@ func _try_ult_dir(dir: int) -> void:
 		_prompt.fail_at = _ult_index
 		_ult_index = 0
 		_prompt.index = 0
-		log_line.emit("奧義指令錯誤 ✕ 同一串重來")
+		log_line.emit("奧義指令錯誤 × 同一串重來")
 
 
 func _cast_slot(i: int) -> void:

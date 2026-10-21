@@ -1,9 +1,9 @@
 # Alpha v0.1 技術設計審查
 
-- **範圍：** `godot/alpha_v0_1`（Godot 4.7 · 2D · GL Compatibility）
-- **對照：** `docs/alpha/`、`docs/systemdesign/`、`docs/systemdesign-gaps.md`
+- **範圍：** 審查時以 `godot/alpha_v0_1` 為準；**之後實作只改** `godot/game`（見 `docs/versioning.md`）
+- **對照：** `docs/alpha/`、`docs/systemdesign/`（含 `savesystem.md`）、`docs/systemdesign-gaps.md`
 - **目標平台：** Steam · Nintendo Switch · Xbox（及現行 Web 試玩）
-- **產出／更新：** 2026-10-20
+- **產出／更新：** 2026-10-20；2026-10-21 對齊已落地項（凍結活線、存檔、InputMap）
 - **狀態：** 審查結論供團隊跟進；非玩法規格。玩法仍以 `docs/systemdesign/` 與各版 design／plan 為準。
 
 ## 總評
@@ -18,8 +18,8 @@
 | --- | --- |
 | GDScript 約略行數 | ~7.7k |
 | ≥1000 行腳本 | 3（`player` · `prep_menu` · `demo`） |
-| 存檔 / Autoload 平台層 / 自動化測試 | 0 |
-| 現有匯出預設 | Web only |
+| 存檔 / Autoload 平台層 / 自動化測試 | 存檔＋`PlatformServices` Desktop stub 已有；自動化測試仍 0 |
+| 現有匯出預設 | Web + Windows Desktop + Linux（Steam 候選；見 `docs/alpha/export-presets.md`） |
 
 ---
 
@@ -103,8 +103,10 @@ demo.gd（場面主控 · ~1000 行）
 
 ### 主機特別要盯
 
-- 客人每 physics 幀 `_refresh_labels()`；player 每幀 `stats_changed` → HUD 全刷  
-- `NotoSansTC-Regular.otf` ~5.5MB：應子集化或拆常用字  
+- ~~客人每 physics 幀 `_refresh_labels()`；player 每幀 `stats_changed` → HUD 全刷~~ **已改髒刷新**（見 §6）  
+
+- ~~`NotoSansTC-Regular.otf` ~5.5MB：應子集化或拆常用字~~ **已做**（`NotoSansTC-Game.otf` ≈170KB；見 `docs/alpha/fonts-subset.md`）  
+
 - Switch 掌機／底座雙解析度  
 - 掛起／恢復不得丟檔或卡死  
 
@@ -112,9 +114,9 @@ demo.gd（場面主控 · ~1000 行）
 
 | 優先 | 改動 | 預期收益 | 成本 |
 | --- | --- | --- | --- |
-| P0 | 標籤／HUD 改髒刷新 | PC／手機／Switch 更穩 | 低 |
-| P0 | 貨架以 SKU 建索引 | 尋貨 O(1) | 低 |
-| P0 | CJK 字型子集／壓縮 | 降 Switch 記憶體與載入 | 低–中 |
+| P0 | 標籤／HUD 改髒刷新 | PC／手機／Switch 更穩 | **已做** |
+| P0 | 貨架以 SKU 建索引 | 尋貨 O(1) | **已做** |
+| P0 | CJK 字型子集／壓縮 | 降 Switch 記憶體與載入 | **已做** |
 | P1 | 尋路節流＋物件池 | 多客同場幀時間更平 | 中 |
 | P1 | 解析度／UI 縮放設定檔 | 掌機可讀、底座／TV 不空 | 中 |
 | P2 | PC Forward+；主機／Web 留 Compatibility | 按平台選渲染器 | 低 |
@@ -144,12 +146,12 @@ demo.gd（場面主控 · ~1000 行）
 
 | 主題 | Alpha 現況 | Steam | Switch／Xbox 額外要求 |
 | --- | --- | --- | --- |
-| 匯出 | 僅 Web | 補桌面 | 私有 console export template；CI 需隔離 NDA 產物 |
+| 匯出 | ~~僅 Web~~ **已有 Win／Linux 預設** | 桌面預設已加；待 Steamworks | 私有 console export template；CI 需隔離 NDA 產物 |
 | 輸入 | 硬編碼鍵 + 虛擬搖桿 | InputMap + Steam Input | 手把焦點導航；斷線重連；禁用「必須觸控」 |
 | UI | 手機橫向密度＋觸控鍵 | 桌面／Deck 可調 | TV 安全區與字級；Switch 掌機可讀性；焦點框可見 |
 | 存檔 | 無 | 本機 + 可選 Cloud | 經平台 API；處理儲存滿／失敗／多使用者 |
 | 成就等 | 無 | Steamworks | Xbox Achievements；Switch 無對等成就系統（另議） |
-| 生命週期 | 無暫停／掛起處理 | 暫停選單 | 強制處理 suspend／resume，不得損檔 |
+| 生命週期 | ~~無暫停／掛起處理~~ **已接** | 暫停選單 | suspend／resume → pause menu＋checkpoint（見 pausemenu.md） |
 | 字型 | 完整 NotoSansTC ~5.5MB | 可接受 | 子集化；注意授權與記憶體 |
 | 網路 | 單機 | 單機可上架 | 單機較易過認證 |
 
@@ -211,16 +213,16 @@ demo.gd（場面主控 · ~1000 行）
 
 可直接複製為 GitHub Issues：
 
-- [x] 凍結 `godot/demo_v0_*`，只維護 `godot/alpha_v0_1`（或合併為單一 `godot/game`）— 活線為 `godot/game`；凍結目錄見各 `FROZEN.md`
-- [x] `game_state` 序列化 + `user://save.json`（含 `version`）— `to_dict`／`from_dict`／`save_to_disk`；關店與準備結束寫入
-- [x] 全專案改 InputMap action（移動／互動／取消／技能）— Autoload `Controls`；player／prep／demo 已改
-- [ ] 拆 `prep_menu.gd` 分頁；關鍵 UI 改 `.tscn`
-- [ ] 新增 `PlatformServices` Autoload stub（Desktop 實作）
-- [ ] HUD／客人標籤改髒刷新
-- [ ] 貨架 SKU 索引
-- [ ] NotoSansTC 子集化方案
-- [ ] 暫停選單 + 掛起／恢復鉤子
-- [ ] Windows／Linux 匯出預設（Steam 候選）
+- [x] 凍結 `godot/demo_v0_*`，只維護 `godot/alpha_v0_1`（或合併為單一 `godot/game`）— 活線為 `godot/game`；凍結目錄見各 `FROZEN.md`；版控見 `docs/versioning.md`
+- [x] `game_state` 序列化 + `user://save.json`（含 `version`）— 長線 `docs/systemdesign/savesystem.md`；關店與準備結束寫入
+- [x] 全專案改 InputMap action（移動／互動／取消／技能）— 長線 `docs/systemdesign/control.md`；Autoload `Controls`；player／prep／demo
+- [x] 拆 `prep_menu.gd` 分頁；關鍵 UI 改 `.tscn` — 殼層 `scenes/prep_menu.tscn`；分頁 `scripts/prep/prep_pages.gd`；格線 `scripts/prep/prep_grid_view.gd`
+- [x] 新增 `PlatformServices` Autoload stub（Desktop 實作）— `scripts/platform_services.gd`＋`scripts/platform/desktop_platform.gd`；`game_state` I/O 經此層
+- [x] HUD／客人標籤改髒刷新 — `player` fingerprint 才 `stats_changed`；`hud` 左右面板 cache；`customer._sync_labels` 只在字／條變更時寫入
+- [x] 貨架 SKU 索引 — `demo._shelves_by_sku`；`shelf.stock_sku_changed` 維護；`find_shelf` O(1)（見 `docs/systemdesign/customer.md`）
+- [x] NotoSansTC 子集化方案 — 執行期 `NotoSansTC-Game.otf`；重建 `tools/fonts/subset_notosans_tc.py`；說明 `docs/alpha/fonts-subset.md`
+- [x] 暫停選單 + 掛起／恢復鉤子 — `pause_menu.tscn`；接 `PlatformServices` suspend／resume；見 `docs/systemdesign/pausemenu.md`
+- [x] Windows／Linux 匯出預設（Steam 候選）— `export_presets.cfg`；輸出 `build/windows`／`build/linux`；說明 `docs/alpha/export-presets.md`
 - [ ] 字串表（i18n）抽出
 - [ ] 主機：開發者帳號／中介埠或埠接商評估（商務）
 - [ ] 對齊 Godot 小版本與 console middleware 支援表

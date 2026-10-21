@@ -13,7 +13,8 @@ const CashierScript = preload("res://scripts/cashier.gd")
 const CustomerScript = preload("res://scripts/customer.gd")
 const ClerkScript = preload("res://scripts/clerk.gd")
 const PathfinderScript = preload("res://scripts/pathfinder.gd")
-const PrepScript = preload("res://scripts/prep_menu.gd")
+const PrepScene = preload("res://scenes/prep_menu.tscn")
+const PauseScene = preload("res://scenes/pause_menu.tscn")
 const UiFont = preload("res://scripts/ui_font.gd")
 const Vox = preload("res://scripts/voxel_sprite.gd")
 
@@ -25,8 +26,11 @@ var state: StateScript
 var cleaned: int = 0
 var _settled: bool = false
 var _prep: CanvasLayer
+var _pause: CanvasLayer
 var _world: Node2D
 var cashiers: Array[Node2D] = []
+## SKU id → Array of stocked shelves (maintained via shelf.stock_sku_changed).
+var _shelves_by_sku: Dictionary = {}
 var real_time: float = 0.0
 var game_hours: float = Tuning.GAME_START_HOUR
 var revenue: int = 0
@@ -60,15 +64,21 @@ var _early_no: Button
 func _ready() -> void:
 	add_to_group("game")
 	state = StateScript.new()
-	_prep = PrepScript.new()
+	_prep = PrepScene.instantiate()
 	add_child(_prep)
 	_prep.setup(self)
 	_prep.start_day.connect(_begin_day)
+	_pause = PauseScene.instantiate()
+	add_child(_pause)
+	_pause.setup(self)
+	_pause.end_day_requested.connect(_on_pause_end_day)
 
 
 func _begin_day() -> void:
 	if _prep:
 		_prep.set_process_unhandled_input(false)
+	if _pause and _pause.has_method("close_menu"):
+		_pause.close_menu()
 	_clear_world()
 	_early_closed = false
 	_skip_xp = 0
@@ -121,6 +131,7 @@ func _begin_day() -> void:
 	var pad = preload("res://scripts/touch_pad.gd").new()
 	pad.name = "TouchPad"
 	add_child(pad)
+	pad.visible = PlatformServices.wants_touch_pad()
 	pad.stick_changed.connect(func(axis: Vector2) -> void: _player.stick_axis = axis)
 	pad.hold_changed.connect(func(action: String, pressed: bool) -> void:
 		if _early_open and pressed:
@@ -146,7 +157,7 @@ func _begin_day() -> void:
 func _clear_world() -> void:
 	var kill: Array[Node] = []
 	for c in get_children():
-		if c == _prep:
+		if c == _prep or c == _pause:
 			continue
 		kill.append(c)
 	for c in kill:
@@ -154,6 +165,7 @@ func _clear_world() -> void:
 	_world = null
 	_hud = null
 	shelves.clear()
+	_shelves_by_sku.clear()
 	cashiers.clear()
 	_dirts.clear()
 	_obstacles.clear()
@@ -330,6 +342,29 @@ func _return_to_prep() -> void:
 
 func asking_early_close() -> bool:
 	return _early_open
+
+
+func can_open_pause() -> bool:
+	if _early_open:
+		return false
+	return phase == "restock" or phase == "open"
+
+
+func on_pause_opened() -> void:
+	if _player and _player.has_method("set_hold"):
+		_player.set_hold("interact", false)
+		_player.set_hold("cancel", false)
+		_player.set_hold("dash", false)
+		_player.set_hold("skill", false)
+		_player.set_hold("ult", false)
+
+
+func on_pause_closed() -> void:
+	pass
+
+
+func _on_pause_end_day() -> void:
+	skip_operate()
 
 
 func _consider_early_close() -> bool:
@@ -552,19 +587,35 @@ func _process(delta: float) -> void:
 
 
 func find_shelf(sku: String) -> Node2D:
-	for s in shelves:
-		if shelf_has(s, sku):
+	if sku == "":
+		return null
+	var list = _shelves_by_sku.get(sku)
+	if list == null:
+		return null
+	var i := 0
+	while i < list.size():
+		var s: Node2D = list[i]
+		if s != null and is_instance_valid(s) and shelf_has(s, sku):
 			return s
+		list.remove_at(i)
+	if list.is_empty():
+		_shelves_by_sku.erase(sku)
 	return null
 
 
 func shelf_has(shelf: Node2D, sku: String) -> bool:
 	if shelf == null:
 		return false
+	if shelf.has_method("has_sku"):
+		return bool(shelf.call("has_sku", sku))
 	return String(shelf.get("sku")) == sku and int(shelf.get("count")) > 0
 
 
 func take_from_shelf(shelf: Node2D, sku: String) -> bool:
+	if shelf == null or not is_instance_valid(shelf):
+		return false
+	if shelf.has_method("take_one"):
+		return bool(shelf.call("take_one", sku))
 	if not shelf_has(shelf, sku):
 		return false
 	var n := int(shelf.get("count")) - 1
@@ -574,6 +625,46 @@ func take_from_shelf(shelf: Node2D, sku: String) -> bool:
 		shelf.set("count", 0)
 	shelf.call("_refresh")
 	return true
+
+
+func _index_shelf_sku(sku: String, shelf: Node) -> void:
+	if sku == "" or shelf == null:
+		return
+	var list: Array = _shelves_by_sku.get(sku, [])
+	if not list.has(shelf):
+		list.append(shelf)
+	_shelves_by_sku[sku] = list
+
+
+func _unindex_shelf_sku(sku: String, shelf: Node) -> void:
+	if sku == "" or not _shelves_by_sku.has(sku):
+		return
+	var list: Array = _shelves_by_sku[sku]
+	list.erase(shelf)
+	if list.is_empty():
+		_shelves_by_sku.erase(sku)
+	else:
+		_shelves_by_sku[sku] = list
+
+
+func _on_shelf_stock_sku_changed(shelf: Node, old_sku: String, new_sku: String) -> void:
+	if old_sku != "":
+		_unindex_shelf_sku(old_sku, shelf)
+	if new_sku != "":
+		_index_shelf_sku(new_sku, shelf)
+
+
+func _register_shelf(node: Node2D) -> void:
+	shelves.append(node)
+	if node.has_signal("stock_sku_changed"):
+		node.connect("stock_sku_changed", _on_shelf_stock_sku_changed)
+	var sku := ""
+	if node.has_method("occupied_sku"):
+		sku = String(node.call("occupied_sku"))
+	elif int(node.get("count")) > 0:
+		sku = String(node.get("sku"))
+	if sku != "":
+		_index_shelf_sku(sku, node)
 
 
 func shelf_stand(shelf: Node2D) -> Vector2:
@@ -809,7 +900,7 @@ func _make_shelves(cat: String, start: Vector2, count: int, start_index: int) ->
 		node.label = lab
 		add_child(node)
 		node._refresh()
-		shelves.append(node)
+		_register_shelf(node)
 		out.append(node)
 	return out
 
@@ -845,7 +936,7 @@ func _make_shelf(r: Rect2, cat: String, index: int, rot: int, cap: int = Tuning.
 	node.label = lab
 	_world.add_child(node)
 	node._refresh()
-	shelves.append(node)
+	_register_shelf(node)
 	return node
 
 

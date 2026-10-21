@@ -1,8 +1,10 @@
 extends RefCounted
 ## Bundled Traditional Chinese font so Web / iPhone Safari can render 中文.
-## Interface type stays modest; virtual-button captions keep a larger size.
+## Game-scoped subset — rebuild via tools/fonts/subset_notosans_tc.py
+## (docs/alpha/fonts-subset.md). Interface type stays modest; virtual-button
+## captions keep a larger size.
 
-const FACE := preload("res://fonts/NotoSansTC-Regular.otf")
+const FACE := preload("res://fonts/NotoSansTC-Game.otf")
 
 const BODY := 24
 const TITLE := 28

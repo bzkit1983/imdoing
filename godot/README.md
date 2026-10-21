@@ -14,6 +14,8 @@
 
 不要在 `alpha_v0_1` 或 `demo_v0_*` 上做 v1 功能。那些目錄裡的 `FROZEN.md` 有同樣提醒。
 
+匯出：Web → `docs/play/`；Windows／Linux（Steam 候選）→ repo `build/`。見 [`docs/alpha/export-presets.md`](../docs/alpha/export-presets.md)。
+
 ## 美術烘焙
 
 活線圖素：
