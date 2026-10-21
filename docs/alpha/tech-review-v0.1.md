@@ -151,7 +151,7 @@ demo.gd（場面主控 · ~1000 行）
 | UI | 手機橫向密度＋觸控鍵 | 桌面／Deck 可調 | TV 安全區與字級；Switch 掌機可讀性；焦點框可見 |
 | 存檔 | 無 | 本機 + 可選 Cloud | 經平台 API；處理儲存滿／失敗／多使用者 |
 | 成就等 | 無 | Steamworks | Xbox Achievements；Switch 無對等成就系統（另議） |
-| 生命週期 | 無暫停／掛起處理 | 暫停選單 | 強制處理 suspend／resume，不得損檔 |
+| 生命週期 | ~~無暫停／掛起處理~~ **已接** | 暫停選單 | suspend／resume → pause menu＋checkpoint（見 pausemenu.md） |
 | 字型 | 完整 NotoSansTC ~5.5MB | 可接受 | 子集化；注意授權與記憶體 |
 | 網路 | 單機 | 單機可上架 | 單機較易過認證 |
 
@@ -221,7 +221,7 @@ demo.gd（場面主控 · ~1000 行）
 - [x] HUD／客人標籤改髒刷新 — `player` fingerprint 才 `stats_changed`；`hud` 左右面板 cache；`customer._sync_labels` 只在字／條變更時寫入
 - [x] 貨架 SKU 索引 — `demo._shelves_by_sku`；`shelf.stock_sku_changed` 維護；`find_shelf` O(1)（見 `docs/systemdesign/customer.md`）
 - [x] NotoSansTC 子集化方案 — 執行期 `NotoSansTC-Game.otf`；重建 `tools/fonts/subset_notosans_tc.py`；說明 `docs/alpha/fonts-subset.md`
-- [ ] 暫停選單 + 掛起／恢復鉤子
+- [x] 暫停選單 + 掛起／恢復鉤子 — `pause_menu.tscn`；接 `PlatformServices` suspend／resume；見 `docs/systemdesign/pausemenu.md`
 - [ ] Windows／Linux 匯出預設（Steam 候選）
 - [ ] 字串表（i18n）抽出
 - [ ] 主機：開發者帳號／中介埠或埠接商評估（商務）

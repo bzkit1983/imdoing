@@ -65,10 +65,14 @@ func wants_focus_ui() -> bool:
 func _notification(what: int) -> void:
 	match what:
 		NOTIFICATION_APPLICATION_PAUSED:
+			# Flush platform I/O, then ask the game to show the pause menu.
 			checkpoint()
 			suspended.emit()
 			pause_menu_requested.emit()
 		NOTIFICATION_APPLICATION_RESUMED:
 			resumed.emit()
+		NOTIFICATION_APPLICATION_FOCUS_OUT:
+			# Desktop window switch: checkpoint only; do not force the pause UI.
+			checkpoint()
 		NOTIFICATION_WM_CLOSE_REQUEST:
 			checkpoint()
