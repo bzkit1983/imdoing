@@ -8,6 +8,7 @@
 - 缺口對照：`docs/systemdesign-gaps.md`（2026-10-16）
 - 技術設計審查（可持續開發／效能／Steam·Switch·Xbox）：`docs/alpha/tech-review-v0.1.md`
 - 已落地項對照（存檔／InputMap／活線）：`docs/alpha/implementation-status.md`
+- 主機商務評估（開發者帳號／W4／埠接商）：`docs/alpha/console-business.md`
 
 # 版本目標
 
