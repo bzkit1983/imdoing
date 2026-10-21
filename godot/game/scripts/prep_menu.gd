@@ -76,7 +76,12 @@ func setup(host: Node) -> void:
 	state = host.state
 	layer = 30
 	_build()
-	_show_page("scenario")
+	var load_err := state.load_from_disk()
+	if load_err == "":
+		_msg = "已讀取存檔（劇本 %d　LV%d　$%d）" % [state.scenario, state.level, state.money]
+		_show_page("home")
+	else:
+		_show_page("scenario")
 
 
 func _build() -> void:
@@ -272,6 +277,7 @@ func _refresh() -> void:
 			_add("店舖設計", "go", "layout")
 			_add("店員　%d 人" % state.clerks.size(), "go", "clerks")
 			_add("開始營業", "try_open", null)
+			_add("清除存檔並重選劇本", "wipe_save", null)
 		"stats":
 			_fill_stats()
 		"skills":
@@ -707,7 +713,12 @@ func _activate() -> void:
 	match action:
 		"sc":
 			state.apply_scenario(int(arg))
+			_msg = ""
 			_show_page("home")
+		"wipe_save":
+			state.delete_save()
+			_msg = "已清除存檔"
+			_show_page("scenario")
 		"go":
 			_show_page(String(arg))
 		"reset":
@@ -774,6 +785,9 @@ func _activate() -> void:
 			if open_msg != "":
 				_popup_info("不能開店", open_msg)
 				return
+			var save_err := state.save_to_disk()
+			if save_err != "":
+				push_warning("prep end save failed: %s" % save_err)
 			visible = false
 			set_process_unhandled_input(false)
 			start_day.emit()

@@ -1,8 +1,12 @@
 extends RefCounted
-## Prep-phase progress for Demo v0.6. Demo assumptions are listed in demov0_6scope.md.
+## Prep-phase progress. Persist with to_dict / save_to_disk (user://save.json).
 
 const Tuning = preload("res://scripts/tuning.gd")
 const Skills = preload("res://scripts/skills.gd")
+
+## Bump when the save schema changes; from_dict must migrate or reject.
+const SAVE_VERSION := 1
+const SAVE_PATH := "user://save.json"
 
 const CELL := 64.0
 const WAGE := 100
@@ -648,4 +652,177 @@ func sellable() -> Array[String]:
 	for sku in Tuning.SELLABLE_SKUS:
 		if developed.has(sku):
 			out.append(sku)
+	return out
+
+
+func to_dict() -> Dictionary:
+	var slot_list: Array = []
+	for id in slots:
+		slot_list.append(String(id))
+	var placed_list: Array = []
+	for it in placed:
+		placed_list.append({
+			"type": String(it.get("type", "")),
+			"x": int(it.get("x", 0)),
+			"y": int(it.get("y", 0)),
+			"rot": int(it.get("rot", 0)),
+			"w": int(it.get("w", 1)),
+			"h": int(it.get("h", 1)),
+		})
+	var clerk_list: Array = []
+	for c in clerks:
+		clerk_list.append({
+			"role": String(c.get("role", "restock")),
+			"register": int(c.get("register", 0)),
+		})
+	return {
+		"version": SAVE_VERSION,
+		"scenario": scenario,
+		"money": money,
+		"xp": xp,
+		"level": level,
+		"unspent": unspent,
+		"base_str": base_str,
+		"base_agi": base_agi,
+		"base_int": base_int,
+		"str_stat": str_stat,
+		"agi_stat": agi_stat,
+		"int_stat": int_stat,
+		"developed": developed.duplicate(true),
+		"stock": stock.duplicate(true),
+		"owned": owned.duplicate(true),
+		"placed": placed_list,
+		"shop_scale": shop_scale,
+		"grid_w": grid_w,
+		"grid_h": grid_h,
+		"clerks": clerk_list,
+		"slots": slot_list,
+		"ult_id": ult_id,
+		"day_procurement": day_procurement,
+		"last_loss": last_loss,
+		"level_note": level_note,
+	}
+
+
+## Empty string means ok; otherwise a human-readable error.
+func from_dict(data: Dictionary) -> String:
+	if data.is_empty():
+		return "存檔是空的"
+	if not data.has("version"):
+		return "存檔缺少 version"
+	var ver := int(data["version"])
+	if ver < 1:
+		return "存檔 version 無效"
+	if ver > SAVE_VERSION:
+		return "存檔版本過新（%d > %d），請更新遊戲" % [ver, SAVE_VERSION]
+	scenario = int(data.get("scenario", 1))
+	money = int(data.get("money", 0))
+	xp = int(data.get("xp", 0))
+	level = clampi(int(data.get("level", 1)), 1, 99)
+	unspent = maxi(0, int(data.get("unspent", 0)))
+	base_str = int(data.get("base_str", 10))
+	base_agi = int(data.get("base_agi", 10))
+	base_int = int(data.get("base_int", 10))
+	str_stat = int(data.get("str_stat", base_str))
+	agi_stat = int(data.get("agi_stat", base_agi))
+	int_stat = int(data.get("int_stat", base_int))
+	developed = _string_bool_dict(data.get("developed", {}))
+	stock = _string_int_dict(data.get("stock", {}))
+	owned = _string_int_dict(data.get("owned", {}))
+	placed.clear()
+	var raw_placed = data.get("placed", [])
+	if raw_placed is Array:
+		for it in raw_placed:
+			if not (it is Dictionary):
+				continue
+			var d: Dictionary = it
+			var t := String(d.get("type", ""))
+			if t == "" or not FURNITURE.has(t):
+				continue
+			var rot := int(d.get("rot", 0))
+			var fp := footprint(t, rot)
+			placed.append({
+				"type": t,
+				"x": int(d.get("x", 0)),
+				"y": int(d.get("y", 0)),
+				"rot": rot,
+				"w": int(d.get("w", fp.x)),
+				"h": int(d.get("h", fp.y)),
+			})
+	shop_scale = clampi(int(data.get("shop_scale", 1)), 1, 3)
+	grid_w = maxi(8, int(data.get("grid_w", 10)))
+	grid_h = maxi(8, int(data.get("grid_h", 10)))
+	clerks.clear()
+	var raw_clerks = data.get("clerks", [])
+	if raw_clerks is Array:
+		for c in raw_clerks:
+			if not (c is Dictionary):
+				continue
+			var role := String(c.get("role", "restock"))
+			if role != "cashier" and role != "restock":
+				role = "restock"
+			clerks.append({"role": role, "register": maxi(0, int(c.get("register", 0)))})
+	slots = ["", "", "", "", ""]
+	var raw_slots = data.get("slots", [])
+	if raw_slots is Array:
+		for i in mini(5, raw_slots.size()):
+			slots[i] = String(raw_slots[i])
+	ult_id = String(data.get("ult_id", "the_world"))
+	if Skills.by_id(ult_id).is_empty():
+		ult_id = "the_world"
+	day_procurement = maxi(0, int(data.get("day_procurement", 0)))
+	last_loss = bool(data.get("last_loss", false))
+	level_note = String(data.get("level_note", ""))
+	_grant_initial_goods()
+	return ""
+
+
+func save_to_disk() -> String:
+	var text := JSON.stringify(to_dict(), "\t")
+	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	if f == null:
+		return "無法寫入存檔（錯誤 %d）" % FileAccess.get_open_error()
+	f.store_string(text)
+	return ""
+
+
+func load_from_disk() -> String:
+	if not FileAccess.file_exists(SAVE_PATH):
+		return "沒有存檔"
+	var text := FileAccess.get_file_as_string(SAVE_PATH)
+	if text.strip_edges() == "":
+		return "存檔是空的"
+	var parsed = JSON.parse_string(text)
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return "存檔不是有效 JSON"
+	return from_dict(parsed as Dictionary)
+
+
+func has_save() -> bool:
+	return FileAccess.file_exists(SAVE_PATH)
+
+
+func delete_save() -> void:
+	if not FileAccess.file_exists(SAVE_PATH):
+		return
+	var dir := DirAccess.open("user://")
+	if dir:
+		dir.remove("save.json")
+
+
+func _string_bool_dict(raw) -> Dictionary:
+	var out := {}
+	if not (raw is Dictionary):
+		return out
+	for k in raw.keys():
+		out[String(k)] = bool(raw[k])
+	return out
+
+
+func _string_int_dict(raw) -> Dictionary:
+	var out := {}
+	if not (raw is Dictionary):
+		return out
+	for k in raw.keys():
+		out[String(k)] = int(raw[k])
 	return out

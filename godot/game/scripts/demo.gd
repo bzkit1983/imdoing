@@ -686,6 +686,7 @@ func _finish_day() -> void:
 		return
 	_settled = true
 	var result: Dictionary = state.settle(revenue, served, thieves_caught, cleaned, _skip_xp)
+	var save_err := state.save_to_disk()
 	if _hud:
 		_hud.show_closeout()
 		var loss := "虧損（營業額低於進貨）" if bool(result["loss"]) else "未虧損"
@@ -695,10 +696,11 @@ func _finish_day() -> void:
 		elif _skip_xp > 0:
 			head = "測試結算"
 		var bonus := "（含測試 +%d）" % _skip_xp if _skip_xp > 0 else ""
-		_hud._close_text.text = "%s　%s\n營業額 $%d　入帳後資金 $%d\n進貨成本 $%d\n成功收銀 %d　生氣離開 %d\n被偷 %d 件 $%d　抓住 %d／逃走 %d\n經驗 +%d%s　%s\n按 J／A 返回準備" % [
+		var save_line := "已寫入存檔" if save_err == "" else ("存檔失敗：" + save_err)
+		_hud._close_text.text = "%s　%s\n營業額 $%d　入帳後資金 $%d\n進貨成本 $%d\n成功收銀 %d　生氣離開 %d\n被偷 %d 件 $%d　抓住 %d／逃走 %d\n經驗 +%d%s　%s\n%s\n按 J／A 返回準備" % [
 			head, loss, revenue, state.money, int(result["spent"]), served, angry_left,
 			stolen_count, stolen_value, thieves_caught, thieves_escaped,
-			int(result["xp"]), bonus, state.level_note
+			int(result["xp"]), bonus, state.level_note, save_line
 		]
 
 

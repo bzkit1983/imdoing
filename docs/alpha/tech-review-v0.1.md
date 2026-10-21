@@ -212,7 +212,7 @@ demo.gd（場面主控 · ~1000 行）
 可直接複製為 GitHub Issues：
 
 - [x] 凍結 `godot/demo_v0_*`，只維護 `godot/alpha_v0_1`（或合併為單一 `godot/game`）— 活線為 `godot/game`；凍結目錄見各 `FROZEN.md`
-- [ ] `game_state` 序列化 + `user://save.json`（含 `version`）
+- [x] `game_state` 序列化 + `user://save.json`（含 `version`）— `to_dict`／`from_dict`／`save_to_disk`；關店與準備結束寫入
 - [ ] 全專案改 InputMap action（移動／互動／取消／技能）
 - [ ] 拆 `prep_menu.gd` 分頁；關鍵 UI 改 `.tscn`
 - [ ] 新增 `PlatformServices` Autoload stub（Desktop 實作）
