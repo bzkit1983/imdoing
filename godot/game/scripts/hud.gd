@@ -47,7 +47,7 @@ func setup(g: Node, p: CharacterBody2D) -> void:
 	_close.visible = false
 	_cast.modulate.a = 0.0
 	_build_skip()
-	_banner.text = "店鋪經營回合  ·  Demo v0.6"
+	_banner.text = Loc.t("hud.banner")
 	var tw := create_tween()
 	tw.tween_interval(1.8)
 	tw.tween_property(_banner, "modulate:a", 0.0, 0.7)
@@ -107,7 +107,7 @@ func _build_skip() -> void:
 	layer.add_child(host)
 	host.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var btn := Button.new()
-	btn.text = "馬上完成營運"
+	btn.text = Loc.t("hud.skip_operate")
 	btn.focus_mode = Control.FOCUS_NONE
 	host.add_child(btn)
 	btn.set_anchors_preset(Control.PRESET_CENTER_TOP)
@@ -175,8 +175,8 @@ func _sync_left() -> void:
 	_clock.game_hours = hours
 	_time.text = time_txt
 	_phase.text = phase_txt
-	_rev.text = "營業額  $%d  ·  被偷 $%d" % [rev_n, stolen_n]
-	_guests.text = "在店客人  %d  ·  小偷 %d" % [guests_n, thieves_n]
+	_rev.text = Loc.t("hud.revenue", [rev_n, stolen_n])
+	_guests.text = Loc.t("hud.guests", [guests_n, thieves_n])
 	_store.text = store_txt
 	_role.text = role_txt
 	_skills.text = skills_txt
@@ -212,14 +212,14 @@ func _skill_cd_text() -> String:
 func _refresh() -> void:
 	if player == null:
 		return
-	_state.text = "狀態  %s" % player.call("move_state")
+	_state.text = Loc.t("hud.state", [player.call("move_state")])
 	_stamina.max_value = float(player.call("stamina_max_now"))
 	_stamina.value = float(player.get("stamina"))
 	var inv = player.get("inventory")
-	_carry.text = "負重  %d / %d 箱" % [
+	_carry.text = Loc.t("hud.carry", [
 		int(inv.count()) / Tuning.BOX_SIZE,
 		int(player.call("carry_boxes")),
-	]
+	])
 	_hud_list.clear()
 	if inv.is_empty():
 		_hud_list.add_item("空手")
@@ -228,30 +228,30 @@ func _refresh() -> void:
 			_hud_list.add_item("%s ×%d" % [Tuning.sku_name(String(g["id"])), int(g["count"])])
 	var t: Node = player.get("target")
 	if t == null:
-		_target.text = "目標  補貨 / 貨架 / 污物 / 小偷 / 收銀機後方"
+		_target.text = Loc.t("hud.target_none")
 	elif String(t.get("kind")) == "restock":
-		var cat_name := "乾貨"
+		var cat_name := Loc.t("hud.cat_dry")
 		if String(t.get("category")) == Tuning.CAT_FROZEN:
-			cat_name = "凍櫃"
+			cat_name = Loc.t("hud.cat_frozen")
 		elif String(t.get("category")) == Tuning.CAT_ICE:
-			cat_name = "冰櫃"
-		_target.text = "目標  %s補貨 · 輕放執貨 · 長按選貨 [%s]" % [
+			cat_name = Loc.t("hud.cat_ice")
+		_target.text = Loc.t("hud.target_restock", [
 			cat_name,
 			Tuning.sku_name(String(t.call("selected_sku")))
-		]
+		])
 	elif String(t.get("kind")) == "cashier":
-		_target.text = "目標  收銀機 · 長按行動再 WASD／搖桿"
+		_target.text = Loc.t("hud.target_cashier")
 	elif String(t.get("kind")) == "dirt":
-		_target.text = "目標  %s · 空手長按行動並轉搖桿清潔" % String(t.call("type_name"))
+		_target.text = Loc.t("hud.target_dirt", [String(t.call("type_name"))])
 	elif String(t.get("kind")) == "drop":
-		_target.text = "目標  掉落 %s ×%d · 輕放撿起" % [Tuning.sku_name(String(t.get("sku"))), int(t.get("count"))]
+		_target.text = Loc.t("hud.target_drop", [Tuning.sku_name(String(t.get("sku"))), int(t.get("count"))])
 	elif String(t.get("kind")) == "thief":
-		_target.text = "目標  小偷 · 空手長按抓住後連按行動打擊"
+		_target.text = Loc.t("hud.target_thief")
 	else:
 		var sku := String(t.get("sku"))
 		var cap := int(t.get("capacity"))
 		if cap <= 0:
 			cap = Tuning.SHELF_CAP
-		_target.text = "目標  貨架 · %s" % ("空架 %d件" % cap if sku == "" else "%s %d/%d" % [Tuning.sku_name(sku), int(t.get("count")), cap])
-	_progress.value = float(player.get("hold_progress")) * 100.0
+		var shelf_bit := Loc.t("hud.shelf_empty", [cap]) if sku == "" else "%s %d/%d" % [Tuning.sku_name(sku), int(t.get("count")), cap]
+		_target.text = Loc.t("hud.target_shelf", [shelf_bit])	_progress.value = float(player.get("hold_progress")) * 100.0
 	_progress.modulate = Color("e07a5f") if bool(player.get("blocked_mismatch")) else Color("f4d35e")

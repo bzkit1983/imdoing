@@ -36,6 +36,8 @@ func setup(host: Node) -> void:
 	UiFont.apply_button(_end_btn, 22)
 	_resume_btn.focus_mode = Control.FOCUS_NONE
 	_end_btn.focus_mode = Control.FOCUS_NONE
+	_resume_btn.text = Loc.t("pause.resume")
+	_end_btn.text = Loc.t("pause.end_day")
 	_resume_btn.pressed.connect(_on_resume)
 	_end_btn.pressed.connect(_on_end_day)
 	_paint_focus()
@@ -92,12 +94,14 @@ func close_menu() -> void:
 
 
 func _refresh_copy() -> void:
-	_title.text = "暫停"
+	_title.text = Loc.t("pause.title")
 	if _from_suspend:
-		_body.text = "系統掛起 — 已安全暫停。恢復後按「繼續遊戲」回到店舖。"
+		_body.text = Loc.t("pause.body_suspend")
 	else:
-		_body.text = "遊戲已暫停。營運中進度不會另外存檔；掛起前會做安全 checkpoint。"
-	_hint.text = "Esc／Start 開關　　W／S 選擇　　J 確定　　; 返回"
+		_body.text = Loc.t("pause.body")
+	_hint.text = Loc.t("pause.hint")
+	_resume_btn.text = Loc.t("pause.resume")
+	_end_btn.text = Loc.t("pause.end_day")
 
 
 func _on_platform_pause_requested() -> void:

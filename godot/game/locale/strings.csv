@@ -1,0 +1,79 @@
+key,zh_TW,en
+pause.title,暫停,Paused
+pause.body,遊戲已暫停。營運中進度不會另外存檔；掛起前會做安全 checkpoint。,"Game paused. Mid-day progress is not auto-saved; a safe checkpoint runs before suspend."
+pause.body_suspend,系統掛起 — 已安全暫停。恢復後按「繼續遊戲」回到店舖。,"App suspended — safely paused. Press Continue to return to the shop."
+pause.hint,Esc／Start 開關　　W／S 選擇　　J 確定　　; 返回,"Esc/Start toggle · W/S select · J confirm · ; back"
+pause.resume,繼續遊戲,Continue
+pause.end_day,結束本日並結算,End day & settle
+early.title,提早關店,Close early
+early.body,所有補貨架都沒有貨了，收銀機也沒有人排隊。\n要提早關店，並結算今天嗎？,"All restock points are empty and no one is queued.\nClose early and settle today?"
+early.hint,A／D 選擇　　J 確定　　; 取消,"A/D select · J confirm · ; cancel"
+early.yes,提早關店,Close early
+early.no,繼續營業,Keep open
+hud.banner,店鋪經營回合  ·  Demo v0.6,Shop day · Demo v0.6
+hud.skip_operate,馬上完成營運,Finish day now
+hud.revenue,營業額  $%d  ·  被偷 $%d,Sales  $%d  ·  Stolen $%d
+hud.guests,在店客人  %d  ·  小偷 %d,Guests  %d  ·  Thieves %d
+hud.state,狀態  %s,State  %s
+hud.carry,負重  %d / %d 箱,Carry  %d / %d boxes
+hud.target_none,目標  補貨 / 貨架 / 污物 / 小偷 / 收銀機後方,Target  restock / shelf / dirt / thief / register
+hud.target_restock,目標  %s補貨 · 輕放執貨 · 長按選貨 [%s],Target  %s restock · tap take · hold pick [%s]
+hud.target_cashier,目標  收銀機 · 長按行動再 WASD／搖桿,Target  register · hold act then WASD/stick
+hud.target_dirt,目標  %s · 空手長按行動並轉搖桿清潔,Target  %s · empty-handed hold + stick to clean
+hud.target_drop,目標  掉落 %s ×%d · 輕放撿起,Target  drop %s ×%d · tap to pick up
+hud.target_thief,目標  小偷 · 空手長按抓住後連按行動打擊,Target  thief · hold to grab then mash act
+hud.target_shelf,目標  貨架 · %s,Target  shelf · %s
+hud.shelf_empty,空架 %d件,Empty %d slots
+hud.cat_dry,乾貨,Dry
+hud.cat_frozen,凍櫃,Frozen
+hud.cat_ice,冰櫃,Ice
+hud.closeout_title,關店結算,Day settled
+prep.back,返回,Back
+prep.scenario.title,選擇劇本,Choose scenario
+prep.scenario.info,劇本1 從空店開始，資金 $10000。劇本2、3 帶現成店面和店員。,"Scenario 1 starts empty with $10000. 2 and 3 include a shop and clerks."
+prep.scenario.s1,劇本1　從新開始　資金 $10000　LV1　空店,Scenario 1 · Fresh start · $10000 · LV1 · empty
+prep.scenario.s2,劇本2　LV5　資金 $10000　店規模 2　1 名店員,Scenario 2 · LV5 · $10000 · scale 2 · 1 clerk
+prep.scenario.s3,劇本3　LV10　資金 $99999　三圍 30　店規模 3　2 名店員,Scenario 3 · LV10 · $99999 · stats 30 · scale 3 · 2 clerks
+prep.home.title,營運準備,Prep
+prep.home.stats,角色能力,Stats
+prep.home.skills,裝備技能　COST %d/5,Skills · COST %d/5
+prep.home.stock,開發／採購貨品,Develop / buy goods
+prep.home.furn,購入商店物品,Buy furniture
+prep.home.expand,擴張店面　現時 LV%d　%d×%d,Expand · LV%d · %d×%d
+prep.home.layout,店舖設計,Layout
+prep.home.clerks,店員　%d 人,Clerks · %d
+prep.home.open,開始營業,Open shop
+prep.home.wipe,清除存檔並重選劇本,Wipe save & re-pick scenario
+prep.stats.title,角色能力,Stats
+prep.stats.info,按 + 加一點，按 - 減一點。向下可到重置和返回。,"Press + / − to adjust. Down for reset and back."
+prep.stats.reset,重置能力值,Reset stats
+prep.skills.title,裝備技能,Skills
+prep.skills.info,COST %d/5　奧義 %s\n選一格再選技能。奧義不佔 COST。,"COST %d/5 · Ult %s\nPick a slot then a skill. Ult does not use COST."
+prep.skill_pick.title,選擇技能,Pick skill
+prep.skill_pick.info,格 %s。名字前面是性質：主動、被動或奧義。COST 合計不能超過 5。,"Slot %s. Prefix is active / passive / ult. Total COST ≤ 5."
+prep.skill_pick.ult_slot,奧義,Ult
+prep.stock.title,開發／採購,Develop / buy
+prep.stock.info,罐頭是初始貨物，不用開發就能採購。其他未開發的先付開發費。,"Cans start unlocked. Other goods need a develop fee first."
+prep.stock.qty_title,採購 %s,Buy %s
+prep.stock.qty_info,庫存 %d 箱　$%d／箱。中間是箱數（01–99），按按鈕加減。,"Stock %d boxes · $%d/box. Middle is qty (01–99)."
+prep.furn.title,購入商店物品,Buy furniture
+prep.furn.info,買入後到店舖設計才放進店裡。展示貨架有 4、8、12、24 件，越大越貴。凍櫃 LV4、冰櫃 LV7 才開放。,"Place bought items in Layout. Shelf sizes 4/8/12/24. Frozen LV4 · Ice LV7."
+prep.expand.title,擴張店面,Expand
+prep.expand.info,現時規模 LV%d　地圖 %d×%d　總面積 %d／%d。闊度和長度在店舖設計裡調，一邊減少就能加另一邊。\nLV2＝$3000、總面積 225，要角色 LV4。LV3＝$6000、總面積 400，要角色 LV7。,"Scale LV%d · map %d×%d · area %d/%d. Adjust width/height in Layout.\nLV2=$3000 area 225 (need LV4). LV3=$6000 area 400 (need LV7)."
+prep.layout.title,店舖設計,Layout
+prep.layout.info,拖動左邊的物品放到右圖。圖上的物品可以拖去別的格子，拖出圖外或輕點就收回。,"Drag items from the list onto the grid. Drag placed items to move; drag off or tap to recall."
+prep.layout.holding,正在放 %s。拖到右圖放開，或移動游標後確定。X／K 轉向。,"Placing %s. Drop on the grid or move the cursor and confirm. X/K rotate."
+prep.clerks.title,店員,Clerks
+prep.confirm.title,開始營業,Open shop
+prep.kind.active,主動,Active
+prep.kind.passive,被動,Passive
+prep.kind.ult,奧義,Ult
+prep.chrome.hint,WASD／搖桿移動　J／A 確定　;／B 返回　店舖設計時 X／K 轉向,"WASD/stick move · J/A confirm · ;/B back · Layout rotate X/K"
+prep.chrome.back,返回,Back
+prep.chrome.dialog_yes,確定,OK
+prep.chrome.dialog_no,取消,Cancel
+demo.thief_enter,小偷進店！,A thief entered!
+demo.fundraise,全體集資　%d 人　+$%d,Fundraise · %d guests · +$%d
+demo.closeout_early,提早關店結算,Early closeout
+demo.closeout_test,測試結算,Test settle
+demo.closeout_head,關店結算,Day settled

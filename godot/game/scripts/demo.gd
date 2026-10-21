@@ -262,7 +262,7 @@ func cast_fundraise(level: int) -> void:
 		c.finish_paid()
 	release_player_checkout()
 	if _player:
-		_player.log_line.emit("全體集資　%d 人　+$%d" % [picked.size(), total])
+		_player.log_line.emit(Loc.t("demo.fundraise", [picked.size(), total]))
 
 
 func sellable() -> Array[String]:
@@ -434,14 +434,14 @@ func _show_early_dialog() -> void:
 	card.size = Vector2(800, 420)
 	layer.add_child(card)
 	var title := Label.new()
-	title.text = "提早關店"
+	title.text = Loc.t("early.title")
 	title.position = Vector2(36, 28)
 	title.size = Vector2(720, 56)
 	UiFont.apply_label(title, 36)
 	title.add_theme_color_override("font_color", Color("f4d35e"))
 	card.add_child(title)
 	var body := Label.new()
-	body.text = "所有補貨架都沒有貨了，收銀機也沒有人排隊。\n要提早關店，並結算今天嗎？"
+	body.text = Loc.t("early.body")
 	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	body.position = Vector2(36, 108)
 	body.size = Vector2(720, 110)
@@ -449,14 +449,14 @@ func _show_early_dialog() -> void:
 	body.add_theme_color_override("font_color", Color("f4f1ea"))
 	card.add_child(body)
 	var hint := Label.new()
-	hint.text = "A／D 選擇　　J 確定　　; 取消"
+	hint.text = Loc.t("early.hint")
 	hint.position = Vector2(36, 228)
 	hint.size = Vector2(720, 40)
 	UiFont.apply_label(hint, 22)
 	hint.add_theme_color_override("font_color", Color("c8c2b4"))
 	card.add_child(hint)
-	_early_yes = _early_choice("提早關店", Vector2(36, 290), _confirm_early_close)
-	_early_no = _early_choice("繼續營業", Vector2(400, 290), _decline_early_close)
+	_early_yes = _early_choice(Loc.t("early.yes"), Vector2(36, 290), _confirm_early_close)
+	_early_no = _early_choice(Loc.t("early.no"), Vector2(400, 290), _decline_early_close)
 	card.add_child(_early_yes)
 	card.add_child(_early_no)
 	_early_layer = layer
@@ -781,11 +781,11 @@ func _finish_day() -> void:
 	if _hud:
 		_hud.show_closeout()
 		var loss := "虧損（營業額低於進貨）" if bool(result["loss"]) else "未虧損"
-		var head := "關店結算"
+		var head := Loc.t("demo.closeout_head")
 		if _early_closed:
-			head = "提早關店結算"
+			head = Loc.t("demo.closeout_early")
 		elif _skip_xp > 0:
-			head = "測試結算"
+			head = Loc.t("demo.closeout_test")
 		var bonus := "（含測試 +%d）" % _skip_xp if _skip_xp > 0 else ""
 		var save_line := "已寫入存檔" if save_err == "" else ("存檔失敗：" + save_err)
 		_hud._close_text.text = "%s　%s\n營業額 $%d　入帳後資金 $%d\n進貨成本 $%d\n成功收銀 %d　生氣離開 %d\n被偷 %d 件 $%d　抓住 %d／逃走 %d\n經驗 +%d%s　%s\n%s\n按 J／A 返回準備" % [
@@ -818,7 +818,7 @@ func _spawn_thief() -> void:
 	_add_interactable(c)
 	c.tree_exiting.connect(func() -> void: _remove_interactable(c))
 	if _player:
-		_player.log_line.emit("小偷進店！")
+		_player.log_line.emit(Loc.t("demo.thief_enter"))
 
 
 func _floor() -> void:
