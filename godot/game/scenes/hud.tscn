@@ -1,0 +1,192 @@
+[gd_scene format=3 uid="uid://chhhsdva8ybf0"]
+
+[ext_resource type="Script" path="res://scripts/hud.gd" id="1_hud"]
+[ext_resource type="Script" path="res://scripts/clock_face.gd" id="2_clock"]
+
+[node name="HUD" type="CanvasLayer"]
+layer = 12
+script = ExtResource("1_hud")
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="Banner" type="Label" parent="Root"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -420.0
+offset_top = -48.0
+offset_right = 420.0
+offset_bottom = 48.0
+theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(0.96, 0.95, 0.92, 1)
+text = "店鋪經營回合  ·  Demo v0.31"
+horizontal_alignment = 1
+
+[node name="CastName" type="Label" parent="Root"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -320.0
+offset_top = -140.0
+offset_right = 320.0
+offset_bottom = -70.0
+theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(0.96, 0.83, 0.37, 1)
+theme_override_colors/font_outline_color = Color(0.07, 0.07, 0.07, 1)
+theme_override_constants/outline_size = 10
+text = ""
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Left" type="VBoxContainer" parent="Root"]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 8.0
+offset_right = 420.0
+offset_bottom = 520.0
+theme_override_constants/separation = 6
+
+[node name="Clock" type="Control" parent="Root/Left"]
+custom_minimum_size = Vector2(140, 140)
+layout_mode = 2
+script = ExtResource("2_clock")
+
+[node name="Time" type="Label" parent="Root/Left"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "06:00"
+
+[node name="Phase" type="Label" parent="Root/Left"]
+layout_mode = 2
+autowrap_mode = 3
+text = "補貨時段"
+
+[node name="Revenue" type="Label" parent="Root/Left"]
+layout_mode = 2
+text = "營業額  $0"
+
+[node name="Guests" type="Label" parent="Root/Left"]
+layout_mode = 2
+text = "在店客人  0"
+
+[node name="Store" type="Label" parent="Root/Left"]
+layout_mode = 2
+autowrap_mode = 3
+text = "商店狀態  無技能效果"
+
+[node name="Role" type="Label" parent="Root/Left"]
+layout_mode = 2
+autowrap_mode = 3
+text = "角色狀態  STR20 AGI20 INT20"
+
+[node name="Skills" type="Label" parent="Root/Left"]
+layout_mode = 2
+autowrap_mode = 3
+text = "技能"
+
+[node name="Right" type="PanelContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -380.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -560.0
+
+[node name="Margin" type="MarginContainer" parent="Root/Right"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="Root/Right/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="Title" type="Label" parent="Root/Right/Margin/VBox"]
+layout_mode = 2
+text = "Demo v0.31"
+
+[node name="Hint" type="Label" parent="Root/Right/Margin/VBox"]
+layout_mode = 2
+autowrap_mode = 3
+text = "鍵盤：WASD 移動／指令（上左下右）
+J 行動  K 衝刺  L 技能  U 奧義
+補貨：輕放執貨 · 長按選貨（上下）
+手制 XYAB 是 Xbox 鍵，不是 WASD"
+
+[node name="State" type="Label" parent="Root/Right/Margin/VBox"]
+layout_mode = 2
+text = "狀態"
+
+[node name="Stamina" type="ProgressBar" parent="Root/Right/Margin/VBox"]
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+show_percentage = false
+
+[node name="Carry" type="Label" parent="Root/Right/Margin/VBox"]
+layout_mode = 2
+text = "負重"
+
+[node name="HudList" type="ItemList" parent="Root/Right/Margin/VBox"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+
+[node name="Target" type="Label" parent="Root/Right/Margin/VBox"]
+layout_mode = 2
+autowrap_mode = 3
+text = "目標"
+
+[node name="Progress" type="ProgressBar" parent="Root/Right/Margin/VBox"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+show_percentage = false
+
+[node name="Log" type="ItemList" parent="Root/Right/Margin/VBox"]
+custom_minimum_size = Vector2(0, 96)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Out" type="Label" parent="Root/Right/Margin/VBox"]
+layout_mode = 2
+autowrap_mode = 3
+text = "不做：等級、冰櫃、清潔、打擊、準備回合、資金入帳。"
+
+[node name="Closeout" type="PanelContainer" parent="Root"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -320.0
+offset_top = -140.0
+offset_right = 320.0
+offset_bottom = 140.0
+
+[node name="Margin" type="MarginContainer" parent="Root/Closeout"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
+
+[node name="CloseText" type="Label" parent="Root/Closeout/Margin"]
+layout_mode = 2
+horizontal_alignment = 1
+text = "關店結算"

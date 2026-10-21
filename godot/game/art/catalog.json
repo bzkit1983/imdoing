@@ -1,0 +1,793 @@
+{
+  "version": "alpha-v0.1",
+  "voxel_meters": 0.1,
+  "tile_voxels": 16,
+  "axis": "MagicaVoxel X right, Y forward, Z up. Feet on z=0. Characters face +Y.",
+  "palette": [
+    {
+      "index": 1,
+      "name": "skin",
+      "rgb": [
+        244,
+        211,
+        180
+      ]
+    },
+    {
+      "index": 2,
+      "name": "skin_shade",
+      "rgb": [
+        214,
+        166,
+        130
+      ]
+    },
+    {
+      "index": 3,
+      "name": "hair",
+      "rgb": [
+        42,
+        33,
+        24
+      ]
+    },
+    {
+      "index": 4,
+      "name": "hair_brown",
+      "rgb": [
+        107,
+        79,
+        58
+      ]
+    },
+    {
+      "index": 5,
+      "name": "eye",
+      "rgb": [
+        28,
+        36,
+        31
+      ]
+    },
+    {
+      "index": 6,
+      "name": "white",
+      "rgb": [
+        244,
+        241,
+        234
+      ]
+    },
+    {
+      "index": 7,
+      "name": "player",
+      "rgb": [
+        42,
+        107,
+        74
+      ]
+    },
+    {
+      "index": 8,
+      "name": "player_dark",
+      "rgb": [
+        26,
+        74,
+        50
+      ]
+    },
+    {
+      "index": 9,
+      "name": "customer",
+      "rgb": [
+        107,
+        91,
+        149
+      ]
+    },
+    {
+      "index": 10,
+      "name": "customer_dark",
+      "rgb": [
+        74,
+        61,
+        110
+      ]
+    },
+    {
+      "index": 11,
+      "name": "thief",
+      "rgb": [
+        61,
+        31,
+        36
+      ]
+    },
+    {
+      "index": 12,
+      "name": "hood",
+      "rgb": [
+        26,
+        18,
+        20
+      ]
+    },
+    {
+      "index": 13,
+      "name": "clerk",
+      "rgb": [
+        31,
+        78,
+        121
+      ]
+    },
+    {
+      "index": 14,
+      "name": "clerk_dark",
+      "rgb": [
+        20,
+        52,
+        86
+      ]
+    },
+    {
+      "index": 15,
+      "name": "clerk_stock",
+      "rgb": [
+        31,
+        107,
+        74
+      ]
+    },
+    {
+      "index": 16,
+      "name": "pants",
+      "rgb": [
+        36,
+        48,
+        42
+      ]
+    },
+    {
+      "index": 17,
+      "name": "shoe",
+      "rgb": [
+        28,
+        36,
+        31
+      ]
+    },
+    {
+      "index": 18,
+      "name": "wood",
+      "rgb": [
+        92,
+        64,
+        51
+      ]
+    },
+    {
+      "index": 19,
+      "name": "wood_dark",
+      "rgb": [
+        58,
+        42,
+        30
+      ]
+    },
+    {
+      "index": 20,
+      "name": "floor",
+      "rgb": [
+        215,
+        196,
+        160
+      ]
+    },
+    {
+      "index": 21,
+      "name": "floor_line",
+      "rgb": [
+        176,
+        154,
+        112
+      ]
+    },
+    {
+      "index": 22,
+      "name": "shelf_dry",
+      "rgb": [
+        47,
+        93,
+        80
+      ]
+    },
+    {
+      "index": 23,
+      "name": "shelf_dry_dark",
+      "rgb": [
+        28,
+        58,
+        50
+      ]
+    },
+    {
+      "index": 24,
+      "name": "shelf_frozen",
+      "rgb": [
+        53,
+        90,
+        106
+      ]
+    },
+    {
+      "index": 25,
+      "name": "shelf_ice",
+      "rgb": [
+        44,
+        74,
+        110
+      ]
+    },
+    {
+      "index": 26,
+      "name": "metal",
+      "rgb": [
+        200,
+        212,
+        197
+      ]
+    },
+    {
+      "index": 27,
+      "name": "screen",
+      "rgb": [
+        28,
+        36,
+        31
+      ]
+    },
+    {
+      "index": 28,
+      "name": "screen_on",
+      "rgb": [
+        126,
+        203,
+        255
+      ]
+    },
+    {
+      "index": 29,
+      "name": "can",
+      "rgb": [
+        196,
+        92,
+        38
+      ]
+    },
+    {
+      "index": 30,
+      "name": "snack",
+      "rgb": [
+        232,
+        195,
+        106
+      ]
+    },
+    {
+      "index": 31,
+      "name": "cup",
+      "rgb": [
+        61,
+        126,
+        166
+      ]
+    },
+    {
+      "index": 32,
+      "name": "drink",
+      "rgb": [
+        126,
+        200,
+        227
+      ]
+    },
+    {
+      "index": 33,
+      "name": "milk",
+      "rgb": [
+        232,
+        236,
+        240
+      ]
+    },
+    {
+      "index": 34,
+      "name": "milk_band",
+      "rgb": [
+        58,
+        124,
+        165
+      ]
+    },
+    {
+      "index": 35,
+      "name": "soda",
+      "rgb": [
+        192,
+        57,
+        43
+      ]
+    },
+    {
+      "index": 36,
+      "name": "icecream",
+      "rgb": [
+        244,
+        164,
+        192
+      ]
+    },
+    {
+      "index": 37,
+      "name": "cone",
+      "rgb": [
+        176,
+        122,
+        74
+      ]
+    },
+    {
+      "index": 38,
+      "name": "meat",
+      "rgb": [
+        122,
+        48,
+        72
+      ]
+    },
+    {
+      "index": 39,
+      "name": "rice",
+      "rgb": [
+        224,
+        122,
+        61
+      ]
+    },
+    {
+      "index": 40,
+      "name": "cardboard",
+      "rgb": [
+        196,
+        165,
+        116
+      ]
+    },
+    {
+      "index": 41,
+      "name": "tape",
+      "rgb": [
+        232,
+        215,
+        160
+      ]
+    },
+    {
+      "index": 42,
+      "name": "trash",
+      "rgb": [
+        92,
+        72,
+        46
+      ]
+    },
+    {
+      "index": 43,
+      "name": "puddle",
+      "rgb": [
+        90,
+        158,
+        204
+      ]
+    },
+    {
+      "index": 44,
+      "name": "vomit",
+      "rgb": [
+        140,
+        168,
+        56
+      ]
+    },
+    {
+      "index": 45,
+      "name": "glass",
+      "rgb": [
+        169,
+        214,
+        229
+      ]
+    },
+    {
+      "index": 46,
+      "name": "wall",
+      "rgb": [
+        58,
+        42,
+        30
+      ]
+    },
+    {
+      "index": 47,
+      "name": "cap",
+      "rgb": [
+        244,
+        241,
+        234
+      ]
+    }
+  ],
+  "groups": [
+    {
+      "id": "characters",
+      "name": "人物",
+      "models": [
+        {
+          "id": "player",
+          "name": "玩家",
+          "file": "player.vox",
+          "size": [
+            12,
+            10,
+            20
+          ],
+          "voxels": 678,
+          "note": "綠衣、深色頭髮。店長。"
+        },
+        {
+          "id": "customer",
+          "name": "客人",
+          "file": "customer.vox",
+          "size": [
+            12,
+            10,
+            20
+          ],
+          "voxels": 714,
+          "note": "紫衣、側袋。和店員的制服分開。"
+        },
+        {
+          "id": "thief",
+          "name": "小偷",
+          "file": "thief.vox",
+          "size": [
+            12,
+            10,
+            20
+          ],
+          "voxels": 848,
+          "note": "兜帽和面罩。遠看也要和客人分開。"
+        },
+        {
+          "id": "clerk_cashier",
+          "name": "收銀店員",
+          "file": "clerk_cashier.vox",
+          "size": [
+            12,
+            10,
+            20
+          ],
+          "voxels": 682,
+          "note": "藍衣、白牌。看收銀機。"
+        },
+        {
+          "id": "clerk_restock",
+          "name": "補貨店員",
+          "file": "clerk_restock.vox",
+          "size": [
+            12,
+            10,
+            20
+          ],
+          "voxels": 678,
+          "note": "綠衣、沒有白牌。和店長以髮色、衣色分開。"
+        }
+      ]
+    },
+    {
+      "id": "furniture",
+      "name": "店內物件",
+      "models": [
+        {
+          "id": "register",
+          "name": "收銀機",
+          "file": "register.vox",
+          "size": [
+            18,
+            14,
+            16
+          ],
+          "voxels": 1899,
+          "note": "櫃檯加螢幕。佔地仍是玩法裡的那一格尺寸，模型先做成一台。"
+        },
+        {
+          "id": "restock_dry",
+          "name": "乾貨補貨架",
+          "file": "restock_dry.vox",
+          "size": [
+            16,
+            12,
+            24
+          ],
+          "voxels": 1632,
+          "note": "倉庫架，上面是箱。"
+        },
+        {
+          "id": "restock_frozen",
+          "name": "凍櫃補貨架",
+          "file": "restock_frozen.vox",
+          "size": [
+            16,
+            12,
+            24
+          ],
+          "voxels": 1632,
+          "note": "同一座倉庫架，箱色用凍飲色。"
+        },
+        {
+          "id": "restock_ice",
+          "name": "冰櫃補貨架",
+          "file": "restock_ice.vox",
+          "size": [
+            16,
+            12,
+            24
+          ],
+          "voxels": 1632,
+          "note": "同一座倉庫架，箱色用雪糕色。"
+        },
+        {
+          "id": "shelf_dry",
+          "name": "乾貨貨架",
+          "file": "shelf_dry.vox",
+          "size": [
+            32,
+            16,
+            18
+          ],
+          "voxels": 4696,
+          "note": "2×1 格。4、8、12、24 件是容量，這版不做成四個長度。"
+        },
+        {
+          "id": "shelf_frozen",
+          "name": "凍櫃貨架",
+          "file": "shelf_frozen.vox",
+          "size": [
+            32,
+            16,
+            18
+          ],
+          "voxels": 4880,
+          "note": "前面有一圈玻璃框。"
+        },
+        {
+          "id": "shelf_ice",
+          "name": "冰櫃貨架",
+          "file": "shelf_ice.vox",
+          "size": [
+            32,
+            16,
+            18
+          ],
+          "voxels": 6236,
+          "note": "有頂蓋，前面較密。"
+        }
+      ]
+    },
+    {
+      "id": "goods",
+      "name": "貨品",
+      "models": [
+        {
+          "id": "box",
+          "name": "貨箱",
+          "file": "box.vox",
+          "size": [
+            8,
+            8,
+            6
+          ],
+          "voxels": 384,
+          "note": "一箱 4 件。手上、地上、架上都用這一個。"
+        },
+        {
+          "id": "can",
+          "name": "罐頭",
+          "file": "can.vox",
+          "size": [
+            8,
+            8,
+            10
+          ],
+          "voxels": 144,
+          "note": "圓罐。"
+        },
+        {
+          "id": "snack",
+          "name": "零食",
+          "file": "snack.vox",
+          "size": [
+            8,
+            8,
+            8
+          ],
+          "voxels": 104,
+          "note": "扁袋。"
+        },
+        {
+          "id": "cup",
+          "name": "杯麵",
+          "file": "cup.vox",
+          "size": [
+            8,
+            8,
+            10
+          ],
+          "voxels": 144,
+          "note": "有蓋的杯。"
+        },
+        {
+          "id": "drink",
+          "name": "支裝凍飲",
+          "file": "drink.vox",
+          "size": [
+            8,
+            8,
+            12
+          ],
+          "voxels": 48,
+          "note": "細長瓶子。"
+        },
+        {
+          "id": "milk",
+          "name": "牛奶",
+          "file": "milk.vox",
+          "size": [
+            8,
+            8,
+            12
+          ],
+          "voxels": 168,
+          "note": "方盒，有屋頂。"
+        },
+        {
+          "id": "soda",
+          "name": "汽水",
+          "file": "soda.vox",
+          "size": [
+            8,
+            8,
+            10
+          ],
+          "voxels": 144,
+          "note": "紅罐，一條白帶。"
+        },
+        {
+          "id": "icecream",
+          "name": "雪糕",
+          "file": "icecream.vox",
+          "size": [
+            8,
+            8,
+            12
+          ],
+          "voxels": 92,
+          "note": "甜筒。"
+        },
+        {
+          "id": "meat",
+          "name": "凍肉",
+          "file": "meat.vox",
+          "size": [
+            10,
+            8,
+            4
+          ],
+          "voxels": 176,
+          "note": "平盤。"
+        },
+        {
+          "id": "rice",
+          "name": "叮叮飯",
+          "file": "rice.vox",
+          "size": [
+            10,
+            8,
+            4
+          ],
+          "voxels": 184,
+          "note": "平盒。角色 LV10 才賣，模型先做。"
+        }
+      ]
+    },
+    {
+      "id": "place",
+      "name": "地面與污物",
+      "models": [
+        {
+          "id": "floor_tile",
+          "name": "地磚",
+          "file": "floor_tile.vox",
+          "size": [
+            16,
+            16,
+            1
+          ],
+          "voxels": 256,
+          "note": "一格店面，16×16。"
+        },
+        {
+          "id": "wall",
+          "name": "牆",
+          "file": "wall.vox",
+          "size": [
+            16,
+            2,
+            16
+          ],
+          "voxels": 512,
+          "note": "一格寬的牆段。"
+        },
+        {
+          "id": "door",
+          "name": "店門",
+          "file": "door.vox",
+          "size": [
+            16,
+            2,
+            16
+          ],
+          "voxels": 332,
+          "note": "門口留空，中間一塊玻璃。"
+        },
+        {
+          "id": "trash",
+          "name": "垃圾",
+          "file": "trash.vox",
+          "size": [
+            14,
+            12,
+            6
+          ],
+          "voxels": 279,
+          "note": "一堆，比水漬高。"
+        },
+        {
+          "id": "puddle",
+          "name": "水漬",
+          "file": "puddle.vox",
+          "size": [
+            16,
+            14,
+            1
+          ],
+          "voxels": 136,
+          "note": "貼地。透明留待之後的材質。"
+        },
+        {
+          "id": "vomit",
+          "name": "嘔吐物",
+          "file": "vomit.vox",
+          "size": [
+            14,
+            12,
+            2
+          ],
+          "voxels": 110,
+          "note": "貼地，比水漬厚一點、顏色分開。"
+        }
+      ]
+    }
+  ]
+}

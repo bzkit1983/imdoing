@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Write the Alpha V0.1 MagicaVoxel blockouts.
+"""Write MagicaVoxel blockouts for the living godot/game art tree.
 
-Running this overwrites godot/alpha_v0_1/art/src/*.vox.
+Running this overwrites godot/game/art/src/*.vox.
 After a designer edits a .vox in MagicaVoxel, do not run this again
 or those edits are replaced by the blockout.
+
+Frozen Alpha sources in godot/alpha_v0_1/art/ are not touched.
 """
 
 import json
@@ -12,7 +14,7 @@ import zlib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-ART = ROOT / "godot" / "alpha_v0_1" / "art"
+ART = ROOT / "godot" / "game" / "art"
 SRC = ART / "src"
 PREVIEW = ART / "preview"
 

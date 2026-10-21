@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Bake Alpha v0.1 .vox files into gameplay sprites.
+"""Bake MagicaVoxel .vox files into gameplay sprites for the living line.
 
-Reads godot/alpha_v0_1/art/src/*.vox and writes art/sprites.
+Reads godot/game/art/src/*.vox and writes godot/game/art/sprites.
 Does not modify the .vox sources. 4 px = 1 voxel, so 16 voxels match one 64 px shop tile.
 Facing: 0 south, 1 east, 2 north, 3 west.
+
+Frozen Alpha art stays in godot/alpha_v0_1/art/ — do not point this tool there.
 """
 
 import json
@@ -12,8 +14,8 @@ import zlib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / "godot" / "alpha_v0_1" / "art" / "src"
-OUT = ROOT / "godot" / "alpha_v0_1" / "art" / "sprites"
+SRC = ROOT / "godot" / "game" / "art" / "src"
+OUT = ROOT / "godot" / "game" / "art" / "sprites"
 PX = 4
 
 FOUR_WAY = {

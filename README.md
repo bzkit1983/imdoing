@@ -1,18 +1,32 @@
 # iamdoing
 Repository for game project
 
-## Demos（Godot 4.7）
-- `godot/demo_v0_1` — 執貨／上架／移動（見 `docs/demo/demov0_1scope.md`）
-- `godot/demo_v0_2` — 經營時段、客人、凍櫃、收銀（見 `docs/demo/demov0_2scope.md`）
-- `godot/demo_v0_3` — 技能 LV3、觸控搖桿／按鍵（見 `docs/demo/demov0_3scope.md`）
-- `godot/demo_v0_31` — 對齊長線數值與技能疊加（見 `docs/demo/demov0_31scope.md`）
-- `godot/demo_v0_4` — 三類污物與清潔小遊戲（見 `docs/demo/demov0_4scope.md`）
-- `godot/demo_v0_5` — 小偷與連打打擊（見 `docs/demo/demov0_5scope.md`）
-- `godot/demo_v0_6` — 準備回合、資金、等級、店舖設計、店員（見 `docs/demo/demov0_6scope.md`）
-- `godot/alpha_v0_1` — 同一套開店流程，畫面換成 Voxel（見 `docs/alpha/voxel-v0.1.md`）
-- GitHub Pages（iPhone）：https://bzkit1983.github.io/imdoing/play-v06/
-- Alpha v0.1：https://bzkit1983.github.io/imdoing/play-alpha-v01/
+## 現在改哪裡？（v1.0 活線）
 
-設計文件在 `docs/systemdesign/`。長線設計缺口檢視：`docs/systemdesign-gaps.md`。Alpha 計劃（系統先可玩，再接 Voxel）：`docs/alpha/plan.md`。Alpha v0.1 技術設計審查（可持續開發／效能／Steam·Switch·Xbox）：`docs/alpha/tech-review-v0.1.md`。
+用 Godot **4.7** 打開 **`godot/game`**。  
+版控策略：[`docs/versioning.md`](docs/versioning.md) · Godot 目錄說明：[`godot/README.md`](godot/README.md)
 
-**版本控制（保留 Alpha、v1.0 起單一活線）：** `docs/versioning.md`。
+技術設計審查（效能／Steam·Switch·Xbox／跟進清單）：[`docs/alpha/tech-review-v0.1.md`](docs/alpha/tech-review-v0.1.md)
+
+## 凍結快照（勿開新功能）
+
+以下目錄已凍結（見各目錄 `FROZEN.md`）。僅供對照或修展示損壞：
+
+| 路徑 | 說明 | 試玩 |
+| --- | --- | --- |
+| `godot/alpha_v0_1` | Alpha v0.1 Voxel 開店 | [play-alpha-v01](https://bzkit1983.github.io/imdoing/play-alpha-v01/) |
+| `godot/demo_v0_6` | 準備回合、資金、店員 | [play-v06](https://bzkit1983.github.io/imdoing/play-v06/) |
+| `godot/demo_v0_5` | 小偷與連打 | [play-v05](https://bzkit1983.github.io/imdoing/play-v05/) |
+| `godot/demo_v0_4` | 污物與清潔 | [play-v04](https://bzkit1983.github.io/imdoing/play-v04/) |
+| `godot/demo_v0_31` | 長線數值與技能疊加 | [play-v031](https://bzkit1983.github.io/imdoing/play-v031/) |
+| `godot/demo_v0_3` | 技能 LV3、觸控 | [play-v03](https://bzkit1983.github.io/imdoing/play-v03/) |
+| `godot/demo_v0_2` | 經營時段、客人、收銀 | — |
+| `godot/demo_v0_1` | 執貨／上架／移動 | — |
+
+各 Demo scope：`docs/demo/`。Alpha Voxel 說明：`docs/alpha/voxel-v0.1.md`（歷史；新美術改 `godot/game`）。
+
+## 設計文件
+
+- 長線規則：`docs/systemdesign/`
+- 缺口檢視：`docs/systemdesign-gaps.md`
+- Alpha 計劃：`docs/alpha/plan.md`
