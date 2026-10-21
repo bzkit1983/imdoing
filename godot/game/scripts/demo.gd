@@ -310,14 +310,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if phase != "closed":
 		return
-	var go := false
-	if event is InputEventKey and event.pressed and not event.echo:
-		var k := (event as InputEventKey).physical_keycode
-		go = k == KEY_J or k == KEY_ENTER or k == KEY_SEMICOLON or k == KEY_BACKSPACE
-	elif event is InputEventJoypadButton and event.pressed:
-		var b := (event as InputEventJoypadButton).button_index
-		go = b == JOY_BUTTON_A or b == JOY_BUTTON_B
-	if not go:
+	if event.is_echo() or not event.is_pressed():
+		return
+	if not (event.is_action_pressed(Controls.INTERACT) or event.is_action_pressed(Controls.CANCEL)):
 		return
 	_return_to_prep()
 	get_viewport().set_input_as_handled()
@@ -457,36 +452,32 @@ func _style_early_btn(btn: Button, on: bool) -> void:
 
 func _early_input(event: InputEvent) -> void:
 	var press := false
-	var key := 0
-	var joy := -1
-	if event is InputEventKey:
-		var k := event as InputEventKey
-		if k.echo:
-			get_viewport().set_input_as_handled()
-			return
-		press = k.pressed
-		key = k.physical_keycode
-	elif event is InputEventJoypadButton:
-		var pad := event as InputEventJoypadButton
-		press = pad.pressed
-		joy = pad.button_index
-	else:
+	if event.is_echo():
+		get_viewport().set_input_as_handled()
 		return
+	if not (
+		event.is_action(Controls.MOVE_LEFT)
+		or event.is_action(Controls.MOVE_RIGHT)
+		or event.is_action(Controls.INTERACT)
+		or event.is_action(Controls.CANCEL)
+	):
+		return
+	press = event.is_pressed()
 	get_viewport().set_input_as_handled()
 	if not press:
 		return
-	if key == KEY_A or key == KEY_LEFT or joy == JOY_BUTTON_DPAD_LEFT:
+	if event.is_action_pressed(Controls.MOVE_LEFT):
 		_early_focus = 0
 		_paint_early_focus()
-	elif key == KEY_D or key == KEY_RIGHT or joy == JOY_BUTTON_DPAD_RIGHT:
+	elif event.is_action_pressed(Controls.MOVE_RIGHT):
 		_early_focus = 1
 		_paint_early_focus()
-	elif key == KEY_J or key == KEY_ENTER or joy == JOY_BUTTON_A:
+	elif event.is_action_pressed(Controls.INTERACT):
 		if _early_focus == 0:
 			_confirm_early_close()
 		else:
 			_decline_early_close()
-	elif key == KEY_SEMICOLON or key == KEY_BACKSPACE or joy == JOY_BUTTON_B:
+	elif event.is_action_pressed(Controls.CANCEL):
 		_decline_early_close()
 
 

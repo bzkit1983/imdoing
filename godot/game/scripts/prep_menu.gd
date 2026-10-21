@@ -1,5 +1,5 @@
 extends CanvasLayer
-## Shop-prep menus. Stick / WASD move, J or A confirms, ; or B goes back.
+## Shop-prep menus. Uses InputMap: move_*, interact, cancel, rotate.
 
 const Tuning = preload("res://scripts/tuning.gd")
 const Skills = preload("res://scripts/skills.gd")
@@ -161,7 +161,7 @@ func _build() -> void:
 	var hint := Label.new()
 	hint.position = Vector2(24, 668)
 	hint.size = Vector2(1232, 40)
-	hint.text = "WASD／搖桿移動　J／A 確定　;／B 返回　店舖設計時 X／K 轉向"
+	hint.text = "方向移動　行動確定　取消返回　店舖設計時 轉向（預設 K／X）"
 	hint.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	UiFont.apply_label(hint, PREP_HINT)
 	hint.add_theme_color_override("font_color", Color("c8d4c5"))
@@ -1051,65 +1051,46 @@ func _dialog_move(x: int, _y: int) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible:
 		return
-	if event is InputEventKey and (event as InputEventKey).echo:
+	if event.is_echo():
 		return
 	if _dlg_open:
-		if _dlg_gate == 2 and event is InputEventKey and (event as InputEventKey).pressed:
-			_dialog_key((event as InputEventKey).physical_keycode)
-		elif _dlg_gate == 2 and event is InputEventJoypadButton and (event as InputEventJoypadButton).pressed:
-			_dialog_joy((event as InputEventJoypadButton).button_index)
+		if _dlg_gate == 2 and event.is_pressed():
+			_dialog_action(event)
 		get_viewport().set_input_as_handled()
 		return
-	if event is InputEventKey and (event as InputEventKey).pressed:
-		_key((event as InputEventKey).physical_keycode)
-		get_viewport().set_input_as_handled()
-	elif event is InputEventJoypadButton and (event as InputEventJoypadButton).pressed:
-		match (event as InputEventJoypadButton).button_index:
-			JOY_BUTTON_A:
-				_activate()
-			JOY_BUTTON_B:
-				_back()
-			JOY_BUTTON_DPAD_UP:
-				_move(0, -1)
-			JOY_BUTTON_DPAD_DOWN:
-				_move(0, 1)
-			JOY_BUTTON_DPAD_LEFT:
-				_move(-1, 0)
-			JOY_BUTTON_DPAD_RIGHT:
-				_move(1, 0)
-			JOY_BUTTON_X:
-				_rotate()
-		get_viewport().set_input_as_handled()
+	if not event.is_pressed():
+		return
+	if event.is_action_pressed(Controls.MOVE_UP):
+		_move(0, -1)
+	elif event.is_action_pressed(Controls.MOVE_DOWN):
+		_move(0, 1)
+	elif event.is_action_pressed(Controls.MOVE_LEFT):
+		_move(-1, 0)
+	elif event.is_action_pressed(Controls.MOVE_RIGHT):
+		_move(1, 0)
+	elif event.is_action_pressed(Controls.INTERACT):
+		_activate()
+	elif event.is_action_pressed(Controls.CANCEL):
+		_back()
+	elif event.is_action_pressed(Controls.ROTATE):
+		_rotate()
+	else:
+		return
+	get_viewport().set_input_as_handled()
 
 
-func _dialog_key(key: int) -> void:
-	match key:
-		KEY_A, KEY_LEFT:
-			_dialog_move(-1, 0)
-		KEY_D, KEY_RIGHT:
-			_dialog_move(1, 0)
-		KEY_J, KEY_ENTER:
-			_dialog_accept()
-		KEY_SEMICOLON, KEY_BACKSPACE, KEY_ESCAPE:
-			if _dlg_info:
-				_close_dialog()
-			else:
-				_on_dlg_no()
-
-
-func _dialog_joy(button: JoyButton) -> void:
-	match button:
-		JOY_BUTTON_DPAD_LEFT:
-			_dialog_move(-1, 0)
-		JOY_BUTTON_DPAD_RIGHT:
-			_dialog_move(1, 0)
-		JOY_BUTTON_A:
-			_dialog_accept()
-		JOY_BUTTON_B:
-			if _dlg_info:
-				_close_dialog()
-			else:
-				_on_dlg_no()
+func _dialog_action(event: InputEvent) -> void:
+	if event.is_action_pressed(Controls.MOVE_LEFT):
+		_dialog_move(-1, 0)
+	elif event.is_action_pressed(Controls.MOVE_RIGHT):
+		_dialog_move(1, 0)
+	elif event.is_action_pressed(Controls.INTERACT):
+		_dialog_accept()
+	elif event.is_action_pressed(Controls.CANCEL):
+		if _dlg_info:
+			_close_dialog()
+		else:
+			_on_dlg_no()
 
 
 func _process(_delta: float) -> void:
@@ -1137,7 +1118,7 @@ func _process(_delta: float) -> void:
 				_dlg_gate = 2
 		if _dlg_gate != 2:
 			return
-		var stick := Vector2(Input.get_joy_axis(0, JOY_AXIS_LEFT_X), Input.get_joy_axis(0, JOY_AXIS_LEFT_Y))
+		var stick := Controls.move_vector()
 		if stick.length() < 0.55:
 			_stick_armed = true
 			return
@@ -1147,7 +1128,7 @@ func _process(_delta: float) -> void:
 		if absf(stick.x) > absf(stick.y):
 			_dialog_move(1 if stick.x > 0 else -1, 0)
 		return
-	var v := Vector2(Input.get_joy_axis(0, JOY_AXIS_LEFT_X), Input.get_joy_axis(0, JOY_AXIS_LEFT_Y))
+	var v := Controls.move_vector()
 	if v.length() < 0.55:
 		_stick_armed = true
 		return
@@ -1161,24 +1142,6 @@ func _process(_delta: float) -> void:
 
 
 var _stick_armed: bool = true
-
-
-func _key(key: int) -> void:
-	match key:
-		KEY_W, KEY_UP:
-			_move(0, -1)
-		KEY_S, KEY_DOWN:
-			_move(0, 1)
-		KEY_A, KEY_LEFT:
-			_move(-1, 0)
-		KEY_D, KEY_RIGHT:
-			_move(1, 0)
-		KEY_J, KEY_ENTER:
-			_activate()
-		KEY_SEMICOLON, KEY_BACKSPACE, KEY_ESCAPE:
-			_back()
-		KEY_K, KEY_X:
-			_rotate()
 
 
 func _move(x: int, y: int) -> void:

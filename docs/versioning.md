@@ -133,7 +133,7 @@ v1.0 Milestone 建議直接收錄 `docs/alpha/tech-review-v0.1.md` §6 跟進清
 1. ~~在 `main` 打 tag `alpha-v0.1`~~ **已做**（凍結 Alpha 可玩狀態）。  
 2. ~~建立 `godot/game`（自 `alpha_v0_1` 複製一次）~~ **已做**；`demo_v0_*`／`alpha_v0_1` 已放 `FROZEN.md`，見 `godot/README.md`。  
 3. 把 tech-review §6 checklist 建成 Issues，全掛 Milestone `v1.0`。  
-4. ~~存檔~~ **已做**（`user://save.json` + `SAVE_VERSION`）；接著：`InputMap`、`PlatformServices` stub。  
+4. ~~存檔~~ **已做**；~~InputMap~~ **已做**（`Controls` Autoload）；接著：`PlatformServices` stub。  
 5. 骨架達標後打 `v1.0.0`；之後功能進 `v1.1` Milestone。
 
 ---

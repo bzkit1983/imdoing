@@ -203,7 +203,7 @@ func _refresh() -> void:
 			Tuning.sku_name(String(t.call("selected_sku")))
 		]
 	elif String(t.get("kind")) == "cashier":
-		_target.text = "目標  收銀機 · 長按行動再 WASD／搖桿"
+		_target.text = "目標  收銀機 · 長按行動再輸方向"
 	elif String(t.get("kind")) == "dirt":
 		_target.text = "目標  %s · 空手長按行動並轉搖桿清潔" % String(t.call("type_name"))
 	elif String(t.get("kind")) == "drop":
