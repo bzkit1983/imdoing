@@ -14,3 +14,5 @@ Repository for game project
 - Alpha v0.1：https://bzkit1983.github.io/imdoing/play-alpha-v01/
 
 設計文件在 `docs/systemdesign/`。長線設計缺口檢視：`docs/systemdesign-gaps.md`。Alpha 計劃（系統先可玩，再接 Voxel）：`docs/alpha/plan.md`。Alpha v0.1 技術設計審查（可持續開發／效能／Steam·Switch·Xbox）：`docs/alpha/tech-review-v0.1.md`。
+
+**版本控制（保留 Alpha、v1.0 起單一活線）：** `docs/versioning.md`。
