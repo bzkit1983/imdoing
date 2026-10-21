@@ -19,7 +19,7 @@
 | GDScript 約略行數 | ~7.7k |
 | ≥1000 行腳本 | 3（`player` · `prep_menu` · `demo`） |
 | 存檔 / Autoload 平台層 / 自動化測試 | 存檔＋`PlatformServices` Desktop stub 已有；自動化測試仍 0 |
-| 現有匯出預設 | Web only |
+| 現有匯出預設 | Web + Windows Desktop + Linux（Steam 候選；見 `docs/alpha/export-presets.md`） |
 
 ---
 
@@ -146,7 +146,7 @@ demo.gd（場面主控 · ~1000 行）
 
 | 主題 | Alpha 現況 | Steam | Switch／Xbox 額外要求 |
 | --- | --- | --- | --- |
-| 匯出 | 僅 Web | 補桌面 | 私有 console export template；CI 需隔離 NDA 產物 |
+| 匯出 | ~~僅 Web~~ **已有 Win／Linux 預設** | 桌面預設已加；待 Steamworks | 私有 console export template；CI 需隔離 NDA 產物 |
 | 輸入 | 硬編碼鍵 + 虛擬搖桿 | InputMap + Steam Input | 手把焦點導航；斷線重連；禁用「必須觸控」 |
 | UI | 手機橫向密度＋觸控鍵 | 桌面／Deck 可調 | TV 安全區與字級；Switch 掌機可讀性；焦點框可見 |
 | 存檔 | 無 | 本機 + 可選 Cloud | 經平台 API；處理儲存滿／失敗／多使用者 |
@@ -222,7 +222,7 @@ demo.gd（場面主控 · ~1000 行）
 - [x] 貨架 SKU 索引 — `demo._shelves_by_sku`；`shelf.stock_sku_changed` 維護；`find_shelf` O(1)（見 `docs/systemdesign/customer.md`）
 - [x] NotoSansTC 子集化方案 — 執行期 `NotoSansTC-Game.otf`；重建 `tools/fonts/subset_notosans_tc.py`；說明 `docs/alpha/fonts-subset.md`
 - [x] 暫停選單 + 掛起／恢復鉤子 — `pause_menu.tscn`；接 `PlatformServices` suspend／resume；見 `docs/systemdesign/pausemenu.md`
-- [ ] Windows／Linux 匯出預設（Steam 候選）
+- [x] Windows／Linux 匯出預設（Steam 候選）— `export_presets.cfg`；輸出 `build/windows`／`build/linux`；說明 `docs/alpha/export-presets.md`
 - [ ] 字串表（i18n）抽出
 - [ ] 主機：開發者帳號／中介埠或埠接商評估（商務）
 - [ ] 對齊 Godot 小版本與 console middleware 支援表

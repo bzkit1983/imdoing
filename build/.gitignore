@@ -1,0 +1,4 @@
+# Keep this folder's docs; ignore Godot desktop export binaries.
+*
+!.gitignore
+!README.md
