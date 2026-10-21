@@ -70,6 +70,9 @@ const DASH_TIME := 0.12
 const RUN_HOLD_THRESHOLD := 0.18
 ## Long-press cancel (B or ;) drops the top carried box. A tap still only cancels.
 const DROP_HOLD_SEC := 0.45
+## Toss distance when cancel-hold finishes with a move direction held (else drop at feet).
+const DROP_TOSS_DIST := 2.0 * BODY_LENGTH
+const DROP_DIR_DEADZONE := 0.35
 const STAMINA_PER_STR := 10.0
 const RUN_STAMINA_PER_SEC := 20.0
 const DASH_STAMINA_COST := 50.0
@@ -264,6 +267,14 @@ static func dirt_type_name(dtype: String) -> String:
 		DIRT_VOMIT:
 			return "嘔吐物"
 	return "污物"
+
+
+## Offset from player origin when spawning a dropped box.
+## Zero / tiny toss_dir → jitter at feet. Else push DROP_TOSS_DIST along dir.
+static func drop_offset(toss_dir: Vector2) -> Vector2:
+	if toss_dir.length_squared() < 0.0001:
+		return Vector2(randf_range(-18.0, 18.0), 22.0)
+	return toss_dir.normalized() * DROP_TOSS_DIST
 
 
 static func dirt_color(dtype: String) -> Color:
