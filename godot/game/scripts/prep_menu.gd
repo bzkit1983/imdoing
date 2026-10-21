@@ -1054,11 +1054,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_echo():
 		return
 	if _dlg_open:
-		if _dlg_gate == 2 and event.is_pressed():
+		if _dlg_gate == 2 and event.is_pressed() and not (event is InputEventJoypadMotion):
 			_dialog_action(event)
 		get_viewport().set_input_as_handled()
 		return
-	if not event.is_pressed():
+	if not event.is_pressed() or event is InputEventJoypadMotion:
 		return
 	if event.is_action_pressed(Controls.MOVE_UP):
 		_move(0, -1)
