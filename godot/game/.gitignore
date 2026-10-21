@@ -1,3 +1,6 @@
 .godot/
 *.translation
 export.cfg
+
+# Full Noto Sans TC — rebuild input only (see docs/alpha/fonts-subset.md).
+fonts/source/
