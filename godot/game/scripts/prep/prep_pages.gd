@@ -8,7 +8,7 @@ const PrepWidgets = preload("res://scripts/prep/prep_widgets.gd")
 
 
 static func apply_panel_layout(menu: CanvasLayer) -> void:
-	var qty_on := menu._page == "stock" and menu._qty_sku != ""
+	var qty_on: bool = menu._page == "stock" and menu._qty_sku != ""
 	menu._grid.visible = menu._page == "layout"
 	menu._stats_panel.visible = menu._page == "stats"
 	menu._size_panel.visible = menu._page == "layout"
@@ -138,15 +138,15 @@ static func _skills(menu: CanvasLayer) -> void:
 	var ult_name := String(menu.state.ult_skill().get("name", ""))
 	menu._info.text = Loc.t("prep.skills.info", [menu.state.cost_sum(), ult_name])
 	for i in 5:
-		var id := menu.state.slots[i]
+		var id: String = String(menu.state.slots[i])
 		var name := "空"
 		var kind := ""
 		if id != "":
-			var sk := Skills.by_id(id)
+			var sk: Dictionary = Skills.by_id(id)
 			name = String(sk.get("name"))
 			kind = _kind_label(String(sk.get("kind"))) + "　"
 		menu._add("技能%d　%s%s" % [i + 1, kind, name], "pick_slot", i)
-	var ult := menu.state.ult_skill()
+	var ult: Dictionary = menu.state.ult_skill()
 	menu._add("奧義　%s" % String(ult.get("name")), "pick_slot", 5)
 	menu._add(Loc.t("prep.back"), "go", "home")
 
@@ -250,7 +250,7 @@ static func _expand(menu: CanvasLayer) -> void:
 		menu.state.grid_w * menu.state.grid_h, menu.state.area_cap(),
 	])
 	if menu.state.shop_scale < 3:
-		var nxt := menu.state.shop_scale + 1
+		var nxt: int = int(menu.state.shop_scale) + 1
 		menu._add("擴張到規模 LV%d　$%d" % [nxt, int(menu.state.SCALE_COST[nxt])], "expand", null)
 	else:
 		menu._add("已是最大規模", "expand_max", null)
@@ -272,7 +272,7 @@ static func _layout(menu: CanvasLayer) -> void:
 	area.add_theme_color_override("font_color", Color("f4d35e"))
 	menu._size_panel.add_child(area)
 	for type in menu.state.FURNITURE.keys():
-		var n := menu.state.unplaced(type)
+		var n: int = int(menu.state.unplaced(type))
 		if n > 0:
 			menu._add("拖放 %s　×%d" % [menu.state.FURNITURE[type]["name"], n], "hold", type)
 	menu._add("收回游標上的物品", "pickup", null)
@@ -305,7 +305,7 @@ static func _clerks(menu: CanvasLayer) -> void:
 
 static func _confirm(menu: CanvasLayer) -> void:
 	menu._title.text = Loc.t("prep.confirm.title") + "？"
-	var wage := menu.state.WAGE * menu.state.clerks.size()
+	var wage: int = int(menu.state.WAGE) * menu.state.clerks.size()
 	menu._info.text = "開工扣工資 $%d。結算時營業額入帳；若營業額低於本輪進貨成本會標虧損，遊戲繼續。" % wage
 	menu._add("開始　工資後資金約 $%d" % (menu.state.money - wage), "open", null)
 	menu._add(Loc.t("prep.back"), "go", "home")

@@ -18,6 +18,7 @@
 | 字串表 i18n | **`docs/alpha/i18n.md`** | `locale/strings.csv`；Autoload `Loc`；準備／暫停／HUD 已遷 |
 | 主機商務評估（帳號／W4／埠接） | **`docs/alpha/console-business.md`** | 文件結論：帳號可早開；W4 自埠預設；買工具前過釘版閘門 |
 | Godot ↔ middleware 釘版 | **`docs/alpha/godot-middleware-pin.md`** | 桌面維持 4.7；主機衝刺對齊 W4 表（2026-10-21 最高 4.6）；禁止專案複本 |
+| Alpha v1.0 Web → Pages | `docs/versioning.md`；`docs/play/README.md` | `godot/game` Web 匯出到 `docs/play/`；試玩 https://bzkit1983.github.io/imdoing/play/ |
 | 技術審查與跟進清單 | `docs/alpha/tech-review-v0.1.md` | 非玩法規格；§6 清單已全部勾完 |
 
 仍缺（非 §6）：設定音量、教學、技能演出鎖輸入、Steamworks 等——見 `docs/alpha/design.md`。prep UI 已拆為 `scenes/prep_menu.tscn` + `scripts/prep/`。
