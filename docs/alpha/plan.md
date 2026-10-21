@@ -9,6 +9,7 @@
 - 技術設計審查（可持續開發／效能／Steam·Switch·Xbox）：`docs/alpha/tech-review-v0.1.md`
 - 已落地項對照（存檔／InputMap／活線）：`docs/alpha/implementation-status.md`
 - 主機商務評估（開發者帳號／W4／埠接商）：`docs/alpha/console-business.md`
+- Godot 小版本 ↔ console middleware 釘版：`docs/alpha/godot-middleware-pin.md`
 
 # 版本目標
 

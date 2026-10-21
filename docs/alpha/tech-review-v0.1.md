@@ -3,7 +3,7 @@
 - **範圍：** 審查時以 `godot/alpha_v0_1` 為準；**之後實作只改** `godot/game`（見 `docs/versioning.md`）
 - **對照：** `docs/alpha/`、`docs/systemdesign/`（含 `savesystem.md`）、`docs/systemdesign-gaps.md`
 - **目標平台：** Steam · Nintendo Switch · Xbox（及現行 Web 試玩）
-- **產出／更新：** 2026-10-20；2026-10-21 對齊已落地項（凍結活線、存檔、InputMap、PlatformServices、暫停、匯出預設、字串表 i18n、主機商務評估）
+- **產出／更新：** 2026-10-20；2026-10-21 對齊已落地項（凍結活線、存檔、InputMap、PlatformServices、暫停、匯出預設、字串表 i18n、主機商務評估、Godot／middleware 釘版）
 - **狀態：** 審查結論供團隊跟進；非玩法規格。玩法仍以 `docs/systemdesign/` 與各版 design／plan 為準。
 
 ## 總評
@@ -11,7 +11,7 @@
 玩法閉環與 Voxel 美術管線已經能支撐「繼續做內容」；但三個千行級腳本（`player` / `prep_menu` / `demo`）加上整專案複製的版次策略，會讓功能越多越難改。
 
 - **Steam：** 可行；產品骨架（存檔、InputMap、`PlatformServices`、桌面匯出、字串表）已落地；缺的是 Steamworks／Cloud／成就，而非換引擎。
-- **Switch／Xbox：** 玩法與 2D Voxel 架構適合主機，但 Godot **沒有公開主機匯出**；商務路徑評估見 **`docs/alpha/console-business.md`**（帳號可早開；W4 自埠預設）。效能以 **Switch 1 當下限**。
+- **Switch／Xbox：** 玩法與 2D Voxel 架構適合主機，但 Godot **沒有公開主機匯出**；商務見 **`docs/alpha/console-business.md`**；引擎釘版見 **`docs/alpha/godot-middleware-pin.md`**（桌面維持 4.7；主機衝刺對齊 W4 表，現為 4.6）。效能以 **Switch 1 當下限**。
 - **最大槓桿：** 單一主線工程 + 平台服務抽象，不要為每台主機複製一份 Godot 專案。
 
 | 指標 | 數值 |
@@ -138,7 +138,7 @@ demo.gd（場面主控 · ~1000 行）
 | 輸入預設 | 鍵鼠 + 手把 + Deck | Joy-Con／Pro；無鍵鼠假設 | 手把 + 十呎 UI（電視） |
 | 存檔／雲 | `user://` + 可選 Steam Cloud | 平台存檔 API／帳號槽 | Xbox 連線存檔等 |
 | 認證重點 | Deck Verified（較鬆） | Lotcheck：掛起、手把斷線、電子手冊等 | TCR／XR：掛起、登入、成就、存檔失敗 |
-| 引擎版本 | 跟 Godot 穩定版即可 | 中介埠支援的小版本需對齊（公開資訊多在 4.3–4.6；專案標 4.7 要預留釘版／等待） | 同左 |
+| 引擎版本 | 活線 **4.7**（桌面） | 對齊 middleware 表：見 **`godot-middleware-pin.md`**（W4 現列至 4.6；衝刺前重查或降釘） | 同左 |
 
 > **對本專案的直接含義：** 繼續用 Godot 上三平台是業界可行路徑，但不要假設「像匯 Web 一樣按一下」。商務上要排：開發者帳號、devkit、中介年費或埠接報價、分級（ESRB／CERO 等）。技術上要在玩法穩定前就避免「只在 Web／觸控成立」的假設。
 
@@ -187,7 +187,7 @@ demo.gd（場面主控 · ~1000 行）
 - 不要讓觸控或鍵鼠成為唯一可通關路徑  
 - 不要複製專案當「Switch 版／Xbox 版」  
 - 存檔格式加 `version`；掛起前要能快速 flush  
-- Godot 小版本與中介埠支援表對齊再衝主機里程碑  
+- Godot 小版本與中介埠支援表對齊再衝主機里程碑（政策見 `godot-middleware-pin.md`）  
 
 ---
 
@@ -199,7 +199,7 @@ demo.gd（場面主控 · ~1000 行）
 | B · 產品骨架 | 三平台共用前提 | 存檔 version、暫停、InputMap、手把焦點 UI、拆 prep；PlatformServices stub |
 | C · 效能地板 | 以 Switch 1 為準 | 髒刷新、SKU 索引、字型子集、尋路節流；雙解析度 UI |
 | D · PC 上架 | Steam 候選 | ~~Windows／Linux 匯出~~、~~字串表~~ **已做**；待 Steamworks、Cloud、成就鉤子 |
-| E · 主機 | Switch／Xbox 候選 | ~~商務路徑評估~~ 見 `console-business.md`（W4 自埠預設）；待帳號／devkit、釘 Godot、Lotcheck／TCR、分級 |
+| E · 主機 | Switch／Xbox 候選 | ~~商務~~ `console-business.md`；~~釘版政策~~ `godot-middleware-pin.md`；待帳號／devkit、執行釘版閘門、Lotcheck／TCR、分級 |
 
 玩法內容（COMBO、事件、流量等）可與 B／C 並行。主機商務啟動可與 D 重疊，但不要在 B 完成前開「主機專用玩法分叉」。
 
@@ -226,9 +226,9 @@ demo.gd（場面主控 · ~1000 行）
 - [x] Windows／Linux 匯出預設（Steam 候選）— `export_presets.cfg`；輸出 `build/windows`／`build/linux`；說明 `docs/alpha/export-presets.md`
 - [x] 字串表（i18n）抽出 — `locale/strings.csv`＋Autoload `Loc`；說明 `docs/alpha/i18n.md`；收割 `tools/i18n_harvest.py`
 - [x] 主機：開發者帳號／中介埠或埠接商評估（商務）— 結論見 **`docs/alpha/console-business.md`**（帳號可早開；W4 自埠為預設、埠接為備援；買工具前先釘 Godot）
-- [ ] 對齊 Godot 小版本與 console middleware 支援表
+- [x] 對齊 Godot 小版本與 console middleware 支援表 — 政策見 **`docs/alpha/godot-middleware-pin.md`**（桌面維持 4.7；主機衝刺對齊 W4 表，2026-10-21 最高 4.6；禁止專案複本）
 
-§6 僅剩「Godot／middleware 釘版」未勾；主機商務評估已落地。帳號送件與 W4／埠接簽約屬負責人後續執行，不阻塞桌面持續開發。剩餘 UI CJK 遷表屬跟進收割，不必再開本清單新項。
+§6 跟進清單（產品骨架＋主機準備文件）已全部勾完。帳號送件、W4 購買、以及「衝刺前重查／必要時降釘 4.6」屬執行閘門，見 `godot-middleware-pin.md`。剩餘 UI CJK 遷表與 Steamworks 等屬後續里程碑，不必再開本清單新項。
 
 ---
 
