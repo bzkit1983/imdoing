@@ -49,7 +49,7 @@ MagicaVoxel 裡：X 向右，Y 向前，Z 向上。
 
 主場景是 `scenes/demo.tscn`。專案一打開就是店舖。
 
-人物和會轉向的傢俬有四個方向。走路還沒有動畫，轉向時換那一面的圖。貨架上有貨時，會再顯示該貨品的小模型。
+人物和會轉向的傢俬有四個方向。**v1.0 活線**已加角色動作幀（走路等）：見 `docs/alpha/animation-v1.0.md`；未完成項在 `docs/alpha/animation-pending.md`。凍結的 Alpha v0.1 目錄仍只有靜態四向。貨架上有貨時，會再顯示該貨品的小模型。
 
 模型總覽仍可開 `scenes/preview.tscn`。左鍵拖動旋轉，滾輪拉近。
 

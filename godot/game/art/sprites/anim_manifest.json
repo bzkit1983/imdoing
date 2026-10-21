@@ -1,0 +1,121 @@
+{
+  "version": 1,
+  "facing": [
+    "s",
+    "e",
+    "n",
+    "w"
+  ],
+  "characters": {
+    "player": {
+      "idle": {
+        "frames": 1,
+        "fps": 1
+      },
+      "walk": {
+        "frames": 4,
+        "fps": 8
+      },
+      "run": {
+        "frames": 4,
+        "fps": 12
+      },
+      "dash": {
+        "frames": 2,
+        "fps": 14
+      },
+      "clean": {
+        "frames": 2,
+        "fps": 6
+      },
+      "fight": {
+        "frames": 2,
+        "fps": 10
+      },
+      "checkout": {
+        "frames": 1,
+        "fps": 1
+      },
+      "slip": {
+        "frames": 1,
+        "fps": 1
+      },
+      "down": {
+        "frames": 1,
+        "fps": 1
+      },
+      "restock": {
+        "frames": 2,
+        "fps": 5
+      }
+    },
+    "customer": {
+      "idle": {
+        "frames": 1,
+        "fps": 1
+      },
+      "walk": {
+        "frames": 4,
+        "fps": 8
+      },
+      "angry": {
+        "frames": 1,
+        "fps": 1
+      },
+      "leave": {
+        "frames": 4,
+        "fps": 8
+      }
+    },
+    "thief": {
+      "idle": {
+        "frames": 1,
+        "fps": 1
+      },
+      "walk": {
+        "frames": 4,
+        "fps": 8
+      },
+      "fight": {
+        "frames": 2,
+        "fps": 10
+      },
+      "leave": {
+        "frames": 4,
+        "fps": 8
+      },
+      "fly": {
+        "frames": 2,
+        "fps": 12
+      }
+    },
+    "clerk_cashier": {
+      "idle": {
+        "frames": 1,
+        "fps": 1
+      },
+      "walk": {
+        "frames": 4,
+        "fps": 8
+      },
+      "checkout": {
+        "frames": 1,
+        "fps": 1
+      }
+    },
+    "clerk_restock": {
+      "idle": {
+        "frames": 1,
+        "fps": 1
+      },
+      "walk": {
+        "frames": 4,
+        "fps": 8
+      },
+      "restock": {
+        "frames": 2,
+        "fps": 5
+      }
+    }
+  }
+}

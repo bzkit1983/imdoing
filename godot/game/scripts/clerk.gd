@@ -16,7 +16,8 @@ var _shelf: Node2D
 var _plan_sku: String = ""
 var _box_sku: String = ""
 var _box_n: int = 0
-var _sprite: Sprite2D
+var _sprite: CanvasItem
+var _model_id: String = "clerk_restock"
 
 
 func setup(game: Node, at: Vector2, job: String, reg: Node2D) -> void:
@@ -32,7 +33,8 @@ func setup(game: Node, at: Vector2, job: String, reg: Node2D) -> void:
 	rect.size = Vector2(22, 22)
 	shape.shape = rect
 	add_child(shape)
-	_sprite = Vox.sprite("clerk_cashier" if role == "cashier" else "clerk_restock", 0)
+	_model_id = "clerk_cashier" if role == "cashier" else "clerk_restock"
+	_sprite = Vox.animated(_model_id)
 	_sprite.name = "Body"
 	add_child(_sprite)
 	var lab := Label.new()
@@ -47,14 +49,24 @@ func setup(game: Node, at: Vector2, job: String, reg: Node2D) -> void:
 
 func _physics_process(delta: float) -> void:
 	if _game == null or String(_game.get("phase")) == "closed" or String(_game.get("phase")) == "prep":
+		_sync_visual("idle", Vector2.DOWN)
 		return
 	if _game.has_method("asking_early_close") and bool(_game.asking_early_close()):
 		velocity = Vector2.ZERO
+		_sync_visual("idle", Vector2.DOWN)
 		return
 	if role == "cashier":
 		_tick_cashier(delta)
 	else:
 		_tick_restock(delta)
+	if velocity.length() <= 8.0:
+		var face := Vector2.UP if role == "cashier" else Vector2.DOWN
+		if role == "cashier" and _timer > 0.0:
+			_sync_visual("checkout", face)
+		elif role == "restock" and _box_n > 0:
+			_sync_visual("restock", face)
+		else:
+			_sync_visual("idle", face)
 
 
 func _tick_cashier(delta: float) -> void:
@@ -246,10 +258,16 @@ func _follow(pos: Vector2, delta: float) -> bool:
 	var spd := Tuning.WALK_SPEED * Tuning.agi_mult(10)
 	spd *= float(_game.call("customer_move_mult"))
 	velocity = to.normalized() * maxf(spd, 1.0)
-	if _sprite:
-		Vox.apply(_sprite, "clerk_cashier" if role == "cashier" else "clerk_restock", Vox.k_from_facing(velocity))
+	_sync_visual("walk", velocity)
 	move_and_slide()
 	return false
+
+
+func _sync_visual(anim: String, face: Vector2) -> void:
+	if _sprite is AnimatedSprite2D:
+		Vox.play_anim(_sprite as AnimatedSprite2D, _model_id, anim, face)
+	elif _sprite is Sprite2D:
+		Vox.apply(_sprite as Sprite2D, _model_id, Vox.k_from_facing(face))
 
 
 func _clear_path() -> void:
