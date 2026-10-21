@@ -14,6 +14,7 @@
 | 貨架 SKU 索引 | tech-review §3／§6 | `demo._shelves_by_sku`＋`shelf.stock_sku_changed`；`find_shelf` 走索引 |
 | NotoSansTC 子集 | **`docs/alpha/fonts-subset.md`** | `NotoSansTC-Game.otf`＋`charset_game.txt`；`tools/fonts/subset_notosans_tc.py` |
 | 暫停選單＋掛起／恢復 | **`docs/systemdesign/pausemenu.md`** | `pause_menu.tscn`；`PlatformServices` 信號；營運日 Esc／Start |
+| Win／Linux 匯出（Steam 候選） | **`docs/alpha/export-presets.md`** | `export_presets.cfg`；輸出 `build/windows`／`build/linux`；feature `steam_candidate` |
 | 技術審查與跟進清單 | `docs/alpha/tech-review-v0.1.md` | 非玩法規格；issue 掛 Milestone `v1.0` |
 
 仍缺（文件與程式都未完成）：設定音量、教學、技能演出鎖輸入等——見 tech-review §6 未勾項與 `docs/alpha/design.md`。prep UI 已拆為 `scenes/prep_menu.tscn` + `scripts/prep/`。
