@@ -1030,7 +1030,7 @@ func _make_player() -> CharacterBody2D:
 	rect.size = Vector2(26, 26)
 	shape.shape = rect
 	p.add_child(shape)
-	var body := Vox.sprite("player", Vox.k_from_facing(Vector2.DOWN))
+	var body := Vox.animated("player")
 	body.name = "Body"
 	p.add_child(body)
 	var arrow := Polygon2D.new()

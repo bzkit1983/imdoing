@@ -1455,12 +1455,39 @@ func _handle_hotkey_actions(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
+func _visual_anim() -> String:
+	if _stun_left > 0.0:
+		return "down"
+	if _slip_left > 0.0:
+		return "slip"
+	if _fighting:
+		return "fight"
+	if _cleaning():
+		return "clean"
+	if command_lock:
+		return "checkout"
+	if _shelving():
+		return "restock"
+	if _dashing:
+		return "dash"
+	if _running and velocity.length() > 8.0:
+		return "run"
+	if velocity.length() > 8.0:
+		return "walk"
+	return "idle"
+
+
 func _update_visuals() -> void:
 	if _arrow:
 		_arrow.rotation = facing.angle() + PI / 2.0
 	if _body == null:
 		return
-	if _body is Sprite2D:
+	if _body is AnimatedSprite2D:
+		var spd := 1.0
+		if _running:
+			spd = 1.25
+		Vox.play_anim(_body as AnimatedSprite2D, "player", _visual_anim(), facing, spd)
+	elif _body is Sprite2D:
 		Vox.apply(_body as Sprite2D, "player", Vox.k_from_facing(facing))
 	var tint := Color.WHITE
 	if ult_prep:

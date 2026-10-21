@@ -524,7 +524,7 @@ func _build_visual() -> void:
 	rect.size = Vector2(22, 22)
 	shape.shape = rect
 	add_child(shape)
-	_body = Vox.sprite("thief" if is_thief else "customer", 0)
+	_body = Vox.animated("thief" if is_thief else "customer")
 	add_child(_body)
 	_mood_label = Label.new()
 	_mood_label.position = Vector2(-72, -78)
@@ -574,6 +574,20 @@ func _build_visual() -> void:
 	add_child(_timer_lab)
 	if is_thief:
 		_bar.visible = false
+
+
+func _visual_anim() -> String:
+	if state == State.FIGHT:
+		return "fight"
+	if state == State.FLEE:
+		return "fly" if is_thief else "leave"
+	if state == State.LEAVE:
+		return "leave"
+	if not is_thief and dissatisfaction > Tuning.DISSAT_MAX * 0.7 and velocity.length() <= 8.0:
+		return "angry"
+	if velocity.length() > 8.0:
+		return "walk"
+	return "idle"
 
 
 ## Public alias for hosts that still call `_refresh_labels` (e.g. fight tick).
@@ -643,8 +657,15 @@ func _sync_labels() -> void:
 		if tint != _shown_tint:
 			_shown_tint = tint
 			_body.modulate = tint
-		if _body is Sprite2D and velocity.length() > 8.0:
-			var facing := Vox.k_from_facing(velocity)
-			if facing != _shown_facing:
+		var face_v := velocity if velocity.length() > 8.0 else Vector2.DOWN
+		var facing := Vox.k_from_facing(face_v)
+		var anim := _visual_anim()
+		var anim_key := "%s_%d" % [anim, facing]
+		if _body is AnimatedSprite2D:
+			if facing != _shown_facing or anim_key != String(_body.get_meta("shown_anim", "")):
 				_shown_facing = facing
-				Vox.apply(_body as Sprite2D, "thief" if is_thief else "customer", facing)
+				_body.set_meta("shown_anim", anim_key)
+				Vox.play_anim(_body as AnimatedSprite2D, "thief" if is_thief else "customer", anim, face_v)
+		elif _body is Sprite2D and facing != _shown_facing:
+			_shown_facing = facing
+			Vox.apply(_body as Sprite2D, "thief" if is_thief else "customer", facing)
