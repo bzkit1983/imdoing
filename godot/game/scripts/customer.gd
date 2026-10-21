@@ -37,6 +37,16 @@ var _timer_lab: Label
 var _flee_dir: Vector2 = Vector2.UP
 var _flee_left: float = 0.0
 var raided: bool = false
+## Cached label / chrome values — only write nodes when these change.
+var _shown_list: String = "\u0001"
+var _shown_mood: String = "\u0001"
+var _shown_bar_w: float = -1.0
+var _shown_bar_t: float = -1.0
+var _shown_fighting: bool = false
+var _shown_timer: String = "\u0001"
+var _shown_hp_w: float = -1.0
+var _shown_facing: int = -999
+var _shown_tint: Color = Color(0, 0, 0, 0)
 
 
 func setup(game: Node, door: Vector2, thief: bool = false) -> void:
@@ -49,7 +59,7 @@ func setup(game: Node, door: Vector2, thief: bool = false) -> void:
 	collision_layer = Tuning.LAYER_CUSTOMERS
 	collision_mask = Tuning.LAYER_WALLS
 	_build_visual()
-	_refresh_labels()
+	_sync_labels()
 
 
 func add_dirt(delta_count: int) -> void:
@@ -108,7 +118,7 @@ func cart_total() -> int:
 func begin_paying() -> void:
 	state = State.PAYING
 	mood = "付款中"
-	_refresh_labels()
+	_sync_labels()
 
 
 func cancel_pay() -> void:
@@ -216,7 +226,7 @@ func _physics_process(delta: float) -> void:
 			_tick_raid(delta)
 	if not is_thief and dissatisfaction >= Tuning.DISSAT_MAX and state != State.LEAVE:
 		_leave(true)
-	_refresh_labels()
+	_sync_labels()
 
 
 func _tick_seek(delta: float) -> void:
@@ -429,12 +439,12 @@ func begin_fight() -> void:
 	velocity = Vector2.ZERO
 	mood = "被抓住！"
 	_clear_route()
-	_refresh_labels()
+	_sync_labels()
 
 
 func take_hit(amount: float) -> bool:
 	fight_hp = maxf(0.0, fight_hp - amount)
-	_refresh_labels()
+	_sync_labels()
 	return fight_hp <= 0.0
 
 
@@ -566,45 +576,75 @@ func _build_visual() -> void:
 		_bar.visible = false
 
 
+## Public alias for hosts that still call `_refresh_labels` (e.g. fight tick).
 func _refresh_labels() -> void:
-	if _list_label:
-		var bits: PackedStringArray = []
-		for sku in shopping:
-			bits.append(Tuning.sku_name(sku))
-		if is_thief:
-			var loot: PackedStringArray = []
-			for sku in cart:
-				loot.append(Tuning.sku_name(sku))
-			_list_label.text = "小偷  " + ("、".join(bits) if bits.size() else "得手 " + ("、".join(loot) if loot.size() else "空手"))
-		else:
-			var line := "、".join(bits) if bits.size() else "（清單完成）"
-			if raided:
-				line += "　已取%d" % cart.size()
-			_list_label.text = line
-	if _mood_label:
+	_sync_labels()
+
+
+func _list_label_text() -> String:
+	var bits: PackedStringArray = []
+	for sku in shopping:
+		bits.append(Tuning.sku_name(sku))
+	if is_thief:
+		var loot: PackedStringArray = []
+		for sku in cart:
+			loot.append(Tuning.sku_name(sku))
+		return "小偷  " + ("、".join(bits) if bits.size() else "得手 " + ("、".join(loot) if loot.size() else "空手"))
+	var line := "、".join(bits) if bits.size() else "（清單完成）"
+	if raided:
+		line += "　已取%d" % cart.size()
+	return line
+
+
+func _sync_labels() -> void:
+	var list_txt := _list_label_text()
+	if _list_label and list_txt != _shown_list:
+		_shown_list = list_txt
+		_list_label.text = list_txt
+	if _mood_label and mood != _shown_mood:
+		_shown_mood = mood
 		_mood_label.text = mood
 	if _bar and not is_thief:
 		var t := clampf(dissatisfaction / Tuning.DISSAT_MAX, 0.0, 1.0)
-		var remain := 1.0 - t
-		_bar.size.x = 28.0 * remain
-		var green := Color("2a9d8f")
-		var yellow := Color("e8c36a")
-		var red := Color("c45c26")
-		_bar.color = green.lerp(yellow, t / 0.5) if t < 0.5 else yellow.lerp(red, (t - 0.5) / 0.5)
+		var bar_w := snappedf(28.0 * (1.0 - t), 0.5)
+		var t_q := snappedf(t, 0.02)
+		if not is_equal_approx(bar_w, _shown_bar_w):
+			_shown_bar_w = bar_w
+			_bar.size.x = bar_w
+		if not is_equal_approx(t_q, _shown_bar_t):
+			_shown_bar_t = t_q
+			var green := Color("2a9d8f")
+			var yellow := Color("e8c36a")
+			var red := Color("c45c26")
+			_bar.color = green.lerp(yellow, t_q / 0.5) if t_q < 0.5 else yellow.lerp(red, (t_q - 0.5) / 0.5)
 	if _hp_bar:
 		var fighting := state == State.FIGHT
-		_hp_track.visible = fighting
-		_hp_bar.visible = fighting
-		if _timer_lab:
-			_timer_lab.visible = fighting
-			_timer_lab.text = "%.1f" % fight_left
-		_hp_bar.size.x = 40.0 * clampf(fight_hp / 100.0, 0.0, 1.0)
+		if fighting != _shown_fighting:
+			_shown_fighting = fighting
+			_hp_track.visible = fighting
+			_hp_bar.visible = fighting
+			if _timer_lab:
+				_timer_lab.visible = fighting
+		if fighting:
+			var timer_txt := "%.1f" % fight_left
+			if _timer_lab and timer_txt != _shown_timer:
+				_shown_timer = timer_txt
+				_timer_lab.text = timer_txt
+			var hp_w := snappedf(40.0 * clampf(fight_hp / 100.0, 0.0, 1.0), 0.5)
+			if not is_equal_approx(hp_w, _shown_hp_w):
+				_shown_hp_w = hp_w
+				_hp_bar.size.x = hp_w
 	if _body:
 		var tint := Color.WHITE
 		if is_thief and state == State.FIGHT:
 			tint = Color(1.0, 0.45, 0.5)
 		elif not is_thief and dissatisfaction > Tuning.DISSAT_MAX * 0.7:
 			tint = Color(1.0, 0.62, 0.4)
-		_body.modulate = tint
+		if tint != _shown_tint:
+			_shown_tint = tint
+			_body.modulate = tint
 		if _body is Sprite2D and velocity.length() > 8.0:
-			Vox.apply(_body as Sprite2D, "thief" if is_thief else "customer", Vox.k_from_facing(velocity))
+			var facing := Vox.k_from_facing(velocity)
+			if facing != _shown_facing:
+				_shown_facing = facing
+				Vox.apply(_body as Sprite2D, "thief" if is_thief else "customer", facing)

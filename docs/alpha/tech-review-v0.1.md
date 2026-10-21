@@ -103,7 +103,8 @@ demo.gd（場面主控 · ~1000 行）
 
 ### 主機特別要盯
 
-- 客人每 physics 幀 `_refresh_labels()`；player 每幀 `stats_changed` → HUD 全刷  
+- ~~客人每 physics 幀 `_refresh_labels()`；player 每幀 `stats_changed` → HUD 全刷~~ **已改髒刷新**（見 §6）  
+
 - `NotoSansTC-Regular.otf` ~5.5MB：應子集化或拆常用字  
 - Switch 掌機／底座雙解析度  
 - 掛起／恢復不得丟檔或卡死  
@@ -216,7 +217,7 @@ demo.gd（場面主控 · ~1000 行）
 - [x] 全專案改 InputMap action（移動／互動／取消／技能）— 長線 `docs/systemdesign/control.md`；Autoload `Controls`
 - [x] 拆 `prep_menu.gd` 分頁；關鍵 UI 改 `.tscn` — 殼層 `scenes/prep_menu.tscn`；分頁 `scripts/prep/prep_pages.gd`；格線 `scripts/prep/prep_grid_view.gd`
 - [x] 新增 `PlatformServices` Autoload stub（Desktop 實作）— `scripts/platform_services.gd`＋`scripts/platform/desktop_platform.gd`；`game_state` I/O 經此層
-- [ ] HUD／客人標籤改髒刷新
+- [x] HUD／客人標籤改髒刷新 — `player` fingerprint 才 `stats_changed`；`hud` 左右面板 cache；`customer._sync_labels` 只在字／條變更時寫入
 - [ ] 貨架 SKU 索引
 - [ ] NotoSansTC 子集化方案
 - [ ] 暫停選單 + 掛起／恢復鉤子

@@ -7,6 +7,9 @@ const UiFont = preload("res://scripts/ui_font.gd")
 var game: Node
 var player: CharacterBody2D
 var _skip: Button
+var _left_fp: String = ""
+var _right_dirty: bool = true
+var _skip_running: bool = false
 
 @onready var _clock: Control = $Root/Left/Clock
 @onready var _time: Label = $Root/Left/Time
@@ -38,7 +41,7 @@ func setup(g: Node, p: CharacterBody2D) -> void:
 	_log.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_apply_cjk_fonts($Root)
 	get_viewport().size_changed.connect(func() -> void: _apply_cjk_fonts($Root))
-	player.connect("stats_changed", _refresh)
+	player.connect("stats_changed", _mark_right_dirty)
 	player.connect("log_line", _on_log)
 	player.connect("skill_cast", _on_skill_cast)
 	_close.visible = false
@@ -48,7 +51,14 @@ func setup(g: Node, p: CharacterBody2D) -> void:
 	var tw := create_tween()
 	tw.tween_interval(1.8)
 	tw.tween_property(_banner, "modulate:a", 0.0, 0.7)
-	_refresh()
+	_right_dirty = true
+	_left_fp = ""
+	_sync_left()
+	_sync_right()
+
+
+func _mark_right_dirty() -> void:
+	_right_dirty = true
 
 
 func _apply_cjk_fonts(node: Node) -> void:
@@ -79,10 +89,13 @@ func show_closeout() -> void:
 
 
 func _process(_delta: float) -> void:
-	_refresh_left()
+	_sync_left()
+	_sync_right()
 	if _skip:
 		var running := game != null and (String(game.phase) == "restock" or String(game.phase) == "open")
-		_skip.visible = running
+		if running != _skip_running:
+			_skip_running = running
+			_skip.visible = running
 
 
 func _build_skip() -> void:
@@ -139,17 +152,41 @@ func _on_skill_cast(skill_name: String, is_ult: bool) -> void:
 	tw.tween_property(_cast, "modulate:a", 0.0, 0.28)
 
 
-func _refresh_left() -> void:
+func _sync_left() -> void:
 	if game == null or player == null:
 		return
-	_clock.game_hours = float(game.game_hours)
-	_time.text = game.clock_text()
-	_phase.text = game.phase_text()
-	_rev.text = "營業額  $%d  ·  被偷 $%d" % [int(game.revenue), int(game.stolen_value)]
-	_guests.text = "在店客人  %d  ·  小偷 %d" % [int(game.guest_count()), int(game.call("thief_count"))]
-	_store.text = String(player.call("store_status_text"))
-	_role.text = String(player.call("role_status_text"))
-	_skills.text = _skill_cd_text()
+	var hours := float(game.game_hours)
+	var time_txt: String = game.clock_text()
+	var phase_txt: String = game.phase_text()
+	var rev_n := int(game.revenue)
+	var stolen_n := int(game.stolen_value)
+	var guests_n := int(game.guest_count())
+	var thieves_n := int(game.call("thief_count"))
+	var store_txt := String(player.call("store_status_text"))
+	var role_txt := String(player.call("role_status_text"))
+	var skills_txt := _skill_cd_text()
+	var fp := "%s|%s|%d|%d|%d|%d|%s|%s|%s|%.2f" % [
+		time_txt, phase_txt, rev_n, stolen_n, guests_n, thieves_n,
+		store_txt, role_txt, skills_txt, snappedf(hours, 0.01),
+	]
+	if fp == _left_fp:
+		return
+	_left_fp = fp
+	_clock.game_hours = hours
+	_time.text = time_txt
+	_phase.text = phase_txt
+	_rev.text = "營業額  $%d  ·  被偷 $%d" % [rev_n, stolen_n]
+	_guests.text = "在店客人  %d  ·  小偷 %d" % [guests_n, thieves_n]
+	_store.text = store_txt
+	_role.text = role_txt
+	_skills.text = skills_txt
+
+
+func _sync_right() -> void:
+	if not _right_dirty:
+		return
+	_right_dirty = false
+	_refresh()
 
 
 func _skill_cd_text() -> String:
