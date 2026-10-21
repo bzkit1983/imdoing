@@ -64,9 +64,14 @@
 
 # 暫停、設定、存檔與教學
 
-時計、營業額、人數、狀態、被偷、提早關店的詢問已有。暫停、設定、失敗或過關、存檔、教學未寫。技能演出期間能否操作，未寫。外觀配置只有一句。
+時計、營業額、人數、狀態、被偷、提早關店的詢問已有。
 
-檔案：`storeoperationphase.md`、`playerskills.md`、`control.md`、`playersetup.md`
+- **存檔：** 已寫進長線 `docs/systemdesign/savesystem.md`（`user://save.json` + `version`；關店與準備結束寫入）。活線已實作。  
+- **操作：** 長線以 InputMap 為準，見 `docs/systemdesign/control.md`。  
+- **工程路徑：** 凍結 Demo／Alpha；v1 只維護 `godot/game`，見 `docs/versioning.md`。  
+- 仍未寫：暫停選單、設定（音量）、失敗／過關流程、教學、技能演出期間能否操作。外觀配置只有一句。
+
+檔案：`savesystem.md`、`storeoperationphase.md`、`storepreparationphase.md`、`playerskills.md`、`control.md`、`playersetup.md`
 
 # 用詞
 

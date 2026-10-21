@@ -1,6 +1,8 @@
 #**操作設定**
 - 此檔案包含操作設定
 - Demo 實作範圍與試玩數值以 `docs/demo/` 各版本 scope 為準（v0.3 起已實作下列營運回合操作；清潔見 v0.4，打擊見 v0.5）
+- **v1 活線工程：** `godot/game`。輸入以 Godot **InputMap action** 為準（Autoload `Controls`）。鍵盤／手制／觸控都對到同一套 action；下列鍵位是**預設綁定**，可在專案設定改鍵，不改玩法邏輯。
+- 主要 action：`move_up`／`move_down`／`move_left`／`move_right`、`interact`、`cancel`、`dash`、`skill`、`ult`；準備店舖設計另有 `rotate`；補貨快捷有 `restock_prev`／`restock_next`／`restock_slot_1..3`
 
 #**遊玩視點**
 - 以俯瞰視角觀察商店
@@ -48,7 +50,7 @@
 
 #**營運回合預設操作**
 
-鍵盤、Xbox 手制、行動裝置虛擬鍵對應**同一套動作**。Xbox 的 X／Y／A／B **只是手制與虛擬鈕名稱**，不是鍵盤 WASD。
+鍵盤、Xbox 手制、行動裝置虛擬鍵對應**同一套 InputMap 動作**（見檔首 action 表）。Xbox 的 X／Y／A／B **只是手制與虛擬鈕名稱**，不是鍵盤 WASD；邏輯層只認 `interact`／`dash`／`skill`／`cancel` 等。
 
 ##手制操作 (Xbox Layout) / 行動裝置操作
 - 移動
@@ -94,8 +96,8 @@
 - 長按技能：技能選單方向
 - 長按奧義：奧義方向指令
 
-清潔（長按行動＋污物）：搖桿／WASD 轉清潔計，不當收銀方向鍵。
-打擊（長按行動抓住小偷後）：連按行動鍵扣血，方向不當指令。
+清潔（長按行動＋污物）：搖桿／`move_*` 轉清潔計，不當收銀方向鍵。
+打擊（長按行動抓住小偷後）：連按 `interact` 扣血，方向不當指令。
 
 #**補貨點取貨操作**
 - 面向補貨點**輕放**行動：立刻提取目前選中貨品一箱

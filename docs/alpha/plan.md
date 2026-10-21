@@ -7,6 +7,7 @@
 - 長線設計仍以 `docs/systemdesign/` 為準；本檔補上缺口清單裡尚未寫進系統檔的決定
 - 缺口對照：`docs/systemdesign-gaps.md`（2026-10-16）
 - 技術設計審查（可持續開發／效能／Steam·Switch·Xbox）：`docs/alpha/tech-review-v0.1.md`
+- 已落地項對照（存檔／InputMap／活線）：`docs/alpha/implementation-status.md`
 
 # 版本目標
 
@@ -201,12 +202,13 @@ Yes! My Lord!：
 
 ## 介面、存檔、導出（P2）
 
-- 暫停：世界與玩家都停。可繼續、開設定、或放棄當日回到準備回合
-- 設定先做音量
-- 存檔寫入本機 `user://save.json`。關店與準備回合結束時各寫一次
-- 教學：首日三條提示，分別指向執貨、收銀、清潔
-- 技能演出開始後 0.45 秒內不接受移動與技能。之後恢復操作。奧義演出為 0.7 秒
-- 導出寫出本機 JSON：名字、STR／AGI／INT、已解鎖技能與等級。匯入後佔一個店員欄。不做連線
+- 暫停：世界與玩家都停。可繼續、開設定、或放棄當日回到準備回合（**未做**）
+- 設定先做音量（**未做**）
+- ~~存檔寫入本機 `user://save.json`。關店與準備回合結束時各寫一次~~ **已做**（長線見 `docs/systemdesign/savesystem.md`；活線 `godot/game`）
+- ~~輸入改 InputMap action~~ **已做**（長線見 `docs/systemdesign/control.md`；Autoload `Controls`）
+- 教學：首日三條提示，分別指向執貨、收銀、清潔（**未做**）
+- 技能演出開始後 0.45 秒內不接受移動與技能。之後恢復操作。奧義演出為 0.7 秒（**未做**）
+- 導出寫出本機 JSON：名字、STR／AGI／INT、已解鎖技能與等級。匯入後佔一個店員欄。不做連線（**未做**）
 
 ## 用詞（P2）
 

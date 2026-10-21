@@ -1,9 +1,9 @@
 # Alpha v0.1 技術設計審查
 
-- **範圍：** `godot/alpha_v0_1`（Godot 4.7 · 2D · GL Compatibility）
-- **對照：** `docs/alpha/`、`docs/systemdesign/`、`docs/systemdesign-gaps.md`
+- **範圍：** 審查時以 `godot/alpha_v0_1` 為準；**之後實作只改** `godot/game`（見 `docs/versioning.md`）
+- **對照：** `docs/alpha/`、`docs/systemdesign/`（含 `savesystem.md`）、`docs/systemdesign-gaps.md`
 - **目標平台：** Steam · Nintendo Switch · Xbox（及現行 Web 試玩）
-- **產出／更新：** 2026-10-20
+- **產出／更新：** 2026-10-20；2026-10-21 對齊已落地項（凍結活線、存檔、InputMap）
 - **狀態：** 審查結論供團隊跟進；非玩法規格。玩法仍以 `docs/systemdesign/` 與各版 design／plan 為準。
 
 ## 總評
@@ -211,9 +211,9 @@ demo.gd（場面主控 · ~1000 行）
 
 可直接複製為 GitHub Issues：
 
-- [x] 凍結 `godot/demo_v0_*`，只維護 `godot/alpha_v0_1`（或合併為單一 `godot/game`）— 活線為 `godot/game`；凍結目錄見各 `FROZEN.md`
-- [x] `game_state` 序列化 + `user://save.json`（含 `version`）— `to_dict`／`from_dict`／`save_to_disk`；關店與準備結束寫入
-- [ ] 全專案改 InputMap action（移動／互動／取消／技能）
+- [x] 凍結 `godot/demo_v0_*`，只維護 `godot/alpha_v0_1`（或合併為單一 `godot/game`）— 活線為 `godot/game`；凍結目錄見各 `FROZEN.md`；版控見 `docs/versioning.md`
+- [x] `game_state` 序列化 + `user://save.json`（含 `version`）— 長線 `docs/systemdesign/savesystem.md`；關店與準備結束寫入
+- [x] 全專案改 InputMap action（移動／互動／取消／技能）— 長線 `docs/systemdesign/control.md`；Autoload `Controls`
 - [ ] 拆 `prep_menu.gd` 分頁；關鍵 UI 改 `.tscn`
 - [ ] 新增 `PlatformServices` Autoload stub（Desktop 實作）
 - [ ] HUD／客人標籤改髒刷新
