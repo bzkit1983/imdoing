@@ -1,8 +1,8 @@
 # Alpha → v1 實作對照（設計已落地項）
 
-- 對照日：2026-10-21
+- 對照日：2026-10-21（含 PR #3–#17）
 - 用途：把近期工程變更連回長線／Alpha 設計檔，方便查「文件寫在哪、程式改哪」
-- 版控：`docs/versioning.md` · 技術债清單：`docs/alpha/tech-review-v0.1.md`
+- 版控：`docs/versioning.md` · 技術债清單：`docs/alpha/tech-review-v0.1.md`（§6 已全部勾完） · 缺口：`docs/systemdesign-gaps.md`
 
 | 變更 | 長線／Alpha 文件 | 工程 |
 | --- | --- | --- |

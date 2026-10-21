@@ -2,6 +2,8 @@
 
 - 活線：`godot/game`
 - 工程：`scenes/pause_menu.tscn`、`scripts/pause_menu.gd`；掛起信號來自 Autoload `PlatformServices`
+- 文案：`Loc`（`pause.*` keys；見 `docs/alpha/i18n.md`）
+- 營運回合交叉：`storeoperationphase.md`
 
 ## 何時可開
 
@@ -10,12 +12,12 @@
 
 ## 操作
 
-| 操作 | 預設 |
+| 操作 | 預設（InputMap／鍵） |
 | --- | --- |
 | 開關暫停 | Esc／手把 Start |
-| 選擇 | W／S 或方向鍵／D-Pad |
-| 確定 | J／Enter／A |
-| 返回（繼續） | ;／Backspace／B |
+| 選擇 | `move_up`／`move_down`（預設 W／S、方向鍵、D-Pad） |
+| 確定 | `interact`（預設 J／Enter／A） |
+| 返回（繼續） | `cancel`（預設 ;／Backspace／B） |
 
 選項：
 
