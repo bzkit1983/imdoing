@@ -8,6 +8,17 @@
 
 **目錄裡的 Alpha 凍結當文物；Git tag 當發布錨點；程式只養一個活專案 `godot/game`（自 v1.0 起）。**
 
+## 現在的產品版
+
+| | |
+| --- | --- |
+| **現行產品 SemVer** | **`v1.0.0`**（Git tag；權威） |
+| 對齊字串 | repo 根目錄 [`VERSION`](../VERSION)；`godot/game/project.godot` `config/version`；`scripts/product_version.gd`；Windows 匯出 `export_presets.cfg` |
+| 存檔格式版 | `game_state.SAVE_VERSION`（整數，與 SemVer **分開**） |
+| 查詢 | `git tag -l 'v*'` · `git describe --tags --exact-match`（恰在 tag 上時） |
+
+誰改號：負責人依下方 SemVer 規則決定後，在 `main` **打／推 tag**，並同步改 `VERSION` 與上表字串（同一 PR 或發佈當下）。合併功能 PR **不會**自動升版。
+
 ---
 
 ## 1. 三層「版本」不要混用
@@ -134,7 +145,7 @@ v1.0 Milestone 建議直接收錄 `docs/alpha/tech-review-v0.1.md` §6 跟進清
 2. ~~建立 `godot/game`（自 `alpha_v0_1` 複製一次）~~ **已做**；`demo_v0_*`／`alpha_v0_1` 已放 `FROZEN.md`，見 `godot/README.md`。  
 3. 把 tech-review §6 checklist 建成 Issues，全掛 Milestone `v1.0`。  
 4. ~~存檔~~ **已做**；~~InputMap~~ **已做**（Autoload `Controls`）；~~`PlatformServices` stub~~ **已做**；~~暫停選單＋掛起鉤子~~ **已做**；~~Win／Linux 匯出預設~~ **已做**（`docs/alpha/export-presets.md`）；~~字串表 i18n~~ **已做**（`docs/alpha/i18n.md`）；~~主機商務評估~~ **已做**（`docs/alpha/console-business.md`）；~~Godot／middleware 釘版~~ **已做**（`docs/alpha/godot-middleware-pin.md`：桌面 4.7，主機對齊 W4 表）。接著：Steamworks／內容與 v1.0 里程碑收尾等。  
-5. ~~Web 匯出到 Pages `docs/play/`~~ **已做**（Alpha v1.0 試玩）。骨架達標後打 `v1.0.0`；之後功能進 `v1.1` Milestone。
+5. ~~Web 匯出到 Pages `docs/play/`~~ **已做**。~~打 `v1.0.0`~~ **已做**（tag 在含動畫 Pages 建置的 `main`）。之後內容／系統進 `v1.1` Milestone；熱修打 `v1.0.x`。
 
 長線設計對應：存檔 → `savesystem.md`；操作 → `control.md`；準備／營運回合已交叉連到上述檔。
 

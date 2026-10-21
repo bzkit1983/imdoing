@@ -6,7 +6,8 @@ Repository for game project
 用 Godot **4.7** 打開 **`godot/game`**。  
 版控策略：[`docs/versioning.md`](docs/versioning.md) · Godot 目錄說明：[`godot/README.md`](godot/README.md)
 
-**網頁試玩（Alpha v1.0）：** https://bzkit1983.github.io/imdoing/play/
+**產品版：** `v1.0.0`（見 [`VERSION`](VERSION)、[`docs/versioning.md`](docs/versioning.md)）  
+**網頁試玩：** https://bzkit1983.github.io/imdoing/play/
 
 技術設計審查（效能／Steam·Switch·Xbox／跟進清單）：[`docs/alpha/tech-review-v0.1.md`](docs/alpha/tech-review-v0.1.md)
 
