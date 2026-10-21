@@ -1,12 +1,11 @@
 extends RefCounted
-## Prep-phase progress. Persist with to_dict / save_to_disk (user://save.json).
+## Prep-phase progress. Persist with to_dict / save_to_disk via PlatformServices.
 
 const Tuning = preload("res://scripts/tuning.gd")
 const Skills = preload("res://scripts/skills.gd")
 
 ## Bump when the save schema changes; from_dict must migrate or reject.
 const SAVE_VERSION := 1
-const SAVE_PATH := "user://save.json"
 
 const CELL := 64.0
 const WAGE := 100
@@ -779,17 +778,13 @@ func from_dict(data: Dictionary) -> String:
 
 func save_to_disk() -> String:
 	var text := JSON.stringify(to_dict(), "\t")
-	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
-	if f == null:
-		return "無法寫入存檔（錯誤 %d）" % FileAccess.get_open_error()
-	f.store_string(text)
-	return ""
+	return PlatformServices.write_save(text)
 
 
 func load_from_disk() -> String:
-	if not FileAccess.file_exists(SAVE_PATH):
+	if not PlatformServices.has_save():
 		return "沒有存檔"
-	var text := FileAccess.get_file_as_string(SAVE_PATH)
+	var text := PlatformServices.read_save()
 	if text.strip_edges() == "":
 		return "存檔是空的"
 	var parsed = JSON.parse_string(text)
@@ -799,15 +794,11 @@ func load_from_disk() -> String:
 
 
 func has_save() -> bool:
-	return FileAccess.file_exists(SAVE_PATH)
+	return PlatformServices.has_save()
 
 
 func delete_save() -> void:
-	if not FileAccess.file_exists(SAVE_PATH):
-		return
-	var dir := DirAccess.open("user://")
-	if dir:
-		dir.remove("save.json")
+	PlatformServices.delete_save()
 
 
 func _string_bool_dict(raw) -> Dictionary:
