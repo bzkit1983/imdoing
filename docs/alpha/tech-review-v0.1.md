@@ -3,15 +3,15 @@
 - **範圍：** 審查時以 `godot/alpha_v0_1` 為準；**之後實作只改** `godot/game`（見 `docs/versioning.md`）
 - **對照：** `docs/alpha/`、`docs/systemdesign/`（含 `savesystem.md`）、`docs/systemdesign-gaps.md`
 - **目標平台：** Steam · Nintendo Switch · Xbox（及現行 Web 試玩）
-- **產出／更新：** 2026-10-20；2026-10-21 對齊已落地項（凍結活線、存檔、InputMap、PlatformServices、暫停、匯出預設、字串表 i18n）
+- **產出／更新：** 2026-10-20；2026-10-21 對齊已落地項（凍結活線、存檔、InputMap、PlatformServices、暫停、匯出預設、字串表 i18n、主機商務評估）
 - **狀態：** 審查結論供團隊跟進；非玩法規格。玩法仍以 `docs/systemdesign/` 與各版 design／plan 為準。
 
 ## 總評
 
 玩法閉環與 Voxel 美術管線已經能支撐「繼續做內容」；但三個千行級腳本（`player` / `prep_menu` / `demo`）加上整專案複製的版次策略，會讓功能越多越難改。
 
-- **Steam：** 可行；產品骨架（存檔、InputMap、`PlatformServices`、桌面匯出、字串表）已落地；缺的是 Steamworks／Cloud／成就與主機商務路徑，而非換引擎。
-- **Switch／Xbox：** 玩法與 2D Voxel 架構適合主機，但 Godot **沒有公開主機匯出**，必須走平台開發者資格 + 中介埠（如 W4 Consoles）或外包埠接商，並以 **Switch 1 當效能與記憶體下限**。
+- **Steam：** 可行；產品骨架（存檔、InputMap、`PlatformServices`、桌面匯出、字串表）已落地；缺的是 Steamworks／Cloud／成就，而非換引擎。
+- **Switch／Xbox：** 玩法與 2D Voxel 架構適合主機，但 Godot **沒有公開主機匯出**；商務路徑評估見 **`docs/alpha/console-business.md`**（帳號可早開；W4 自埠預設）。效能以 **Switch 1 當下限**。
 - **最大槓桿：** 單一主線工程 + 平台服務抽象，不要為每台主機複製一份 Godot 專案。
 
 | 指標 | 數值 |
@@ -199,7 +199,7 @@ demo.gd（場面主控 · ~1000 行）
 | B · 產品骨架 | 三平台共用前提 | 存檔 version、暫停、InputMap、手把焦點 UI、拆 prep；PlatformServices stub |
 | C · 效能地板 | 以 Switch 1 為準 | 髒刷新、SKU 索引、字型子集、尋路節流；雙解析度 UI |
 | D · PC 上架 | Steam 候選 | ~~Windows／Linux 匯出~~、~~字串表~~ **已做**；待 Steamworks、Cloud、成就鉤子 |
-| E · 主機 | Switch／Xbox 候選 | 開發者資格與 devkit；選 W4 自埠或埠接商；釘 Godot 版本；Lotcheck／TCR；分級 |
+| E · 主機 | Switch／Xbox 候選 | ~~商務路徑評估~~ 見 `console-business.md`（W4 自埠預設）；待帳號／devkit、釘 Godot、Lotcheck／TCR、分級 |
 
 玩法內容（COMBO、事件、流量等）可與 B／C 並行。主機商務啟動可與 D 重疊，但不要在 B 完成前開「主機專用玩法分叉」。
 
@@ -225,10 +225,10 @@ demo.gd（場面主控 · ~1000 行）
 - [x] 暫停選單 + 掛起／恢復鉤子 — `pause_menu.tscn`；接 `PlatformServices` suspend／resume；見 `docs/systemdesign/pausemenu.md`
 - [x] Windows／Linux 匯出預設（Steam 候選）— `export_presets.cfg`；輸出 `build/windows`／`build/linux`；說明 `docs/alpha/export-presets.md`
 - [x] 字串表（i18n）抽出 — `locale/strings.csv`＋Autoload `Loc`；說明 `docs/alpha/i18n.md`；收割 `tools/i18n_harvest.py`
-- [ ] 主機：開發者帳號／中介埠或埠接商評估（商務）
+- [x] 主機：開發者帳號／中介埠或埠接商評估（商務）— 結論見 **`docs/alpha/console-business.md`**（帳號可早開；W4 自埠為預設、埠接為備援；買工具前先釘 Godot）
 - [ ] 對齊 Godot 小版本與 console middleware 支援表
 
-產品骨架列（存檔→字串表）已全部勾完；未勾兩項為主機商務／版本對齊，不阻塞桌面持續開發。剩餘 UI CJK 遷表屬跟進收割，不必再開本清單新項。
+§6 僅剩「Godot／middleware 釘版」未勾；主機商務評估已落地。帳號送件與 W4／埠接簽約屬負責人後續執行，不阻塞桌面持續開發。剩餘 UI CJK 遷表屬跟進收割，不必再開本清單新項。
 
 ---
 
