@@ -11,6 +11,7 @@
 | InputMap（移動／互動／取消／技能） | **`docs/systemdesign/control.md`**（檔首 action 表）；`cashiersystem.md`、`replenishmentsystem.md` 方向用語 | Autoload `Controls`；player／prep／demo |
 | PlatformServices Autoload | **`docs/systemdesign/savesystem.md`**（平台節）；tech-review §4 | `platform_services.gd`＋Desktop backend；存檔 I/O、UI profile、掛起信號 |
 | HUD／客人標籤髒刷新 | tech-review §3／§6 | `hud.gd` cache；`player._emit_stats_if_changed`；`customer._sync_labels` |
+| 貨架 SKU 索引 | tech-review §3／§6 | `demo._shelves_by_sku`＋`shelf.stock_sku_changed`；`find_shelf` 走索引 |
 | 技術審查與跟進清單 | `docs/alpha/tech-review-v0.1.md` | 非玩法規格；issue 掛 Milestone `v1.0` |
 
 仍缺（文件與程式都未完成）：暫停選單、設定音量、教學、技能演出鎖輸入等——見 tech-review §6 未勾項與 `docs/alpha/design.md`。prep UI 已拆為 `scenes/prep_menu.tscn` + `scripts/prep/`。

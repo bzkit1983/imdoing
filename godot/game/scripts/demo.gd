@@ -27,6 +27,8 @@ var _settled: bool = false
 var _prep: CanvasLayer
 var _world: Node2D
 var cashiers: Array[Node2D] = []
+## SKU id → Array of stocked shelves (maintained via shelf.stock_sku_changed).
+var _shelves_by_sku: Dictionary = {}
 var real_time: float = 0.0
 var game_hours: float = Tuning.GAME_START_HOUR
 var revenue: int = 0
@@ -155,6 +157,7 @@ func _clear_world() -> void:
 	_world = null
 	_hud = null
 	shelves.clear()
+	_shelves_by_sku.clear()
 	cashiers.clear()
 	_dirts.clear()
 	_obstacles.clear()
@@ -562,19 +565,35 @@ func _process(delta: float) -> void:
 
 
 func find_shelf(sku: String) -> Node2D:
-	for s in shelves:
-		if shelf_has(s, sku):
+	if sku == "":
+		return null
+	var list = _shelves_by_sku.get(sku)
+	if list == null:
+		return null
+	var i := 0
+	while i < list.size():
+		var s: Node2D = list[i]
+		if s != null and is_instance_valid(s) and shelf_has(s, sku):
 			return s
+		list.remove_at(i)
+	if list.is_empty():
+		_shelves_by_sku.erase(sku)
 	return null
 
 
 func shelf_has(shelf: Node2D, sku: String) -> bool:
 	if shelf == null:
 		return false
+	if shelf.has_method("has_sku"):
+		return bool(shelf.call("has_sku", sku))
 	return String(shelf.get("sku")) == sku and int(shelf.get("count")) > 0
 
 
 func take_from_shelf(shelf: Node2D, sku: String) -> bool:
+	if shelf == null or not is_instance_valid(shelf):
+		return false
+	if shelf.has_method("take_one"):
+		return bool(shelf.call("take_one", sku))
 	if not shelf_has(shelf, sku):
 		return false
 	var n := int(shelf.get("count")) - 1
@@ -584,6 +603,46 @@ func take_from_shelf(shelf: Node2D, sku: String) -> bool:
 		shelf.set("count", 0)
 	shelf.call("_refresh")
 	return true
+
+
+func _index_shelf_sku(sku: String, shelf: Node) -> void:
+	if sku == "" or shelf == null:
+		return
+	var list: Array = _shelves_by_sku.get(sku, [])
+	if not list.has(shelf):
+		list.append(shelf)
+	_shelves_by_sku[sku] = list
+
+
+func _unindex_shelf_sku(sku: String, shelf: Node) -> void:
+	if sku == "" or not _shelves_by_sku.has(sku):
+		return
+	var list: Array = _shelves_by_sku[sku]
+	list.erase(shelf)
+	if list.is_empty():
+		_shelves_by_sku.erase(sku)
+	else:
+		_shelves_by_sku[sku] = list
+
+
+func _on_shelf_stock_sku_changed(shelf: Node, old_sku: String, new_sku: String) -> void:
+	if old_sku != "":
+		_unindex_shelf_sku(old_sku, shelf)
+	if new_sku != "":
+		_index_shelf_sku(new_sku, shelf)
+
+
+func _register_shelf(node: Node2D) -> void:
+	shelves.append(node)
+	if node.has_signal("stock_sku_changed"):
+		node.connect("stock_sku_changed", _on_shelf_stock_sku_changed)
+	var sku := ""
+	if node.has_method("occupied_sku"):
+		sku = String(node.call("occupied_sku"))
+	elif int(node.get("count")) > 0:
+		sku = String(node.get("sku"))
+	if sku != "":
+		_index_shelf_sku(sku, node)
 
 
 func shelf_stand(shelf: Node2D) -> Vector2:
@@ -819,7 +878,7 @@ func _make_shelves(cat: String, start: Vector2, count: int, start_index: int) ->
 		node.label = lab
 		add_child(node)
 		node._refresh()
-		shelves.append(node)
+		_register_shelf(node)
 		out.append(node)
 	return out
 
@@ -855,7 +914,7 @@ func _make_shelf(r: Rect2, cat: String, index: int, rot: int, cap: int = Tuning.
 	node.label = lab
 	_world.add_child(node)
 	node._refresh()
-	shelves.append(node)
+	_register_shelf(node)
 	return node
 
 
