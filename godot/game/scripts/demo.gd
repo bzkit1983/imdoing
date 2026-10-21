@@ -14,6 +14,7 @@ const CustomerScript = preload("res://scripts/customer.gd")
 const ClerkScript = preload("res://scripts/clerk.gd")
 const PathfinderScript = preload("res://scripts/pathfinder.gd")
 const PrepScene = preload("res://scenes/prep_menu.tscn")
+const PauseScene = preload("res://scenes/pause_menu.tscn")
 const UiFont = preload("res://scripts/ui_font.gd")
 const Vox = preload("res://scripts/voxel_sprite.gd")
 
@@ -25,6 +26,7 @@ var state: StateScript
 var cleaned: int = 0
 var _settled: bool = false
 var _prep: CanvasLayer
+var _pause: CanvasLayer
 var _world: Node2D
 var cashiers: Array[Node2D] = []
 ## SKU id → Array of stocked shelves (maintained via shelf.stock_sku_changed).
@@ -66,11 +68,17 @@ func _ready() -> void:
 	add_child(_prep)
 	_prep.setup(self)
 	_prep.start_day.connect(_begin_day)
+	_pause = PauseScene.instantiate()
+	add_child(_pause)
+	_pause.setup(self)
+	_pause.end_day_requested.connect(_on_pause_end_day)
 
 
 func _begin_day() -> void:
 	if _prep:
 		_prep.set_process_unhandled_input(false)
+	if _pause and _pause.has_method("close_menu"):
+		_pause.close_menu()
 	_clear_world()
 	_early_closed = false
 	_skip_xp = 0
@@ -149,7 +157,7 @@ func _begin_day() -> void:
 func _clear_world() -> void:
 	var kill: Array[Node] = []
 	for c in get_children():
-		if c == _prep:
+		if c == _prep or c == _pause:
 			continue
 		kill.append(c)
 	for c in kill:
@@ -339,6 +347,29 @@ func _return_to_prep() -> void:
 
 func asking_early_close() -> bool:
 	return _early_open
+
+
+func can_open_pause() -> bool:
+	if _early_open:
+		return false
+	return phase == "restock" or phase == "open"
+
+
+func on_pause_opened() -> void:
+	if _player and _player.has_method("set_hold"):
+		_player.set_hold("interact", false)
+		_player.set_hold("cancel", false)
+		_player.set_hold("dash", false)
+		_player.set_hold("skill", false)
+		_player.set_hold("ult", false)
+
+
+func on_pause_closed() -> void:
+	pass
+
+
+func _on_pause_end_day() -> void:
+	skip_operate()
 
 
 func _consider_early_close() -> bool:

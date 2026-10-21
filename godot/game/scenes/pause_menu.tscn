@@ -1,0 +1,75 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/pause_menu.gd" id="1_pause"]
+
+[node name="PauseMenu" type="CanvasLayer"]
+layer = 60
+process_mode = 3
+script = ExtResource("1_pause")
+
+[node name="Shade" type="ColorRect" parent="."]
+unique_name_in_owner = true
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0, 0, 0, 0.62)
+
+[node name="Card" type="ColorRect" parent="."]
+offset_left = 240.0
+offset_top = 130.0
+offset_right = 1040.0
+offset_bottom = 560.0
+mouse_filter = 0
+color = Color(0.109804, 0.141176, 0.121569, 1)
+
+[node name="Title" type="Label" parent="Card"]
+unique_name_in_owner = true
+offset_left = 36.0
+offset_top = 28.0
+offset_right = 764.0
+offset_bottom = 84.0
+theme_override_colors/font_color = Color(0.956863, 0.827451, 0.368627, 1)
+theme_override_font_sizes/font_size = 40
+text = "暫停"
+
+[node name="Body" type="Label" parent="Card"]
+unique_name_in_owner = true
+offset_left = 36.0
+offset_top = 100.0
+offset_right = 764.0
+offset_bottom = 210.0
+theme_override_colors/font_color = Color(0.956863, 0.945098, 0.917647, 1)
+theme_override_font_sizes/font_size = 26
+text = "遊戲已暫停。"
+autowrap_mode = 3
+
+[node name="Hint" type="Label" parent="Card"]
+unique_name_in_owner = true
+offset_left = 36.0
+offset_top = 220.0
+offset_right = 764.0
+offset_bottom = 260.0
+theme_override_colors/font_color = Color(0.784314, 0.760784, 0.705882, 1)
+theme_override_font_sizes/font_size = 22
+text = "Esc／Start 開關　　W／S 選擇　　J 確定　　; 返回"
+
+[node name="ResumeBtn" type="Button" parent="Card"]
+unique_name_in_owner = true
+offset_left = 36.0
+offset_top = 290.0
+offset_right = 764.0
+offset_bottom = 378.0
+focus_mode = 0
+text = "繼續遊戲"
+
+[node name="EndDayBtn" type="Button" parent="Card"]
+unique_name_in_owner = true
+offset_left = 36.0
+offset_top = 396.0
+offset_right = 764.0
+offset_bottom = 484.0
+focus_mode = 0
+text = "結束本日並結算"
