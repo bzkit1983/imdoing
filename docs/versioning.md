@@ -112,7 +112,7 @@ v1.0 Milestone 建議直接收錄 `docs/alpha/tech-review-v0.1.md` §6 跟進清
 | `docs/systemdesign/*` | **長線真相**；v1+ 規則變更寫回這裡 |
 | `docs/versioning.md` | 本檔；版控規則 |
 | 發行說明 | 每個 GitHub Release 寫「相對上一 tag 玩家可見變更」 |
-| Pages | `play-alpha-v01/` **凍結**；v1 另開例如 `play/` 或 `play-v1/`，由 `godot/game` 匯出 |
+| Pages | `play-alpha-v01/` **凍結**；活線 v1 試玩為 `docs/play/`（由 `godot/game` Web 匯出） |
 
 不要為每個 minor 複製一份 `docs/` 樹；要用「設計檔持續更新 + Release notes 記歷史」。
 
@@ -134,7 +134,7 @@ v1.0 Milestone 建議直接收錄 `docs/alpha/tech-review-v0.1.md` §6 跟進清
 2. ~~建立 `godot/game`（自 `alpha_v0_1` 複製一次）~~ **已做**；`demo_v0_*`／`alpha_v0_1` 已放 `FROZEN.md`，見 `godot/README.md`。  
 3. 把 tech-review §6 checklist 建成 Issues，全掛 Milestone `v1.0`。  
 4. ~~存檔~~ **已做**；~~InputMap~~ **已做**（Autoload `Controls`）；~~`PlatformServices` stub~~ **已做**；~~暫停選單＋掛起鉤子~~ **已做**；~~Win／Linux 匯出預設~~ **已做**（`docs/alpha/export-presets.md`）；~~字串表 i18n~~ **已做**（`docs/alpha/i18n.md`）；~~主機商務評估~~ **已做**（`docs/alpha/console-business.md`）；~~Godot／middleware 釘版~~ **已做**（`docs/alpha/godot-middleware-pin.md`：桌面 4.7，主機對齊 W4 表）。接著：Steamworks／內容與 v1.0 里程碑收尾等。  
-5. 骨架達標後打 `v1.0.0`；之後功能進 `v1.1` Milestone。
+5. ~~Web 匯出到 Pages `docs/play/`~~ **已做**（Alpha v1.0 試玩）。骨架達標後打 `v1.0.0`；之後功能進 `v1.1` Milestone。
 
 長線設計對應：存檔 → `savesystem.md`；操作 → `control.md`；準備／營運回合已交叉連到上述檔。
 
