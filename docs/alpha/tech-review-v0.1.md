@@ -223,7 +223,7 @@ demo.gd（場面主控 · ~1000 行）
 - [x] NotoSansTC 子集化方案 — 執行期 `NotoSansTC-Game.otf`；重建 `tools/fonts/subset_notosans_tc.py`；說明 `docs/alpha/fonts-subset.md`
 - [x] 暫停選單 + 掛起／恢復鉤子 — `pause_menu.tscn`；接 `PlatformServices` suspend／resume；見 `docs/systemdesign/pausemenu.md`
 - [x] Windows／Linux 匯出預設（Steam 候選）— `export_presets.cfg`；輸出 `build/windows`／`build/linux`；說明 `docs/alpha/export-presets.md`
-- [ ] 字串表（i18n）抽出
+- [x] 字串表（i18n）抽出 — `locale/strings.csv`＋Autoload `Loc`；說明 `docs/alpha/i18n.md`；收割 `tools/i18n_harvest.py`
 - [ ] 主機：開發者帳號／中介埠或埠接商評估（商務）
 - [ ] 對齊 Godot 小版本與 console middleware 支援表
 
