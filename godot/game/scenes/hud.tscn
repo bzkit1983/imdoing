@@ -124,10 +124,10 @@ text = "Demo v0.31"
 [node name="Hint" type="Label" parent="Root/Right/Margin/VBox"]
 layout_mode = 2
 autowrap_mode = 3
-text = "鍵盤：WASD 移動／指令（上左下右）
-J 行動  K 衝刺  L 技能  U 奧義
+text = "InputMap：move_*／interact／cancel／dash／skill／ult
+預設鍵：WASD　J 行動　K 衝刺　L 技能　U 奧義
 補貨：輕放執貨 · 長按選貨（上下）
-手制 XYAB 是 Xbox 鍵，不是 WASD"
+手制預設為 Xbox：A 行動 B 取消 X 衝刺 Y 技能"
 
 [node name="State" type="Label" parent="Root/Right/Margin/VBox"]
 layout_mode = 2
