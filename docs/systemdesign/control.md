@@ -3,6 +3,8 @@
 - Demo 實作範圍與試玩數值以 `docs/demo/` 各版本 scope 為準（v0.3 起已實作下列營運回合操作；清潔見 v0.4，打擊見 v0.5）
 - **v1 活線工程：** `godot/game`。輸入以 Godot **InputMap action** 為準（Autoload `Controls`）。鍵盤／手制／觸控都對到同一套 action；下列鍵位是**預設綁定**，可在專案設定改鍵，不改玩法邏輯。
 - 主要 action：`move_up`／`move_down`／`move_left`／`move_right`、`interact`、`cancel`、`dash`、`skill`、`ult`；準備店舖設計另有 `rotate`；補貨快捷有 `restock_prev`／`restock_next`／`restock_slot_1..3`
+- **暫停選單：** 營運日 Esc／手把 Start 開關（見 `pausemenu.md`）；選單內移動／確定／取消仍走 `move_*`／`interact`／`cancel`
+- **UI 文案：** 準備／暫停／HUD 等已遷字串表者走 Autoload `Loc`（`docs/alpha/i18n.md`），與鍵位無關
 
 #**遊玩視點**
 - 以俯瞰視角觀察商店

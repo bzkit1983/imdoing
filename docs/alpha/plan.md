@@ -5,11 +5,12 @@
 - **v1.0 起活線：** `godot/game`（見 `docs/versioning.md`）
 - 已發佈的 Demo（`godot/demo_v0_*`）與 Alpha 保持不動
 - 長線設計仍以 `docs/systemdesign/` 為準；本檔補上缺口清單裡尚未寫進系統檔的決定
-- 缺口對照：`docs/systemdesign-gaps.md`（2026-10-16）
-- 技術設計審查（可持續開發／效能／Steam·Switch·Xbox）：`docs/alpha/tech-review-v0.1.md`
-- 已落地項對照（存檔／InputMap／活線）：`docs/alpha/implementation-status.md`
-- 主機商務評估（開發者帳號／W4／埠接商）：`docs/alpha/console-business.md`
-- Godot 小版本 ↔ console middleware 釘版：`docs/alpha/godot-middleware-pin.md`
+- 缺口對照：`docs/systemdesign-gaps.md`（2026-10-21）
+- Alpha 才設計的題：`docs/alpha/design.md`
+- 技術設計審查（可持續開發／效能／Steam·Switch·Xbox；§6 已勾完）：`docs/alpha/tech-review-v0.1.md`
+- 已落地項對照：`docs/alpha/implementation-status.md`
+- 主機商務／Godot 釘版：`docs/alpha/console-business.md`、`docs/alpha/godot-middleware-pin.md`
+- 字串表／字型／匯出：`docs/alpha/i18n.md`、`docs/alpha/fonts-subset.md`、`docs/alpha/export-presets.md`
 
 # 版本目標
 

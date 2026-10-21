@@ -1,6 +1,6 @@
 #營運回合設定
 - 此檔案包含營運回合設定
-- 工程活線：`godot/game`。操作見 `docs/systemdesign/control.md`（InputMap）。存檔見 `docs/systemdesign/savesystem.md`
+- 工程活線：`godot/game`。操作見 `docs/systemdesign/control.md`（InputMap）。存檔見 `docs/systemdesign/savesystem.md`。暫停見 `docs/systemdesign/pausemenu.md`
 
 #營運回合所含元素
 以下營運回合元素, 會在營運回合中在畫面顯示.
@@ -32,6 +32,10 @@
 
 #角色狀態
 顯示角色當前狀態, 例如已施放技能對角色的效果
+
+#暫停選單
+
+補貨／營運時段可開暫停選單（預設 Esc／手把 Start）。選項：繼續、結束本日並結算。系統掛起會 checkpoint 並開暫停 UI，恢復後不自動繼續。提早關店對話開著時不可再開暫停。詳見 `pausemenu.md`。
 
 #提早關店
 只在營運時段檢查。補貨時段不詢問。

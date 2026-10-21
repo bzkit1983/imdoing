@@ -2,7 +2,7 @@
 
 - 這裡記留到 Alpha 才設計的問題
 - 長線規則仍以 `docs/systemdesign/` 為準。這些項目先不寫進長線檔
-- 對照：`docs/systemdesign-gaps.md`（2026-10-17）
+- 對照：`docs/systemdesign-gaps.md`（2026-10-21）；工程落地對照：`docs/alpha/implementation-status.md`
 
 # 幫忙取貨與 COMBO
 
@@ -66,12 +66,15 @@
 
 時計、營業額、人數、狀態、被偷、提早關店的詢問已有。
 
-- **存檔：** 已寫進長線 `docs/systemdesign/savesystem.md`（`user://save.json` + `version`；關店與準備結束寫入）。活線已實作。  
-- **操作：** 長線以 InputMap 為準，見 `docs/systemdesign/control.md`。  
-- **工程路徑：** 凍結 Demo／Alpha；v1 只維護 `godot/game`，見 `docs/versioning.md`。  
-- 仍未寫：暫停選單、設定（音量）、失敗／過關流程、教學、技能演出期間能否操作。外觀配置只有一句。
+- **存檔：** 已寫進長線 `docs/systemdesign/savesystem.md`（`user://save.json` + `version`；經 `PlatformServices`）。活線已實作。  
+- **暫停／掛起：** 已寫進長線 `docs/systemdesign/pausemenu.md`（營運日 Esc／Start；系統掛起 checkpoint，恢復不自動繼續）。  
+- **操作：** 長線以 InputMap 為準，見 `docs/systemdesign/control.md`（Autoload `Controls`）。  
+- **字串表：** 工程 `docs/alpha/i18n.md`（`Loc`＋`locale/strings.csv`）；玩法規則不因語系分叉。  
+- **準備 UI：** 殼層 `prep_menu.tscn`＋`scripts/prep/`（見 `storepreparationphase.md`）。  
+- **工程路徑：** 凍結 Demo／Alpha；v1 只維護 `godot/game`，見 `docs/versioning.md`。主機商務／釘版見 `console-business.md`、`godot-middleware-pin.md`。  
+- 仍未寫（玩法／產品）：設定（音量）、失敗／過關流程、教學、技能演出期間能否操作。外觀配置只有一句。
 
-檔案：`savesystem.md`、`storeoperationphase.md`、`storepreparationphase.md`、`playerskills.md`、`control.md`、`playersetup.md`
+檔案：`savesystem.md`、`pausemenu.md`、`storeoperationphase.md`、`storepreparationphase.md`、`playerskills.md`、`control.md`、`playersetup.md`
 
 # 用詞
 

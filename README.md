@@ -27,8 +27,10 @@ Repository for game project
 
 ## 設計文件
 
-- 長線規則：`docs/systemdesign/`（含 [`savesystem.md`](docs/systemdesign/savesystem.md)、[`control.md`](docs/systemdesign/control.md)）
+- 長線規則：`docs/systemdesign/`（含 [`savesystem.md`](docs/systemdesign/savesystem.md)、[`control.md`](docs/systemdesign/control.md)、[`pausemenu.md`](docs/systemdesign/pausemenu.md)）
 - 缺口檢視：`docs/systemdesign-gaps.md`
-- Alpha 計劃／審查：`docs/alpha/plan.md`、`docs/alpha/tech-review-v0.1.md`
-- 近期實作對照：`docs/alpha/implementation-status.md`
+- Alpha 計劃／審查／設計：`docs/alpha/plan.md`、`docs/alpha/design.md`、`docs/alpha/tech-review-v0.1.md`
+- 工程對照：`docs/alpha/implementation-status.md`（存檔、InputMap、暫停、i18n、匯出、主機商務、Godot 釘版等）
+- 字串表／字型／匯出：`docs/alpha/i18n.md`、`docs/alpha/fonts-subset.md`、`docs/alpha/export-presets.md`
+- 主機：`docs/alpha/console-business.md`、`docs/alpha/godot-middleware-pin.md`
 - 版控：`docs/versioning.md`
