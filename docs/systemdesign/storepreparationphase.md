@@ -4,7 +4,7 @@
 
 
 - 營運準備選單
-開店前, 關店後進入營運準備選單。操作沿用 `docs/systemdesign/control.md` 的選單鍵（InputMap：`move_*`／`interact`／`cancel`；店舖設計轉向用 `rotate`）。畫面分頁：
+開店前, 關店後進入營運準備選單。操作沿用 `docs/systemdesign/control.md` 的選單鍵（InputMap：`move_*`／`interact`／`cancel`；店舖設計轉向用 `rotate`）。實作：殼層 `godot/game/scenes/prep_menu.tscn`，分頁填充分散在 `godot/game/scripts/prep/`（協調者仍為 `prep_menu.gd`）。畫面分頁：
 
 1. 角色配置
 - 能力值分配

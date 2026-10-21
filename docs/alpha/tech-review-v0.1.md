@@ -214,7 +214,7 @@ demo.gd（場面主控 · ~1000 行）
 - [x] 凍結 `godot/demo_v0_*`，只維護 `godot/alpha_v0_1`（或合併為單一 `godot/game`）— 活線為 `godot/game`；凍結目錄見各 `FROZEN.md`；版控見 `docs/versioning.md`
 - [x] `game_state` 序列化 + `user://save.json`（含 `version`）— 長線 `docs/systemdesign/savesystem.md`；關店與準備結束寫入
 - [x] 全專案改 InputMap action（移動／互動／取消／技能）— 長線 `docs/systemdesign/control.md`；Autoload `Controls`
-- [ ] 拆 `prep_menu.gd` 分頁；關鍵 UI 改 `.tscn`
+- [x] 拆 `prep_menu.gd` 分頁；關鍵 UI 改 `.tscn` — 殼層 `scenes/prep_menu.tscn`；分頁 `scripts/prep/prep_pages.gd`；格線 `scripts/prep/prep_grid_view.gd`
 - [ ] 新增 `PlatformServices` Autoload stub（Desktop 實作）
 - [ ] HUD／客人標籤改髒刷新
 - [ ] 貨架 SKU 索引
