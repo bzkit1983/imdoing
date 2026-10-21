@@ -253,5 +253,6 @@ func _refresh() -> void:
 		if cap <= 0:
 			cap = Tuning.SHELF_CAP
 		var shelf_bit := Loc.t("hud.shelf_empty", [cap]) if sku == "" else "%s %d/%d" % [Tuning.sku_name(sku), int(t.get("count")), cap]
-		_target.text = Loc.t("hud.target_shelf", [shelf_bit])	_progress.value = float(player.get("hold_progress")) * 100.0
+		_target.text = Loc.t("hud.target_shelf", [shelf_bit])
+	_progress.value = float(player.get("hold_progress")) * 100.0
 	_progress.modulate = Color("e07a5f") if bool(player.get("blocked_mismatch")) else Color("f4d35e")

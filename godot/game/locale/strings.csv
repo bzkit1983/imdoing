@@ -18,7 +18,7 @@ hud.state,狀態  %s,State  %s
 hud.carry,負重  %d / %d 箱,Carry  %d / %d boxes
 hud.target_none,目標  補貨 / 貨架 / 污物 / 小偷 / 收銀機後方,Target  restock / shelf / dirt / thief / register
 hud.target_restock,目標  %s補貨 · 輕放執貨 · 長按選貨 [%s],Target  %s restock · tap take · hold pick [%s]
-hud.target_cashier,目標  收銀機 · 長按行動再 WASD／搖桿,Target  register · hold act then WASD/stick
+hud.target_cashier,目標  收銀機 · 長按行動再輸方向,Target  register · hold act then move
 hud.target_dirt,目標  %s · 空手長按行動並轉搖桿清潔,Target  %s · empty-handed hold + stick to clean
 hud.target_drop,目標  掉落 %s ×%d · 輕放撿起,Target  drop %s ×%d · tap to pick up
 hud.target_thief,目標  小偷 · 空手長按抓住後連按行動打擊,Target  thief · hold to grab then mash act
@@ -68,7 +68,7 @@ prep.confirm.title,開始營業,Open shop
 prep.kind.active,主動,Active
 prep.kind.passive,被動,Passive
 prep.kind.ult,奧義,Ult
-prep.chrome.hint,WASD／搖桿移動　J／A 確定　;／B 返回　店舖設計時 X／K 轉向,"WASD/stick move · J/A confirm · ;/B back · Layout rotate X/K"
+prep.chrome.hint,方向移動　行動確定　取消返回　店舖設計時 轉向（預設 K／X）,"Move · confirm · cancel · layout rotate (default K/X)"
 prep.chrome.back,返回,Back
 prep.chrome.dialog_yes,確定,OK
 prep.chrome.dialog_no,取消,Cancel

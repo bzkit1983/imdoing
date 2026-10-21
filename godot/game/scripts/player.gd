@@ -409,80 +409,29 @@ func _in_dir_mode() -> bool:
 
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventKey:
-		_on_key_event(event as InputEventKey)
-	elif event is InputEventJoypadButton:
-		_on_pad_button(event as InputEventJoypadButton)
-
-
-func _on_key_event(key_event: InputEventKey) -> void:
-	if key_event.echo:
+	if event.is_echo():
 		return
-	var key: int = key_event.physical_keycode
-	# Early-close dialog and closeout own confirm and cancel.
+	# Early-close dialog and closeout own confirm / cancel.
 	if _asking_early():
 		return
-	if not _round_active() and (key == KEY_J or key == KEY_ENTER or key == KEY_SEMICOLON or key == KEY_BACKSPACE):
+	if not _round_active() and (event.is_action(Controls.INTERACT) or event.is_action(Controls.CANCEL)):
 		return
-	# Keyboard directions are WASD only — never Xbox A/B/X/Y.
-	if key_event.pressed:
-		var dir := _dir_from_key(key)
-		if dir >= 0 and _in_dir_mode():
+	# Discrete directions only here; analog stick uses _poll_stick_cardinal.
+	if _in_dir_mode() and event.is_pressed() and (
+		event is InputEventKey or event is InputEventJoypadButton
+	):
+		var dir := Controls.dir_from_event(event)
+		if dir >= 0:
 			_try_dir(dir)
 			get_viewport().set_input_as_handled()
 			return
-	if key == KEY_K:
-		set_hold("dash", key_event.pressed)
-		get_viewport().set_input_as_handled()
-	elif key == KEY_J or key == KEY_ENTER:
-		set_hold("interact", key_event.pressed)
-		get_viewport().set_input_as_handled()
-	elif key == KEY_L:
-		set_hold("skill", key_event.pressed)
-		get_viewport().set_input_as_handled()
-	elif key == KEY_U:
-		set_hold("ult", key_event.pressed)
-		get_viewport().set_input_as_handled()
-	elif key == KEY_SEMICOLON or key == KEY_BACKSPACE:
-		set_hold("cancel", key_event.pressed)
-		get_viewport().set_input_as_handled()
-	elif key_event.pressed:
-		_handle_hotkeys(key)
-
-
-func _on_pad_button(pad: InputEventJoypadButton) -> void:
-	# Early-close dialog and closeout own A and B.
-	if _asking_early():
-		return
-	if not _round_active() and (pad.button_index == JOY_BUTTON_A or pad.button_index == JOY_BUTTON_B):
-		return
-	# Xbox layout: A/B/X/Y are actions. D-pad is directions.
-	match pad.button_index:
-		JOY_BUTTON_A:
-			set_hold("interact", pad.pressed)
-		JOY_BUTTON_B:
-			set_hold("cancel", pad.pressed)
-		JOY_BUTTON_X:
-			set_hold("dash", pad.pressed)
-		JOY_BUTTON_Y:
-			set_hold("skill", pad.pressed)
-		JOY_BUTTON_RIGHT_SHOULDER:
-			set_hold("ult", pad.pressed)
-		JOY_BUTTON_DPAD_UP:
-			if pad.pressed and _in_dir_mode():
-				_try_dir(0)
-		JOY_BUTTON_DPAD_DOWN:
-			if pad.pressed and _in_dir_mode():
-				_try_dir(1)
-		JOY_BUTTON_DPAD_LEFT:
-			if pad.pressed and _in_dir_mode():
-				_try_dir(2)
-		JOY_BUTTON_DPAD_RIGHT:
-			if pad.pressed and _in_dir_mode():
-				_try_dir(3)
-		_:
+	for action in Controls.HOLD_ACTIONS:
+		if event.is_action(action) and (event is InputEventKey or event is InputEventJoypadButton):
+			set_hold(action, event.is_pressed())
+			get_viewport().set_input_as_handled()
 			return
-	get_viewport().set_input_as_handled()
+	if event.is_pressed() and (event is InputEventKey or event is InputEventJoypadButton):
+		_handle_hotkey_actions(event)
 
 
 func _tick_cancel_hold(delta: float) -> void:
@@ -559,7 +508,7 @@ func _physics_process(delta: float) -> void:
 			skill_menu_open = true
 			_menu.open = true
 			_menu.set_slots(_loadout(), _cd)
-			log_line.emit("技能選單 — WASD／搖桿選技能2–5，放手取消")
+			log_line.emit("技能選單 — 方向鍵選技能2–5，放手取消")
 	if _fighting:
 		velocity = Vector2.ZERO
 	elif _slip_left > 0.0:
@@ -737,7 +686,7 @@ func _tick_buffs(delta: float) -> void:
 
 
 func _wiggle_axis() -> Vector2:
-	var v := _key_move_axis() + _pad_move_axis() + stick_axis
+	var v := Controls.move_vector() + stick_axis
 	if v.length_squared() > 1.0:
 		v = v.normalized()
 	return v
@@ -746,54 +695,18 @@ func _wiggle_axis() -> Vector2:
 func _move_axis() -> Vector2:
 	if _stun_left > 0.0 or _slip_left > 0.0 or _fighting or _in_dir_mode() or _shelving() or _cleaning():
 		return Vector2.ZERO
-	var v := _key_move_axis() + _pad_move_axis() + stick_axis
-	if v.length_squared() > 1.0:
-		v = v.normalized()
-	return v
-
-
-func _key_move_axis() -> Vector2:
-	return Vector2(
-		float(Input.is_physical_key_pressed(KEY_D)) - float(Input.is_physical_key_pressed(KEY_A)),
-		float(Input.is_physical_key_pressed(KEY_S)) - float(Input.is_physical_key_pressed(KEY_W))
-	)
-
-
-func _pad_analog_axis() -> Vector2:
-	var v := Vector2(
-		Input.get_joy_axis(0, JOY_AXIS_LEFT_X),
-		Input.get_joy_axis(0, JOY_AXIS_LEFT_Y)
-	)
-	if v.length() < 0.25:
-		return Vector2.ZERO
-	if v.length_squared() > 1.0:
-		v = v.normalized()
-	return v
-
-
-func _pad_move_axis() -> Vector2:
-	var v := _pad_analog_axis()
-	if Input.is_joy_button_pressed(0, JOY_BUTTON_DPAD_RIGHT):
-		v.x += 1.0
-	if Input.is_joy_button_pressed(0, JOY_BUTTON_DPAD_LEFT):
-		v.x -= 1.0
-	if Input.is_joy_button_pressed(0, JOY_BUTTON_DPAD_DOWN):
-		v.y += 1.0
-	if Input.is_joy_button_pressed(0, JOY_BUTTON_DPAD_UP):
-		v.y -= 1.0
-	if v.length() < 0.25:
-		return Vector2.ZERO
+	var v := Controls.move_vector() + stick_axis
 	if v.length_squared() > 1.0:
 		v = v.normalized()
 	return v
 
 
 func _poll_stick_cardinal() -> void:
-	# Touch stick / left analog only. WASD and D-pad are discrete press events.
+	# Analog only (touch stick / left stick). Discrete move_* taps are handled in _input.
 	if not _in_dir_mode():
 		_cardinal_armed = true
 		return
-	var v := stick_axis + _pad_analog_axis()
+	var v := stick_axis + _joy_stick_vector()
 	if v.length() < 0.42:
 		_cardinal_armed = true
 		return
@@ -806,6 +719,18 @@ func _poll_stick_cardinal() -> void:
 	else:
 		dir = 1 if v.y > 0.0 else 0
 	_try_dir(dir)
+
+
+func _joy_stick_vector() -> Vector2:
+	var v := Vector2(
+		Input.get_joy_axis(0, JOY_AXIS_LEFT_X),
+		Input.get_joy_axis(0, JOY_AXIS_LEFT_Y)
+	)
+	if v.length() < Controls.MOVE_DEADZONE:
+		return Vector2.ZERO
+	if v.length_squared() > 1.0:
+		v = v.normalized()
+	return v
 
 
 func _tick_move(delta: float) -> void:
@@ -1182,7 +1107,7 @@ func _tick_clean(_delta: float) -> void:
 		hold_progress = minf(1.0, hold_progress + travel / needed)
 	if not _clean_hint:
 		_clean_hint = true
-		log_line.emit("清潔 %s — 按住行動並持續轉搖桿／WASD" % String(target.call("type_name")))
+		log_line.emit("清潔 %s — 按住行動並持續轉搖桿／方向" % String(target.call("type_name")))
 	target.call("set_cleaning", true, axis, hold_progress * 100.0)
 	if hold_progress >= 1.0:
 		var name := String(target.call("type_name"))
@@ -1324,19 +1249,6 @@ func _spawn_dollar() -> void:
 	tw.tween_property(lab, "position:y", -130.0, 0.55)
 	tw.parallel().tween_property(lab, "modulate:a", 0.0, 0.55)
 	tw.tween_callback(lab.queue_free)
-
-
-func _dir_from_key(key: int) -> int:
-	match key:
-		KEY_W:
-			return 0
-		KEY_S:
-			return 1
-		KEY_A:
-			return 2
-		KEY_D:
-			return 3
-	return -1
 
 
 func _on_skill_hold(pressed: bool) -> void:
@@ -1523,20 +1435,24 @@ func _reset_hold() -> void:
 			cust.cancel_pay()
 
 
-func _handle_hotkeys(key: int) -> void:
+func _handle_hotkey_actions(event: InputEvent) -> void:
 	if target == null or String(target.get("kind")) != "restock":
 		return
-	match key:
-		KEY_Q:
-			target.call("cycle", -1)
-		KEY_E:
-			target.call("cycle", 1)
-		KEY_1:
-			target.call("set_highlight", 0)
-		KEY_2:
-			target.call("set_highlight", 1)
-		KEY_3:
-			target.call("set_highlight", 2)
+	if event.is_action_pressed(Controls.RESTOCK_PREV):
+		target.call("cycle", -1)
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed(Controls.RESTOCK_NEXT):
+		target.call("cycle", 1)
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed(Controls.RESTOCK_SLOT_1):
+		target.call("set_highlight", 0)
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed(Controls.RESTOCK_SLOT_2):
+		target.call("set_highlight", 1)
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed(Controls.RESTOCK_SLOT_3):
+		target.call("set_highlight", 2)
+		get_viewport().set_input_as_handled()
 
 
 func _update_visuals() -> void:

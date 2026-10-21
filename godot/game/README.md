@@ -8,5 +8,6 @@ v1.0 起唯一維護的 Godot 專案。從凍結的 `godot/alpha_v0_1` 複製一
 - 匯出預設：`export_presets.cfg` — Web → `docs/play/`；Windows／Linux（Steam 候選）→ repo `build/`（說明：`docs/alpha/export-presets.md`）
 - **字串表：** `locale/strings.csv`＋Autoload `Loc`（`docs/alpha/i18n.md`）
 - **存檔：** `user://save.json`（`game_state.SAVE_VERSION`）。關店結算後、準備回合按「開始營業」時各寫一次；啟動時自動讀取。準備選單可「清除存檔並重選劇本」。
+- **輸入：** Autoload `Controls` 註冊 InputMap（`move_*`／`interact`／`cancel`／`dash`／`skill`／`ult`／`rotate`…）。預設仍是 WASD + J/K/L/U 與 Xbox 手把；可在專案設定改鍵。
 
 Alpha 試玩（不動）：https://bzkit1983.github.io/imdoing/play-alpha-v01/
