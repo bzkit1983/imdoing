@@ -1011,10 +1011,10 @@ func _remove_interactable(node: Node2D) -> void:
 	_player.interactables.erase(node)
 
 
-func spawn_dropped_box(pos: Vector2, sku: String, n: int) -> void:
+func spawn_dropped_box(pos: Vector2, sku: String, n: int, toss_dir: Vector2 = Vector2.ZERO) -> void:
 	var drop: Area2D = DroppedBoxScript.new()
 	drop.setup(sku, n)
-	drop.global_position = pos + Vector2(randf_range(-18, 18), 22)
+	drop.global_position = pos + Tuning.drop_offset(toss_dir)
 	_world.add_child(drop)
 	_add_interactable(drop)
 	drop.tree_exiting.connect(func() -> void: _remove_interactable(drop))

@@ -76,6 +76,8 @@ var _stun_pending: float = Tuning.STUN_SEC
 var _cancel_held: bool = false
 var _cancel_time: float = 0.0
 var _cancel_dropped: bool = false
+## Last move axis while holding cancel (for directional toss). Zero = drop at feet.
+var _cancel_drop_dir: Vector2 = Vector2.ZERO
 
 
 func _ready() -> void:
@@ -347,9 +349,12 @@ func set_hold(action: String, pressed: bool) -> void:
 			if pressed:
 				_cancel_time = 0.0
 				_cancel_dropped = false
+				_cancel_drop_dir = Vector2.ZERO
+				_sample_cancel_drop_dir()
 				_cancel_input()
 			else:
 				_cancel_time = 0.0
+				_cancel_drop_dir = Vector2.ZERO
 
 
 func move_state() -> String:
@@ -437,11 +442,20 @@ func _input(event: InputEvent) -> void:
 func _tick_cancel_hold(delta: float) -> void:
 	if _cancel_dropped:
 		return
+	## Keep sampling while held so walk/run + direction still aim the toss.
+	_sample_cancel_drop_dir()
 	_cancel_time += delta
 	if _cancel_time < Tuning.DROP_HOLD_SEC:
 		return
 	_cancel_dropped = true
 	_discard_top_box()
+
+
+func _sample_cancel_drop_dir() -> void:
+	## Input direction only (not facing). No stick / WASD → stay at feet.
+	var v := Controls.move_vector() + stick_axis
+	if v.length() >= Tuning.DROP_DIR_DEADZONE:
+		_cancel_drop_dir = v.normalized()
 
 
 func _round_active() -> bool:
@@ -467,8 +481,18 @@ func _discard_top_box() -> void:
 		return
 	var run: Dictionary = inventory.trailing_run()
 	var name := Tuning.sku_name(String(run["id"]))
-	_drop_top_box()
-	log_line.emit("丟掉 %s 1箱 — 掉在腳邊，可以再撿" % name)
+	var toss := _cancel_drop_dir
+	_drop_top_box(toss)
+	if toss.length_squared() > 0.01:
+		log_line.emit("丟掉 %s 1箱 — 往%s丟出，可以再撿" % [name, _drop_dir_label(toss)])
+	else:
+		log_line.emit("丟掉 %s 1箱 — 掉在腳邊，可以再撿" % name)
+
+
+func _drop_dir_label(dir: Vector2) -> String:
+	if absf(dir.x) > absf(dir.y):
+		return "右" if dir.x > 0.0 else "左"
+	return "下" if dir.y > 0.0 else "上"
 
 
 func _cancel_input() -> void:
@@ -821,7 +845,7 @@ func _tick_slip(delta: float) -> void:
 		_stun_left = _stun_pending
 
 
-func _drop_top_box() -> void:
+func _drop_top_box(toss_dir: Vector2 = Vector2.ZERO) -> void:
 	if inventory.is_empty():
 		return
 	var run: Dictionary = inventory.trailing_run()
@@ -829,7 +853,7 @@ func _drop_top_box() -> void:
 	inventory.remove_trailing(n)
 	var game := get_tree().get_first_node_in_group("game")
 	if game and game.has_method("spawn_dropped_box"):
-		game.call("spawn_dropped_box", global_position, String(run["id"]), n)
+		game.call("spawn_dropped_box", global_position, String(run["id"]), n, toss_dir)
 
 
 func _tick_status(delta: float) -> void:
