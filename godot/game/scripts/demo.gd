@@ -13,7 +13,7 @@ const CashierScript = preload("res://scripts/cashier.gd")
 const CustomerScript = preload("res://scripts/customer.gd")
 const ClerkScript = preload("res://scripts/clerk.gd")
 const PathfinderScript = preload("res://scripts/pathfinder.gd")
-const PrepScript = preload("res://scripts/prep_menu.gd")
+const PrepScene = preload("res://scenes/prep_menu.tscn")
 const UiFont = preload("res://scripts/ui_font.gd")
 const Vox = preload("res://scripts/voxel_sprite.gd")
 
@@ -60,7 +60,7 @@ var _early_no: Button
 func _ready() -> void:
 	add_to_group("game")
 	state = StateScript.new()
-	_prep = PrepScript.new()
+	_prep = PrepScene.instantiate()
 	add_child(_prep)
 	_prep.setup(self)
 	_prep.start_day.connect(_begin_day)
