@@ -207,6 +207,8 @@ demo.gd（場面主控 · ~1000 行）
 
 ## 6. 跟進清單（建議開 issue 時可拆）
 
+版控與「凍結 Alpha → 單一 `godot/game` 活線」見 `docs/versioning.md`。v1.0 起這些項目應開在 Milestone `v1.0`，只改活線，不改 `godot/alpha_v0_1`。
+
 可直接複製為 GitHub Issues：
 
 - [ ] 凍結 `godot/demo_v0_*`，只維護 `godot/alpha_v0_1`（或合併為單一 `godot/game`）

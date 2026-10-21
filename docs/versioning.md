@@ -1,0 +1,155 @@
+# 版本控制策略（Alpha v0.1 → v1.0+）
+
+- **目的：** 保留可玩的 Alpha v0.1，之後所有 issue／功能只在一條主線上推進，不再整包複製 Godot 專案。
+- **對照：** 技術债與平台清單見 `docs/alpha/tech-review-v0.1.md`。
+- **拍板日：** 2026-10-21
+
+## 一句話
+
+**目錄裡的 Alpha 凍結當文物；Git tag 當發布錨點；程式只養一個活專案 `godot/game`（自 v1.0 起）。**
+
+---
+
+## 1. 三層「版本」不要混用
+
+| 層 | 記在哪 | 用途 |
+| --- | --- | --- |
+| **產品版本** | Git tag / GitHub Release（`v1.0.0`） | 給玩家、商店、Pages 連結看的號 |
+| **活工程** | 單一目錄 `godot/game` | 唯一持續改的 Godot 專案 |
+| **歷史快照** | 凍結目錄 + tag | 可重播舊體驗，但**不再開新功能** |
+
+過去的 `godot/demo_v0_*`、`godot/alpha_v0_1` 屬於歷史快照。  
+v1.0 起**禁止**再新增 `godot/v1_0`、`godot/v1_1` 這類整包複本。
+
+---
+
+## 2. 從 Alpha 接到 v1.0 的一次動作
+
+做一次分叉即可，之後只往前推：
+
+```text
+godot/alpha_v0_1/   ← 永遠凍結（可玩、可對照、可開 Pages）
+        │
+        │  複製一次（僅此一次）
+        ▼
+godot/game/         ← v1.0 起唯一活線；所有 issue 改這裡
+```
+
+建議步驟：
+
+1. **Git tag 凍結 Alpha**（在現在 `main` 上打）  
+   - 標籤名：`alpha-v0.1`  
+   - GitHub Release 說明：對應 Pages `play-alpha-v01/`，目錄 `godot/alpha_v0_1`
+2. **複製** `godot/alpha_v0_1` → `godot/game`（或 `git mv` 若團隊同意只留一份活線；若要「目錄仍看得到 alpha」就用複製）
+3. 改 `godot/game/project.godot` 的 `config/name` 為產品名／`imdoing v1`（開發中可用 `imdoing`）
+4. 之後 **所有 PR 只動 `godot/game`**（外加 `docs/`、`tools/`）；碰 `alpha_v0_1` / `demo_v0_*` 僅限修 Pages 連結或明顯壞掉的靜態展示
+
+> 若暫時不想改路徑：也可短期繼續改 `alpha_v0_1`，但必須先打 `alpha-v0.1` tag，並約定「tag 之後的 commit 都算 v1 開發」。目錄改名只是比較不容易誤改文物。
+
+---
+
+## 3. Git 分支怎麼用
+
+| 分支 | 用途 |
+| --- | --- |
+| `main` | 唯一主線；隨時可匯出試玩；**不要**長期分 `main-alpha` / `main-v1` |
+| `cursor/…` 或 `feat/…` | 單一 issue／小功能；短命，合併後刪 |
+| `release/x.y` | **可選**；只有要同時熱修舊版（例如商店已上 `1.0` 又在做 `1.1`）才開 |
+
+原則：
+
+- 功能用 **feature branch → PR → main**，不用「新開整個專案目錄」當分支。  
+- 平台差異（Steam／Switch／Xbox）用 **匯出預設 + `PlatformServices` + feature flag**，不用 `godot/game_switch` 複本。
+
+---
+
+## 4. Tag 與號號（建議 SemVer）
+
+格式：`vMAJOR.MINOR.PATCH`
+
+| 變哪個 | 何時 |
+| --- | --- |
+| **MAJOR** | 存檔不相容、大幅砍循環、或商店認定的世代（例如 1→2） |
+| **MINOR** | 新系統／可玩內容（COMBO、事件、店員擴充…）；存檔仍能升 |
+| **PATCH** | bugfix、數值小調、不改存檔形狀 |
+
+命名約定：
+
+| 標籤 | 意義 |
+| --- | --- |
+| `alpha-v0.1` | 凍結的 Alpha 文物（已存在之可玩狀態） |
+| `v1.0.0` | 第一個「依 tech-review issue 清單收斂」的可玩里程碑 |
+| `v1.1.0`、`v1.2.0`… | 之後內容／系統增量 |
+| `v1.0.1` | 只修 `v1.0.0` 的缺陷 |
+
+開發中未發布可用：
+
+- 專案內顯示：`1.0.0-dev`  
+- 或 GitHub Pre-release：`v1.0.0-rc.1`
+
+**存檔 JSON 必含 `version` 欄**（整數或 semver 字串），與產品 tag 分開演進；升級時寫 migration，不要靠複製舊專案躲相容問題。
+
+---
+
+## 5. GitHub 上怎麼跟 issue
+
+| 工具 | 用法 |
+| --- | --- |
+| **Milestone** | `v1.0`、`v1.1`… 對應產品小版本；tech-review checklist 先全部掛 `v1.0` 再拆出延後項 |
+| **Label** | `platform` / `perf` / `tech-debt` / `gameplay` / `docs` |
+| **Issue** | 一張一件事；PR 用 `Fixes #n` 連回去 |
+| **Project（可選）** | 看板：Todo / Doing / Done |
+
+v1.0 Milestone 建議直接收錄 `docs/alpha/tech-review-v0.1.md` §6 跟進清單，完成即具備「可連續開發的產品骨架」，不必等 Steam／主機真的送審。
+
+---
+
+## 6. 文件與 Pages 怎麼跟版本走
+
+| 內容 | 策略 |
+| --- | --- |
+| `docs/alpha/*` | Alpha 時代文件；可補「已凍結」一句，之後少改 |
+| `docs/systemdesign/*` | **長線真相**；v1+ 規則變更寫回這裡 |
+| `docs/versioning.md` | 本檔；版控規則 |
+| 發行說明 | 每個 GitHub Release 寫「相對上一 tag 玩家可見變更」 |
+| Pages | `play-alpha-v01/` **凍結**；v1 另開例如 `play/` 或 `play-v1/`，由 `godot/game` 匯出 |
+
+不要為每個 minor 複製一份 `docs/` 樹；要用「設計檔持續更新 + Release notes 記歷史」。
+
+---
+
+## 7. 明確不要做的事
+
+1. 不要再 `cp -r godot/game godot/v1_1` 開新版。  
+2. 不要用長期分支代替版本（例如永遠不合併的 `v1-branch`）。  
+3. 不要讓 Web、Steam、Switch 各養一份玩法腳本。  
+4. 不要改 `godot/alpha_v0_1` 來做 v1 功能（除非只修展示壞掉）。  
+5. 不要把「Demo 數字」和「長線 systemdesign」混成兩套都在改的真相。
+
+---
+
+## 8. 建議的近期操作順序
+
+1. 在 `main` 打 tag `alpha-v0.1` + GitHub Release（凍結敘述）。  
+2. 建立 `godot/game`（自 `alpha_v0_1` 複製一次）並開 Milestone `v1.0`。  
+3. 把 tech-review §6 checklist 建成 Issues，全掛 `v1.0`。  
+4. 第一波 PR 只碰：存檔、`InputMap`、`PlatformServices` stub、停碰 alpha 目錄的 CI／習慣。  
+5. 骨架達標後打 `v1.0.0`；之後功能進 `v1.1` Milestone。
+
+---
+
+## 9. 目錄目標長相（穩定後）
+
+```text
+godot/
+  demo_v0_*/          # 凍結文物（可選：日後移到 archive/）
+  alpha_v0_1/         # 凍結文物 + Pages play-alpha-v01
+  game/               # 唯一活線（v1.0+）
+docs/
+  alpha/              # Alpha 計劃／審查（歷史）
+  systemdesign/       # 長線規則（持續更新）
+  versioning.md       # 本策略
+```
+
+團隊查「現在該改哪裡？」→ **永遠是 `godot/game`。**  
+查「Alpha 當初長怎樣？」→ **目錄 `alpha_v0_1` + tag `alpha-v0.1`。**
