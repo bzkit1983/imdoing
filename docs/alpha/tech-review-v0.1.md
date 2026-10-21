@@ -114,7 +114,7 @@ demo.gd（場面主控 · ~1000 行）
 | 優先 | 改動 | 預期收益 | 成本 |
 | --- | --- | --- | --- |
 | P0 | 標籤／HUD 改髒刷新 | PC／手機／Switch 更穩 | **已做** |
-| P0 | 貨架以 SKU 建索引 | 尋貨 O(1) | 低 |
+| P0 | 貨架以 SKU 建索引 | 尋貨 O(1) | **已做** |
 | P0 | CJK 字型子集／壓縮 | 降 Switch 記憶體與載入 | 低–中 |
 | P1 | 尋路節流＋物件池 | 多客同場幀時間更平 | 中 |
 | P1 | 解析度／UI 縮放設定檔 | 掌機可讀、底座／TV 不空 | 中 |
@@ -218,7 +218,7 @@ demo.gd（場面主控 · ~1000 行）
 - [x] 拆 `prep_menu.gd` 分頁；關鍵 UI 改 `.tscn` — 殼層 `scenes/prep_menu.tscn`；分頁 `scripts/prep/prep_pages.gd`；格線 `scripts/prep/prep_grid_view.gd`
 - [x] 新增 `PlatformServices` Autoload stub（Desktop 實作）— `scripts/platform_services.gd`＋`scripts/platform/desktop_platform.gd`；`game_state` I/O 經此層
 - [x] HUD／客人標籤改髒刷新 — `player` fingerprint 才 `stats_changed`；`hud` 左右面板 cache；`customer._sync_labels` 只在字／條變更時寫入
-- [ ] 貨架 SKU 索引
+- [x] 貨架 SKU 索引 — `demo._shelves_by_sku`；`shelf.stock_sku_changed` 維護；`find_shelf` O(1)（見 `docs/systemdesign/customer.md`）
 - [ ] NotoSansTC 子集化方案
 - [ ] 暫停選單 + 掛起／恢復鉤子
 - [ ] Windows／Linux 匯出預設（Steam 候選）
