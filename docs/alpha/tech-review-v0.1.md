@@ -3,14 +3,14 @@
 - **範圍：** 審查時以 `godot/alpha_v0_1` 為準；**之後實作只改** `godot/game`（見 `docs/versioning.md`）
 - **對照：** `docs/alpha/`、`docs/systemdesign/`（含 `savesystem.md`）、`docs/systemdesign-gaps.md`
 - **目標平台：** Steam · Nintendo Switch · Xbox（及現行 Web 試玩）
-- **產出／更新：** 2026-10-20；2026-10-21 對齊已落地項（凍結活線、存檔、InputMap）
+- **產出／更新：** 2026-10-20；2026-10-21 對齊已落地項（凍結活線、存檔、InputMap、PlatformServices、暫停、匯出預設、字串表 i18n）
 - **狀態：** 審查結論供團隊跟進；非玩法規格。玩法仍以 `docs/systemdesign/` 與各版 design／plan 為準。
 
 ## 總評
 
 玩法閉環與 Voxel 美術管線已經能支撐「繼續做內容」；但三個千行級腳本（`player` / `prep_menu` / `demo`）加上整專案複製的版次策略，會讓功能越多越難改。
 
-- **Steam：** 可行；缺的是存檔、InputMap、桌面匯出與平台服務，而非換引擎。
+- **Steam：** 可行；產品骨架（存檔、InputMap、`PlatformServices`、桌面匯出、字串表）已落地；缺的是 Steamworks／Cloud／成就與主機商務路徑，而非換引擎。
 - **Switch／Xbox：** 玩法與 2D Voxel 架構適合主機，但 Godot **沒有公開主機匯出**，必須走平台開發者資格 + 中介埠（如 W4 Consoles）或外包埠接商，並以 **Switch 1 當效能與記憶體下限**。
 - **最大槓桿：** 單一主線工程 + 平台服務抽象，不要為每台主機複製一份 Godot 專案。
 
@@ -18,7 +18,7 @@
 | --- | --- |
 | GDScript 約略行數 | ~7.7k |
 | ≥1000 行腳本 | 3（`player` · `prep_menu` · `demo`） |
-| 存檔 / Autoload 平台層 / 自動化測試 | 存檔＋`PlatformServices` Desktop stub 已有；自動化測試仍 0 |
+| 存檔 / Autoload 平台層 / 自動化測試 | 存檔＋`PlatformServices`＋`Controls`＋`Loc`；自動化測試仍 0 |
 | 現有匯出預設 | Web + Windows Desktop + Linux（Steam 候選；見 `docs/alpha/export-presets.md`） |
 
 ---
@@ -147,12 +147,13 @@ demo.gd（場面主控 · ~1000 行）
 | 主題 | Alpha 現況 | Steam | Switch／Xbox 額外要求 |
 | --- | --- | --- | --- |
 | 匯出 | ~~僅 Web~~ **已有 Win／Linux 預設** | 桌面預設已加；待 Steamworks | 私有 console export template；CI 需隔離 NDA 產物 |
-| 輸入 | 硬編碼鍵 + 虛擬搖桿 | InputMap + Steam Input | 手把焦點導航；斷線重連；禁用「必須觸控」 |
-| UI | 手機橫向密度＋觸控鍵 | 桌面／Deck 可調 | TV 安全區與字級；Switch 掌機可讀性；焦點框可見 |
-| 存檔 | 無 | 本機 + 可選 Cloud | 經平台 API；處理儲存滿／失敗／多使用者 |
+| 輸入 | ~~硬編碼鍵~~ **InputMap／`Controls`** | Steam Input 可接同一套 action | 手把焦點導航；斷線重連；禁用「必須觸控」 |
+| UI | 手機橫向密度＋觸控鍵；關鍵字串走 `Loc` | 桌面／Deck 可調；續遷剩餘 CJK | TV 安全區與字級；Switch 掌機可讀性；焦點框可見 |
+| 存檔 | ~~無~~ **`user://save.json`＋version** | 本機已有；待可選 Cloud | 經平台 API；處理儲存滿／失敗／多使用者 |
 | 成就等 | 無 | Steamworks | Xbox Achievements；Switch 無對等成就系統（另議） |
 | 生命週期 | ~~無暫停／掛起處理~~ **已接** | 暫停選單 | suspend／resume → pause menu＋checkpoint（見 pausemenu.md） |
-| 字型 | 完整 NotoSansTC ~5.5MB | 可接受 | 子集化；注意授權與記憶體 |
+| 字型 | ~~完整 NotoSansTC ~5.5MB~~ **子集 `NotoSansTC-Game.otf`** | 可接受 | 授權與記憶體已顧；擴字集再跑 subset 工具 |
+| 字串表 | ~~硬編碼 UI~~ **`locale/strings.csv`＋`Loc`** | 準備／暫停／HUD 已遷；見 `docs/alpha/i18n.md` | 主機語言包／電子手冊另議 |
 | 網路 | 單機 | 單機可上架 | 單機較易過認證 |
 
 ### 建議的平台抽象
@@ -197,7 +198,7 @@ demo.gd（場面主控 · ~1000 行）
 | A · 穩定主線 | 可連續開發 | 凍結舊 demo；單一 alpha 主線；對齊 tuning／文件 |
 | B · 產品骨架 | 三平台共用前提 | 存檔 version、暫停、InputMap、手把焦點 UI、拆 prep；PlatformServices stub |
 | C · 效能地板 | 以 Switch 1 為準 | 髒刷新、SKU 索引、字型子集、尋路節流；雙解析度 UI |
-| D · PC 上架 | Steam 候選 | Windows／Linux 匯出、Steamworks、Cloud、成就鉤子、字串表 |
+| D · PC 上架 | Steam 候選 | ~~Windows／Linux 匯出~~、~~字串表~~ **已做**；待 Steamworks、Cloud、成就鉤子 |
 | E · 主機 | Switch／Xbox 候選 | 開發者資格與 devkit；選 W4 自埠或埠接商；釘 Godot 版本；Lotcheck／TCR；分級 |
 
 玩法內容（COMBO、事件、流量等）可與 B／C 並行。主機商務啟動可與 D 重疊，但不要在 B 完成前開「主機專用玩法分叉」。
@@ -226,6 +227,8 @@ demo.gd（場面主控 · ~1000 行）
 - [x] 字串表（i18n）抽出 — `locale/strings.csv`＋Autoload `Loc`；說明 `docs/alpha/i18n.md`；收割 `tools/i18n_harvest.py`
 - [ ] 主機：開發者帳號／中介埠或埠接商評估（商務）
 - [ ] 對齊 Godot 小版本與 console middleware 支援表
+
+產品骨架列（存檔→字串表）已全部勾完；未勾兩項為主機商務／版本對齊，不阻塞桌面持續開發。剩餘 UI CJK 遷表屬跟進收割，不必再開本清單新項。
 
 ---
 
