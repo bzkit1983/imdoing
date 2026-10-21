@@ -121,6 +121,7 @@ func _begin_day() -> void:
 	var pad = preload("res://scripts/touch_pad.gd").new()
 	pad.name = "TouchPad"
 	add_child(pad)
+	pad.visible = PlatformServices.wants_touch_pad()
 	pad.stick_changed.connect(func(axis: Vector2) -> void: _player.stick_axis = axis)
 	pad.hold_changed.connect(func(action: String, pressed: bool) -> void:
 		if _early_open and pressed:

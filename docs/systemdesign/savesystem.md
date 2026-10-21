@@ -3,6 +3,7 @@
 - 此檔是長線存檔規則
 - 工程活線：`godot/game`（見 `docs/versioning.md`）
 - 實作：`game_state.gd` 的 `to_dict`／`from_dict`／`save_to_disk`／`load_from_disk`
+- I/O 經 Autoload **`PlatformServices`**（Desktop：`scripts/platform/desktop_platform.gd` → `user://save.json`）
 
 # 路徑與格式
 
@@ -42,5 +43,6 @@
 
 # 平台
 
-- Desktop／Web 現階段直寫 `user://`  
-- 日後 Steam Cloud／Switch／Xbox 經 `PlatformServices` 包同一 JSON，不另開玩法存檔格式（見技術審查）
+- 玩法只呼叫 `PlatformServices`（`write_save`／`read_save`／`has_save`／`delete_save`／`checkpoint`）  
+- Desktop stub：`user://save.json`；Web／mobile UI profile 為 `touch`，桌面為 `gamepad`（隱藏 TouchPad）  
+- 日後 Steam Cloud／Switch／Xbox 換 backend，不另開玩法存檔格式（見 `docs/alpha/tech-review-v0.1.md`）

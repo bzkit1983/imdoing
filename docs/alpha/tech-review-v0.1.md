@@ -18,7 +18,7 @@
 | --- | --- |
 | GDScript 約略行數 | ~7.7k |
 | ≥1000 行腳本 | 3（`player` · `prep_menu` · `demo`） |
-| 存檔 / Autoload 平台層 / 自動化測試 | 0 |
+| 存檔 / Autoload 平台層 / 自動化測試 | 存檔＋`PlatformServices` Desktop stub 已有；自動化測試仍 0 |
 | 現有匯出預設 | Web only |
 
 ---
@@ -215,7 +215,7 @@ demo.gd（場面主控 · ~1000 行）
 - [x] `game_state` 序列化 + `user://save.json`（含 `version`）— 長線 `docs/systemdesign/savesystem.md`；關店與準備結束寫入
 - [x] 全專案改 InputMap action（移動／互動／取消／技能）— 長線 `docs/systemdesign/control.md`；Autoload `Controls`
 - [x] 拆 `prep_menu.gd` 分頁；關鍵 UI 改 `.tscn` — 殼層 `scenes/prep_menu.tscn`；分頁 `scripts/prep/prep_pages.gd`；格線 `scripts/prep/prep_grid_view.gd`
-- [ ] 新增 `PlatformServices` Autoload stub（Desktop 實作）
+- [x] 新增 `PlatformServices` Autoload stub（Desktop 實作）— `scripts/platform_services.gd`＋`scripts/platform/desktop_platform.gd`；`game_state` I/O 經此層
 - [ ] HUD／客人標籤改髒刷新
 - [ ] 貨架 SKU 索引
 - [ ] NotoSansTC 子集化方案
