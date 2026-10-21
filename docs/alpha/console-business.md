@@ -14,10 +14,10 @@
 | **帳號** | 先申請 **Nintendo Developer Portal**（Switch 存取）＋ **ID@Xbox**（免費加入、審核約數週起跳） |
 | **技術路徑** | 首選 **W4 Consoles 自埠**（Switch 1 + Xbox Series）；團隊小、2D／Compatibility、已有 `PlatformServices` 時成本可控 |
 | **埠接商** | 當備援：工程人力不足、要含 Xbox One／大量認證代跑、或需發行商包辦時再比價 |
-| **Godot 版本** | W4 公開相容多為 **4.3–4.6**（並有 Switch 2 beta）；進主機衝刺前須完成 §6 第 13 點「釘版／對齊 middleware」——**4.7 不可假設可直接匯出** |
+| **Godot 版本** | 釘版政策見 **`docs/alpha/godot-middleware-pin.md`**：桌面維持 **4.7**；W4 公開表現至 **4.6**——**不可假設 4.7 可直接匯主機** |
 | **不做** | 不複製 `godot/game_switch`；不把觸控當唯一通關路徑；NDA 產物不進公開 repo |
 
-**一句話：** 商務上「帳號先開、錢後花」；工程上繼續 Steam + Desktop stub，等內容凍結＋Godot 釘版後再買 W4 或談埠接。
+**一句話：** 商務上「帳號先開、錢後花」；工程上繼續 Steam + Desktop stub，等內容凍結＋通過 `godot-middleware-pin.md` 閘門後再買 W4 或談埠接。
 
 ---
 
@@ -56,7 +56,7 @@ Godot Foundation **不維護**公開主機匯出（開源授權與主機 NDA／S
 | 項目 | 內容（公開頁面摘要，2025–2026） |
 | --- | --- |
 | 平台 | Nintendo Switch、Xbox Series X\|S、PlayStation 5；Switch 2 有 **beta** |
-| Godot | 標榜 4.3+；FAQ 列 **4.4／4.5／4.6**（及 4.3 部分平台）；**與本專案 4.7 有落差 → 見第 13 點** |
+| Godot | 標榜 4.3+；FAQ 列 **4.4／4.5／4.6**（及 4.3 部分平台）；與活線 4.7 之落差與閘門 → **`godot-middleware-pin.md`** |
 | 取得方式 | 填申請 → W4 **核對你已是平台認可開發者** → 發票 → 私有 repo／匯出模板 |
 | 公開價（年訂） | **Starter**（公司 ≤30 人、營收／募資 &lt;$300k）：約 **US$800／平台／年**，三平台打包約 **US$2,000／年**；**Pro** 門檻較高（約 US$4,000／平台／年）。Enterprise 報價、可買斷。埠接商用授權規則另有限制 |
 | 團隊仍要做的事 | 手把焦點／TV UI、掛起與存檔（已有 stub）、Lotcheck／TCR 清單、分級、效能（Switch 1 地板）、平台服務接真 API |
@@ -88,10 +88,10 @@ Godot 官方列表（非背書、需自行比價）含例如：Pineapple Works�
   ├─ Steam 候選包／Steamworks（桌面）
   └─ 不買 W4、不簽埠接（除非有外部 deadline）
 
-內容＋手把 UI 凍結 · 完成 §6「Godot／middleware 釘版」
-  ├─ 確認 W4 支援的 Godot 小版本（必要時活線降／釘版）
+內容＋手把 UI 凍結 · 執行 `godot-middleware-pin.md` 決策樹
+  ├─ 重查 W4 表；等 4.7 埠或降釘到表內最高版（現 4.6）
   ├─ 購買 W4（建議先 Switch，或 All Platforms 打包）
-  └─ 或選定埠接商並簽 SOW
+  └─ 或選定埠接商並簽 SOW（同樣索取支援表）
 
 E · 主機衝刺
   ├─ Devkit、真機效能、Lotcheck／TCR
@@ -126,7 +126,7 @@ E · 主機衝刺
 - 字型子集、髒刷新、SKU 索引（Switch 1 地板）  
 - `Loc` 字串表（語言包／電子手冊另議）
 
-主機開始前仍應完成：tech-review §6 **第 13 點**（Godot 小版本與 middleware 支援表對齊）。
+主機開始前執行：`docs/alpha/godot-middleware-pin.md` 決策樹（重查表／等待或降釘）。
 
 ---
 
@@ -136,6 +136,6 @@ E · 主機衝刺
 | --- | --- |
 | 路徑偏好 | **W4 自埠為預設**；埠接商為備援 |
 | 帳號 | **建議立即申請** Nintendo + ID@Xbox（負責人執行；本檔不代替送件） |
-| 購買 W4／簽埠接 | **延後**至 Godot 釘版＋內容凍結後 |
+| 購買 W4／簽埠接 | **延後**至通過 middleware 釘版閘門＋內容凍結後 |
 | PS5 | 本階段不做 |
 | 文件擁有者 | 商務／製作；工程只消費結論與釘版結果 |

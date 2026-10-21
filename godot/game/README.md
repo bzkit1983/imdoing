@@ -2,7 +2,7 @@
 
 v1.0 起唯一維護的 Godot 專案。從凍結的 `godot/alpha_v0_1` 複製一次而來。
 
-- 用 Godot **4.7** 打開本目錄的 `project.godot`
+- 用 Godot **4.7** 打開本目錄的 `project.godot`（主機 middleware 對齊政策見 `docs/alpha/godot-middleware-pin.md`）
 - 版控：`docs/versioning.md`
 - 技術债清單：`docs/alpha/tech-review-v0.1.md`
 - 匯出預設：`export_presets.cfg` — Web → `docs/play/`；Windows／Linux（Steam 候選）→ repo `build/`（說明：`docs/alpha/export-presets.md`）
