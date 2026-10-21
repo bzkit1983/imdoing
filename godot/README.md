@@ -10,7 +10,7 @@
 
 ## 開發者請開哪個專案？
 
-用 Godot 4.7 打開 **`godot/game/project.godot`**。
+用 Godot 4.7 打開 **`godot/game/project.godot`**（主機 middleware 對齊：[`docs/alpha/godot-middleware-pin.md`](../docs/alpha/godot-middleware-pin.md)）。
 
 不要在 `alpha_v0_1` 或 `demo_v0_*` 上做 v1 功能。那些目錄裡的 `FROZEN.md` 有同樣提醒。
 
