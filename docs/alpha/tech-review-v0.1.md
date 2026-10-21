@@ -105,7 +105,8 @@ demo.gd（場面主控 · ~1000 行）
 
 - ~~客人每 physics 幀 `_refresh_labels()`；player 每幀 `stats_changed` → HUD 全刷~~ **已改髒刷新**（見 §6）  
 
-- `NotoSansTC-Regular.otf` ~5.5MB：應子集化或拆常用字  
+- ~~`NotoSansTC-Regular.otf` ~5.5MB：應子集化或拆常用字~~ **已做**（`NotoSansTC-Game.otf` ≈170KB；見 `docs/alpha/fonts-subset.md`）  
+
 - Switch 掌機／底座雙解析度  
 - 掛起／恢復不得丟檔或卡死  
 
@@ -115,7 +116,7 @@ demo.gd（場面主控 · ~1000 行）
 | --- | --- | --- | --- |
 | P0 | 標籤／HUD 改髒刷新 | PC／手機／Switch 更穩 | **已做** |
 | P0 | 貨架以 SKU 建索引 | 尋貨 O(1) | **已做** |
-| P0 | CJK 字型子集／壓縮 | 降 Switch 記憶體與載入 | 低–中 |
+| P0 | CJK 字型子集／壓縮 | 降 Switch 記憶體與載入 | **已做** |
 | P1 | 尋路節流＋物件池 | 多客同場幀時間更平 | 中 |
 | P1 | 解析度／UI 縮放設定檔 | 掌機可讀、底座／TV 不空 | 中 |
 | P2 | PC Forward+；主機／Web 留 Compatibility | 按平台選渲染器 | 低 |
@@ -219,7 +220,7 @@ demo.gd（場面主控 · ~1000 行）
 - [x] 新增 `PlatformServices` Autoload stub（Desktop 實作）— `scripts/platform_services.gd`＋`scripts/platform/desktop_platform.gd`；`game_state` I/O 經此層
 - [x] HUD／客人標籤改髒刷新 — `player` fingerprint 才 `stats_changed`；`hud` 左右面板 cache；`customer._sync_labels` 只在字／條變更時寫入
 - [x] 貨架 SKU 索引 — `demo._shelves_by_sku`；`shelf.stock_sku_changed` 維護；`find_shelf` O(1)（見 `docs/systemdesign/customer.md`）
-- [ ] NotoSansTC 子集化方案
+- [x] NotoSansTC 子集化方案 — 執行期 `NotoSansTC-Game.otf`；重建 `tools/fonts/subset_notosans_tc.py`；說明 `docs/alpha/fonts-subset.md`
 - [ ] 暫停選單 + 掛起／恢復鉤子
 - [ ] Windows／Linux 匯出預設（Steam 候選）
 - [ ] 字串表（i18n）抽出

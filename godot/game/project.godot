@@ -31,7 +31,7 @@ window/handheld/orientation=4
 [gui]
 
 theme/custom="res://themes/default.tres"
-theme/custom_font="res://fonts/NotoSansTC-Regular.otf"
+theme/custom_font="res://fonts/NotoSansTC-Game.otf"
 
 [internationalization]
 

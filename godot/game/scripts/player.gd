@@ -1296,7 +1296,7 @@ func _try_command(dir: int) -> void:
 	else:
 		_prompt.fail_at = seq_index
 		seq_index = 0
-		log_line.emit("指令錯誤 ✕ 同一串重來")
+		log_line.emit("指令錯誤 × 同一串重來")
 
 
 func _finish_checkout(cust) -> void:
@@ -1409,7 +1409,7 @@ func _try_ult_dir(dir: int) -> void:
 		_prompt.fail_at = _ult_index
 		_ult_index = 0
 		_prompt.index = 0
-		log_line.emit("奧義指令錯誤 ✕ 同一串重來")
+		log_line.emit("奧義指令錯誤 × 同一串重來")
 
 
 func _cast_slot(i: int) -> void:
