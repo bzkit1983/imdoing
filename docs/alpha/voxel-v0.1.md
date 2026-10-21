@@ -2,7 +2,9 @@
 
 這是美術的第一刀，也是能玩的一版。玩法跟 Demo v0.6 一樣：準備、擺店、開店、收銀、清潔、小偷。畫面換成 Voxel。
 
-Demo v0.6 那個專案沒有改。要玩 Alpha，用 Godot 4.7 打開 `godot/alpha_v0_1`，直接按播放。手機可開 https://bzkit1983.github.io/imdoing/play-alpha-v01/ 。操作和 Demo 相同。
+> **凍結：** `godot/alpha_v0_1` 不再接受新功能。v1 美術與玩法請改 **`godot/game`**（見 `docs/versioning.md`、`godot/README.md`）。以下步驟保留作 Alpha 歷史說明；烘焙腳本預設已指向 `godot/game`。
+
+Demo v0.6 那個專案沒有改。要重播 Alpha，用 Godot 4.7 打開 `godot/alpha_v0_1`，直接按播放。手機可開 https://bzkit1983.github.io/imdoing/play-alpha-v01/ 。操作和 Demo 相同。
 
 `docs/alpha/plan.md` 寫的是系統做完才把 Voxel 渲成精靈。V0.1 先做模型本身，那份計劃的玩法數字這裡不用。
 
