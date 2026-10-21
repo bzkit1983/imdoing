@@ -9,6 +9,7 @@ const ShelfScript = preload("res://scripts/shelf.gd")
 const Fundraise = preload("res://scripts/fundraise.gd")
 const DirtScript = preload("res://scripts/dirt.gd")
 const DroppedBoxScript = preload("res://scripts/dropped_box.gd")
+const DropFlightScript = preload("res://scripts/drop_flight.gd")
 const CashierScript = preload("res://scripts/cashier.gd")
 const CustomerScript = preload("res://scripts/customer.gd")
 const ClerkScript = preload("res://scripts/clerk.gd")
@@ -1011,10 +1012,33 @@ func _remove_interactable(node: Node2D) -> void:
 	_player.interactables.erase(node)
 
 
-func spawn_dropped_box(pos: Vector2, sku: String, n: int, toss_dir: Vector2 = Vector2.ZERO) -> void:
+func spawn_dropped_box(
+	pos: Vector2,
+	sku: String,
+	n: int,
+	toss_dir: Vector2 = Vector2.ZERO,
+	toss_dist: float = -1.0,
+	on_landed: Callable = Callable(),
+) -> void:
+	var dest := pos + Tuning.drop_offset(toss_dir, toss_dist)
+	## Instant place when no flight needed (e.g. thief loot dump).
+	if not on_landed.is_valid() and toss_dir.length_squared() < 0.0001:
+		_place_dropped_box(dest, sku, n)
+		return
+	var flight: Node2D = DropFlightScript.new()
+	flight.setup(sku, pos, dest)
+	_world.add_child(flight)
+	flight.finished.connect(func() -> void:
+		_place_dropped_box(dest, sku, n)
+		if on_landed.is_valid():
+			on_landed.call()
+	)
+
+
+func _place_dropped_box(dest: Vector2, sku: String, n: int) -> void:
 	var drop: Area2D = DroppedBoxScript.new()
 	drop.setup(sku, n)
-	drop.global_position = pos + Tuning.drop_offset(toss_dir)
+	drop.global_position = dest
 	_world.add_child(drop)
 	_add_interactable(drop)
 	drop.tree_exiting.connect(func() -> void: _remove_interactable(drop))

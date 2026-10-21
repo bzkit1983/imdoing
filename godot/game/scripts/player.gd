@@ -76,8 +76,12 @@ var _stun_pending: float = Tuning.STUN_SEC
 var _cancel_held: bool = false
 var _cancel_time: float = 0.0
 var _cancel_dropped: bool = false
-## Last move axis while holding cancel (for directional toss). Zero = drop at feet.
+## Aim direction while holding cancel. Zero = drop at feet.
 var _cancel_drop_dir: Vector2 = Vector2.ZERO
+## True from toss start until the flying box lands — movement stays locked.
+var _drop_flight_lock: bool = false
+var _drop_aim_line: Line2D
+var _drop_aim_mark: Polygon2D
 
 
 func _ready() -> void:
@@ -93,7 +97,32 @@ func _ready() -> void:
 	stack.position = Vector2(0, -6)
 	stack.setup(inventory)
 	add_child(stack)
+	_setup_drop_aim()
 	_refresh_passive_checkout()
+
+
+func _setup_drop_aim() -> void:
+	_drop_aim_line = Line2D.new()
+	_drop_aim_line.name = "DropAimLine"
+	_drop_aim_line.width = 3.0
+	_drop_aim_line.default_color = Color(1.0, 0.9, 0.4, 0.75)
+	_drop_aim_line.visible = false
+	_drop_aim_line.z_index = 6
+	add_child(_drop_aim_line)
+	_drop_aim_mark = Polygon2D.new()
+	_drop_aim_mark.name = "DropAimMark"
+	_drop_aim_mark.color = Color(1.0, 0.85, 0.3, 0.7)
+	_drop_aim_mark.polygon = PackedVector2Array([
+		Vector2(-10, 0), Vector2(0, -10), Vector2(10, 0), Vector2(0, 10),
+	])
+	_drop_aim_mark.visible = false
+	_drop_aim_mark.z_index = 6
+	add_child(_drop_aim_mark)
+
+
+## Base 3 身位; later drop-range skills can multiply this.
+func drop_toss_dist() -> float:
+	return Tuning.DROP_TOSS_DIST
 
 
 func _loadout() -> Array[Dictionary]:
@@ -350,11 +379,14 @@ func set_hold(action: String, pressed: bool) -> void:
 				_cancel_time = 0.0
 				_cancel_dropped = false
 				_cancel_drop_dir = Vector2.ZERO
+				_begin_drop_aim()
 				_sample_cancel_drop_dir()
 				_cancel_input()
 			else:
 				_cancel_time = 0.0
-				_cancel_drop_dir = Vector2.ZERO
+				if not _cancel_dropped and not _drop_flight_lock:
+					_cancel_drop_dir = Vector2.ZERO
+					_hide_drop_aim()
 
 
 func move_state() -> String:
@@ -362,6 +394,10 @@ func move_state() -> String:
 		return "暈眩"
 	if _slip_left > 0.0:
 		return "滑倒"
+	if _drop_flight_lock:
+		return "丟貨"
+	if _cancel_held and not _cancel_dropped:
+		return "掉貨瞄準"
 	if ult_prep:
 		return "奧義指令"
 	if skill_menu_open:
@@ -439,23 +475,55 @@ func _input(event: InputEvent) -> void:
 		_handle_hotkey_actions(event)
 
 
+func _begin_drop_aim() -> void:
+	## Entering drop prep pauses walk/run/dash until the box lands.
+	_running = false
+	_dashing = false
+	velocity = Vector2.ZERO
+
+
 func _tick_cancel_hold(delta: float) -> void:
 	if _cancel_dropped:
 		return
-	## Keep sampling while held so walk/run + direction still aim the toss.
+	## Aim: movement locked, but direction input still retargets the toss.
 	_sample_cancel_drop_dir()
+	_update_drop_aim()
 	_cancel_time += delta
 	if _cancel_time < Tuning.DROP_HOLD_SEC:
 		return
 	_cancel_dropped = true
+	_hide_drop_aim()
 	_discard_top_box()
 
 
 func _sample_cancel_drop_dir() -> void:
-	## Input direction only (not facing). No stick / WASD → stay at feet.
+	## Direction keys retarget aim; no input keeps last aim or feet (zero).
 	var v := Controls.move_vector() + stick_axis
 	if v.length() >= Tuning.DROP_DIR_DEADZONE:
 		_cancel_drop_dir = v.normalized()
+		facing = _cancel_drop_dir
+
+
+func _drop_aim_dest() -> Vector2:
+	return global_position + Tuning.drop_offset(_cancel_drop_dir, drop_toss_dist())
+
+
+func _update_drop_aim() -> void:
+	if _drop_aim_line == null or inventory.is_empty():
+		_hide_drop_aim()
+		return
+	var dest := _drop_aim_dest()
+	_drop_aim_line.visible = true
+	_drop_aim_mark.visible = true
+	_drop_aim_line.points = PackedVector2Array([Vector2.ZERO, dest - global_position])
+	_drop_aim_mark.position = dest - global_position
+
+
+func _hide_drop_aim() -> void:
+	if _drop_aim_line:
+		_drop_aim_line.visible = false
+	if _drop_aim_mark:
+		_drop_aim_mark.visible = false
 
 
 func _round_active() -> bool:
@@ -478,13 +546,14 @@ func _discard_top_box() -> void:
 		return
 	if inventory.is_empty():
 		log_line.emit("手上沒有貨箱")
+		_hide_drop_aim()
 		return
 	var run: Dictionary = inventory.trailing_run()
 	var name := Tuning.sku_name(String(run["id"]))
 	var toss := _cancel_drop_dir
 	_drop_top_box(toss)
 	if toss.length_squared() > 0.01:
-		log_line.emit("丟掉 %s 1箱 — 往%s丟出，可以再撿" % [name, _drop_dir_label(toss)])
+		log_line.emit("丟掉 %s 1箱 — 往%s飛出，可以再撿" % [name, _drop_dir_label(toss)])
 	else:
 		log_line.emit("丟掉 %s 1箱 — 掉在腳邊，可以再撿" % name)
 
@@ -520,12 +589,17 @@ func _physics_process(delta: float) -> void:
 	command_lock = _j_held and is_instance_valid(target) and String(target.get("kind")) == "cashier" and not skill_menu_open and not ult_prep
 	if not command_lock and not ult_prep:
 		_prompt.active = false
-	if _k_held and not command_lock and not skill_menu_open and not ult_prep and not _fighting and _stun_left <= 0.0 and _slip_left <= 0.0:
+	if _k_held and not _cancel_held and not _drop_flight_lock and not command_lock and not skill_menu_open and not ult_prep and not _fighting and _stun_left <= 0.0 and _slip_left <= 0.0:
 		_k_time += delta
 		if _k_time >= Tuning.RUN_HOLD_THRESHOLD:
 			_running = stamina > 1.0
 	if _cancel_held:
 		_tick_cancel_hold(delta)
+	## Aim / toss flight: freeze locomotion (slip overrides below via _tick_slip).
+	if (_cancel_held or _drop_flight_lock) and _slip_left <= 0.0:
+		_running = false
+		_dashing = false
+		velocity = Vector2.ZERO
 	if _l_held and _sick_left <= 0.0 and _stun_left <= 0.0:
 		_l_time += delta
 		if not skill_menu_open and _l_time >= Skills.HOLD_MENU_SEC:
@@ -717,6 +791,9 @@ func _wiggle_axis() -> Vector2:
 
 
 func _move_axis() -> Vector2:
+	## Drop aim / flight: no locomotion (direction still sampled in cancel hold).
+	if _cancel_held or _drop_flight_lock:
+		return Vector2.ZERO
 	if _stun_left > 0.0 or _slip_left > 0.0 or _fighting or _in_dir_mode() or _shelving() or _cleaning():
 		return Vector2.ZERO
 	var v := Controls.move_vector() + stick_axis
@@ -828,7 +905,8 @@ func _begin_slip() -> void:
 	_slip_left = Tuning.SLIP_TIME
 	_stun_pending = Tuning.STUN_SEC
 	_reset_hold()
-	_drop_top_box()
+	## Slip dump: no aim lock — player is already sliding.
+	_drop_top_box(Vector2.ZERO, false)
 	log_line.emit("水漬滑倒 — 滑出 3 身位，暈眩 3 秒")
 
 
@@ -845,7 +923,7 @@ func _tick_slip(delta: float) -> void:
 		_stun_left = _stun_pending
 
 
-func _drop_top_box(toss_dir: Vector2 = Vector2.ZERO) -> void:
+func _drop_top_box(toss_dir: Vector2 = Vector2.ZERO, lock_until_land: bool = true) -> void:
 	if inventory.is_empty():
 		return
 	var run: Dictionary = inventory.trailing_run()
@@ -853,7 +931,28 @@ func _drop_top_box(toss_dir: Vector2 = Vector2.ZERO) -> void:
 	inventory.remove_trailing(n)
 	var game := get_tree().get_first_node_in_group("game")
 	if game and game.has_method("spawn_dropped_box"):
-		game.call("spawn_dropped_box", global_position, String(run["id"]), n, toss_dir)
+		var landed := Callable()
+		if lock_until_land:
+			_drop_flight_lock = true
+			_running = false
+			_dashing = false
+			velocity = Vector2.ZERO
+			landed = Callable(self, "_on_drop_flight_done")
+		game.call(
+			"spawn_dropped_box",
+			global_position,
+			String(run["id"]),
+			n,
+			toss_dir,
+			drop_toss_dist(),
+			landed,
+		)
+
+
+func _on_drop_flight_done() -> void:
+	_drop_flight_lock = false
+	_cancel_drop_dir = Vector2.ZERO
+	_hide_drop_aim()
 
 
 func _tick_status(delta: float) -> void:
