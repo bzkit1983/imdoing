@@ -70,13 +70,17 @@ const DASH_TIME := 0.12
 const RUN_HOLD_THRESHOLD := 0.18
 ## Long-press cancel (B or ;) drops the top carried box. A tap still only cancels.
 const DROP_HOLD_SEC := 0.45
-## Base toss distance (3 身位). Future drop-range skills multiply via player.drop_toss_dist().
-const DROP_TOSS_BODY_LENGTHS := 3.0
+## Base toss distance (5 身位). Future drop-range skills multiply via player.drop_toss_dist().
+const DROP_TOSS_BODY_LENGTHS := 5.0
 const DROP_TOSS_DIST := DROP_TOSS_BODY_LENGTHS * BODY_LENGTH
 const DROP_DIR_DEADZONE := 0.35
 ## Flight time for the tossed box (movement stays locked until it lands).
 const DROP_FLIGHT_SEC := 0.28
 const DROP_FEET_OFFSET := Vector2(0.0, 22.0)
+## Aim / flight trail — cool cyan so it reads on warm floor tiles.
+const DROP_AIM_LINE_COLOR := Color(0.2, 0.92, 1.0, 0.9)
+const DROP_AIM_MARK_COLOR := Color(0.15, 0.85, 0.98, 0.85)
+const DROP_FLIGHT_TRAIL_COLOR := Color(0.25, 0.95, 1.0, 0.6)
 const STAMINA_PER_STR := 10.0
 const RUN_STAMINA_PER_SEC := 20.0
 const DASH_STAMINA_COST := 50.0
@@ -274,7 +278,7 @@ static func dirt_type_name(dtype: String) -> String:
 
 
 ## Offset from player origin to drop destination.
-## Zero / tiny toss_dir → at feet. Else push `toss_dist` (default base 3 身位) along dir.
+## Zero / tiny toss_dir → at feet. Else push `toss_dist` (default base 5 身位) along dir.
 static func drop_offset(toss_dir: Vector2, toss_dist: float = -1.0) -> Vector2:
 	var dist := DROP_TOSS_DIST if toss_dist < 0.0 else toss_dist
 	if toss_dir.length_squared() < 0.0001:
