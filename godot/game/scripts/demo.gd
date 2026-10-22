@@ -1021,18 +1021,82 @@ func spawn_dropped_box(
 	on_landed: Callable = Callable(),
 ) -> void:
 	var dest := pos + Tuning.drop_offset(toss_dir, toss_dist)
-	## Instant place when no flight needed (e.g. thief loot dump).
+	## Instant place when no flight needed (e.g. legacy callers).
 	if not on_landed.is_valid() and toss_dir.length_squared() < 0.0001:
 		_place_dropped_box(dest, sku, n)
 		return
+	_spawn_box_flight(pos, dest, sku, n, Tuning.DROP_FLIGHT_SEC, on_landed)
+
+
+## Scatter cart piles from `origin` with flight anim; destinations do not overlap.
+func spawn_loot_scatter(
+	origin: Vector2,
+	piles: Array,
+	min_r: float,
+	max_r: float,
+) -> void:
+	if piles.is_empty():
+		return
+	var dests := Tuning.loot_scatter_positions(origin, piles.size(), min_r, max_r)
+	for i in piles.size():
+		var pile: Dictionary = piles[i]
+		var sku := String(pile.get("sku", ""))
+		var n := int(pile.get("n", 0))
+		if sku == "" or n <= 0:
+			continue
+		var dest: Vector2 = dests[i] if i < dests.size() else origin + Vector2(0, Tuning.LOOT_SCATTER_MELEE_MIN)
+		var dur := Tuning.LOOT_SCATTER_FLIGHT_SEC + float(i) * 0.04
+		_spawn_box_flight(origin, dest, sku, n, dur, Callable())
+
+
+func _spawn_box_flight(
+	from: Vector2,
+	to: Vector2,
+	sku: String,
+	n: int,
+	duration: float,
+	on_landed: Callable,
+) -> void:
 	var flight: Node2D = DropFlightScript.new()
-	flight.setup(sku, pos, dest)
+	flight.setup(sku, from, to, duration)
 	_world.add_child(flight)
 	flight.finished.connect(func() -> void:
-		_place_dropped_box(dest, sku, n)
+		_place_dropped_box(to, sku, n)
 		if on_landed.is_valid():
 			on_landed.call()
 	)
+
+
+## Full-screen KO flash used when a fight mash finishes the thief.
+func play_ko_banner() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 80
+	add_child(layer)
+	var flash := ColorRect.new()
+	flash.set_anchors_preset(Control.PRESET_FULL_RECT)
+	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	flash.color = Color(1, 1, 1, 0.0)
+	layer.add_child(flash)
+	var lab := Label.new()
+	lab.text = "KO"
+	lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lab.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	lab.set_anchors_preset(Control.PRESET_FULL_RECT)
+	lab.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UiFont.apply_label(lab, UiFont.HUGE)
+	lab.add_theme_font_size_override("font_size", 112)
+	lab.add_theme_color_override("font_color", Color(1.0, 0.9, 0.15, 1.0))
+	lab.add_theme_color_override("font_outline_color", Color(0.05, 0.05, 0.08, 1.0))
+	lab.add_theme_constant_override("outline_size", 14)
+	lab.modulate.a = 0.0
+	layer.add_child(lab)
+	var tw := create_tween()
+	tw.tween_property(flash, "color:a", 0.75, 0.06)
+	tw.parallel().tween_property(lab, "modulate:a", 1.0, 0.08)
+	tw.tween_interval(0.14)
+	tw.tween_property(flash, "color:a", 0.0, Tuning.FIGHT_KO_FLASH_SEC * 0.65)
+	tw.parallel().tween_property(lab, "modulate:a", 0.0, Tuning.FIGHT_KO_FLASH_SEC * 0.7)
+	tw.tween_callback(layer.queue_free)
 
 
 func _place_dropped_box(dest: Vector2, sku: String, n: int) -> void:

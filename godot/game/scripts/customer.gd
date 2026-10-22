@@ -449,13 +449,8 @@ func take_hit(amount: float) -> bool:
 
 
 func drop_loot_and_leave() -> void:
-	if _game and _game.has_method("spawn_dropped_box"):
-		var groups: Dictionary = {}
-		for sku in cart:
-			groups[sku] = int(groups.get(sku, 0)) + 1
-		for sku in groups.keys():
-			_game.call("spawn_dropped_box", global_position, String(sku), int(groups[sku]))
-	cart.clear()
+	## Legacy path: near scatter + walk off (KO fight uses ko_scatter_and_flee).
+	_scatter_cart(Tuning.LOOT_SCATTER_MELEE_MIN, Tuning.LOOT_SCATTER_MELEE_MAX)
 	mood = "丟下贓物跑了"
 	_leave(false)
 
@@ -468,20 +463,48 @@ func escape_with_loot() -> void:
 	_leave(false)
 
 
+## Fight mash win: loot scatters nearby, then thief is KO-flown off-screen.
+func ko_scatter_and_flee(dir: Vector2) -> void:
+	if state == State.FLEE or state == State.LEAVE:
+		return
+	if _reg():
+		_reg().dequeue(self)
+	_scatter_cart(Tuning.LOOT_SCATTER_MELEE_MIN, Tuning.LOOT_SCATTER_MELEE_MAX)
+	_begin_flee(dir, "被打飛！")
+
+
 func dash_knock_away(dir: Vector2) -> void:
 	if state == State.FLEE or state == State.LEAVE:
 		return
 	if _reg():
 		_reg().dequeue(self)
-	if not cart.is_empty() and _game and _game.has_method("record_stolen"):
-		_game.call("record_stolen", cart)
+	## Dash: loot scatters farther (≤ 5 身位); not counted as stolen or catch.
+	_scatter_cart(Tuning.LOOT_SCATTER_DASH_MIN, Tuning.LOOT_SCATTER_DASH_MAX)
+	_begin_flee(dir, "被撞飛！")
+
+
+func _scatter_cart(min_r: float, max_r: float) -> void:
+	if cart.is_empty() or _game == null:
 		cart.clear()
+		return
+	var piles: Array[Dictionary] = Tuning.loot_piles_from_cart(cart)
+	cart.clear()
+	if piles.is_empty():
+		return
+	if _game.has_method("spawn_loot_scatter"):
+		_game.call("spawn_loot_scatter", global_position, piles, min_r, max_r)
+	elif _game.has_method("spawn_dropped_box"):
+		for pile in piles:
+			_game.call("spawn_dropped_box", global_position, String(pile["sku"]), int(pile["n"]))
+
+
+func _begin_flee(dir: Vector2, flee_mood: String) -> void:
 	state = State.FLEE
 	_flee_dir = dir.normalized() if dir.length_squared() > 0.01 else Vector2.UP
 	_flee_left = 0.55
 	collision_layer = 0
 	collision_mask = 0
-	mood = "被撞飛！"
+	mood = flee_mood
 	z_index = 8
 	_clear_route()
 

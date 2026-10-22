@@ -24,7 +24,7 @@
 上架: AGI 10＝2 秒 Circle，AGI 50＝0.2 秒，中間線性（見 `playerstats.md`）
 清潔: 見 `cleaningsystem.md`。長按行動後轉搖桿填清潔計 0→100；AGI 越高每下動搖加得越多（等同 AGI 10 全力轉約 5 秒、AGI 50 約 1 秒）
 收錢: INT 10＝2 秒 Circle，INT 50＝0.2 秒，中間線性（見 `playerstats.md`）
-打擊: 見 `thiefsystem.md`。長按抓住後連按行動鍵扣血量計（100→0）；STR 越高每下扣得越多。5 秒內打完，否則被撞開倒地 5 秒
+打擊: 見 `thiefsystem.md`。長按抓住後連按行動鍵扣血量計（100→0）；連打鏡頭晃動；打完 Screen KO 打飛小偷，贓物近距散落。5 秒內打完，否則被撞開倒地 5 秒
 
 #**行動動作案例**
 上架、收銀（指令完成後）長按行動會出現 Loading Circle；填滿才完成，放手重置。

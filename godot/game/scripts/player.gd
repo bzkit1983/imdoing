@@ -72,6 +72,10 @@ var _restock_hold: float = 0.0
 var _restock_aborted: bool = false
 var _fighting: bool = false
 var _fight_release: bool = false
+## True while KO banner / knockaway plays after a fight mash win.
+var _fight_ko: bool = false
+var _shake_left: float = 0.0
+var _shake_mag: float = 0.0
 var _stun_pending: float = Tuning.STUN_SEC
 var _cancel_held: bool = false
 var _cancel_time: float = 0.0
@@ -1067,44 +1071,80 @@ func _begin_fight() -> void:
 	if not bool(target.call("is_active_thief")):
 		return
 	_fighting = true
+	_fight_ko = false
 	_fight_release = true
 	target.call("begin_fight")
 	log_line.emit("抓住小偷 — 連按行動鍵扣血，剩 5 秒")
 	if camera:
-		camera.zoom = Vector2(Tuning.FIGHT_ZOOM, Tuning.FIGHT_ZOOM)
-		camera.position = (target.global_position - global_position) * 0.4
+		camera.position = (target.global_position - global_position) * 0.35
+		var tw := create_tween()
+		tw.tween_property(
+			camera, "zoom",
+			Vector2(Tuning.FIGHT_ZOOM, Tuning.FIGHT_ZOOM),
+			0.16,
+		)
 
 
 func _tick_fight(delta: float) -> void:
+	if _fight_ko:
+		_tick_camera_shake(delta)
+		return
 	if not is_instance_valid(target) or not bool(target.call("in_fight")):
 		_end_fight(false)
 		return
 	target.fight_left = maxf(0.0, float(target.fight_left) - delta)
 	hold_progress = clampf(float(target.fight_hp) / 100.0, 0.0, 1.0)
 	target.call("_refresh_labels")
+	_tick_camera_shake(delta)
 	if float(target.fight_left) <= 0.0:
 		_fight_fail()
 
 
 func _fight_tap() -> void:
-	if not is_instance_valid(target):
+	if not is_instance_valid(target) or _fight_ko:
 		return
 	var dmg := Tuning.hit_damage(_str_now())
+	_shake_camera(Tuning.FIGHT_HIT_SHAKE, Tuning.FIGHT_HIT_SHAKE_SEC)
 	if bool(target.call("take_hit", dmg)):
 		_fight_win()
 
 
 func _fight_win() -> void:
+	if _fight_ko:
+		return
+	_fight_ko = true
 	var game := get_tree().get_first_node_in_group("game")
 	if game and game.has_method("record_caught"):
 		game.call("record_caught")
-	if is_instance_valid(target):
-		target.call("drop_loot_and_leave")
-	log_line.emit("打倒小偷 — 贓物掉在地上")
+	log_line.emit("打倒小偷 — KO！贓物散落地上")
+	_play_ko_sequence(target)
+
+
+func _play_ko_sequence(thief: Node) -> void:
+	_shake_camera(Tuning.FIGHT_KO_SHAKE, 0.22)
+	if camera:
+		var punch := create_tween()
+		punch.tween_property(
+			camera, "zoom",
+			Vector2(Tuning.FIGHT_KO_ZOOM, Tuning.FIGHT_KO_ZOOM),
+			0.07,
+		)
+	var game := get_tree().get_first_node_in_group("game")
+	if game and game.has_method("play_ko_banner"):
+		game.call("play_ko_banner")
+	await get_tree().create_timer(0.18).timeout
+	if is_instance_valid(thief):
+		var knock: Vector2 = (thief as Node2D).global_position - global_position
+		if knock.length_squared() < 0.01:
+			knock = facing
+		thief.call("ko_scatter_and_flee", knock.normalized())
+	await get_tree().create_timer(Tuning.FIGHT_KO_FLASH_SEC * 0.55).timeout
 	_end_fight(true)
 
 
 func _fight_fail() -> void:
+	if _fight_ko:
+		return
 	if is_instance_valid(target):
 		var away := global_position - target.global_position
 		if away.length_squared() < 0.01:
@@ -1122,10 +1162,30 @@ func _fight_fail() -> void:
 func _end_fight(_won: bool) -> void:
 	_fighting = false
 	_fight_release = false
+	_fight_ko = false
+	_shake_left = 0.0
 	hold_progress = 0.0
 	if camera:
 		camera.zoom = Vector2(Tuning.CAMERA_ZOOM, Tuning.CAMERA_ZOOM)
 		camera.position = Vector2.ZERO
+		camera.offset = Vector2.ZERO
+
+
+func _shake_camera(mag: float, dur: float) -> void:
+	_shake_mag = mag
+	_shake_left = maxf(_shake_left, dur)
+
+
+func _tick_camera_shake(delta: float) -> void:
+	if camera == null:
+		return
+	if _shake_left <= 0.0:
+		camera.offset = Vector2.ZERO
+		return
+	_shake_left = maxf(0.0, _shake_left - delta)
+	var falloff := clampf(_shake_left / maxf(Tuning.FIGHT_HIT_SHAKE_SEC, 0.01), 0.0, 1.0)
+	var m := _shake_mag * (0.35 + 0.65 * falloff)
+	camera.offset = Vector2(randf_range(-m, m), randf_range(-m, m))
 
 
 func _try_dash_thief() -> void:
@@ -1140,7 +1200,7 @@ func _try_dash_thief() -> void:
 		if global_position.distance_to(t.global_position) > Tuning.DASH_HIT_RANGE:
 			continue
 		t.call("dash_knock_away", _dash_dir)
-		log_line.emit("衝刺撞飛小偷")
+		log_line.emit("衝刺撞飛小偷 — 贓物散落")
 		if _fighting:
 			_end_fight(false)
 		return
