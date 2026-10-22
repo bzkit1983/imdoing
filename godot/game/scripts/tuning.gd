@@ -81,6 +81,8 @@ const DROP_FEET_OFFSET := Vector2(0.0, 22.0)
 const DROP_AIM_LINE_COLOR := Color(0.2, 0.92, 1.0, 0.9)
 const DROP_AIM_MARK_COLOR := Color(0.15, 0.85, 0.98, 0.85)
 const DROP_FLIGHT_TRAIL_COLOR := Color(0.25, 0.95, 1.0, 0.6)
+## Directional toss landing within this radius of a matching shelf → restock.
+const DROP_SHELF_HIT_RADIUS := 78.0
 const STAMINA_PER_STR := 10.0
 const RUN_STAMINA_PER_SEC := 20.0
 const DASH_STAMINA_COST := 50.0
