@@ -1,8 +1,8 @@
 # Alpha → v1 實作對照（設計已落地項）
 
-- 對照日：2026-10-22（含 PR #3–#39 相關玩法：掉貨瞄準、丟掉上架、丟掉砸小偷、Pages）
+- 對照日：2026-10-22（含 PR #3–#45：掉貨／丟掉上架砸小偷、Design Gap 拍板、Runtime P1＋P2、Pages v1.1.0）
 - 用途：把近期工程變更連回長線／Alpha 設計檔，方便查「文件寫在哪、程式改哪」
-- 版控：`docs/versioning.md` · 技術债清單：`docs/alpha/tech-review-v0.1.md`（§6 已全部勾完） · 缺口：`docs/systemdesign-gaps.md`
+- 版控：`docs/versioning.md` · 技術债清單：`docs/alpha/tech-review-v0.1.md`（§6 已全部勾完） · 缺口：`docs/systemdesign-gaps.md` · 執行期優化：`docs/alpha/runtime-perf-audit.md`
 
 | 變更 | 長線／Alpha 文件 | 工程 |
 | --- | --- | --- |
@@ -13,6 +13,7 @@
 | HUD／客人標籤髒刷新 | tech-review §3／§6 | `hud.gd` cache；`player._emit_stats_if_changed`；`customer._sync_labels` |
 | 貨架 SKU 索引 | tech-review §3／§6 | `demo._shelves_by_sku`＋`shelf.stock_sku_changed`；`find_shelf` 走索引 |
 | NotoSansTC 子集 | **`docs/alpha/fonts-subset.md`** | `NotoSansTC-Game.otf`＋`charset_game.txt`；`tools/fonts/subset_notosans_tc.py` |
+| 執行期效能審計＋P1／P2 優化 | tech-review §3；**`docs/alpha/runtime-perf-audit.md`** | 審計＋實作已合入；見 audit 文末 P1／P2 DONE |
 | 暫停選單＋掛起／恢復 | **`docs/systemdesign/pausemenu.md`** | `pause_menu.tscn`；`PlatformServices` 信號；營運日 Esc／Start |
 | Win／Linux 匯出（Steam 候選） | **`docs/alpha/export-presets.md`** | `export_presets.cfg`；輸出 `build/windows`／`build/linux`；feature `steam_candidate` |
 | 字串表 i18n | **`docs/alpha/i18n.md`** | `locale/strings.csv`；Autoload `Loc`；準備／暫停／HUD 已遷 |

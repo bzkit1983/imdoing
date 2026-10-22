@@ -3,6 +3,7 @@
 - 對照日：2026-10-22（含 v1.1.0 拍板：衝刺撞客人、擁擠減速、凌波微步、丟掉砸客人、多台選隊等；對齊 PR #3–#42）
 - 範圍：只讀 `docs/systemdesign/`（含 `savesystem.md`、`pausemenu.md`），**不含** Demo scope
 - 工程落地對照：`docs/alpha/implementation-status.md`
+- 執行期優化分析（非玩法缺口）：`docs/alpha/runtime-perf-audit.md`
 - 問題是文件本身的矛盾、缺系統與未定義，不是 Demo 實作差異（Demo 試玩數字只當「長線未定」的註記）
 
 | 設計檔 | 記下的問題 | 建議先拍板 (P0) | 缺整塊系統 |
