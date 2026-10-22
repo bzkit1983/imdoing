@@ -8,6 +8,8 @@
 
 This is a read-only findings list. Suggested fixes are directional; none are applied here.
 
+**結論（中）：** 先前 P0（HUD 髒寫入、貨架 SKU 索引、CJK 字型子集、SpriteFrames cache）已落地；本 tip **無新 P0**。下一步以 Switch 1 為地板，優先砍「髒門之前仍每幀算／配」的成本：interactable 掃描、HUD fingerprint／左側 `thieves()`、尋路預算、地板 TileMap、`box_stack` 重繪、客人清單字串重建。詳見文末 Priority summary。
+
 ---
 
 ## Already optimized (do not re-litigate)
