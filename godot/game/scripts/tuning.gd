@@ -113,7 +113,20 @@ const THIEF_LIST_MIN := 2
 const THIEF_LIST_MAX := 4
 const FIGHT_SEC := 5.0
 const FIGHT_DOWN_SEC := 5.0
-const FIGHT_ZOOM := 1.72
+## Closer than default shop zoom (1.22) for grab/fight framing.
+const FIGHT_ZOOM := 2.45
+const FIGHT_KO_ZOOM := 2.85
+const FIGHT_HIT_SHAKE := 5.5
+const FIGHT_HIT_SHAKE_SEC := 0.09
+const FIGHT_KO_SHAKE := 12.0
+const FIGHT_KO_FLASH_SEC := 0.55
+## Melee KO loot: short ground scatter. Dash: farther, still ≤ 5 身位.
+const LOOT_SCATTER_MELEE_MIN := 0.55 * BODY_LENGTH
+const LOOT_SCATTER_MELEE_MAX := 1.75 * BODY_LENGTH
+const LOOT_SCATTER_DASH_MIN := 2.2 * BODY_LENGTH
+const LOOT_SCATTER_DASH_MAX := 5.0 * BODY_LENGTH
+const LOOT_SCATTER_MIN_GAP := 30.0
+const LOOT_SCATTER_FLIGHT_SEC := 0.38
 const HIT_AT_10 := 3.5
 const HIT_AT_50 := 12.0
 const DASH_HIT_RANGE := 32.0
@@ -284,6 +297,66 @@ static func drop_offset(toss_dir: Vector2, toss_dist: float = -1.0) -> Vector2:
 	if toss_dir.length_squared() < 0.0001:
 		return DROP_FEET_OFFSET
 	return toss_dir.normalized() * dist
+
+
+## Non-overlapping scatter points in a ring between min_r and max_r (pixels).
+static func loot_scatter_positions(
+	origin: Vector2,
+	count: int,
+	min_r: float,
+	max_r: float,
+	min_gap: float = LOOT_SCATTER_MIN_GAP,
+) -> PackedVector2Array:
+	var out: PackedVector2Array = PackedVector2Array()
+	if count <= 0:
+		return out
+	var lo := minf(min_r, max_r)
+	var hi := maxf(min_r, max_r)
+	hi = maxf(hi, lo + 0.01)
+	## Widen ring if needed so N points can sit at min_gap on a circle.
+	var need_r := (min_gap * float(count)) / TAU
+	if need_r > hi:
+		hi = need_r
+	var golden := PI * (3.0 - sqrt(5.0))
+	for i in count:
+		var t := (float(i) + 0.55) / float(count)
+		var r := lerpf(lo, hi, sqrt(t))
+		var ang := float(i) * golden
+		var p := origin + Vector2(cos(ang), sin(ang)) * r
+		for _pass in 8:
+			var pushed := false
+			for j in out.size():
+				var d := p - out[j]
+				var gap := d.length()
+				if gap < min_gap:
+					var push_dir := d.normalized() if gap > 0.01 else Vector2.RIGHT.rotated(ang + float(j))
+					p = out[j] + push_dir * min_gap
+					pushed = true
+			if not pushed:
+				break
+			## Prefer separation over hard max clamp (dash still capped by caller max_r).
+			var from_o := p - origin
+			var dist := from_o.length()
+			if dist > hi * 1.15 and dist > 0.01:
+				p = origin + from_o.normalized() * (hi * 1.15)
+		out.append(p)
+	return out
+
+
+## Split cart SKUs into box-sized piles for scatter drops.
+static func loot_piles_from_cart(cart: Array) -> Array[Dictionary]:
+	var groups: Dictionary = {}
+	for sku in cart:
+		var id := String(sku)
+		groups[id] = int(groups.get(id, 0)) + 1
+	var piles: Array[Dictionary] = []
+	for id in groups.keys():
+		var left := int(groups[id])
+		while left > 0:
+			var n := mini(BOX_SIZE, left)
+			piles.append({"sku": String(id), "n": n})
+			left -= n
+	return piles
 
 
 static func dirt_color(dtype: String) -> Color:
