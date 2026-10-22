@@ -1426,7 +1426,7 @@ func _try_dash_hits() -> void:
 			g.call("play_ko_banner")
 		if c.has_method("dash_knock_guest"):
 			c.call("dash_knock_guest", add)
-		log_line.emit("衝刺撞到客人 — 暈眩 2 秒，貨品掉落" if add > 0.0 else "衝刺撞到客人 — 禮貌衝撞，不满不增加")
+		log_line.emit("衝刺撞到客人 — 暈眩 2 秒，貨品掉落" if add > 0.0 else "衝刺撞到客人 — 禮貌衝撞，不滿不增加")
 		return
 
 
