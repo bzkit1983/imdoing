@@ -13,6 +13,7 @@
 | HUD／客人標籤髒刷新 | tech-review §3／§6 | `hud.gd` cache；`player._emit_stats_if_changed`；`customer._sync_labels` |
 | 貨架 SKU 索引 | tech-review §3／§6 | `demo._shelves_by_sku`＋`shelf.stock_sku_changed`；`find_shelf` 走索引 |
 | NotoSansTC 子集 | **`docs/alpha/fonts-subset.md`** | `NotoSansTC-Game.otf`＋`charset_game.txt`；`tools/fonts/subset_notosans_tc.py` |
+| 執行期效能審計（剩餘熱路徑） | tech-review §3；**`docs/alpha/runtime-perf-audit.md`** | 對齊 `main` @ v1.0 tip；P1：interactable／HUD 計算／`thieves()`／尋路／地板／box_stack |
 | 暫停選單＋掛起／恢復 | **`docs/systemdesign/pausemenu.md`** | `pause_menu.tscn`；`PlatformServices` 信號；營運日 Esc／Start |
 | Win／Linux 匯出（Steam 候選） | **`docs/alpha/export-presets.md`** | `export_presets.cfg`；輸出 `build/windows`／`build/linux`；feature `steam_candidate` |
 | 字串表 i18n | **`docs/alpha/i18n.md`** | `locale/strings.csv`；Autoload `Loc`；準備／暫停／HUD 已遷 |
