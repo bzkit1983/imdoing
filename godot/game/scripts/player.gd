@@ -568,7 +568,9 @@ func _discard_top_box() -> void:
 	var toss := _cancel_drop_dir
 	_drop_top_box(toss)
 	if toss.length_squared() > 0.01:
-		log_line.emit("丟掉 %s 1箱 — 往%s飛出（命中同款貨架可直接上架）" % [name, _drop_dir_label(toss)])
+		log_line.emit(
+			"丟掉 %s 1箱 — 往%s飛出（可砸小偷／同款貨架上架）" % [name, _drop_dir_label(toss)]
+		)
 	else:
 		log_line.emit("丟掉 %s 1箱 — 掉在腳邊，可以再撿" % name)
 
@@ -1117,10 +1119,39 @@ func _fight_win() -> void:
 	if game and game.has_method("record_caught"):
 		game.call("record_caught")
 	log_line.emit("打倒小偷 — KO！贓物散落地上")
-	_play_ko_sequence(target)
+	_play_ko_sequence(target, "ko_scatter_and_flee")
 
 
-func _play_ko_sequence(thief: Node) -> void:
+## Directional tossed box hit an active thief → Screen KO (counts as catch).
+func apply_toss_ko(thief: Node, knock_dir: Vector2) -> void:
+	if thief == null or not is_instance_valid(thief):
+		return
+	if not thief.has_method("is_active_thief") or not bool(thief.call("is_active_thief")):
+		return
+	if not thief.has_method("ko_box_hit_and_flee"):
+		return
+	var game := get_tree().get_first_node_in_group("game")
+	if game and game.has_method("record_caught"):
+		game.call("record_caught")
+	log_line.emit("貨箱砸中小偷 — KO！贓物原地掉落")
+	## If this toss finishes an ongoing grab fight, clear fight state after the KO.
+	var end_fight := _fighting and target == thief
+	if end_fight:
+		_fight_ko = true
+	var dir := knock_dir
+	if dir.length_squared() < 0.01:
+		dir = (thief as Node2D).global_position - global_position
+	if dir.length_squared() < 0.01:
+		dir = facing
+	_play_ko_sequence(thief, "ko_box_hit_and_flee", dir.normalized(), end_fight)
+
+
+func _play_ko_sequence(
+	thief: Node,
+	flee_method: String = "ko_scatter_and_flee",
+	knock_override: Vector2 = Vector2.ZERO,
+	end_fight: bool = true,
+) -> void:
 	_shake_camera(Tuning.FIGHT_KO_SHAKE, 0.22)
 	if camera:
 		var punch := create_tween()
@@ -1133,13 +1164,20 @@ func _play_ko_sequence(thief: Node) -> void:
 	if game and game.has_method("play_ko_banner"):
 		game.call("play_ko_banner")
 	await get_tree().create_timer(0.18).timeout
-	if is_instance_valid(thief):
-		var knock: Vector2 = (thief as Node2D).global_position - global_position
+	if is_instance_valid(thief) and thief.has_method(flee_method):
+		var knock: Vector2 = knock_override
+		if knock.length_squared() < 0.01:
+			knock = (thief as Node2D).global_position - global_position
 		if knock.length_squared() < 0.01:
 			knock = facing
-		thief.call("ko_scatter_and_flee", knock.normalized())
+		thief.call(flee_method, knock.normalized())
 	await get_tree().create_timer(Tuning.FIGHT_KO_FLASH_SEC * 0.55).timeout
-	_end_fight(true)
+	if end_fight:
+		_end_fight(true)
+	elif camera:
+		## Toss KO outside a fight: restore shop framing after the punch-in.
+		camera.zoom = Vector2(Tuning.CAMERA_ZOOM, Tuning.CAMERA_ZOOM)
+		camera.offset = Vector2.ZERO
 
 
 func _fight_fail() -> void:

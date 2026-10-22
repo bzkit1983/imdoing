@@ -1031,7 +1031,7 @@ func spawn_dropped_box(
 	flight.setup(sku, pos, dest, Tuning.DROP_FLIGHT_SEC)
 	_world.add_child(flight)
 	flight.finished.connect(func() -> void:
-		_resolve_toss_landing(dest, sku, n, toss_dir)
+		_resolve_toss_landing(pos, dest, sku, n, toss_dir)
 		if on_landed.is_valid():
 			on_landed.call()
 	)
@@ -1058,6 +1058,23 @@ func spawn_loot_scatter(
 		_spawn_box_flight(origin, dest, sku, n, dur, Callable())
 
 
+## Instant foot-drop of loot piles at `origin` (box-hit KO — no scatter flight).
+func spawn_loot_inplace(origin: Vector2, piles: Array) -> void:
+	if piles.is_empty():
+		return
+	var dests := Tuning.loot_scatter_positions(
+		origin, piles.size(), 0.0, Tuning.LOOT_INPLACE_MAX
+	)
+	for i in piles.size():
+		var pile: Dictionary = piles[i]
+		var sku := String(pile.get("sku", ""))
+		var n := int(pile.get("n", 0))
+		if sku == "" or n <= 0:
+			continue
+		var dest: Vector2 = dests[i] if i < dests.size() else origin
+		_place_dropped_box(dest, sku, n)
+
+
 func _spawn_box_flight(
 	from: Vector2,
 	to: Vector2,
@@ -1076,12 +1093,21 @@ func _spawn_box_flight(
 	)
 
 
-## Directional toss: matching shelf at landing → restock; leftover drops on floor.
-func _resolve_toss_landing(dest: Vector2, sku: String, n: int, toss_dir: Vector2) -> void:
+## Directional toss: thief hit → KO; else matching shelf restock; else floor.
+func _resolve_toss_landing(
+	from: Vector2, dest: Vector2, sku: String, n: int, toss_dir: Vector2
+) -> void:
 	if n <= 0:
 		return
 	if toss_dir.length_squared() < 0.0001:
 		_place_dropped_box(dest, sku, n)
+		return
+	var thief := _thief_for_toss(from, dest)
+	if thief != null:
+		## Thrown box lands at the hit; KO drops stolen goods in place.
+		_place_dropped_box(thief.global_position + Tuning.DROP_FEET_OFFSET, sku, n)
+		if _player and _player.has_method("apply_toss_ko"):
+			_player.call("apply_toss_ko", thief, toss_dir)
 		return
 	var shelf := _shelf_for_toss(dest, sku)
 	if shelf == null:
@@ -1103,6 +1129,32 @@ func _resolve_toss_landing(dest: Vector2, sku: String, n: int, toss_dir: Vector2
 			)
 	if left > 0:
 		_place_dropped_box(dest, sku, left)
+
+
+## Active thief nearest the flight segment / landing within hit radius.
+func _thief_for_toss(from: Vector2, dest: Vector2) -> Node2D:
+	var best: Node2D = null
+	var best_d := Tuning.DROP_THIEF_HIT_RADIUS
+	for t in thieves():
+		if t == null or not is_instance_valid(t):
+			continue
+		if not t.has_method("is_active_thief") or not bool(t.call("is_active_thief")):
+			continue
+		var p: Vector2 = t.global_position
+		var d := minf(_dist_point_to_segment(p, from, dest), dest.distance_to(p))
+		if d <= best_d:
+			best_d = d
+			best = t
+	return best
+
+
+func _dist_point_to_segment(p: Vector2, a: Vector2, b: Vector2) -> float:
+	var ab := b - a
+	var len_sq := ab.length_squared()
+	if len_sq < 0.0001:
+		return p.distance_to(a)
+	var t := clampf((p - a).dot(ab) / len_sq, 0.0, 1.0)
+	return p.distance_to(a + ab * t)
 
 
 ## Nearest shelf that can accept `sku` and sits under the toss landing.

@@ -523,6 +523,16 @@ func ko_scatter_and_flee(dir: Vector2) -> void:
 	_begin_flee(dir, "被打飛！")
 
 
+## Directional tossed box hit: Screen KO fly-off; loot drops in place (not scattered).
+func ko_box_hit_and_flee(dir: Vector2) -> void:
+	if state == State.FLEE:
+		return
+	if _reg():
+		_reg().dequeue(self)
+	_drop_cart_inplace()
+	_begin_flee(dir, "被貨箱打飛！")
+
+
 func dash_knock_away(dir: Vector2) -> void:
 	if state == State.FLEE:
 		return
@@ -543,6 +553,22 @@ func _scatter_cart(min_r: float, max_r: float) -> void:
 		return
 	if _game.has_method("spawn_loot_scatter"):
 		_game.call("spawn_loot_scatter", global_position, piles, min_r, max_r)
+	elif _game.has_method("spawn_dropped_box"):
+		for pile in piles:
+			_game.call("spawn_dropped_box", global_position, String(pile["sku"]), int(pile["n"]))
+
+
+## Drop every cart pile at the thief's feet (no flight scatter).
+func _drop_cart_inplace() -> void:
+	if cart.is_empty() or _game == null:
+		cart.clear()
+		return
+	var piles: Array[Dictionary] = Tuning.loot_piles_from_cart(cart)
+	cart.clear()
+	if piles.is_empty():
+		return
+	if _game.has_method("spawn_loot_inplace"):
+		_game.call("spawn_loot_inplace", global_position, piles)
 	elif _game.has_method("spawn_dropped_box"):
 		for pile in piles:
 			_game.call("spawn_dropped_box", global_position, String(pile["sku"]), int(pile["n"]))

@@ -83,6 +83,10 @@ const DROP_AIM_MARK_COLOR := Color(0.15, 0.85, 0.98, 0.85)
 const DROP_FLIGHT_TRAIL_COLOR := Color(0.25, 0.95, 1.0, 0.6)
 ## Directional toss landing within this radius of a matching shelf → restock.
 const DROP_SHELF_HIT_RADIUS := 78.0
+## Directional toss: thief within this distance of the flight path / landing → KO.
+const DROP_THIEF_HIT_RADIUS := 72.0
+## Box-hit KO: stolen goods drop at the thief's feet (tiny ring so piles don't stack).
+const LOOT_INPLACE_MAX := 0.35 * BODY_LENGTH
 const STAMINA_PER_STR := 10.0
 const RUN_STAMINA_PER_SEC := 20.0
 const DASH_STAMINA_COST := 50.0
