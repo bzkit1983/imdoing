@@ -681,7 +681,9 @@ func find_path(from: Vector2, to: Vector2) -> PackedVector2Array:
 
 
 func exit_pos() -> Vector2:
-	return door_pos() + Vector2(0, -90)
+	## Stay inside the pathfinder pad north of the floor (80px) so leave
+	## paths resolve to a real outdoor cell instead of snapping oddly.
+	return door_pos() + Vector2(0, -70)
 
 
 func door_pos() -> Vector2:
