@@ -1,6 +1,6 @@
 # 長線設計文件缺口
 
-- 對照日：2026-10-22（對齊 PR #3–#40：含掉貨瞄準／丟掉上架／丟掉砸小偷 KO／近遠散落／離店可抓／得手橫幅／客人離店不卡門／Pages／docs align；另含 #3–#17 工程項）
+- 對照日：2026-10-22（含 v1.1.0 拍板：衝刺撞客人、擁擠減速、凌波微步、丟掉砸客人、多台選隊等；對齊 PR #3–#42）
 - 範圍：只讀 `docs/systemdesign/`（含 `savesystem.md`、`pausemenu.md`），**不含** Demo scope
 - 工程落地對照：`docs/alpha/implementation-status.md`
 - 執行期優化分析（非玩法缺口）：`docs/alpha/runtime-perf-audit.md`
@@ -8,7 +8,7 @@
 
 | 設計檔 | 記下的問題 | 建議先拍板 (P0) | 缺整塊系統 |
 | --- | --- | --- | --- |
-| 見下表（開：P1 5 · Alpha 15 · Beta 2；已處理 31） | 見下表 | 0 | 見下（存檔已補） |
+| 見下表 | 見下表 | 0 | 見下（存檔已補） |
 
 **一局時長已拍板：** 現實 30 秒上貨 + 3 分鐘營運。
 
@@ -47,34 +47,29 @@
 | 已處理 | 互相矛盾 | 貨架容量兩套說法 | 品質是不同款式。乾貨、凍櫃、冰櫃各有 4／8／12／24 件，容量越大越貴。12 件維持原價（$100／$200／$300），其餘按件數比例取整。 | shopitem.md, replenishmentsystem.md |
 | 已處理 | 未定數值 | 開放表沒寫完 | 叮叮飯為角色 LV10。收銀機、乾貨補貨架、乾貨貨架為 LV1。凍櫃架跟凍櫃補貨架在 LV4，冰櫃架跟冰櫃補貨架在 LV7。起始資金 $2500。角色 LV4 升店舖規模 LV2，角色 LV7 升店舖規模 LV3。 | shopprogress.md, shopitem.md, shopsetup.md, ecosystem.md |
 | 已處理 | 規則含糊 | Yes! My Lord! 破壞購物／收銀規則 | 清空最近還有貨的貨架，貨加入該客人清單並算已取到。客人沒有錢上限，拿多少付多少；未開發貨不會在店。只加清單，原本清單未完成也立刻去排隊，收銀指令仍要做，未取到的原清單不計價。這招可以把清單加到多過 15 件。11 件或以上仍是 5 次指令。 | playerultimateskills.md, customer.md, cashiersystem.md |
-| P1 | 規則含糊 | Yes! My Lord! 包不包括小偷 | 施放對象寫全體客人。小偷算不算在裡面仍未寫。 | playerultimateskills.md, thiefsystem.md |
+| 已處理 | 規則含糊 | Yes! My Lord! 包不包括小偷 | **不包括小偷**，只包括一般客人（與全體集資一致）。 | playerultimateskills.md, thiefsystem.md |
 | 已處理 | 規則含糊 | 全體集資「一半客人」沒有選法 | LV1 只處理排隊。LV2、LV3 都不含離開中客人和小偷。略過指令與 Circle，馬上收錢。已拿走的貨按售價全額入帳；未買完的貨不入帳、不白送，客人當已付款離開。 | playerultimateskills.md, cashiersystem.md |
 | 已處理 | 規則含糊 | 全體集資 LV2 一半怎樣取 | 單數向上取整。已拿走件數最多的客人優先。件數相同時，銷售金額最高者優先。件數和金額都相同時，不滿度較高者優先。不滿度也相同時，隨意選一位。 | playerultimateskills.md |
-| P1 | 規則含糊 | 衝刺撞飛客人與尋路互相打架 | 長線 `playermovement.md` 仍寫衝刺 Screen KO 撞飛**客人**＋四種不滿條件；**活線只撞小偷**（`player._try_dash_thief`），客人 KO **未實作**。不滿數字長線仍空（Alpha plan 有草稿 +25/+40/0/歸零）。路人減速「唔該借借」與撞飛如何並行未定。**小偷**撞飛已定：飛離＋遠距散落可撿、不計被偷、**不算抓住、不算逃走**（見 `thiefsystem.md`）。拍板：刪長線客人 KO，或補實作＋數字。 | playermovement.md, customer.md, playerpassiveskills.md |
+| 已處理 | 規則含糊 | 衝刺撞飛客人與尋路互相打架 | 衝刺撞客人：Screen KO 飛起再**原地落地**（不離店）；停止 2 秒；+50 不滿（基值；禮貌衝撞則 +0）；購物車貨品原地掉落並重新購物。路人擁擠：玩家 3 身位內有客人／小偷 → 移速 ×0.5＋頭頂「唔該借借⋯」。小偷被衝刺撞飛或貨箱砸中都**算抓住**。 | playermovement.md, customer.md, playerpassiveskills.md, thiefsystem.md, ecosystem.md |
 | P1 | 缺檔／缺系統 | 劇情／事件層沒有設計檔 | 已標明留待 Beta，現階段經驗不從這裡增減。三層循環的第一層仍無事件表、觸發、失敗條件。`gameconcept.md` 的「經營值」沒有定義。 | gameconcept.md, playerlevel.md, ecosystem.md |
 | Alpha | 缺檔／缺系統 | 幫忙取貨與 COMBO 交貨沒有規則 | 留待 Alpha 設計，見 `docs/alpha/design.md`。核心節奏有兩句，沒有互動對象、指令、計分、與收銀／不滿的關係。 | gameconcept.md, customer.md, playeraction.md |
 | Beta | 未定數值 | 客人流量幾乎沒有長線數值 | 留待 Beta 設計，見 `docs/beta/design.md`。有清單上限 15、逗留 1 秒、思考 3 秒。抽出件數交給各 Demo。沒有生成間隔、在店人數上限、客人類別移速表。找不到貨長線點數未定（Demo v0.3 為 +18）。 | customer.md, gameconcept.md |
 | Beta | 未定數值 | 污物／小偷的長線流量未定 | 留待 Beta 設計，見 `docs/beta/design.md`。清潔檔的生成頻率、同時上限、垃圾氣力、三類不滿長線未定。小偷清單件數、同時人數、出現間隔長線未定。霸王色「減少 50%」沒有基礎出現率可乘。 | cleaningsystem.md, thiefsystem.md, playerpassiveskills.md |
-| P1 | 規則含糊 | 凌波微步只寫不減速 | 污物現有垃圾扣氣、水漬滑倒、嘔吐物禁技能／−30% 能力。此被動是否只忽略 ×0.5 移速，還是三類額外效果一併免疫？「穿過客人」減速長線仍無數字。 | playerpassiveskills.md, cleaningsystem.md, playermovement.md |
-| P1 | 未定數值 | 技能幾級學會仍無表 | 技能本身的 LV1–LV3 效果已寫。角色升到幾級學會哪一招、被動為什麼只有 LV1，沒有表。 | playerskills.md, playerlevel.md, playeractiveskills.md, playerpassiveskills.md |
-| Alpha | 未定數值 | 擁擠與操作門檻 | 留待 Alpha 設計，見 `docs/alpha/design.md`。「唔該借借」沒有人數／倍率。輕放／長按門檻僅 Demo。重置能力值沒有費用。 | playermovement.md, control.md, playersetup.md |
-| Alpha | 規則含糊 | 收銀方向如何抽 | 留待 Alpha 設計，見 `docs/alpha/design.md`。四向是否均勻、可否連續重複未寫。 | cashiersystem.md |
-| Alpha | 規則含糊 | 多台收銀機客人選哪一隊 | 留待 Alpha 設計，見 `docs/alpha/design.md`。沒有寫選最短隊、最近台，或人數相同怎麼分。 | cashiersystem.md, customer.md, clerksystem.md |
-| Alpha | 規則含糊 | 掉落物歸誰 | **部分已處理：** 玩家丟掉／水漬掉箱／小偷三種落地（近距散落／衝刺遠散落／丟掉原地）都可撿；方向丟掉可補同款貨架；小偷掉落**不計被偷**，得手出口才計被偷。**仍缺：** 客人會否撿走地上的箱、會否算進該客人清單（見 `docs/alpha/design.md`）。 | cleaningsystem.md, thiefsystem.md, customer.md, playeraction.md, replenishmentsystem.md |
-| Alpha | 規則含糊 | 丟掉多目標怎麼選 | 軌道／落點同時可命中多名小偷或多個可接受貨架時，長線未寫選法。活線：小偷＝路徑＋落點最近且 ≤`DROP_THIEF_HIT_RADIUS`；貨架＝僅落點最近且 ≤`DROP_SHELF_HIT_RADIUS`；**小偷優先於貨架**（已寫）。需否寫死「只砸最近一個／只補最近一架」。 | thiefsystem.md, replenishmentsystem.md, playeraction.md |
-| Alpha | 規則含糊 | 丟掉會否砸一般客人 | 活線只打 `is_active_thief`；箱子穿過一般客人無效果。長線未寫「是否可撞飛／加不滿／無視」。 | playeraction.md, customer.md, thiefsystem.md |
-| Alpha | 規則含糊 | 贓物三種落地是否定案為長線數值 | `thiefsystem.md` 已寫活線近似：近距 0.55–1.75 身位、衝刺 2.2–5 身位、丟掉原地（`LOOT_INPLACE_MAX`≈0.35 身位）。需標正式長線拍板，或註「活線暫定、可再收」。 | thiefsystem.md |
-| 已處理 | 規則含糊 | 衝刺撞飛計入哪種結算人數 | 已寫死：衝刺撞飛不算抓住、不計被偷、**不算逃走**；近身 KO／丟掉砸中才加抓住。活線：dash 不 `record_caught`／不 `thieves_escaped`。 | thiefsystem.md, storeoperationphase.md, ecosystem.md |
-| Alpha | 規則含糊 | 丟掉上架與近身上架的技能差異 | 已寫：不走 Circle、剩貨掉地、腳邊不上架。仍可補：是否吃「上架速度／瞬間補貨」（活線丟掉路徑瞬間、技能無關）；補貨時段可否丟掉上架（活線可）。若長線要鎖應寫死。 | replenishmentsystem.md, playeractiveskills.md |
-| Alpha | 規則含糊 | 清潔可否邊走邊起動 | 留待 Alpha 設計，見 `docs/alpha/design.md`。長線未寫起手時能否仍在走。**活線註記：** 清潔／打擊進入後即鎖移動。 | playeraction.md, cleaningsystem.md, thiefsystem.md |
-| Alpha | 規則含糊 | 小偷與污物／時停以外的世界規則 | 留待 Alpha 設計，見 `docs/alpha/design.md`。小偷踩污物、是否算全體客人、是否佔在店人數，未寫。 | thiefsystem.md, customer.md, playeractiveskills.md |
-| Alpha | 用詞／錯字 | 攜帶清單 FILO 說明含混 | 留待 Alpha 設計，見 `docs/alpha/design.md`。標籤仍是 First In Last Out，例子已是堆疊。 | replenishmentsystem.md |
+| 已處理 | 規則含糊 | 凌波微步只寫不減速 | 發動時：污物不減速；dash 遇污物高速繞過（特效）；垃圾不扣氣；水漬跑／衝不滑（自水漬 dash 則高速離污）；嘔吐物不禁技能、不減能力。擁擠減速見衝刺／擁擠項。 | playerpassiveskills.md, cleaningsystem.md, playermovement.md |
+| Beta | 未定數值 | 技能幾級學會仍無表 | 留待 Beta（見 `docs/beta/design.md`）。技能 LV1–LV3 效果已寫；角色幾級解鎖哪招仍無表。 | playerskills.md, playerlevel.md, docs/beta/design.md |
+| 已處理 | 未定數值 | 擁擠與操作門檻 | 擁擠見上（3 身位、×0.5、「唔該借借⋯」）。輕放／長按門檻跟活線：衝刺／跑 0.18s、丟掉 0.45s、選貨／技能選單 0.18s。重置能力值費用＝角色等級 × $1000。 | playermovement.md, control.md, playersetup.md |
+| 已處理 | 規則含糊 | 收銀方向如何抽 | **隨機**四向，**可連續重複**。 | cashiersystem.md |
+| 已處理 | 規則含糊 | 多台收銀機客人選哪一隊 | 先最短隊；人數相同選最近台；距離相同則隨機。 | cashiersystem.md, customer.md, clerksystem.md |
+| 已處理 | 規則含糊 | 掉落物歸誰 | 地上箱只有玩家可撿。客人**不會**撿走、**不會**算進該客人清單。 | cleaningsystem.md, thiefsystem.md, customer.md, playeraction.md, replenishmentsystem.md |
+| 已處理 | 規則含糊 | 清潔可否邊走邊起動 | 清潔可邊走邊起動；走手（長按開始填計）後進行中鎖移動。打擊同：起手可走，抓住後不移動。 | playeraction.md, cleaningsystem.md, thiefsystem.md |
+| 已處理 | 規則含糊 | 小偷與污物／時停以外的世界規則 | 小偷踩污物不受影響。小偷不佔在店客人數，另計在店小偷數。The World 時小偷一併停止／減慢。Yes! My Lord!／全體集資不含小偷。 | thiefsystem.md, customer.md, playerultimateskills.md |
+| 已處理 | 用詞／錯字 | 攜帶清單 FILO 說明含混 | 以**堆疊**為準：後取先上（最上一段先上架／丟掉）；去掉誤導用詞與跳號例子。 | replenishmentsystem.md |
 | Alpha | 缺檔／缺系統 | 角色導出只有一句 | 留待 Alpha 設計，見 `docs/alpha/design.md`。雇員欄規則已有。連線、檔案、權限仍無。 | playerexport.md, clerksystem.md |
 | 已處理 | 缺檔／缺系統 | 存檔 | 已有 `savesystem.md`：`user://save.json` + `version`；關店與準備結束寫入。活線已實作。 | savesystem.md, storepreparationphase.md, storeoperationphase.md |
 | 已處理 | 規則含糊 | 操作是否綁死鍵位 | 長線以 InputMap 為準（`control.md`）；預設仍 WASD／Xbox。活線 Autoload `Controls`。 | control.md |
 | 已處理 | 缺檔／缺系統 | 暫停選單／掛起 | 已有 `pausemenu.md`；活線接 `PlatformServices` suspend／resume。 | pausemenu.md, storeoperationphase.md, savesystem.md |
 | Alpha | 缺檔／缺系統 | HUD 以外的介面層空白 | 存檔／InputMap／暫停／字串表已補。仍缺：設定（音量）、失敗／過關、教學、技能演出期間能否操作。 | storeoperationphase.md, playerskills.md, control.md, playersetup.md |
-| Alpha | 用詞／錯字 | 用詞與錯字會改規則解讀 | **部分已處理：** `storeoperationphase.md`「以為→以下」已修。**仍缺：** `gameconcept.md`「三能種力值」；`playerultimateskills.md` 兩處「技令」；`playermovement.md`「身上沒有貨品而」斷句。見 `docs/alpha/design.md`。 | gameconcept.md, playerultimateskills.md, playermovement.md |
+| Alpha | 用詞／錯字 | 用詞與錯字會改規則解讀 | 留待 Alpha 改回原檔，見 `docs/alpha/design.md`。以為→以下；三能種力值；奧義「技令」；衝刺句子斷掉。 | storeoperationphase.md, gameconcept.md, playerultimateskills.md, playermovement.md |
 
 # 缺了整份檔的系統
 
@@ -89,16 +84,16 @@
 
 | 主題 | 已寫的 | 仍缺的 |
 | --- | --- | --- |
-| 能力值 | STR／AGI／INT 主表已定（各項 50 封頂）；打擊每下扣血已定；每級 +5 點 | 重置費用留待 Alpha |
-| 移動 | AGI 基值 3 身位/秒、上限 5×；跑 −20 氣力/秒；衝刺 −50；氣力 0 不能跑；污物 ×0.5 | 客人衝刺 KO／不滿數字仍在長線（**活線未做客人撞飛**）。擁擠倍率、輕放／長按門檻留待 Alpha |
+| 能力值 | STR／AGI／INT 主表已定（各項 50 封頂）；打擊每下扣血已定；每級 +5 點；重置＝等級 × $1000 | |
+| 移動 | AGI 基值 3 身位/秒、上限 5×；跑 −20 氣力/秒；衝刺 −50；污物 ×0.5；擁擠 3 身位 ×0.5；衝刺撞客人 +50／暈 2s；門檻跟活線 | |
 | 客人 | 清單上限 15、逗留 1s、思考 3s、不滿 0–100、排隊 15 秒滿 | 生成間隔、在店上限、抽出件數、找不到貨長線數字、客人類別留待 Beta |
 | 清潔 | 三類效果框架、清潔計 AGI 秒數、空手轉搖桿 | 生成間隔／同時上限、垃圾氣力／秒、三類不滿／秒留待 Beta |
-| 小偷 | 不付款；出口帶贓才計被偷＋橫幅；近距 KO 散落／衝刺遠散落（≤5 身位，不算抓住、不算逃走）／丟掉砸中 Screen KO＋原地掉落（算抓住）；離店途中仍可抓／砸／撞；連按 STR、5 秒失敗 | 出現間隔／同時上限／清單件數、霸王色基礎出現率留待 Beta；三種落地半徑是否正式拍板見上表 Alpha 列 |
+| 小偷 | 不付款、被偷另計、連按 STR 傷害、5 秒失敗；衝刺撞飛／丟掉砸中都算抓住；不佔客人數、不受污物 | 出現間隔／同時上限／清單件數、霸王色基率留待 Beta |
 | 資金 | 價格表、開發費、虧損定義、關店入帳、日薪 $100、起始資金 $2500 | |
 | 店面 | 總面積三級、邊長最少 8、拖放、每種展示貨架 4／8／12／24 件、規模 LV2 要角色 LV4、規模 LV3 要角色 LV7 | 冰櫃與凍櫃的操作差異 |
-| 級數 | LV2–LV10 經驗表、每級 +5、經驗只增不減（來源跟 ecosystem） | LV11–99、技能解鎖表。事件經驗留待 Beta |
+| 級數 | LV2–LV10 經驗表、每級 +5、經驗只增不減（來源跟 ecosystem） | LV11–99。技能解鎖表留待 Beta |
 | 店員 | 日薪、崗位、空貨架優先、人數不大於收銀機、上限跟到規模 LV3（0／1／2） | 規模 LV4 的人數，等有第四級面積再定 |
-| 指令 | 收銀件數→次數、錯則重來、先指令後 Circle | 方向如何抽、多台時客人選隊，留待 Alpha |
+| 指令 | 收銀件數→次數、錯則重來、先指令後 Circle；方向隨機可重複；多台最短→最近→隨機 | |
 
 # 建議拍板順序
 
@@ -112,7 +107,5 @@
 6. ~~雇員上限與店舖規模對齊~~ **已處理**（暫時 LV1＝0、LV2＝1、LV3＝2。角色 LV4→規模 LV2，角色 LV7→規模 LV3）
 7. ~~經驗來源合成一張表~~ **已處理**（跟 ecosystem，只增不減。事件經驗留待 Beta。LV11–99 仍未寫）
 8. ~~貨架容量~~ **已處理**（每種 4／8／12／24 件，越大越貴）。客人流量數字留待 Beta
-9. 衝刺撞飛**客人**：補不滿數字並實作，或從長線刪 Screen KO（活線目前只撞小偷）
-10. 劇情／事件已標 Beta。技能解鎖表仍未寫
-11. 丟掉多目標選法、會否砸一般客人、三種贓物落地半徑是否正式拍板
-12. 衝刺撞飛結算：長線寫死「不算逃走」（對齊活線）
+9. ~~衝刺撞飛客人的不滿數字~~ **已處理**（+50 基值；禮貌衝撞 +0；Screen KO 原地落地）
+10. 劇情／事件已標 Beta。~~技能解鎖表~~ **改標 Beta**（見 `docs/beta/design.md`）

@@ -3,9 +3,16 @@ extends RefCounted
 
 const CELL := 20.0
 const PAD := 10.0
+## Shared per-frame A* budget (customers + clerks). Excess callers reuse last path / wait.
+const BUDGET_PER_FRAME := 3
+## Soft cap on cell-pair path cache entries (cleared on setup).
+const CACHE_MAX := 64
 
 var grid := AStarGrid2D.new()
 var origin := Vector2.ZERO
+var _budget_frame: int = -1
+var _budget_left: int = BUDGET_PER_FRAME
+var _path_cache: Dictionary = {}
 
 
 func setup(floor_origin: Vector2, floor_size: Vector2, obstacles: Array[Rect2]) -> void:
@@ -22,6 +29,33 @@ func setup(floor_origin: Vector2, floor_size: Vector2, obstacles: Array[Rect2]) 
 	grid.update()
 	for r in obstacles:
 		_mark_rect(r.grow(PAD))
+	_path_cache.clear()
+	_budget_frame = -1
+	_budget_left = BUDGET_PER_FRAME
+
+
+func begin_frame(frame: int) -> void:
+	if frame == _budget_frame:
+		return
+	_budget_frame = frame
+	_budget_left = BUDGET_PER_FRAME
+
+
+func _ensure_budget() -> bool:
+	## Auto-reset on physics frame so callers need not wire begin_frame.
+	var frame := Engine.get_physics_frames()
+	if frame != _budget_frame:
+		_budget_frame = frame
+		_budget_left = BUDGET_PER_FRAME
+	return _budget_left > 0
+
+
+func try_find_path(from: Vector2, to: Vector2) -> PackedVector2Array:
+	## Empty return means budget exhausted — caller should keep prior path / wait.
+	if not _ensure_budget():
+		return PackedVector2Array()
+	_budget_left -= 1
+	return find_path(from, to)
 
 
 func find_path(from: Vector2, to: Vector2) -> PackedVector2Array:
@@ -29,10 +63,21 @@ func find_path(from: Vector2, to: Vector2) -> PackedVector2Array:
 	var b := _open_cell(to)
 	if a == Vector2i(-999, -999) or b == Vector2i(-999, -999):
 		return PackedVector2Array([to])
+	var key := _cache_key(a, b)
+	if _path_cache.has(key):
+		return _path_cache[key]
 	var pts := grid.get_point_path(a, b)
 	if pts.is_empty():
-		return PackedVector2Array([to])
+		pts = PackedVector2Array([to])
+	if _path_cache.size() >= CACHE_MAX:
+		_path_cache.clear()
+	_path_cache[key] = pts
 	return pts
+
+
+func _cache_key(a: Vector2i, b: Vector2i) -> int:
+	## Pack two cells; grids stay well under 512 on an axis.
+	return a.x + a.y * 512 + b.x * 262144 + b.y * 134217728
 
 
 func _mark_rect(r: Rect2) -> void:

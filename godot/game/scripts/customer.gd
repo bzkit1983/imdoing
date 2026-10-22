@@ -40,6 +40,16 @@ var _flee_left: float = 0.0
 var _leave_elapsed: float = 0.0
 const LEAVE_TIMEOUT_SEC := 5.0
 var raided: bool = false
+var _list_rev: int = 0
+var _list_rev_drawn: int = -1
+var _list_cache: String = ""
+var _queue_idx: int = -1
+var _seek_shelf_refresh: float = 0.0
+var _occupy_counted: bool = false
+var _on_dirt_cached: bool = false
+## After dash Screen KO: freeze actions this long (seconds).
+var _dash_stun_left: float = 0.0
+var _dash_ko_tween: Tween
 ## Cached label / chrome values — only write nodes when these change.
 var _shown_list: String = "\u0001"
 var _shown_mood: String = "\u0001"
@@ -58,6 +68,8 @@ func setup(game: Node, door: Vector2, thief: bool = false) -> void:
 	kind = "thief" if thief else ""
 	global_position = door + Vector2(randf_range(-20, 20), -40)
 	shopping = _roll_list()
+	_bump_list()
+	_occupy_counted = not thief
 	motion_mode = MOTION_MODE_FLOATING
 	collision_layer = Tuning.LAYER_CUSTOMERS
 	collision_mask = Tuning.LAYER_WALLS
@@ -69,25 +81,22 @@ func add_dirt(delta_count: int) -> void:
 	dirt_contacts = maxi(0, dirt_contacts + delta_count)
 
 
+func exit_dirt(area: Node) -> void:
+	_dirt_areas.erase(area)
+	dirt_contacts = _dirt_areas.size()
+	_on_dirt_cached = dirt_contacts > 0
+
+
 func enter_dirt(area: Node) -> void:
 	if area != null and not _dirt_areas.has(area):
 		_dirt_areas.append(area)
 	dirt_contacts = _dirt_areas.size()
-
-
-func exit_dirt(area: Node) -> void:
-	_dirt_areas.erase(area)
-	dirt_contacts = _dirt_areas.size()
+	_on_dirt_cached = dirt_contacts > 0
 
 
 func on_dirt() -> bool:
-	var keep: Array[Node] = []
-	for a in _dirt_areas:
-		if is_instance_valid(a):
-			keep.append(a)
-	_dirt_areas = keep
-	dirt_contacts = _dirt_areas.size()
-	return dirt_contacts > 0
+	## Trust enter/exit; freed areas prune on exit_dirt / _unoccupy.
+	return _on_dirt_cached
 
 
 func _dirt_dissat_rate() -> float:
@@ -173,6 +182,11 @@ func _physics_process(delta: float) -> void:
 	if _game.has_method("asking_early_close") and bool(_game.asking_early_close()):
 		velocity = Vector2.ZERO
 		return
+	if _dash_stun_left > 0.0:
+		_dash_stun_left = maxf(0.0, _dash_stun_left - delta)
+		velocity = Vector2.ZERO
+		_sync_labels()
+		return
 	var td := float(_game.call("world_delta", delta))
 	if String(_game.get("phase")) == "closed" and state != State.LEAVE and state != State.FLEE and state != State.FIGHT:
 		if is_thief:
@@ -246,8 +260,11 @@ func _tick_seek(delta: float) -> void:
 		mood = "去付款"
 		return
 	var want := shopping[0]
-	var shelf: Node2D = _game.find_shelf(want)
-	_target_shelf = shelf
+	_seek_shelf_refresh -= delta
+	if _target_shelf == null or not is_instance_valid(_target_shelf) or not _game.shelf_has(_target_shelf, want) or _seek_shelf_refresh <= 0.0:
+		_target_shelf = _game.find_shelf(want)
+		_seek_shelf_refresh = Tuning.SEEK_SHELF_REFRESH_SEC
+	var shelf: Node2D = _target_shelf
 	if shelf == null:
 		state = State.THINK
 		_timer = Tuning.THINK_SEC
@@ -272,6 +289,7 @@ func _take_current() -> void:
 	if shelf and bool(_game.callv("take_from_shelf", [shelf, want])):
 		cart.append(want)
 		shopping.remove_at(0)
+		_bump_list()
 		mood = "拿到%s" % Tuning.sku_name(want)
 		state = State.SEEK
 		_target_shelf = null
@@ -289,6 +307,7 @@ func _after_think() -> void:
 		var first := shopping[0]
 		shopping.remove_at(0)
 		shopping.append(first)
+		_bump_list()
 		state = State.SEEK
 		mood = "先找下一件"
 	else:
@@ -314,6 +333,7 @@ func grab_items(items: Array) -> void:
 		cart.append(String(sku))
 	if items.size() > 0:
 		raided = true
+		_bump_list()
 
 
 func _tick_raid(delta: float) -> void:
@@ -355,10 +375,10 @@ func _tick_queue(delta: float, td: float) -> void:
 	if reg == null:
 		_leave(false)
 		return
-	reg.enqueue(self)
-	var idx: int = int(reg.queue.find(self))
-	if idx < 0:
-		idx = int(reg.queue.size())
+	if _queue_idx < 0:
+		reg.enqueue(self)
+	var idx := _resolve_queue_idx(reg)
+	_queue_idx = idx
 	var slot: Vector2 = reg.slot_position(idx)
 	if _follow_to(slot, delta):
 		velocity = Vector2.ZERO
@@ -368,34 +388,51 @@ func _tick_queue(delta: float, td: float) -> void:
 	mood = "排隊中"
 
 
+func _resolve_queue_idx(reg: Node) -> int:
+	## Prefer cached slot; re-find only when the queue mutated ahead of us.
+	var q: Array = reg.queue
+	if _queue_idx >= 0 and _queue_idx < q.size() and q[_queue_idx] == self:
+		return _queue_idx
+	var idx := int(reg.call("queue_index_of", self)) if reg.has_method("queue_index_of") else int(q.find(self))
+	if idx < 0:
+		return int(q.size())
+	return idx
+
+
 func _queue_index_guess() -> int:
 	var reg := _reg()
 	if reg == null:
 		return 0
-	var idx: int = int(reg.queue.find(self))
-	return idx if idx >= 0 else int(reg.queue.size())
+	return _resolve_queue_idx(reg)
 
 
 func _follow_to(pos: Vector2, delta: float) -> bool:
-	if global_position.distance_to(pos) <= Tuning.CUSTOMER_ARRIVE_DIST:
+	var arrive_sq := Tuning.CUSTOMER_ARRIVE_DIST * Tuning.CUSTOMER_ARRIVE_DIST
+	if global_position.distance_squared_to(pos) <= arrive_sq:
 		velocity = Vector2.ZERO
 		return true
-	if _path.is_empty() or pos.distance_to(_goal) > 18.0:
-		_goal = pos
-		_path = _game.call("find_path", global_position, pos)
-		_path_i = 0
-	while _path_i < _path.size() and global_position.distance_to(_path[_path_i]) <= 16.0:
+	if _path.is_empty() or pos.distance_squared_to(_goal) > 324.0:
+		var pts: PackedVector2Array = _game.call("find_path", global_position, pos)
+		if pts.is_empty() and not _path.is_empty():
+			## Path budget exhausted — keep walking prior path.
+			pass
+		else:
+			_goal = pos
+			_path = pts if not pts.is_empty() else PackedVector2Array([pos])
+			_path_i = 0
+	var step_sq := 256.0
+	while _path_i < _path.size() and global_position.distance_squared_to(_path[_path_i]) <= step_sq:
 		_path_i += 1
 	var next := pos
 	if _path_i < _path.size():
 		next = _path[_path_i]
 	var to := next - global_position
-	if to.length() < 1.0:
+	if to.length_squared() < 1.0:
 		velocity = Vector2.ZERO
-		return global_position.distance_to(pos) <= Tuning.CUSTOMER_ARRIVE_DIST
+		return global_position.distance_squared_to(pos) <= arrive_sq
 	var spd := Tuning.WALK_SPEED * Tuning.agi_mult(Tuning.CUSTOMER_AGI)
-	spd *= float(_game.call("customer_move_mult"))
-	if on_dirt() and state != State.LEAVE:
+	spd *= float(_game.customer_move_mult()) if _game.has_method("customer_move_mult") else float(_game.call("customer_move_mult"))
+	if on_dirt() and state != State.LEAVE and not is_thief:
 		spd *= Tuning.DIRT_MULT
 	if spd <= 0.01:
 		velocity = Vector2.ZERO
@@ -403,7 +440,7 @@ func _follow_to(pos: Vector2, delta: float) -> bool:
 	spd = maxf(Tuning.SPEED_FLOOR, spd)
 	velocity = to.normalized() * spd
 	move_and_slide()
-	if get_real_velocity().length() < 12.0:
+	if get_real_velocity().length_squared() < 144.0:
 		_stuck += delta
 		if _stuck > 0.35:
 			_clear_route()
@@ -425,6 +462,8 @@ func _leave(angry: bool) -> void:
 		return
 	if _reg():
 		_reg().dequeue(self)
+	_queue_idx = -1
+	_notify_unoccupy()
 	state = State.LEAVE
 	_leave_elapsed = 0.0
 	if is_thief:
@@ -511,6 +550,7 @@ func _finish_thief_exit() -> void:
 	if _game and _game.has_method("show_stolen_banner"):
 		_game.call("show_stolen_banner")
 	cart.clear()
+	_bump_list()
 
 
 ## Fight mash win: loot scatters nearby, then thief is KO-flown off-screen.
@@ -538,17 +578,84 @@ func dash_knock_away(dir: Vector2) -> void:
 		return
 	if _reg():
 		_reg().dequeue(self)
-	## Dash: loot scatters farther (≤ 5 身位); not counted as stolen or catch.
+	## Dash: loot scatters farther (≤ 5 身位); not stolen. Catch counted by player.
 	_scatter_cart(Tuning.LOOT_SCATTER_DASH_MIN, Tuning.LOOT_SCATTER_DASH_MAX)
 	_begin_flee(dir, "被撞飛！")
 
 
+
+## Dash into shopping guest: Screen KO fly-up, land in place, stun, drop cart, re-shop.
+func dash_knock_guest(add_dissat: float) -> void:
+	if is_thief or state == State.FLEE or state == State.FIGHT:
+		return
+	if _reg():
+		_reg().dequeue(self)
+	if _game and _game.has_method("release_player_checkout"):
+		_game.call("release_player_checkout")
+	_drop_cart_inplace()
+	dissatisfaction = minf(Tuning.DISSAT_MAX, dissatisfaction + maxf(0.0, add_dissat))
+	shopping = _roll_list()
+	cart.clear()
+	raided = false
+	_bump_list()
+	_clear_route()
+	state = State.SEEK
+	mood = "唔！"
+	_play_dash_ko_hop()
+	_dash_stun_left = Tuning.DASH_GUEST_STUN_SEC
+	mood = "暈眩…"
+	_sync_labels()
+
+
+func _play_dash_ko_hop() -> void:
+	var base := global_position
+	if _dash_ko_tween != null:
+		_dash_ko_tween.kill()
+	_dash_ko_tween = create_tween()
+	_dash_ko_tween.tween_property(self, "global_position", base + Vector2(0, -56), 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_dash_ko_tween.tween_property(self, "global_position", base, 0.18).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+
+
+## Tossed box hits this guest. Returns items taken into cart from the box.
+func accept_toss_box(sku: String, n: int) -> int:
+	if is_thief or n <= 0 or sku == "":
+		return 0
+	var want := 0
+	for s in shopping:
+		if s == sku:
+			want += 1
+	if want <= 0:
+		return 0
+	var take := mini(n, want)
+	for _i in take:
+		cart.append(sku)
+		var idx := shopping.find(sku)
+		if idx >= 0:
+			shopping.remove_at(idx)
+	_bump_list()
+	dissatisfaction = 0.0
+	mood = "謝謝！"
+	_sync_labels()
+	return take
+
+
+func apply_toss_reject() -> void:
+	if is_thief:
+		return
+	dissatisfaction = minf(Tuning.DISSAT_MAX, dissatisfaction + Tuning.TOSS_GUEST_WRONG_DISSAT)
+	mood = "不想要這貨品！"
+	_sync_labels()
+
+
 func _scatter_cart(min_r: float, max_r: float) -> void:
 	if cart.is_empty() or _game == null:
-		cart.clear()
+		if not cart.is_empty():
+			cart.clear()
+			_bump_list()
 		return
 	var piles: Array[Dictionary] = Tuning.loot_piles_from_cart(cart)
 	cart.clear()
+	_bump_list()
 	if piles.is_empty():
 		return
 	if _game.has_method("spawn_loot_scatter"):
@@ -561,10 +668,13 @@ func _scatter_cart(min_r: float, max_r: float) -> void:
 ## Drop every cart pile at the thief's feet (no flight scatter).
 func _drop_cart_inplace() -> void:
 	if cart.is_empty() or _game == null:
-		cart.clear()
+		if not cart.is_empty():
+			cart.clear()
+			_bump_list()
 		return
 	var piles: Array[Dictionary] = Tuning.loot_piles_from_cart(cart)
 	cart.clear()
+	_bump_list()
 	if piles.is_empty():
 		return
 	if _game.has_method("spawn_loot_inplace"):
@@ -575,7 +685,11 @@ func _drop_cart_inplace() -> void:
 
 
 func _begin_flee(dir: Vector2, flee_mood: String) -> void:
+	_notify_unoccupy()
 	state = State.FLEE
+	## Recount after state flip so is_active_thief() is false.
+	if is_thief and _game and _game.has_method("note_thief_active_changed"):
+		_game.call("note_thief_active_changed")
 	_flee_dir = dir.normalized() if dir.length_squared() > 0.01 else Vector2.UP
 	_flee_left = 0.55
 	collision_layer = 0
@@ -694,19 +808,39 @@ func _refresh_labels() -> void:
 	_sync_labels()
 
 
+func _bump_list() -> void:
+	_list_rev += 1
+
+
 func _list_label_text() -> String:
+	if _list_rev == _list_rev_drawn:
+		return _list_cache
 	var bits: PackedStringArray = []
 	for sku in shopping:
 		bits.append(Tuning.sku_name(sku))
+	var line := ""
 	if is_thief:
 		var loot: PackedStringArray = []
 		for sku in cart:
 			loot.append(Tuning.sku_name(sku))
-		return "小偷  " + ("、".join(bits) if bits.size() else "得手 " + ("、".join(loot) if loot.size() else "空手"))
-	var line := "、".join(bits) if bits.size() else "（清單完成）"
-	if raided:
-		line += "　已取%d" % cart.size()
+		line = "小偷  " + ("、".join(bits) if bits.size() else "得手 " + ("、".join(loot) if loot.size() else "空手"))
+	else:
+		line = "、".join(bits) if bits.size() else "（清單完成）"
+		if raided:
+			line += "　已取%d" % cart.size()
+	_list_cache = line
+	_list_rev_drawn = _list_rev
 	return line
+
+
+func _notify_unoccupy() -> void:
+	if is_thief:
+		return
+	if not _occupy_counted or _game == null:
+		return
+	_occupy_counted = false
+	if _game.has_method("note_customer_occupy_changed"):
+		_game.call("note_customer_occupy_changed", self, false)
 
 
 func _sync_labels() -> void:

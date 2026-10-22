@@ -6,7 +6,7 @@ Repository for game project
 用 Godot **4.7** 打開 **`godot/game`**。  
 版控策略：[`docs/versioning.md`](docs/versioning.md) · Godot 目錄說明：[`godot/README.md`](godot/README.md)
 
-**產品版：** `v1.0.0`（見 [`VERSION`](VERSION)、[`docs/versioning.md`](docs/versioning.md)）  
+**產品版：** `v1.1.0`（見 [`VERSION`](VERSION)、[`docs/versioning.md`](docs/versioning.md)）  
 **網頁試玩：** https://bzkit1983.github.io/imdoing/play/
 
 技術設計審查（效能／Steam·Switch·Xbox／跟進清單）：[`docs/alpha/tech-review-v0.1.md`](docs/alpha/tech-review-v0.1.md)
@@ -31,7 +31,7 @@ Repository for game project
 ## 設計文件
 
 - 長線規則：`docs/systemdesign/`（含 [`savesystem.md`](docs/systemdesign/savesystem.md)、[`control.md`](docs/systemdesign/control.md)、[`pausemenu.md`](docs/systemdesign/pausemenu.md)）
-- 缺口檢視：`docs/systemdesign-gaps.md`（2026-10-22／#40 更新）
+- 缺口檢視：`docs/systemdesign-gaps.md`
 - Alpha 計劃／審查／設計：`docs/alpha/plan.md`、`docs/alpha/design.md`、`docs/alpha/tech-review-v0.1.md`
 - 執行期優化分析：`docs/alpha/runtime-perf-audit.md`
 - 工程對照：`docs/alpha/implementation-status.md`（存檔、InputMap、暫停、i18n、匯出、掉貨／丟掉上架／丟掉砸小偷、小偷 KO、主機商務、Godot 釘版等）

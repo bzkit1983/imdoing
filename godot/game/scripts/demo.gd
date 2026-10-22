@@ -18,6 +18,7 @@ const PrepScene = preload("res://scenes/prep_menu.tscn")
 const PauseScene = preload("res://scenes/pause_menu.tscn")
 const UiFont = preload("res://scripts/ui_font.gd")
 const Vox = preload("res://scripts/voxel_sprite.gd")
+const FloorTilesScript = preload("res://scripts/floor_tiles.gd")
 
 var FLOOR_SIZE := Vector2(640, 640)
 var FLOOR_ORIGIN := Vector2(48, 36)
@@ -60,6 +61,17 @@ var _early_focus: int = 0
 var _early_layer: CanvasLayer
 var _early_yes: Button
 var _early_no: Button
+## Maintained thief list (no per-frame alloc).
+var _thieves: Array[Node2D] = []
+## Guests currently occupying the store (excludes leave/flee/thieves).
+var _guest_n: int = 0
+## Active thieves (is_active_thief).
+var _active_thief_n: int = 0
+## Empty shelves by category for toss restock.
+var _empty_by_cat: Dictionary = {}
+## Coarse cells blocked for dirt spawn (furniture + door + existing dirt).
+const DIRT_CELL := 40.0
+var _dirt_block_cells: Dictionary = {}
 
 
 func _ready() -> void:
@@ -167,6 +179,11 @@ func _clear_world() -> void:
 	_hud = null
 	shelves.clear()
 	_shelves_by_sku.clear()
+	_empty_by_cat.clear()
+	_dirt_block_cells.clear()
+	_thieves.clear()
+	_guest_n = 0
+	_active_thief_n = 0
 	cashiers.clear()
 	_dirts.clear()
 	_obstacles.clear()
@@ -292,14 +309,41 @@ func soothe_all(keep: float) -> void:
 func pick_register(cust: Node) -> Node2D:
 	if cashiers.is_empty():
 		return null
-	var best: Node2D = cashiers[0]
 	var best_n := 999
 	for c in cashiers:
-		var n: int = c.queue.size()
-		if n < best_n:
-			best_n = n
-			best = c
-	return best
+		best_n = mini(best_n, int(c.queue.size()))
+	var tied: Array[Node2D] = []
+	for c in cashiers:
+		if int(c.queue.size()) == best_n:
+			tied.append(c)
+	if tied.size() == 1:
+		return tied[0]
+	var origin: Vector2 = cust.global_position if cust != null and cust is Node2D else Vector2.ZERO
+	var best_d := INF
+	var nearest: Array[Node2D] = []
+	for c in tied:
+		var d := origin.distance_squared_to(c.global_position)
+		if d < best_d - 0.01:
+			best_d = d
+			nearest = [c]
+		elif absf(d - best_d) <= 0.01:
+			nearest.append(c)
+	if nearest.is_empty():
+		return tied[0]
+	if nearest.size() == 1:
+		return nearest[0]
+	return nearest[randi() % nearest.size()]
+
+
+func customers_near(origin: Vector2, radius_sq: float) -> bool:
+	if _customers == null:
+		return false
+	for c in _customers.get_children():
+		if c == null or not is_instance_valid(c):
+			continue
+		if origin.distance_squared_to(c.global_position) <= radius_sq:
+			return true
+	return false
 
 
 func restock_for(cat: String) -> Node2D:
@@ -653,6 +697,33 @@ func _on_shelf_stock_sku_changed(shelf: Node, old_sku: String, new_sku: String) 
 		_unindex_shelf_sku(old_sku, shelf)
 	if new_sku != "":
 		_index_shelf_sku(new_sku, shelf)
+		_unindex_empty_shelf(shelf)
+	else:
+		_index_empty_shelf(shelf)
+
+
+func _index_empty_shelf(shelf: Node) -> void:
+	if shelf == null:
+		return
+	var cat := String(shelf.get("category"))
+	var list: Array = _empty_by_cat.get(cat, [])
+	if not list.has(shelf):
+		list.append(shelf)
+	_empty_by_cat[cat] = list
+
+
+func _unindex_empty_shelf(shelf: Node) -> void:
+	if shelf == null:
+		return
+	var cat := String(shelf.get("category"))
+	if not _empty_by_cat.has(cat):
+		return
+	var list: Array = _empty_by_cat[cat]
+	list.erase(shelf)
+	if list.is_empty():
+		_empty_by_cat.erase(cat)
+	else:
+		_empty_by_cat[cat] = list
 
 
 func _register_shelf(node: Node2D) -> void:
@@ -666,6 +737,8 @@ func _register_shelf(node: Node2D) -> void:
 		sku = String(node.get("sku"))
 	if sku != "":
 		_index_shelf_sku(sku, node)
+	else:
+		_index_empty_shelf(node)
 
 
 func shelf_stand(shelf: Node2D) -> Vector2:
@@ -677,6 +750,10 @@ func shelf_stand(shelf: Node2D) -> Vector2:
 func find_path(from: Vector2, to: Vector2) -> PackedVector2Array:
 	if pathfinder == null:
 		return PackedVector2Array([to])
+	if pathfinder.has_method("try_find_path"):
+		var pts: PackedVector2Array = pathfinder.try_find_path(from, to)
+		## Empty = budget exhausted; callers keep prior path.
+		return pts
 	return pathfinder.find_path(from, to)
 
 
@@ -695,32 +772,70 @@ func inside_pos() -> Vector2:
 
 
 func guest_count() -> int:
-	if _customers == null:
-		return 0
-	var n := 0
-	for c in _customers.get_children():
-		if c.has_method("occupies_store") and not bool(c.call("occupies_store")):
-			continue
-		n += 1
-	return n
+	return _guest_n
 
 
 func thief_count() -> int:
-	var n := 0
-	for c in thieves():
-		if c.has_method("is_active_thief") and bool(c.call("is_active_thief")):
-			n += 1
-	return n
+	return _active_thief_n
 
 
 func thieves() -> Array[Node2D]:
-	var out: Array[Node2D] = []
-	if _customers == null:
-		return out
-	for c in _customers.get_children():
-		if bool(c.get("is_thief")):
-			out.append(c)
-	return out
+	## Prune stale refs lazily; no fresh alloc of the full customer list.
+	var i := 0
+	while i < _thieves.size():
+		var c: Node2D = _thieves[i]
+		if c == null or not is_instance_valid(c):
+			_thieves.remove_at(i)
+			continue
+		i += 1
+	return _thieves
+
+
+func register_customer(c: Node) -> void:
+	if c == null:
+		return
+	if bool(c.get("is_thief")):
+		if not _thieves.has(c):
+			_thieves.append(c)
+		_recount_active_thieves()
+	else:
+		_guest_n += 1
+	if not c.tree_exiting.is_connected(_on_customer_exiting):
+		c.tree_exiting.connect(_on_customer_exiting.bind(c))
+
+
+func note_customer_occupy_changed(c: Node, occupies: bool) -> void:
+	if c == null or bool(c.get("is_thief")):
+		return
+	## Guests: occupy flips leave/flee; keep counter non-negative.
+	if occupies:
+		_guest_n += 1
+	else:
+		_guest_n = maxi(0, _guest_n - 1)
+
+
+func note_thief_active_changed() -> void:
+	_recount_active_thieves()
+
+
+func _on_customer_exiting(c: Node) -> void:
+	if c == null:
+		return
+	if bool(c.get("is_thief")):
+		_thieves.erase(c)
+		_recount_active_thieves()
+	else:
+		## If still counted as occupying when freed, drop one.
+		if c.has_method("occupies_store") and bool(c.call("occupies_store")):
+			_guest_n = maxi(0, _guest_n - 1)
+
+
+func _recount_active_thieves() -> void:
+	var n := 0
+	for c in _thieves:
+		if c != null and is_instance_valid(c) and c.has_method("is_active_thief") and bool(c.call("is_active_thief")):
+			n += 1
+	_active_thief_n = n
 
 
 func record_stolen(items: Array) -> void:
@@ -797,6 +912,7 @@ func _spawn_customer() -> void:
 	var c: CharacterBody2D = CustomerScript.new()
 	_customers.add_child(c)
 	c.setup(self, door_pos())
+	register_customer(c)
 
 
 func _spawn_thief() -> void:
@@ -811,22 +927,18 @@ func _spawn_thief() -> void:
 	c.setup(self, door_pos(), true)
 	_add_interactable(c)
 	c.tree_exiting.connect(func() -> void: _remove_interactable(c))
+	register_customer(c)
 	if _player:
 		_player.log_line.emit(Loc.t("demo.thief_enter"))
 
 
 func _floor() -> void:
-	var step := StateScript.CELL
-	var x := 0.0
-	while x < FLOOR_SIZE.x - 0.5:
-		var y := 0.0
-		while y < FLOOR_SIZE.y - 0.5:
-			var tile := Vox.sprite("floor_tile", 0)
-			tile.z_index = -8
-			tile.position = FLOOR_ORIGIN + Vector2(x + step * 0.5, y + step * 0.5)
-			_world.add_child(tile)
-			y += step
-		x += step
+	## One canvas item that draws tiled floor (avoids 100–400 Sprite2D nodes).
+	var floor: Node2D = FloorTilesScript.new()
+	floor.name = "Floor"
+	floor.z_index = -8
+	_world.add_child(floor)
+	floor.call("setup", FLOOR_ORIGIN, FLOOR_SIZE, StateScript.CELL)
 
 
 func _walls_and_door() -> void:
@@ -955,15 +1067,56 @@ func _make_cashier(r: Rect2, rot: int, index: int) -> Node2D:
 	return node
 
 
+func _dirt_cell_key(p: Vector2) -> int:
+	var cx := int(floor(p.x / DIRT_CELL))
+	var cy := int(floor(p.y / DIRT_CELL))
+	return cx + cy * 4096
+
+
+func _mark_dirt_rect_cells(r: Rect2, blocked: bool) -> void:
+	var grow := r.grow(18.0)
+	var x0 := int(floor(grow.position.x / DIRT_CELL))
+	var y0 := int(floor(grow.position.y / DIRT_CELL))
+	var x1 := int(floor(grow.end.x / DIRT_CELL))
+	var y1 := int(floor(grow.end.y / DIRT_CELL))
+	for x in range(x0, x1 + 1):
+		for y in range(y0, y1 + 1):
+			var key := x + y * 4096
+			if blocked:
+				_dirt_block_cells[key] = int(_dirt_block_cells.get(key, 0)) + 1
+			else:
+				var n := int(_dirt_block_cells.get(key, 0)) - 1
+				if n <= 0:
+					_dirt_block_cells.erase(key)
+				else:
+					_dirt_block_cells[key] = n
+
+
+func _rebuild_dirt_block_cells() -> void:
+	_dirt_block_cells.clear()
+	_mark_dirt_rect_cells(Rect2(door_pos() + Vector2(-70, -20), Vector2(140, 110)), true)
+	for o in _obstacles:
+		_mark_dirt_rect_cells(o, true)
+	for d in _dirts:
+		if d != null and is_instance_valid(d):
+			_mark_dirt_rect_cells(Rect2(d.global_position - Tuning.DIRT_SIZE * 0.5, Tuning.DIRT_SIZE), true)
+
+
 func _try_spawn_dirt() -> void:
 	if _dirts.size() >= Tuning.DIRT_CAP:
 		return
+	if _dirt_block_cells.is_empty() and not _obstacles.is_empty():
+		_rebuild_dirt_block_cells()
 	var size := Tuning.DIRT_SIZE
-	for _i in 28:
+	## Sample free coarse cells first; full rect check only on candidates.
+	for _i in 12:
 		var origin := FLOOR_ORIGIN + Vector2(
 			randf_range(36.0, FLOOR_SIZE.x - size.x - 36.0),
 			randf_range(48.0, FLOOR_SIZE.y - size.y - 36.0)
 		)
+		var center := origin + size * 0.5
+		if _dirt_block_cells.has(_dirt_cell_key(center)):
+			continue
 		var r := Rect2(origin, size)
 		if _blocked_rect(r):
 			continue
@@ -973,17 +1126,20 @@ func _try_spawn_dirt() -> void:
 
 func _blocked_rect(r: Rect2) -> bool:
 	var grow := r.grow(18.0)
-	for o in _obstacles:
-		if grow.intersects(o):
-			return true
+	var door := Rect2(door_pos() + Vector2(-70, -20), Vector2(140, 110))
+	if grow.intersects(door):
+		return true
 	for d in _dirts:
 		if not is_instance_valid(d):
 			continue
 		var other := Rect2(d.global_position - Tuning.DIRT_SIZE * 0.5, Tuning.DIRT_SIZE).grow(24.0)
 		if grow.intersects(other):
 			return true
-	var door := Rect2(door_pos() + Vector2(-70, -20), Vector2(140, 110))
-	return grow.intersects(door)
+	## Obstacles last (largest list).
+	for o in _obstacles:
+		if grow.intersects(o):
+			return true
+	return false
 
 
 func _spawn_dirt(r: Rect2, dtype: String) -> void:
@@ -993,10 +1149,13 @@ func _spawn_dirt(r: Rect2, dtype: String) -> void:
 	_world.add_child(area)
 	_dirts.append(area)
 	_add_interactable(area)
+	_mark_dirt_rect_cells(r, true)
 	area.tree_exiting.connect(_on_dirt_gone.bind(area))
 
 
 func _on_dirt_gone(area: Node2D) -> void:
+	if area != null and is_instance_valid(area):
+		_mark_dirt_rect_cells(Rect2(area.global_position - Tuning.DIRT_SIZE * 0.5, Tuning.DIRT_SIZE), false)
 	_dirts.erase(area)
 	_remove_interactable(area)
 
@@ -1109,6 +1268,10 @@ func _resolve_toss_landing(
 		if _player and _player.has_method("apply_toss_ko"):
 			_player.call("apply_toss_ko", thief, toss_dir)
 		return
+	var guest := _guest_for_toss(from, dest)
+	if guest != null:
+		_resolve_toss_guest(guest, dest, sku, n)
+		return
 	var shelf := _shelf_for_toss(dest, sku)
 	if shelf == null:
 		_place_dropped_box(dest, sku, n)
@@ -1129,6 +1292,51 @@ func _resolve_toss_landing(
 			)
 	if left > 0:
 		_place_dropped_box(dest, sku, left)
+
+
+
+func _guest_for_toss(from: Vector2, dest: Vector2) -> Node2D:
+	if _customers == null:
+		return null
+	var best: Node2D = null
+	var best_d := Tuning.DROP_GUEST_HIT_RADIUS
+	for c in _customers.get_children():
+		if c == null or not is_instance_valid(c):
+			continue
+		if bool(c.get("is_thief")):
+			continue
+		var st := int(c.get("state"))
+		if st == 7 or st == 9 or st == 8:
+			continue
+		var p: Vector2 = c.global_position
+		var d := minf(_dist_point_to_segment(p, from, dest), dest.distance_to(p))
+		if d <= best_d:
+			best_d = d
+			best = c
+	return best
+
+
+func _resolve_toss_guest(guest: Node2D, dest: Vector2, sku: String, n: int) -> void:
+	var taken := 0
+	if guest.has_method("accept_toss_box"):
+		taken = int(guest.call("accept_toss_box", sku, n))
+	if taken > 0:
+		var left := n - taken
+		if _player:
+			_player.log_line.emit(
+				"丟掉給客人 %s ×%d — 謝謝！%s" % [
+					Tuning.sku_name(sku), taken,
+					("剩 %d 掉地" % left) if left > 0 else "",
+				]
+			)
+		if left > 0:
+			_place_dropped_box(dest, sku, left)
+		return
+	if guest.has_method("apply_toss_reject"):
+		guest.call("apply_toss_reject")
+	_place_dropped_box(dest, sku, n)
+	if _player:
+		_player.log_line.emit("丟掉砸到客人 — 不想要這貨品！整箱掉地")
 
 
 ## Active thief nearest the flight segment / landing within hit radius.
@@ -1161,12 +1369,24 @@ func _dist_point_to_segment(p: Vector2, a: Vector2, b: Vector2) -> float:
 func _shelf_for_toss(dest: Vector2, sku: String) -> Node2D:
 	var best: Node2D = null
 	var best_d := Tuning.DROP_SHELF_HIT_RADIUS
-	for s in shelves:
+	var cat := Tuning.category_of(sku)
+	## Prefer indexed stocked shelves + empty shelves of matching category.
+	var candidates: Array = []
+	var stocked = _shelves_by_sku.get(sku)
+	if stocked != null:
+		for s in stocked:
+			candidates.append(s)
+	var empties = _empty_by_cat.get(cat)
+	if empties != null:
+		for s in empties:
+			candidates.append(s)
+	if candidates.is_empty():
+		candidates = shelves
+	for s in candidates:
 		if s == null or not is_instance_valid(s):
 			continue
 		if not s.has_method("can_accept") or not bool(s.call("can_accept", sku)):
 			continue
-		## Same product on a stocked shelf, or empty shelf of matching category.
 		var shelf_sku := String(s.get("sku"))
 		if shelf_sku != "" and shelf_sku != sku:
 			continue
@@ -1250,6 +1470,7 @@ func _place_dropped_box(dest: Vector2, sku: String, n: int) -> void:
 
 func _make_player() -> CharacterBody2D:
 	var p: CharacterBody2D = PlayerScript.new()
+	p.set("game", self)
 	p.name = "Clerk"
 	p.collision_layer = 1
 	p.collision_mask = 1 | 2

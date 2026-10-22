@@ -136,12 +136,30 @@ const LOOT_SCATTER_FLIGHT_SEC := 0.38
 const HIT_AT_10 := 3.5
 const HIT_AT_50 := 12.0
 const DASH_HIT_RANGE := 32.0
+## Crowd slow: guests/thieves within this radius of the player.
+const CROWD_RADIUS := 3.0 * BODY_LENGTH
+const CROWD_RADIUS_SQ := CROWD_RADIUS * CROWD_RADIUS
+const CROWD_SPEED_MULT := 0.5
+## Dash into a shopping guest: +dissat (base), stun, cart drops in place.
+const DASH_GUEST_DISSAT := 50.0
+const DASH_GUEST_STUN_SEC := 2.0
+## Toss hit normal guest: wrong SKU dissatisfaction.
+const TOSS_GUEST_WRONG_DISSAT := 15.0
+## Directional toss: guest within this of flight path / landing.
+const DROP_GUEST_HIT_RADIUS := 72.0
+## Prep: reset STR/AGI/INT costs level × this.
+const STAT_RESET_FEE_PER_LEVEL := 1000
 const SPEED_MAX_MULT := 5.0
 const SPEED_FLOOR := 48.0
 
 const CAMERA_ZOOM := 1.22
 const INTERACT_RANGE := 100.0
+const INTERACT_RANGE_SQ := INTERACT_RANGE * INTERACT_RANGE
 const FACE_DOT := 0.18
+## Customer seek: re-resolve shelf at most this often (seconds).
+const SEEK_SHELF_REFRESH_SEC := 0.28
+## Clerk idle job search throttle.
+const CLERK_JOB_SEARCH_SEC := 0.35
 const SKU_PICK_HOLD := 0.18
 const RESTOCK_SECONDS_AT_10 := 2.0
 const RESTOCK_SECONDS_AT_50 := 0.2

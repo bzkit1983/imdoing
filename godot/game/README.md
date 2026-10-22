@@ -2,7 +2,7 @@
 
 v1.0 起唯一維護的 Godot 專案。從凍結的 `godot/alpha_v0_1` 複製一次而來。
 
-- **產品版：** `1.0.0`（`config/version` · `scripts/product_version.gd` · repo `VERSION` · tag `v1.0.0`）
+- **產品版：** `1.1.0`（`config/version` · `scripts/product_version.gd` · repo `VERSION` · tag `v1.1.0`）
 - 用 Godot **4.7** 打開本目錄的 `project.godot`（主機 middleware 對齊政策見 `docs/alpha/godot-middleware-pin.md`）
 - 版控：`docs/versioning.md`
 - 技術债清單：`docs/alpha/tech-review-v0.1.md`

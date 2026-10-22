@@ -18,6 +18,8 @@ var _box_sku: String = ""
 var _box_n: int = 0
 var _sprite: CanvasItem
 var _model_id: String = "clerk_restock"
+var _job_search_cd: float = 0.0
+var _shown_anim: String = ""
 
 
 func setup(game: Node, at: Vector2, job: String, reg: Node2D) -> void:
@@ -112,6 +114,10 @@ func _tick_restock(delta: float) -> void:
 		elif placed == 0:
 			_drop_box()
 		return
+	_job_search_cd -= delta
+	if _job_search_cd > 0.0:
+		return
+	_job_search_cd = Tuning.CLERK_JOB_SEARCH_SEC
 	var job := _find_job()
 	if job.is_empty():
 		return
@@ -240,23 +246,28 @@ func _drop_box() -> void:
 
 
 func _follow(pos: Vector2, delta: float) -> bool:
-	if global_position.distance_to(pos) <= 36.0:
+	var arrive_sq := 36.0 * 36.0
+	if global_position.distance_squared_to(pos) <= arrive_sq:
 		velocity = Vector2.ZERO
 		return true
-	if _path.is_empty() or pos.distance_to(_goal) > 18.0:
-		_goal = pos
-		_path = _game.call("find_path", global_position, pos)
-		_path_i = 0
-	while _path_i < _path.size() and global_position.distance_to(_path[_path_i]) <= 16.0:
+	if _path.is_empty() or pos.distance_squared_to(_goal) > 324.0:
+		var pts: PackedVector2Array = _game.call("find_path", global_position, pos)
+		if pts.is_empty() and not _path.is_empty():
+			pass
+		else:
+			_goal = pos
+			_path = pts if not pts.is_empty() else PackedVector2Array([pos])
+			_path_i = 0
+	while _path_i < _path.size() and global_position.distance_squared_to(_path[_path_i]) <= 256.0:
 		_path_i += 1
 	var next := pos
 	if _path_i < _path.size():
 		next = _path[_path_i]
 	var to := next - global_position
-	if to.length() < 1.0:
-		return global_position.distance_to(pos) <= 36.0
+	if to.length_squared() < 1.0:
+		return global_position.distance_squared_to(pos) <= arrive_sq
 	var spd := Tuning.WALK_SPEED * Tuning.agi_mult(10)
-	spd *= float(_game.call("customer_move_mult"))
+	spd *= float(_game.customer_move_mult()) if _game.has_method("customer_move_mult") else float(_game.call("customer_move_mult"))
 	velocity = to.normalized() * maxf(spd, 1.0)
 	_sync_visual("walk", velocity)
 	move_and_slide()
@@ -264,6 +275,10 @@ func _follow(pos: Vector2, delta: float) -> bool:
 
 
 func _sync_visual(anim: String, face: Vector2) -> void:
+	var key := "%s_%d" % [anim, Vox.k_from_facing(face)]
+	if key == _shown_anim:
+		return
+	_shown_anim = key
 	if _sprite is AnimatedSprite2D:
 		Vox.play_anim(_sprite as AnimatedSprite2D, _model_id, anim, face)
 	elif _sprite is Sprite2D:

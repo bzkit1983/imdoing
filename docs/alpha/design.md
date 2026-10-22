@@ -1,8 +1,8 @@
 # Alpha 版本設計
 
 - 這裡記留到 Alpha 才設計的問題
-- 長線規則仍以 `docs/systemdesign/` 為準。這些項目先不寫進長線檔
-- 對照：`docs/systemdesign-gaps.md`（2026-10-22，#3–#40）；工程落地對照：`docs/alpha/implementation-status.md`；執行期優化：`docs/alpha/runtime-perf-audit.md`
+- 長線規則仍以 `docs/systemdesign/` 為準
+- 對照：`docs/systemdesign-gaps.md`（2026-10-22）；工程落地對照：`docs/alpha/implementation-status.md`；執行期優化：`docs/alpha/runtime-perf-audit.md`
 
 # 幫忙取貨與 COMBO
 
@@ -12,55 +12,19 @@
 
 檔案：`gameconcept.md`、`customer.md`、`playeraction.md`
 
-# 擁擠與操作門檻
+# 已拍板並寫回長線（原 Alpha 項）
 
-「太多客人同一地區」會出現「唔該借借」，沒有人數，也沒有移速倍率。
+下列原 Alpha 開放項已於 2026-10-22 拍板，規則見 `docs/systemdesign/`（並關 `systemdesign-gaps.md`）：
 
-輕放衝刺和長按奔跑的時間門檻只在 Demo，長線未寫。重置能力值有功能，沒有費用。
-
-檔案：`playermovement.md`、`control.md`、`playersetup.md`
-
-# 收銀方向如何抽
-
-四向是否均勻、可否連續重複，未寫。清潔和打擊已改為轉搖桿或連按，不再是方向串。
-
-檔案：`cashiersystem.md`
-
-# 多台收銀機客人選哪一隊
-
-可以買多台。店員各看自己那台。客人完成購物後「前往收銀機」，沒有寫選最短隊、最近一台，或人數相同時怎樣分。
-
-檔案：`cashiersystem.md`、`customer.md`、`clerksystem.md`
-
-# 掉落物歸誰
-
-水漬掉下的箱、丟掉的貨箱、打倒／貨箱砸中／撞飛小偷掉落的贓物，都可以撿。
-
-已寫進長線：
-- `thiefsystem.md`：近身 KO 近距散落、衝刺遠距散落、方向丟掉砸中則**原地掉落**；三者都**不計被偷**；只有帶贓走到出口才計被偷並彈橫幅。近身 KO 與丟掉砸中算抓住（經驗見 `ecosystem.md`）。
-- `playeraction.md`／`replenishmentsystem.md`：丟掉瞄準鎖移動、放手掉出、5 身位、青色軌道；方向飛出可砸小偷或補同款貨架（剩貨掉地）；腳邊丟掉不上架、不砸人。
-
-仍未寫：客人會不會撿走地上的箱、會不會算進該客人清單。
-
-檔案：`cleaningsystem.md`、`thiefsystem.md`、`customer.md`、`playeraction.md`、`replenishmentsystem.md`
-
-# 清潔與打擊能否邊走邊起手
-
-上架已寫可以在移動中起手，Circle 進行中不走。清潔和打擊只寫進行中不移動。起手時角色是否仍在走，未寫。
-
-檔案：`playeraction.md`、`cleaningsystem.md`、`thiefsystem.md`
-
-# 小偷與污物、時停以外的世界規則
-
-小偷踩到污物會不會減速，未寫。安撫和金屬狂潮的「全體客人」包不包括小偷，未寫。小偷佔不佔在店人數上限，未寫。
-
-檔案：`thiefsystem.md`、`customer.md`、`playeractiveskills.md`
-
-# 攜帶清單的先後用詞
-
-仍寫 First In Last Out。下文例子已是堆疊：後取的在最上層，空架先上最後一箱。標籤和例子還沒合成同一句。
-
-檔案：`replenishmentsystem.md`
+| 原項 | 結論（摘要） |
+| --- | --- |
+| 擁擠與操作門檻 | 3 身位擁擠 ×0.5＋「唔該借借⋯」；輕放／長按跟活線常數；重置＝等級 × $1000 |
+| 收銀方向如何抽 | 隨機，可重複 |
+| 多台收銀選隊 | 最短 → 最近 → 隨機 |
+| 掉落物歸誰 | 客人永不撿、不算進清單 |
+| 清潔邊走邊起手 | 可起手；填計後鎖移動 |
+| 小偷與污物／世界 | 小偷不受污物；不佔客人數；The World 含小偷 |
+| 攜帶清單 FILO | 改為堆疊說明（後取先上） |
 
 # 角色導出
 
@@ -72,21 +36,14 @@
 
 時計、營業額、人數、狀態、被偷、提早關店的詢問已有。
 
-- **存檔：** 已寫進長線 `docs/systemdesign/savesystem.md`（`user://save.json` + `version`；經 `PlatformServices`）。活線已實作。  
-- **暫停／掛起：** 已寫進長線 `docs/systemdesign/pausemenu.md`（營運日 Esc／Start；系統掛起 checkpoint，恢復不自動繼續）。  
-- **操作：** 長線以 InputMap 為準，見 `docs/systemdesign/control.md`（Autoload `Controls`）。  
-- **字串表：** 工程 `docs/alpha/i18n.md`（`Loc`＋`locale/strings.csv`）；玩法規則不因語系分叉。  
-- **準備 UI：** 殼層 `prep_menu.tscn`＋`scripts/prep/`（見 `storepreparationphase.md`）。  
-- **工程路徑：** 凍結 Demo／Alpha；v1 只維護 `godot/game`，見 `docs/versioning.md`。主機商務／釘版見 `console-business.md`、`godot-middleware-pin.md`。  
+- **存檔／暫停／操作／字串表／準備 UI／工程路徑：** 已寫進長線或工程文件（見前次對照）。
 - 仍未寫（玩法／產品）：設定（音量）、失敗／過關流程、教學、技能演出期間能否操作。外觀配置只有一句。
-
-檔案：`savesystem.md`、`pausemenu.md`、`storeoperationphase.md`、`storepreparationphase.md`、`playerskills.md`、`control.md`、`playersetup.md`
 
 # 用詞
 
-寫回原設計檔，不改已經拍板的規則：
+寫回原設計檔：
 
-- 「以為」改為「以下」（`storeoperationphase.md`）
-- 「三能種力值」改為「三種能力值」（`gameconcept.md`）
-- 奧義兩處的「技令」改為「指令」（`playerultimateskills.md`）
-- 衝刺「身上沒有貨品而」句子補完（`playermovement.md`）
+- 「以為」→「以下」（`storeoperationphase.md`）
+- 「三能種力值」→「三種能力值」（`gameconcept.md`）
+- 奧義「技令」→「指令」（`playerultimateskills.md`）
+- 衝刺句子已重寫（`playermovement.md`）

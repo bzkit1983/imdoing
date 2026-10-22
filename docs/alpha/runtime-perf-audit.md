@@ -6,9 +6,9 @@
 - **Floor:** Switch 1 as performance target (see `docs/alpha/tech-review-v0.1.md` §3)
 - **Scale today:** guest cap 10–15 (`game_state.guest_cap`), thief cap 2, dirt cap 6; path grid ~1.2k–4.5k cells depending on shop LV
 
-This is a read-only findings list. Suggested fixes are directional; none are applied here.
+**結論（中）：** 先前 P0（HUD 髒寫入、貨架 SKU 索引、CJK 字型子集、SpriteFrames cache）已落地；本 tip **無新 P0**。**P1（7）與 P2（13）已全部實作**於 `cursor/runtime-perf-opts-cba4`（見文末 DONE 表）。後續可選：完整 `GameSession` 型別 facade、drop-flight 物件池。
 
-**結論（中）：** 先前 P0（HUD 髒寫入、貨架 SKU 索引、CJK 字型子集、SpriteFrames cache）已落地；本 tip **無新 P0**。下一步以 Switch 1 為地板，優先砍「髒門之前仍每幀算／配」的成本：interactable 掃描、HUD fingerprint／左側 `thieves()`、尋路預算、地板 TileMap、`box_stack` 重繪、客人清單字串重建。詳見文末 Priority summary。
+Findings below are the pre-fix audit record; status rows mark what shipped.
 
 ---
 
@@ -25,7 +25,7 @@ This is a read-only findings list. Suggested fixes are directional; none are app
 | **Voxel apply short-circuit** | `Vox.apply` meta `vox_id`/`vox_k` (`voxel_sprite.gd` 72–74) | Static sprite re-apply no-ops when id+facing unchanged. |
 | **Path stuck / goal hysteresis** | Customer/clerk repath only if path empty or goal moved >18px (`customer.gd` 383–386; `clerk.gd` 246–249) | Avoids A* every physics tick while walking a stable goal. |
 
-Tech-review §3 still lists **path throttle + object pools** as open P1 work; the items below are the concrete gaps on the current tip.
+Tech-review §3 path throttle is covered by the shared A* budget below; object pools remain optional future work. The items below are the pre-fix gap list on tip `19261b5`.
 
 ---
 
@@ -353,10 +353,10 @@ func _draw() -> void:
 | Sev | Count | Themes |
 | --- | --- | --- |
 | **P0** | **0 new** | Prior P0s (dirty HUD writes, SKU index, font subset) are done on this tip. |
-| **P1** | **7** | Interactable scan; HUD fingerprint/left compute; `thieves()` alloc; customer list string rebuild; path storms; per-cell floor; box_stack redraw. |
-| **P2** | **13** | Queue re-find; dirt prune; buff/loadout; group lookup; toss shelf scan; dirt spawn; cashier label; drop trail; clerk jobs; Loc resize; player visual/menu; duck calls. |
+| **P1** | **7 — implemented** | Interactable scan; HUD fingerprint/left compute; `thieves()` alloc; customer list string rebuild; path storms; per-cell floor; box_stack redraw. |
+| **P2** | **13 — implemented** | Queue re-find; dirt prune; buff/loadout; group lookup; toss shelf scan; dirt spawn; cashier label; drop trail; clerk jobs; Loc resize; player visual/menu; duck calls (hot-path cache). |
 
-**Highest leverage next (Switch floor):** (1) stop left-HUD / `thieves()` / fingerprint **alloc before dirty gate**, (2) path request budget, (3) floor tiling, (4) box_stack dirty redraw, (5) customer list-text dirty build.
+**Status (2026-10-22):** All P1 + P2 items below are implemented on `cursor/runtime-perf-opts-cba4`. Remaining future work is optional (full `GameSession` typed facade, drop-flight node pool).
 
 ---
 
@@ -372,3 +372,42 @@ func _draw() -> void:
 | HUD dirty | `hud.gd` 91–99, 155–258 |
 | Frames cache | `voxel_sprite.gd` 11, 112–148 |
 | Font subset | `ui_font.gd` 7; `docs/alpha/fonts-subset.md` |
+
+---
+
+## P1 implementation (2026-10-22) — DONE
+
+Applied on living line `godot/game` (branch `cursor/runtime-perf-opts-cba4`):
+
+| # | Item | Status | Notes |
+| --- | --- | --- | --- |
+| 1 | Interactable scan | **DONE** | `distance_squared_to` / `INTERACT_RANGE_SQ`; kind cached once; skip scan while aim / toss flight / slip |
+| 2 | HUD fingerprint | **DONE** | Dirty gate + inv `revision` / cheap field cache; `grouped()` only when dirty |
+| 3–4 | Left HUD / `thieves()` | **DONE** | Maintained `_thieves`, `_guest_n`, `_active_thief_n` on spawn/exit/state |
+| 5 | Customer list string | **DONE** | `_list_rev` — rebuild label text only when shopping/cart/raided changes |
+| 6 | Path storms | **DONE** | Shared A* budget (3/physics frame), cell-pair cache, seek shelf refresh ~0.28s, `distance_squared` in follow |
+| 7/11 | Floor tiles | **DONE** | Single `floor_tiles.gd` canvas item (anchor-matched draw) |
+| 14 | box_stack redraw | **DONE** | `inventory.changed` / `revision`; redraw on mutation only |
+
+Also landed nearby: cashier label dirty, drop trail in-place points, empty-shelf index for toss (P2-adjacent).
+
+---
+
+## P2 implementation (2026-10-22) — DONE
+
+| # | Item | Status | Notes |
+| --- | --- | --- | --- |
+| 7 | Queue re-find | **DONE** | `_queue_idx` + `_resolve_queue_idx` — re-find only when cached slot stale; `cashier.queue_index_of` |
+| 8 | Dirt prune | **DONE** | Player/customer `on_dirt` trusts enter/exit; prune on `exit_dirt` only |
+| 9 | Buff / loadout | **DONE** | `_buff_cache_valid` + cached clock/cust mult; invalidate on buff apply/expire |
+| 10 | Group lookup | **DONE** | `player.game` set in `_make_player`; `_game()` caches ref |
+| 12 | Toss shelf scan | **DONE** | `_shelves_by_sku` + `_empty_by_cat`; thieves via maintained `_thieves` |
+| 13 | Dirt spawn | **DONE** | Coarse `DIRT_CELL` occupancy map; early reject before O(obstacles) rect walk |
+| 15 | Cashier label | **DONE** | Dirty on enqueue/dequeue via `_label_n` |
+| 16 | Drop trail | **DONE** | In-place `PackedVector2Array` mutate (node pool deferred) |
+| 17 | Clerk jobs | **DONE** | `CLERK_JOB_SEARCH_SEC` throttle |
+| 18 | Loc / resize | **DONE** | Font re-apply debounced 0.2s; skill CD text snapped 0.25s |
+| 19 | Visuals / menu | **DONE** | `_shown_anim` / `_shown_tint`; skill menu `set_slots` on `_menu_fp` change |
+| 20 | Duck calls | **DONE** (hot path) | Cached `game` ref + direct props where typed; full `GameSession` facade optional |
+
+---
