@@ -2,7 +2,7 @@
 
 - 這裡記留到 Alpha 才設計的問題
 - 長線規則仍以 `docs/systemdesign/` 為準。這些項目先不寫進長線檔
-- 對照：`docs/systemdesign-gaps.md`（2026-10-21）；工程落地對照：`docs/alpha/implementation-status.md`
+- 對照：`docs/systemdesign-gaps.md`（2026-10-22，#3–#40）；工程落地對照：`docs/alpha/implementation-status.md`；執行期優化：`docs/alpha/runtime-perf-audit.md`
 
 # 幫忙取貨與 COMBO
 

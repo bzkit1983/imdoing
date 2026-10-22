@@ -1,8 +1,8 @@
 # Alpha → v1 實作對照（設計已落地項）
 
-- 對照日：2026-10-22（含 PR #3–#39 相關玩法：掉貨瞄準、丟掉上架、丟掉砸小偷、Pages）
+- 對照日：2026-10-22（含 PR #3–#40 相關玩法：掉貨瞄準、丟掉上架、丟掉砸小偷、Pages、docs align）
 - 用途：把近期工程變更連回長線／Alpha 設計檔，方便查「文件寫在哪、程式改哪」
-- 版控：`docs/versioning.md` · 技術债清單：`docs/alpha/tech-review-v0.1.md`（§6 已全部勾完） · 缺口：`docs/systemdesign-gaps.md`
+- 版控：`docs/versioning.md` · 技術债清單：`docs/alpha/tech-review-v0.1.md`（§6 已全部勾完） · 缺口：`docs/systemdesign-gaps.md` · 執行期優化：`docs/alpha/runtime-perf-audit.md`
 
 | 變更 | 長線／Alpha 文件 | 工程 |
 | --- | --- | --- |
