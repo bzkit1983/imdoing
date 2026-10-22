@@ -21,7 +21,7 @@ func setup(sku: String, from: Vector2, to: Vector2, duration: float = Tuning.DRO
 	z_index = 8
 	_trail = Line2D.new()
 	_trail.width = 3.0
-	_trail.default_color = Color(1.0, 0.92, 0.45, 0.55)
+	_trail.default_color = Tuning.DROP_FLIGHT_TRAIL_COLOR
 	_trail.z_index = -1
 	_trail.points = PackedVector2Array([Vector2.ZERO, to - from])
 	add_child(_trail)

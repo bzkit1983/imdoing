@@ -75,6 +75,9 @@ var _fight_release: bool = false
 var _stun_pending: float = Tuning.STUN_SEC
 var _cancel_held: bool = false
 var _cancel_time: float = 0.0
+## True once hold exceeds DROP_HOLD_SEC — release then drops (not auto).
+var _cancel_drop_ready: bool = false
+## True after this press has already tossed (prevents double drop).
 var _cancel_dropped: bool = false
 ## Aim direction while holding cancel. Zero = drop at feet.
 var _cancel_drop_dir: Vector2 = Vector2.ZERO
@@ -105,13 +108,13 @@ func _setup_drop_aim() -> void:
 	_drop_aim_line = Line2D.new()
 	_drop_aim_line.name = "DropAimLine"
 	_drop_aim_line.width = 3.0
-	_drop_aim_line.default_color = Color(1.0, 0.9, 0.4, 0.75)
+	_drop_aim_line.default_color = Tuning.DROP_AIM_LINE_COLOR
 	_drop_aim_line.visible = false
 	_drop_aim_line.z_index = 6
 	add_child(_drop_aim_line)
 	_drop_aim_mark = Polygon2D.new()
 	_drop_aim_mark.name = "DropAimMark"
-	_drop_aim_mark.color = Color(1.0, 0.85, 0.3, 0.7)
+	_drop_aim_mark.color = Tuning.DROP_AIM_MARK_COLOR
 	_drop_aim_mark.polygon = PackedVector2Array([
 		Vector2(-10, 0), Vector2(0, -10), Vector2(10, 0), Vector2(0, 10),
 	])
@@ -120,7 +123,7 @@ func _setup_drop_aim() -> void:
 	add_child(_drop_aim_mark)
 
 
-## Base 3 身位; later drop-range skills can multiply this.
+## Base 5 身位; later drop-range skills can multiply this.
 func drop_toss_dist() -> float:
 	return Tuning.DROP_TOSS_DIST
 
@@ -377,16 +380,14 @@ func set_hold(action: String, pressed: bool) -> void:
 			_cancel_held = pressed
 			if pressed:
 				_cancel_time = 0.0
+				_cancel_drop_ready = false
 				_cancel_dropped = false
 				_cancel_drop_dir = Vector2.ZERO
 				_begin_drop_aim()
 				_sample_cancel_drop_dir()
 				_cancel_input()
 			else:
-				_cancel_time = 0.0
-				if not _cancel_dropped and not _drop_flight_lock:
-					_cancel_drop_dir = Vector2.ZERO
-					_hide_drop_aim()
+				_on_cancel_release()
 
 
 func move_state() -> String:
@@ -485,15 +486,25 @@ func _begin_drop_aim() -> void:
 func _tick_cancel_hold(delta: float) -> void:
 	if _cancel_dropped:
 		return
-	## Aim: movement locked, but direction input still retargets the toss.
+	## Aim while held; drop only happens on release after DROP_HOLD_SEC.
 	_sample_cancel_drop_dir()
-	_update_drop_aim()
 	_cancel_time += delta
-	if _cancel_time < Tuning.DROP_HOLD_SEC:
-		return
-	_cancel_dropped = true
-	_hide_drop_aim()
-	_discard_top_box()
+	if _cancel_time >= Tuning.DROP_HOLD_SEC:
+		_cancel_drop_ready = true
+	_update_drop_aim()
+
+
+func _on_cancel_release() -> void:
+	## Armed by long-press → toss on release. Short press: no drop.
+	if _cancel_drop_ready and not _cancel_dropped and not _drop_flight_lock:
+		_cancel_dropped = true
+		_hide_drop_aim()
+		_discard_top_box()
+	elif not _drop_flight_lock:
+		_cancel_drop_dir = Vector2.ZERO
+		_hide_drop_aim()
+	_cancel_time = 0.0
+	_cancel_drop_ready = false
 
 
 func _sample_cancel_drop_dir() -> void:
