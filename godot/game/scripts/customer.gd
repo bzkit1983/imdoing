@@ -137,7 +137,9 @@ func occupies_store() -> bool:
 
 
 func is_active_thief() -> bool:
-	return is_thief and state != State.LEAVE and state != State.FLEE
+	## Catchable / dashable until fully off-map — including shopping-done LEAVE.
+	## FLEE is already being knocked away (KO / dash).
+	return is_thief and state != State.FLEE
 
 
 func in_fight() -> bool:
@@ -221,6 +223,8 @@ func _physics_process(delta: float) -> void:
 			_tick_flee(delta)
 		State.LEAVE:
 			if _follow_to(_game.call("exit_pos"), delta):
+				if is_thief:
+					_finish_thief_exit()
 				queue_free()
 		State.RAID:
 			_tick_raid(delta)
@@ -422,11 +426,20 @@ func _leave(angry: bool) -> void:
 	if _reg():
 		_reg().dequeue(self)
 	state = State.LEAVE
-	mood = "生氣離開" if angry else "離開"
-	collision_layer = 0
-	collision_mask = Tuning.LAYER_WALLS
-	z_index = -1
-	modulate.a = 0.75
+	if is_thief:
+		## Stay fully present so the clerk can still grab / dash until exit.
+		if mood != "得手離開":
+			mood = "離開"
+		collision_layer = Tuning.LAYER_CUSTOMERS
+		collision_mask = Tuning.LAYER_WALLS
+		z_index = 0
+		modulate.a = 1.0
+	else:
+		mood = "生氣離開" if angry else "離開"
+		collision_layer = 0
+		collision_mask = Tuning.LAYER_WALLS
+		z_index = -1
+		modulate.a = 0.75
 	_clear_route()
 	if angry and _game:
 		_game.angry_left += 1
@@ -438,6 +451,11 @@ func begin_fight() -> void:
 	fight_left = Tuning.FIGHT_SEC
 	velocity = Vector2.ZERO
 	mood = "被抓住！"
+	## Restore full presence if grabbed while walking out.
+	collision_layer = Tuning.LAYER_CUSTOMERS
+	collision_mask = Tuning.LAYER_WALLS
+	z_index = 0
+	modulate.a = 1.0
 	_clear_route()
 	_sync_labels()
 
@@ -456,16 +474,26 @@ func drop_loot_and_leave() -> void:
 
 
 func escape_with_loot() -> void:
-	if _game and _game.has_method("record_stolen"):
-		_game.call("record_stolen", cart)
-	cart.clear()
+	## Defer stolen stats / banner until the thief actually reaches the exit.
+	## Cart stays so grab / dash on the way out can still recover loot.
 	mood = "得手離開"
 	_leave(false)
 
 
+## Called when a leaving thief reaches the door — only then count as stolen.
+func _finish_thief_exit() -> void:
+	if cart.is_empty():
+		return
+	if _game and _game.has_method("record_stolen"):
+		_game.call("record_stolen", cart)
+	if _game and _game.has_method("show_stolen_banner"):
+		_game.call("show_stolen_banner")
+	cart.clear()
+
+
 ## Fight mash win: loot scatters nearby, then thief is KO-flown off-screen.
 func ko_scatter_and_flee(dir: Vector2) -> void:
-	if state == State.FLEE or state == State.LEAVE:
+	if state == State.FLEE:
 		return
 	if _reg():
 		_reg().dequeue(self)
@@ -474,7 +502,7 @@ func ko_scatter_and_flee(dir: Vector2) -> void:
 
 
 func dash_knock_away(dir: Vector2) -> void:
-	if state == State.FLEE or state == State.LEAVE:
+	if state == State.FLEE:
 		return
 	if _reg():
 		_reg().dequeue(self)
