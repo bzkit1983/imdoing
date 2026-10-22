@@ -108,6 +108,9 @@ var _menu_fp: String = ""
 var _cached_clock: float = 1.0
 var _cached_cust_mult: float = 1.0
 var _buff_cache_valid: bool = false
+var _crowd_active: bool = false
+var _crowd_say: Label
+var _wave_vfx_cd: float = 0.0
 
 
 func _ready() -> void:
@@ -126,7 +129,22 @@ func _ready() -> void:
 	if inventory.has_signal("changed"):
 		inventory.changed.connect(_mark_hud_dirty)
 	_setup_drop_aim()
+	_setup_crowd_say()
 	_refresh_passive_checkout()
+
+
+func _setup_crowd_say() -> void:
+	_crowd_say = Label.new()
+	_crowd_say.name = "CrowdSay"
+	_crowd_say.visible = false
+	_crowd_say.text = "唔該借借⋯"
+	_crowd_say.position = Vector2(-70, -92)
+	_crowd_say.z_index = 10
+	UiFont.apply_label(_crowd_say, UiFont.WORLD)
+	_crowd_say.add_theme_color_override("font_color", Color("fff4c2"))
+	_crowd_say.add_theme_color_override("font_outline_color", Color("121212"))
+	_crowd_say.add_theme_constant_override("outline_size", 6)
+	add_child(_crowd_say)
 
 
 func _setup_drop_aim() -> void:
@@ -456,7 +474,38 @@ func speed_mult() -> float:
 		m *= Tuning.OVERWEIGHT_OVER_CAP_MULT
 	if on_dirt() and not _has_flag("ignore_dirt_slow"):
 		m *= Tuning.DIRT_MULT
+	if _crowd_near():
+		m *= Tuning.CROWD_SPEED_MULT
 	return clampf(m, 0.0, Tuning.SPEED_MAX_MULT)
+
+
+func _crowd_near() -> bool:
+	var g := _game()
+	if g == null or not g.has_method("customers_near"):
+		## Fallback: scan game customers group / thieves list.
+		return _crowd_near_fallback()
+	return bool(g.call("customers_near", global_position, Tuning.CROWD_RADIUS_SQ))
+
+
+func _crowd_near_fallback() -> bool:
+	var g := _game()
+	if g == null:
+		return false
+	var rsq := Tuning.CROWD_RADIUS_SQ
+	if g.get("_customers") != null:
+		for c in g._customers.get_children():
+			if c == null or not is_instance_valid(c):
+				continue
+			if global_position.distance_squared_to(c.global_position) <= rsq:
+				return true
+	return false
+
+
+func _sync_crowd_say() -> void:
+	var on := _crowd_near()
+	_crowd_active = on
+	if _crowd_say:
+		_crowd_say.visible = on
 
 
 func _shelving() -> bool:
@@ -680,6 +729,7 @@ func _physics_process(delta: float) -> void:
 			if mfp != _menu_fp:
 				_menu_fp = mfp
 				_menu.set_slots(_loadout(), _cd)
+	_sync_crowd_say()
 	_update_visuals()
 	_emit_stats_if_changed()
 
@@ -1003,6 +1053,8 @@ func _tick_dash(delta: float) -> void:
 func _can_slip() -> bool:
 	if _slip_left > 0.0 or _stun_left > 0.0:
 		return false
+	if _has_flag("ignore_puddle_slip"):
+		return false
 	if not _has_dirt_type(Tuning.DIRT_PUDDLE):
 		return false
 	return _dashing or _running
@@ -1070,17 +1122,19 @@ func _tick_status(delta: float) -> void:
 		velocity = Vector2.ZERO
 	if _sick_left > 0.0:
 		_sick_left = maxf(0.0, _sick_left - delta)
-	if _has_dirt_type(Tuning.DIRT_VOMIT):
+	if _has_dirt_type(Tuning.DIRT_VOMIT) and not _has_flag("ignore_vomit_sick"):
 		if _sick_left <= 0.0:
 			log_line.emit("踩到嘔吐物 — 技能禁止、能力 −30% 10 秒")
 		_sick_left = Tuning.SICK_SEC
-	if _has_dirt_type(Tuning.DIRT_TRASH):
+	if _has_dirt_type(Tuning.DIRT_TRASH) and not _has_flag("ignore_trash_stamina"):
 		stamina = maxf(0.0, stamina - Tuning.TRASH_STAMINA_PER_SEC * delta)
 		_regen_delay = Tuning.STAMINA_REGEN_DELAY
+	if _wave_vfx_cd > 0.0:
+		_wave_vfx_cd = maxf(0.0, _wave_vfx_cd - delta)
 
 
 func _regen(delta: float) -> void:
-	if _dashing or _slip_left > 0.0 or (_running and _move_axis() != Vector2.ZERO) or _has_dirt_type(Tuning.DIRT_TRASH):
+	if _dashing or _slip_left > 0.0 or (_running and _move_axis() != Vector2.ZERO) or (_has_dirt_type(Tuning.DIRT_TRASH) and not _has_flag("ignore_trash_stamina")):
 		return
 	if _regen_delay > 0.0:
 		_regen_delay -= delta
@@ -1326,21 +1380,73 @@ func _tick_camera_shake(delta: float) -> void:
 
 
 func _try_dash_thief() -> void:
+	_try_dash_hits()
+
+
+func _try_dash_hits() -> void:
 	var g := _game()
-	if g == null or not g.has_method("thieves"):
+	if g == null:
 		return
-	for t in g.call("thieves"):
-		if t == null or not is_instance_valid(t):
-			continue
-		if not bool(t.call("is_active_thief")):
-			continue
-		if global_position.distance_to(t.global_position) > Tuning.DASH_HIT_RANGE:
-			continue
-		t.call("dash_knock_away", _dash_dir)
-		log_line.emit("衝刺撞飛小偷 — 贓物散落")
-		if _fighting:
-			_end_fight(false)
+	_try_wave_dirt_vfx()
+	## Thieves first (caught).
+	if g.has_method("thieves"):
+		for t in g.call("thieves"):
+			if t == null or not is_instance_valid(t):
+				continue
+			if not bool(t.call("is_active_thief")):
+				continue
+			if global_position.distance_to(t.global_position) > Tuning.DASH_HIT_RANGE:
+				continue
+			t.call("dash_knock_away", _dash_dir)
+			if g.has_method("record_caught"):
+				g.call("record_caught")
+			log_line.emit("衝刺撞飛小偷 — 算抓住，贓物散落")
+			if _fighting:
+				_end_fight(false)
+			return
+	## Shopping guests: Screen KO land-in-place.
+	var custs = g.get("_customers")
+	if custs == null:
 		return
+	for c in custs.get_children():
+		if c == null or not is_instance_valid(c):
+			continue
+		if bool(c.get("is_thief")):
+			continue
+		var st := int(c.get("state"))
+		## Skip leave/flee.
+		if st == 7 or st == 9:
+			continue
+		if float(c.get("_dash_stun_left")) > 0.0:
+			continue
+		if global_position.distance_to(c.global_position) > Tuning.DASH_HIT_RANGE:
+			continue
+		var add := 0.0 if _has_flag("polite_dash") else Tuning.DASH_GUEST_DISSAT
+		if g.has_method("play_ko_banner"):
+			g.call("play_ko_banner")
+		if c.has_method("dash_knock_guest"):
+			c.call("dash_knock_guest", add)
+		log_line.emit("衝刺撞到客人 — 暈眩 2 秒，貨品掉落" if add > 0.0 else "衝刺撞到客人 — 禮貌衝撞，不满不增加")
+		return
+
+
+func _try_wave_dirt_vfx() -> void:
+	if not _has_flag("ignore_dirt_slow") or _wave_vfx_cd > 0.0:
+		return
+	if not on_dirt():
+		return
+	_wave_vfx_cd = 0.2
+	var ring := Polygon2D.new()
+	ring.color = Color(0.45, 0.95, 1.0, 0.55)
+	ring.polygon = PackedVector2Array([
+		Vector2(-18, 0), Vector2(0, -12), Vector2(18, 0), Vector2(0, 12),
+	])
+	ring.z_index = 9
+	add_child(ring)
+	var tw := create_tween()
+	tw.tween_property(ring, "scale", Vector2(2.2, 2.2), 0.22)
+	tw.parallel().tween_property(ring, "modulate:a", 0.0, 0.22)
+	tw.tween_callback(ring.queue_free)
 
 
 func _tick_sku_pick(delta: float) -> void:

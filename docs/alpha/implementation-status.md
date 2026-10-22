@@ -28,5 +28,6 @@
 | 客人離店不卡門 | **`docs/systemdesign/customer.md`** | leave `collision_mask=0`；`exit_pos` 在 pathfinder 內；門檻／逾時 despawn |
 | 技術審查與跟進清單 | `docs/alpha/tech-review-v0.1.md` | 非玩法規格；§6 項目已全部勾完 |
 | Runtime P1＋P2 熱路徑優化 | **`docs/alpha/runtime-perf-audit.md`**（文末 P1／P2 DONE） | `player`/`customer`/`demo`/`pathfinder`/`inventory`/`box_stack`/`floor_tiles`／`cashier`／`clerk`／`hud`／`drop_flight`；A* 預算、髒 HUD、地板單節點、佇列索引、dirt 網格 |
+| Design Gap 拍板（v1.1.0） | **`docs/systemdesign-gaps.md`**；各 systemdesign 檔 | 衝刺撞客人／擁擠／凌波微步／丟掉砸客人／多台選隊／重置費用／衝刺算抓住等；見 gaps「已處理」 |
 
 仍缺（非 §6）：設定音量、教學、技能演出鎖輸入、Steamworks 等——見 `docs/alpha/design.md`。prep UI 已拆為 `scenes/prep_menu.tscn` + `scripts/prep/`。

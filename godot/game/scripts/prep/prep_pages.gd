@@ -120,7 +120,8 @@ static func _stats(menu: CanvasLayer) -> void:
 	_add_stat_row(menu, "STR", "str", menu.state.str_stat, 0)
 	_add_stat_row(menu, "AGI", "agi", menu.state.agi_stat, 1)
 	_add_stat_row(menu, "INT", "int", menu.state.int_stat, 2)
-	menu._stats_panel.add_child(PrepWidgets.step_button(Loc.t("prep.stats.reset"), menu._stat_row == 3, menu._on_stat_reset, 64, 420))
+	var reset_lbl := "%s（$%d）" % [Loc.t("prep.stats.reset"), menu.state.reset_stats_cost()]
+	menu._stats_panel.add_child(PrepWidgets.step_button(reset_lbl, menu._stat_row == 3, menu._on_stat_reset, 64, 420))
 	menu._stats_panel.add_child(PrepWidgets.step_button(Loc.t("prep.back"), menu._stat_row == 4, menu._on_stat_back, 64, 420))
 
 static func _add_stat_row(menu: CanvasLayer, title: String, stat: String, value: int, row: int) -> void:
