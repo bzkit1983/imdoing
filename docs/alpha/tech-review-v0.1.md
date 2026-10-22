@@ -117,7 +117,7 @@ demo.gd（場面主控 · ~1000 行）
 | P0 | 標籤／HUD 改髒刷新 | PC／手機／Switch 更穩 | **已做** |
 | P0 | 貨架以 SKU 建索引 | 尋貨 O(1) | **已做** |
 | P0 | CJK 字型子集／壓縮 | 降 Switch 記憶體與載入 | **已做** |
-| P1 | 尋路節流＋物件池 | 多客同場幀時間更平 | 中 |
+| P1 | 尋路節流＋物件池 | 多客同場幀時間更平 | 中（活線細項見 `docs/alpha/runtime-perf-audit.md`） |
 | P1 | 解析度／UI 縮放設定檔 | 掌機可讀、底座／TV 不空 | 中 |
 | P2 | PC Forward+；主機／Web 留 Compatibility | 按平台選渲染器 | 低 |
 | P2 | 動畫改 AnimatedSprite2D 圖集 | 比每向單張 load 更省 | 中 |
