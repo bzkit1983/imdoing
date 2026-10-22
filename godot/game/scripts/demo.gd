@@ -1027,7 +1027,14 @@ func spawn_dropped_box(
 	if not on_landed.is_valid() and toss_dir.length_squared() < 0.0001:
 		_place_dropped_box(dest, sku, n)
 		return
-	_spawn_box_flight(pos, dest, sku, n, Tuning.DROP_FLIGHT_SEC, on_landed)
+	var flight: Node2D = DropFlightScript.new()
+	flight.setup(sku, pos, dest, Tuning.DROP_FLIGHT_SEC)
+	_world.add_child(flight)
+	flight.finished.connect(func() -> void:
+		_resolve_toss_landing(dest, sku, n, toss_dir)
+		if on_landed.is_valid():
+			on_landed.call()
+	)
 
 
 ## Scatter cart piles from `origin` with flight anim; destinations do not overlap.
@@ -1067,6 +1074,55 @@ func _spawn_box_flight(
 		if on_landed.is_valid():
 			on_landed.call()
 	)
+
+
+## Directional toss: matching shelf at landing → restock; leftover drops on floor.
+func _resolve_toss_landing(dest: Vector2, sku: String, n: int, toss_dir: Vector2) -> void:
+	if n <= 0:
+		return
+	if toss_dir.length_squared() < 0.0001:
+		_place_dropped_box(dest, sku, n)
+		return
+	var shelf := _shelf_for_toss(dest, sku)
+	if shelf == null:
+		_place_dropped_box(dest, sku, n)
+		return
+	var placed := int(shelf.call("add_items", sku, n))
+	if placed <= 0:
+		_place_dropped_box(dest, sku, n)
+		return
+	var left := n - placed
+	if _player:
+		if left <= 0:
+			_player.log_line.emit(
+				"丟掉上架 %s ×%d — 貨箱已補上貨架" % [Tuning.sku_name(sku), placed]
+			)
+		else:
+			_player.log_line.emit(
+				"丟掉上架 %s ×%d — 剩 %d 掉在地上" % [Tuning.sku_name(sku), placed, left]
+			)
+	if left > 0:
+		_place_dropped_box(dest, sku, left)
+
+
+## Nearest shelf that can accept `sku` and sits under the toss landing.
+func _shelf_for_toss(dest: Vector2, sku: String) -> Node2D:
+	var best: Node2D = null
+	var best_d := Tuning.DROP_SHELF_HIT_RADIUS
+	for s in shelves:
+		if s == null or not is_instance_valid(s):
+			continue
+		if not s.has_method("can_accept") or not bool(s.call("can_accept", sku)):
+			continue
+		## Same product on a stocked shelf, or empty shelf of matching category.
+		var shelf_sku := String(s.get("sku"))
+		if shelf_sku != "" and shelf_sku != sku:
+			continue
+		var d := dest.distance_to(s.global_position)
+		if d <= best_d:
+			best_d = d
+			best = s
+	return best
 
 
 ## Full-screen KO flash used when a fight mash finishes the thief.

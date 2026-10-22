@@ -568,7 +568,7 @@ func _discard_top_box() -> void:
 	var toss := _cancel_drop_dir
 	_drop_top_box(toss)
 	if toss.length_squared() > 0.01:
-		log_line.emit("丟掉 %s 1箱 — 往%s飛出，可以再撿" % [name, _drop_dir_label(toss)])
+		log_line.emit("丟掉 %s 1箱 — 往%s飛出（命中同款貨架可直接上架）" % [name, _drop_dir_label(toss)])
 	else:
 		log_line.emit("丟掉 %s 1箱 — 掉在腳邊，可以再撿" % name)
 
