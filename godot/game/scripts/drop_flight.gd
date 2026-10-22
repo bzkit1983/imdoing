@@ -12,6 +12,7 @@ var _elapsed: float = 0.0
 var _duration: float = Tuning.DROP_FLIGHT_SEC
 var _from: Vector2 = Vector2.ZERO
 var _to: Vector2 = Vector2.ZERO
+var _pts := PackedVector2Array([Vector2.ZERO, Vector2.ZERO])
 
 
 func setup(sku: String, from: Vector2, to: Vector2, duration: float = Tuning.DROP_FLIGHT_SEC) -> void:
@@ -23,7 +24,9 @@ func setup(sku: String, from: Vector2, to: Vector2, duration: float = Tuning.DRO
 	_trail.width = 3.0
 	_trail.default_color = Tuning.DROP_FLIGHT_TRAIL_COLOR
 	_trail.z_index = -1
-	_trail.points = PackedVector2Array([Vector2.ZERO, to - from])
+	_pts[0] = Vector2.ZERO
+	_pts[1] = to - from
+	_trail.points = _pts
 	add_child(_trail)
 	_spr = Vox.sprite("box", 0)
 	_spr.scale = Vector2(0.65, 0.65)
@@ -41,7 +44,9 @@ func _process(delta: float) -> void:
 	var pos := _from.lerp(_to, ease)
 	var arc := -42.0 * sin(PI * t)
 	global_position = pos + Vector2(0.0, arc)
-	_trail.points = PackedVector2Array([_from - global_position, _to - global_position])
+	_pts[0] = _from - global_position
+	_pts[1] = _to - global_position
+	_trail.points = _pts
 	_trail.default_color.a = 0.55 * (1.0 - t * 0.35)
 	if t >= 1.0:
 		finished.emit()

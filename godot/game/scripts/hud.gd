@@ -10,6 +10,8 @@ var _skip: Button
 var _left_fp: String = ""
 var _right_dirty: bool = true
 var _skip_running: bool = false
+var _font_debounce: float = 0.0
+var _font_pending: bool = false
 
 @onready var _clock: Control = $Root/Left/Clock
 @onready var _time: Label = $Root/Left/Time
@@ -40,7 +42,7 @@ func setup(g: Node, p: CharacterBody2D) -> void:
 	_hud_list.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_log.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_apply_cjk_fonts($Root)
-	get_viewport().size_changed.connect(func() -> void: _apply_cjk_fonts($Root))
+	get_viewport().size_changed.connect(_on_viewport_resized)
 	player.connect("stats_changed", _mark_right_dirty)
 	player.connect("log_line", _on_log)
 	player.connect("skill_cast", _on_skill_cast)
@@ -59,6 +61,11 @@ func setup(g: Node, p: CharacterBody2D) -> void:
 
 func _mark_right_dirty() -> void:
 	_right_dirty = true
+
+
+func _on_viewport_resized() -> void:
+	_font_pending = true
+	_font_debounce = 0.2
 
 
 func _apply_cjk_fonts(node: Node) -> void:
@@ -88,7 +95,12 @@ func show_closeout() -> void:
 	]
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	if _font_pending:
+		_font_debounce -= delta
+		if _font_debounce <= 0.0:
+			_font_pending = false
+			_apply_cjk_fonts($Root)
 	_sync_left()
 	_sync_right()
 	if _skip:

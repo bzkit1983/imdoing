@@ -141,7 +141,12 @@ const SPEED_FLOOR := 48.0
 
 const CAMERA_ZOOM := 1.22
 const INTERACT_RANGE := 100.0
+const INTERACT_RANGE_SQ := INTERACT_RANGE * INTERACT_RANGE
 const FACE_DOT := 0.18
+## Customer seek: re-resolve shelf at most this often (seconds).
+const SEEK_SHELF_REFRESH_SEC := 0.28
+## Clerk idle job search throttle.
+const CLERK_JOB_SEARCH_SEC := 0.35
 const SKU_PICK_HOLD := 0.18
 const RESTOCK_SECONDS_AT_10 := 2.0
 const RESTOCK_SECONDS_AT_50 := 0.2

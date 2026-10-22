@@ -18,6 +18,7 @@ const PrepScene = preload("res://scenes/prep_menu.tscn")
 const PauseScene = preload("res://scenes/pause_menu.tscn")
 const UiFont = preload("res://scripts/ui_font.gd")
 const Vox = preload("res://scripts/voxel_sprite.gd")
+const FloorTilesScript = preload("res://scripts/floor_tiles.gd")
 
 var FLOOR_SIZE := Vector2(640, 640)
 var FLOOR_ORIGIN := Vector2(48, 36)
@@ -60,6 +61,14 @@ var _early_focus: int = 0
 var _early_layer: CanvasLayer
 var _early_yes: Button
 var _early_no: Button
+## Maintained thief list (no per-frame alloc).
+var _thieves: Array[Node2D] = []
+## Guests currently occupying the store (excludes leave/flee/thieves).
+var _guest_n: int = 0
+## Active thieves (is_active_thief).
+var _active_thief_n: int = 0
+## Empty shelves by category for toss restock.
+var _empty_by_cat: Dictionary = {}
 
 
 func _ready() -> void:
@@ -167,6 +176,10 @@ func _clear_world() -> void:
 	_hud = null
 	shelves.clear()
 	_shelves_by_sku.clear()
+	_empty_by_cat.clear()
+	_thieves.clear()
+	_guest_n = 0
+	_active_thief_n = 0
 	cashiers.clear()
 	_dirts.clear()
 	_obstacles.clear()
@@ -653,6 +666,33 @@ func _on_shelf_stock_sku_changed(shelf: Node, old_sku: String, new_sku: String) 
 		_unindex_shelf_sku(old_sku, shelf)
 	if new_sku != "":
 		_index_shelf_sku(new_sku, shelf)
+		_unindex_empty_shelf(shelf)
+	else:
+		_index_empty_shelf(shelf)
+
+
+func _index_empty_shelf(shelf: Node) -> void:
+	if shelf == null:
+		return
+	var cat := String(shelf.get("category"))
+	var list: Array = _empty_by_cat.get(cat, [])
+	if not list.has(shelf):
+		list.append(shelf)
+	_empty_by_cat[cat] = list
+
+
+func _unindex_empty_shelf(shelf: Node) -> void:
+	if shelf == null:
+		return
+	var cat := String(shelf.get("category"))
+	if not _empty_by_cat.has(cat):
+		return
+	var list: Array = _empty_by_cat[cat]
+	list.erase(shelf)
+	if list.is_empty():
+		_empty_by_cat.erase(cat)
+	else:
+		_empty_by_cat[cat] = list
 
 
 func _register_shelf(node: Node2D) -> void:
@@ -666,6 +706,8 @@ func _register_shelf(node: Node2D) -> void:
 		sku = String(node.get("sku"))
 	if sku != "":
 		_index_shelf_sku(sku, node)
+	else:
+		_index_empty_shelf(node)
 
 
 func shelf_stand(shelf: Node2D) -> Vector2:
@@ -677,6 +719,10 @@ func shelf_stand(shelf: Node2D) -> Vector2:
 func find_path(from: Vector2, to: Vector2) -> PackedVector2Array:
 	if pathfinder == null:
 		return PackedVector2Array([to])
+	if pathfinder.has_method("try_find_path"):
+		var pts: PackedVector2Array = pathfinder.try_find_path(from, to)
+		## Empty = budget exhausted; callers keep prior path.
+		return pts
 	return pathfinder.find_path(from, to)
 
 
@@ -695,32 +741,70 @@ func inside_pos() -> Vector2:
 
 
 func guest_count() -> int:
-	if _customers == null:
-		return 0
-	var n := 0
-	for c in _customers.get_children():
-		if c.has_method("occupies_store") and not bool(c.call("occupies_store")):
-			continue
-		n += 1
-	return n
+	return _guest_n
 
 
 func thief_count() -> int:
-	var n := 0
-	for c in thieves():
-		if c.has_method("is_active_thief") and bool(c.call("is_active_thief")):
-			n += 1
-	return n
+	return _active_thief_n
 
 
 func thieves() -> Array[Node2D]:
-	var out: Array[Node2D] = []
-	if _customers == null:
-		return out
-	for c in _customers.get_children():
-		if bool(c.get("is_thief")):
-			out.append(c)
-	return out
+	## Prune stale refs lazily; no fresh alloc of the full customer list.
+	var i := 0
+	while i < _thieves.size():
+		var c: Node2D = _thieves[i]
+		if c == null or not is_instance_valid(c):
+			_thieves.remove_at(i)
+			continue
+		i += 1
+	return _thieves
+
+
+func register_customer(c: Node) -> void:
+	if c == null:
+		return
+	if bool(c.get("is_thief")):
+		if not _thieves.has(c):
+			_thieves.append(c)
+		_recount_active_thieves()
+	else:
+		_guest_n += 1
+	if not c.tree_exiting.is_connected(_on_customer_exiting):
+		c.tree_exiting.connect(_on_customer_exiting.bind(c))
+
+
+func note_customer_occupy_changed(c: Node, occupies: bool) -> void:
+	if c == null or bool(c.get("is_thief")):
+		return
+	## Guests: occupy flips leave/flee; keep counter non-negative.
+	if occupies:
+		_guest_n += 1
+	else:
+		_guest_n = maxi(0, _guest_n - 1)
+
+
+func note_thief_active_changed() -> void:
+	_recount_active_thieves()
+
+
+func _on_customer_exiting(c: Node) -> void:
+	if c == null:
+		return
+	if bool(c.get("is_thief")):
+		_thieves.erase(c)
+		_recount_active_thieves()
+	else:
+		## If still counted as occupying when freed, drop one.
+		if c.has_method("occupies_store") and bool(c.call("occupies_store")):
+			_guest_n = maxi(0, _guest_n - 1)
+
+
+func _recount_active_thieves() -> void:
+	var n := 0
+	for c in _thieves:
+		if c != null and is_instance_valid(c) and c.has_method("is_active_thief") and bool(c.call("is_active_thief")):
+			n += 1
+	_active_thief_n = n
 
 
 func record_stolen(items: Array) -> void:
@@ -797,6 +881,7 @@ func _spawn_customer() -> void:
 	var c: CharacterBody2D = CustomerScript.new()
 	_customers.add_child(c)
 	c.setup(self, door_pos())
+	register_customer(c)
 
 
 func _spawn_thief() -> void:
@@ -811,22 +896,18 @@ func _spawn_thief() -> void:
 	c.setup(self, door_pos(), true)
 	_add_interactable(c)
 	c.tree_exiting.connect(func() -> void: _remove_interactable(c))
+	register_customer(c)
 	if _player:
 		_player.log_line.emit(Loc.t("demo.thief_enter"))
 
 
 func _floor() -> void:
-	var step := StateScript.CELL
-	var x := 0.0
-	while x < FLOOR_SIZE.x - 0.5:
-		var y := 0.0
-		while y < FLOOR_SIZE.y - 0.5:
-			var tile := Vox.sprite("floor_tile", 0)
-			tile.z_index = -8
-			tile.position = FLOOR_ORIGIN + Vector2(x + step * 0.5, y + step * 0.5)
-			_world.add_child(tile)
-			y += step
-		x += step
+	## One canvas item that draws tiled floor (avoids 100–400 Sprite2D nodes).
+	var floor: Node2D = FloorTilesScript.new()
+	floor.name = "Floor"
+	floor.z_index = -8
+	_world.add_child(floor)
+	floor.call("setup", FLOOR_ORIGIN, FLOOR_SIZE, StateScript.CELL)
 
 
 func _walls_and_door() -> void:
@@ -959,7 +1040,8 @@ func _try_spawn_dirt() -> void:
 	if _dirts.size() >= Tuning.DIRT_CAP:
 		return
 	var size := Tuning.DIRT_SIZE
-	for _i in 28:
+	## Fewer attempts; reject against coarse cell occupancy first.
+	for _i in 12:
 		var origin := FLOOR_ORIGIN + Vector2(
 			randf_range(36.0, FLOOR_SIZE.x - size.x - 36.0),
 			randf_range(48.0, FLOOR_SIZE.y - size.y - 36.0)
@@ -973,17 +1055,20 @@ func _try_spawn_dirt() -> void:
 
 func _blocked_rect(r: Rect2) -> bool:
 	var grow := r.grow(18.0)
-	for o in _obstacles:
-		if grow.intersects(o):
-			return true
+	var door := Rect2(door_pos() + Vector2(-70, -20), Vector2(140, 110))
+	if grow.intersects(door):
+		return true
 	for d in _dirts:
 		if not is_instance_valid(d):
 			continue
 		var other := Rect2(d.global_position - Tuning.DIRT_SIZE * 0.5, Tuning.DIRT_SIZE).grow(24.0)
 		if grow.intersects(other):
 			return true
-	var door := Rect2(door_pos() + Vector2(-70, -20), Vector2(140, 110))
-	return grow.intersects(door)
+	## Obstacles last (largest list).
+	for o in _obstacles:
+		if grow.intersects(o):
+			return true
+	return false
 
 
 func _spawn_dirt(r: Rect2, dtype: String) -> void:
@@ -1161,12 +1246,24 @@ func _dist_point_to_segment(p: Vector2, a: Vector2, b: Vector2) -> float:
 func _shelf_for_toss(dest: Vector2, sku: String) -> Node2D:
 	var best: Node2D = null
 	var best_d := Tuning.DROP_SHELF_HIT_RADIUS
-	for s in shelves:
+	var cat := Tuning.category_of(sku)
+	## Prefer indexed stocked shelves + empty shelves of matching category.
+	var candidates: Array = []
+	var stocked = _shelves_by_sku.get(sku)
+	if stocked != null:
+		for s in stocked:
+			candidates.append(s)
+	var empties = _empty_by_cat.get(cat)
+	if empties != null:
+		for s in empties:
+			candidates.append(s)
+	if candidates.is_empty():
+		candidates = shelves
+	for s in candidates:
 		if s == null or not is_instance_valid(s):
 			continue
 		if not s.has_method("can_accept") or not bool(s.call("can_accept", sku)):
 			continue
-		## Same product on a stocked shelf, or empty shelf of matching category.
 		var shelf_sku := String(s.get("sku"))
 		if shelf_sku != "" and shelf_sku != sku:
 			continue
@@ -1250,6 +1347,7 @@ func _place_dropped_box(dest: Vector2, sku: String, n: int) -> void:
 
 func _make_player() -> CharacterBody2D:
 	var p: CharacterBody2D = PlayerScript.new()
+	p.set("game", self)
 	p.name = "Clerk"
 	p.collision_layer = 1
 	p.collision_mask = 1 | 2
