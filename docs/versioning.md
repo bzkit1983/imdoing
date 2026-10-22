@@ -12,7 +12,7 @@
 
 | | |
 | --- | --- |
-| **現行產品 SemVer** | **`v1.1.0`**（Git tag；權威；2026-10-22：含 v1.0 線上續合丟掉上架／砸小偷／Pages，以及 Runtime P1＋P2 熱路徑優化 PR #42） |
+| **現行產品 SemVer** | **`v1.1.0`**（Git tag；權威；2026-10-22：含 Runtime P1＋P2 #42、版號對齊 #43，以及 Design Gap 拍板／活線規則：衝刺撞客人、擁擠、凌波微步、丟掉砸客人、多台選隊等） |
 | 對齊字串 | repo 根目錄 [`VERSION`](../VERSION)；`godot/game/project.godot` `config/version`；`scripts/product_version.gd`；Windows 匯出 `export_presets.cfg` |
 | 存檔格式版 | `game_state.SAVE_VERSION`（整數，與 SemVer **分開**） |
 | 查詢 | `git tag -l 'v*'` · `git describe --tags --exact-match`（恰在 tag 上時） · `git rev-parse v1.1.0^{}` |

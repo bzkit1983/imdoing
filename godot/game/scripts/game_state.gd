@@ -211,12 +211,22 @@ func spend_point(stat: String, delta: int) -> String:
 	return ""
 
 
-func reset_stats() -> void:
+func reset_stats_cost() -> int:
+	return maxi(1, level) * Tuning.STAT_RESET_FEE_PER_LEVEL
+
+
+## Returns "" on success, or an error message (e.g. not enough money).
+func reset_stats() -> String:
+	var fee := reset_stats_cost()
+	if money < fee:
+		return "重置能力值要 $%d，現有 $%d" % [fee, money]
+	money -= fee
 	var spent := (str_stat - base_str) + (agi_stat - base_agi) + (int_stat - base_int)
 	unspent += spent
 	str_stat = base_str
 	agi_stat = base_agi
 	int_stat = base_int
+	return ""
 
 
 func _add_stat(stat: String, n: int) -> void:

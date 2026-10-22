@@ -47,6 +47,9 @@ var _queue_idx: int = -1
 var _seek_shelf_refresh: float = 0.0
 var _occupy_counted: bool = false
 var _on_dirt_cached: bool = false
+## After dash Screen KO: freeze actions this long (seconds).
+var _dash_stun_left: float = 0.0
+var _dash_ko_tween: Tween
 ## Cached label / chrome values — only write nodes when these change.
 var _shown_list: String = "\u0001"
 var _shown_mood: String = "\u0001"
@@ -178,6 +181,11 @@ func _physics_process(delta: float) -> void:
 		return
 	if _game.has_method("asking_early_close") and bool(_game.asking_early_close()):
 		velocity = Vector2.ZERO
+		return
+	if _dash_stun_left > 0.0:
+		_dash_stun_left = maxf(0.0, _dash_stun_left - delta)
+		velocity = Vector2.ZERO
+		_sync_labels()
 		return
 	var td := float(_game.call("world_delta", delta))
 	if String(_game.get("phase")) == "closed" and state != State.LEAVE and state != State.FLEE and state != State.FIGHT:
@@ -424,7 +432,7 @@ func _follow_to(pos: Vector2, delta: float) -> bool:
 		return global_position.distance_squared_to(pos) <= arrive_sq
 	var spd := Tuning.WALK_SPEED * Tuning.agi_mult(Tuning.CUSTOMER_AGI)
 	spd *= float(_game.customer_move_mult()) if _game.has_method("customer_move_mult") else float(_game.call("customer_move_mult"))
-	if on_dirt() and state != State.LEAVE:
+	if on_dirt() and state != State.LEAVE and not is_thief:
 		spd *= Tuning.DIRT_MULT
 	if spd <= 0.01:
 		velocity = Vector2.ZERO
@@ -570,9 +578,73 @@ func dash_knock_away(dir: Vector2) -> void:
 		return
 	if _reg():
 		_reg().dequeue(self)
-	## Dash: loot scatters farther (≤ 5 身位); not counted as stolen or catch.
+	## Dash: loot scatters farther (≤ 5 身位); not stolen. Catch counted by player.
 	_scatter_cart(Tuning.LOOT_SCATTER_DASH_MIN, Tuning.LOOT_SCATTER_DASH_MAX)
 	_begin_flee(dir, "被撞飛！")
+
+
+
+## Dash into shopping guest: Screen KO fly-up, land in place, stun, drop cart, re-shop.
+func dash_knock_guest(add_dissat: float) -> void:
+	if is_thief or state == State.FLEE or state == State.FIGHT:
+		return
+	if _reg():
+		_reg().dequeue(self)
+	if _game and _game.has_method("release_player_checkout"):
+		_game.call("release_player_checkout")
+	_drop_cart_inplace()
+	dissatisfaction = minf(Tuning.DISSAT_MAX, dissatisfaction + maxf(0.0, add_dissat))
+	shopping = _roll_list()
+	cart.clear()
+	raided = false
+	_bump_list()
+	_clear_route()
+	state = State.SEEK
+	mood = "唔！"
+	_play_dash_ko_hop()
+	_dash_stun_left = Tuning.DASH_GUEST_STUN_SEC
+	mood = "暈眩…"
+	_sync_labels()
+
+
+func _play_dash_ko_hop() -> void:
+	var base := global_position
+	if _dash_ko_tween != null:
+		_dash_ko_tween.kill()
+	_dash_ko_tween = create_tween()
+	_dash_ko_tween.tween_property(self, "global_position", base + Vector2(0, -56), 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_dash_ko_tween.tween_property(self, "global_position", base, 0.18).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+
+
+## Tossed box hits this guest. Returns items taken into cart from the box.
+func accept_toss_box(sku: String, n: int) -> int:
+	if is_thief or n <= 0 or sku == "":
+		return 0
+	var want := 0
+	for s in shopping:
+		if s == sku:
+			want += 1
+	if want <= 0:
+		return 0
+	var take := mini(n, want)
+	for _i in take:
+		cart.append(sku)
+		var idx := shopping.find(sku)
+		if idx >= 0:
+			shopping.remove_at(idx)
+	_bump_list()
+	dissatisfaction = 0.0
+	mood = "謝謝！"
+	_sync_labels()
+	return take
+
+
+func apply_toss_reject() -> void:
+	if is_thief:
+		return
+	dissatisfaction = minf(Tuning.DISSAT_MAX, dissatisfaction + Tuning.TOSS_GUEST_WRONG_DISSAT)
+	mood = "不想要這貨品！"
+	_sync_labels()
 
 
 func _scatter_cart(min_r: float, max_r: float) -> void:

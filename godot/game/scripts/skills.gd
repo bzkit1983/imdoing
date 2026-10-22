@@ -119,8 +119,8 @@ const PASSIVES: Array[Dictionary] = [
 	{"id": "move_passive", "name": "移動速度增加", "kind": "passive", "lv": 3, "cost": 1, "move_pct": 0.20, "blurb": "移速 +20%"},
 	{"id": "checkout_speed", "name": "收銀速度增加", "kind": "passive", "lv": 3, "cost": 1, "checkout_pct": 0.20, "blurb": "收銀 +20%"},
 	{"id": "restock_speed", "name": "上架速度增加", "kind": "passive", "lv": 3, "cost": 1, "restock_pct": 0.20, "blurb": "上架 +20%"},
-	{"id": "polite_dash", "name": "禮貌衝撞", "kind": "passive", "lv": 1, "cost": 2, "unimplemented": true, "blurb": "客人撞飛本 Demo 未做"},
-	{"id": "wave_step", "name": "凌波微步", "kind": "passive", "lv": 1, "cost": 2, "ignore_dirt_slow": true, "blurb": "污物不減移速（滑倒／嘔吐仍在）"},
+	{"id": "polite_dash", "name": "禮貌衝撞", "kind": "passive", "lv": 1, "cost": 2, "polite_dash": true, "blurb": "衝刺撞客人不滿不增加"},
+	{"id": "wave_step", "name": "凌波微步", "kind": "passive", "lv": 1, "cost": 2, "ignore_dirt_slow": true, "ignore_trash_stamina": true, "ignore_puddle_slip": true, "ignore_vomit_sick": true, "blurb": "污物不減速；垃圾不扣氣；水漬不滑；嘔吐不禁技能"},
 	{"id": "cold_smile", "name": "笑到你心寒", "kind": "passive", "lv": 1, "cost": 3, "no_queue_dissat": true, "blurb": "排隊不增加不滿"},
 	{"id": "haki", "name": "霸王色", "kind": "passive", "lv": 1, "cost": 3, "thief_rate": 0.5, "blurb": "小偷出現率 ×0.5"},
 ]

@@ -309,14 +309,41 @@ func soothe_all(keep: float) -> void:
 func pick_register(cust: Node) -> Node2D:
 	if cashiers.is_empty():
 		return null
-	var best: Node2D = cashiers[0]
 	var best_n := 999
 	for c in cashiers:
-		var n: int = c.queue.size()
-		if n < best_n:
-			best_n = n
-			best = c
-	return best
+		best_n = mini(best_n, int(c.queue.size()))
+	var tied: Array[Node2D] = []
+	for c in cashiers:
+		if int(c.queue.size()) == best_n:
+			tied.append(c)
+	if tied.size() == 1:
+		return tied[0]
+	var origin: Vector2 = cust.global_position if cust != null and cust is Node2D else Vector2.ZERO
+	var best_d := INF
+	var nearest: Array[Node2D] = []
+	for c in tied:
+		var d := origin.distance_squared_to(c.global_position)
+		if d < best_d - 0.01:
+			best_d = d
+			nearest = [c]
+		elif absf(d - best_d) <= 0.01:
+			nearest.append(c)
+	if nearest.is_empty():
+		return tied[0]
+	if nearest.size() == 1:
+		return nearest[0]
+	return nearest[randi() % nearest.size()]
+
+
+func customers_near(origin: Vector2, radius_sq: float) -> bool:
+	if _customers == null:
+		return false
+	for c in _customers.get_children():
+		if c == null or not is_instance_valid(c):
+			continue
+		if origin.distance_squared_to(c.global_position) <= radius_sq:
+			return true
+	return false
 
 
 func restock_for(cat: String) -> Node2D:
@@ -1241,6 +1268,10 @@ func _resolve_toss_landing(
 		if _player and _player.has_method("apply_toss_ko"):
 			_player.call("apply_toss_ko", thief, toss_dir)
 		return
+	var guest := _guest_for_toss(from, dest)
+	if guest != null:
+		_resolve_toss_guest(guest, dest, sku, n)
+		return
 	var shelf := _shelf_for_toss(dest, sku)
 	if shelf == null:
 		_place_dropped_box(dest, sku, n)
@@ -1261,6 +1292,51 @@ func _resolve_toss_landing(
 			)
 	if left > 0:
 		_place_dropped_box(dest, sku, left)
+
+
+
+func _guest_for_toss(from: Vector2, dest: Vector2) -> Node2D:
+	if _customers == null:
+		return null
+	var best: Node2D = null
+	var best_d := Tuning.DROP_GUEST_HIT_RADIUS
+	for c in _customers.get_children():
+		if c == null or not is_instance_valid(c):
+			continue
+		if bool(c.get("is_thief")):
+			continue
+		var st := int(c.get("state"))
+		if st == 7 or st == 9 or st == 8:
+			continue
+		var p: Vector2 = c.global_position
+		var d := minf(_dist_point_to_segment(p, from, dest), dest.distance_to(p))
+		if d <= best_d:
+			best_d = d
+			best = c
+	return best
+
+
+func _resolve_toss_guest(guest: Node2D, dest: Vector2, sku: String, n: int) -> void:
+	var taken := 0
+	if guest.has_method("accept_toss_box"):
+		taken = int(guest.call("accept_toss_box", sku, n))
+	if taken > 0:
+		var left := n - taken
+		if _player:
+			_player.log_line.emit(
+				"丟掉給客人 %s ×%d — 謝謝！%s" % [
+					Tuning.sku_name(sku), taken,
+					("剩 %d 掉地" % left) if left > 0 else "",
+				]
+			)
+		if left > 0:
+			_place_dropped_box(dest, sku, left)
+		return
+	if guest.has_method("apply_toss_reject"):
+		guest.call("apply_toss_reject")
+	_place_dropped_box(dest, sku, n)
+	if _player:
+		_player.log_line.emit("丟掉砸到客人 — 不想要這貨品！整箱掉地")
 
 
 ## Active thief nearest the flight segment / landing within hit radius.

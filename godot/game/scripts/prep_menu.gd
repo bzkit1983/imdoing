@@ -214,8 +214,12 @@ func _on_stat_reset() -> void:
 	if _dlg_open or _swallow_click:
 		return
 	_stat_row = 3
-	state.reset_stats()
-	_msg = ""
+	var fee := state.reset_stats_cost()
+	var err := state.reset_stats()
+	if err != "":
+		_popup_info("不能重置", err)
+		return
+	_msg = "已重置能力值（−$%d）" % fee
 	_refresh()
 
 
@@ -358,8 +362,12 @@ func _activate() -> void:
 			_msg = state.spend_point(keys[_stat_row], _stat_side)
 			_refresh()
 		elif _stat_row == 3:
-			state.reset_stats()
-			_msg = ""
+			var fee := state.reset_stats_cost()
+			var err := state.reset_stats()
+			if err != "":
+				_popup_info("不能重置", err)
+			else:
+				_msg = "已重置能力值（−$%d）" % fee
 			_refresh()
 		else:
 			_show_page("home")
@@ -390,7 +398,12 @@ func _activate() -> void:
 		"go":
 			_show_page(String(arg))
 		"reset":
-			state.reset_stats()
+			var fee := state.reset_stats_cost()
+			var err := state.reset_stats()
+			if err != "":
+				_popup_info("不能重置", err)
+			else:
+				_msg = "已重置能力值（−$%d）" % fee
 			_refresh()
 		"pick_slot":
 			PrepPages.fill_skill_pick(self, int(arg))
