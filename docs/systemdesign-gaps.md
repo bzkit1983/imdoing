@@ -1,6 +1,6 @@
 # 長線設計文件缺口
 
-- 對照日：2026-10-22（對齊 PR #3–#33 相關：含掉貨瞄準／小偷 KO 散落／離店可抓／得手橫幅／客人離店不卡門；另含 #3–#17 工程項）
+- 對照日：2026-10-22（對齊 PR #3–#39 相關：含掉貨瞄準／丟掉上架／丟掉砸小偷 KO／近遠散落／離店可抓／得手橫幅／客人離店不卡門／Pages；另含 #3–#17 工程項）
 - 範圍：只讀 `docs/systemdesign/`（含 `savesystem.md`、`pausemenu.md`），**不含** Demo scope
 - 工程落地對照：`docs/alpha/implementation-status.md`
 - 問題是文件本身的矛盾、缺系統與未定義，不是 Demo 實作差異（Demo 試玩數字只當「長線未定」的註記）
@@ -34,7 +34,7 @@
 | 已處理 | 規則含糊 | The World「變慢 50%／80%」語意不清 | 減慢 X%＝世界流速剩 (100−X)%。時鐘、生成、不滿、排隊、客人動作一併變慢。玩家行動／Circle／CD／持續仍用現實秒。打擊倒數亦用現實秒。 | playerultimateskills.md, customer.md, thiefsystem.md |
 | 已處理 | 規則含糊 | 安撫 25%／50% 的基數 | 相對**目前不滿度**。已離開者不拉回。 | playeractiveskills.md, customer.md |
 | 已處理 | 缺檔／缺系統 | 清潔只有行動列 | `cleaningsystem.md` 已有：三類污物、移速 ×0.5、長按＋轉搖桿清潔計、AGI 決定全力轉滿秒數、空手、放手重置。 | cleaningsystem.md, playeraction.md, playerstats.md |
-| 已處理 | 缺檔／缺系統 | 打擊只有行動列 | `thiefsystem.md` 已對齊活線：近距 KO 散落／衝刺遠距散落（≤5 身位）、離店途中仍可抓、得手出口才計被偷＋橫幅、Screen KO／連打晃動。 | thiefsystem.md, playeraction.md, playermovement.md, playerstats.md |
+| 已處理 | 缺檔／缺系統 | 打擊只有行動列 | `thiefsystem.md` 已對齊活線：近距 KO 散落／衝刺遠距散落（≤5 身位）／方向丟掉砸中（Screen KO、贓物原地掉落、算抓住）、離店途中仍可抓／砸／撞、得手出口才計被偷＋橫幅、Screen KO／連打晃動。 | thiefsystem.md, playeraction.md, playermovement.md, playerstats.md, replenishmentsystem.md |
 | 已處理 | 未定數值 | 移動沒有基值 | AGI 10＝每秒 3 身位、上限 5×、跑 −20 氣力/秒、衝刺 −50、氣力 0 不能跑、污物 ×0.5 已寫進長線。擁擠減速與輕放／長按門檻仍缺。 | playermovement.md, playerstats.md |
 | 已處理 | 缺檔／缺系統 | 沒有資金／採購／經營值文件 | 已有 `ecosystem.md`、`procurement.md`、`stockpricesystem.md`、`shopitem.md`、`shopprogress.md`。虧損＝當日營業額低於當日買入倉庫的貨；開發費、傢俬、工資不算；被偷不入帳。關店把當日營業額加入資金。「經營值」這個詞仍無定義，見下方未處理項。 | ecosystem.md, procurement.md, stockpricesystem.md, cashiersystem.md |
 | 已處理 | 缺檔／缺系統 | 店鋪準備回合只有口號 | `storepreparationphase.md` 有準備選單與開始營業條件（已放置收銀機，以及至少一組同類型補貨架和貨架）。配點、技能、採購、擴張、店舖設計、店員各有檔。外觀仍只有一句。 | storepreparationphase.md, playersetup.md, shopsetup.md, clerksystem.md |
@@ -59,7 +59,7 @@
 | Alpha | 未定數值 | 擁擠與操作門檻 | 留待 Alpha 設計，見 `docs/alpha/design.md`。「唔該借借」沒有人數／倍率。輕放／長按門檻僅 Demo。重置能力值沒有費用。 | playermovement.md, control.md, playersetup.md |
 | Alpha | 規則含糊 | 收銀方向如何抽 | 留待 Alpha 設計，見 `docs/alpha/design.md`。四向是否均勻、可否連續重複未寫。 | cashiersystem.md |
 | Alpha | 規則含糊 | 多台收銀機客人選哪一隊 | 留待 Alpha 設計，見 `docs/alpha/design.md`。沒有寫選最短隊、最近台，或人數相同怎麼分。 | cashiersystem.md, customer.md, clerksystem.md |
-| Alpha | 規則含糊 | 掉落物歸誰 | 玩家丟掉／水漬掉箱／小偷散落的贓物都可撿。小偷散落**不計被偷**；得手出口才計被偷。客人會否撿走、會否算進清單，仍未寫（見 `docs/alpha/design.md`）。 | cleaningsystem.md, thiefsystem.md, customer.md, playeraction.md |
+| Alpha | 規則含糊 | 掉落物歸誰 | 玩家丟掉／水漬掉箱／小偷散落或原地掉落的贓物都可撿。方向丟掉還可補同款貨架（見 `replenishmentsystem.md`）。小偷掉落**不計被偷**；得手出口才計被偷。客人會否撿走、會否算進清單，仍未寫（見 `docs/alpha/design.md`）。 | cleaningsystem.md, thiefsystem.md, customer.md, playeraction.md, replenishmentsystem.md |
 | Alpha | 規則含糊 | 清潔可否邊走邊起動 | 留待 Alpha 設計，見 `docs/alpha/design.md`。清潔／打擊起手時能否仍在走，未寫。 | playeraction.md, cleaningsystem.md, thiefsystem.md |
 | Alpha | 規則含糊 | 小偷與污物／時停以外的世界規則 | 留待 Alpha 設計，見 `docs/alpha/design.md`。小偷踩污物、是否算全體客人、是否佔在店人數，未寫。 | thiefsystem.md, customer.md, playeractiveskills.md |
 | Alpha | 用詞／錯字 | 攜帶清單 FILO 說明含混 | 留待 Alpha 設計，見 `docs/alpha/design.md`。標籤仍是 First In Last Out，例子已是堆疊。 | replenishmentsystem.md |

@@ -34,13 +34,15 @@
 
 # 掉落物歸誰
 
-水漬掉下的箱、丟掉的貨箱、打倒／撞飛小偷散落的贓物，都可以撿。
+水漬掉下的箱、丟掉的貨箱、打倒／貨箱砸中／撞飛小偷掉落的贓物，都可以撿。
 
-已寫進長線（`thiefsystem.md`）：小偷 KO／衝刺散落**不計被偷**；只有帶贓走到出口才計被偷並彈橫幅。玩家丟掉的箱規則見 `playeraction.md`（瞄準鎖移動、放手掉出、5 身位、青色軌道）。
+已寫進長線：
+- `thiefsystem.md`：近身 KO 近距散落、衝刺遠距散落、方向丟掉砸中則**原地掉落**；三者都**不計被偷**；只有帶贓走到出口才計被偷並彈橫幅。近身 KO 與丟掉砸中算抓住（經驗見 `ecosystem.md`）。
+- `playeraction.md`／`replenishmentsystem.md`：丟掉瞄準鎖移動、放手掉出、5 身位、青色軌道；方向飛出可砸小偷或補同款貨架（剩貨掉地）；腳邊丟掉不上架、不砸人。
 
 仍未寫：客人會不會撿走地上的箱、會不會算進該客人清單。
 
-檔案：`cleaningsystem.md`、`thiefsystem.md`、`customer.md`、`playeraction.md`
+檔案：`cleaningsystem.md`、`thiefsystem.md`、`customer.md`、`playeraction.md`、`replenishmentsystem.md`
 
 # 清潔與打擊能否邊走邊起手
 
