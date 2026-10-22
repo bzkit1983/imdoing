@@ -92,17 +92,7 @@ func enter_dirt(area: Node) -> void:
 
 
 func on_dirt() -> bool:
-	## Cheap path: trust enter/exit; validate only when flagged dirty-present.
-	if not _on_dirt_cached:
-		return false
-	var i := 0
-	while i < _dirt_areas.size():
-		if _dirt_areas[i] == null or not is_instance_valid(_dirt_areas[i]):
-			_dirt_areas.remove_at(i)
-			continue
-		i += 1
-	dirt_contacts = _dirt_areas.size()
-	_on_dirt_cached = dirt_contacts > 0
+	## Trust enter/exit; freed areas prune on exit_dirt / _unoccupy.
 	return _on_dirt_cached
 
 
@@ -379,9 +369,7 @@ func _tick_queue(delta: float, td: float) -> void:
 		return
 	if _queue_idx < 0:
 		reg.enqueue(self)
-	var idx := int(reg.call("queue_index_of", self)) if reg.has_method("queue_index_of") else int(reg.queue.find(self))
-	if idx < 0:
-		idx = int(reg.queue.size())
+	var idx := _resolve_queue_idx(reg)
 	_queue_idx = idx
 	var slot: Vector2 = reg.slot_position(idx)
 	if _follow_to(slot, delta):
@@ -392,12 +380,22 @@ func _tick_queue(delta: float, td: float) -> void:
 	mood = "排隊中"
 
 
+func _resolve_queue_idx(reg: Node) -> int:
+	## Prefer cached slot; re-find only when the queue mutated ahead of us.
+	var q: Array = reg.queue
+	if _queue_idx >= 0 and _queue_idx < q.size() and q[_queue_idx] == self:
+		return _queue_idx
+	var idx := int(reg.call("queue_index_of", self)) if reg.has_method("queue_index_of") else int(q.find(self))
+	if idx < 0:
+		return int(q.size())
+	return idx
+
+
 func _queue_index_guess() -> int:
 	var reg := _reg()
 	if reg == null:
 		return 0
-	var idx: int = int(reg.queue.find(self))
-	return idx if idx >= 0 else int(reg.queue.size())
+	return _resolve_queue_idx(reg)
 
 
 func _follow_to(pos: Vector2, delta: float) -> bool:

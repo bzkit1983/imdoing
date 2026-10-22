@@ -69,6 +69,9 @@ var _guest_n: int = 0
 var _active_thief_n: int = 0
 ## Empty shelves by category for toss restock.
 var _empty_by_cat: Dictionary = {}
+## Coarse cells blocked for dirt spawn (furniture + door + existing dirt).
+const DIRT_CELL := 40.0
+var _dirt_block_cells: Dictionary = {}
 
 
 func _ready() -> void:
@@ -177,6 +180,7 @@ func _clear_world() -> void:
 	shelves.clear()
 	_shelves_by_sku.clear()
 	_empty_by_cat.clear()
+	_dirt_block_cells.clear()
 	_thieves.clear()
 	_guest_n = 0
 	_active_thief_n = 0
@@ -1036,16 +1040,56 @@ func _make_cashier(r: Rect2, rot: int, index: int) -> Node2D:
 	return node
 
 
+func _dirt_cell_key(p: Vector2) -> int:
+	var cx := int(floor(p.x / DIRT_CELL))
+	var cy := int(floor(p.y / DIRT_CELL))
+	return cx + cy * 4096
+
+
+func _mark_dirt_rect_cells(r: Rect2, blocked: bool) -> void:
+	var grow := r.grow(18.0)
+	var x0 := int(floor(grow.position.x / DIRT_CELL))
+	var y0 := int(floor(grow.position.y / DIRT_CELL))
+	var x1 := int(floor(grow.end.x / DIRT_CELL))
+	var y1 := int(floor(grow.end.y / DIRT_CELL))
+	for x in range(x0, x1 + 1):
+		for y in range(y0, y1 + 1):
+			var key := x + y * 4096
+			if blocked:
+				_dirt_block_cells[key] = int(_dirt_block_cells.get(key, 0)) + 1
+			else:
+				var n := int(_dirt_block_cells.get(key, 0)) - 1
+				if n <= 0:
+					_dirt_block_cells.erase(key)
+				else:
+					_dirt_block_cells[key] = n
+
+
+func _rebuild_dirt_block_cells() -> void:
+	_dirt_block_cells.clear()
+	_mark_dirt_rect_cells(Rect2(door_pos() + Vector2(-70, -20), Vector2(140, 110)), true)
+	for o in _obstacles:
+		_mark_dirt_rect_cells(o, true)
+	for d in _dirts:
+		if d != null and is_instance_valid(d):
+			_mark_dirt_rect_cells(Rect2(d.global_position - Tuning.DIRT_SIZE * 0.5, Tuning.DIRT_SIZE), true)
+
+
 func _try_spawn_dirt() -> void:
 	if _dirts.size() >= Tuning.DIRT_CAP:
 		return
+	if _dirt_block_cells.is_empty() and not _obstacles.is_empty():
+		_rebuild_dirt_block_cells()
 	var size := Tuning.DIRT_SIZE
-	## Fewer attempts; reject against coarse cell occupancy first.
+	## Sample free coarse cells first; full rect check only on candidates.
 	for _i in 12:
 		var origin := FLOOR_ORIGIN + Vector2(
 			randf_range(36.0, FLOOR_SIZE.x - size.x - 36.0),
 			randf_range(48.0, FLOOR_SIZE.y - size.y - 36.0)
 		)
+		var center := origin + size * 0.5
+		if _dirt_block_cells.has(_dirt_cell_key(center)):
+			continue
 		var r := Rect2(origin, size)
 		if _blocked_rect(r):
 			continue
@@ -1078,10 +1122,13 @@ func _spawn_dirt(r: Rect2, dtype: String) -> void:
 	_world.add_child(area)
 	_dirts.append(area)
 	_add_interactable(area)
+	_mark_dirt_rect_cells(r, true)
 	area.tree_exiting.connect(_on_dirt_gone.bind(area))
 
 
 func _on_dirt_gone(area: Node2D) -> void:
+	if area != null and is_instance_valid(area):
+		_mark_dirt_rect_cells(Rect2(area.global_position - Tuning.DIRT_SIZE * 0.5, Tuning.DIRT_SIZE), false)
 	_dirts.erase(area)
 	_remove_interactable(area)
 

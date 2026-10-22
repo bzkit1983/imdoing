@@ -12,6 +12,8 @@ var _right_dirty: bool = true
 var _skip_running: bool = false
 var _font_debounce: float = 0.0
 var _font_pending: bool = false
+var _skills_cd_fp: String = ""
+var _skills_cd_txt: String = ""
 
 @onready var _clock: Control = $Root/Left/Clock
 @onready var _time: Label = $Root/Left/Time
@@ -202,23 +204,41 @@ func _sync_right() -> void:
 
 
 func _skill_cd_text() -> String:
-	var lines: PackedStringArray = []
+	## Snap CD to 0.25s so left HUD skips string rebuild most frames.
 	var equipped: Array = player.call("_loadout") if player.has_method("_loadout") else Skills.EQUIPPED
+	var bits: PackedStringArray = []
 	for i in equipped.size():
 		var sk: Dictionary = equipped[i]
 		if sk.is_empty():
+			bits.append("%d:-" % i)
+			continue
+		var sid := String(sk.get("id"))
+		if String(sk.get("kind")) == "passive":
+			bits.append("%d:P" % i)
+		else:
+			bits.append("%d:%.2f" % [i, snappedf(float(player.call("cd_left", sid)), 0.25)])
+	var ult: Dictionary = player.call("_ult_sk") if player.has_method("_ult_sk") else Skills.ULTIMATE
+	bits.append("U:%.2f" % snappedf(float(player.call("cd_left", String(ult.get("id")))), 0.25))
+	var fp := "|".join(bits)
+	if fp == _skills_cd_fp:
+		return _skills_cd_txt
+	_skills_cd_fp = fp
+	var lines: PackedStringArray = []
+	for i in equipped.size():
+		var sk2: Dictionary = equipped[i]
+		if sk2.is_empty():
 			lines.append("%d 空" % [i + 1])
 			continue
-		var name := String(sk.get("name"))
-		if String(sk.get("kind")) == "passive":
+		var name := String(sk2.get("name"))
+		if String(sk2.get("kind")) == "passive":
 			lines.append("%d %s 被動" % [i + 1, name])
 		else:
-			var cd := float(player.call("cd_left", String(sk.get("id"))))
+			var cd := float(player.call("cd_left", String(sk2.get("id"))))
 			lines.append("%d %s  %s" % [i + 1, name, "CD %.0f" % cd if cd > 0.05 else "就緒"])
-	var ult: Dictionary = player.call("_ult_sk") if player.has_method("_ult_sk") else Skills.ULTIMATE
 	var ucd := float(player.call("cd_left", String(ult.get("id"))))
 	lines.append("奧義 %s  %s" % [String(ult.get("name")), "CD %.0f" % ucd if ucd > 0.05 else "就緒"])
-	return "\n".join(lines)
+	_skills_cd_txt = "\n".join(lines)
+	return _skills_cd_txt
 
 
 func _refresh() -> void:

@@ -222,10 +222,8 @@ func exit_dirt(area: Node) -> void:
 
 
 func on_dirt() -> bool:
-	if _dirt_areas.is_empty():
-		return false
-	_prune_dirt_inplace()
-	return not _dirt_areas.is_empty()
+	## Trust enter/exit; prune only when an area exits the tree.
+	return dirt_contacts > 0
 
 
 func _prune_dirt_inplace() -> void:
@@ -239,7 +237,7 @@ func _prune_dirt_inplace() -> void:
 
 
 func _has_dirt_type(dtype: String) -> bool:
-	if _dirt_areas.is_empty():
+	if dirt_contacts <= 0:
 		return false
 	for a in _dirt_areas:
 		if a != null and is_instance_valid(a) and String(a.get("dirt_type")) == dtype:
@@ -727,13 +725,13 @@ func _hud_fingerprint() -> String:
 
 func _emit_stats_if_changed() -> void:
 	## Cheap dirty gate — avoid inventory.grouped() / string join when nothing changed.
-	var inv_rev := int(inventory.revision) if inventory != null else 0
+	var inv_rev: int = int(inventory.revision) if inventory != null else 0
 	var move := move_state()
 	var stam := snappedf(stamina, 0.25)
 	var stam_max := snappedf(stamina_max_now(), 0.25)
 	var carry := int(carry_boxes())
 	var hold := snappedf(hold_progress, 0.01)
-	var tid := target.get_instance_id() if is_instance_valid(target) else 0
+	var tid: int = target.get_instance_id() if is_instance_valid(target) else 0
 	var need := _hud_dirty
 	if inv_rev != _hud_inv_rev:
 		need = true
@@ -1729,12 +1727,14 @@ func _cast_ultimate() -> void:
 		return
 	if sid == "yes_my_lord":
 		_buffs[sid] = _lord_seconds(lv)
+		_buff_cache_valid = false
 		log_line.emit("奧義 Yes! My Lord! LV%d — 客人搶購 %.0f 秒" % [lv, _lord_seconds(lv)])
 		skill_cast.emit(String(sk.get("name")), true)
 		_play_zoom(true)
 		_prompt.active = false
 		return
 	_buffs[sid] = float(sk.get("duration", Skills.ULT_DURATION))
+	_buff_cache_valid = false
 	_enqueue_cust_speed(sid)
 	log_line.emit("奧義 %s LV%d — 時停" % [String(sk.get("name")), lv])
 	skill_cast.emit(String(sk.get("name")), true)
