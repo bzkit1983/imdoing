@@ -2,7 +2,11 @@ extends RefCounted
 
 const Tuning = preload("res://scripts/tuning.gd")
 
+signal changed
+
 var items: Array[String] = []
+## Bumps on every mutation — HUD / box_stack dirty without rebuilding every frame.
+var revision: int = 0
 
 
 func count() -> int:
@@ -22,6 +26,12 @@ func take_box(sku: String) -> void:
 	while i < Tuning.BOX_SIZE:
 		items.append(sku)
 		i += 1
+	_bump()
+
+
+func add_one(sku: String) -> void:
+	items.append(sku)
+	_bump()
 
 
 func trailing_run() -> Dictionary:
@@ -38,7 +48,17 @@ func trailing_run() -> Dictionary:
 
 func remove_trailing(n: int) -> void:
 	n = mini(n, items.size())
+	if n <= 0:
+		return
 	items.resize(items.size() - n)
+	_bump()
+
+
+func clear() -> void:
+	if items.is_empty():
+		return
+	items.clear()
+	_bump()
 
 
 func grouped() -> Array[Dictionary]:
@@ -62,3 +82,8 @@ func boxes() -> Array[Dictionary]:
 			i += 1
 		out.append({"id": id, "count": n})
 	return out
+
+
+func _bump() -> void:
+	revision += 1
+	changed.emit()

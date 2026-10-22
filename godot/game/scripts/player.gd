@@ -89,6 +89,25 @@ var _cancel_drop_dir: Vector2 = Vector2.ZERO
 var _drop_flight_lock: bool = false
 var _drop_aim_line: Line2D
 var _drop_aim_mark: Polygon2D
+## Cached game host (avoids get_first_node_in_group every physics frame).
+var game: Node = null
+## Dirty HUD: skip inventory.grouped() fingerprint until something relevant changes.
+var _hud_dirty: bool = true
+var _hud_inv_rev: int = -1
+var _hud_move: String = ""
+var _hud_stam: float = -999.0
+var _hud_stam_max: float = -999.0
+var _hud_carry: int = -1
+var _hud_hold: float = -999.0
+var _hud_blocked: bool = false
+var _hud_target_id: int = 0
+var _hud_target_detail: String = ""
+var _shown_anim: String = ""
+var _shown_tint: Color = Color(0, 0, 0, 0)
+var _menu_fp: String = ""
+var _cached_clock: float = 1.0
+var _cached_cust_mult: float = 1.0
+var _buff_cache_valid: bool = false
 
 
 func _ready() -> void:
@@ -104,6 +123,8 @@ func _ready() -> void:
 	stack.position = Vector2(0, -6)
 	stack.setup(inventory)
 	add_child(stack)
+	if inventory.has_signal("changed"):
+		inventory.changed.connect(_mark_hud_dirty)
 	_setup_drop_aim()
 	_refresh_passive_checkout()
 
@@ -197,27 +218,29 @@ func enter_dirt(area: Node) -> void:
 
 func exit_dirt(area: Node) -> void:
 	_dirt_areas.erase(area)
-	dirt_contacts = _dirt_areas.size()
+	_prune_dirt_inplace()
 
 
 func on_dirt() -> bool:
-	_prune_dirt()
-	return not _dirt_areas.is_empty()
+	## Trust enter/exit; prune only when an area exits the tree.
+	return dirt_contacts > 0
 
 
-func _prune_dirt() -> void:
-	var keep: Array[Node] = []
-	for a in _dirt_areas:
-		if is_instance_valid(a):
-			keep.append(a)
-	_dirt_areas = keep
+func _prune_dirt_inplace() -> void:
+	var i := 0
+	while i < _dirt_areas.size():
+		if _dirt_areas[i] == null or not is_instance_valid(_dirt_areas[i]):
+			_dirt_areas.remove_at(i)
+			continue
+		i += 1
 	dirt_contacts = _dirt_areas.size()
 
 
 func _has_dirt_type(dtype: String) -> bool:
-	_prune_dirt()
+	if dirt_contacts <= 0:
+		return false
 	for a in _dirt_areas:
-		if String(a.get("dirt_type")) == dtype:
+		if a != null and is_instance_valid(a) and String(a.get("dirt_type")) == dtype:
 			return true
 	return false
 
@@ -541,17 +564,28 @@ func _hide_drop_aim() -> void:
 		_drop_aim_mark.visible = false
 
 
+func _game() -> Node:
+	if game != null and is_instance_valid(game):
+		return game
+	game = get_tree().get_first_node_in_group("game")
+	return game
+
+
 func _round_active() -> bool:
-	var game := get_tree().get_first_node_in_group("game")
-	if game == null:
+	var g := _game()
+	if g == null:
 		return true
-	var phase := String(game.get("phase"))
+	var phase := String(g.get("phase"))
 	return phase == "restock" or phase == "open"
 
 
 func _asking_early() -> bool:
-	var game := get_tree().get_first_node_in_group("game")
-	return game != null and game.has_method("asking_early_close") and bool(game.asking_early_close())
+	var g := _game()
+	return g != null and g.has_method("asking_early_close") and bool(g.asking_early_close())
+
+
+func _mark_hud_dirty() -> void:
+	_hud_dirty = true
 
 
 func _discard_top_box() -> void:
@@ -642,46 +676,96 @@ func _physics_process(delta: float) -> void:
 	if _menu:
 		_menu.open = skill_menu_open
 		if skill_menu_open:
-			_menu.set_slots(_loadout(), _cd)
+			var mfp := "%s|%s" % [str(_cd), str(_loadout())]
+			if mfp != _menu_fp:
+				_menu_fp = mfp
+				_menu.set_slots(_loadout(), _cd)
 	_update_visuals()
 	_emit_stats_if_changed()
 
 
+func _target_detail_fp(node: Node2D) -> String:
+	if node == null or not is_instance_valid(node):
+		return "-"
+	var k := String(node.get("kind"))
+	var tinfo := "%s:%d" % [k, node.get_instance_id()]
+	match k:
+		"restock":
+			tinfo += ":%s" % String(node.call("selected_sku"))
+		"dirt":
+			tinfo += ":%s" % String(node.call("type_name"))
+		"drop":
+			tinfo += ":%s:%d" % [String(node.get("sku")), int(node.get("count"))]
+		"shelf":
+			var cap := int(node.get("capacity"))
+			if cap <= 0:
+				cap = Tuning.SHELF_CAP
+			tinfo += ":%s:%d:%d" % [String(node.get("sku")), int(node.get("count")), cap]
+		"thief":
+			tinfo += ":%.0f:%.1f" % [float(node.get("fight_hp")), float(node.get("fight_left"))]
+	return tinfo
+
+
 func _hud_fingerprint() -> String:
+	## Assumes cheap HUD caches were refreshed by _emit_stats_if_changed.
 	var inv_bits: PackedStringArray = []
 	for g in inventory.grouped():
 		inv_bits.append("%s:%d" % [String(g["id"]), int(g["count"])])
-	var tinfo := "-"
-	if is_instance_valid(target):
-		var k := String(target.get("kind"))
-		tinfo = "%s:%d" % [k, target.get_instance_id()]
-		match k:
-			"restock":
-				tinfo += ":%s" % String(target.call("selected_sku"))
-			"dirt":
-				tinfo += ":%s" % String(target.call("type_name"))
-			"drop":
-				tinfo += ":%s:%d" % [String(target.get("sku")), int(target.get("count"))]
-			"shelf":
-				var cap := int(target.get("capacity"))
-				if cap <= 0:
-					cap = Tuning.SHELF_CAP
-				tinfo += ":%s:%d:%d" % [String(target.get("sku")), int(target.get("count")), cap]
-			"thief":
-				tinfo += ":%.0f:%.1f" % [float(target.get("fight_hp")), float(target.get("fight_left"))]
 	return "%s|%.2f|%.2f|%d|%s|%.2f|%s|%s" % [
-		move_state(),
-		snappedf(stamina, 0.25),
-		snappedf(stamina_max_now(), 0.25),
-		int(carry_boxes()),
+		_hud_move,
+		_hud_stam,
+		_hud_stam_max,
+		_hud_carry,
 		",".join(inv_bits),
-		snappedf(hold_progress, 0.01),
-		str(blocked_mismatch),
-		tinfo,
+		_hud_hold,
+		str(_hud_blocked),
+		_hud_target_detail,
 	]
 
 
 func _emit_stats_if_changed() -> void:
+	## Cheap dirty gate — avoid inventory.grouped() / string join when nothing changed.
+	var inv_rev: int = int(inventory.revision) if inventory != null else 0
+	var move := move_state()
+	var stam := snappedf(stamina, 0.25)
+	var stam_max := snappedf(stamina_max_now(), 0.25)
+	var carry := int(carry_boxes())
+	var hold := snappedf(hold_progress, 0.01)
+	var tid: int = target.get_instance_id() if is_instance_valid(target) else 0
+	var need := _hud_dirty
+	if inv_rev != _hud_inv_rev:
+		need = true
+	elif move != _hud_move:
+		need = true
+	elif not is_equal_approx(stam, _hud_stam):
+		need = true
+	elif not is_equal_approx(stam_max, _hud_stam_max):
+		need = true
+	elif carry != _hud_carry:
+		need = true
+	elif not is_equal_approx(hold, _hud_hold):
+		need = true
+	elif blocked_mismatch != _hud_blocked:
+		need = true
+	elif tid != _hud_target_id:
+		need = true
+	elif tid != 0:
+		var detail := _target_detail_fp(target)
+		if detail != _hud_target_detail:
+			need = true
+			_hud_target_detail = detail
+	if not need:
+		return
+	_hud_inv_rev = inv_rev
+	_hud_move = move
+	_hud_stam = stam
+	_hud_stam_max = stam_max
+	_hud_carry = carry
+	_hud_hold = hold
+	_hud_blocked = blocked_mismatch
+	_hud_target_id = tid
+	_hud_target_detail = _target_detail_fp(target) if tid != 0 else "-"
+	_hud_dirty = false
 	var fp := _hud_fingerprint()
 	if fp == _hud_fp:
 		return
@@ -692,6 +776,7 @@ func _emit_stats_if_changed() -> void:
 func _enqueue_cust_speed(skill_id: String) -> void:
 	if not _cust_speed_q.has(skill_id):
 		_cust_speed_q.append(skill_id)
+		_buff_cache_valid = false
 
 
 func _customer_move_kind(skill_id: String) -> String:
@@ -787,17 +872,24 @@ func _tick_buffs(delta: float) -> void:
 		_buffs[id] = float(_buffs[id]) - delta
 		if float(_buffs[id]) <= 0.0:
 			gone.append(String(id))
+	var changed := not gone.is_empty()
 	for id in gone:
 		_buffs.erase(id)
 	for id in _cd.keys():
 		_cd[id] = maxf(0.0, float(_cd[id]) - delta)
-	clock_scale = _world_clock_now()
-	customer_move_mult = _customer_move_mult_now()
 	var keep_q: Array[String] = []
 	for id in _cust_speed_q:
 		if _buffs.has(id):
 			keep_q.append(id)
+	if keep_q.size() != _cust_speed_q.size():
+		changed = true
 	_cust_speed_q = keep_q
+	if changed or not _buff_cache_valid:
+		_cached_clock = _world_clock_now()
+		_cached_cust_mult = _customer_move_mult_now()
+		_buff_cache_valid = true
+	clock_scale = _cached_clock
+	customer_move_mult = _cached_cust_mult
 
 
 func _wiggle_axis() -> Vector2:
@@ -946,7 +1038,7 @@ func _drop_top_box(toss_dir: Vector2 = Vector2.ZERO, lock_until_land: bool = tru
 	var run: Dictionary = inventory.trailing_run()
 	var n := mini(Tuning.BOX_SIZE, int(run["count"]))
 	inventory.remove_trailing(n)
-	var game := get_tree().get_first_node_in_group("game")
+	var game := _game()
 	if game and game.has_method("spawn_dropped_box"):
 		var landed := Callable()
 		if lock_until_land:
@@ -999,21 +1091,27 @@ func _regen(delta: float) -> void:
 func _update_target() -> void:
 	if _fighting:
 		return
+	## Aim / flight / slip: keep current target (no full scan).
+	if _cancel_held or _drop_flight_lock or _slip_left > 0.0:
+		return
 	var best: Node2D = null
 	var best_score := -1.0
+	var range_sq := Tuning.INTERACT_RANGE_SQ
 	for node in interactables:
 		if node == null or not is_instance_valid(node):
 			continue
 		var to_obj: Vector2 = node.global_position - global_position
-		var dist := to_obj.length()
-		if dist > Tuning.INTERACT_RANGE or dist < 0.001:
+		var dist_sq := to_obj.length_squared()
+		if dist_sq > range_sq or dist_sq < 0.000001:
 			continue
-		var dot := facing.dot(to_obj.normalized())
-		if String(node.get("kind")) == "dirt" and _dirt_areas.has(node):
+		var dist := sqrt(dist_sq)
+		var kind := String(node.get("kind"))
+		var dot := facing.dot(to_obj / dist)
+		if kind == "dirt" and _dirt_areas.has(node):
 			dot = 1.0
-		if String(node.get("kind")) == "thief":
+		elif kind == "thief":
 			dot = maxf(dot, 0.85)
-		if String(node.get("kind")) == "cashier":
+		if kind == "cashier":
 			if global_position.y < node.global_position.y - 8.0:
 				continue
 			dot = 1.0
@@ -1030,6 +1128,7 @@ func _update_target() -> void:
 		_restock_hold = 0.0
 		_reset_hold()
 		_pickup_used = false
+		_hud_dirty = true
 	target = best
 
 
@@ -1115,7 +1214,7 @@ func _fight_win() -> void:
 	if _fight_ko:
 		return
 	_fight_ko = true
-	var game := get_tree().get_first_node_in_group("game")
+	var game := _game()
 	if game and game.has_method("record_caught"):
 		game.call("record_caught")
 	log_line.emit("打倒小偷 — KO！贓物散落地上")
@@ -1130,7 +1229,7 @@ func apply_toss_ko(thief: Node, knock_dir: Vector2) -> void:
 		return
 	if not thief.has_method("ko_box_hit_and_flee"):
 		return
-	var game := get_tree().get_first_node_in_group("game")
+	var game := _game()
 	if game and game.has_method("record_caught"):
 		game.call("record_caught")
 	log_line.emit("貨箱砸中小偷 — KO！贓物原地掉落")
@@ -1160,7 +1259,7 @@ func _play_ko_sequence(
 			Vector2(Tuning.FIGHT_KO_ZOOM, Tuning.FIGHT_KO_ZOOM),
 			0.07,
 		)
-	var game := get_tree().get_first_node_in_group("game")
+	var game := _game()
 	if game and game.has_method("play_ko_banner"):
 		game.call("play_ko_banner")
 	await get_tree().create_timer(0.18).timeout
@@ -1227,10 +1326,10 @@ func _tick_camera_shake(delta: float) -> void:
 
 
 func _try_dash_thief() -> void:
-	var game := get_tree().get_first_node_in_group("game")
-	if game == null or not game.has_method("thieves"):
+	var g := _game()
+	if g == null or not g.has_method("thieves"):
 		return
-	for t in game.call("thieves"):
+	for t in g.call("thieves"):
 		if t == null or not is_instance_valid(t):
 			continue
 		if not bool(t.call("is_active_thief")):
@@ -1348,7 +1447,7 @@ func _tick_clean(_delta: float) -> void:
 		hold_progress = 0.0
 		_clean_hint = false
 		_last_wiggle = Vector2.ZERO
-		var game := get_tree().get_first_node_in_group("game")
+		var game := _game()
 		if game and game.has_method("note_clean"):
 			game.note_clean()
 		log_line.emit("清潔完成 — %s 已清除" % name)
@@ -1367,7 +1466,7 @@ func _tick_drop() -> void:
 		return
 	var taken := int(target.call("take_all"))
 	for i in taken:
-		inventory.items.append(sku)
+		inventory.add_one(sku)
 	log_line.emit("撿起 %s ×%d" % [Tuning.sku_name(sku), taken])
 
 
@@ -1575,10 +1674,11 @@ func _cast_slot(i: int) -> void:
 		return
 	_cd[sid] = Tuning.cd_seconds(float(sk.get("cd", Skills.ACTIVE_CD)), _int_now())
 	_buffs[sid] = float(sk.get("duration", Skills.ACTIVE_DURATION))
+	_buff_cache_valid = false
 	if sk.has("customer_move_pct"):
 		_enqueue_cust_speed(sid)
 	if sk.has("soothe_keep"):
-		var game := get_tree().get_first_node_in_group("game")
+		var game := _game()
 		if game and game.has_method("soothe_all"):
 			game.soothe_all(float(sk.get("soothe_keep")))
 	log_line.emit("施放 %s LV%d" % [String(sk.get("name")), int(sk.get("lv", 3))])
@@ -1615,7 +1715,8 @@ func _cast_ultimate() -> void:
 	var sid := String(sk.get("id"))
 	var lv := int(sk.get("lv", 3))
 	_cd[sid] = Tuning.cd_seconds(float(sk.get("cd", Skills.ULT_CD)), _int_now())
-	var game := get_tree().get_first_node_in_group("game")
+	_buff_cache_valid = false
+	var game := _game()
 	if sid == "fundraise":
 		if game and game.has_method("cast_fundraise"):
 			game.call("cast_fundraise", lv)
@@ -1626,12 +1727,14 @@ func _cast_ultimate() -> void:
 		return
 	if sid == "yes_my_lord":
 		_buffs[sid] = _lord_seconds(lv)
+		_buff_cache_valid = false
 		log_line.emit("奧義 Yes! My Lord! LV%d — 客人搶購 %.0f 秒" % [lv, _lord_seconds(lv)])
 		skill_cast.emit(String(sk.get("name")), true)
 		_play_zoom(true)
 		_prompt.active = false
 		return
 	_buffs[sid] = float(sk.get("duration", Skills.ULT_DURATION))
+	_buff_cache_valid = false
 	_enqueue_cust_speed(sid)
 	log_line.emit("奧義 %s LV%d — 時停" % [String(sk.get("name")), lv])
 	skill_cast.emit(String(sk.get("name")), true)
@@ -1714,11 +1817,13 @@ func _update_visuals() -> void:
 		_arrow.rotation = facing.angle() + PI / 2.0
 	if _body == null:
 		return
+	var anim := _visual_anim()
+	var anim_key := "%s_%d_%.2f" % [anim, Vox.k_from_facing(facing), 1.25 if _running else 1.0]
 	if _body is AnimatedSprite2D:
-		var spd := 1.0
-		if _running:
-			spd = 1.25
-		Vox.play_anim(_body as AnimatedSprite2D, "player", _visual_anim(), facing, spd)
+		if anim_key != _shown_anim:
+			_shown_anim = anim_key
+			var spd := 1.25 if _running else 1.0
+			Vox.play_anim(_body as AnimatedSprite2D, "player", anim, facing, spd)
 	elif _body is Sprite2D:
 		Vox.apply(_body as Sprite2D, "player", Vox.k_from_facing(facing))
 	var tint := Color.WHITE
@@ -1738,4 +1843,6 @@ func _update_visuals() -> void:
 		tint = Color(0.85, 0.7, 1.0)
 	elif on_dirt():
 		tint = Color(0.75, 0.62, 0.45)
-	_body.modulate = tint
+	if tint != _shown_tint:
+		_shown_tint = tint
+		_body.modulate = tint
