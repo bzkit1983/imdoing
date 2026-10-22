@@ -1,8 +1,8 @@
-# 活線 Web 匯出目錄（v1.0.0）
+# 活線 Web 匯出目錄（v1.1.0）
 
 由 `godot/game` 的 **Web** export preset 寫入（`export_presets.cfg` → `docs/play/index.html`）。
 
-產品版見 repo 根 [`VERSION`](../../VERSION)／Git tag `v1.0.0`。  
+產品版見 repo 根 [`VERSION`](../../VERSION)／Git tag `v1.1.0`。  
 試玩：https://bzkit1983.github.io/imdoing/play/
 
 Windows／Linux（Steam 候選）輸出在 repo 根目錄 `build/`，見 [`docs/alpha/export-presets.md`](../alpha/export-presets.md)。
