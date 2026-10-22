@@ -36,6 +36,9 @@ var _hp_bar: ColorRect
 var _timer_lab: Label
 var _flee_dir: Vector2 = Vector2.UP
 var _flee_left: float = 0.0
+## Wall-clock while leaving; force-despawn if wedged at the door.
+var _leave_elapsed: float = 0.0
+const LEAVE_TIMEOUT_SEC := 5.0
 var raided: bool = false
 ## Cached label / chrome values — only write nodes when these change.
 var _shown_list: String = "\u0001"
@@ -222,10 +225,7 @@ func _physics_process(delta: float) -> void:
 		State.FLEE:
 			_tick_flee(delta)
 		State.LEAVE:
-			if _follow_to(_game.call("exit_pos"), delta):
-				if is_thief:
-					_finish_thief_exit()
-				queue_free()
+			_tick_leave(delta, td)
 		State.RAID:
 			_tick_raid(delta)
 	if not is_thief and dissatisfaction >= Tuning.DISSAT_MAX and state != State.LEAVE:
@@ -426,23 +426,45 @@ func _leave(angry: bool) -> void:
 	if _reg():
 		_reg().dequeue(self)
 	state = State.LEAVE
+	_leave_elapsed = 0.0
 	if is_thief:
-		## Stay fully present so the clerk can still grab / dash until exit.
+		## Stay targetable, but ghost walls — door solids otherwise wedge bodies
+		## in the gap and leave paths never reach exit_pos.
 		if mood != "得手離開":
 			mood = "離開"
 		collision_layer = Tuning.LAYER_CUSTOMERS
-		collision_mask = Tuning.LAYER_WALLS
+		collision_mask = 0
 		z_index = 0
 		modulate.a = 1.0
 	else:
 		mood = "生氣離開" if angry else "離開"
 		collision_layer = 0
-		collision_mask = Tuning.LAYER_WALLS
+		collision_mask = 0
 		z_index = -1
 		modulate.a = 0.75
 	_clear_route()
 	if angry and _game:
 		_game.angry_left += 1
+
+
+func _tick_leave(delta: float, td: float) -> void:
+	_leave_elapsed += td
+	var exit_p: Vector2 = _game.call("exit_pos")
+	if _follow_to(exit_p, delta) or _leave_near_exit(exit_p) or _leave_elapsed >= LEAVE_TIMEOUT_SEC:
+		if is_thief:
+			_finish_thief_exit()
+		queue_free()
+
+
+func _leave_near_exit(exit_p: Vector2) -> bool:
+	## Door threshold counts as left — avoids hanging just inside the frame.
+	if not _game.has_method("door_pos"):
+		return false
+	var door_p: Vector2 = _game.call("door_pos")
+	if global_position.distance_to(door_p) <= Tuning.CUSTOMER_ARRIVE_DIST:
+		## Only once they've crossed to / past the door line (north of shop).
+		return global_position.y <= door_p.y + 8.0
+	return global_position.distance_to(exit_p) <= Tuning.CUSTOMER_ARRIVE_DIST * 1.25
 
 
 func begin_fight() -> void:
