@@ -1069,33 +1069,63 @@ func _spawn_box_flight(
 
 ## Full-screen KO flash used when a fight mash finishes the thief.
 func play_ko_banner() -> void:
+	_play_banner_flash(
+		"KO",
+		Color(1.0, 0.9, 0.15, 1.0),
+		112,
+		Color(1, 1, 1, 0.75),
+		Tuning.FIGHT_KO_FLASH_SEC,
+	)
+
+
+## Banner when a thief walks out the door still carrying loot.
+func show_stolen_banner() -> void:
+	_play_banner_flash(
+		Loc.t("demo.stolen_banner"),
+		Color(1.0, 0.35, 0.28, 1.0),
+		64,
+		Color(0.05, 0.02, 0.02, 0.7),
+		1.15,
+	)
+	if _player:
+		_player.log_line.emit(Loc.t("demo.stolen_banner"))
+
+
+func _play_banner_flash(
+	text: String,
+	text_color: Color,
+	font_px: int,
+	flash_color: Color,
+	hold_sec: float,
+) -> void:
 	var layer := CanvasLayer.new()
 	layer.layer = 80
 	add_child(layer)
 	var flash := ColorRect.new()
 	flash.set_anchors_preset(Control.PRESET_FULL_RECT)
 	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	flash.color = Color(1, 1, 1, 0.0)
+	flash.color = Color(flash_color.r, flash_color.g, flash_color.b, 0.0)
 	layer.add_child(flash)
 	var lab := Label.new()
-	lab.text = "KO"
+	lab.text = text
 	lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lab.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	lab.set_anchors_preset(Control.PRESET_FULL_RECT)
 	lab.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	UiFont.apply_label(lab, UiFont.HUGE)
-	lab.add_theme_font_size_override("font_size", 112)
-	lab.add_theme_color_override("font_color", Color(1.0, 0.9, 0.15, 1.0))
+	lab.add_theme_font_size_override("font_size", font_px)
+	lab.add_theme_color_override("font_color", text_color)
 	lab.add_theme_color_override("font_outline_color", Color(0.05, 0.05, 0.08, 1.0))
-	lab.add_theme_constant_override("outline_size", 14)
+	lab.add_theme_constant_override("outline_size", 12)
 	lab.modulate.a = 0.0
 	layer.add_child(lab)
+	var peak_a := flash_color.a
 	var tw := create_tween()
-	tw.tween_property(flash, "color:a", 0.75, 0.06)
-	tw.parallel().tween_property(lab, "modulate:a", 1.0, 0.08)
-	tw.tween_interval(0.14)
-	tw.tween_property(flash, "color:a", 0.0, Tuning.FIGHT_KO_FLASH_SEC * 0.65)
-	tw.parallel().tween_property(lab, "modulate:a", 0.0, Tuning.FIGHT_KO_FLASH_SEC * 0.7)
+	tw.tween_property(flash, "color:a", peak_a, 0.08)
+	tw.parallel().tween_property(lab, "modulate:a", 1.0, 0.1)
+	tw.tween_interval(maxf(0.12, hold_sec * 0.35))
+	tw.tween_property(flash, "color:a", 0.0, hold_sec * 0.55)
+	tw.parallel().tween_property(lab, "modulate:a", 0.0, hold_sec * 0.55)
 	tw.tween_callback(layer.queue_free)
 
 
