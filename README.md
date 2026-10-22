@@ -33,7 +33,7 @@ Repository for game project
 - 長線規則：`docs/systemdesign/`（含 [`savesystem.md`](docs/systemdesign/savesystem.md)、[`control.md`](docs/systemdesign/control.md)、[`pausemenu.md`](docs/systemdesign/pausemenu.md)）
 - 缺口檢視：`docs/systemdesign-gaps.md`
 - Alpha 計劃／審查／設計：`docs/alpha/plan.md`、`docs/alpha/design.md`、`docs/alpha/tech-review-v0.1.md`
-- 工程對照：`docs/alpha/implementation-status.md`（存檔、InputMap、暫停、i18n、匯出、主機商務、Godot 釘版等）
+- 工程對照：`docs/alpha/implementation-status.md`（存檔、InputMap、暫停、i18n、匯出、掉貨／小偷 KO、主機商務、Godot 釘版等）
 - 字串表／字型／匯出：`docs/alpha/i18n.md`、`docs/alpha/fonts-subset.md`、`docs/alpha/export-presets.md`
 - 角色動畫：`docs/alpha/animation-v1.0.md`；待辦：`docs/alpha/animation-pending.md`
 - 主機：`docs/alpha/console-business.md`、`docs/alpha/godot-middleware-pin.md`
