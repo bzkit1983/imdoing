@@ -24,6 +24,7 @@ var FLOOR_SIZE := Vector2(640, 640)
 var FLOOR_ORIGIN := Vector2(48, 36)
 
 var phase: String = "prep"
+var _sfx_phase: String = "prep"
 var state: StateScript
 var cleaned: int = 0
 var _settled: bool = false
@@ -106,6 +107,8 @@ func _begin_day() -> void:
 	_settled = false
 	real_time = 0.0
 	phase = "restock"
+	_sfx_phase = "restock"
+	SfxBus.play("sfx_phase_restock")
 	_spawn_in = 2.0
 	_dirt_spawn_in = state.dirt_spawn_sec()
 	_thief_spawn_in = state.thief_spawn_first()
@@ -450,6 +453,7 @@ func _registers_idle() -> bool:
 func _show_early_dialog() -> void:
 	_early_open = true
 	_early_focus = 0
+	SfxBus.play("sfx_early_close_ask")
 	if _player and _player.has_method("set_hold"):
 		_player.set_hold("interact", false)
 		_player.set_hold("cancel", false)
@@ -607,6 +611,9 @@ func _process(delta: float) -> void:
 		var t := real_time / Tuning.RESTOCK_REAL_SEC
 		game_hours = lerpf(Tuning.GAME_START_HOUR, Tuning.OPEN_HOUR, t)
 	elif real_time < Tuning.RESTOCK_REAL_SEC + Tuning.OPEN_REAL_SEC:
+		if _sfx_phase != "open":
+			_sfx_phase = "open"
+			SfxBus.play("sfx_phase_open")
 		phase = "open"
 		var t := (real_time - Tuning.RESTOCK_REAL_SEC) / Tuning.OPEN_REAL_SEC
 		game_hours = lerpf(Tuning.OPEN_HOUR, Tuning.CLOSE_HOUR, t)
@@ -891,7 +898,10 @@ func _finish_day() -> void:
 	if _settled:
 		return
 	_settled = true
+	SfxBus.play("sfx_phase_close")
 	var result: Dictionary = state.settle(revenue, served, thieves_caught, cleaned, _skip_xp)
+	if int(result.get("ups", 0)) > 0:
+		SfxBus.play("sfx_ui_level_up")
 	var save_err := state.save_to_disk()
 	if _hud:
 		_hud.show_closeout()
@@ -919,6 +929,7 @@ func _spawn_customer() -> void:
 	_customers.add_child(c)
 	c.setup(self, door_pos())
 	register_customer(c)
+	SfxBus.play("sfx_guest_enter")
 
 
 func _spawn_thief() -> void:
@@ -934,6 +945,7 @@ func _spawn_thief() -> void:
 	_add_interactable(c)
 	c.tree_exiting.connect(func() -> void: _remove_interactable(c))
 	register_customer(c)
+	SfxBus.play("sfx_thief_spawn")
 	if _player:
 		_player.log_line.emit(Loc.t("demo.thief_enter"))
 
@@ -1157,6 +1169,7 @@ func _spawn_dirt(r: Rect2, dtype: String) -> void:
 	_add_interactable(area)
 	_mark_dirt_rect_cells(r, true)
 	area.tree_exiting.connect(_on_dirt_gone.bind(area))
+	SfxBus.play("sfx_dirt_spawn")
 
 
 func _on_dirt_gone(area: Node2D) -> void:
@@ -1211,6 +1224,7 @@ func spawn_loot_scatter(
 ) -> void:
 	if piles.is_empty():
 		return
+	SfxBus.play("sfx_loot_scatter")
 	var dests := Tuning.loot_scatter_positions(origin, piles.size(), min_r, max_r)
 	for i in piles.size():
 		var pile: Dictionary = piles[i]
@@ -1227,6 +1241,7 @@ func spawn_loot_scatter(
 func spawn_loot_inplace(origin: Vector2, piles: Array) -> void:
 	if piles.is_empty():
 		return
+	SfxBus.play("sfx_loot_inplace")
 	var dests := Tuning.loot_scatter_positions(
 		origin, piles.size(), 0.0, Tuning.LOOT_INPLACE_MAX
 	)
@@ -1286,6 +1301,7 @@ func _resolve_toss_landing(
 	if placed <= 0:
 		_place_dropped_box(dest, sku, n)
 		return
+	SfxBus.play("sfx_box_shelf_toss")
 	var left := n - placed
 	if _player:
 		if left <= 0:
@@ -1328,6 +1344,7 @@ func _resolve_toss_guest(guest: Node2D, dest: Vector2, sku: String, n: int) -> v
 		taken = int(guest.call("accept_toss_box", sku, n))
 	if taken > 0:
 		var left := n - taken
+		SfxBus.play("sfx_box_hit_guest_ok")
 		if _player:
 			_player.log_line.emit(
 				"丟掉給客人 %s ×%d — 謝謝！%s" % [
@@ -1340,6 +1357,7 @@ func _resolve_toss_guest(guest: Node2D, dest: Vector2, sku: String, n: int) -> v
 		return
 	if guest.has_method("apply_toss_reject"):
 		guest.call("apply_toss_reject")
+	SfxBus.play("sfx_box_hit_guest_reject")
 	_place_dropped_box(dest, sku, n)
 	if _player:
 		_player.log_line.emit("丟掉砸到客人 — 不想要這貨品！整箱掉地")
@@ -1416,6 +1434,7 @@ func play_ko_banner() -> void:
 
 ## Banner when a thief walks out the door still carrying loot.
 func show_stolen_banner() -> void:
+	SfxBus.play("sfx_thief_escape")
 	_play_banner_flash(
 		Loc.t("demo.stolen_banner"),
 		Color(1.0, 0.35, 0.28, 1.0),
@@ -1466,6 +1485,7 @@ func _play_banner_flash(
 
 
 func _place_dropped_box(dest: Vector2, sku: String, n: int) -> void:
+	SfxBus.play("sfx_box_land")
 	var drop: Area2D = DroppedBoxScript.new()
 	drop.setup(sku, n)
 	drop.global_position = dest

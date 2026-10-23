@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://alpha_sfx_test"]
+
+[ext_resource type="Script" path="res://scripts/sfx_test.gd" id="1_sfx"]
+
+[node name="SfxTest" type="CanvasLayer"]
+script = ExtResource("1_sfx")

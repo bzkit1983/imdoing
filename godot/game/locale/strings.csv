@@ -45,6 +45,9 @@ prep.home.clerks,店員　%d 人,Clerks · %d
 prep.home.open,開始營業,Open shop
 prep.home.test_money,增加資金$1000（測試用）,Add $1000 funds (test)
 prep.home.test_money_ok,已增加資金 $1000　現有 $%d,Added $1000 · now $%d
+prep.home.sfx_test,音效測試（播放 Sample）,SFX test (play samples)
+prep.sfx.title,音效測試,SFX Test
+prep.sfx.info,P0／P1／P2 Alpha 佔位音效。J 播放　; 返回。之後由音效設計師替換素材。,P0/P1/P2 Alpha placeholder SFX. J play · ; back. Designers replace assets later.
 prep.home.wipe,清除存檔並重選劇本,Wipe save & re-pick scenario
 prep.stats.title,角色能力,Stats
 prep.stats.info,按 + 加一點，按 - 減一點。向下可到重置和返回。,"Press + / − to adjust. Down for reset and back."

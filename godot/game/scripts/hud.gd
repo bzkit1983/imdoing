@@ -141,6 +141,7 @@ func _build_skip() -> void:
 
 
 func _on_skip_operate() -> void:
+	SfxBus.play("sfx_ui_test_skip")
 	if game and game.has_method("skip_operate"):
 		game.skip_operate()
 

@@ -6,6 +6,7 @@ const Skills = preload("res://scripts/skills.gd")
 const UiFont = preload("res://scripts/ui_font.gd")
 const PrepWidgets = preload("res://scripts/prep/prep_widgets.gd")
 const ProductVersion = preload("res://scripts/product_version.gd")
+const SfxCatalog = preload("res://scripts/sfx_catalog.gd")
 
 
 static func apply_panel_layout(menu: CanvasLayer) -> void:
@@ -53,6 +54,8 @@ static func fill(menu: CanvasLayer, page: String) -> void:
 			_clerks(menu)
 		"confirm":
 			_confirm(menu)
+		"sfx":
+			_sfx(menu)
 		"skill_pick":
 			pass
 		_:
@@ -112,6 +115,7 @@ static func _home(menu: CanvasLayer) -> void:
 	menu._add(Loc.t("prep.home.open"), "try_open", null)
 	if ProductVersion.test_tools_enabled():
 		menu._add(Loc.t("prep.home.test_money"), "test_money", null)
+		menu._add(Loc.t("prep.home.sfx_test"), "go", "sfx")
 	menu._add(Loc.t("prep.home.wipe"), "wipe_save", null)
 
 
@@ -312,6 +316,18 @@ static func _confirm(menu: CanvasLayer) -> void:
 	var wage: int = int(menu.state.WAGE) * menu.state.clerks.size()
 	menu._info.text = "開工扣工資 $%d。結算時營業額入帳；若營業額低於本輪進貨成本會標虧損，遊戲繼續。" % wage
 	menu._add("開始　工資後資金約 $%d" % (menu.state.money - wage), "open", null)
+	menu._add(Loc.t("prep.back"), "go", "home")
+
+
+static func _sfx(menu: CanvasLayer) -> void:
+	menu._title.text = Loc.t("prep.sfx.title")
+	menu._info.text = Loc.t("prep.sfx.info")
+	for pri in ["P0", "P1", "P2"]:
+		menu._add("—— %s ——" % pri, "noop", null)
+		for e in SfxCatalog.by_priority(pri):
+			var sid := String(e["id"])
+			var group := String(e.get("group", ""))
+			menu._add("[%s] %s　▶" % [group, sid], "play_sfx", sid)
 	menu._add(Loc.t("prep.back"), "go", "home")
 
 

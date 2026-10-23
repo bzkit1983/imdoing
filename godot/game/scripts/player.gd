@@ -232,9 +232,12 @@ func add_dirt(delta_count: int) -> void:
 
 
 func enter_dirt(area: Node) -> void:
+	var was := dirt_contacts
 	if area != null and not _dirt_areas.has(area):
 		_dirt_areas.append(area)
 	dirt_contacts = _dirt_areas.size()
+	if was <= 0 and dirt_contacts > 0:
+		SfxBus.play("sfx_move_dirt_step")
 
 
 func exit_dirt(area: Node) -> void:
@@ -506,6 +509,8 @@ func _crowd_near_fallback() -> bool:
 
 func _sync_crowd_say() -> void:
 	var on := _crowd_near()
+	if on and not _crowd_active:
+		SfxBus.play("sfx_move_crowd")
 	_crowd_active = on
 	if _crowd_say:
 		_crowd_say.visible = on
@@ -569,6 +574,8 @@ func _tick_cancel_hold(delta: float) -> void:
 	_sample_cancel_drop_dir()
 	_cancel_time += delta
 	if _cancel_time >= Tuning.DROP_HOLD_SEC:
+		if not _cancel_drop_ready:
+			SfxBus.play("sfx_box_drop_aim")
 		_cancel_drop_ready = true
 	_update_drop_aim()
 
@@ -654,10 +661,12 @@ func _discard_top_box() -> void:
 	var toss := _cancel_drop_dir
 	_drop_top_box(toss)
 	if toss.length_squared() > 0.01:
+		SfxBus.play("sfx_box_toss")
 		log_line.emit(
 			"丟掉 %s 1箱 — 往%s飛出（可砸小偷／同款貨架上架）" % [name, _drop_dir_label(toss)]
 		)
 	else:
+		SfxBus.play("sfx_box_drop_feet")
 		log_line.emit("丟掉 %s 1箱 — 掉在腳邊，可以再撿" % name)
 
 
@@ -676,6 +685,7 @@ func _cancel_input() -> void:
 		return
 	if skill_menu_open or _l_held:
 		_close_skill_hold()
+		SfxBus.play("sfx_skill_menu_cancel")
 		log_line.emit("取消技能選單")
 	if ult_prep:
 		_on_ult_hold(false)
@@ -713,6 +723,7 @@ func _physics_process(delta: float) -> void:
 			skill_menu_open = true
 			_menu.open = true
 			_menu.set_slots(_loadout(), _cd)
+			SfxBus.play("sfx_skill_menu_open")
 			log_line.emit("技能選單 — 方向鍵選技能2–5，放手取消")
 	if _fighting:
 		velocity = Vector2.ZERO
@@ -931,6 +942,8 @@ func _tick_buffs(delta: float) -> void:
 			gone.append(String(id))
 	var changed := not gone.is_empty()
 	for id in gone:
+		if id == "the_world":
+			SfxBus.play("sfx_ult_the_world_end")
 		_buffs.erase(id)
 	for id in _cd.keys():
 		_cd[id] = maxf(0.0, float(_cd[id]) - delta)
@@ -1025,11 +1038,18 @@ func _tick_move(delta: float) -> void:
 		velocity = velocity.move_toward(Vector2.ZERO, walk * 8.0 * delta)
 	else:
 		velocity = axis * target_speed
+		if velocity.length() > 8.0:
+			SfxBus.play_foot(want_run)
+			if inventory.count() > carry_cap():
+				SfxBus.play_overcarry()
 	move_and_slide()
 
 
 func _try_dash() -> void:
-	if _dashing or _fighting or _stun_left > 0.0 or _slip_left > 0.0 or stamina < Tuning.DASH_STAMINA_COST:
+	if _dashing or _fighting or _stun_left > 0.0 or _slip_left > 0.0:
+		return
+	if stamina < Tuning.DASH_STAMINA_COST:
+		SfxBus.play("sfx_move_stamina_empty")
 		return
 	var dir := _move_axis()
 	if dir == Vector2.ZERO:
@@ -1039,6 +1059,7 @@ func _try_dash() -> void:
 	_dash_left = Tuning.DASH_TIME
 	stamina = maxf(0.0, stamina - Tuning.DASH_STAMINA_COST)
 	_regen_delay = Tuning.STAMINA_REGEN_DELAY
+	SfxBus.play("sfx_move_dash")
 	_reset_hold()
 
 
@@ -1076,6 +1097,7 @@ func _begin_slip() -> void:
 	## Slip dump: no aim lock — player is already sliding.
 	_drop_top_box(Vector2.ZERO, false)
 	_spawn_fx("skid", global_position + Vector2(0, 8))
+	SfxBus.play("sfx_move_slip")
 	log_line.emit("水漬滑倒 — 滑出 3 身位，暈眩 3 秒")
 
 
@@ -1090,6 +1112,7 @@ func _tick_slip(delta: float) -> void:
 	if _slip_left <= 0.0:
 		velocity = Vector2.ZERO
 		_stun_left = _stun_pending
+		SfxBus.play("sfx_move_stun")
 
 
 func _drop_top_box(toss_dir: Vector2 = Vector2.ZERO, lock_until_land: bool = true) -> void:
@@ -1237,6 +1260,7 @@ func _begin_fight() -> void:
 	_fight_ko = false
 	_fight_release = true
 	target.call("begin_fight")
+	SfxBus.play("sfx_fight_grab")
 	log_line.emit("抓住小偷 — 連按行動鍵扣血，剩 5 秒")
 	if camera:
 		camera.position = (target.global_position - global_position) * 0.35
@@ -1268,6 +1292,7 @@ func _fight_tap() -> void:
 		return
 	var dmg := Tuning.hit_damage(_str_now())
 	_shake_camera(Tuning.FIGHT_HIT_SHAKE, Tuning.FIGHT_HIT_SHAKE_SEC)
+	SfxBus.play("sfx_fight_hit")
 	if bool(target.call("take_hit", dmg)):
 		_fight_win()
 
@@ -1295,6 +1320,7 @@ func apply_toss_ko(thief: Node, knock_dir: Vector2) -> void:
 	if game and game.has_method("record_caught"):
 		game.call("record_caught")
 	log_line.emit("貨箱砸中小偷 — KO！贓物原地掉落")
+	SfxBus.play("sfx_box_hit_thief")
 	## If this toss finishes an ongoing grab fight, clear fight state after the KO.
 	var end_fight := _fighting and target == thief
 	if end_fight:
@@ -1314,6 +1340,7 @@ func _play_ko_sequence(
 	end_fight: bool = true,
 ) -> void:
 	_shake_camera(Tuning.FIGHT_KO_SHAKE, 0.22)
+	SfxBus.play("sfx_ko_screen")
 	if camera:
 		var punch := create_tween()
 		punch.tween_property(
@@ -1351,6 +1378,8 @@ func _fight_fail() -> void:
 		facing = away.normalized()
 		target.call("escape_with_loot")
 	log_line.emit("打擊失敗 — 被撞開，倒地 5 秒")
+	SfxBus.play("sfx_fight_fail")
+	SfxBus.play("sfx_move_stun")
 	_end_fight(false)
 	_dashing = false
 	_running = false
@@ -1408,6 +1437,7 @@ func _try_dash_hits() -> void:
 			t.call("dash_knock_away", _dash_dir)
 			if g.has_method("record_caught"):
 				g.call("record_caught")
+			SfxBus.play("sfx_thief_dash_out")
 			log_line.emit("衝刺撞飛小偷 — 算抓住，贓物散落")
 			if _fighting:
 				_end_fight(false)
@@ -1434,6 +1464,7 @@ func _try_dash_hits() -> void:
 			g.call("play_ko_banner")
 		if c.has_method("dash_knock_guest"):
 			c.call("dash_knock_guest", add)
+		SfxBus.play("sfx_ko_guest_dash")
 		log_line.emit("衝刺撞到客人 — 暈眩 2 秒，貨品掉落" if add > 0.0 else "衝刺撞到客人 — 禮貌衝撞，不滿不增加")
 		return
 
@@ -1463,6 +1494,7 @@ func _tick_sku_pick(delta: float) -> void:
 		return
 	_restock_picking = true
 	target.call("begin_pick")
+	SfxBus.play("sfx_box_sku_open")
 	log_line.emit("貨品清單 — 上下選擇，放手確定，B／; 取消")
 
 
@@ -1475,6 +1507,7 @@ func _release_restock_interact() -> void:
 	if target != null and String(target.get("kind")) == "restock":
 		if _restock_picking:
 			var sku := String(target.call("commit_pick"))
+			SfxBus.play("sfx_box_sku_confirm")
 			log_line.emit("補貨點改為 %s" % Tuning.sku_name(sku))
 		elif _restock_hold < Tuning.SKU_PICK_HOLD:
 			_try_pickup()
@@ -1487,6 +1520,7 @@ func _release_restock_interact() -> void:
 func _abort_restock_pick() -> void:
 	if target != null and String(target.get("kind")) == "restock":
 		target.call("abort_pick")
+		SfxBus.play("sfx_box_sku_cancel")
 	_restock_picking = false
 	_restock_hold = 0.0
 
@@ -1496,14 +1530,17 @@ func _try_pickup() -> void:
 		return
 	_pickup_used = true
 	if not inventory.can_take_box(carry_cap()):
+		SfxBus.play("sfx_box_pull_fail")
 		log_line.emit("負重不足：%d/%d 箱" % [inventory.count() / Tuning.BOX_SIZE, carry_boxes()])
 		return
 	if not bool(target.call("take_box")):
+		SfxBus.play("sfx_box_pull_fail")
 		log_line.emit("%s 補貨點已空" % Tuning.sku_name(String(target.call("selected_sku"))))
 		return
 	var sku := String(target.call("selected_sku"))
 	inventory.take_box(sku)
 	_spawn_fx("suck", target.global_position)
+	SfxBus.play("sfx_box_pull")
 	log_line.emit("執貨（即時）%s 1箱 +%d" % [Tuning.sku_name(sku), Tuning.BOX_SIZE])
 
 
@@ -1516,10 +1553,13 @@ func _tick_restock(delta: float) -> void:
 	var sku := String(run["id"])
 	if not bool(target.call("can_accept", sku)):
 		if int(target.get("count")) >= int(target.get("capacity")):
+			SfxBus.play("sfx_shelf_stock_blocked")
 			log_line.emit("貨架已滿")
 			_j_held = false
 			_reset_hold()
 			return
+		if not blocked_mismatch:
+			SfxBus.play("sfx_shelf_stock_blocked")
 		blocked_mismatch = true
 		hold_progress = 0.0
 		return
@@ -1528,10 +1568,16 @@ func _tick_restock(delta: float) -> void:
 		hold_progress = 1.0
 	else:
 		hold_progress = minf(1.0, hold_progress + delta / dur)
+		if hold_progress < 1.0:
+			SfxBus.play_stock_loop()
 	if hold_progress >= 1.0:
 		var placed := int(target.call("add_items", sku, int(run["count"])))
 		inventory.remove_trailing(placed)
 		_spawn_fx("spray", target.global_position + Vector2(0, -20))
+		if dur <= 0.001:
+			SfxBus.play("sfx_shelf_stock_instant")
+		else:
+			SfxBus.play("sfx_shelf_stock_done")
 		log_line.emit("上架 %s ×%d" % [Tuning.sku_name(sku), placed])
 		hold_progress = 0.0
 
@@ -1551,9 +1597,13 @@ func _tick_clean(_delta: float) -> void:
 	if needed <= 0.001:
 		hold_progress = 1.0
 	else:
+		var before := hold_progress
 		hold_progress = minf(1.0, hold_progress + travel / needed)
+		if hold_progress > before:
+			SfxBus.play_scrub()
 	if not _clean_hint:
 		_clean_hint = true
+		SfxBus.play("sfx_clean_start")
 		log_line.emit("清潔 %s — 按住行動並持續轉搖桿／方向" % String(target.call("type_name")))
 	target.call("set_cleaning", true, axis, hold_progress * 100.0)
 	if hold_progress >= 1.0:
@@ -1565,6 +1615,7 @@ func _tick_clean(_delta: float) -> void:
 		_clean_hint = false
 		_last_wiggle = Vector2.ZERO
 		_spawn_fx("clean_spark", spark_at)
+		SfxBus.play("sfx_clean_done")
 		var game := _game()
 		if game and game.has_method("note_clean"):
 			game.note_clean()
@@ -1585,10 +1636,13 @@ func _tick_drop() -> void:
 	var taken := int(target.call("take_all"))
 	for i in taken:
 		inventory.add_one(sku)
+	SfxBus.play("sfx_box_pickup_floor")
 	log_line.emit("撿起 %s ×%d" % [Tuning.sku_name(sku), taken])
 
 
 func _clear_clean_hint() -> void:
+	if _clean_hint:
+		SfxBus.play("sfx_clean_cancel")
 	_clean_hint = false
 	_last_wiggle = Vector2.ZERO
 	if is_instance_valid(target) and String(target.get("kind")) == "dirt":
@@ -1629,6 +1683,7 @@ func _ensure_seq(cust) -> void:
 		cust.checkout_seq = seq
 		seq_index = 0
 		seq_done = false
+		SfxBus.play("sfx_checkout_enter")
 		log_line.emit("收銀指令 %d 次（購物 %d 件）" % [n, cust.cart.size()])
 	cust.begin_paying()
 
@@ -1638,8 +1693,10 @@ func _try_dir(dir: int) -> void:
 		if target != null and String(target.get("kind")) == "restock":
 			if dir == 0:
 				target.call("move_pick", -1)
+				SfxBus.play("sfx_box_sku_move")
 			elif dir == 1:
 				target.call("move_pick", 1)
+				SfxBus.play("sfx_box_sku_move")
 		return
 	if ult_prep:
 		_try_ult_dir(dir)
@@ -1647,6 +1704,7 @@ func _try_dir(dir: int) -> void:
 	if skill_menu_open:
 		var slot_i: int = int(Skills.DIR_TO_SLOT.get(dir, -1))
 		if slot_i >= 0:
+			SfxBus.play("sfx_skill_menu_move")
 			_cast_slot(slot_i)
 			_close_skill_hold()
 		return
@@ -1664,18 +1722,22 @@ func _try_command(dir: int) -> void:
 	if dir == int(seq[seq_index]):
 		_prompt.fail_at = -1
 		seq_index += 1
+		SfxBus.play("sfx_checkout_dir_ok")
 		if seq_index >= seq.size():
 			seq_done = true
+			SfxBus.play("sfx_checkout_seq_done")
 			log_line.emit("指令完成 — 維持長按出現 Loading Circle")
 	else:
 		_prompt.fail_at = seq_index
 		seq_index = 0
+		SfxBus.play("sfx_checkout_dir_fail")
 		log_line.emit("指令錯誤 × 同一串重來")
 
 
 func _finish_checkout(cust) -> void:
 	var amount: int = int(cust.call("cart_total"))
 	paid.emit(amount)
+	SfxBus.play("sfx_checkout_circle_done")
 	log_line.emit("收銀完成  +$%d" % amount)
 	_spawn_dollar()
 	cust.finish_paid()
@@ -1688,6 +1750,7 @@ func _finish_checkout(cust) -> void:
 
 
 func _spawn_dollar() -> void:
+	SfxBus.play("sfx_checkout_cash_pop")
 	var lab := Label.new()
 	lab.text = "$"
 	lab.position = Vector2(-6, -90)
@@ -1733,11 +1796,13 @@ func _on_ult_hold(pressed: bool) -> void:
 			return
 		var ult_id := String(ult.get("id"))
 		if cd_left(ult_id) > 0.05:
+			SfxBus.play("sfx_skill_cd_deny")
 			log_line.emit("奧義冷卻中 %.0fs" % cd_left(ult_id))
 			return
 		_u_held = true
 		ult_prep = true
 		_ult_index = 0
+		SfxBus.play("sfx_ult_prep")
 		_prompt.active = true
 		var seq: Array[int] = []
 		for d in ult.get("seq", []):
@@ -1748,6 +1813,7 @@ func _on_ult_hold(pressed: bool) -> void:
 		log_line.emit("奧義準備 — %s" % String(_ult_sk().get("name")))
 		return
 	if ult_prep:
+		SfxBus.play("sfx_ult_cancel")
 		log_line.emit("放手 — 奧義取消")
 	_u_held = false
 	ult_prep = false
@@ -1762,6 +1828,7 @@ func _try_ult_dir(dir: int) -> void:
 		_prompt.fail_at = -1
 		_ult_index += 1
 		_prompt.index = _ult_index
+		SfxBus.play("sfx_ult_dir_ok")
 		if _ult_index >= seq.size():
 			_cast_ultimate()
 			_u_held = false
@@ -1770,6 +1837,7 @@ func _try_ult_dir(dir: int) -> void:
 		_prompt.fail_at = _ult_index
 		_ult_index = 0
 		_prompt.index = 0
+		SfxBus.play("sfx_ult_dir_fail")
 		log_line.emit("奧義指令錯誤 × 同一串重來")
 
 
@@ -1788,6 +1856,7 @@ func _cast_slot(i: int) -> void:
 		return
 	var sid := String(sk.get("id"))
 	if cd_left(sid) > 0.05:
+		SfxBus.play("sfx_skill_cd_deny")
 		log_line.emit("%s 冷卻中 %.0fs" % [String(sk.get("name")), cd_left(sid)])
 		return
 	_cd[sid] = Tuning.cd_seconds(float(sk.get("cd", Skills.ACTIVE_CD)), _int_now())
@@ -1799,6 +1868,9 @@ func _cast_slot(i: int) -> void:
 		var game := _game()
 		if game and game.has_method("soothe_all"):
 			game.soothe_all(float(sk.get("soothe_keep")))
+		SfxBus.play("sfx_skill_soothe")
+	else:
+		SfxBus.play("sfx_skill_cast")
 	log_line.emit("施放 %s LV%d" % [String(sk.get("name")), int(sk.get("lv", 3))])
 	_begin_cast_pose(false)
 	skill_cast.emit(String(sk.get("name")), false)
@@ -1839,6 +1911,7 @@ func _cast_ultimate() -> void:
 	if sid == "fundraise":
 		if game and game.has_method("cast_fundraise"):
 			game.call("cast_fundraise", lv)
+		SfxBus.play("sfx_ult_fundraise")
 		log_line.emit("奧義 全體集資 LV%d" % lv)
 		_begin_cast_pose(true)
 		skill_cast.emit(String(sk.get("name")), true)
@@ -1848,6 +1921,7 @@ func _cast_ultimate() -> void:
 	if sid == "yes_my_lord":
 		_buffs[sid] = _lord_seconds(lv)
 		_buff_cache_valid = false
+		SfxBus.play("sfx_ult_yes_my_lord")
 		log_line.emit("奧義 Yes! My Lord! LV%d — 客人搶購 %.0f 秒" % [lv, _lord_seconds(lv)])
 		_begin_cast_pose(true)
 		_spawn_fx("combo", global_position + Vector2(0, -36))
@@ -1858,6 +1932,7 @@ func _cast_ultimate() -> void:
 	_buffs[sid] = float(sk.get("duration", Skills.ULT_DURATION))
 	_buff_cache_valid = false
 	_enqueue_cust_speed(sid)
+	SfxBus.play("sfx_ult_the_world")
 	log_line.emit("奧義 %s LV%d — 時停" % [String(sk.get("name")), lv])
 	_begin_cast_pose(true)
 	_spawn_fx("timestop", global_position + Vector2(0, -40))
@@ -1890,6 +1965,7 @@ func _play_zoom(ult: bool) -> void:
 
 func _reset_hold() -> void:
 	if hold_progress > 0.0 or seq_index > 0:
+		SfxBus.play("sfx_checkout_release_reset")
 		log_line.emit("放手 — 指令與 Circle 重置")
 	_clear_clean_hint()
 	hold_progress = 0.0
