@@ -9,6 +9,7 @@ const Vox = preload("res://scripts/voxel_sprite.gd")
 const PromptScript = preload("res://scripts/command_prompt.gd")
 const MenuScript = preload("res://scripts/skill_menu.gd")
 const UiFont = preload("res://scripts/ui_font.gd")
+const FxBurst = preload("res://scripts/fx_burst.gd")
 
 signal stats_changed
 
@@ -103,6 +104,8 @@ var _hud_blocked: bool = false
 var _hud_target_id: int = 0
 var _hud_target_detail: String = ""
 var _shown_anim: String = ""
+var _cast_pose_left: float = 0.0
+var _deliver_pose_left: float = 0.0
 var _shown_tint: Color = Color(0, 0, 0, 0)
 var _menu_fp: String = ""
 var _cached_clock: float = 1.0
@@ -686,6 +689,10 @@ func _physics_process(delta: float) -> void:
 		return
 	_tick_buffs(delta)
 	_tick_status(delta)
+	if _cast_pose_left > 0.0:
+		_cast_pose_left = maxf(0.0, _cast_pose_left - delta)
+	if _deliver_pose_left > 0.0:
+		_deliver_pose_left = maxf(0.0, _deliver_pose_left - delta)
 	command_lock = _j_held and is_instance_valid(target) and String(target.get("kind")) == "cashier" and not skill_menu_open and not ult_prep
 	if not command_lock and not ult_prep:
 		_prompt.active = false
@@ -1068,6 +1075,7 @@ func _begin_slip() -> void:
 	_reset_hold()
 	## Slip dump: no aim lock — player is already sliding.
 	_drop_top_box(Vector2.ZERO, false)
+	_spawn_fx("skid", global_position + Vector2(0, 8))
 	log_line.emit("水漬滑倒 — 滑出 3 身位，暈眩 3 秒")
 
 
@@ -1495,6 +1503,7 @@ func _try_pickup() -> void:
 		return
 	var sku := String(target.call("selected_sku"))
 	inventory.take_box(sku)
+	_spawn_fx("suck", target.global_position)
 	log_line.emit("執貨（即時）%s 1箱 +%d" % [Tuning.sku_name(sku), Tuning.BOX_SIZE])
 
 
@@ -1522,6 +1531,7 @@ func _tick_restock(delta: float) -> void:
 	if hold_progress >= 1.0:
 		var placed := int(target.call("add_items", sku, int(run["count"])))
 		inventory.remove_trailing(placed)
+		_spawn_fx("spray", target.global_position + Vector2(0, -20))
 		log_line.emit("上架 %s ×%d" % [Tuning.sku_name(sku), placed])
 		hold_progress = 0.0
 
@@ -1548,11 +1558,13 @@ func _tick_clean(_delta: float) -> void:
 	target.call("set_cleaning", true, axis, hold_progress * 100.0)
 	if hold_progress >= 1.0:
 		var name := String(target.call("type_name"))
+		var spark_at := target.global_position
 		target.queue_free()
 		target = null
 		hold_progress = 0.0
 		_clean_hint = false
 		_last_wiggle = Vector2.ZERO
+		_spawn_fx("clean_spark", spark_at)
 		var game := _game()
 		if game and game.has_method("note_clean"):
 			game.note_clean()
@@ -1788,6 +1800,7 @@ func _cast_slot(i: int) -> void:
 		if game and game.has_method("soothe_all"):
 			game.soothe_all(float(sk.get("soothe_keep")))
 	log_line.emit("施放 %s LV%d" % [String(sk.get("name")), int(sk.get("lv", 3))])
+	_begin_cast_pose(false)
 	skill_cast.emit(String(sk.get("name")), false)
 	_play_zoom(false)
 
@@ -1827,6 +1840,7 @@ func _cast_ultimate() -> void:
 		if game and game.has_method("cast_fundraise"):
 			game.call("cast_fundraise", lv)
 		log_line.emit("奧義 全體集資 LV%d" % lv)
+		_begin_cast_pose(true)
 		skill_cast.emit(String(sk.get("name")), true)
 		_play_zoom(true)
 		_prompt.active = false
@@ -1835,6 +1849,8 @@ func _cast_ultimate() -> void:
 		_buffs[sid] = _lord_seconds(lv)
 		_buff_cache_valid = false
 		log_line.emit("奧義 Yes! My Lord! LV%d — 客人搶購 %.0f 秒" % [lv, _lord_seconds(lv)])
+		_begin_cast_pose(true)
+		_spawn_fx("combo", global_position + Vector2(0, -36))
 		skill_cast.emit(String(sk.get("name")), true)
 		_play_zoom(true)
 		_prompt.active = false
@@ -1843,9 +1859,22 @@ func _cast_ultimate() -> void:
 	_buff_cache_valid = false
 	_enqueue_cust_speed(sid)
 	log_line.emit("奧義 %s LV%d — 時停" % [String(sk.get("name")), lv])
+	_begin_cast_pose(true)
+	_spawn_fx("timestop", global_position + Vector2(0, -40))
 	skill_cast.emit(String(sk.get("name")), true)
 	_play_zoom(true)
 	_prompt.active = false
+
+
+func _begin_cast_pose(ult: bool) -> void:
+	_cast_pose_left = 0.55 if ult else 0.35
+
+
+func _spawn_fx(fx_id: String, at: Vector2) -> void:
+	var host: Node = _game()
+	if host == null:
+		host = get_parent()
+	FxBurst.spawn(host, fx_id, at)
 
 
 func _play_zoom(ult: bool) -> void:
@@ -1901,6 +1930,10 @@ func _visual_anim() -> String:
 		return "down"
 	if _slip_left > 0.0:
 		return "slip"
+	if _cast_pose_left > 0.0 and Vox.has_anim("player", "cast"):
+		return "cast"
+	if _deliver_pose_left > 0.0 and Vox.has_anim("player", "deliver"):
+		return "deliver"
 	if _fighting:
 		return "fight"
 	if _cleaning():
@@ -1914,6 +1947,8 @@ func _visual_anim() -> String:
 	if _running and velocity.length() > 8.0:
 		return "run"
 	if velocity.length() > 8.0:
+		if not inventory.is_empty() and Vox.has_anim("player", "walk_carry"):
+			return "walk_carry"
 		return "walk"
 	return "idle"
 
