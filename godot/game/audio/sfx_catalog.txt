@@ -1,91 +1,91 @@
-# id	priority	path
-sfx_box_drop_feet	P0	res://audio/sfx/sfx_box_drop_feet.wav
-sfx_box_land	P0	res://audio/sfx/sfx_box_land.wav
-sfx_box_pickup_floor	P0	res://audio/sfx/sfx_box_pickup_floor.wav
-sfx_box_pull	P0	res://audio/sfx/sfx_box_pull.wav
-sfx_box_shelf_toss	P0	res://audio/sfx/sfx_box_shelf_toss.wav
-sfx_box_toss	P0	res://audio/sfx/sfx_box_toss.wav
-sfx_checkout_cash_pop	P0	res://audio/sfx/sfx_checkout_cash_pop.wav
-sfx_checkout_circle_done	P0	res://audio/sfx/sfx_checkout_circle_done.wav
-sfx_checkout_dir_fail	P0	res://audio/sfx/sfx_checkout_dir_fail.wav
-sfx_checkout_dir_ok	P0	res://audio/sfx/sfx_checkout_dir_ok.wav
-sfx_clean_done	P0	res://audio/sfx/sfx_clean_done.wav
-sfx_clean_scrub	P0	res://audio/sfx/sfx_clean_scrub.wav
-sfx_fight_fail	P0	res://audio/sfx/sfx_fight_fail.wav
-sfx_fight_grab	P0	res://audio/sfx/sfx_fight_grab.wav
-sfx_fight_hit	P0	res://audio/sfx/sfx_fight_hit.wav
-sfx_ko_guest_dash	P0	res://audio/sfx/sfx_ko_guest_dash.wav
-sfx_ko_screen	P0	res://audio/sfx/sfx_ko_screen.wav
-sfx_move_dash	P0	res://audio/sfx/sfx_move_dash.wav
-sfx_move_slip	P0	res://audio/sfx/sfx_move_slip.wav
-sfx_phase_close	P0	res://audio/sfx/sfx_phase_close.wav
-sfx_shelf_stock_blocked	P0	res://audio/sfx/sfx_shelf_stock_blocked.wav
-sfx_shelf_stock_done	P0	res://audio/sfx/sfx_shelf_stock_done.wav
-sfx_skill_cast	P0	res://audio/sfx/sfx_skill_cast.wav
-sfx_thief_dash_out	P0	res://audio/sfx/sfx_thief_dash_out.wav
-sfx_thief_escape	P0	res://audio/sfx/sfx_thief_escape.wav
-sfx_ui_deny	P0	res://audio/sfx/sfx_ui_deny.wav
-sfx_ult_dir_fail	P0	res://audio/sfx/sfx_ult_dir_fail.wav
-sfx_ult_dir_ok	P0	res://audio/sfx/sfx_ult_dir_ok.wav
-sfx_ult_fundraise	P0	res://audio/sfx/sfx_ult_fundraise.wav
-sfx_ult_the_world	P0	res://audio/sfx/sfx_ult_the_world.wav
-sfx_ult_yes_my_lord	P0	res://audio/sfx/sfx_ult_yes_my_lord.wav
-sfx_box_drop_aim	P1	res://audio/sfx/sfx_box_drop_aim.wav
-sfx_box_hit_guest_ok	P1	res://audio/sfx/sfx_box_hit_guest_ok.wav
-sfx_box_hit_guest_reject	P1	res://audio/sfx/sfx_box_hit_guest_reject.wav
-sfx_box_hit_thief	P1	res://audio/sfx/sfx_box_hit_thief.wav
-sfx_box_pull_fail	P1	res://audio/sfx/sfx_box_pull_fail.wav
-sfx_box_sku_open	P1	res://audio/sfx/sfx_box_sku_open.wav
-sfx_checkout_clerk	P1	res://audio/sfx/sfx_checkout_clerk.wav
-sfx_checkout_enter	P1	res://audio/sfx/sfx_checkout_enter.wav
-sfx_checkout_seq_done	P1	res://audio/sfx/sfx_checkout_seq_done.wav
-sfx_clean_start	P1	res://audio/sfx/sfx_clean_start.wav
-sfx_early_close_ask	P1	res://audio/sfx/sfx_early_close_ask.wav
-sfx_guest_angry_leave	P1	res://audio/sfx/sfx_guest_angry_leave.wav
-sfx_guest_dash_land	P1	res://audio/sfx/sfx_guest_dash_land.wav
-sfx_loot_inplace	P1	res://audio/sfx/sfx_loot_inplace.wav
-sfx_loot_scatter	P1	res://audio/sfx/sfx_loot_scatter.wav
-sfx_move_foot_run	P1	res://audio/sfx/sfx_move_foot_run.wav
-sfx_move_foot_walk	P1	res://audio/sfx/sfx_move_foot_walk.wav
-sfx_move_stun	P1	res://audio/sfx/sfx_move_stun.wav
-sfx_phase_open	P1	res://audio/sfx/sfx_phase_open.wav
-sfx_phase_restock	P1	res://audio/sfx/sfx_phase_restock.wav
-sfx_shelf_stock_instant	P1	res://audio/sfx/sfx_shelf_stock_instant.wav
-sfx_skill_cd_deny	P1	res://audio/sfx/sfx_skill_cd_deny.wav
-sfx_skill_menu_open	P1	res://audio/sfx/sfx_skill_menu_open.wav
-sfx_skill_soothe	P1	res://audio/sfx/sfx_skill_soothe.wav
-sfx_ui_cancel	P1	res://audio/sfx/sfx_ui_cancel.wav
-sfx_ui_confirm	P1	res://audio/sfx/sfx_ui_confirm.wav
-sfx_ui_level_up	P1	res://audio/sfx/sfx_ui_level_up.wav
-sfx_ui_move	P1	res://audio/sfx/sfx_ui_move.wav
-sfx_ui_pause_close	P1	res://audio/sfx/sfx_ui_pause_close.wav
-sfx_ui_pause_open	P1	res://audio/sfx/sfx_ui_pause_open.wav
-sfx_ui_place	P1	res://audio/sfx/sfx_ui_place.wav
-sfx_ui_purchase	P1	res://audio/sfx/sfx_ui_purchase.wav
-sfx_ult_prep	P1	res://audio/sfx/sfx_ult_prep.wav
-sfx_ult_the_world_end	P1	res://audio/sfx/sfx_ult_the_world_end.wav
-sfx_box_sku_cancel	P2	res://audio/sfx/sfx_box_sku_cancel.wav
-sfx_box_sku_confirm	P2	res://audio/sfx/sfx_box_sku_confirm.wav
-sfx_box_sku_move	P2	res://audio/sfx/sfx_box_sku_move.wav
-sfx_checkout_release_reset	P2	res://audio/sfx/sfx_checkout_release_reset.wav
-sfx_clean_cancel	P2	res://audio/sfx/sfx_clean_cancel.wav
-sfx_clerk_pull	P2	res://audio/sfx/sfx_clerk_pull.wav
-sfx_clerk_stock	P2	res://audio/sfx/sfx_clerk_stock.wav
-sfx_dirt_spawn	P2	res://audio/sfx/sfx_dirt_spawn.wav
-sfx_guest_enter	P2	res://audio/sfx/sfx_guest_enter.wav
-sfx_guest_paid_leave	P2	res://audio/sfx/sfx_guest_paid_leave.wav
-sfx_guest_queue	P2	res://audio/sfx/sfx_guest_queue.wav
-sfx_guest_take	P2	res://audio/sfx/sfx_guest_take.wav
-sfx_guest_think	P2	res://audio/sfx/sfx_guest_think.wav
-sfx_move_crowd	P2	res://audio/sfx/sfx_move_crowd.wav
-sfx_move_dirt_step	P2	res://audio/sfx/sfx_move_dirt_step.wav
-sfx_move_overcarry	P2	res://audio/sfx/sfx_move_overcarry.wav
-sfx_move_stamina_empty	P2	res://audio/sfx/sfx_move_stamina_empty.wav
-sfx_shelf_stock_loop	P2	res://audio/sfx/sfx_shelf_stock_loop.wav
-sfx_skill_menu_cancel	P2	res://audio/sfx/sfx_skill_menu_cancel.wav
-sfx_skill_menu_move	P2	res://audio/sfx/sfx_skill_menu_move.wav
-sfx_thief_spawn	P2	res://audio/sfx/sfx_thief_spawn.wav
-sfx_ui_pickup_item	P2	res://audio/sfx/sfx_ui_pickup_item.wav
-sfx_ui_rotate	P2	res://audio/sfx/sfx_ui_rotate.wav
-sfx_ui_test_skip	P2	res://audio/sfx/sfx_ui_test_skip.wav
-sfx_ult_cancel	P2	res://audio/sfx/sfx_ult_cancel.wav
+# id	priority	path	trigger
+sfx_box_drop_feet	P0	res://audio/sfx/sfx_box_drop_feet.wav	無方向掉腳邊
+sfx_box_land	P0	res://audio/sfx/sfx_box_land.wav	飛箱落地（地／剩貨）
+sfx_box_pickup_floor	P0	res://audio/sfx/sfx_box_pickup_floor.wav	撿起地上貨箱
+sfx_box_pull	P0	res://audio/sfx/sfx_box_pull.wav	補貨點輕放執貨成功（即時）
+sfx_box_shelf_toss	P0	res://audio/sfx/sfx_box_shelf_toss.wav	丟掉軌道命中可接受貨架並補架
+sfx_box_toss	P0	res://audio/sfx/sfx_box_toss.wav	放手丟出（有方向飛出）
+sfx_checkout_cash_pop	P0	res://audio/sfx/sfx_checkout_cash_pop.wav	完成後彈出 $ 圖示
+sfx_checkout_circle_done	P0	res://audio/sfx/sfx_checkout_circle_done.wav	Circle 填滿、完成收銀
+sfx_checkout_dir_fail	P0	res://audio/sfx/sfx_checkout_dir_fail.wav	方向錯誤（整串重置）
+sfx_checkout_dir_ok	P0	res://audio/sfx/sfx_checkout_dir_ok.wav	單一方向指令正確
+sfx_clean_done	P0	res://audio/sfx/sfx_clean_done.wav	清潔計滿、污物消失
+sfx_clean_scrub	P0	res://audio/sfx/sfx_clean_scrub.wav	搖桿有效推進清潔計（可節奏點）
+sfx_fight_fail	P0	res://audio/sfx/sfx_fight_fail.wav	5 秒內未打倒：玩家被撞開倒地
+sfx_fight_grab	P0	res://audio/sfx/sfx_fight_grab.wav	空手長按抓住小偷進打擊
+sfx_fight_hit	P0	res://audio/sfx/sfx_fight_hit.wav	連按行動扣血（每有效一下）
+sfx_ko_guest_dash	P0	res://audio/sfx/sfx_ko_guest_dash.wav	衝刺撞一般客人 Screen KO（原地落地）
+sfx_ko_screen	P0	res://audio/sfx/sfx_ko_screen.wav	Screen KO（近身打倒／丟掉砸中小偷）
+sfx_move_dash	P0	res://audio/sfx/sfx_move_dash.wav	衝刺出手
+sfx_move_slip	P0	res://audio/sfx/sfx_move_slip.wav	水漬上奔跑／衝刺滑倒
+sfx_phase_close	P0	res://audio/sfx/sfx_phase_close.wav	關店結算畫面出現
+sfx_shelf_stock_blocked	P0	res://audio/sfx/sfx_shelf_stock_blocked.wav	SKU 不符／貨架已滿（叉）
+sfx_shelf_stock_done	P0	res://audio/sfx/sfx_shelf_stock_done.wav	近身上架完成一箱／一段
+sfx_skill_cast	P0	res://audio/sfx/sfx_skill_cast.wav	主動技能施放成功（通用層）
+sfx_thief_dash_out	P0	res://audio/sfx/sfx_thief_dash_out.wav	衝刺撞飛小偷離場
+sfx_thief_escape	P0	res://audio/sfx/sfx_thief_escape.wav	小偷持贓走到出口：橫幅「你已經被偷了！」
+sfx_ui_deny	P0	res://audio/sfx/sfx_ui_deny.wav	不能執行（開店條件不足、買不起等）
+sfx_ult_dir_fail	P0	res://audio/sfx/sfx_ult_dir_fail.wav	奧義指令錯誤重置
+sfx_ult_dir_ok	P0	res://audio/sfx/sfx_ult_dir_ok.wav	奧義方向指令正確
+sfx_ult_fundraise	P0	res://audio/sfx/sfx_ult_fundraise.wav	全體集資發動／批次入帳
+sfx_ult_the_world	P0	res://audio/sfx/sfx_ult_the_world.wav	The World! 發動
+sfx_ult_yes_my_lord	P0	res://audio/sfx/sfx_ult_yes_my_lord.wav	Yes! My Lord! 發動
+sfx_box_drop_aim	P1	res://audio/sfx/sfx_box_drop_aim.wav	長按取消達丟掉瞄準門檻
+sfx_box_hit_guest_ok	P1	res://audio/sfx/sfx_box_hit_guest_ok.wav	丟掉砸中客人且 SKU 在清單
+sfx_box_hit_guest_reject	P1	res://audio/sfx/sfx_box_hit_guest_reject.wav	丟掉砸中客人且 SKU 不在清單
+sfx_box_hit_thief	P1	res://audio/sfx/sfx_box_hit_thief.wav	飛箱命中小偷（可與 KO 疊或作前導）
+sfx_box_pull_fail	P1	res://audio/sfx/sfx_box_pull_fail.wav	補貨點空／負重已滿
+sfx_box_sku_open	P1	res://audio/sfx/sfx_box_sku_open.wav	補貨點長按打開 SKU 清單
+sfx_checkout_clerk	P1	res://audio/sfx/sfx_checkout_clerk.wav	店員自動收銀完成（可共用完成鈴變體）
+sfx_checkout_enter	P1	res://audio/sfx/sfx_checkout_enter.wav	進入收銀指令模式（隊首就緒）
+sfx_checkout_seq_done	P1	res://audio/sfx/sfx_checkout_seq_done.wav	指令串全部正確 → Circle 出現
+sfx_clean_start	P1	res://audio/sfx/sfx_clean_start.wav	開始對污物填清潔計
+sfx_early_close_ask	P1	res://audio/sfx/sfx_early_close_ask.wav	提早關店詢問彈出
+sfx_guest_angry_leave	P1	res://audio/sfx/sfx_guest_angry_leave.wav	不滿滿 100 生氣離開
+sfx_guest_dash_land	P1	res://audio/sfx/sfx_guest_dash_land.wav	被衝刺撞飛後落地暈 2 秒
+sfx_loot_inplace	P1	res://audio/sfx/sfx_loot_inplace.wav	丟掉砸中：贓物原地掉落
+sfx_loot_scatter	P1	res://audio/sfx/sfx_loot_scatter.wav	贓物近／遠散落飛行
+sfx_move_foot_run	P1	res://audio/sfx/sfx_move_foot_run.wav	奔跑步伐（較密／較重）
+sfx_move_foot_walk	P1	res://audio/sfx/sfx_move_foot_walk.wav	走路步伐循環（可跟動畫幀）
+sfx_move_stun	P1	res://audio/sfx/sfx_move_stun.wav	滑倒後暈眩／打擊失敗倒地
+sfx_phase_open	P1	res://audio/sfx/sfx_phase_open.wav	補貨結束→營運時段
+sfx_phase_restock	P1	res://audio/sfx/sfx_phase_restock.wav	進入補貨時段（日開始）
+sfx_shelf_stock_instant	P1	res://audio/sfx/sfx_shelf_stock_instant.wav	瞬間補貨 LV3 略過 Circle 完成
+sfx_skill_cd_deny	P1	res://audio/sfx/sfx_skill_cd_deny.wav	CD 中／不能施放
+sfx_skill_menu_open	P1	res://audio/sfx/sfx_skill_menu_open.wav	長按技能開選單
+sfx_skill_soothe	P1	res://audio/sfx/sfx_skill_soothe.wav	安撫生效
+sfx_ui_cancel	P1	res://audio/sfx/sfx_ui_cancel.wav	選單取消／返回
+sfx_ui_confirm	P1	res://audio/sfx/sfx_ui_confirm.wav	選單確定
+sfx_ui_level_up	P1	res://audio/sfx/sfx_ui_level_up.wav	結算升級（若有）
+sfx_ui_move	P1	res://audio/sfx/sfx_ui_move.wav	選單游標移動
+sfx_ui_pause_close	P1	res://audio/sfx/sfx_ui_pause_close.wav	暫停繼續
+sfx_ui_pause_open	P1	res://audio/sfx/sfx_ui_pause_open.wav	暫停選單開啟
+sfx_ui_place	P1	res://audio/sfx/sfx_ui_place.wav	店舖設計放置成功
+sfx_ui_purchase	P1	res://audio/sfx/sfx_ui_purchase.wav	採購／購入傢俬／開發成功扣款
+sfx_ult_prep	P1	res://audio/sfx/sfx_ult_prep.wav	長按奧義進入指令準備
+sfx_ult_the_world_end	P1	res://audio/sfx/sfx_ult_the_world_end.wav	The World! 結束恢復流速
+sfx_box_sku_cancel	P2	res://audio/sfx/sfx_box_sku_cancel.wav	取消選貨
+sfx_box_sku_confirm	P2	res://audio/sfx/sfx_box_sku_confirm.wav	放手確認 SKU
+sfx_box_sku_move	P2	res://audio/sfx/sfx_box_sku_move.wav	清單上／下改選
+sfx_checkout_release_reset	P2	res://audio/sfx/sfx_checkout_release_reset.wav	收銀中放手重置指令
+sfx_clean_cancel	P2	res://audio/sfx/sfx_clean_cancel.wav	清潔中放手重置
+sfx_clerk_pull	P2	res://audio/sfx/sfx_clerk_pull.wav	補貨店員取箱（可共用 `sfx_box_pull` 降音量）
+sfx_clerk_stock	P2	res://audio/sfx/sfx_clerk_stock.wav	補貨店員上架完成
+sfx_dirt_spawn	P2	res://audio/sfx/sfx_dirt_spawn.wav	污物生成（可極淡）
+sfx_guest_enter	P2	res://audio/sfx/sfx_guest_enter.wav	一般客人進店
+sfx_guest_paid_leave	P2	res://audio/sfx/sfx_guest_paid_leave.wav	付完款離開
+sfx_guest_queue	P2	res://audio/sfx/sfx_guest_queue.wav	加入收銀排隊（可選）
+sfx_guest_take	P2	res://audio/sfx/sfx_guest_take.wav	客人貨架取貨完成（逗留後）
+sfx_guest_think	P2	res://audio/sfx/sfx_guest_think.wav	找不到貨、短暫思考
+sfx_move_crowd	P2	res://audio/sfx/sfx_move_crowd.wav	進入擁擠（3 身位內多人）
+sfx_move_dirt_step	P2	res://audio/sfx/sfx_move_dirt_step.wav	踩上污物（可與腳步疊極輕）
+sfx_move_overcarry	P2	res://audio/sfx/sfx_move_overcarry.wav	超重移動開始／持續層（可極輕）
+sfx_move_stamina_empty	P2	res://audio/sfx/sfx_move_stamina_empty.wav	氣力見底無法再跑／衝
+sfx_shelf_stock_loop	P2	res://audio/sfx/sfx_shelf_stock_loop.wav	近身上架 Circle 進行中（可極短循環或無聲＋完成音）
+sfx_skill_menu_cancel	P2	res://audio/sfx/sfx_skill_menu_cancel.wav	放手取消選單
+sfx_skill_menu_move	P2	res://audio/sfx/sfx_skill_menu_move.wav	選單方向改選
+sfx_thief_spawn	P2	res://audio/sfx/sfx_thief_spawn.wav	小偷進店（可選）
+sfx_ui_pickup_item	P2	res://audio/sfx/sfx_ui_pickup_item.wav	店舖設計收回傢俬
+sfx_ui_rotate	P2	res://audio/sfx/sfx_ui_rotate.wav	店舖設計轉向
+sfx_ui_test_skip	P2	res://audio/sfx/sfx_ui_test_skip.wav	測試「馬上完成營運」等（測試版）
+sfx_ult_cancel	P2	res://audio/sfx/sfx_ult_cancel.wav	奧義蓄力放手取消

@@ -23,6 +23,17 @@ def gd_ids() -> set[str]:
     return set(re.findall(r'"id": "(sfx_[a-z0-9_]+)"', text))
 
 
+def gd_triggers() -> dict[str, str]:
+    text = CATALOG_GD.read_text(encoding="utf-8")
+    out: dict[str, str] = {}
+    for m in re.finditer(
+        r'\{"id": "(sfx_[a-z0-9_]+)".*?"trigger": "([^"]*)"\}',
+        text,
+    ):
+        out[m.group(1)] = m.group(2)
+    return out
+
+
 def wav_ids() -> set[str]:
     return {p.stem for p in WAV_DIR.glob("sfx_*.wav")}
 
@@ -40,12 +51,20 @@ def main() -> int:
         errs.append(f"wav without catalog: {sorted(w - g)}")
     if not CATALOG_TXT.is_file():
         errs.append("missing audio/sfx_catalog.txt")
+    triggers = gd_triggers()
+    if set(triggers) != g:
+        errs.append("catalog entries missing trigger field")
+    empty = sorted(sid for sid, t in triggers.items() if not t.strip())
+    if empty:
+        errs.append(f"empty trigger: {empty}")
+    if "trigger_for" not in CATALOG_GD.read_text(encoding="utf-8"):
+        errs.append("missing SfxCatalog.trigger_for")
     if errs:
         print("FAIL")
         for e in errs:
             print(" ", e)
         return 1
-    print(f"OK {len(g)} SFX ids aligned (doc/catalog/wav)")
+    print(f"OK {len(g)} SFX ids aligned (doc/catalog/wav) with triggers")
     return 0
 
 
