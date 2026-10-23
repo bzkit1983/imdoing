@@ -2,7 +2,7 @@
 
 - 這裡記留到 Alpha 才設計的問題
 - 長線規則仍以 `docs/systemdesign/` 為準
-- 對照：`docs/systemdesign-gaps.md`（2026-10-22）；工程落地對照：`docs/alpha/implementation-status.md`；執行期優化：`docs/alpha/runtime-perf-audit.md`
+- 對照：`docs/systemdesign-gaps.md`（2026-10-23）；工程落地對照：`docs/alpha/implementation-status.md`；執行期優化：`docs/alpha/runtime-perf-audit.md`
 
 # 幫忙取貨與 COMBO
 
@@ -36,8 +36,8 @@
 
 時計、營業額、人數、狀態、被偷、提早關店的詢問已有。
 
-- **存檔／暫停／操作／字串表／準備 UI／工程路徑：** 已寫進長線或工程文件（見前次對照）。
-- 仍未寫（玩法／產品）：設定（音量）、失敗／過關流程、教學、技能演出期間能否操作。外觀配置只有一句。
+- **存檔／暫停／操作／字串表／準備 UI／工程路徑／事件 SFX 音量：** 已寫進長線或工程文件（見 `pausemenu.md`、`soundeffects.md`、`implementation-status.md`）。
+- 仍未寫（玩法／產品）：BGM／完整設定頁、失敗／過關流程、教學、技能演出期間能否操作。外觀配置只有一句。
 
 # 用詞
 

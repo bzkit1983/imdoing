@@ -12,7 +12,7 @@
 
 | | |
 | --- | --- |
-| **現行產品 SemVer** | **`v1.1.0`**（Git tag；權威；2026-10-22：含 Runtime P1＋P2 #42、版號對齊 #43，以及 Design Gap 拍板／活線規則：衝刺撞客人、擁擠、凌波微步、丟掉砸客人、多台選隊等） |
+| **現行產品 SemVer** | **`v1.1.0`**（Git tag；權威；2026-10-22：含 Runtime P1＋P2 #42、版號對齊 #43，以及 Design Gap 拍板／活線規則：衝刺撞客人、擁擠、凌波微步、丟掉砸客人、多台選隊等）。其後 `main` 活線（SFX、清潔單圈、丟掉→收銀、衝刺不重抽、店員跟蹤等）尚未另打 tag；文件對照見 `implementation-status.md` |
 | 對齊字串 | repo 根目錄 [`VERSION`](../VERSION)；`godot/game/project.godot` `config/version`；`scripts/product_version.gd`；Windows 匯出 `export_presets.cfg` |
 | 存檔格式版 | `game_state.SAVE_VERSION`（整數，與 SemVer **分開**） |
 | 查詢 | `git tag -l 'v*'` · `git describe --tags --exact-match`（恰在 tag 上時） · `git rev-parse v1.1.0^{}` |
@@ -145,7 +145,7 @@ v1.0 Milestone 建議直接收錄 `docs/alpha/tech-review-v0.1.md` §6 跟進清
 2. ~~建立 `godot/game`（自 `alpha_v0_1` 複製一次）~~ **已做**；`demo_v0_*`／`alpha_v0_1` 已放 `FROZEN.md`，見 `godot/README.md`。  
 3. 把 tech-review §6 checklist 建成 Issues，全掛 Milestone `v1.0`。  
 4. ~~存檔~~ **已做**；~~InputMap~~ **已做**（Autoload `Controls`）；~~`PlatformServices` stub~~ **已做**；~~暫停選單＋掛起鉤子~~ **已做**；~~Win／Linux 匯出預設~~ **已做**（`docs/alpha/export-presets.md`）；~~字串表 i18n~~ **已做**（`docs/alpha/i18n.md`）；~~主機商務評估~~ **已做**（`docs/alpha/console-business.md`）；~~Godot／middleware 釘版~~ **已做**（`docs/alpha/godot-middleware-pin.md`：桌面 4.7，主機對齊 W4 表）。接著：Steamworks／內容與 v1.0 里程碑收尾等。  
-5. ~~Web 匯出到 Pages `docs/play/`~~ **已做**。~~打 `v1.0.0`~~ **已做**（2026-10-22 重錨；其後約 PR #21–#39）。~~打 `v1.1.0`~~ **已做**（2026-10-22：錨在含 Runtime P1＋P2 熱路徑優化的 `main`／PR #42；版號字串同步本檔與 `VERSION`）。之後內容／系統進 `v1.2` Milestone；熱修打 `v1.1.x`。
+5. ~~Web 匯出到 Pages `docs/play/`~~ **已做**（持續以 Pages PR 刷新 `docs/play/`）。~~打 `v1.0.0`~~ **已做**（2026-10-22 重錨；其後約 PR #21–#39）。~~打 `v1.1.0`~~ **已做**（2026-10-22：錨在含 Runtime P1＋P2 熱路徑優化的 `main`／PR #42；版號字串同步本檔與 `VERSION`）。`main` tip 已含 #46–#62 等熱修／內容（未另升 SemVer）。之後內容／系統進 `v1.2` Milestone；熱修打 `v1.1.x`。
 
 長線設計對應：存檔 → `savesystem.md`；操作 → `control.md`；準備／營運回合已交叉連到上述檔。
 

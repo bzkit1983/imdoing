@@ -28,9 +28,10 @@
 
 #**行動動作案例**
 上架、收銀（指令完成後）長按行動會出現 Loading Circle；填滿才完成，放手重置。
-Loading Circle 畫在畫面最上層（不被貨架等店面物件擋住）。
+Loading Circle 畫在畫面最上層（viewport CanvasLayer；不被貨架等店面物件擋住）。
 上架可在移動中起動；Circle 進行中角色不會繼續移動。
 清潔、打擊不是這種 Circle：清潔要空手長按並轉搖桿填清潔計；打擊要空手長按抓住後連按扣血。
+**清潔期間隱藏黃色 Loading Circle**，只顯示污物上的藍色清潔計＋迷你搖桿（見 `cleaningsystem.md`）。
 **清潔**可邊走邊起動；長按開始填計後進行中鎖移動。打擊同：起手可走，抓住後不移動。詳見 `cleaningsystem.md`、`thiefsystem.md`。
 
 #**行動指令**
