@@ -125,6 +125,13 @@ def harvest_chars() -> str:
 			if path.suffix == ".txt":
 				chars.update(text)
 	_harvest_locale_csv(chars)
+	# Design-doc trigger column (CJK) — cover SFX copy even before catalog regen.
+	doc = ROOT / "docs" / "systemdesign" / "soundeffects.md"
+	if doc.is_file():
+		try:
+			chars.update(doc.read_text(encoding="utf-8"))
+		except UnicodeDecodeError:
+			pass
 	# Stable order: code point ascending, skip pure controls except space/tab/newline already forced.
 	ordered = sorted(c for c in chars if ord(c) >= 32 or c in "\n\t")
 	return "".join(ordered)
