@@ -9,8 +9,9 @@ signal end_day_requested
 
 const FOCUS_RESUME := 0
 const FOCUS_SFX := 1
-const FOCUS_END := 2
-const FOCUS_COUNT := 3
+const FOCUS_VOL := 2
+const FOCUS_END := 3
+const FOCUS_COUNT := 4
 
 var game: Node
 var _open: bool = false
@@ -23,6 +24,9 @@ var _from_suspend: bool = false
 @onready var _hint: Label = %Hint
 @onready var _resume_btn: Button = %ResumeBtn
 @onready var _sfx_btn: Button = %SfxBtn
+@onready var _vol_btn: Button = %VolBtn
+@onready var _vol_down: Button = %VolDownBtn
+@onready var _vol_up: Button = %VolUpBtn
 @onready var _end_btn: Button = %EndDayBtn
 
 
@@ -34,21 +38,21 @@ func setup(host: Node) -> void:
 	_open = false
 	UiFont.apply_label(_title, 40)
 	_title.add_theme_color_override("font_color", Color("f4d35e"))
-	UiFont.apply_label(_body, 26)
+	UiFont.apply_label(_body, 24)
 	_body.add_theme_color_override("font_color", Color("f4f1ea"))
-	UiFont.apply_label(_hint, 22)
+	UiFont.apply_label(_hint, 20)
 	_hint.add_theme_color_override("font_color", Color("c8c2b4"))
-	UiFont.apply_button(_resume_btn, 22)
-	UiFont.apply_button(_sfx_btn, 22)
-	UiFont.apply_button(_end_btn, 22)
-	_resume_btn.focus_mode = Control.FOCUS_NONE
-	_sfx_btn.focus_mode = Control.FOCUS_NONE
-	_end_btn.focus_mode = Control.FOCUS_NONE
+	for b in [_resume_btn, _sfx_btn, _vol_btn, _vol_down, _vol_up, _end_btn]:
+		UiFont.apply_button(b, 22)
+		b.focus_mode = Control.FOCUS_NONE
 	_resume_btn.pressed.connect(_on_resume)
 	_sfx_btn.pressed.connect(_on_sfx_toggle)
+	_vol_btn.pressed.connect(_on_vol_preview)
+	_vol_down.pressed.connect(_on_vol_nudge.bind(-1))
+	_vol_up.pressed.connect(_on_vol_nudge.bind(1))
 	_end_btn.pressed.connect(_on_end_day)
 	_paint_focus()
-	_refresh_sfx_label()
+	_refresh_audio_labels()
 	if not PlatformServices.pause_menu_requested.is_connected(_on_platform_pause_requested):
 		PlatformServices.pause_menu_requested.connect(_on_platform_pause_requested)
 	if not PlatformServices.suspended.is_connected(_on_platform_suspended):
@@ -115,16 +119,14 @@ func _refresh_copy() -> void:
 		_hint.text = Loc.t("pause.hint")
 	_resume_btn.text = Loc.t("pause.resume")
 	_end_btn.text = Loc.t("pause.end_day")
-	_refresh_sfx_label()
+	_refresh_audio_labels()
 
 
-func _refresh_sfx_label() -> void:
-	if _sfx_btn == null:
-		return
-	if SfxBus.is_muted():
-		_sfx_btn.text = Loc.t("pause.sfx_off")
-	else:
-		_sfx_btn.text = Loc.t("pause.sfx_on")
+func _refresh_audio_labels() -> void:
+	if _sfx_btn:
+		_sfx_btn.text = Loc.t("pause.sfx_off") if SfxBus.is_muted() else Loc.t("pause.sfx_on")
+	if _vol_btn:
+		_vol_btn.text = Loc.t("pause.sfx_volume", [SfxBus.volume_percent()])
 
 
 func _on_platform_pause_requested() -> void:
@@ -132,7 +134,6 @@ func _on_platform_pause_requested() -> void:
 
 
 func _on_platform_suspended() -> void:
-	# pause_menu_requested already opens; ensure checkpoint even if menu blocked.
 	PlatformServices.checkpoint()
 
 
@@ -162,6 +163,14 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif dir == 1:
 		_move_focus(1)
 		get_viewport().set_input_as_handled()
+	elif dir == 2:
+		if _focus == FOCUS_VOL:
+			_on_vol_nudge(-1)
+		get_viewport().set_input_as_handled()
+	elif dir == 3:
+		if _focus == FOCUS_VOL:
+			_on_vol_nudge(1)
+		get_viewport().set_input_as_handled()
 	elif _is_confirm(event):
 		get_viewport().set_input_as_handled()
 		_activate_focus()
@@ -187,6 +196,8 @@ func _activate_focus() -> void:
 			_on_resume()
 		FOCUS_SFX:
 			_on_sfx_toggle()
+		FOCUS_VOL:
+			_on_vol_preview()
 		FOCUS_END:
 			SfxBus.play("sfx_ui_confirm")
 			_on_end_day()
@@ -198,14 +209,28 @@ func _on_resume() -> void:
 
 
 func _on_sfx_toggle() -> void:
-	## Play tip while still audible when turning off; after unmute when turning on.
 	if SfxBus.is_muted():
 		SfxBus.set_muted(false)
 		SfxBus.play("sfx_ui_confirm")
 	else:
 		SfxBus.play("sfx_ui_confirm")
 		SfxBus.set_muted(true)
-	_refresh_sfx_label()
+	_refresh_audio_labels()
+	_paint_focus()
+
+
+func _on_vol_nudge(steps: int) -> void:
+	SfxBus.nudge_volume(steps)
+	SfxBus.play("sfx_ui_move", 1.0, NAN, true)
+	_refresh_audio_labels()
+	_focus = FOCUS_VOL
+	_paint_focus()
+
+
+func _on_vol_preview() -> void:
+	## J / tap center: sample current level (audible even if muted).
+	SfxBus.play("sfx_ui_confirm", 1.0, NAN, true)
+	_focus = FOCUS_VOL
 	_paint_focus()
 
 
@@ -217,6 +242,10 @@ func _on_end_day() -> void:
 func _paint_focus() -> void:
 	_style_btn(_resume_btn, _focus == FOCUS_RESUME)
 	_style_btn(_sfx_btn, _focus == FOCUS_SFX)
+	var vol_on := _focus == FOCUS_VOL
+	_style_btn(_vol_btn, vol_on)
+	_style_btn(_vol_down, vol_on)
+	_style_btn(_vol_up, vol_on)
 	_style_btn(_end_btn, _focus == FOCUS_END)
 
 
@@ -257,7 +286,7 @@ func _is_cancel(event: InputEvent) -> bool:
 	return false
 
 
-## 0 up, 1 down, -1 none
+## 0 up, 1 down, 2 left, 3 right, -1 none
 func _dir_of(event: InputEvent) -> int:
 	if event is InputEventKey:
 		var k := (event as InputEventKey).physical_keycode
@@ -265,10 +294,18 @@ func _dir_of(event: InputEvent) -> int:
 			return 0
 		if k == KEY_S or k == KEY_DOWN:
 			return 1
+		if k == KEY_A or k == KEY_LEFT:
+			return 2
+		if k == KEY_D or k == KEY_RIGHT:
+			return 3
 	if event is InputEventJoypadButton:
 		var b := (event as InputEventJoypadButton).button_index
 		if b == JOY_BUTTON_DPAD_UP:
 			return 0
 		if b == JOY_BUTTON_DPAD_DOWN:
 			return 1
+		if b == JOY_BUTTON_DPAD_LEFT:
+			return 2
+		if b == JOY_BUTTON_DPAD_RIGHT:
+			return 3
 	return -1
