@@ -117,15 +117,18 @@ func _tick_restock(delta: float) -> void:
 		elif placed == 0:
 			_drop_box()
 		return
-	_job_search_cd -= delta
-	if _job_search_cd > 0.0:
-		return
-	_job_search_cd = Tuning.CLERK_JOB_SEARCH_SEC
-	var job := _find_job()
-	if job.is_empty():
-		return
-	_shelf = job["shelf"]
-	_plan_sku = String(job["sku"])
+	## Idle: throttle job search. Active plan: keep walking every frame (do not
+	## sit on _job_search_cd or the clerk freezes between search ticks).
+	if _plan_sku == "" or _shelf == null or not is_instance_valid(_shelf):
+		_job_search_cd -= delta
+		if _job_search_cd > 0.0:
+			return
+		_job_search_cd = Tuning.CLERK_JOB_SEARCH_SEC
+		var job := _find_job()
+		if job.is_empty():
+			return
+		_shelf = job["shelf"]
+		_plan_sku = String(job["sku"])
 	var cat := String(_shelf.get("category"))
 	var point: Node2D = _game.call("restock_for", cat)
 	if point == null:
