@@ -28,10 +28,10 @@ def main() -> int:
         if "_drop_cart_inplace" not in body:
             errs.append("dash_knock_guest should still drop cart inplace")
     doc = MOVE_DOC.read_text(encoding="utf-8")
-    if "重抽清單" in doc:
-        errs.append("playermovement.md still says 重抽清單")
     if "購物清單不變" not in doc:
         errs.append("playermovement.md should say 購物清單不變")
+    if re.search(r"(?<!不)重抽清單", doc):
+        errs.append("playermovement.md still requires 重抽清單")
     if errs:
         print("FAIL")
         for e in errs:
