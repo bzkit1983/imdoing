@@ -278,15 +278,7 @@ func _physics_process(delta: float) -> void:
 
 func _tick_seek(delta: float) -> void:
 	if shopping.is_empty():
-		if is_thief:
-			escape_with_loot()
-			return
-		if not _join_register():
-			mood = "沒有收銀機"
-			_leave(false)
-			return
-		state = State.TO_CASHIER
-		mood = "去付款"
+		_begin_checkout("去付款")
 		return
 	var want := shopping[0]
 	_seek_shelf_refresh -= delta
@@ -335,6 +327,10 @@ func _take_current() -> void:
 
 
 func _after_think() -> void:
+	## Toss / other paths may empty the list while still in THINK.
+	if shopping.is_empty():
+		_begin_checkout("去付款")
+		return
 	if shopping.size() > 1:
 		var first := shopping[0]
 		shopping.remove_at(0)
@@ -350,6 +346,24 @@ func _after_think() -> void:
 		_timer = Tuning.THINK_SEC
 		dissatisfaction = minf(Tuning.DISSAT_MAX, dissatisfaction + Tuning.DISSAT_MISS)
 		mood = "還是找不到…"
+
+
+## Shopping done → join a register and walk to pay (shared by seek / think / toss / raid).
+func _begin_checkout(pay_mood: String = "去付款") -> void:
+	if is_thief:
+		escape_with_loot()
+		return
+	if state == State.TO_CASHIER or state == State.QUEUE or state == State.PAYING:
+		mood = pay_mood
+		return
+	_clear_route()
+	if not _join_register():
+		mood = "沒有收銀機"
+		_leave(false)
+		return
+	state = State.TO_CASHIER
+	mood = pay_mood
+	_timer = 0.0
 
 
 func _lord_pull() -> bool:
@@ -383,13 +397,7 @@ func _tick_raid(delta: float) -> void:
 
 
 func _end_raid() -> void:
-	_clear_route()
-	if not _join_register():
-		mood = "沒有收銀機"
-		_leave(false)
-		return
-	state = State.TO_CASHIER
-	mood = "去付款"
+	_begin_checkout("去付款")
 
 
 func _join_register() -> bool:
@@ -669,7 +677,16 @@ func accept_toss_box(sku: String, n: int) -> int:
 			shopping.remove_at(idx)
 	_bump_list()
 	dissatisfaction = 0.0
-	mood = "謝謝！"
+	_target_shelf = null
+	if shopping.is_empty():
+		## List completed by toss — go pay; do not linger in THINK「找不到」.
+		_begin_checkout("謝謝！去付款")
+	else:
+		mood = "謝謝！"
+		if state == State.THINK or state == State.LINGER:
+			state = State.SEEK
+			_timer = 0.0
+			_clear_route()
 	_sync_labels()
 	return take
 
