@@ -169,6 +169,7 @@ func cancel_pay() -> void:
 
 func finish_paid() -> void:
 	mood = "謝謝"
+	SfxBus.play("sfx_guest_paid_leave")
 	_leave(false)
 
 
@@ -296,6 +297,7 @@ func _tick_seek(delta: float) -> void:
 	if shelf == null:
 		state = State.THINK
 		_timer = Tuning.THINK_SEC
+		SfxBus.play("sfx_guest_think")
 		if not is_thief:
 			dissatisfaction = minf(Tuning.DISSAT_MAX, dissatisfaction + Tuning.DISSAT_MISS)
 		mood = "找不到%s" % Tuning.sku_name(want)
@@ -319,11 +321,13 @@ func _take_current() -> void:
 		shopping.remove_at(0)
 		_bump_list()
 		mood = "拿到%s" % Tuning.sku_name(want)
+		SfxBus.play("sfx_guest_take")
 		state = State.SEEK
 		_target_shelf = null
 	else:
 		state = State.THINK
 		_timer = Tuning.THINK_SEC
+		SfxBus.play("sfx_guest_think")
 		if not is_thief:
 			dissatisfaction = minf(Tuning.DISSAT_MAX, dissatisfaction + Tuning.DISSAT_MISS)
 		mood = "找不到%s" % Tuning.sku_name(want)
@@ -395,6 +399,7 @@ func _join_register() -> bool:
 	if register == null:
 		return false
 	register.enqueue(self)
+	SfxBus.play("sfx_guest_queue")
 	return true
 
 
@@ -512,6 +517,7 @@ func _leave(angry: bool) -> void:
 	_clear_route()
 	if angry and _game:
 		_game.angry_left += 1
+		SfxBus.play("sfx_guest_angry_leave")
 
 
 func _tick_leave(delta: float, td: float) -> void:
@@ -642,6 +648,7 @@ func _play_dash_ko_hop() -> void:
 	_dash_ko_tween = create_tween()
 	_dash_ko_tween.tween_property(self, "global_position", base + Vector2(0, -56), 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	_dash_ko_tween.tween_property(self, "global_position", base, 0.18).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+	_dash_ko_tween.tween_callback(func() -> void: SfxBus.play("sfx_guest_dash_land"))
 
 
 ## Tossed box hits this guest. Returns items taken into cart from the box.

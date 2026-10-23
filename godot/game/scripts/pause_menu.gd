@@ -77,6 +77,7 @@ func open_menu(from_suspend: bool = false) -> void:
 	_refresh_copy()
 	_paint_focus()
 	PlatformServices.checkpoint()
+	SfxBus.play("sfx_ui_pause_open")
 	if game and game.has_method("on_pause_opened"):
 		game.call("on_pause_opened")
 	get_tree().paused = true
@@ -89,6 +90,7 @@ func close_menu() -> void:
 	_from_suspend = false
 	visible = false
 	get_tree().paused = false
+	SfxBus.play("sfx_ui_pause_close")
 	if game and game.has_method("on_pause_closed"):
 		game.call("on_pause_closed")
 
@@ -134,21 +136,27 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	var dir := _dir_of(event)
 	if dir == 0:
+		if _focus != 0:
+			SfxBus.play("sfx_ui_move")
 		_focus = 0
 		_paint_focus()
 		get_viewport().set_input_as_handled()
 	elif dir == 1:
+		if _focus != 1:
+			SfxBus.play("sfx_ui_move")
 		_focus = 1
 		_paint_focus()
 		get_viewport().set_input_as_handled()
 	elif _is_confirm(event):
 		get_viewport().set_input_as_handled()
+		SfxBus.play("sfx_ui_confirm")
 		if _focus == 0:
 			_on_resume()
 		else:
 			_on_end_day()
 	elif _is_cancel(event):
 		get_viewport().set_input_as_handled()
+		SfxBus.play("sfx_ui_cancel")
 		_on_resume()
 
 

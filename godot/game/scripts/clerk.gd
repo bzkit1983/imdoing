@@ -88,6 +88,7 @@ func _tick_cashier(delta: float) -> void:
 		return
 	_timer = 0.0
 	var amount: int = int(cust.call("cart_total"))
+	SfxBus.play("sfx_checkout_clerk")
 	_game.call("_on_paid", amount)
 	cust.finish_paid()
 	register.dequeue(cust)
@@ -105,6 +106,8 @@ func _tick_restock(delta: float) -> void:
 		if _timer < Tuning.restock_seconds(10):
 			return
 		var placed := int(_shelf.call("add_items", _box_sku, _box_n))
+		if placed > 0:
+			SfxBus.play("sfx_clerk_stock")
 		_box_n -= placed
 		_timer = 0.0
 		if _box_n <= 0:
@@ -137,6 +140,7 @@ func _tick_restock(delta: float) -> void:
 	_box_sku = _plan_sku
 	_box_n = Tuning.BOX_SIZE
 	_timer = 0.0
+	SfxBus.play("sfx_clerk_pull")
 	_clear_path()
 
 

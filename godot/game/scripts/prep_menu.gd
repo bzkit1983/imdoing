@@ -357,6 +357,8 @@ func _activate() -> void:
 		return
 	if _confirm_latch:
 		return
+	if _page != "sfx":
+		SfxBus.play("sfx_ui_confirm")
 	if _page == "stats":
 		if _stat_row <= 2:
 			var keys := ["str", "agi", "int"]
@@ -441,6 +443,7 @@ func _activate() -> void:
 			var hit := state.item_at(_cursor.x, _cursor.y)
 			if hit >= 0:
 				state.remove_at(hit)
+				SfxBus.play("sfx_ui_pickup_item")
 				_msg = "已收回"
 			else:
 				_msg = "游標上沒有物品"
@@ -475,6 +478,8 @@ func _activate() -> void:
 			start_day.emit()
 		"test_money":
 			_grant_test_money()
+		"play_sfx":
+			SfxBus.play(String(arg))
 		_:
 			pass
 
@@ -563,6 +568,7 @@ func _try_hire() -> void:
 	var before := state.clerks.size()
 	var msg := state.hire()
 	if msg == "" and state.clerks.size() > before:
+		SfxBus.play("sfx_ui_purchase")
 		_msg = "已召募"
 		_refresh()
 		return
@@ -586,6 +592,7 @@ func _run_pending(pending: Dictionary) -> void:
 			if msg != "":
 				_popup_info("不能開發", msg)
 			else:
+				SfxBus.play("sfx_ui_purchase")
 				_msg = "已開發 %s" % Tuning.sku_name(sku)
 				_refresh()
 		"buy":
@@ -595,6 +602,7 @@ func _run_pending(pending: Dictionary) -> void:
 			if msg2 != "":
 				_popup_info("不能採購", msg2)
 			else:
+				SfxBus.play("sfx_ui_purchase")
 				_qty_sku = ""
 				_msg = "已採購 %s ×%d 箱" % [Tuning.sku_name(sku2), boxes]
 				_refresh()
@@ -604,6 +612,7 @@ func _run_pending(pending: Dictionary) -> void:
 			if msg3 != "":
 				_popup_info("不能購入", msg3)
 			else:
+				SfxBus.play("sfx_ui_purchase")
 				_msg = "已購入 %s" % String(state.FURNITURE[type]["name"])
 				_refresh()
 		"expand":
@@ -611,11 +620,13 @@ func _run_pending(pending: Dictionary) -> void:
 			if msg4 != "":
 				_popup_info("不能擴張", msg4)
 			else:
+				SfxBus.play("sfx_ui_purchase")
 				_msg = "已擴張到規模 LV%d" % state.shop_scale
 				_refresh()
 
 
 func _popup_info(title: String, body: String) -> void:
+	SfxBus.play("sfx_ui_deny")
 	_open_dialog(title, body, true, {})
 
 
@@ -818,8 +829,10 @@ func _move(x: int, y: int) -> void:
 		return
 	if y < 0 or x < 0:
 		_index = posmod(_index - 1, _rows.size())
+		SfxBus.play("sfx_ui_move")
 	elif y > 0 or x > 0:
 		_index = posmod(_index + 1, _rows.size())
+		SfxBus.play("sfx_ui_move")
 	_select_row(_index)
 
 
@@ -888,15 +901,18 @@ func _move_layout(x: int, y: int) -> void:
 func _rotate() -> void:
 	if _drag_on:
 		_drag_rot = (_drag_rot + 1) % 4
+		SfxBus.play("sfx_ui_rotate")
 		_grid.queue_redraw()
 		return
 	if _hold_type == "":
 		return
 	_hold_rot = (_hold_rot + 1) % 4
+	SfxBus.play("sfx_ui_rotate")
 	_grid.queue_redraw()
 
 
 func _back() -> void:
+	SfxBus.play("sfx_ui_cancel")
 	if _dlg_open:
 		if _dlg_info:
 			_close_dialog()
@@ -1064,6 +1080,7 @@ func try_place() -> void:
 		return
 	_msg = state.place_item(_hold_type, _cursor.x, _cursor.y, _hold_rot)
 	if _msg == "":
+		SfxBus.play("sfx_ui_place")
 		_hold_type = ""
 	_refresh()
 

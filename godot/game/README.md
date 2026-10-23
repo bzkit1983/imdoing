@@ -10,6 +10,7 @@ v1.0 起唯一維護的 Godot 專案。從凍結的 `godot/alpha_v0_1` 複製一
 - **字串表：** `locale/strings.csv`＋Autoload `Loc`（`docs/alpha/i18n.md`）
 - **存檔：** `user://save.json`（`game_state.SAVE_VERSION`）。關店結算後、準備回合按「開始營業」時各寫一次；啟動時自動讀取。準備選單可「清除存檔並重選劇本」。
 - **輸入：** Autoload `Controls` 註冊 InputMap（`move_*`／`interact`／`cancel`／`dash`／`skill`／`ult`／`rotate`…）。預設仍是 WASD + J/K/L/U 與 Xbox 手把；可在專案設定改鍵。
+- **音效（Alpha）：** Autoload `SfxBus` + `audio/sfx/*.wav`（程序佔位；表見 `docs/systemdesign/soundeffects.md`）。再生：`python3 tools/gen_alpha_sfx.py`。測試頁：準備選單「音效測試」（`TEST_TOOLS`）或 `scenes/sfx_test.tscn`。
 
 **活線試玩：** https://bzkit1983.github.io/imdoing/play/  
 Alpha v0.1 試玩（不動）：https://bzkit1983.github.io/imdoing/play-alpha-v01/
