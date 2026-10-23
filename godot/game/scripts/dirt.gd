@@ -95,7 +95,8 @@ func _build() -> void:
 	_label.add_theme_constant_override("outline_size", 5)
 	add_child(_label)
 	_stick_draw = StickHint.new()
-	_stick_draw.position = Vector2(0, -patch_size.y * 0.5 - 52)
+	## Above the dirt / character head so clean anims stay readable.
+	_stick_draw.position = Vector2(0, -patch_size.y * 0.5 - 88)
 	_stick_draw.z_index = 8
 	add_child(_stick_draw)
 	_stick_draw.host = self
@@ -120,9 +121,9 @@ class StickHint extends Node2D:
 	func _draw() -> void:
 		if host == null or not bool(host.get("cleaning")):
 			return
-		draw_circle(Vector2.ZERO, 22.0, Color(0.08, 0.08, 0.1, 0.55))
-		draw_arc(Vector2.ZERO, 22.0, 0.0, TAU, 36, Color("f4f1ea", 0.9), 2.4)
-		var knob: Vector2 = Vector2(host.get("stick")).limit_length(1.0) * 14.0
-		draw_circle(knob, 7.0, Color("f4d35e"))
+		## Ring + stick only (no solid disc) so the player sprite stays visible underneath.
+		draw_arc(Vector2.ZERO, 20.0, 0.0, TAU, 36, Color("f4f1ea", 0.75), 2.2)
+		var knob: Vector2 = Vector2(host.get("stick")).limit_length(1.0) * 12.0
+		draw_circle(knob, 6.0, Color("f4d35e"))
 		var p: float = float(host.get("clean_meter")) / 100.0
-		draw_arc(Vector2.ZERO, 28.0, -PI / 2.0, -PI / 2.0 + p * TAU, 40, Color("7ec8e3"), 3.5)
+		draw_arc(Vector2.ZERO, 26.0, -PI / 2.0, -PI / 2.0 + p * TAU, 40, Color("7ec8e3"), 3.6)

@@ -50,13 +50,14 @@ func _exit_tree() -> void:
 
 
 func _draw_ring(canvas: CanvasItem) -> void:
-	var c := Vector2(0, -40)
+	## Sit above the sprite so the hold ring does not cover character anims.
+	var c := Vector2(0, -78)
 	if blocked:
-		canvas.draw_arc(c, 24, 0.0, TAU, 40, Color("c45c26", 0.95), 5.5)
-		canvas.draw_line(c + Vector2(-11, -11), c + Vector2(11, 11), Color("f4f1ea"), 3.5)
-		canvas.draw_line(c + Vector2(11, -11), c + Vector2(-11, 11), Color("f4f1ea"), 3.5)
+		canvas.draw_arc(c, 22, 0.0, TAU, 40, Color("c45c26", 0.95), 5.0)
+		canvas.draw_line(c + Vector2(-10, -10), c + Vector2(10, 10), Color("f4f1ea"), 3.2)
+		canvas.draw_line(c + Vector2(10, -10), c + Vector2(-10, 10), Color("f4f1ea"), 3.2)
 		return
 	if progress <= 0.0:
 		return
-	canvas.draw_arc(c, 24, 0.0, TAU, 40, Color(0.05, 0.05, 0.05, 0.5), 5.5)
-	canvas.draw_arc(c, 24, -PI / 2.0, -PI / 2.0 + progress * TAU, 40, Color("f4d35e"), 5.5)
+	canvas.draw_arc(c, 22, 0.0, TAU, 40, Color(0.05, 0.05, 0.05, 0.45), 5.0)
+	canvas.draw_arc(c, 22, -PI / 2.0, -PI / 2.0 + progress * TAU, 40, Color("f4d35e"), 5.0)

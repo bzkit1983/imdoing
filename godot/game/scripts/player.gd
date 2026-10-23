@@ -738,8 +738,13 @@ func _physics_process(delta: float) -> void:
 	_update_target()
 	_tick_action(delta)
 	if _circle:
-		_circle.progress = hold_progress
-		_circle.blocked = blocked_mismatch
+		## Clean uses dirt StickHint (blue meter + stick), not the yellow hold Circle.
+		if _cleaning():
+			_circle.progress = 0.0
+			_circle.blocked = false
+		else:
+			_circle.progress = hold_progress
+			_circle.blocked = blocked_mismatch
 	if _menu:
 		_menu.open = skill_menu_open
 		if skill_menu_open:
