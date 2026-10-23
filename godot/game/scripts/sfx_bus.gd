@@ -7,11 +7,18 @@ const SfxCatalog = preload("res://scripts/sfx_catalog.gd")
 
 const POOL_SIZE := 12
 const DEFAULT_VOL_DB := -4.0
+const VOLUME_STEP := 0.1
+const SETTINGS_PATH := "user://settings.cfg"
+const SETTINGS_SECTION := "audio"
+const SETTINGS_MUTED := "sfx_muted"
+const SETTINGS_VOLUME := "sfx_volume"
 
 var _streams: Dictionary = {} ## id -> AudioStream
 var _pool: Array[AudioStreamPlayer] = []
 var _pool_i: int = 0
 var _muted: bool = false
+## Linear 0.0–1.0; applied to the SFX bus (independent of mute).
+var _volume: float = 1.0
 var _foot_cd: float = 0.0
 var _scrub_cd: float = 0.0
 var _stock_loop_cd: float = 0.0
@@ -20,6 +27,8 @@ var _overcarry_cd: float = 0.0
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_load_settings()
+	_apply_bus()
 	_preload_all()
 	for i in POOL_SIZE:
 		var p := AudioStreamPlayer.new()
@@ -48,14 +57,71 @@ func set_muted(on: bool) -> void:
 		for p in _pool:
 			if p.playing:
 				p.stop()
+	_apply_bus()
+	_save_settings()
 
 
 func is_muted() -> bool:
 	return _muted
 
 
-func play(id: String, pitch: float = 1.0, vol_db: float = NAN) -> void:
-	if _muted or id == "":
+func toggle_muted() -> bool:
+	set_muted(not _muted)
+	return _muted
+
+
+func get_volume() -> float:
+	return _volume
+
+
+## Linear 0.0–1.0.
+func set_volume(v: float) -> void:
+	_volume = clampf(snappedf(v, VOLUME_STEP), 0.0, 1.0)
+	_apply_bus()
+	_save_settings()
+
+
+## Nudge by ±1 step (10%). Returns new linear volume.
+func nudge_volume(steps: int) -> float:
+	set_volume(_volume + float(steps) * VOLUME_STEP)
+	return _volume
+
+
+func volume_percent() -> int:
+	return int(round(_volume * 100.0))
+
+
+func _apply_bus() -> void:
+	var idx := AudioServer.get_bus_index("SFX")
+	if idx < 0:
+		return
+	AudioServer.set_bus_mute(idx, _muted)
+	if _volume <= 0.001:
+		AudioServer.set_bus_volume_db(idx, -80.0)
+	else:
+		AudioServer.set_bus_volume_db(idx, linear_to_db(_volume))
+
+
+func _load_settings() -> void:
+	var cf := ConfigFile.new()
+	if cf.load(SETTINGS_PATH) != OK:
+		return
+	_muted = bool(cf.get_value(SETTINGS_SECTION, SETTINGS_MUTED, false))
+	_volume = clampf(float(cf.get_value(SETTINGS_SECTION, SETTINGS_VOLUME, 1.0)), 0.0, 1.0)
+	_volume = snappedf(_volume, VOLUME_STEP)
+
+
+func _save_settings() -> void:
+	var cf := ConfigFile.new()
+	cf.load(SETTINGS_PATH) # keep other keys if present
+	cf.set_value(SETTINGS_SECTION, SETTINGS_MUTED, _muted)
+	cf.set_value(SETTINGS_SECTION, SETTINGS_VOLUME, _volume)
+	cf.save(SETTINGS_PATH)
+
+
+## `force` plays even when muted (settings UI tip). Still respects bus volume.
+func play(id: String, pitch: float = 1.0, vol_db: float = NAN, force: bool = false) -> void:
+	if id == "" or (not force and _muted):
 		return
 	var stream: AudioStream = _streams.get(id) as AudioStream
 	if stream == null:
@@ -66,6 +132,15 @@ func play(id: String, pitch: float = 1.0, vol_db: float = NAN) -> void:
 	p.stream = stream
 	p.pitch_scale = clampf(pitch, 0.5, 2.0)
 	p.volume_db = DEFAULT_VOL_DB if is_nan(vol_db) else vol_db
+	## Bypass bus mute for forced tips so volume steps stay audible while muted.
+	if force and _muted:
+		var idx := AudioServer.get_bus_index("SFX")
+		if idx >= 0:
+			AudioServer.set_bus_mute(idx, false)
+			p.finished.connect(func() -> void:
+				if _muted and idx >= 0:
+					AudioServer.set_bus_mute(idx, true)
+			, CONNECT_ONE_SHOT)
 	p.play()
 
 
