@@ -20,7 +20,7 @@
 | 主機商務評估（帳號／W4／埠接） | **`docs/alpha/console-business.md`** | 文件結論：帳號可早開；W4 自埠預設；買工具前過釘版閘門 |
 | Godot ↔ middleware 釘版 | **`docs/alpha/godot-middleware-pin.md`** | 桌面維持 4.7；主機衝刺對齊 W4 表（2026-10-21 最高 4.6）；禁止專案複本 |
 | Alpha v1.0 Web → Pages | `docs/versioning.md`；`docs/play/README.md` | `godot/game` Web 匯出到 `docs/play/`；試玩 https://bzkit1983.github.io/imdoing/play/ |
-| 角色四向動作動畫 | **`docs/alpha/animation-v1.0.md`**；待辦 **`docs/alpha/animation-pending.md`** | `tools/voxel_character_anims.py`；`Vox.animated`／`play_anim`；player／customer／clerk |
+| 角色四向動作動畫 | **`docs/alpha/animation-v1.0.md`**；待辦 **`docs/alpha/animation-pending.md`** | `tools/voxel_character_anims.py`＋`voxel_alpha_props.py`；`Vox.animated`／`play_anim`；`fx_burst`；shelf fill／dirt clean／客人 pace 三模型 |
 | 掉貨瞄準／放手掉出／5 身位／青軌道 | **`docs/systemdesign/playeraction.md`**、`control.md` | `player.gd` cancel hold；`Tuning.DROP_*`；`drop_flight.gd` |
 | 方向丟掉 → 同款貨架直接補架（剩貨掉地） | **`docs/systemdesign/replenishmentsystem.md`**、`playeraction.md` | `demo._resolve_toss_landing`／`_shelf_for_toss`；`Tuning.DROP_SHELF_HIT_RADIUS` |
 | 方向丟掉砸中小偷 → Screen KO；贓物原地掉落 | **`docs/systemdesign/thiefsystem.md`**、`playeraction.md` | `demo._thief_for_toss`；`player.apply_toss_ko`；`customer.ko_box_hit_and_flee`；`spawn_loot_inplace` |

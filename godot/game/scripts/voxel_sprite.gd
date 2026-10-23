@@ -136,7 +136,13 @@ static func _sprite_frames(id: String) -> SpriteFrames:
 			var anim_name := "%s_%d" % [anim, facing]
 			frames.add_animation(anim_name)
 			frames.set_animation_speed(anim_name, fps)
-			frames.set_animation_loop(anim_name, anim in ["walk", "run", "leave", "idle", "clean", "fight", "restock", "dash", "fly"])
+			frames.set_animation_loop(
+				anim_name,
+				anim in [
+					"walk", "run", "leave", "idle", "clean", "fight", "restock", "dash", "fly",
+					"walk_carry", "angry", "checkout", "cast", "deliver", "slip",
+				]
+			)
 			for fi in range(n):
 				var path := _DIR + _anim_tex_key(id, anim, facing, fi) + ".png"
 				if ResourceLoader.exists(path):

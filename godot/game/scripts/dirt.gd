@@ -13,6 +13,8 @@ var stick: Vector2 = Vector2.ZERO
 
 var _label: Label
 var _stick_draw: Node2D
+var _spr: Sprite2D
+var _clean_stage: int = -1
 
 
 func setup(dtype: String, size: Vector2) -> void:
@@ -40,20 +42,44 @@ func set_cleaning(active: bool, axis: Vector2, meter: float) -> void:
 	cleaning = active
 	stick = axis
 	clean_meter = clampf(meter, 0.0, 100.0)
+	_sync_clean_visual()
 	if _stick_draw:
 		_stick_draw.queue_redraw()
 
 
-func _build() -> void:
-	var model := "trash"
+func _dirt_model() -> String:
 	if dirt_type == Tuning.DIRT_PUDDLE:
-		model = "puddle"
-	elif dirt_type == Tuning.DIRT_VOMIT:
-		model = "vomit"
-	var spr := Vox.sprite(model, 0)
-	Vox.fit(spr, patch_size)
-	spr.z_index = -2
-	add_child(spr)
+		return "puddle"
+	if dirt_type == Tuning.DIRT_VOMIT:
+		return "vomit"
+	return "trash"
+
+
+func _sync_clean_visual() -> void:
+	if _spr == null:
+		return
+	var stage := 0
+	if clean_meter >= 66.0:
+		stage = 2
+	elif clean_meter >= 33.0:
+		stage = 1
+	if cleaning and stage != _clean_stage:
+		_clean_stage = stage
+		var clean_id := "%s_clean_%d" % [_dirt_model(), stage]
+		var path := "res://art/sprites/%s_0.png" % clean_id
+		if ResourceLoader.exists(path):
+			Vox.apply(_spr, clean_id, 0)
+			Vox.fit(_spr, patch_size)
+	# Fade as meter fills (Alpha stand-in for dissolving dirt).
+	_spr.modulate.a = clampf(1.0 - clean_meter / 120.0, 0.35, 1.0)
+
+
+func _build() -> void:
+	var model := _dirt_model()
+	_spr = Vox.sprite(model, 0)
+	Vox.fit(_spr, patch_size)
+	_spr.z_index = -2
+	add_child(_spr)
 	var col := CollisionShape2D.new()
 	var shape := RectangleShape2D.new()
 	shape.size = patch_size

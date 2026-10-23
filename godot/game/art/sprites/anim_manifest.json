@@ -9,58 +9,106 @@
   "characters": {
     "player": {
       "idle": {
-        "frames": 1,
-        "fps": 1
+        "frames": 2,
+        "fps": 2
       },
       "walk": {
         "frames": 4,
         "fps": 8
       },
       "run": {
-        "frames": 4,
+        "frames": 6,
         "fps": 12
       },
       "dash": {
-        "frames": 2,
+        "frames": 3,
         "fps": 14
       },
       "clean": {
-        "frames": 2,
-        "fps": 6
+        "frames": 4,
+        "fps": 8
       },
       "fight": {
-        "frames": 2,
-        "fps": 10
+        "frames": 4,
+        "fps": 12
       },
       "checkout": {
-        "frames": 1,
-        "fps": 1
+        "frames": 3,
+        "fps": 6
       },
       "slip": {
-        "frames": 1,
-        "fps": 1
+        "frames": 2,
+        "fps": 6
       },
       "down": {
         "frames": 1,
         "fps": 1
       },
       "restock": {
+        "frames": 3,
+        "fps": 6
+      },
+      "walk_carry": {
+        "frames": 4,
+        "fps": 8
+      },
+      "cast": {
+        "frames": 3,
+        "fps": 8
+      },
+      "deliver": {
         "frames": 2,
-        "fps": 5
+        "fps": 6
       }
     },
     "customer": {
       "idle": {
-        "frames": 1,
-        "fps": 1
+        "frames": 2,
+        "fps": 2
       },
       "walk": {
         "frames": 4,
         "fps": 8
       },
       "angry": {
-        "frames": 1,
-        "fps": 1
+        "frames": 3,
+        "fps": 5
+      },
+      "leave": {
+        "frames": 4,
+        "fps": 8
+      }
+    },
+    "customer_hurry": {
+      "idle": {
+        "frames": 2,
+        "fps": 2
+      },
+      "walk": {
+        "frames": 4,
+        "fps": 8
+      },
+      "angry": {
+        "frames": 3,
+        "fps": 5
+      },
+      "leave": {
+        "frames": 4,
+        "fps": 8
+      }
+    },
+    "customer_slow": {
+      "idle": {
+        "frames": 2,
+        "fps": 2
+      },
+      "walk": {
+        "frames": 4,
+        "fps": 8
+      },
+      "angry": {
+        "frames": 3,
+        "fps": 5
       },
       "leave": {
         "frames": 4,
@@ -69,52 +117,60 @@
     },
     "thief": {
       "idle": {
-        "frames": 1,
-        "fps": 1
+        "frames": 2,
+        "fps": 2
       },
       "walk": {
         "frames": 4,
         "fps": 8
       },
       "fight": {
-        "frames": 2,
-        "fps": 10
+        "frames": 4,
+        "fps": 12
       },
       "leave": {
         "frames": 4,
         "fps": 8
       },
       "fly": {
-        "frames": 2,
+        "frames": 4,
         "fps": 12
       }
     },
     "clerk_cashier": {
       "idle": {
-        "frames": 1,
-        "fps": 1
+        "frames": 2,
+        "fps": 2
       },
       "walk": {
         "frames": 4,
         "fps": 8
       },
       "checkout": {
-        "frames": 1,
-        "fps": 1
+        "frames": 3,
+        "fps": 6
+      },
+      "walk_carry": {
+        "frames": 4,
+        "fps": 8
       }
     },
     "clerk_restock": {
       "idle": {
-        "frames": 1,
-        "fps": 1
+        "frames": 2,
+        "fps": 2
       },
       "walk": {
         "frames": 4,
         "fps": 8
       },
       "restock": {
-        "frames": 2,
-        "fps": 5
+        "frames": 3,
+        "fps": 6
+      },
+      "walk_carry": {
+        "frames": 4,
+        "fps": 8
       }
     }
   }

@@ -1,0 +1,124 @@
+{
+  "version": 1,
+  "shelves": {
+    "shelf_dry": {
+      "fill_0": {
+        "frames": 1,
+        "facings": 4
+      },
+      "fill_1": {
+        "frames": 1,
+        "facings": 4
+      },
+      "fill_2": {
+        "frames": 1,
+        "facings": 4
+      },
+      "fill_3": {
+        "frames": 1,
+        "facings": 4
+      }
+    },
+    "shelf_frozen": {
+      "fill_0": {
+        "frames": 1,
+        "facings": 4
+      },
+      "fill_1": {
+        "frames": 1,
+        "facings": 4
+      },
+      "fill_2": {
+        "frames": 1,
+        "facings": 4
+      },
+      "fill_3": {
+        "frames": 1,
+        "facings": 4
+      }
+    },
+    "shelf_ice": {
+      "fill_0": {
+        "frames": 1,
+        "facings": 4
+      },
+      "fill_1": {
+        "frames": 1,
+        "facings": 4
+      },
+      "fill_2": {
+        "frames": 1,
+        "facings": 4
+      },
+      "fill_3": {
+        "frames": 1,
+        "facings": 4
+      }
+    }
+  },
+  "dirts": {
+    "trash": {
+      "clean_0": {
+        "frames": 1
+      },
+      "clean_1": {
+        "frames": 1
+      },
+      "clean_2": {
+        "frames": 1
+      }
+    },
+    "puddle": {
+      "clean_0": {
+        "frames": 1
+      },
+      "clean_1": {
+        "frames": 1
+      },
+      "clean_2": {
+        "frames": 1
+      }
+    },
+    "vomit": {
+      "clean_0": {
+        "frames": 1
+      },
+      "clean_1": {
+        "frames": 1
+      },
+      "clean_2": {
+        "frames": 1
+      }
+    }
+  },
+  "fx": {
+    "suck": {
+      "frames": 4,
+      "size": 24
+    },
+    "spray": {
+      "frames": 4,
+      "size": 24
+    },
+    "coin": {
+      "frames": 3,
+      "size": 24
+    },
+    "combo": {
+      "frames": 3,
+      "size": 24
+    },
+    "timestop": {
+      "frames": 4,
+      "size": 24
+    },
+    "clean_spark": {
+      "frames": 3,
+      "size": 24
+    },
+    "skid": {
+      "frames": 3,
+      "size": 24
+    }
+  }
+}

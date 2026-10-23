@@ -16,8 +16,12 @@ var _dirt_areas: Array[Node] = []
 var mood: String = "購物"
 var is_thief: bool = false
 var kind: String = ""
+## Alpha pace variant: normal / hurry / slow → distinct model (not full recolor).
+var pace: String = "normal"
+var _model_id: String = "customer"
 var fight_hp: float = 100.0
 var fight_left: float = 0.0
+var _pace_speed: float = 1.0
 
 var _timer: float = 0.0
 var _target_shelf: Node2D
@@ -66,6 +70,12 @@ func setup(game: Node, door: Vector2, thief: bool = false) -> void:
 	_game = game
 	is_thief = thief
 	kind = "thief" if thief else ""
+	if thief:
+		pace = "normal"
+		_model_id = "thief"
+		_pace_speed = 1.0
+	else:
+		_roll_pace()
 	global_position = door + Vector2(randf_range(-20, 20), -40)
 	shopping = _roll_list()
 	_bump_list()
@@ -75,6 +85,24 @@ func setup(game: Node, door: Vector2, thief: bool = false) -> void:
 	collision_mask = Tuning.LAYER_WALLS
 	_build_visual()
 	_sync_labels()
+
+
+func _roll_pace() -> void:
+	var roll := randf()
+	if roll < 0.34:
+		pace = "hurry"
+		_model_id = "customer_hurry"
+		_pace_speed = 1.22
+	elif roll < 0.67:
+		pace = "slow"
+		_model_id = "customer_slow"
+		_pace_speed = 0.78
+	else:
+		pace = "normal"
+		_model_id = "customer"
+		_pace_speed = 1.0
+	if not Vox.has_anim(_model_id, "walk"):
+		_model_id = "customer"
 
 
 func add_dirt(delta_count: int) -> void:
@@ -430,7 +458,7 @@ func _follow_to(pos: Vector2, delta: float) -> bool:
 	if to.length_squared() < 1.0:
 		velocity = Vector2.ZERO
 		return global_position.distance_squared_to(pos) <= arrive_sq
-	var spd := Tuning.WALK_SPEED * Tuning.agi_mult(Tuning.CUSTOMER_AGI)
+	var spd := Tuning.WALK_SPEED * Tuning.agi_mult(Tuning.CUSTOMER_AGI) * _pace_speed
 	spd *= float(_game.customer_move_mult()) if _game.has_method("customer_move_mult") else float(_game.call("customer_move_mult"))
 	if on_dirt() and state != State.LEAVE and not is_thief:
 		spd *= Tuning.DIRT_MULT
@@ -737,7 +765,7 @@ func _build_visual() -> void:
 	rect.size = Vector2(22, 22)
 	shape.shape = rect
 	add_child(shape)
-	_body = Vox.animated("thief" if is_thief else "customer")
+	_body = Vox.animated(_model_id)
 	add_child(_body)
 	_mood_label = Label.new()
 	_mood_label.position = Vector2(-72, -78)
@@ -898,7 +926,7 @@ func _sync_labels() -> void:
 			if facing != _shown_facing or anim_key != String(_body.get_meta("shown_anim", "")):
 				_shown_facing = facing
 				_body.set_meta("shown_anim", anim_key)
-				Vox.play_anim(_body as AnimatedSprite2D, "thief" if is_thief else "customer", anim, face_v)
+				Vox.play_anim(_body as AnimatedSprite2D, _model_id, anim, face_v)
 		elif _body is Sprite2D and facing != _shown_facing:
 			_shown_facing = facing
-			Vox.apply(_body as Sprite2D, "thief" if is_thief else "customer", facing)
+			Vox.apply(_body as Sprite2D, _model_id, facing)

@@ -18,6 +18,7 @@ var label: Label
 var body: CanvasItem
 var _goods: Sprite2D
 var facing: Vector2 = Vector2.UP
+var _fill_level: int = -1
 
 
 func can_accept(item_sku: String) -> bool:
@@ -87,7 +88,37 @@ func stand_position() -> Vector2:
 	return global_position + facing * 58.0
 
 
+func fill_level() -> int:
+	## 0 empty · 1 low · 2 mid · 3 full (Alpha shelf fill_* art).
+	if count <= 0 or capacity <= 0:
+		return 0
+	var ratio := float(count) / float(capacity)
+	if ratio < 0.34:
+		return 1
+	if ratio < 0.67:
+		return 2
+	return 3
+
+
+func _shelf_model_base() -> String:
+	if category == Tuning.CAT_FROZEN:
+		return "shelf_frozen"
+	if category == Tuning.CAT_ICE:
+		return "shelf_ice"
+	return "shelf_dry"
+
+
 func _refresh() -> void:
+	var level := fill_level()
+	if body is Sprite2D and level != _fill_level:
+		_fill_level = level
+		var k := Vox.k_from_facing(facing)
+		var fill_id := "%s_fill_%d" % [_shelf_model_base(), level]
+		var path := "res://art/sprites/%s_%d.png" % [fill_id, k]
+		if ResourceLoader.exists(path):
+			Vox.apply(body as Sprite2D, fill_id, k)
+		else:
+			Vox.apply(body as Sprite2D, _shelf_model_base(), k)
 	if _goods == null:
 		_goods = Vox.sprite("can", 0)
 		_goods.scale = Vector2(0.55, 0.55)

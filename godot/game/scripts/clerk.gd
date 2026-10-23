@@ -269,7 +269,8 @@ func _follow(pos: Vector2, delta: float) -> bool:
 	var spd := Tuning.WALK_SPEED * Tuning.agi_mult(10)
 	spd *= float(_game.customer_move_mult()) if _game.has_method("customer_move_mult") else float(_game.call("customer_move_mult"))
 	velocity = to.normalized() * maxf(spd, 1.0)
-	_sync_visual("walk", velocity)
+	var walk_anim := "walk_carry" if _box_n > 0 and Vox.has_anim(_model_id, "walk_carry") else "walk"
+	_sync_visual(walk_anim, velocity)
 	move_and_slide()
 	return false
 

@@ -28,9 +28,12 @@ OUT = vs.OUT
 MANIFEST_PATH = OUT / "anim_manifest.json"
 
 # Character kits: shirt, shirt_dark, hair, extras
+# customer_hurry / customer_slow = Alpha pace variants (not full recolors of one mesh).
 CHARS = {
     "player": dict(shirt="player", shirt_dark="player_dark", hair="hair"),
     "customer": dict(shirt="customer", shirt_dark="customer_dark", hair="hair_brown", bag=True),
+    "customer_hurry": dict(shirt="soda", shirt_dark="thief", hair="hair", bag=True),
+    "customer_slow": dict(shirt="clerk", shirt_dark="clerk_dark", hair="hair_brown", bag=True),
     "thief": dict(shirt="thief", shirt_dark="hood", hair="hair", hood=True, mask=True),
     "clerk_cashier": dict(shirt="clerk", shirt_dark="clerk_dark", hair="hair", badge=True),
     "clerk_restock": dict(shirt="clerk_stock", shirt_dark="player_dark", hair="hair_brown"),
@@ -52,43 +55,78 @@ def _walk_frames(amp: int = 1) -> list[dict]:
     ]
 
 
+def _walk_carry_frames() -> list[dict]:
+    """Walk while arms hold a box high (clerks / player carrying)."""
+    return [
+        {"leg_l_y": 1, "leg_r_y": -1, "arm_l_z": 2, "arm_r_z": 2, "arm_l_y": 1, "arm_r_y": 1, "bob": 0},
+        {"leg_l_y": 0, "leg_r_y": 0, "arm_l_z": 2, "arm_r_z": 2, "arm_l_y": 1, "arm_r_y": 1, "bob": 1},
+        {"leg_l_y": -1, "leg_r_y": 1, "arm_l_z": 2, "arm_r_z": 2, "arm_l_y": 1, "arm_r_y": 1, "bob": 0},
+        {"leg_l_y": 0, "leg_r_y": 0, "arm_l_z": 2, "arm_r_z": 2, "arm_l_y": 1, "arm_r_y": 1, "bob": 1},
+    ]
+
+
+CUSTOMER_IDS = ["customer", "customer_hurry", "customer_slow"]
+
 ANIMS: dict[str, dict] = {
     # Shared locomotion
-    "idle": {"frames": [{"bob": 0}], "fps": 1, "chars": "all"},
+    "idle": {"frames": [{"bob": 0}, {"bob": 1}], "fps": 2, "chars": "all"},
     "walk": {"frames": _walk_frames(1), "fps": 8, "chars": "all"},
-    "run": {"frames": _walk_frames(2), "fps": 12, "chars": ["player"]},
+    "run": {
+        "frames": _walk_frames(2)
+        + [
+            {"leg_l_y": 2, "leg_r_y": -2, "arm_l_y": -2, "arm_r_y": 2, "lean": 1, "bob": 0},
+            {"leg_l_y": -2, "leg_r_y": 2, "arm_l_y": 2, "arm_r_y": -2, "lean": 1, "bob": 1},
+        ],
+        "fps": 12,
+        "chars": ["player"],
+    },
     "dash": {
         "frames": [
-            {"lean": 2, "leg_l_y": -1, "leg_r_y": -1, "arm_l_y": 1, "arm_r_y": 1},
-            {"lean": 2, "leg_l_y": -2, "leg_r_y": 0, "arm_l_y": 2, "arm_r_y": 0},
+            {"lean": 2, "leg_l_y": -1, "leg_r_y": -1, "arm_l_y": 1, "arm_r_y": 1, "bob": 0},
+            {"lean": 3, "leg_l_y": -2, "leg_r_y": 0, "arm_l_y": 2, "arm_r_y": 0, "bob": 1},
+            {"lean": 2, "leg_l_y": 0, "leg_r_y": -2, "arm_l_y": 0, "arm_r_y": 2, "bob": 0},
         ],
         "fps": 14,
         "chars": ["player"],
     },
+    # mop / sweep cycle
     "clean": {
         "frames": [
-            {"arm_r_z": -3, "arm_r_y": 2, "lean": 1},
-            {"arm_r_z": -4, "arm_r_y": 1, "lean": 1},
+            {"arm_r_z": -2, "arm_r_y": 2, "lean": 1, "bob": 0},
+            {"arm_r_z": -4, "arm_r_y": 1, "lean": 1, "bob": 0},
+            {"arm_r_z": -3, "arm_r_y": 0, "lean": 1, "bob": 1},
+            {"arm_r_z": -4, "arm_r_y": 2, "lean": 1, "bob": 0},
         ],
-        "fps": 6,
+        "fps": 8,
         "chars": ["player"],
     },
+    # grab → punch rhythm
     "fight": {
         "frames": [
             {"arm_l_y": 2, "arm_r_y": 2, "arm_l_z": 1, "arm_r_z": 1, "lean": 1},
             {"arm_l_y": 3, "arm_r_y": 1, "arm_l_z": 0, "arm_r_z": 0, "lean": 1},
+            {"arm_l_y": 1, "arm_r_y": 3, "arm_l_z": 0, "arm_r_z": 1, "lean": 2},
+            {"arm_l_y": 2, "arm_r_y": 2, "arm_l_z": 1, "arm_r_z": 1, "lean": 1},
         ],
-        "fps": 10,
+        "fps": 12,
         "chars": ["player", "thief"],
     },
+    # button / card tap
     "checkout": {
-        "frames": [{"arm_r_y": 2, "arm_r_z": 1, "lean": 0}],
-        "fps": 1,
+        "frames": [
+            {"arm_r_y": 1, "arm_r_z": 0, "lean": 0},
+            {"arm_r_y": 2, "arm_r_z": 1, "lean": 0},
+            {"arm_r_y": 2, "arm_r_z": 0, "lean": 0},
+        ],
+        "fps": 6,
         "chars": ["player", "clerk_cashier"],
     },
     "slip": {
-        "frames": [{"leg_l_y": 2, "leg_r_y": -1, "lean": -1, "arm_l_y": -1, "arm_r_y": 2}],
-        "fps": 1,
+        "frames": [
+            {"leg_l_y": 2, "leg_r_y": -1, "lean": -1, "arm_l_y": -1, "arm_r_y": 2},
+            {"leg_l_y": 2, "leg_r_y": -2, "lean": -2, "arm_l_y": -2, "arm_r_y": 2, "bob": -1},
+        ],
+        "fps": 6,
         "chars": ["player"],
     },
     "down": {
@@ -100,23 +138,54 @@ ANIMS: dict[str, dict] = {
         "frames": [
             {"arm_l_y": 1, "arm_r_y": 1, "arm_l_z": 1, "arm_r_z": 1, "lean": 1},
             {"arm_l_y": 2, "arm_r_y": 2, "arm_l_z": 0, "arm_r_z": 0, "lean": 1},
+            {"arm_l_y": 2, "arm_r_y": 2, "arm_l_z": 1, "arm_r_z": 1, "lean": 1},
         ],
-        "fps": 5,
+        "fps": 6,
         "chars": ["clerk_restock", "player"],
     },
-    "angry": {
-        "frames": [{"arm_l_y": -1, "arm_r_y": -1, "arm_l_z": 2, "arm_r_z": 2}],
-        "fps": 1,
-        "chars": ["customer"],
+    "walk_carry": {
+        "frames": _walk_carry_frames(),
+        "fps": 8,
+        "chars": ["clerk_restock", "clerk_cashier", "player"],
     },
-    "leave": {"frames": _walk_frames(1), "fps": 8, "chars": ["customer", "thief"]},
+    "angry": {
+        "frames": [
+            {"arm_l_y": -1, "arm_r_y": -1, "arm_l_z": 2, "arm_r_z": 2},
+            {"arm_l_y": -1, "arm_r_y": -1, "arm_l_z": 3, "arm_r_z": 2, "bob": 1},
+            {"arm_l_y": -1, "arm_r_y": -1, "arm_l_z": 2, "arm_r_z": 3},
+        ],
+        "fps": 5,
+        "chars": CUSTOMER_IDS,
+    },
+    "leave": {"frames": _walk_frames(1), "fps": 8, "chars": CUSTOMER_IDS + ["thief"]},
     "fly": {
         "frames": [
             {"lean": 3, "leg_l_y": -1, "leg_r_y": 1, "arm_l_y": -2, "arm_r_y": 2, "bob": 2},
             {"lean": 3, "leg_l_y": 1, "leg_r_y": -1, "arm_l_y": 2, "arm_r_y": -2, "bob": 3},
+            {"lean": 2, "leg_l_y": -1, "leg_r_y": 1, "arm_l_y": -1, "arm_r_y": 2, "bob": 2},
+            {"lean": 3, "leg_l_y": 0, "leg_r_y": 0, "arm_l_y": -2, "arm_r_y": 2, "bob": 4},
         ],
         "fps": 12,
         "chars": ["thief"],
+    },
+    # skill / ult cast (arms up)
+    "cast": {
+        "frames": [
+            {"arm_l_z": 2, "arm_r_z": 2, "arm_l_y": 0, "arm_r_y": 0, "lean": 0},
+            {"arm_l_z": 3, "arm_r_z": 3, "arm_l_y": -1, "arm_r_y": 1, "lean": 1, "bob": 1},
+            {"arm_l_z": 2, "arm_r_z": 2, "arm_l_y": 0, "arm_r_y": 0, "lean": 0},
+        ],
+        "fps": 8,
+        "chars": ["player"],
+    },
+    # help / combo hand-off
+    "deliver": {
+        "frames": [
+            {"arm_r_y": 2, "arm_r_z": 1, "lean": 1},
+            {"arm_r_y": 3, "arm_r_z": 0, "lean": 1},
+        ],
+        "fps": 6,
+        "chars": ["player"],
     },
 }
 
