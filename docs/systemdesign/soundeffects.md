@@ -3,8 +3,8 @@
 - 依現有**角色行動**與**物件互動**設計整理（`playeraction.md`、`playermovement.md`、`replenishmentsystem.md`、`cashiersystem.md`、`cleaningsystem.md`、`thiefsystem.md`、技能／奧義、客人／店員、準備／暫停 UI）
 - **不含 BGM／環境床**（店內 Ambient 另表；本檔只列事件 SFX）
 - 活線：`godot/game`。Alpha 已接 `SfxBus` autoload；素材在 `godot/game/audio/sfx/<id>.wav`（程序生成佔位，之後由音效設計師替換）
-- 測試頁：準備選單（`TEST_TOOLS`）→「音效測試」；或直接跑 `res://scenes/sfx_test.tscn`
-- 再生：`python3 tools/gen_alpha_sfx.py`
+- 測試頁：準備選單（`TEST_TOOLS`）→「音效測試」；或直接跑 `res://scenes/sfx_test.tscn`。每列在 `▶` 後標註本表「觸發（設計）」＝映射的遊戲動作／效果
+- 再生素材：`python3 tools/gen_alpha_sfx.py`；再生 catalog（含 trigger）：`python3 tools/gen_sfx_catalog.py`
 - 優先：P0＝玩法必聽回饋 · P1＝節奏與辨識 · P2＝可延後／可共用變體
 
 ## 命名建議

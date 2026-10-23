@@ -72,7 +72,12 @@ func _fill() -> void:
 		_ids.append("")
 		for e in SfxCatalog.by_priority(pri):
 			var sid := String(e["id"])
-			_list.add_item("[%s] %s　▶" % [String(e.get("group", "")), sid])
+			var group := String(e.get("group", ""))
+			var trigger := String(e.get("trigger", ""))
+			if trigger == "":
+				_list.add_item("[%s] %s　▶" % [group, sid])
+			else:
+				_list.add_item("[%s] %s　▶　%s" % [group, sid, trigger])
 			_ids.append(sid)
 	_index = 1 if _ids.size() > 1 else 0
 	if _list.item_count > _index:

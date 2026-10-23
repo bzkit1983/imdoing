@@ -327,7 +327,11 @@ static func _sfx(menu: CanvasLayer) -> void:
 		for e in SfxCatalog.by_priority(pri):
 			var sid := String(e["id"])
 			var group := String(e.get("group", ""))
-			menu._add("[%s] %s　▶" % [group, sid], "play_sfx", sid)
+			var trigger := String(e.get("trigger", ""))
+			if trigger == "":
+				menu._add("[%s] %s　▶" % [group, sid], "play_sfx", sid)
+			else:
+				menu._add("[%s] %s　▶　%s" % [group, sid, trigger], "play_sfx", sid)
 	menu._add(Loc.t("prep.back"), "go", "home")
 
 
