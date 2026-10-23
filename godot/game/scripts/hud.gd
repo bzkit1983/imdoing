@@ -7,6 +7,7 @@ const UiFont = preload("res://scripts/ui_font.gd")
 var game: Node
 var player: CharacterBody2D
 var _skip: Button
+var _pause_btn: Button
 var _left_fp: String = ""
 var _right_dirty: bool = true
 var _skip_running: bool = false
@@ -51,6 +52,7 @@ func setup(g: Node, p: CharacterBody2D) -> void:
 	_close.visible = false
 	_cast.modulate.a = 0.0
 	_build_skip()
+	_build_pause()
 	_banner.text = Loc.t("hud.banner")
 	var tw := create_tween()
 	tw.tween_interval(1.8)
@@ -105,11 +107,14 @@ func _process(delta: float) -> void:
 			_apply_cjk_fonts($Root)
 	_sync_left()
 	_sync_right()
-	if _skip:
+	if _skip or _pause_btn:
 		var running := game != null and (String(game.phase) == "restock" or String(game.phase) == "open")
 		if running != _skip_running:
 			_skip_running = running
-			_skip.visible = running
+			if _skip:
+				_skip.visible = running
+			if _pause_btn:
+				_pause_btn.visible = running
 
 
 func _build_skip() -> void:
@@ -140,10 +145,46 @@ func _build_skip() -> void:
 	_skip = btn
 
 
+func _build_pause() -> void:
+	## Top-right pause control — required for Web / touch (no Esc / Start).
+	var layer := CanvasLayer.new()
+	layer.layer = 25
+	add_child(layer)
+	var host := Control.new()
+	host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(host)
+	host.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var btn := Button.new()
+	btn.text = Loc.t("hud.pause")
+	btn.focus_mode = Control.FOCUS_NONE
+	host.add_child(btn)
+	btn.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	btn.offset_left = -168.0
+	btn.offset_top = 10.0
+	btn.offset_right = -16.0
+	btn.offset_bottom = 78.0
+	UiFont.apply_button(btn, 20)
+	var box := StyleBoxFlat.new()
+	box.bg_color = Color("24302a")
+	box.set_corner_radius_all(10)
+	box.border_color = Color("f4d35e")
+	box.set_border_width_all(2)
+	for state_name in ["normal", "hover", "pressed", "focus"]:
+		btn.add_theme_stylebox_override(state_name, box)
+	btn.add_theme_color_override("font_color", Color("f4f1ea"))
+	btn.pressed.connect(_on_pause_pressed)
+	_pause_btn = btn
+
+
 func _on_skip_operate() -> void:
 	SfxBus.play("sfx_ui_test_skip")
 	if game and game.has_method("skip_operate"):
 		game.skip_operate()
+
+
+func _on_pause_pressed() -> void:
+	if game and game.has_method("request_pause"):
+		game.call("request_pause")
 
 
 func _on_log(text: String) -> void:

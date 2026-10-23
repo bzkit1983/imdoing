@@ -398,6 +398,14 @@ func can_open_pause() -> bool:
 	return phase == "restock" or phase == "open"
 
 
+func request_pause() -> void:
+	if _pause == null or not _pause.has_method("open_menu"):
+		return
+	if _pause.has_method("is_open") and bool(_pause.call("is_open")):
+		return
+	_pause.call("open_menu", false)
+
+
 func on_pause_opened() -> void:
 	if _player and _player.has_method("set_hold"):
 		_player.set_hold("interact", false)

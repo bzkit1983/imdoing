@@ -7,6 +7,9 @@ const SfxCatalog = preload("res://scripts/sfx_catalog.gd")
 
 const POOL_SIZE := 12
 const DEFAULT_VOL_DB := -4.0
+const SETTINGS_PATH := "user://settings.cfg"
+const SETTINGS_SECTION := "audio"
+const SETTINGS_MUTED := "sfx_muted"
 
 var _streams: Dictionary = {} ## id -> AudioStream
 var _pool: Array[AudioStreamPlayer] = []
@@ -20,6 +23,7 @@ var _overcarry_cd: float = 0.0
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_load_settings()
 	_preload_all()
 	for i in POOL_SIZE:
 		var p := AudioStreamPlayer.new()
@@ -48,10 +52,30 @@ func set_muted(on: bool) -> void:
 		for p in _pool:
 			if p.playing:
 				p.stop()
+	_save_settings()
 
 
 func is_muted() -> bool:
 	return _muted
+
+
+func toggle_muted() -> bool:
+	set_muted(not _muted)
+	return _muted
+
+
+func _load_settings() -> void:
+	var cf := ConfigFile.new()
+	if cf.load(SETTINGS_PATH) != OK:
+		return
+	_muted = bool(cf.get_value(SETTINGS_SECTION, SETTINGS_MUTED, false))
+
+
+func _save_settings() -> void:
+	var cf := ConfigFile.new()
+	cf.load(SETTINGS_PATH) # keep other keys if present
+	cf.set_value(SETTINGS_SECTION, SETTINGS_MUTED, _muted)
+	cf.save(SETTINGS_PATH)
 
 
 func play(id: String, pitch: float = 1.0, vol_db: float = NAN) -> void:
