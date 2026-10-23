@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CHARSET = ROOT / "godot" / "game" / "fonts" / "charset_game.txt"
 LOCALE = ROOT / "godot" / "game" / "locale" / "strings.csv"
 CATALOG = ROOT / "godot" / "game" / "scripts" / "sfx_catalog.gd"
-FONT = ROOT / "godot" / "game" / "fonts" / "NotoSansTC-Game.otf"
+FONT = ROOT / "godot" / "game" / "fonts" / "NotoSansTC-Game.ttf"
 
 
 def main() -> int:
@@ -37,7 +37,7 @@ def main() -> int:
             print(f"  … +{len(missing) - 40} more")
         return 1
     if not FONT.is_file() or FONT.stat().st_size < 50_000:
-        print("FAIL missing or tiny NotoSansTC-Game.otf")
+        print("FAIL missing or tiny NotoSansTC-Game.ttf")
         return 1
     print(f"OK charset covers locale + SFX triggers ({len(cs)} chars, font {FONT.stat().st_size // 1024} KiB)")
     return 0
