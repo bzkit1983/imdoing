@@ -2,13 +2,13 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://bxl3sff4yxs2e"
-path="res://.godot/imported/NotoSansTC-Game.otf-b909ec88e958603e65303cde2e0d9aaf.fontdata"
+uid="uid://cvg0q088elorx"
+path="res://.godot/imported/NotoSansTC-Game.ttf-7fe7be8783a63595db9f125c8fcd5208.fontdata"
 
 [deps]
 
-source_file="res://fonts/NotoSansTC-Game.otf"
-dest_files=["res://.godot/imported/NotoSansTC-Game.otf-b909ec88e958603e65303cde2e0d9aaf.fontdata"]
+source_file="res://fonts/NotoSansTC-Game.ttf"
+dest_files=["res://.godot/imported/NotoSansTC-Game.ttf-7fe7be8783a63595db9f125c8fcd5208.fontdata"]
 
 [params]
 
@@ -29,7 +29,7 @@ oversampling=0.0
 Fallbacks=null
 fallbacks=[]
 Compress=null
-compress=true
+compress=false
 preload=[]
 language_support={}
 script_support={}
