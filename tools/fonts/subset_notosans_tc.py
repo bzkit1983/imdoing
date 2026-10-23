@@ -25,12 +25,18 @@ OUT_FONT = FONTS / "NotoSansTC-Game.otf"
 SOURCE_DIR = FONTS / "source"
 SOURCE_FONT = SOURCE_DIR / "NotoSansTC-Regular.otf"
 
-# Preferred local full font (dev machine / existing checkout).
-LEGACY_FULL = FONTS / "NotoSansTC-Regular.otf"
-# Upstream OFL source (noto-cjk release asset layout may move; override with --source).
+# Preferred local full fonts (dev machine / frozen demos in this monorepo).
+LOCAL_FULL_CANDIDATES = (
+	FONTS / "NotoSansTC-Regular.otf",
+	SOURCE_DIR / "NotoSansTC-Regular.otf",
+	SOURCE_DIR / "NotoSansCJKtc-Regular.otf",
+	ROOT / "godot" / "alpha_v0_1" / "fonts" / "NotoSansTC-Regular.otf",
+	ROOT / "godot" / "demo_v0_6" / "fonts" / "NotoSansTC-Regular.otf",
+)
+# Upstream OFL source (path renamed to NotoSansCJKtc-* in noto-cjk).
 SOURCE_URL = (
 	"https://raw.githubusercontent.com/notofonts/noto-cjk/"
-	"main/Sans/OTF/TraditionalChinese/NotoSansTC-Regular.otf"
+	"main/Sans/OTF/TraditionalChinese/NotoSansCJKtc-Regular.otf"
 )
 
 # Always keep UI / format scaffolding even if not present in string literals yet.
@@ -41,6 +47,9 @@ FORCE_CHARS = (
 	" $%.,:;!?/+-*=<>_#@&|()[]{}'\"`~^\\"
 	"，。！？、：；「」『』（）【】…—－·•×÷±℃°／％＄"
 	"０１２３４５６７８９"
+	"▶→←↑↓−＋＝※"
+	# Pause / HUD extras that land via Loc before the next harvest cycle.
+	"閉項調音量聲點選右上"
 	"\n\t "
 )
 
@@ -60,12 +69,35 @@ def _unescape_gd(s: str) -> str:
 	)
 
 
+def _harvest_locale_csv(chars: set[str]) -> None:
+	"""Include zh_TW (and key) columns from the runtime Loc table."""
+	csv_path = GAME / "locale" / "strings.csv"
+	if not csv_path.is_file():
+		return
+	try:
+		text = csv_path.read_text(encoding="utf-8")
+	except UnicodeDecodeError:
+		return
+	# CSV: key,zh_TW,en — take first two fields so Loc.t() CJK is never skipped.
+	for i, line in enumerate(text.splitlines()):
+		if i == 0 and line.startswith("key"):
+			continue
+		# Naive split is wrong for quoted commas; pull CJK from the whole line
+		# plus the unquoted zh_TW field when simple.
+		chars.update(line)
+		parts = line.split(",", 2)
+		if len(parts) >= 2:
+			chars.update(parts[0])
+			chars.update(parts[1].strip('"'))
+
+
 def harvest_chars() -> str:
 	chars: set[str] = set(FORCE_CHARS)
 	roots = [
 		GAME / "scripts",
 		GAME / "scenes",
 		GAME / "themes",
+		GAME / "audio",  # sfx_catalog.txt trigger column
 	]
 	for root in roots:
 		if not root.exists():
@@ -89,25 +121,31 @@ def harvest_chars() -> str:
 				else:
 					body = raw[1:-1]
 				chars.update(_unescape_gd(body))
+			# Plain-text tables (e.g. audio/sfx_catalog.txt) have no quotes.
+			if path.suffix == ".txt":
+				chars.update(text)
+	_harvest_locale_csv(chars)
 	# Stable order: code point ascending, skip pure controls except space/tab/newline already forced.
 	ordered = sorted(c for c in chars if ord(c) >= 32 or c in "\n\t")
 	return "".join(ordered)
 
 
 def ensure_source_font() -> Path:
-	for candidate in (SOURCE_FONT, LEGACY_FULL):
+	for candidate in LOCAL_FULL_CANDIDATES:
 		if candidate.exists() and candidate.stat().st_size > 1_000_000:
 			return candidate
 	SOURCE_DIR.mkdir(parents=True, exist_ok=True)
-	print(f"Downloading full Noto Sans TC → {SOURCE_FONT}", file=sys.stderr)
+	dest = SOURCE_DIR / "NotoSansCJKtc-Regular.otf"
+	print(f"Downloading full Noto Sans TC → {dest}", file=sys.stderr)
 	try:
-		urllib.request.urlretrieve(SOURCE_URL, SOURCE_FONT)
+		urllib.request.urlretrieve(SOURCE_URL, dest)
 	except Exception as exc:  # noqa: BLE001 — surface download hints
 		raise SystemExit(
 			f"Could not download source font ({exc}).\n"
-			f"Place NotoSansTC-Regular.otf at {SOURCE_FONT} or pass --source."
+			f"Place a full NotoSansTC/NotoSansCJKtc Regular OTF under {SOURCE_DIR} "
+			f"or pass --source."
 		) from exc
-	return SOURCE_FONT
+	return dest
 
 
 def write_charset(text: str) -> None:

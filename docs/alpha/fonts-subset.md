@@ -17,7 +17,7 @@
 
 ## 流程
 
-1. 改了玩家可見文案（`scripts/`、`scenes/`）後，在 repo 根執行：
+1. 改了玩家可見文案（`scripts/`、`scenes/`、`locale/strings.csv`、SFX catalog trigger）後，在 repo 根執行：
 
 ```bash
 pip install fonttools

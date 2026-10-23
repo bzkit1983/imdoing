@@ -2,12 +2,8 @@ key,zh_TW,en
 pause.title,暫停,Paused
 pause.body,遊戲已暫停。營運中進度不會另外存檔；掛起前會做安全 checkpoint。,"Game paused. Mid-day progress is not auto-saved; a safe checkpoint runs before suspend."
 pause.body_suspend,系統掛起 — 已安全暫停。恢復後按「繼續遊戲」回到店舖。,"App suspended — safely paused. Press Continue to return to the shop."
-pause.hint,Esc／Start 開關　　W／S 選擇　　A／D 調音量　　J 確定　　; 返回,"Esc/Start · W/S select · A/D volume · J confirm · ; back"
-pause.hint_touch,右上「暫停」　　−／＋ 調音量　　點選選項,"Top-right Pause · −/+ volume · tap options"
+pause.hint,Esc／Start 開關　　W／S 選擇　　J 確定　　; 返回,"Esc/Start toggle · W/S select · J confirm · ; back"
 pause.resume,繼續遊戲,Continue
-pause.sfx_on,音效：開,SFX: On
-pause.sfx_off,音效：關,SFX: Off
-pause.sfx_volume,音效聲量：%d%%,SFX volume: %d%%
 pause.end_day,結束本日並結算,End day & settle
 early.title,提早關店,Close early
 early.body,所有補貨架都沒有貨了，收銀機也沒有人排隊。\n要提早關店，並結算今天嗎？,"All restock points are empty and no one is queued.\nClose early and settle today?"
@@ -16,7 +12,6 @@ early.yes,提早關店,Close early
 early.no,繼續營業,Keep open
 hud.banner,店鋪經營回合  ·  Demo v0.6,Shop day · Demo v0.6
 hud.skip_operate,馬上完成營運,Finish day now
-hud.pause,暫停,Pause
 hud.revenue,營業額  $%d  ·  被偷 $%d,Sales  $%d  ·  Stolen $%d
 hud.guests,在店客人  %d  ·  小偷 %d,Guests  %d  ·  Thieves %d
 hud.state,狀態  %s,State  %s
