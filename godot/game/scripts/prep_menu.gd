@@ -9,6 +9,7 @@ const StateScript = preload("res://scripts/game_state.gd")
 const PrepWidgets = preload("res://scripts/prep/prep_widgets.gd")
 const PrepPages = preload("res://scripts/prep/prep_pages.gd")
 const PrepGridView = preload("res://scripts/prep/prep_grid_view.gd")
+const ProductVersion = preload("res://scripts/product_version.gd")
 
 const PREP_TITLE := PrepWidgets.PREP_TITLE
 const PREP_INFO := PrepWidgets.PREP_INFO
@@ -472,8 +473,19 @@ func _activate() -> void:
 			visible = false
 			set_process_unhandled_input(false)
 			start_day.emit()
+		"test_money":
+			_grant_test_money()
 		_:
 			pass
+
+
+func _grant_test_money() -> void:
+	const ProductVersion = preload("res://scripts/product_version.gd")
+	if not ProductVersion.test_tools_enabled():
+		return
+	state.money += 1000
+	_msg = Loc.t("prep.home.test_money_ok", [state.money])
+	_refresh()
 
 
 func _locked_sku_body(sku: String) -> String:

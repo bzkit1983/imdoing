@@ -5,6 +5,7 @@ const Tuning = preload("res://scripts/tuning.gd")
 const Skills = preload("res://scripts/skills.gd")
 const UiFont = preload("res://scripts/ui_font.gd")
 const PrepWidgets = preload("res://scripts/prep/prep_widgets.gd")
+const ProductVersion = preload("res://scripts/product_version.gd")
 
 
 static func apply_panel_layout(menu: CanvasLayer) -> void:
@@ -109,6 +110,8 @@ static func _home(menu: CanvasLayer) -> void:
 	menu._add(Loc.t("prep.home.layout"), "go", "layout")
 	menu._add(Loc.t("prep.home.clerks", [menu.state.clerks.size()]), "go", "clerks")
 	menu._add(Loc.t("prep.home.open"), "try_open", null)
+	if ProductVersion.test_tools_enabled():
+		menu._add(Loc.t("prep.home.test_money"), "test_money", null)
 	menu._add(Loc.t("prep.home.wipe"), "wipe_save", null)
 
 
