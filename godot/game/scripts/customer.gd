@@ -627,6 +627,7 @@ func dash_knock_away(dir: Vector2) -> void:
 
 
 ## Dash into shopping guest: Screen KO fly-up, land in place, stun, drop cart, re-shop.
+## Shopping list stays the same; already-taken items are put back so they buy again.
 func dash_knock_guest(add_dissat: float) -> void:
 	if is_thief or state == State.FLEE or state == State.FIGHT:
 		return
@@ -634,11 +635,18 @@ func dash_knock_guest(add_dissat: float) -> void:
 		_reg().dequeue(self)
 	if _game and _game.has_method("release_player_checkout"):
 		_game.call("release_player_checkout")
+	## Rebuild wanted list = taken (cart) + still needed (shopping), then drop cart.
+	var rebuy: Array[String] = []
+	for s in cart:
+		rebuy.append(s)
+	for s in shopping:
+		rebuy.append(s)
 	_drop_cart_inplace()
 	dissatisfaction = minf(Tuning.DISSAT_MAX, dissatisfaction + maxf(0.0, add_dissat))
-	shopping = _roll_list()
+	shopping = rebuy
 	cart.clear()
 	raided = false
+	_target_shelf = null
 	_bump_list()
 	_clear_route()
 	state = State.SEEK
