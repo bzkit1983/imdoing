@@ -3,12 +3,12 @@
 importer="font_data_dynamic"
 type="FontFile"
 uid="uid://bxl3sff4yxs2e"
-path="res://.godot/imported/NotoSansTC-Game.otf-e26a57b75453d268b9cb1987e442549a.fontdata"
+path="res://.godot/imported/NotoSansTC-Game.otf-b909ec88e958603e65303cde2e0d9aaf.fontdata"
 
 [deps]
 
 source_file="res://fonts/NotoSansTC-Game.otf"
-dest_files=["res://.godot/imported/NotoSansTC-Game.otf-e26a57b75453d268b9cb1987e442549a.fontdata"]
+dest_files=["res://.godot/imported/NotoSansTC-Game.otf-b909ec88e958603e65303cde2e0d9aaf.fontdata"]
 
 [params]
 
