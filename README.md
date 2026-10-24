@@ -30,7 +30,7 @@ Repository for game project
 
 ## 設計文件
 
-- 長線規則：`docs/systemdesign/`（含 [`savesystem.md`](docs/systemdesign/savesystem.md)、[`control.md`](docs/systemdesign/control.md)、[`pausemenu.md`](docs/systemdesign/pausemenu.md)、[`soundeffects.md`](docs/systemdesign/soundeffects.md)）
+- 長線規則：`docs/systemdesign/`（含 [`savesystem.md`](docs/systemdesign/savesystem.md)、[`control.md`](docs/systemdesign/control.md)、[`pausemenu.md`](docs/systemdesign/pausemenu.md)、[`soundeffects.md`](docs/systemdesign/soundeffects.md)、[`elitecustomer.md`](docs/systemdesign/elitecustomer.md) 麻煩客人・設計中）
 - 缺口檢視：`docs/systemdesign-gaps.md`
 - Alpha 計劃／審查／設計：`docs/alpha/plan.md`、`docs/alpha/design.md`、`docs/alpha/tech-review-v0.1.md`
 - 執行期優化分析：`docs/alpha/runtime-perf-audit.md`
