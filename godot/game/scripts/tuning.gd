@@ -192,6 +192,21 @@ const DISSAT_QUEUE_PER_SEC := 100.0 / 15.0
 const DISSAT_DIRT_PER_SEC := 8.0
 const CUSTOMER_ARRIVE_DIST := 40.0
 const CUSTOMER_SHELF_REACH := 80.0
+## EliteCustomer（麻煩客人）— see docs/systemdesign/elitecustomer.md
+const ELITE_SPAWN_CHANCE_MIN := 0.01
+const ELITE_SPAWN_CHANCE_MAX := 0.05
+const ELITE_CONTACT_DIST := BODY_LENGTH
+const ELITE_INCITE_RADIUS := 5.0 * BODY_LENGTH
+const ELITE_AFFIX_CD_MIN := 5.0
+const ELITE_AFFIX_CD_MAX := 15.0
+const ELITE_ZOOM_SEC := 1.0
+const ELITE_REVENUE_MULT := 2
+const ELITE_LIST_MULT := {1: 2.0, 2: 2.5, 3: 3.0, 4: 3.5, 5: 4.0, 6: 5.0}
+const ELITE_AFFIX_IDS: Array[String] = [
+	"smash_shelf", "incite", "ruck_cart", "drive_off", "litterbug", "passive_shop",
+]
+## Live line: only LV1 unlocked until Beta story table. TEST / events may raise.
+const ELITE_MAX_UNLOCKED_LV := 1
 const LAYER_WALLS := 1
 const LAYER_FURNITURE := 2
 const LAYER_CUSTOMERS := 4
@@ -408,6 +423,74 @@ static func dirt_dissat(dtype: String) -> float:
 static func random_dirt_type() -> String:
 	var kinds: Array[String] = [DIRT_TRASH, DIRT_PUDDLE, DIRT_VOMIT]
 	return kinds[randi() % kinds.size()]
+
+
+static func elite_spawn_chance() -> float:
+	return randf_range(ELITE_SPAWN_CHANCE_MIN, ELITE_SPAWN_CHANCE_MAX)
+
+
+static func elite_list_mult(lv: int) -> float:
+	return float(ELITE_LIST_MULT.get(clampi(lv, 1, 6), 2.0))
+
+
+static func elite_affix_count(lv: int) -> int:
+	return clampi(lv, 1, 6)
+
+
+## Default: effect LV == guest LV. Beta may remap per affix.
+static func elite_affix_effect_lv(guest_lv: int, _affix: String) -> int:
+	return clampi(guest_lv, 1, 6)
+
+
+static func elite_smash_pct(effect_lv: int) -> float:
+	match clampi(effect_lv, 1, 6):
+		1:
+			return 0.5
+		2:
+			return 0.6
+		3:
+			return 0.7
+		4:
+			return 0.8
+		5:
+			return 0.9
+		_:
+			return 1.0
+
+
+static func elite_ruck_pct(effect_lv: int) -> float:
+	return elite_smash_pct(effect_lv)
+
+
+static func elite_incite_per_sec(effect_lv: int) -> float:
+	return float(clampi(effect_lv, 1, 6))
+
+
+static func elite_drive_dissat(effect_lv: int) -> float:
+	return 40.0 + 10.0 * float(clampi(effect_lv, 1, 6))
+
+
+static func elite_litter_pool(guest_lv: int) -> Array[String]:
+	var lv := clampi(guest_lv, 1, 6)
+	if lv <= 2:
+		return [DIRT_TRASH] as Array[String]
+	if lv <= 4:
+		return [DIRT_TRASH, DIRT_PUDDLE] as Array[String]
+	return [DIRT_TRASH, DIRT_PUDDLE, DIRT_VOMIT] as Array[String]
+
+
+static func elite_roll_affixes(lv: int) -> Array[String]:
+	var need := elite_affix_count(lv)
+	var pool: Array[String] = ELITE_AFFIX_IDS.duplicate()
+	pool.shuffle()
+	var out: Array[String] = []
+	for i in mini(need, pool.size()):
+		out.append(pool[i])
+	return out
+
+
+static func elite_roll_level(max_unlocked: int = ELITE_MAX_UNLOCKED_LV) -> int:
+	return clampi(randi_range(1, maxi(1, max_unlocked)), 1, 6)
 
 
 static func dir_name(code: int) -> String:

@@ -83,6 +83,7 @@ prep.chrome.back,返回,Back
 prep.chrome.dialog_yes,確定,OK
 prep.chrome.dialog_no,取消,Cancel
 demo.thief_enter,小偷進店！,A thief entered!
+demo.elite_banner,麻煩客人注意！,Troublesome customer!
 demo.stolen_banner,你已經被偷了！,You've been robbed!
 demo.fundraise,全體集資　%d 人　+$%d,Fundraise · %d guests · +$%d
 demo.closeout_early,提早關店結算,Early closeout
