@@ -205,8 +205,8 @@ Yes! My Lord!：
 
 ## 介面、存檔、導出（P2）
 
-- 暫停：世界與玩家都停。可繼續、開設定、或放棄當日回到準備回合（**未做**）
-- 設定先做音量（**未做**）
+- ~~暫停：世界與玩家都停；繼續／放棄當日~~ **已做**（`pausemenu.md`；營運日 Esc／Start／手機「暫停」）
+- ~~事件 SFX 開／關與聲量~~ **已做**（暫停選單；`SfxBus`；跨局 `user://settings.cfg`）。BGM／完整設定頁仍未做
 - ~~存檔寫入本機 `user://save.json`。關店與準備回合結束時各寫一次~~ **已做**（長線見 `docs/systemdesign/savesystem.md`；活線 `godot/game`）
 - ~~輸入改 InputMap action~~ **已做**（長線見 `docs/systemdesign/control.md`；Autoload `Controls`）
 - 教學：首日三條提示，分別指向執貨、收銀、清潔（**未做**）

@@ -30,11 +30,26 @@ def main() -> None:
     assert int(const_float("STAT_RESET_FEE_PER_LEVEL")) == 1000
     assert "polite_dash" in SKILLS
     assert "ignore_vomit_sick" in SKILLS
-    assert "dash_knock_guest" in (ROOT / "godot/game/scripts/customer.gd").read_text(encoding="utf-8")
+    customer = (ROOT / "godot/game/scripts/customer.gd").read_text(encoding="utf-8")
+    clerk = (ROOT / "godot/game/scripts/clerk.gd").read_text(encoding="utf-8")
+    assert "dash_knock_guest" in customer
+    assert "_begin_checkout" in customer
+    assert "accept_toss_box" in customer
     assert "customers_near" in (ROOT / "godot/game/scripts/demo.gd").read_text(encoding="utf-8")
     assert "不包括小偷" in ULT
     assert "唔該借借" in MOVE
     assert "2 秒" in MOVE
+    assert "不重抽" in MOVE
+    clerk_doc = (ROOT / "docs/systemdesign/clerksystem.md").read_text(encoding="utf-8")
+    clean_doc = (ROOT / "docs/systemdesign/cleaningsystem.md").read_text(encoding="utf-8")
+    cust_doc = (ROOT / "docs/systemdesign/customer.md").read_text(encoding="utf-8")
+    action_doc = (ROOT / "docs/systemdesign/playeraction.md").read_text(encoding="utf-8")
+    assert "每幀繼續跟隨" in clerk_doc or "每幀繼續跟蹤" in clerk_doc
+    assert "CLERK_JOB_SEARCH_SEC" in clerk_doc
+    assert "sit on _job_search_cd" in clerk or "Active plan: keep walking" in clerk
+    assert "黃色" in clean_doc and "Loading Circle" in clean_doc
+    assert "不重抽" in cust_doc
+    assert "清單清空" in action_doc and "收銀" in action_doc
     print("OK design-gap constants / docs anchors")
 
 

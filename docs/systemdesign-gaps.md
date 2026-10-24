@@ -1,6 +1,6 @@
 # 長線設計文件缺口
 
-- 對照日：2026-10-22（含 v1.1.0 拍板：衝刺撞客人、擁擠減速、凌波微步、丟掉砸客人、多台選隊等；對齊 PR #3–#42）
+- 對照日：2026-10-23（含 v1.1.0 拍板＋活線 #46–#62：Loading Circle 層、清潔單圈、丟掉完成清單→收銀、衝刺撞客不重抽清單、補貨店員跟蹤、SFX／暫停音量、TTF 字型等；對齊至 main tip）
 - 範圍：只讀 `docs/systemdesign/`（含 `savesystem.md`、`pausemenu.md`），**不含** Demo scope
 - 工程落地對照：`docs/alpha/implementation-status.md`
 - 執行期優化分析（非玩法缺口）：`docs/alpha/runtime-perf-audit.md`
@@ -39,7 +39,7 @@
 | 已處理 | 未定數值 | 移動沒有基值 | AGI 10＝每秒 3 身位、上限 5×、跑 −20 氣力/秒、衝刺 −50、氣力 0 不能跑、污物 ×0.5 已寫進長線。擁擠減速與輕放／長按門檻仍缺。 | playermovement.md, playerstats.md |
 | 已處理 | 缺檔／缺系統 | 沒有資金／採購／經營值文件 | 已有 `ecosystem.md`、`procurement.md`、`stockpricesystem.md`、`shopitem.md`、`shopprogress.md`。虧損＝當日營業額低於當日買入倉庫的貨；開發費、傢俬、工資不算；被偷不入帳。關店把當日營業額加入資金。「經營值」這個詞仍無定義，見下方未處理項。 | ecosystem.md, procurement.md, stockpricesystem.md, cashiersystem.md |
 | 已處理 | 缺檔／缺系統 | 店鋪準備回合只有口號 | `storepreparationphase.md` 有準備選單與開始營業條件（已放置收銀機，以及至少一組同類型補貨架和貨架）。配點、技能、採購、擴張、店舖設計、店員各有檔。外觀仍只有一句。 | storepreparationphase.md, playersetup.md, shopsetup.md, clerksystem.md |
-| 已處理 | 缺檔／缺系統 | 店員是誰 | `clerksystem.md`：可雇 NPC，日薪 $100，崗位為補貨或收銀，人數不大於收銀機數。補貨會補空貨架上的新貨，沒有空架才補已有貨。 | clerksystem.md, gameconcept.md, playerexport.md |
+| 已處理 | 缺檔／缺系統 | 店員是誰 | `clerksystem.md`：可雇 NPC，日薪 $100，崗位為補貨或收銀，人數不大於收銀機數。補貨會補空貨架上的新貨，沒有空架才補已有貨；有計劃時每幀跟隨，閒置才用 0.35s 掃描冷卻。 | clerksystem.md, gameconcept.md, playerexport.md |
 | 已處理 | 互相矛盾 | 雇員上限寫到規模 LV4，店舖規模只到 LV3 | 暫時把雇員上限跟到現有規模：LV1＝0、LV2＝1、LV3＝2。規模 LV4 的人數先不寫，等有第四級面積再定。角色 LV4 升規模到 LV2，角色 LV7 升規模到 LV3。 | clerksystem.md, shopsetup.md, shopprogress.md |
 | 已處理 | 缺檔／缺系統 | 店面空間未定義 | `shopsetup.md` 有格線、總面積（LV1＝100、LV2＝225、LV3＝400）、闊度與長度可互換（每邊最少 8）、拖放放置。展示貨架每種有 4／8／12／24 件四款。冰櫃與凍櫃的操作差異仍缺。 | shopsetup.md, shopitem.md, replenishmentsystem.md |
 | 已處理 | 未定數值 | 級數系統全是待填 | 每級 +5 能力值。LV2–LV10 的經驗表已寫。上限寫 99，但 LV10 之後的表未寫。幾級解哪招技能仍無表。 | playerlevel.md, playerskills.md |
@@ -50,7 +50,7 @@
 | 已處理 | 規則含糊 | Yes! My Lord! 包不包括小偷 | **不包括小偷**，只包括一般客人（與全體集資一致）。 | playerultimateskills.md, thiefsystem.md |
 | 已處理 | 規則含糊 | 全體集資「一半客人」沒有選法 | LV1 只處理排隊。LV2、LV3 都不含離開中客人和小偷。略過指令與 Circle，馬上收錢。已拿走的貨按售價全額入帳；未買完的貨不入帳、不白送，客人當已付款離開。 | playerultimateskills.md, cashiersystem.md |
 | 已處理 | 規則含糊 | 全體集資 LV2 一半怎樣取 | 單數向上取整。已拿走件數最多的客人優先。件數相同時，銷售金額最高者優先。件數和金額都相同時，不滿度較高者優先。不滿度也相同時，隨意選一位。 | playerultimateskills.md |
-| 已處理 | 規則含糊 | 衝刺撞飛客人與尋路互相打架 | 衝刺撞客人：Screen KO 飛起再**原地落地**（不離店）；停止 2 秒；+50 不滿（基值；禮貌衝撞則 +0）；購物車貨品原地掉落並重新購物。路人擁擠：玩家 3 身位內有客人／小偷 → 移速 ×0.5＋頭頂「唔該借借⋯」。小偷被衝刺撞飛或貨箱砸中都**算抓住**。 | playermovement.md, customer.md, playerpassiveskills.md, thiefsystem.md, ecosystem.md |
+| 已處理 | 規則含糊 | 衝刺撞飛客人與尋路互相打架 | 衝刺撞客人：Screen KO 飛起再**原地落地**（不離店）；停止 2 秒；+50 不滿（基值；禮貌衝撞則 +0）；購物車貨品原地掉落；**購物清單不變**（不重抽），已取貨放回清單後從頭尋貨。路人擁擠：玩家 3 身位內有客人／小偷 → 移速 ×0.5＋頭頂「唔該借借⋯」。小偷被衝刺撞飛或貨箱砸中都**算抓住**。 | playermovement.md, customer.md, playerpassiveskills.md, thiefsystem.md, ecosystem.md |
 | P1 | 缺檔／缺系統 | 劇情／事件層沒有設計檔 | 已標明留待 Beta，現階段經驗不從這裡增減。三層循環的第一層仍無事件表、觸發、失敗條件。`gameconcept.md` 的「經營值」沒有定義。 | gameconcept.md, playerlevel.md, ecosystem.md |
 | Alpha | 缺檔／缺系統 | 幫忙取貨與 COMBO 交貨沒有規則 | 留待 Alpha 設計，見 `docs/alpha/design.md`。核心節奏有兩句，沒有互動對象、指令、計分、與收銀／不滿的關係。 | gameconcept.md, customer.md, playeraction.md |
 | Beta | 未定數值 | 客人流量幾乎沒有長線數值 | 留待 Beta 設計，見 `docs/beta/design.md`。有清單上限 15、逗留 1 秒、思考 3 秒。抽出件數交給各 Demo。沒有生成間隔、在店人數上限、客人類別移速表。找不到貨長線點數未定（Demo v0.3 為 +18）。 | customer.md, gameconcept.md |
@@ -68,7 +68,7 @@
 | 已處理 | 缺檔／缺系統 | 存檔 | 已有 `savesystem.md`：`user://save.json` + `version`；關店與準備結束寫入。活線已實作。 | savesystem.md, storepreparationphase.md, storeoperationphase.md |
 | 已處理 | 規則含糊 | 操作是否綁死鍵位 | 長線以 InputMap 為準（`control.md`）；預設仍 WASD／Xbox。活線 Autoload `Controls`。 | control.md |
 | 已處理 | 缺檔／缺系統 | 暫停選單／掛起 | 已有 `pausemenu.md`；活線接 `PlatformServices` suspend／resume。 | pausemenu.md, storeoperationphase.md, savesystem.md |
-| Alpha | 缺檔／缺系統 | HUD 以外的介面層空白 | 存檔／InputMap／暫停／字串表已補。仍缺：設定（音量）、失敗／過關、教學、技能演出期間能否操作。 | storeoperationphase.md, playerskills.md, control.md, playersetup.md |
+| Alpha | 缺檔／缺系統 | HUD 以外的介面層空白 | 存檔／InputMap／暫停／字串表已補。暫停選單已有**事件 SFX 開／關與聲量**（見 `pausemenu.md`）。仍缺：BGM／整體設定頁、失敗／過關、教學、技能演出期間能否操作。 | storeoperationphase.md, playerskills.md, control.md, playersetup.md, pausemenu.md |
 | Alpha | 用詞／錯字 | 用詞與錯字會改規則解讀 | 留待 Alpha 改回原檔，見 `docs/alpha/design.md`。以為→以下；三能種力值；奧義「技令」；衝刺句子斷掉。 | storeoperationphase.md, gameconcept.md, playerultimateskills.md, playermovement.md |
 
 # 缺了整份檔的系統
@@ -85,14 +85,14 @@
 | 主題 | 已寫的 | 仍缺的 |
 | --- | --- | --- |
 | 能力值 | STR／AGI／INT 主表已定（各項 50 封頂）；打擊每下扣血已定；每級 +5 點；重置＝等級 × $1000 | |
-| 移動 | AGI 基值 3 身位/秒、上限 5×；跑 −20 氣力/秒；衝刺 −50；污物 ×0.5；擁擠 3 身位 ×0.5；衝刺撞客人 +50／暈 2s；門檻跟活線 | |
-| 客人 | 清單上限 15、逗留 1s、思考 3s、不滿 0–100、排隊 15 秒滿 | 生成間隔、在店上限、抽出件數、找不到貨長線數字、客人類別留待 Beta |
-| 清潔 | 三類效果框架、清潔計 AGI 秒數、空手轉搖桿 | 生成間隔／同時上限、垃圾氣力／秒、三類不滿／秒留待 Beta |
+| 移動 | AGI 基值 3 身位/秒、上限 5×；跑 −20 氣力/秒；衝刺 −50；污物 ×0.5；擁擠 3 身位 ×0.5；衝刺撞客人 +50／暈 2s／不重抽清單；門檻跟活線 | |
+| 客人 | 清單上限 15、逗留 1s、思考 3s、不滿 0–100、排隊 15 秒滿；丟掉交齊→立刻收銀；衝刺撞後清單不變 | 生成間隔、在店上限、抽出件數、找不到貨長線數字、客人類別留待 Beta |
+| 清潔 | 三類效果框架、清潔計 AGI 秒數、空手轉搖桿；清潔只顯示藍計（無黃 Circle） | 生成間隔／同時上限、垃圾氣力／秒、三類不滿／秒留待 Beta |
 | 小偷 | 不付款、被偷另計、連按 STR 傷害、5 秒失敗；衝刺撞飛／丟掉砸中都算抓住；不佔客人數、不受污物 | 出現間隔／同時上限／清單件數、霸王色基率留待 Beta |
 | 資金 | 價格表、開發費、虧損定義、關店入帳、日薪 $100、起始資金 $2500 | |
 | 店面 | 總面積三級、邊長最少 8、拖放、每種展示貨架 4／8／12／24 件、規模 LV2 要角色 LV4、規模 LV3 要角色 LV7 | 冰櫃與凍櫃的操作差異 |
 | 級數 | LV2–LV10 經驗表、每級 +5、經驗只增不減（來源跟 ecosystem） | LV11–99。技能解鎖表留待 Beta |
-| 店員 | 日薪、崗位、空貨架優先、人數不大於收銀機、上限跟到規模 LV3（0／1／2） | 規模 LV4 的人數，等有第四級面積再定 |
+| 店員 | 日薪、崗位、空貨架優先、計劃中每幀跟隨、閒置 0.35s 掃描、人數不大於收銀機、上限跟到規模 LV3（0／1／2） | 規模 LV4 的人數，等有第四級面積再定 |
 | 指令 | 收銀件數→次數、錯則重來、先指令後 Circle；方向隨機可重複；多台最短→最近→隨機 | |
 
 # 建議拍板順序
@@ -107,5 +107,5 @@
 6. ~~雇員上限與店舖規模對齊~~ **已處理**（暫時 LV1＝0、LV2＝1、LV3＝2。角色 LV4→規模 LV2，角色 LV7→規模 LV3）
 7. ~~經驗來源合成一張表~~ **已處理**（跟 ecosystem，只增不減。事件經驗留待 Beta。LV11–99 仍未寫）
 8. ~~貨架容量~~ **已處理**（每種 4／8／12／24 件，越大越貴）。客人流量數字留待 Beta
-9. ~~衝刺撞飛客人的不滿數字~~ **已處理**（+50 基值；禮貌衝撞 +0；Screen KO 原地落地）
+9. ~~衝刺撞飛客人的不滿數字~~ **已處理**（+50 基值；禮貌衝撞 +0；Screen KO 原地落地；清單不重抽）
 10. 劇情／事件已標 Beta。~~技能解鎖表~~ **改標 Beta**（見 `docs/beta/design.md`）
