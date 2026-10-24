@@ -56,6 +56,8 @@ static func fill(menu: CanvasLayer, page: String) -> void:
 			_confirm(menu)
 		"sfx":
 			_sfx(menu)
+		"elite_test":
+			_elite_test(menu)
 		"skill_pick":
 			pass
 		_:
@@ -114,6 +116,7 @@ static func _home(menu: CanvasLayer) -> void:
 	menu._add(Loc.t("prep.home.clerks", [menu.state.clerks.size()]), "go", "clerks")
 	menu._add(Loc.t("prep.home.open"), "try_open", null)
 	if ProductVersion.test_tools_enabled():
+		menu._add(Loc.t("prep.home.elite_test"), "go", "elite_test")
 		menu._add(Loc.t("prep.home.test_money"), "test_money", null)
 		menu._add(Loc.t("prep.home.sfx_test"), "go", "sfx")
 	menu._add(Loc.t("prep.home.wipe"), "wipe_save", null)
@@ -314,8 +317,21 @@ static func _clerks(menu: CanvasLayer) -> void:
 static func _confirm(menu: CanvasLayer) -> void:
 	menu._title.text = Loc.t("prep.confirm.title") + "？"
 	var wage: int = int(menu.state.WAGE) * menu.state.clerks.size()
-	menu._info.text = "開工扣工資 $%d。結算時營業額入帳；若營業額低於本輪進貨成本會標虧損，遊戲繼續。" % wage
+	var info := "開工扣工資 $%d。結算時營業額入帳；若營業額低於本輪進貨成本會標虧損，遊戲繼續。" % wage
+	if menu.demo != null and bool(menu.demo.get("elite_test_active")):
+		var mode := String(menu.demo.call("elite_test_label"))
+		info += "\n" + Loc.t("prep.elite_test.confirm_note", [mode])
+	menu._info.text = info
 	menu._add("開始　工資後資金約 $%d" % (menu.state.money - wage), "open", null)
+	menu._add(Loc.t("prep.back"), "go", "home")
+
+
+static func _elite_test(menu: CanvasLayer) -> void:
+	menu._title.text = Loc.t("prep.elite_test.title")
+	menu._info.text = Loc.t("prep.elite_test.info")
+	for lv in range(1, 7):
+		menu._add(Loc.t("prep.elite_test.lv", [lv]), "elite_open", lv)
+	menu._add(Loc.t("prep.elite_test.mixed"), "elite_open", 0)
 	menu._add(Loc.t("prep.back"), "go", "home")
 
 

@@ -17,6 +17,8 @@ LOCALE = (ROOT / "godot/game/locale/strings.csv").read_text(encoding="utf-8")
 
 def main() -> int:
     errs: list[str] = []
+    PREP = (ROOT / "godot/game/scripts/prep/prep_pages.gd").read_text(encoding="utf-8")
+    PREP_MENU = (ROOT / "godot/game/scripts/prep_menu.gd").read_text(encoding="utf-8")
     for needle, where in [
         ("func become_elite", CUSTOMER),
         ("func payout_total", CUSTOMER),
@@ -30,11 +32,17 @@ def main() -> int:
         ("queue_elite_zoom", DEMO),
         ("customers_in_radius", DEMO),
         ("spawn_dirt_at", DEMO),
+        ("configure_elite_test", DEMO),
+        ("elite_test_need_one", DEMO),
         ("XP_ELITE_SERVE", STATE),
         ("demo.elite_banner", LOCALE),
+        ("prep.home.elite_test", LOCALE),
+        ("prep.elite_test.mixed", LOCALE),
         ("麻煩客人注意", LOCALE),
         ("1%–5%", DOC),
         ("清空該架", DOC),
+        ("_elite_test", PREP),
+        ("elite_open", PREP_MENU),
     ]:
         if needle not in where:
             errs.append(f"missing {needle!r}")
@@ -44,6 +52,8 @@ def main() -> int:
         errs.append("demo should roll elite_spawn_chance")
     if "payout_total" not in (ROOT / "godot/game/scripts/player.gd").read_text(encoding="utf-8"):
         errs.append("player checkout should use payout_total")
+    if "elite_test_need_one" not in DEMO or "elite_test_need_one = false" not in DEMO:
+        errs.append("guaranteed first elite should clear elite_test_need_one")
     if errs:
         print("FAIL")
         for e in errs:

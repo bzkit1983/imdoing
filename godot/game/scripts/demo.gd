@@ -43,6 +43,10 @@ var angry_left: int = 0
 ## EliteCustomer zoom queue (fight/dash camera has priority).
 var _elite_zoom_queue: Array = []
 var _elite_zoom_busy: bool = false
+## Prep test: 麻煩客人模式（TEST_TOOLS）. lv 0 = mixed 1–6; else fixed LV.
+var elite_test_active: bool = false
+var elite_test_lv: int = 0
+var elite_test_need_one: bool = false
 var stolen_count: int = 0
 var stolen_value: int = 0
 var thieves_caught: int = 0
@@ -442,10 +446,32 @@ func _return_to_prep() -> void:
 	if phase != "closed":
 		return
 	phase = "prep"
+	clear_elite_test()
 	_clear_world()
 	_prep.visible = true
 	_prep.set_process_unhandled_input(true)
 	_prep._show_page("home")
+
+
+func configure_elite_test(lv: int) -> void:
+	## lv 0 = mixed (roll 1–6 each elite); 1–6 = fixed level. Guarantees ≥1 elite.
+	elite_test_active = true
+	elite_test_lv = clampi(lv, 0, 6)
+	elite_test_need_one = true
+
+
+func clear_elite_test() -> void:
+	elite_test_active = false
+	elite_test_lv = 0
+	elite_test_need_one = false
+
+
+func elite_test_label() -> String:
+	if not elite_test_active:
+		return ""
+	if elite_test_lv <= 0:
+		return Loc.t("prep.elite_test.mixed")
+	return Loc.t("prep.elite_test.lv", [elite_test_lv])
 
 
 func asking_early_close() -> bool:
@@ -996,12 +1022,27 @@ func _spawn_customer() -> void:
 	if guest_count() >= state.guest_cap():
 		return
 	## EliteCustomer only during open phase (not restock).
-	var make_elite := phase == "open" and randf() < Tuning.elite_spawn_chance()
+	var make_elite := false
+	var elite_lv := 1
+	if phase == "open":
+		if elite_test_active and elite_test_need_one:
+			make_elite = true
+			elite_test_need_one = false
+		elif elite_test_active:
+			## Test mode: still roll normal chance for extra elites after the guaranteed one.
+			make_elite = randf() < Tuning.elite_spawn_chance()
+		else:
+			make_elite = randf() < Tuning.elite_spawn_chance()
+		if make_elite:
+			if elite_test_active:
+				elite_lv = elite_test_lv if elite_test_lv >= 1 else randi_range(1, 6)
+			else:
+				elite_lv = Tuning.elite_roll_level()
 	var c: CharacterBody2D = CustomerScript.new()
 	_customers.add_child(c)
 	c.setup(self, door_pos())
 	if make_elite:
-		c.call("become_elite", Tuning.elite_roll_level())
+		c.call("become_elite", elite_lv)
 		announce_elite_customer(c)
 	register_customer(c)
 	SfxBus.play("sfx_guest_enter")
