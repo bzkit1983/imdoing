@@ -802,7 +802,7 @@ func _process(_delta: float) -> void:
 				_dlg_gate = 2
 		if _dlg_gate != 2:
 			return
-		var stick := Controls.move_vector()
+		var stick := Controls.stick_vector()
 		if stick.length() < 0.55:
 			_stick_armed = true
 			return
@@ -812,7 +812,9 @@ func _process(_delta: float) -> void:
 		if absf(stick.x) > absf(stick.y):
 			_dialog_move(1 if stick.x > 0 else -1, 0)
 		return
-	var v := Controls.move_vector()
+	## Stick only — WASD / arrows / d-pad already handled in `_unhandled_input`.
+	## Using `move_vector()` here double-steps on Web (key event + same-frame poll).
+	var v := Controls.stick_vector()
 	if v.length() < 0.55:
 		_stick_armed = true
 		return
