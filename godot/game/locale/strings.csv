@@ -48,7 +48,13 @@ prep.home.expand,擴張店面　現時 LV%d　%d×%d,Expand · LV%d · %d×%d
 prep.home.layout,店舖設計,Layout
 prep.home.clerks,店員　%d 人,Clerks · %d
 prep.home.open,開始營業,Open shop
+prep.home.elite_test,開始營運（麻煩客人模式）,Open shop (elite guest test)
 prep.home.test_money,增加資金$1000（測試用）,Add $1000 funds (test)
+prep.elite_test.title,麻煩客人模式（測試）,Elite guest test
+prep.elite_test.info,選等級後進入確認開店。此模式保證至少出現一名麻煩客人；混合 LV 每次抽 1–6。,Pick a level then confirm. Guarantees ≥1 elite guest; Mixed rolls LV1–6 each time.
+prep.elite_test.lv,麻煩客人 LV%d,Elite guest LV%d
+prep.elite_test.mixed,混合 LV（不同等級）,Mixed levels
+prep.elite_test.confirm_note,【測試】麻煩客人模式：%s　（進店必出至少一名）,【Test】Elite mode: %s (guarantees ≥1)
 prep.home.test_money_ok,已增加資金 $1000　現有 $%d,Added $1000 · now $%d
 prep.home.sfx_test,音效測試（播放 Sample）,SFX test (play samples)
 prep.sfx.title,音效測試,SFX Test
@@ -83,6 +89,7 @@ prep.chrome.back,返回,Back
 prep.chrome.dialog_yes,確定,OK
 prep.chrome.dialog_no,取消,Cancel
 demo.thief_enter,小偷進店！,A thief entered!
+demo.elite_banner,麻煩客人注意！,Troublesome customer!
 demo.stolen_banner,你已經被偷了！,You've been robbed!
 demo.fundraise,全體集資　%d 人　+$%d,Fundraise · %d guests · +$%d
 demo.closeout_early,提早關店結算,Early closeout

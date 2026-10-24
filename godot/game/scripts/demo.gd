@@ -38,7 +38,15 @@ var real_time: float = 0.0
 var game_hours: float = Tuning.GAME_START_HOUR
 var revenue: int = 0
 var served: int = 0
+var elite_served: int = 0
 var angry_left: int = 0
+## EliteCustomer zoom queue (fight/dash camera has priority).
+var _elite_zoom_queue: Array = []
+var _elite_zoom_busy: bool = false
+## Prep test: 麻煩客人模式（TEST_TOOLS）. lv 0 = mixed 1–6; else fixed LV.
+var elite_test_active: bool = false
+var elite_test_lv: int = 0
+var elite_test_need_one: bool = false
 var stolen_count: int = 0
 var stolen_value: int = 0
 var thieves_caught: int = 0
@@ -98,6 +106,9 @@ func _begin_day() -> void:
 	_skip_xp = 0
 	revenue = 0
 	served = 0
+	elite_served = 0
+	_elite_zoom_queue.clear()
+	_elite_zoom_busy = false
 	angry_left = 0
 	stolen_count = 0
 	stolen_value = 0
@@ -277,9 +288,9 @@ func cast_fundraise(level: int) -> void:
 	var picked: Array = Fundraise.choose(_customers.get_children(), level)
 	var total := 0
 	for c in picked:
-		var amount := int(c.call("cart_total"))
+		var amount := int(c.call("payout_total")) if c.has_method("payout_total") else int(c.call("cart_total"))
 		total += amount
-		_on_paid(amount)
+		_on_paid(amount, bool(c.get("is_elite")))
 		c.finish_paid()
 	release_player_checkout()
 	if _player:
@@ -349,6 +360,59 @@ func customers_near(origin: Vector2, radius_sq: float) -> bool:
 	return false
 
 
+func customers_in_radius(origin: Vector2, radius_sq: float) -> Array:
+	var out: Array = []
+	if _customers == null:
+		return out
+	for c in _customers.get_children():
+		if c == null or not is_instance_valid(c):
+			continue
+		if origin.distance_squared_to(c.global_position) <= radius_sq:
+			out.append(c)
+	return out
+
+
+func nearest_shelf(origin: Vector2) -> Node2D:
+	var best: Node2D = null
+	var best_d := 1.0e12
+	for s in shelves:
+		if s == null or not is_instance_valid(s):
+			continue
+		var d := origin.distance_squared_to(s.global_position)
+		if d < best_d:
+			best_d = d
+			best = s
+	return best
+
+
+func random_shelf_stand() -> Vector2:
+	if shelves.is_empty():
+		return Vector2.ZERO
+	var s: Node2D = shelves[randi() % shelves.size()]
+	if s != null and is_instance_valid(s) and has_method("shelf_stand"):
+		return shelf_stand(s)
+	return Vector2.ZERO
+
+
+func spawn_dirt_at(at: Vector2, dtype: String) -> bool:
+	if _dirts.size() >= Tuning.DIRT_CAP:
+		return false
+	var size := Tuning.DIRT_SIZE
+	var origin := at - size * 0.5
+	var r := Rect2(origin, size)
+	if _blocked_rect(r):
+		## Nudge a few times for open floor near the elite.
+		for _i in 6:
+			origin = at + Vector2(randf_range(-36, 36), randf_range(-36, 36)) - size * 0.5
+			r = Rect2(origin, size)
+			if not _blocked_rect(r):
+				_spawn_dirt(r, dtype)
+				return true
+		return false
+	_spawn_dirt(r, dtype)
+	return true
+
+
 func restock_for(cat: String) -> Node2D:
 	for n in _player.interactables if _player else []:
 		if n != null and String(n.get("kind")) == "restock" and String(n.get("category")) == cat:
@@ -382,10 +446,32 @@ func _return_to_prep() -> void:
 	if phase != "closed":
 		return
 	phase = "prep"
+	clear_elite_test()
 	_clear_world()
 	_prep.visible = true
 	_prep.set_process_unhandled_input(true)
 	_prep._show_page("home")
+
+
+func configure_elite_test(lv: int) -> void:
+	## lv 0 = mixed (roll 1–6 each elite); 1–6 = fixed level. Guarantees ≥1 elite.
+	elite_test_active = true
+	elite_test_lv = clampi(lv, 0, 6)
+	elite_test_need_one = true
+
+
+func clear_elite_test() -> void:
+	elite_test_active = false
+	elite_test_lv = 0
+	elite_test_need_one = false
+
+
+func elite_test_label() -> String:
+	if not elite_test_active:
+		return ""
+	if elite_test_lv <= 0:
+		return Loc.t("prep.elite_test.mixed")
+	return Loc.t("prep.elite_test.lv", [elite_test_lv])
 
 
 func asking_early_close() -> bool:
@@ -880,9 +966,11 @@ func phase_text() -> String:
 			return "關店結算"
 
 
-func _on_paid(amount: int) -> void:
+func _on_paid(amount: int, from_elite: bool = false) -> void:
 	revenue += amount
 	served += 1
+	if from_elite:
+		elite_served += 1
 	if _player != null:
 		var FxBurst = preload("res://scripts/fx_burst.gd")
 		var at: Vector2 = _player.global_position + Vector2(0, -28)
@@ -907,7 +995,7 @@ func _finish_day() -> void:
 		return
 	_settled = true
 	SfxBus.play("sfx_phase_close")
-	var result: Dictionary = state.settle(revenue, served, thieves_caught, cleaned, _skip_xp)
+	var result: Dictionary = state.settle(revenue, served, thieves_caught, cleaned, _skip_xp, elite_served)
 	if int(result.get("ups", 0)) > 0:
 		SfxBus.play("sfx_ui_level_up")
 	var save_err := state.save_to_disk()
@@ -933,11 +1021,77 @@ func _spawn_customer() -> void:
 		return
 	if guest_count() >= state.guest_cap():
 		return
+	## EliteCustomer only during open phase (not restock).
+	var make_elite := false
+	var elite_lv := 1
+	if phase == "open":
+		if elite_test_active and elite_test_need_one:
+			make_elite = true
+			elite_test_need_one = false
+		elif elite_test_active:
+			## Test mode: still roll normal chance for extra elites after the guaranteed one.
+			make_elite = randf() < Tuning.elite_spawn_chance()
+		else:
+			make_elite = randf() < Tuning.elite_spawn_chance()
+		if make_elite:
+			if elite_test_active:
+				elite_lv = elite_test_lv if elite_test_lv >= 1 else randi_range(1, 6)
+			else:
+				elite_lv = Tuning.elite_roll_level()
 	var c: CharacterBody2D = CustomerScript.new()
 	_customers.add_child(c)
 	c.setup(self, door_pos())
+	if make_elite:
+		c.call("become_elite", elite_lv)
+		announce_elite_customer(c)
 	register_customer(c)
 	SfxBus.play("sfx_guest_enter")
+
+
+func announce_elite_customer(c: Node) -> void:
+	_play_banner_flash(
+		Loc.t("demo.elite_banner"),
+		Color(1.0, 0.55, 0.95, 1.0),
+		56,
+		Color(0.12, 0.02, 0.12, 0.65),
+		1.05,
+	)
+	if _player:
+		_player.log_line.emit(Loc.t("demo.elite_banner"))
+	queue_elite_zoom(c)
+
+
+func queue_elite_zoom(c: Node) -> void:
+	if c == null or not is_instance_valid(c):
+		return
+	_elite_zoom_queue.append(c)
+	_try_play_elite_zoom()
+
+
+func notify_camera_priority_idle() -> void:
+	_try_play_elite_zoom()
+
+
+func _try_play_elite_zoom() -> void:
+	if _elite_zoom_busy:
+		return
+	if _player != null and _player.has_method("camera_priority_busy") and bool(_player.call("camera_priority_busy")):
+		return
+	while not _elite_zoom_queue.is_empty():
+		var c = _elite_zoom_queue.pop_front()
+		if c != null and is_instance_valid(c):
+			_play_elite_zoom(c)
+			return
+
+
+func _play_elite_zoom(c: Node) -> void:
+	_elite_zoom_busy = true
+	if _player != null and _player.has_method("play_elite_focus"):
+		await _player.call("play_elite_focus", c, Tuning.ELITE_ZOOM_SEC)
+	else:
+		await get_tree().create_timer(Tuning.ELITE_ZOOM_SEC).timeout
+	_elite_zoom_busy = false
+	_try_play_elite_zoom()
 
 
 func _spawn_thief() -> void:

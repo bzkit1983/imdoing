@@ -399,7 +399,11 @@ func _activate() -> void:
 			_msg = "已清除存檔"
 			_show_page("scenario")
 		"go":
-			_show_page(String(arg))
+			var dest := String(arg)
+			## Leaving confirm／選單回 home 時清掉麻煩客人測試旗標（未按開始則不生效）。
+			if dest == "home" and demo != null and demo.has_method("clear_elite_test"):
+				demo.call("clear_elite_test")
+			_show_page(dest)
 		"reset":
 			var fee := state.reset_stats_cost()
 			var err := state.reset_stats()
@@ -460,11 +464,15 @@ func _activate() -> void:
 			state.fire(int(arg))
 			_refresh()
 		"try_open":
+			if demo != null and demo.has_method("clear_elite_test"):
+				demo.call("clear_elite_test")
 			var blocks := state.open_blockers()
 			if blocks.is_empty():
 				_show_page("confirm")
 			else:
 				_popup_info("不能開店", "\n".join(blocks))
+		"elite_open":
+			_try_elite_open(int(arg))
 		"open":
 			var open_msg := state.begin_day()
 			if open_msg != "":
@@ -491,6 +499,19 @@ func _grant_test_money() -> void:
 	state.money += 1000
 	_msg = Loc.t("prep.home.test_money_ok", [state.money])
 	_refresh()
+
+
+func _try_elite_open(lv: int) -> void:
+	const ProductVersion = preload("res://scripts/product_version.gd")
+	if not ProductVersion.test_tools_enabled():
+		return
+	var blocks := state.open_blockers()
+	if not blocks.is_empty():
+		_popup_info("不能開店", "\n".join(blocks))
+		return
+	if demo != null and demo.has_method("configure_elite_test"):
+		demo.call("configure_elite_test", lv)
+	_show_page("confirm")
 
 
 func _locked_sku_body(sku: String) -> String:

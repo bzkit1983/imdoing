@@ -13,6 +13,8 @@ const XP_CLOSE := 100
 const XP_SERVE := 2
 const XP_CATCH := 10
 const XP_CLEAN := 5
+## Extra XP when a 麻煩客人（EliteCustomer）is successfully checked out.
+const XP_ELITE_SERVE := 10
 const SCALE_MAX := {1: 10, 2: 15, 3: 20}
 const SCALE_COST := {2: 3000, 3: 6000}
 const SCALE_NEED_LV := {2: 4, 3: 7}
@@ -594,8 +596,22 @@ func begin_day() -> String:
 	return ""
 
 
-func settle(revenue: int, served: int, caught: int, cleaned: int, bonus_xp: int = 0) -> Dictionary:
-	var gain_xp := XP_CLOSE + served * XP_SERVE + caught * XP_CATCH + cleaned * XP_CLEAN + bonus_xp
+func settle(
+	revenue: int,
+	served: int,
+	caught: int,
+	cleaned: int,
+	bonus_xp: int = 0,
+	elite_served: int = 0,
+) -> Dictionary:
+	var gain_xp := (
+		XP_CLOSE
+		+ served * XP_SERVE
+		+ caught * XP_CATCH
+		+ cleaned * XP_CLEAN
+		+ elite_served * XP_ELITE_SERVE
+		+ bonus_xp
+	)
 	xp += gain_xp
 	var ups := 0
 	while level < 10:

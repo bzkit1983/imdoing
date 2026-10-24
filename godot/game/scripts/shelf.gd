@@ -73,6 +73,42 @@ func take_one(want: String) -> bool:
 	return true
 
 
+## Remove up to `n` of the occupied SKU (any). Returns how many were taken.
+func take_n(n: int) -> int:
+	if sku == "" or count <= 0 or n <= 0:
+		return 0
+	var old_sku := occupied_sku()
+	var taken := mini(n, count)
+	count -= taken
+	if count <= 0:
+		sku = ""
+		count = 0
+	_refresh()
+	_emit_sku_change(old_sku)
+	return taken
+
+
+## Drop a fraction of current stock (LV6 / frac≥1 → all). Returns {sku, n}.
+func smash_fraction(frac: float) -> Dictionary:
+	if sku == "" or count <= 0:
+		return {}
+	var n: int
+	if frac >= 0.999:
+		n = count
+	else:
+		n = int(floor(float(count) * frac))
+		if count >= 1:
+			n = maxi(1, n)
+		n = mini(n, count)
+	if n <= 0:
+		return {}
+	var item := sku
+	var taken := take_n(n)
+	if taken <= 0:
+		return {}
+	return {"sku": item, "n": taken}
+
+
 func has_sku(want: String) -> bool:
 	return sku == want and count > 0
 

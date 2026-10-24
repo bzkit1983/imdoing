@@ -15,10 +15,18 @@ var dirt_contacts: int = 0
 var _dirt_areas: Array[Node] = []
 var mood: String = "購物"
 var is_thief: bool = false
+## EliteCustomer（麻煩客人）— not a thief; see elitecustomer.md.
+var is_elite: bool = false
+var elite_lv: int = 0
+## Affix id → effect LV (default = elite_lv; Beta may remap).
+var elite_affixes: Dictionary = {}
 var kind: String = ""
 ## Alpha pace variant: normal / hurry / slow → distinct model (not full recolor).
 var pace: String = "normal"
 var _model_id: String = "customer"
+var _elite_affix_cd: Dictionary = {}
+var _elite_wander_cd: float = 0.0
+var _elite_wander_goal: Vector2 = Vector2.ZERO
 var fight_hp: float = 100.0
 var fight_left: float = 0.0
 var _pace_speed: float = 1.0
@@ -85,6 +93,47 @@ func setup(game: Node, door: Vector2, thief: bool = false) -> void:
 	collision_mask = Tuning.LAYER_WALLS
 	_build_visual()
 	_sync_labels()
+
+
+## Promote a normal guest into EliteCustomer after setup (list re-rolled with mult).
+func become_elite(lv: int) -> void:
+	if is_thief:
+		return
+	is_elite = true
+	elite_lv = clampi(lv, 1, 6)
+	kind = "elite"
+	elite_affixes.clear()
+	_elite_affix_cd.clear()
+	for affix in Tuning.elite_roll_affixes(elite_lv):
+		var eff := Tuning.elite_affix_effect_lv(elite_lv, affix)
+		elite_affixes[affix] = eff
+		if affix != "incite" and affix != "passive_shop":
+			_elite_affix_cd[affix] = randf_range(Tuning.ELITE_AFFIX_CD_MIN, Tuning.ELITE_AFFIX_CD_MAX)
+	shopping = _roll_list()
+	cart.clear()
+	_bump_list()
+	mood = "麻煩客人"
+	## Distinct look until dedicated elite art lands.
+	if _body:
+		_body.modulate = Color(1.0, 0.55, 0.95)
+		_shown_tint = _body.modulate
+	_sync_labels()
+
+
+func has_elite_affix(affix: String) -> bool:
+	return is_elite and elite_affixes.has(affix)
+
+
+func elite_effect_lv(affix: String) -> int:
+	return int(elite_affixes.get(affix, elite_lv))
+
+
+## Checkout payout (營業額); elites pay double.
+func payout_total() -> int:
+	var n := cart_total()
+	if is_elite:
+		return n * Tuning.ELITE_REVENUE_MULT
+	return n
 
 
 func _roll_pace() -> void:
@@ -225,6 +274,8 @@ func _physics_process(delta: float) -> void:
 	if on_dirt() and state != State.LEAVE and state != State.FIGHT and state != State.FLEE and not is_thief:
 		dissatisfaction = minf(Tuning.DISSAT_MAX, dissatisfaction + _dirt_dissat_rate() * td)
 		mood = _dirt_mood()
+	if is_elite and state != State.LEAVE and state != State.FLEE and state != State.FIGHT:
+		_tick_elite_affixes(delta, td)
 	if _lord_pull():
 		if state != State.RAID:
 			if state == State.PAYING and _game.has_method("release_player_checkout"):
@@ -279,6 +330,9 @@ func _physics_process(delta: float) -> void:
 func _tick_seek(delta: float) -> void:
 	if shopping.is_empty():
 		_begin_checkout("去付款")
+		return
+	if has_elite_affix("passive_shop"):
+		_tick_elite_passive_wander(delta)
 		return
 	var want := shopping[0]
 	_seek_shelf_refresh -= delta
@@ -768,6 +822,211 @@ func _tick_flee(delta: float) -> void:
 		queue_free()
 
 
+func _tick_elite_affixes(delta: float, td: float) -> void:
+	if has_elite_affix("incite"):
+		_elite_incite(td)
+	for affix in _elite_affix_cd.keys():
+		_elite_affix_cd[affix] = float(_elite_affix_cd[affix]) - td
+	_elite_try_cd_affix("smash_shelf", _elite_try_smash_shelf)
+	_elite_try_cd_affix("ruck_cart", _elite_try_ruck_cart)
+	_elite_try_cd_affix("drive_off", _elite_try_drive_off)
+	_elite_try_cd_affix("litterbug", _elite_try_litter)
+
+
+func _elite_try_cd_affix(affix: String, fn: Callable) -> void:
+	if not has_elite_affix(affix):
+		return
+	if float(_elite_affix_cd.get(affix, 0.0)) > 0.0:
+		return
+	if bool(fn.call()):
+		_elite_affix_cd[affix] = randf_range(Tuning.ELITE_AFFIX_CD_MIN, Tuning.ELITE_AFFIX_CD_MAX)
+	else:
+		## Not in contact / no target — retry soon without burning full CD.
+		_elite_affix_cd[affix] = 0.75
+
+
+func _elite_incite(td: float) -> void:
+	if _game == null or not _game.has_method("customers_in_radius"):
+		return
+	var rate := Tuning.elite_incite_per_sec(elite_effect_lv("incite"))
+	var r := Tuning.ELITE_INCITE_RADIUS
+	var near: Array = _game.call("customers_in_radius", global_position, r * r)
+	for c in near:
+		if c == null or c == self or not is_instance_valid(c):
+			continue
+		if bool(c.get("is_thief")) or bool(c.get("is_elite")):
+			continue
+		var st := int(c.get("state"))
+		## Affect queue; ignore leaving / fleeing.
+		if st == State.LEAVE or st == State.FLEE:
+			continue
+		c.dissatisfaction = minf(Tuning.DISSAT_MAX, float(c.dissatisfaction) + rate * td)
+
+
+func _elite_contact_shelf() -> Node2D:
+	if _game == null or not _game.has_method("nearest_shelf"):
+		return null
+	var shelf: Node2D = _game.call("nearest_shelf", global_position)
+	if shelf == null:
+		return null
+	if global_position.distance_to(shelf.global_position) > Tuning.ELITE_CONTACT_DIST + 40.0:
+		## Also accept stand distance (facing aisle).
+		if _game.has_method("shelf_stand"):
+			var stand: Vector2 = _game.call("shelf_stand", shelf)
+			if global_position.distance_to(stand) > Tuning.ELITE_CONTACT_DIST + 12.0:
+				return null
+		else:
+			return null
+	return shelf
+
+
+func _elite_try_smash_shelf() -> bool:
+	var shelf := _elite_contact_shelf()
+	if shelf == null or not shelf.has_method("smash_fraction"):
+		return false
+	if int(shelf.get("count")) <= 0:
+		return false
+	var frac := Tuning.elite_smash_pct(elite_effect_lv("smash_shelf"))
+	var pile: Dictionary = shelf.call("smash_fraction", frac)
+	if pile.is_empty():
+		return false
+	if _game and _game.has_method("spawn_dropped_box"):
+		_game.call("spawn_dropped_box", global_position + Vector2(randf_range(-12, 12), 8), String(pile["sku"]), int(pile["n"]))
+	mood = "弄跌貨架！"
+	return true
+
+
+func _elite_nearby_normal_guest() -> Node:
+	if _game == null or not _game.has_method("customers_in_radius"):
+		return null
+	var r := Tuning.ELITE_CONTACT_DIST + 16.0
+	var near: Array = _game.call("customers_in_radius", global_position, r * r)
+	var best: Node = null
+	var best_d := 1.0e12
+	for c in near:
+		if c == null or c == self or not is_instance_valid(c):
+			continue
+		if bool(c.get("is_thief")) or bool(c.get("is_elite")):
+			continue
+		var st := int(c.get("state"))
+		if st == State.LEAVE or st == State.FLEE or st == State.FIGHT:
+			continue
+		var d: float = global_position.distance_squared_to((c as Node2D).global_position)
+		if d < best_d:
+			best_d = d
+			best = c
+	return best
+
+
+func _elite_try_ruck_cart() -> bool:
+	var victim = _elite_nearby_normal_guest()
+	if victim == null or not victim.has_method("elite_ruck_cart"):
+		return false
+	var pct := Tuning.elite_ruck_pct(elite_effect_lv("ruck_cart"))
+	if bool(victim.call("elite_ruck_cart", pct)):
+		mood = "搗亂購物籃！"
+		return true
+	return false
+
+
+func _elite_try_drive_off() -> bool:
+	var victim = _elite_nearby_normal_guest()
+	if victim == null or not victim.has_method("elite_drive_off"):
+		return false
+	var add := Tuning.elite_drive_dissat(elite_effect_lv("drive_off"))
+	victim.call("elite_drive_off", add)
+	mood = "趕客！"
+	return true
+
+
+func _elite_try_litter() -> bool:
+	if _game == null or not _game.has_method("spawn_dirt_at"):
+		return false
+	## Prefer a spot slightly ahead on open floor.
+	var at := global_position + Vector2(randf_range(-18, 18), randf_range(10, 28))
+	var pool: Array[String] = Tuning.elite_litter_pool(elite_lv)
+	if pool.is_empty():
+		return false
+	var dtype := pool[randi() % pool.size()]
+	if bool(_game.call("spawn_dirt_at", at, dtype)):
+		mood = "丟污物！"
+		return true
+	return false
+
+
+func _tick_elite_passive_wander(delta: float) -> void:
+	_elite_wander_cd -= delta
+	if _elite_wander_cd <= 0.0 or _elite_wander_goal == Vector2.ZERO:
+		_elite_wander_goal = _pick_elite_wander_point()
+		_elite_wander_cd = randf_range(2.0, 4.0)
+		_clear_route()
+	mood = "不主動購物…"
+	if _follow_to(_elite_wander_goal, delta):
+		_elite_wander_cd = 0.0
+
+
+func _pick_elite_wander_point() -> Vector2:
+	if _game and _game.has_method("random_shelf_stand"):
+		var p: Vector2 = _game.call("random_shelf_stand")
+		if p != Vector2.ZERO:
+			return p
+	if _game and _game.has_method("inside_pos"):
+		return _game.call("inside_pos") + Vector2(randf_range(-80, 80), randf_range(-60, 60))
+	return global_position + Vector2(randf_range(-40, 40), randf_range(-40, 40))
+
+
+## Called by another elite: drop a fraction of cart in place; list unchanged (rebuy).
+func elite_ruck_cart(pct: float) -> bool:
+	if is_thief or is_elite or cart.is_empty():
+		return false
+	if state == State.LEAVE or state == State.FLEE or state == State.FIGHT:
+		return false
+	var n := cart.size()
+	var drop_n: int
+	if pct >= 0.999:
+		drop_n = n
+	else:
+		drop_n = int(floor(float(n) * pct))
+		drop_n = clampi(maxi(1, drop_n), 0, n)
+	if drop_n <= 0:
+		return false
+	var dropped: Array[String] = []
+	for _i in drop_n:
+		dropped.append(cart.pop_back())
+	## Put dropped SKUs back onto shopping (list identity unchanged overall).
+	for s in dropped:
+		shopping.append(s)
+	var piles: Array[Dictionary] = Tuning.loot_piles_from_cart(dropped)
+	if _game and _game.has_method("spawn_loot_inplace") and not piles.is_empty():
+		_game.call("spawn_loot_inplace", global_position, piles)
+	elif _game and _game.has_method("spawn_dropped_box"):
+		for pile in piles:
+			_game.call("spawn_dropped_box", global_position, String(pile["sku"]), int(pile["n"]))
+	if _reg():
+		_reg().dequeue(self)
+	_target_shelf = null
+	_bump_list()
+	_clear_route()
+	if state == State.TO_CASHIER or state == State.QUEUE or state == State.PAYING:
+		state = State.SEEK
+	mood = "購物籃被搗亂！"
+	_sync_labels()
+	return true
+
+
+## Called by another elite: add dissatisfaction only; drop cart if reaches 100.
+func elite_drive_off(add: float) -> void:
+	if is_thief or is_elite:
+		return
+	if state == State.LEAVE or state == State.FLEE or state == State.FIGHT:
+		return
+	dissatisfaction = minf(Tuning.DISSAT_MAX, dissatisfaction + maxf(0.0, add))
+	mood = "被趕走…？"
+	if dissatisfaction >= Tuning.DISSAT_MAX:
+		_drop_cart_inplace()
+	_sync_labels()
+
+
 func _roll_list() -> Array[String]:
 	var pool: Array[String] = []
 	if _game and _game.has_method("sellable"):
@@ -784,7 +1043,11 @@ func _roll_list() -> Array[String]:
 		lo = bounds.x
 		hi = bounds.y
 	var n := randi_range(lo, hi)
-	n = mini(n, Tuning.LIST_HARD_MAX)
+	if not is_elite:
+		n = mini(n, Tuning.LIST_HARD_MAX)
+	else:
+		## Baseline = what a normal guest would draw, then × level mult (may exceed 15).
+		n = int(ceil(float(n) * Tuning.elite_list_mult(elite_lv)))
 	var out: Array[String] = []
 	for i in n:
 		out.append(pool[randi() % pool.size()])
@@ -886,6 +1149,8 @@ func _list_label_text() -> String:
 		line = "小偷  " + ("、".join(bits) if bits.size() else "得手 " + ("、".join(loot) if loot.size() else "空手"))
 	else:
 		line = "、".join(bits) if bits.size() else "（清單完成）"
+		if is_elite:
+			line = "麻煩LV%d　" % elite_lv + line
 		if raided:
 			line += "　已取%d" % cart.size()
 	_list_cache = line
@@ -943,10 +1208,14 @@ func _sync_labels() -> void:
 				_hp_bar.size.x = hp_w
 	if _body:
 		var tint := Color.WHITE
+		if is_elite:
+			tint = Color(1.0, 0.55, 0.95)
 		if is_thief and state == State.FIGHT:
 			tint = Color(1.0, 0.45, 0.5)
-		elif not is_thief and dissatisfaction > Tuning.DISSAT_MAX * 0.7:
+		elif not is_thief and not is_elite and dissatisfaction > Tuning.DISSAT_MAX * 0.7:
 			tint = Color(1.0, 0.62, 0.4)
+		elif is_elite and dissatisfaction > Tuning.DISSAT_MAX * 0.7:
+			tint = Color(1.0, 0.4, 0.75)
 		if tint != _shown_tint:
 			_shown_tint = tint
 			_body.modulate = tint

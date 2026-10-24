@@ -75,6 +75,8 @@ var _fighting: bool = false
 var _fight_release: bool = false
 ## True while KO banner / knockaway plays after a fight mash win.
 var _fight_ko: bool = false
+## EliteCustomer intro ZOOM — locks player actions (~1s).
+var _elite_focus_left: float = 0.0
 var _shake_left: float = 0.0
 var _shake_mag: float = 0.0
 var _stun_pending: float = Tuning.STUN_SEC
@@ -697,6 +699,13 @@ func _physics_process(delta: float) -> void:
 	if _asking_early():
 		velocity = Vector2.ZERO
 		return
+	if _elite_focus_left > 0.0:
+		_elite_focus_left = maxf(0.0, _elite_focus_left - delta)
+		velocity = Vector2.ZERO
+		_tick_buffs(delta)
+		_tick_status(delta)
+		_tick_camera_shake(delta)
+		return
 	_tick_buffs(delta)
 	_tick_status(delta)
 	if _cast_pose_left > 0.0:
@@ -977,6 +986,8 @@ func _wiggle_axis() -> Vector2:
 func _move_axis() -> Vector2:
 	## Drop aim / flight: no locomotion (direction still sampled in cancel hold).
 	if _cancel_held or _drop_flight_lock:
+		return Vector2.ZERO
+	if _elite_focus_left > 0.0:
 		return Vector2.ZERO
 	if _stun_left > 0.0 or _slip_left > 0.0 or _fighting or _in_dir_mode() or _shelving() or _cleaning():
 		return Vector2.ZERO
@@ -1402,6 +1413,32 @@ func _end_fight(_won: bool) -> void:
 		camera.zoom = Vector2(Tuning.CAMERA_ZOOM, Tuning.CAMERA_ZOOM)
 		camera.position = Vector2.ZERO
 		camera.offset = Vector2.ZERO
+	var game := _game()
+	if game != null and game.has_method("notify_camera_priority_idle"):
+		game.call("notify_camera_priority_idle")
+
+
+func camera_priority_busy() -> bool:
+	## Fight / KO framing beats EliteCustomer intro zoom.
+	return _fighting or _fight_ko
+
+
+func play_elite_focus(target_node: Node, sec: float = Tuning.ELITE_ZOOM_SEC) -> void:
+	if target_node == null or not is_instance_valid(target_node) or camera == null:
+		await get_tree().create_timer(sec).timeout
+		return
+	_elite_focus_left = maxf(_elite_focus_left, sec)
+	var base_z := Tuning.CAMERA_ZOOM
+	var punch_z := base_z * 1.35
+	camera.position = ((target_node as Node2D).global_position - global_position) * 0.55
+	var tw := create_tween()
+	tw.tween_property(camera, "zoom", Vector2(punch_z, punch_z), 0.18)
+	await get_tree().create_timer(sec).timeout
+	if camera:
+		var back := create_tween()
+		back.tween_property(camera, "zoom", Vector2(base_z, base_z), 0.22)
+		back.parallel().tween_property(camera, "position", Vector2.ZERO, 0.22)
+	_elite_focus_left = 0.0
 
 
 func _shake_camera(mag: float, dur: float) -> void:
@@ -1740,10 +1777,19 @@ func _try_command(dir: int) -> void:
 
 
 func _finish_checkout(cust) -> void:
-	var amount: int = int(cust.call("cart_total"))
-	paid.emit(amount)
+	var amount: int = int(cust.call("payout_total")) if cust.has_method("payout_total") else int(cust.call("cart_total"))
+	var from_elite := bool(cust.get("is_elite"))
+	## paid signal → demo._on_paid; pass elite via game helper when connected.
+	var game := _game()
+	if game != null and game.has_method("_on_paid"):
+		game.call("_on_paid", amount, from_elite)
+	else:
+		paid.emit(amount)
 	SfxBus.play("sfx_checkout_circle_done")
-	log_line.emit("收銀完成  +$%d" % amount)
+	if from_elite:
+		log_line.emit("麻煩客人收銀  +$%d（雙倍）" % amount)
+	else:
+		log_line.emit("收銀完成  +$%d" % amount)
 	_spawn_dollar()
 	cust.finish_paid()
 	if target:

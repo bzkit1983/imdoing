@@ -20,7 +20,9 @@
 
 仍未寫：生成間隔、在店人數上限、客人類別和移速、找不到貨的長線不滿點數。Demo v0.3 找不到貨是 +18，那不是長線數字。
 
-檔案：`customer.md`、`gameconcept.md`
+**麻煩客人（EliteCustomer）：** 行為框架已進長線並落地活線，見 `docs/systemdesign/elitecustomer.md`。一般營運：每名進店 **1%–5%**；補貨時段不出；同回合無麻煩客人人數上限（仍受客人 cap）。本 Beta 檔仍欠：**LV 隨劇情解鎖表**、**事件強制／提高機率表**、詞綴效果 LV 的非預設 mapping。
+
+檔案：`customer.md`、`elitecustomer.md`、`gameconcept.md`
 
 # 污物與小偷流量
 
