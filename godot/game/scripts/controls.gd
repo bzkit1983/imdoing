@@ -72,6 +72,15 @@ func move_vector() -> Vector2:
 	return Input.get_vector(MOVE_LEFT, MOVE_RIGHT, MOVE_UP, MOVE_DOWN, MOVE_DEADZONE)
 
 
+## Left stick only — excludes keyboard / d-pad so menu `_process` polling
+## does not double-fire with `_unhandled_input` action presses (esp. Web).
+func stick_vector() -> Vector2:
+	return Vector2(
+		Input.get_joy_axis(0, JOY_AXIS_LEFT_X),
+		Input.get_joy_axis(0, JOY_AXIS_LEFT_Y)
+	)
+
+
 ## Checkout / skill-menu cardinal: 0 up, 1 down, 2 left, 3 right. -1 if none.
 func dir_just_pressed() -> int:
 	if Input.is_action_just_pressed(MOVE_UP):
