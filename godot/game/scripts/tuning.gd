@@ -195,6 +195,8 @@ const CUSTOMER_SHELF_REACH := 80.0
 ## EliteCustomer（麻煩客人）— see docs/systemdesign/elitecustomer.md
 const ELITE_SPAWN_CHANCE_MIN := 0.01
 const ELITE_SPAWN_CHANCE_MAX := 0.05
+## Prep「麻煩客人模式」：保證一名後，後續進店仍用此較高機率（方便測詞綴）。
+const ELITE_TEST_SPAWN_CHANCE := 0.40
 const ELITE_CONTACT_DIST := BODY_LENGTH
 const ELITE_INCITE_RADIUS := 5.0 * BODY_LENGTH
 const ELITE_AFFIX_CD_MIN := 5.0

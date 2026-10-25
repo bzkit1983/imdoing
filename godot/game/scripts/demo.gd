@@ -1172,8 +1172,8 @@ func _spawn_customer() -> void:
 			make_elite = true
 			elite_test_need_one = false
 		elif elite_test_active:
-			## Test mode: still roll normal chance for extra elites after the guaranteed one.
-			make_elite = randf() < Tuning.elite_spawn_chance()
+			## Test mode: elevated chance after the guaranteed first elite.
+			make_elite = randf() < Tuning.ELITE_TEST_SPAWN_CHANCE
 		else:
 			make_elite = randf() < Tuning.elite_spawn_chance()
 		if make_elite:
