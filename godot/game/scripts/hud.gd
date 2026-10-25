@@ -3,6 +3,7 @@ extends CanvasLayer
 const Tuning = preload("res://scripts/tuning.gd")
 const Skills = preload("res://scripts/skills.gd")
 const UiFont = preload("res://scripts/ui_font.gd")
+const SkuIcons = preload("res://scripts/sku_icons.gd")
 
 var game: Node
 var player: CharacterBody2D
@@ -15,6 +16,9 @@ var _font_debounce: float = 0.0
 var _font_pending: bool = false
 var _skills_cd_fp: String = ""
 var _skills_cd_txt: String = ""
+## Fingerprint of carry icon strip (sku×n…|trailing).
+var _carry_icons_fp: String = ""
+var _carry_icons: HBoxContainer
 
 @onready var _clock: Control = $Root/Left/Clock
 @onready var _time: Label = $Root/Left/Time
@@ -44,6 +48,9 @@ func setup(g: Node, p: CharacterBody2D) -> void:
 	_log.focus_mode = Control.FOCUS_NONE
 	_hud_list.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_log.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	## Icon strip replaces text HudList (P0 ops SKU UI).
+	_hud_list.visible = false
+	_build_carry_icons()
 	_apply_cjk_fonts($Root)
 	get_viewport().size_changed.connect(_on_viewport_resized)
 	player.connect("stats_changed", _mark_right_dirty)
@@ -61,6 +68,17 @@ func setup(g: Node, p: CharacterBody2D) -> void:
 	_left_fp = ""
 	_sync_left()
 	_sync_right()
+
+
+func _build_carry_icons() -> void:
+	_carry_icons = HBoxContainer.new()
+	_carry_icons.name = "CarryIcons"
+	_carry_icons.add_theme_constant_override("separation", 6)
+	_carry_icons.custom_minimum_size = Vector2(0, 40)
+	var vbox: VBoxContainer = $Root/Right/Margin/VBox
+	var idx := _hud_list.get_index()
+	vbox.add_child(_carry_icons)
+	vbox.move_child(_carry_icons, idx)
 
 
 func _mark_right_dirty() -> void:
@@ -294,12 +312,7 @@ func _refresh() -> void:
 		int(inv.count()) / Tuning.BOX_SIZE,
 		int(player.call("carry_boxes")),
 	])
-	_hud_list.clear()
-	if inv.is_empty():
-		_hud_list.add_item("空手")
-	else:
-		for g in inv.grouped():
-			_hud_list.add_item("%s ×%d" % [Tuning.sku_name(String(g["id"])), int(g["count"])])
+	_sync_carry_icons(inv)
 	var t: Node = player.get("target")
 	if t == null:
 		_target.text = Loc.t("hud.target_none")
@@ -330,3 +343,53 @@ func _refresh() -> void:
 		_target.text = Loc.t("hud.target_shelf", [shelf_bit])
 	_progress.value = float(player.get("hold_progress")) * 100.0
 	_progress.modulate = Color("e07a5f") if bool(player.get("blocked_mismatch")) else Color("f4d35e")
+
+
+## Hand-carry sequence: left→right, last slot = next drop (trailing).
+func _sync_carry_icons(inv) -> void:
+	if _carry_icons == null:
+		return
+	var groups: Array = []
+	if inv != null and not inv.is_empty():
+		groups = inv.grouped()
+	var bits: PackedStringArray = []
+	for g in groups:
+		bits.append("%s:%d" % [String(g["id"]), int(g["count"])])
+	var fp := "|".join(bits)
+	if fp == _carry_icons_fp:
+		return
+	_carry_icons_fp = fp
+	for c in _carry_icons.get_children():
+		c.queue_free()
+	if groups.is_empty():
+		return
+	var last_i := groups.size() - 1
+	for i in groups.size():
+		var g: Dictionary = groups[i]
+		var sku := String(g["id"])
+		var n := int(g["count"])
+		var cell := VBoxContainer.new()
+		cell.add_theme_constant_override("separation", 0)
+		var icon := SkuIcons.make_tex_rect(sku, 28)
+		if i == last_i:
+			## Trailing / next-drop highlight.
+			var frame := PanelContainer.new()
+			var sb := StyleBoxFlat.new()
+			sb.bg_color = Color(0, 0, 0, 0)
+			sb.border_color = Color("f4d35e")
+			sb.set_border_width_all(2)
+			sb.set_content_margin_all(2)
+			frame.add_theme_stylebox_override("panel", sb)
+			frame.add_child(icon)
+			cell.add_child(frame)
+		else:
+			cell.add_child(icon)
+		var qty := Label.new()
+		qty.text = "×%d" % n
+		qty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		UiFont.apply_label(qty, UiFont.WORLD)
+		qty.add_theme_color_override("font_color", Color("fff4c2"))
+		qty.add_theme_color_override("font_outline_color", Color("121212"))
+		qty.add_theme_constant_override("outline_size", 4)
+		cell.add_child(qty)
+		_carry_icons.add_child(cell)

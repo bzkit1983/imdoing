@@ -1,9 +1,17 @@
 # 營運回合貨品圖像介面（設計稿）
 
-- 狀態：**設計確認中**（未實作）。確認後再進 `godot/game`。
+- 狀態：**已拍板 · P0 實作中**（程式剪影；正稿可換皮）。
 - 工程活線：`godot/game`。相關：`customer.md`、`playeraction.md`、`storeoperationphase.md`、`shopitem.md`、`replenishmentsystem.md`
 - 示意圖：見 PR／對話中的 Canvas「Ops SKU Icon UI」
 - 目的：用 **2D 小圖示**清楚辨識貨品，減少營運中依賴文字；之後由設計師精修畫風，程式只鎖 **slot／尺寸／語義**。
+
+### 拍板（2026-10-25）
+
+1. 手持末端＝下一丟：**是**  
+2. 清單只顯示待取：**是**  
+3. 「找不到」用交叉問號：**可以**  
+4. 第一波只做 HUD＋清單＋彈出（貨架稍後）：**可以**  
+5. v1 先程式剪影再換正稿：**可以**
 
 ---
 
@@ -170,23 +178,26 @@
 
 ---
 
-## 9. 確認題（實作前請拍板）
+## 9. 確認題 — 已拍板（2026-10-25）
 
-1. 手持列方向：末端 = 下一丟，是否同意？  
-2. 客人清單只顯示 **待取**，已取是否完全隱藏？  
-3. 「找不到」符用 **交叉問號** 還是 **問號＋斜線**？  
-4. 第一波是否包含貨架標籤換圖，還是只做 HUD＋清單＋彈出？  
-5. v1 臨時圖：程式剪影／色塊 是否可先上，再換正稿？
+1. 手持末端＝下一丟：**是**  
+2. 清單只顯示待取：**是**  
+3. 「找不到」交叉問號：**可以**  
+4. 第一波 HUD＋清單＋彈出（貨架稍後）：**可以**  
+5. v1 程式剪影再換正稿：**可以**
 
 ---
 
-## 10. 實作備註（確認後）
+## 10. 實作（P0）
 
-建議腳本邊界（勿在確認前開寫）：
+| 檔案 | 職責 |
+| --- | --- |
+| `godot/game/scripts/sku_icons.gd` | 程式剪影 Texture2D 快取＋狀態符 |
+| `godot/game/scripts/sku_popup.gd` | 世界空間 miss／ok／bad 彈出 |
+| `godot/game/scripts/hud.gd` | 手持 icon 列（末端高亮＝下一丟） |
+| `godot/game/scripts/customer.gd` | 待取清單圖示列；找不到／交付彈出 |
+| `godot/game/scripts/demo.gd` | 交付錯誤傳 sku 給 reject |
 
-- `sku_icons.gd` 或 `UiIcons`：id → Texture2D  
-- `hud.gd`：手持 `HBox`／自繪列  
-- `customer.gd`：清單改 Control／Sprite 列；mood 旁掛 `SkuPopup`  
-- `SkuPopup`：play(sku, kind: miss|ok|bad)
+正稿替換：只換 `SkuIcons.texture` 載入路徑（見 §8），勿改 sku id。
 
-相關玩法不變：尋貨、丟掉交付、不滿度規則仍以 `customer.md`／`playeraction.md` 為準；本檔只定 **怎麼畫**。
+相關玩法不變：尋貨、丟掉交付、不滿度規則仍以 `customer.md`／`playeraction.md` 為準。
