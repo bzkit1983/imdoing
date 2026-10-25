@@ -299,6 +299,23 @@ func consume_box(sku: String) -> bool:
 	return true
 
 
+## Credit unsold shop pieces back to warehouse boxes at closeout.
+## `pieces_by_sku` maps sku → piece count (shelf + floor aggregate).
+## Remainders round up so leftover pieces are not discarded (`ceil(n / BOX_SIZE)`).
+## Returns total boxes added.
+func credit_unsold_pieces(pieces_by_sku: Dictionary) -> int:
+	var total := 0
+	for sku_v in pieces_by_sku.keys():
+		var sku := String(sku_v)
+		var pieces := int(pieces_by_sku[sku_v])
+		if sku == "" or pieces <= 0:
+			continue
+		var boxes := (pieces + Tuning.BOX_SIZE - 1) / Tuning.BOX_SIZE
+		stock[sku] = int(stock.get(sku, 0)) + boxes
+		total += boxes
+	return total
+
+
 func furniture_unlocked(type: String) -> bool:
 	return level >= int(FURNITURE[type]["unlock"])
 

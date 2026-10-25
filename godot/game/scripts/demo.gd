@@ -428,6 +428,63 @@ func sync_stock() -> void:
 			n.call("pull_stock")
 
 
+## Aggregate unsold pieces on shelves, landed floor drops, and in-flight boxes.
+func _collect_unsold_pieces() -> Dictionary:
+	var out: Dictionary = {}
+	for s in shelves:
+		if s == null or not is_instance_valid(s):
+			continue
+		var sku := String(s.get("sku"))
+		var n := int(s.get("count"))
+		if sku == "" or n <= 0:
+			continue
+		out[sku] = int(out.get(sku, 0)) + n
+	if _world == null:
+		return out
+	for c in _world.get_children():
+		if c == null or not is_instance_valid(c):
+			continue
+		var kind := String(c.get("kind"))
+		if kind != "drop" and kind != "drop_flight":
+			continue
+		var sku := String(c.get("sku"))
+		var n := int(c.get("count"))
+		if sku == "" or n <= 0:
+			continue
+		out[sku] = int(out.get(sku, 0)) + n
+	return out
+
+
+func _return_unsold_to_warehouse() -> void:
+	var pieces := _collect_unsold_pieces()
+	if pieces.is_empty():
+		return
+	state.credit_unsold_pieces(pieces)
+	_clear_credited_unsold()
+	sync_stock()
+
+
+## Zero shelves and free floor / in-flight boxes after warehouse credit
+## so late flight landings do not leave orphan drops during closeout.
+func _clear_credited_unsold() -> void:
+	for s in shelves:
+		if s == null or not is_instance_valid(s):
+			continue
+		if s.has_method("take_all"):
+			s.call("take_all")
+	if _world == null:
+		return
+	var kill: Array[Node] = []
+	for c in _world.get_children():
+		if c == null or not is_instance_valid(c):
+			continue
+		var kind := String(c.get("kind"))
+		if kind == "drop" or kind == "drop_flight":
+			kill.append(c)
+	for c in kill:
+		c.queue_free()
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if _early_open:
 		_early_input(event)
@@ -995,6 +1052,8 @@ func _finish_day() -> void:
 		return
 	_settled = true
 	SfxBus.play("sfx_phase_close")
+	## Unsold shelf + floor (+ in-flight) pieces → warehouse boxes before save.
+	_return_unsold_to_warehouse()
 	var result: Dictionary = state.settle(revenue, served, thieves_caught, cleaned, _skip_xp, elite_served)
 	if int(result.get("ups", 0)) > 0:
 		SfxBus.play("sfx_ui_level_up")
@@ -1368,7 +1427,7 @@ func spawn_dropped_box(
 		_place_dropped_box(dest, sku, n)
 		return
 	var flight: Node2D = DropFlightScript.new()
-	flight.setup(sku, pos, dest, Tuning.DROP_FLIGHT_SEC)
+	flight.setup(sku, pos, dest, Tuning.DROP_FLIGHT_SEC, n)
 	_world.add_child(flight)
 	flight.finished.connect(func() -> void:
 		_resolve_toss_landing(pos, dest, sku, n, toss_dir)
@@ -1426,7 +1485,7 @@ func _spawn_box_flight(
 	on_landed: Callable,
 ) -> void:
 	var flight: Node2D = DropFlightScript.new()
-	flight.setup(sku, from, to, duration)
+	flight.setup(sku, from, to, duration, n)
 	_world.add_child(flight)
 	flight.finished.connect(func() -> void:
 		_place_dropped_box(to, sku, n)
