@@ -60,12 +60,13 @@
 | 找不到貨彈出 | 該 SKU icon ＋「交叉問號」 | 36–40px | 無長句 |
 | 交付成功彈出 | 該 SKU icon ＋ Tick | 36–40px | 無長句 |
 | 交付錯誤彈出 | 該 SKU icon ＋ 交叉 | 36–40px | 無長句 |
-| 貨架標籤（可選 v1.1） | 架上 SKU icon＋件數 | 16–20px | 可保留件數數字 |
+| 貨架 | 架上 SKU icon＋件數 | ~22px | 名稱可省略（icon 辨識） |
+| 補貨點 | 目前選中 SKU icon；長按選貨清單每列 icon | ~26px／清單 24px | 箱數文字保留 |
 | 地上掉落箱（可選） | 箱上／旁小 icon | 16px | 可保留 `名×n` 作過渡 |
 | 準備／採購選單（可選同期） | 列表左側 icon | 24px | 名稱＋價格仍可保留 |
 
-**本設計必做（確認後第一實作波）：** HUD 手持列、客人清單圖示化、三種彈出回饋。  
-**可選跟進：** 貨架／掉落／準備選單全面換圖。
+**已做：** HUD 手持列、客人待取清單圖示（靠頭頂、略放大）、三種彈出、貨架 icon、補貨點 icon＋選貨清單 icon。  
+**可選跟進：** 掉落箱／準備選單全面換圖。
 
 ---
 
@@ -183,7 +184,7 @@
 1. 手持末端＝下一丟：**是**  
 2. 清單只顯示待取：**是**  
 3. 「找不到」交叉問號：**可以**  
-4. 第一波 HUD＋清單＋彈出（貨架稍後）：**可以**  
+4. 第一波 HUD＋清單＋彈出（貨架稍後）：**可以** → 貨架／補貨點 icon 已跟進  
 5. v1 程式剪影再換正稿：**可以**
 
 ---
@@ -195,7 +196,9 @@
 | `godot/game/scripts/sku_icons.gd` | 程式剪影 Texture2D 快取＋狀態符 |
 | `godot/game/scripts/sku_popup.gd` | 世界空間 miss／ok／bad 彈出 |
 | `godot/game/scripts/hud.gd` | 手持 icon 列（末端高亮＝下一丟） |
-| `godot/game/scripts/customer.gd` | 待取清單圖示列；找不到／交付彈出 |
+| `godot/game/scripts/customer.gd` | 待取清單圖示列（靠頭頂）；找不到／交付彈出 |
+| `godot/game/scripts/shelf.gd` | 架上 SKU icon＋件數 |
+| `godot/game/scripts/restock_point.gd` | 選中 SKU icon；長按選貨列 icon |
 | `godot/game/scripts/demo.gd` | 交付錯誤傳 sku 給 reject |
 
 正稿替換：只換 `SkuIcons.texture` 載入路徑（見 §8），勿改 sku id。
