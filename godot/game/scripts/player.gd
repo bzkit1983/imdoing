@@ -67,6 +67,9 @@ var _cd: Dictionary = {}
 var _buffs: Dictionary = {}
 var _cust_speed_q: Array[String] = []
 var _cardinal_armed: bool = true
+## After skill/ult/restock/checkout dir mode, ignore move until stick/keys go neutral
+## so releasing the menu on a held WASD key does not start walking.
+var _move_locked_until_neutral: bool = false
 var _passive_checkout_pct: float = 0.0
 var _restock_picking: bool = false
 var _restock_hold: float = 0.0
@@ -732,8 +735,16 @@ func _physics_process(delta: float) -> void:
 			skill_menu_open = true
 			_menu.open = true
 			_menu.set_slots(_loadout(), _cd)
+			_move_locked_until_neutral = true
+			_running = false
+			velocity = Vector2.ZERO
 			SfxBus.play("sfx_skill_menu_open")
 			log_line.emit("技能選單 — 方向鍵選技能2–5，放手取消")
+	## Skill / ult / checkout dir modes: hard-stop so held WASD cannot coast.
+	if _in_dir_mode() or _move_locked_until_neutral:
+		_running = false
+		if not _dashing and _slip_left <= 0.0:
+			velocity = Vector2.ZERO
 	if _fighting:
 		velocity = Vector2.ZERO
 	elif _slip_left > 0.0:
@@ -989,9 +1000,18 @@ func _move_axis() -> Vector2:
 		return Vector2.ZERO
 	if _elite_focus_left > 0.0:
 		return Vector2.ZERO
-	if _stun_left > 0.0 or _slip_left > 0.0 or _fighting or _in_dir_mode() or _shelving() or _cleaning():
+	if _stun_left > 0.0 or _slip_left > 0.0 or _fighting or _shelving() or _cleaning():
+		return Vector2.ZERO
+	if _in_dir_mode():
+		## Arm latch: skill menu / ult / checkout / restock pick consume move_* .
+		_move_locked_until_neutral = true
 		return Vector2.ZERO
 	var v := Controls.move_vector() + stick_axis
+	if _move_locked_until_neutral:
+		if v.length() < Controls.MOVE_DEADZONE:
+			_move_locked_until_neutral = false
+		else:
+			return Vector2.ZERO
 	if v.length_squared() > 1.0:
 		v = v.normalized()
 	return v
@@ -1748,6 +1768,9 @@ func _try_dir(dir: int) -> void:
 		if slot_i >= 0:
 			SfxBus.play("sfx_skill_menu_move")
 			_cast_slot(slot_i)
+			## Keep move locked while the select key is still held.
+			_move_locked_until_neutral = true
+			velocity = Vector2.ZERO
 			_close_skill_hold()
 		return
 	if command_lock:
