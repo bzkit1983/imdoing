@@ -3,6 +3,8 @@ extends CharacterBody2D
 const Tuning = preload("res://scripts/tuning.gd")
 const UiFont = preload("res://scripts/ui_font.gd")
 const Vox = preload("res://scripts/voxel_sprite.gd")
+const SkuIcons = preload("res://scripts/sku_icons.gd")
+const SkuPopup = preload("res://scripts/sku_popup.gd")
 
 enum State { ENTER, SEEK, LINGER, THINK, TO_CASHIER, QUEUE, PAYING, LEAVE, FIGHT, FLEE, RAID }
 
@@ -42,6 +44,9 @@ var _stuck: float = 0.0
 var _body: CanvasItem
 var _list_label: Label
 var _mood_label: Label
+## Pictogram row for pending shopping (P0 ops SKU UI).
+var _list_icons: Node2D
+var _list_icons_fp: String = "\u0001"
 var _bar: ColorRect
 var _hp_track: ColorRect
 var _hp_bar: ColorRect
@@ -367,6 +372,7 @@ func _tick_seek(delta: float) -> void:
 		if not is_thief:
 			dissatisfaction = minf(Tuning.DISSAT_MAX, dissatisfaction + Tuning.DISSAT_MISS)
 		mood = "找不到%s" % Tuning.sku_name(want)
+		_sku_popup(want, SkuIcons.KIND_MISS)
 		return
 	var stand: Vector2 = _game.call("shelf_stand", shelf)
 	if _follow_to(stand, delta):
@@ -397,6 +403,7 @@ func _take_current() -> void:
 		if not is_thief:
 			dissatisfaction = minf(Tuning.DISSAT_MAX, dissatisfaction + Tuning.DISSAT_MISS)
 		mood = "找不到%s" % Tuning.sku_name(want)
+		_sku_popup(want, SkuIcons.KIND_MISS)
 		_target_shelf = null
 
 
@@ -420,6 +427,8 @@ func _after_think() -> void:
 		_timer = Tuning.THINK_SEC
 		dissatisfaction = minf(Tuning.DISSAT_MAX, dissatisfaction + Tuning.DISSAT_MISS)
 		mood = "還是找不到…"
+		if not shopping.is_empty():
+			_sku_popup(String(shopping[0]), SkuIcons.KIND_MISS)
 
 
 ## Shopping done → join a register and walk to pay (shared by seek / think / toss / raid).
@@ -769,15 +778,18 @@ func accept_toss_box(sku: String, n: int) -> int:
 			state = State.SEEK
 			_timer = 0.0
 			_clear_route()
+	_sku_popup(sku, SkuIcons.KIND_OK)
 	_sync_labels()
 	return take
 
 
-func apply_toss_reject() -> void:
+func apply_toss_reject(sku: String = "") -> void:
 	if is_thief:
 		return
 	dissatisfaction = minf(Tuning.DISSAT_MAX, dissatisfaction + Tuning.TOSS_GUEST_WRONG_DISSAT)
 	mood = "不想要這貨品！"
+	if sku != "":
+		_sku_popup(sku, SkuIcons.KIND_BAD)
 	_sync_labels()
 
 
@@ -1095,7 +1107,14 @@ func _build_visual() -> void:
 	_list_label.add_theme_color_override("font_color", Color("ffe566"))
 	_list_label.add_theme_color_override("font_outline_color", Color("121212"))
 	_list_label.add_theme_constant_override("outline_size", 6)
+	## Guests use pictogram list; keep label for thief / elite caption fallback.
+	_list_label.visible = is_thief
 	add_child(_list_label)
+	_list_icons = Node2D.new()
+	_list_icons.name = "ListIcons"
+	_list_icons.position = Vector2(0, -56)
+	_list_icons.z_index = 3
+	add_child(_list_icons)
 	var track := ColorRect.new()
 	track.size = Vector2(28, 4)
 	track.position = Vector2(-14, 14)
@@ -1188,7 +1207,51 @@ func _notify_unoccupy() -> void:
 		_game.call("note_customer_occupy_changed", self, false)
 
 
+func _sku_popup(sku: String, kind: String) -> void:
+	if sku == "" or _game == null:
+		return
+	var parent: Node = _game.get("_world") if _game.get("_world") != null else get_parent()
+	if parent == null:
+		parent = self
+	SkuPopup.play(parent, global_position + Vector2(0, -96), sku, kind)
+
+
+func _sync_list_icons() -> void:
+	if _list_icons == null:
+		return
+	var bits: PackedStringArray = []
+	if is_thief:
+		## Thieves keep text label; hide icon row.
+		_list_icons.visible = false
+		return
+	_list_icons.visible = true
+	for sku in shopping:
+		bits.append(String(sku))
+	var fp := "|".join(bits)
+	if fp == _list_icons_fp:
+		return
+	_list_icons_fp = fp
+	for c in _list_icons.get_children():
+		c.queue_free()
+	if shopping.is_empty():
+		return
+	var gap := 22.0
+	var total_w := gap * float(maxi(shopping.size() - 1, 0))
+	var x0 := -total_w * 0.5
+	for i in shopping.size():
+		var sku := String(shopping[i])
+		var spr := SkuIcons.make_sprite(sku, 24.0 if i == 0 else 18.0)
+		spr.position = Vector2(x0 + gap * float(i), 0)
+		if i == 0:
+			## Current seek target — larger + warm tint.
+			spr.modulate = Color(1.15, 1.1, 0.75, 1.0)
+		else:
+			spr.modulate = Color(0.9, 0.9, 0.9, 0.92)
+		_list_icons.add_child(spr)
+
+
 func _sync_labels() -> void:
+	_sync_list_icons()
 	var list_txt := _list_label_text()
 	if _list_label and list_txt != _shown_list:
 		_shown_list = list_txt

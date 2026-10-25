@@ -1661,7 +1661,7 @@ func _resolve_toss_guest(guest: Node2D, dest: Vector2, sku: String, n: int) -> v
 			_place_dropped_box(dest, sku, left)
 		return
 	if guest.has_method("apply_toss_reject"):
-		guest.call("apply_toss_reject")
+		guest.call("apply_toss_reject", sku)
 	SfxBus.play("sfx_box_hit_guest_reject")
 	_place_dropped_box(dest, sku, n)
 	if _player:
