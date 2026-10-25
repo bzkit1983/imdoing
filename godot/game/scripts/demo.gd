@@ -428,6 +428,147 @@ func sync_stock() -> void:
 			n.call("pull_stock")
 
 
+## Aggregate unsold pieces: shelves, floor, in-flight, player carry,
+## clerk-held boxes, and guests who finished their list but have not paid.
+func _collect_unsold_pieces() -> Dictionary:
+	var out: Dictionary = {}
+	_add_pieces(out, _collect_shelf_floor_pieces())
+	_add_pieces(out, _collect_player_carry_pieces())
+	_add_pieces(out, _collect_clerk_held_pieces())
+	_add_pieces(out, _collect_unpaid_checkout_pieces())
+	return out
+
+
+func _add_pieces(dst: Dictionary, src: Dictionary) -> void:
+	for sku_v in src.keys():
+		var n := int(src[sku_v])
+		if n <= 0:
+			continue
+		var sku := String(sku_v)
+		dst[sku] = int(dst.get(sku, 0)) + n
+
+
+func _collect_shelf_floor_pieces() -> Dictionary:
+	var out: Dictionary = {}
+	for s in shelves:
+		if s == null or not is_instance_valid(s):
+			continue
+		var sku := String(s.get("sku"))
+		var n := int(s.get("count"))
+		if sku == "" or n <= 0:
+			continue
+		out[sku] = int(out.get(sku, 0)) + n
+	if _world == null:
+		return out
+	for c in _world.get_children():
+		if c == null or not is_instance_valid(c):
+			continue
+		var kind := String(c.get("kind"))
+		if kind != "drop" and kind != "drop_flight":
+			continue
+		var sku := String(c.get("sku"))
+		var n := int(c.get("count"))
+		if sku == "" or n <= 0:
+			continue
+		out[sku] = int(out.get(sku, 0)) + n
+	return out
+
+
+func _collect_player_carry_pieces() -> Dictionary:
+	var out: Dictionary = {}
+	if _player == null or not is_instance_valid(_player):
+		return out
+	var inv = _player.get("inventory")
+	if inv == null:
+		return out
+	var items = inv.get("items")
+	if typeof(items) != TYPE_ARRAY:
+		return out
+	for sku_v in items:
+		var sku := String(sku_v)
+		if sku == "":
+			continue
+		out[sku] = int(out.get(sku, 0)) + 1
+	return out
+
+
+func _collect_clerk_held_pieces() -> Dictionary:
+	var out: Dictionary = {}
+	if _world == null:
+		return out
+	for c in _world.get_children():
+		if c == null or not is_instance_valid(c):
+			continue
+		if String(c.get("role")) != "restock":
+			continue
+		var sku := String(c.get("_box_sku"))
+		var n := int(c.get("_box_n"))
+		if sku == "" or n <= 0:
+			continue
+		out[sku] = int(out.get(sku, 0)) + n
+	return out
+
+
+func _collect_unpaid_checkout_pieces() -> Dictionary:
+	var out: Dictionary = {}
+	if _customers == null:
+		return out
+	for c in _customers.get_children():
+		if c == null or not is_instance_valid(c):
+			continue
+		if not c.has_method("unsold_checkout_cart"):
+			continue
+		var cart: Array = c.call("unsold_checkout_cart")
+		for sku_v in cart:
+			var sku := String(sku_v)
+			if sku == "":
+				continue
+			out[sku] = int(out.get(sku, 0)) + 1
+	return out
+
+
+func _return_unsold_to_warehouse() -> void:
+	var pieces := _collect_unsold_pieces()
+	if pieces.is_empty():
+		return
+	state.credit_unsold_pieces(pieces)
+	_clear_credited_unsold()
+	sync_stock()
+
+
+## Clear credited world / carry goods after warehouse credit so closeout
+## does not leave orphan drops or double-count if somehow re-entered.
+func _clear_credited_unsold() -> void:
+	for s in shelves:
+		if s == null or not is_instance_valid(s):
+			continue
+		if s.has_method("take_all"):
+			s.call("take_all")
+	if _player != null and is_instance_valid(_player):
+		var inv = _player.get("inventory")
+		if inv != null and inv.has_method("clear"):
+			inv.call("clear")
+	if _customers != null:
+		for c in _customers.get_children():
+			if c != null and is_instance_valid(c) and c.has_method("clear_unsold_checkout_cart"):
+				c.call("clear_unsold_checkout_cart")
+	if _world == null:
+		return
+	var kill: Array[Node] = []
+	for c in _world.get_children():
+		if c == null or not is_instance_valid(c):
+			continue
+		var kind := String(c.get("kind"))
+		if kind == "drop" or kind == "drop_flight":
+			kill.append(c)
+			continue
+		if String(c.get("role")) == "restock":
+			c.set("_box_n", 0)
+			c.set("_box_sku", "")
+	for c in kill:
+		c.queue_free()
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if _early_open:
 		_early_input(event)
@@ -995,6 +1136,8 @@ func _finish_day() -> void:
 		return
 	_settled = true
 	SfxBus.play("sfx_phase_close")
+	## Unsold shelf + floor (+ in-flight) pieces → warehouse boxes before save.
+	_return_unsold_to_warehouse()
 	var result: Dictionary = state.settle(revenue, served, thieves_caught, cleaned, _skip_xp, elite_served)
 	if int(result.get("ups", 0)) > 0:
 		SfxBus.play("sfx_ui_level_up")
@@ -1368,7 +1511,7 @@ func spawn_dropped_box(
 		_place_dropped_box(dest, sku, n)
 		return
 	var flight: Node2D = DropFlightScript.new()
-	flight.setup(sku, pos, dest, Tuning.DROP_FLIGHT_SEC)
+	flight.setup(sku, pos, dest, Tuning.DROP_FLIGHT_SEC, n)
 	_world.add_child(flight)
 	flight.finished.connect(func() -> void:
 		_resolve_toss_landing(pos, dest, sku, n, toss_dir)
@@ -1426,7 +1569,7 @@ func _spawn_box_flight(
 	on_landed: Callable,
 ) -> void:
 	var flight: Node2D = DropFlightScript.new()
-	flight.setup(sku, from, to, duration)
+	flight.setup(sku, from, to, duration, n)
 	_world.add_child(flight)
 	flight.finished.connect(func() -> void:
 		_place_dropped_box(to, sku, n)

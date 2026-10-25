@@ -219,7 +219,27 @@ func cancel_pay() -> void:
 func finish_paid() -> void:
 	mood = "謝謝"
 	SfxBus.play("sfx_guest_paid_leave")
+	## Sold goods leave the store — clear so closeout does not re-credit them.
+	if not cart.is_empty():
+		cart.clear()
+		_bump_list()
 	_leave(false)
+
+
+## Completed shopping list but not paid: cart pieces for warehouse return at closeout.
+func unsold_checkout_cart() -> Array[String]:
+	if is_thief:
+		return []
+	if not shopping.is_empty() or cart.is_empty():
+		return []
+	return cart.duplicate()
+
+
+func clear_unsold_checkout_cart() -> void:
+	if cart.is_empty():
+		return
+	cart.clear()
+	_bump_list()
 
 
 func occupies_store() -> bool:

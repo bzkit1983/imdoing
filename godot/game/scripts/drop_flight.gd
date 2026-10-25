@@ -6,6 +6,11 @@ const Vox = preload("res://scripts/voxel_sprite.gd")
 
 signal finished
 
+## Identifies in-flight payloads for closeout unsold return (not a floor interactable).
+var kind: String = "drop_flight"
+var sku: String = ""
+var count: int = 0
+
 var _spr: Sprite2D
 var _trail: Line2D
 var _elapsed: float = 0.0
@@ -15,7 +20,15 @@ var _to: Vector2 = Vector2.ZERO
 var _pts := PackedVector2Array([Vector2.ZERO, Vector2.ZERO])
 
 
-func setup(sku: String, from: Vector2, to: Vector2, duration: float = Tuning.DROP_FLIGHT_SEC) -> void:
+func setup(
+	id: String,
+	from: Vector2,
+	to: Vector2,
+	duration: float = Tuning.DROP_FLIGHT_SEC,
+	n: int = 0,
+) -> void:
+	sku = id
+	count = maxi(0, n)
 	_from = from
 	_to = to
 	_duration = maxf(0.05, duration)
@@ -30,7 +43,7 @@ func setup(sku: String, from: Vector2, to: Vector2, duration: float = Tuning.DRO
 	add_child(_trail)
 	_spr = Vox.sprite("box", 0)
 	_spr.scale = Vector2(0.65, 0.65)
-	var tint: Color = Tuning.SKU_COLOR.get(sku, Color.WHITE)
+	var tint: Color = Tuning.SKU_COLOR.get(id, Color.WHITE)
 	_spr.modulate = tint.lerp(Color.WHITE, 0.35)
 	add_child(_spr)
 	global_position = from
