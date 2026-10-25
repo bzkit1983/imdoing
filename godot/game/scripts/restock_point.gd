@@ -3,6 +3,7 @@ extends StaticBody2D
 const Tuning = preload("res://scripts/tuning.gd")
 const UiFont = preload("res://scripts/ui_font.gd")
 const Vox = preload("res://scripts/voxel_sprite.gd")
+const SkuIcons = preload("res://scripts/sku_icons.gd")
 
 var kind: String = "restock"
 var category: String = Tuning.CAT_DRY
@@ -14,6 +15,7 @@ var label: Label
 var body: CanvasItem
 var _list: Node2D
 var _layer: CanvasLayer
+var _sku_icon: Sprite2D
 
 
 class ListOverlay extends Node2D:
@@ -83,6 +85,8 @@ func begin_pick() -> void:
 	cursor = highlight
 	if label:
 		label.visible = false
+	if _sku_icon:
+		_sku_icon.visible = false
 	if _list:
 		_list.queue_redraw()
 
@@ -146,8 +150,9 @@ func _draw_sku_list(canvas: CanvasItem) -> void:
 		return
 	var list := skus()
 	var fs := UiFont.px(UiFont.BODY)
-	var w := float(maxi(280, fs * 8))
-	var row := float(fs + 12)
+	var icon_px := 24.0
+	var w := float(maxi(300, fs * 8 + int(icon_px) + 16))
+	var row := float(maxi(fs + 12, int(icon_px) + 8))
 	var h := float(fs + 16) + row * float(list.size())
 	var hy := 72.0
 	if body is Sprite2D:
@@ -160,12 +165,24 @@ func _draw_sku_list(canvas: CanvasItem) -> void:
 	canvas.draw_string(font, origin + Vector2(12, fs + 4), "選貨  ↑↓", HORIZONTAL_ALIGNMENT_LEFT, w - 24, fs, Color("f4d35e"))
 	for i in list.size():
 		var sku := list[i]
-		var p := origin + Vector2(12, float(fs + 20) + row * float(i))
+		var row_y := float(fs + 8) + row * float(i)
 		var col := Color("f4d35e") if i == cursor else Color("f4f1ea")
 		if i == cursor:
-			canvas.draw_rect(Rect2(origin + Vector2(4, float(fs + 8) + row * float(i)), Vector2(w - 8, row)), Color("f4d35e", 0.22))
+			canvas.draw_rect(Rect2(origin + Vector2(4, row_y), Vector2(w - 8, row)), Color("f4d35e", 0.22))
+		var tex: Texture2D = SkuIcons.texture(sku)
+		var icon_pos := origin + Vector2(10, row_y + (row - icon_px) * 0.5)
+		canvas.draw_texture_rect(tex, Rect2(icon_pos, Vector2(icon_px, icon_px)), false)
 		var line := "%s  %d箱" % [Tuning.sku_name(sku), remaining(sku)]
-		canvas.draw_string(font, p, line, HORIZONTAL_ALIGNMENT_LEFT, w - 24, UiFont.px(UiFont.WORLD), col)
+		var text_x := 10.0 + icon_px + 8.0
+		canvas.draw_string(
+			font,
+			origin + Vector2(text_x, row_y + row * 0.72),
+			line,
+			HORIZONTAL_ALIGNMENT_LEFT,
+			w - text_x - 12.0,
+			UiFont.px(UiFont.WORLD),
+			col,
+		)
 
 
 func _refresh() -> void:
@@ -175,8 +192,24 @@ func _refresh() -> void:
 		title = "凍櫃補貨點"
 	elif category == Tuning.CAT_ICE:
 		title = "冰櫃補貨點"
+	if _sku_icon == null:
+		_sku_icon = Sprite2D.new()
+		_sku_icon.name = "SkuIcon"
+		_sku_icon.centered = true
+		_sku_icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		_sku_icon.z_index = 2
+		add_child(_sku_icon)
+	if sku == "":
+		_sku_icon.visible = false
+	else:
+		_sku_icon.visible = not picking
+		_sku_icon.texture = SkuIcons.texture(sku)
+		var s := 26.0 / float(SkuIcons.SIZE)
+		_sku_icon.scale = Vector2(s, s)
+		_sku_icon.position = Vector2(0, -40)
 	if label:
 		if sku == "":
 			label.text = "%s\n尚未開發\n先在準備頁開發商品" % title
 		else:
-			label.text = "%s\n%s  %d箱\n輕放執貨 · 長按選貨" % [title, Tuning.sku_name(sku), remaining(sku)]
+			## Icon shows SKU; caption keeps box count + hints.
+			label.text = "%s\n%d箱\n輕放執貨 · 長按選貨" % [title, remaining(sku)]

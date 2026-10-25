@@ -13,6 +13,8 @@ ICONS = ROOT / "godot/game/scripts/sku_icons.gd"
 POPUP = ROOT / "godot/game/scripts/sku_popup.gd"
 HUD = ROOT / "godot/game/scripts/hud.gd"
 CUST = ROOT / "godot/game/scripts/customer.gd"
+SHELF = ROOT / "godot/game/scripts/shelf.gd"
+RESTOCK = ROOT / "godot/game/scripts/restock_point.gd"
 DOC = ROOT / "docs/systemdesign/ops-sku-icon-ui.md"
 
 SKUS = ["can", "snack", "cup", "drink", "milk", "soda", "icecream", "meat", "rice"]
@@ -49,6 +51,11 @@ def main() -> int:
         (CUST, "KIND_OK"),
         (CUST, "KIND_BAD"),
         (CUST, "apply_toss_reject(sku"),
+        (CUST, "Vector2(0, -72)"),
+        (SHELF, "SkuIcons.texture"),
+        (RESTOCK, "SkuIcons.texture"),
+        (RESTOCK, "_sku_icon"),
+        (RESTOCK, "draw_texture_rect"),
     ]:
         text = path.read_text(encoding="utf-8")
         if needle not in text:

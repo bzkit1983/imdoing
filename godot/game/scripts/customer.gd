@@ -1112,7 +1112,8 @@ func _build_visual() -> void:
 	add_child(_list_label)
 	_list_icons = Node2D.new()
 	_list_icons.name = "ListIcons"
-	_list_icons.position = Vector2(0, -56)
+	## Slightly above prior offset — closer to head / under mood.
+	_list_icons.position = Vector2(0, -72)
 	_list_icons.z_index = 3
 	add_child(_list_icons)
 	var track := ColorRect.new()
@@ -1235,12 +1236,12 @@ func _sync_list_icons() -> void:
 		c.queue_free()
 	if shopping.is_empty():
 		return
-	var gap := 22.0
+	var gap := 28.0
 	var total_w := gap * float(maxi(shopping.size() - 1, 0))
 	var x0 := -total_w * 0.5
 	for i in shopping.size():
 		var sku := String(shopping[i])
-		var spr := SkuIcons.make_sprite(sku, 24.0 if i == 0 else 18.0)
+		var spr := SkuIcons.make_sprite(sku, 30.0 if i == 0 else 24.0)
 		spr.position = Vector2(x0 + gap * float(i), 0)
 		if i == 0:
 			## Current seek target — larger + warm tint.

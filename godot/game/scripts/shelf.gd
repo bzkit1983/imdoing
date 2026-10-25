@@ -4,6 +4,7 @@ extends StaticBody2D
 
 const Tuning = preload("res://scripts/tuning.gd")
 const Vox = preload("res://scripts/voxel_sprite.gd")
+const SkuIcons = preload("res://scripts/sku_icons.gd")
 
 ## old_sku / new_sku are "" when the shelf is empty.
 signal stock_sku_changed(shelf: Node, old_sku: String, new_sku: String)
@@ -156,24 +157,28 @@ func _refresh() -> void:
 		else:
 			Vox.apply(body as Sprite2D, _shelf_model_base(), k)
 	if _goods == null:
-		_goods = Vox.sprite("can", 0)
-		_goods.scale = Vector2(0.55, 0.55)
+		_goods = Sprite2D.new()
+		_goods.centered = true
+		_goods.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		_goods.z_index = 1
 		add_child(_goods)
 	if sku == "":
 		_goods.visible = false
 	else:
 		_goods.visible = true
-		Vox.apply(_goods, sku, 0)
-		_goods.scale = Vector2(0.55, 0.55)
-		_goods.position = facing * -8.0 + Vector2(0, -28)
+		_goods.texture = SkuIcons.texture(sku)
+		## ~22px logical icon on shelf face.
+		var s := 22.0 / float(SkuIcons.SIZE)
+		_goods.scale = Vector2(s, s)
+		_goods.position = facing * -8.0 + Vector2(0, -30)
 	var kind_name := "乾貨架"
 	if category == Tuning.CAT_FROZEN:
 		kind_name = "凍櫃貨架"
 	elif category == Tuning.CAT_ICE:
 		kind_name = "冰櫃貨架"
 	if label:
+		## Name dropped — icon carries SKU identity; keep index + fill.
 		if sku == "":
-			label.text = "%s %d\n空架　%d件" % [kind_name, shelf_index, capacity]
+			label.text = "%s %d\n空　%d" % [kind_name, shelf_index, capacity]
 		else:
-			label.text = "%s %d\n%s %d/%d" % [kind_name, shelf_index, Tuning.sku_name(sku), count, capacity]
+			label.text = "%s %d\n%d/%d" % [kind_name, shelf_index, count, capacity]
