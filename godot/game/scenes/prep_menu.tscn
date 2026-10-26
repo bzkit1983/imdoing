@@ -51,8 +51,8 @@ focus_mode = 0
 theme_override_colors/font_color = Color(0.956863, 0.945098, 0.917647, 1)
 theme_override_colors/font_hovered_color = Color(0.956863, 0.827451, 0.368627, 1)
 theme_override_colors/font_selected_color = Color(0.109804, 0.141176, 0.121569, 1)
-theme_override_constants/v_separation = 10
-theme_override_font_sizes/font_size = 32
+theme_override_constants/v_separation = 14
+theme_override_font_sizes/font_size = 34
 allow_reselect = true
 text_overrun_behavior = 3
 

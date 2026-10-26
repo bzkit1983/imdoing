@@ -126,13 +126,14 @@ func _bind_nodes() -> void:
 	_info.add_theme_color_override("font_color", Color("f4f1ea"))
 	_list.add_theme_font_override("font", UiFont.font())
 	_list.add_theme_font_size_override("font_size", UiFont.px(PREP_LIST))
-	_list.add_theme_constant_override("v_separation", 10)
-	_list.add_theme_constant_override("icon_margin", 12)
+	_list.add_theme_constant_override("v_separation", PrepWidgets.LIST_V_SEP)
+	_list.add_theme_constant_override("icon_margin", 10)
+	_list.fixed_icon_size = Vector2i(8, PrepWidgets.LIST_ROW_H)
 	_list.add_theme_color_override("font_color", Color("f4f1ea"))
 	_list.add_theme_color_override("font_selected_color", Color("1c241f"))
 	_list.add_theme_color_override("font_hovered_color", Color("f4d35e"))
 	var bar := _list.get_v_scroll_bar()
-	bar.custom_minimum_size = Vector2(36, 0)
+	bar.custom_minimum_size = Vector2(44, 0)
 	_back_btn.text = Loc.t("prep.chrome.back")
 	PrepWidgets.paint_btn(_back_btn, true)
 	UiFont.apply_button(_back_btn, PrepWidgets.PREP_BTN)
@@ -231,7 +232,7 @@ func _home_info() -> String:
 func _add(label: String, action: String, arg = null) -> void:
 	_rows.append({"label": label, "action": action, "arg": arg, "icon": "", "locked": false, "tag": ""})
 	if _list.visible:
-		_list.add_item(label)
+		_list.add_item(label, PrepWidgets.list_row_spacer())
 
 
 func _add_hub(label: String, action: String, arg = null, icon: String = "", locked: bool = false, tag: String = "") -> void:
