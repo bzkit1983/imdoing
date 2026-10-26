@@ -211,16 +211,16 @@ static func _stats(menu: CanvasLayer) -> void:
 	_add_stat_row(menu, "AGI", "agi", menu.state.agi_stat, 1)
 	_add_stat_row(menu, "INT", "int", menu.state.int_stat, 2)
 	var reset_lbl := "%s（$%d）" % [Loc.t("prep.stats.reset"), menu.state.reset_stats_cost()]
-	menu._stats_panel.add_child(PrepWidgets.step_button(reset_lbl, menu._stat_row == 3, menu._on_stat_reset, 64, 420))
-	menu._stats_panel.add_child(PrepWidgets.step_button(Loc.t("prep.back"), menu._stat_row == 4, menu._on_stat_back, 72, 420))
+	menu._stats_panel.add_child(PrepWidgets.step_button(reset_lbl, menu._stat_row == 3, menu._on_stat_reset, PrepWidgets.STEP_BTN_H, 480))
+	menu._stats_panel.add_child(PrepWidgets.step_button(Loc.t("prep.back"), menu._stat_row == 4, menu._on_stat_back, PrepWidgets.STEP_BTN_H, 480))
 
 static func _add_stat_row(menu: CanvasLayer, title: String, stat: String, value: int, row: int) -> void:
 	var line := HBoxContainer.new()
 	line.add_theme_constant_override("separation", 14)
 	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	line.add_child(PrepWidgets.name_label("%s  %d" % [title, value], 220, 64))
-	line.add_child(PrepWidgets.step_button("+", menu._stat_row == row and menu._stat_side == 1, menu._on_stat_pressed.bind(stat, 1, row), 64))
-	line.add_child(PrepWidgets.step_button("-", menu._stat_row == row and menu._stat_side == -1, menu._on_stat_pressed.bind(stat, -1, row), 64))
+	line.add_child(PrepWidgets.name_label("%s  %d" % [title, value], 240, PrepWidgets.STEP_BTN_H))
+	line.add_child(PrepWidgets.step_button("+", menu._stat_row == row and menu._stat_side == 1, menu._on_stat_pressed.bind(stat, 1, row)))
+	line.add_child(PrepWidgets.step_button("-", menu._stat_row == row and menu._stat_side == -1, menu._on_stat_pressed.bind(stat, -1, row)))
 	menu._stats_panel.add_child(line)
 
 
@@ -294,11 +294,11 @@ static func _build_qty(menu: CanvasLayer, total: int) -> void:
 	var acts := HBoxContainer.new()
 	acts.add_theme_constant_override("separation", 24)
 	acts.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var ok := PrepWidgets.bare_button("確定購買", 280, 80)
+	var ok := PrepWidgets.bare_button("確定購買", 300, 88)
 	PrepWidgets.paint_btn(ok, menu._qty_focus == 4)
 	ok.pressed.connect(menu._on_qty_pressed.bind(4))
 	acts.add_child(ok)
-	var cancel := PrepWidgets.bare_button(Loc.t("prep.chrome.dialog_no"), 280, 80)
+	var cancel := PrepWidgets.bare_button(Loc.t("prep.chrome.dialog_no"), 300, 88)
 	PrepWidgets.paint_btn(cancel, menu._qty_focus == 5)
 	cancel.pressed.connect(menu._on_qty_pressed.bind(5))
 	acts.add_child(cancel)
@@ -329,7 +329,7 @@ static func _qty_figure(menu: CanvasLayer) -> Control:
 
 
 static func _qty_button(menu: CanvasLayer, text: String, focus_i: int) -> Button:
-	var btn := PrepWidgets.bare_button(text, 120, 84)
+	var btn := PrepWidgets.bare_button(text, 128, 88)
 	PrepWidgets.paint_btn(btn, menu._qty_focus == focus_i)
 	btn.pressed.connect(menu._on_qty_pressed.bind(focus_i))
 	return btn

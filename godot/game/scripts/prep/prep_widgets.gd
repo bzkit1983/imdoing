@@ -5,14 +5,22 @@ const UiFont = preload("res://scripts/ui_font.gd")
 const PrepIcons = preload("res://scripts/prep/prep_icons.gd")
 const PREP_TITLE := 40
 const PREP_INFO := 28
-const PREP_LIST := 32
+const PREP_LIST := 34
 const PREP_HINT := 24
 const PREP_BTN := 32
 const PREP_NUM := 44
 const HUB_TILE_H := 100.0
-const HUB_ROW_H := 64.0
+## Subdirectory option rows (角色整備／貨品管理…).
+const HUB_ROW_H := 80.0
 const OPEN_MAIN_H := 64.0
 const OPEN_ELITE_H := 64.0
+## ItemList leaf pages — touch-friendly row height via spacer icon.
+const LIST_ROW_H := 72
+const LIST_V_SEP := 14
+const STEP_BTN_H := 84.0
+const STEP_BTN_W := 96.0
+
+static var _list_spacer: ImageTexture
 
 
 static func clear(node: Node) -> void:
@@ -20,7 +28,17 @@ static func clear(node: Node) -> void:
 		c.queue_free()
 
 
-static func name_label(text: String, width: float, tall: float = 72.0) -> Label:
+static func list_row_spacer() -> Texture2D:
+	## Transparent strip so ItemList rows keep a minimum touch height.
+	if _list_spacer != null:
+		return _list_spacer
+	var img := Image.create(8, LIST_ROW_H, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	_list_spacer = ImageTexture.create_from_image(img)
+	return _list_spacer
+
+
+static func name_label(text: String, width: float, tall: float = 84.0) -> Label:
 	var lab := Label.new()
 	lab.text = text
 	lab.custom_minimum_size = Vector2(width, tall)
@@ -84,7 +102,7 @@ static func paint_open_elite(btn: Button, on: bool) -> void:
 	btn.add_theme_color_override("font_pressed_color", Color("f3d6ef"))
 
 
-static func step_button(text: String, on: bool, cb: Callable, tall: float = 72.0, wide: float = 84.0) -> Button:
+static func step_button(text: String, on: bool, cb: Callable, tall: float = STEP_BTN_H, wide: float = STEP_BTN_W) -> Button:
 	var btn := bare_button(text, wide, tall)
 	paint_btn(btn, on)
 	btn.pressed.connect(cb)
