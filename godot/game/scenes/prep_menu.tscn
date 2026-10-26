@@ -60,25 +60,25 @@ text_overrun_behavior = 3
 unique_name_in_owner = true
 visible = false
 offset_left = 24.0
-offset_top = 168.0
+offset_top = 160.0
 offset_right = 1256.0
-offset_bottom = 500.0
-theme_override_constants/h_separation = 12
-theme_override_constants/v_separation = 12
+offset_bottom = 460.0
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
 columns = 3
 
 [node name="OpenBar" type="HBoxContainer" parent="."]
 unique_name_in_owner = true
 visible = false
 offset_left = 24.0
-offset_top = 516.0
+offset_top = 476.0
 offset_right = 1256.0
-offset_bottom = 602.0
-theme_override_constants/separation = 12
+offset_bottom = 548.0
+theme_override_constants/separation = 10
 
 [node name="OpenMain" type="Button" parent="OpenBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 78)
+custom_minimum_size = Vector2(0, 64)
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 1.35
 focus_mode = 0
@@ -87,7 +87,7 @@ text_overrun_behavior = 3
 
 [node name="OpenElite" type="Button" parent="OpenBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 78)
+custom_minimum_size = Vector2(0, 64)
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 1.0
 focus_mode = 0
@@ -97,11 +97,11 @@ text_overrun_behavior = 3
 [node name="BackBtn" type="Button" parent="."]
 unique_name_in_owner = true
 z_index = 8
-offset_left = 1020.0
-offset_top = 88.0
+offset_left = 1040.0
+offset_top = 92.0
 offset_right = 1240.0
-offset_bottom = 148.0
-custom_minimum_size = Vector2(220, 60)
+offset_bottom = 144.0
+custom_minimum_size = Vector2(200, 52)
 focus_mode = 0
 text = "返回"
 text_overrun_behavior = 3

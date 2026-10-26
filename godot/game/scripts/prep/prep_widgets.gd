@@ -9,10 +9,10 @@ const PREP_LIST := 32
 const PREP_HINT := 24
 const PREP_BTN := 32
 const PREP_NUM := 44
-const HUB_TILE_H := 120.0
-const HUB_ROW_H := 76.0
-const OPEN_MAIN_H := 78.0
-const OPEN_ELITE_H := 78.0
+const HUB_TILE_H := 100.0
+const HUB_ROW_H := 64.0
+const OPEN_MAIN_H := 64.0
+const OPEN_ELITE_H := 64.0
 
 
 static func clear(node: Node) -> void:
@@ -104,7 +104,7 @@ static func hub_tile(label: String, icon_id: String, on: bool, locked: bool, cb:
 	btn.text = label
 	btn.icon = PrepIcons.icon_tex(icon_id)
 	btn.disabled = locked
-	UiFont.apply_button(btn, 24)
+	UiFont.apply_button(btn, 22)
 	paint_hub_surface(btn, on, locked, false)
 	if not locked:
 		btn.pressed.connect(cb)
@@ -122,7 +122,7 @@ static func hub_row(label: String, icon_id: String, on: bool, locked: bool, tag:
 	btn.text = label if tag == "" else "%s　　%s" % [label, tag]
 	btn.icon = PrepIcons.icon_tex(icon_id)
 	btn.disabled = locked
-	UiFont.apply_button(btn, 26)
+	UiFont.apply_button(btn, 24)
 	paint_hub_surface(btn, on, locked, true)
 	if not locked:
 		btn.pressed.connect(cb)
@@ -139,11 +139,11 @@ static func paint_hub_surface(btn: Button, on: bool, locked: bool, row: bool) ->
 		bg.set_border_width_all(2)
 	else:
 		bg.bg_color = Color("1e2a24")
-	bg.set_corner_radius_all(12 if not row else 10)
-	bg.content_margin_left = 14
-	bg.content_margin_right = 14
-	bg.content_margin_top = 8
-	bg.content_margin_bottom = 8
+	bg.set_corner_radius_all(10 if not row else 8)
+	bg.content_margin_left = 12
+	bg.content_margin_right = 12
+	bg.content_margin_top = 6
+	bg.content_margin_bottom = 6
 	btn.add_theme_stylebox_override("normal", bg)
 	btn.add_theme_stylebox_override("hover", bg)
 	btn.add_theme_stylebox_override("pressed", bg)

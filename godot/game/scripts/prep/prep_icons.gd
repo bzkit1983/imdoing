@@ -4,7 +4,7 @@ extends RefCounted
 
 ## Draw canvas size; downscaled for hub buttons so tiles stay compact.
 const SIZE := 96
-const DISPLAY := 56
+const DISPLAY := 44
 static var _cache: Dictionary = {}
 
 
