@@ -2,7 +2,9 @@ extends RefCounted
 ## Placeholder prep-hub icons. Prefer art/ui/prep/<id>.png when a designer drops one in.
 
 
+## Draw canvas size; downscaled for hub buttons so tiles stay compact.
 const SIZE := 96
+const DISPLAY := 56
 static var _cache: Dictionary = {}
 
 
@@ -11,9 +13,15 @@ static func icon_tex(id: String) -> Texture2D:
 		return _cache[id] as Texture2D
 	var path := "res://art/ui/prep/%s.png" % id
 	if ResourceLoader.exists(path):
-		var tex: Texture2D = load(path)
-		_cache[id] = tex
-		return tex
+		var loaded: Texture2D = load(path)
+		var img := loaded.get_image()
+		if img != null and (img.get_width() != DISPLAY or img.get_height() != DISPLAY):
+			img.resize(DISPLAY, DISPLAY, Image.INTERPOLATE_LANCZOS)
+			var scaled := ImageTexture.create_from_image(img)
+			_cache[id] = scaled
+			return scaled
+		_cache[id] = loaded
+		return loaded
 	var drawn := _draw(id)
 	_cache[id] = drawn
 	return drawn
@@ -78,6 +86,7 @@ static func _draw(id: String) -> ImageTexture:
 			_box(img, 34, 34, 28, 36, Color("c45c26"))
 		_:
 			_disk(img, 48, 48, 20, Color("f4d35e"))
+	img.resize(DISPLAY, DISPLAY, Image.INTERPOLATE_LANCZOS)
 	var tex := ImageTexture.create_from_image(img)
 	return tex
 
