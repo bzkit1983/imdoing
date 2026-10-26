@@ -50,10 +50,17 @@ def main() -> int:
         errs.append("demo spawn should call become_elite")
     if not re.search(r"elite_spawn_chance", DEMO):
         errs.append("demo should roll elite_spawn_chance")
+    if "ELITE_TEST_SPAWN_CHANCE" not in DEMO:
+        errs.append("elite test mode should use ELITE_TEST_SPAWN_CHANCE")
+    tun = (ROOT / "godot/game/scripts/tuning.gd").read_text(encoding="utf-8")
+    if "ELITE_TEST_SPAWN_CHANCE" not in tun:
+        errs.append("tuning missing ELITE_TEST_SPAWN_CHANCE")
     if "payout_total" not in (ROOT / "godot/game/scripts/player.gd").read_text(encoding="utf-8"):
         errs.append("player checkout should use payout_total")
     if "elite_test_need_one" not in DEMO or "elite_test_need_one = false" not in DEMO:
         errs.append("guaranteed first elite should clear elite_test_need_one")
+    if "約 40%" not in DOC and "40%" not in DOC:
+        errs.append("elitecustomer.md should note elevated test spawn rate")
     if errs:
         print("FAIL")
         for e in errs:
