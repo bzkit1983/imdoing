@@ -40,26 +40,43 @@ prep.scenario.s1,劇本1　從新開始　資金 $10000　LV1　空店,Scenario 
 prep.scenario.s2,劇本2　LV5　資金 $10000　店規模 2　1 名店員,Scenario 2 · LV5 · $10000 · scale 2 · 1 clerk
 prep.scenario.s3,劇本3　LV10　資金 $99999　三圍 30　店規模 3　2 名店員,Scenario 3 · LV10 · $99999 · stats 30 · scale 3 · 2 clerks
 prep.home.title,營運準備,Prep
+prep.hub.char,角色整備,Character
+prep.hub.char_info,能力、技能與外觀,Stats, skills, and look
+prep.hub.goods,貨品管理,Goods
+prep.hub.goods_info,開發與採購分開,Develop and buy separately
+prep.hub.shop,店舖管理,Shop
+prep.hub.shop_info,規模 LV%d　地圖 %d×%d　購入、擴張、設計,Scale LV%d · map %d×%d · buy, expand, layout
+prep.hub.staff,員工管理　%d 人,Staff · %d
+prep.hub.sys,系統工具,System tools
+prep.hub.sys_info,測試與存檔,Testing and save
 prep.home.stats,角色能力,Stats
 prep.home.skills,裝備技能　COST %d/5,Skills · COST %d/5
+prep.home.skills_short,裝備技能　COST %d/5,Skills · COST %d/5
+prep.home.look,外觀調整,Appearance
 prep.home.stock,開發／採購貨品,Develop / buy goods
+prep.home.develop,開發商品,Develop goods
+prep.home.buy,採購貨品,Buy goods
 prep.home.furn,購入商店物品,Buy furniture
 prep.home.expand,擴張店面　現時 LV%d　%d×%d,Expand · LV%d · %d×%d
+prep.home.expand_short,擴張店舖,Expand shop
 prep.home.layout,店舖設計,Layout
 prep.home.clerks,店員　%d 人,Clerks · %d
-prep.home.open,開始營業,Open shop
+prep.home.open,開始營運,Open shop
 prep.home.elite_test,開始營運（麻煩客人模式）,Open shop (elite guest test)
-prep.home.test_money,增加資金$1000（測試用）,Add $1000 funds (test)
+prep.home.test_money,增加資金,Add funds
 prep.elite_test.title,麻煩客人模式（測試）,Elite guest test
 prep.elite_test.info,選等級後進入確認開店。此模式保證至少出現一名麻煩客人；其後進店約 40% 再出。混合 LV 每次抽 1–6。,Pick a level then confirm. Guarantees ≥1 elite; ~40% chance after. Mixed rolls LV1–6 each time.
 prep.elite_test.lv,麻煩客人 LV%d,Elite guest LV%d
 prep.elite_test.mixed,混合 LV（不同等級）,Mixed levels
 prep.elite_test.confirm_note,【測試】麻煩客人模式：%s　（必出≥1；其後約40%）,【Test】Elite mode: %s (≥1 guaranteed; ~40% after)
 prep.home.test_money_ok,已增加資金 $1000　現有 $%d,Added $1000 · now $%d
-prep.home.sfx_test,音效測試（播放 Sample）,SFX test (play samples)
+prep.home.sfx_test,音效測試,SFX test
 prep.sfx.title,音效測試,SFX Test
 prep.sfx.info,P0／P1／P2 Alpha 佔位音效。每列 ▶ 後為映射的遊戲動作／效果。J 播放　; 返回。之後由音效設計師替換素材。,P0/P1/P2 Alpha placeholder SFX. Text after ▶ is the mapped gameplay action/effect. J play · ; back. Designers replace assets later.
-prep.home.wipe,清除存檔並重選劇本,Wipe save & re-pick scenario
+prep.home.wipe,清除存檔並重新選擇劇本,Wipe save & re-pick scenario
+prep.locked,未開放,Locked
+prep.locked_title,尚未開放,Not available
+prep.look.locked_body,角色外觀調整尚未開放，之後版本會再補上。,Character appearance is not available yet.
 prep.stats.title,角色能力,Stats
 prep.stats.info,按 + 加一點，按 - 減一點。向下可到重置和返回。,"Press + / − to adjust. Down for reset and back."
 prep.stats.reset,重置能力值,Reset stats
@@ -70,17 +87,22 @@ prep.skill_pick.info,格 %s。名字前面是性質：主動、被動或奧義�
 prep.skill_pick.ult_slot,奧義,Ult
 prep.stock.title,開發／採購,Develop / buy
 prep.stock.info,罐頭是初始貨物，不用開發就能採購。其他未開發的先付開發費。,"Cans start unlocked. Other goods need a develop fee first."
+prep.develop.title,開發商品,Develop goods
+prep.develop.info,罐頭是初始貨物，不用開發。其他貨品先付開發費，開發後才能採購。,"Cans start unlocked. Other goods need a develop fee before buying."
+prep.buy.title,採購貨品,Buy goods
+prep.buy.info,只列出已開發的貨品。未開發的請先到「開發商品」。,"Only developed goods. Undeveloped items need Develop first."
+prep.buy.need_develop,%s尚未開發，請先到開發商品。,%s is not developed yet — open Develop first.
 prep.stock.qty_title,採購 %s,Buy %s
 prep.stock.qty_info,庫存 %d 箱　$%d／箱。中間是箱數（01–99），按按鈕加減。,"Stock %d boxes · $%d/box. Middle is qty (01–99)."
 prep.furn.title,購入商店物品,Buy furniture
 prep.furn.info,買入後到店舖設計才放進店裡。展示貨架有 4、8、12、24 件，越大越貴。凍櫃 LV4、冰櫃 LV7 才開放。,"Place bought items in Layout. Shelf sizes 4/8/12/24. Frozen LV4 · Ice LV7."
-prep.expand.title,擴張店面,Expand
+prep.expand.title,擴張店舖,Expand shop
 prep.expand.info,現時規模 LV%d　地圖 %d×%d　總面積 %d／%d。闊度和長度在店舖設計裡調，一邊減少就能加另一邊。\nLV2＝$3000、總面積 225，要角色 LV4。LV3＝$6000、總面積 400，要角色 LV7。,"Scale LV%d · map %d×%d · area %d/%d. Adjust width/height in Layout.\nLV2=$3000 area 225 (need LV4). LV3=$6000 area 400 (need LV7)."
 prep.layout.title,店舖設計,Layout
 prep.layout.info,拖動左邊的物品放到右圖。圖上的物品可以拖去別的格子，拖出圖外或輕點就收回。,"Drag items from the list onto the grid. Drag placed items to move; drag off or tap to recall."
 prep.layout.holding,正在放 %s。拖到右圖放開，或移動游標後確定。X／K 轉向。,"Placing %s. Drop on the grid or move the cursor and confirm. X/K rotate."
-prep.clerks.title,店員,Clerks
-prep.confirm.title,開始營業,Open shop
+prep.clerks.title,員工管理,Staff
+prep.confirm.title,開始營運,Open shop
 prep.kind.active,主動,Active
 prep.kind.passive,被動,Passive
 prep.kind.ult,奧義,Ult

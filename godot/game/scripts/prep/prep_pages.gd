@@ -9,13 +9,40 @@ const ProductVersion = preload("res://scripts/product_version.gd")
 const SfxCatalog = preload("res://scripts/sfx_catalog.gd")
 
 
+static func is_hub_page(page: String) -> bool:
+	return page == "home" or page.begins_with("hub_")
+
+
+static func parent_page(page: String) -> String:
+	match page:
+		"hub_char", "hub_goods", "hub_shop", "hub_sys", "clerks", "confirm", "elite_test":
+			return "home"
+		"stats", "skills":
+			return "hub_char"
+		"develop", "buy":
+			return "hub_goods"
+		"furn", "expand", "layout":
+			return "hub_shop"
+		"sfx":
+			return "hub_sys"
+		"skill_pick":
+			return "skills"
+		_:
+			return "home"
+
+
 static func apply_panel_layout(menu: CanvasLayer) -> void:
-	var qty_on: bool = menu._page == "stock" and menu._qty_sku != ""
+	var qty_on: bool = menu._page == "buy" and menu._qty_sku != ""
+	var hub := is_hub_page(menu._page)
 	menu._grid.visible = menu._page == "layout"
 	menu._stats_panel.visible = menu._page == "stats"
 	menu._size_panel.visible = menu._page == "layout"
 	menu._qty_panel.visible = qty_on
-	menu._list.visible = not qty_on
+	menu._list.visible = not qty_on and not hub
+	if menu._hub_panel:
+		menu._hub_panel.visible = hub
+	if menu._open_bar:
+		menu._open_bar.visible = menu._page == "home"
 	if menu._back_btn:
 		menu._back_btn.visible = menu._page != "scenario" and menu._page != "home"
 	if menu._page == "stats":
@@ -26,6 +53,8 @@ static func apply_panel_layout(menu: CanvasLayer) -> void:
 		menu._list.z_index = 0
 		menu._list.position = Vector2(24, 360)
 		menu._list.size = Vector2(520, 276)
+	elif hub:
+		menu._list.z_index = 0
 	else:
 		menu._list.z_index = 0
 		menu._list.position = Vector2(24, 168)
@@ -38,12 +67,22 @@ static func fill(menu: CanvasLayer, page: String) -> void:
 			_scenario(menu)
 		"home":
 			_home(menu)
+		"hub_char":
+			_hub_char(menu)
+		"hub_goods":
+			_hub_goods(menu)
+		"hub_shop":
+			_hub_shop(menu)
+		"hub_sys":
+			_hub_sys(menu)
 		"stats":
 			_stats(menu)
 		"skills":
 			_skills(menu)
-		"stock":
-			_stock(menu)
+		"develop":
+			_develop(menu)
+		"buy":
+			_buy(menu)
 		"furn":
 			_furn(menu)
 		"expand":
@@ -63,7 +102,7 @@ static func fill(menu: CanvasLayer, page: String) -> void:
 		_:
 			menu._title.text = page
 			menu._info.text = ""
-			menu._add(Loc.t("prep.back"), "go", "home")
+			menu._add(Loc.t("prep.back"), "go", parent_page(page))
 
 
 static func fill_skill_pick(menu: CanvasLayer, slot_i: int) -> void:
@@ -72,6 +111,10 @@ static func fill_skill_pick(menu: CanvasLayer, slot_i: int) -> void:
 	menu._size_panel.visible = false
 	menu._stats_panel.visible = false
 	menu._grid.visible = false
+	if menu._hub_panel:
+		menu._hub_panel.visible = false
+	if menu._open_bar:
+		menu._open_bar.visible = false
 	menu._list.visible = true
 	menu._list.position = Vector2(24, 168)
 	menu._list.size = Vector2(1232, 430)
@@ -105,21 +148,58 @@ static func _scenario(menu: CanvasLayer) -> void:
 
 
 static func _home(menu: CanvasLayer) -> void:
+	menu._hub_cols = 3
 	menu._title.text = Loc.t("prep.home.title")
 	menu._info.text = menu._pair(menu._header(), menu._msg if menu._msg != "" else menu._home_info())
-	menu._add(Loc.t("prep.home.stats"), "go", "stats")
-	menu._add(Loc.t("prep.home.skills", [menu.state.cost_sum()]), "go", "skills")
-	menu._add(Loc.t("prep.home.stock"), "go", "stock")
-	menu._add(Loc.t("prep.home.furn"), "go", "furn")
-	menu._add(Loc.t("prep.home.expand", [menu.state.shop_scale, menu.state.grid_w, menu.state.grid_h]), "go", "expand")
-	menu._add(Loc.t("prep.home.layout"), "go", "layout")
-	menu._add(Loc.t("prep.home.clerks", [menu.state.clerks.size()]), "go", "clerks")
-	menu._add(Loc.t("prep.home.open"), "try_open", null)
+	menu._add_hub(Loc.t("prep.hub.char"), "go", "hub_char", "char")
+	menu._add_hub(Loc.t("prep.hub.goods"), "go", "hub_goods", "goods")
+	menu._add_hub(Loc.t("prep.hub.shop"), "go", "hub_shop", "shop")
+	menu._add_hub(Loc.t("prep.hub.staff", [menu.state.clerks.size()]), "go", "clerks", "staff")
+	menu._add_hub(Loc.t("prep.hub.sys"), "go", "hub_sys", "sys")
+	menu._rebuild_hub_tiles()
+	menu._setup_open_bar()
+
+
+static func _hub_char(menu: CanvasLayer) -> void:
+	menu._hub_cols = 1
+	menu._title.text = Loc.t("prep.hub.char")
+	menu._info.text = menu._pair(menu._header(), Loc.t("prep.hub.char_info"))
+	menu._add_hub(Loc.t("prep.home.stats"), "go", "stats", "stats")
+	menu._add_hub(Loc.t("prep.home.skills_short", [menu.state.cost_sum()]), "go", "skills", "skills")
+	menu._add_hub(Loc.t("prep.home.look"), "locked_look", null, "look", true, Loc.t("prep.locked"))
+	menu._rebuild_hub_tiles()
+
+
+static func _hub_goods(menu: CanvasLayer) -> void:
+	menu._hub_cols = 1
+	menu._title.text = Loc.t("prep.hub.goods")
+	menu._info.text = menu._pair(menu._header(), Loc.t("prep.hub.goods_info"))
+	menu._add_hub(Loc.t("prep.home.develop"), "go", "develop", "develop")
+	menu._add_hub(Loc.t("prep.home.buy"), "go", "buy", "buy")
+	menu._rebuild_hub_tiles()
+
+
+static func _hub_shop(menu: CanvasLayer) -> void:
+	menu._hub_cols = 1
+	menu._title.text = Loc.t("prep.hub.shop")
+	menu._info.text = menu._pair(menu._header(), Loc.t("prep.hub.shop_info", [
+		menu.state.shop_scale, menu.state.grid_w, menu.state.grid_h,
+	]))
+	menu._add_hub(Loc.t("prep.home.furn"), "go", "furn", "furn")
+	menu._add_hub(Loc.t("prep.home.expand_short"), "go", "expand", "expand")
+	menu._add_hub(Loc.t("prep.home.layout"), "go", "layout", "layout")
+	menu._rebuild_hub_tiles()
+
+
+static func _hub_sys(menu: CanvasLayer) -> void:
+	menu._hub_cols = 1
+	menu._title.text = Loc.t("prep.hub.sys")
+	menu._info.text = menu._pair(menu._header(), Loc.t("prep.hub.sys_info"))
 	if ProductVersion.test_tools_enabled():
-		menu._add(Loc.t("prep.home.elite_test"), "go", "elite_test")
-		menu._add(Loc.t("prep.home.test_money"), "test_money", null)
-		menu._add(Loc.t("prep.home.sfx_test"), "go", "sfx")
-	menu._add(Loc.t("prep.home.wipe"), "wipe_save", null)
+		menu._add_hub(Loc.t("prep.home.test_money"), "test_money", null, "money")
+		menu._add_hub(Loc.t("prep.home.sfx_test"), "go", "sfx", "sfx")
+	menu._add_hub(Loc.t("prep.home.wipe"), "wipe_save", null, "wipe")
+	menu._rebuild_hub_tiles()
 
 
 static func _stats(menu: CanvasLayer) -> void:
@@ -132,7 +212,7 @@ static func _stats(menu: CanvasLayer) -> void:
 	_add_stat_row(menu, "INT", "int", menu.state.int_stat, 2)
 	var reset_lbl := "%s（$%d）" % [Loc.t("prep.stats.reset"), menu.state.reset_stats_cost()]
 	menu._stats_panel.add_child(PrepWidgets.step_button(reset_lbl, menu._stat_row == 3, menu._on_stat_reset, 64, 420))
-	menu._stats_panel.add_child(PrepWidgets.step_button(Loc.t("prep.back"), menu._stat_row == 4, menu._on_stat_back, 64, 420))
+	menu._stats_panel.add_child(PrepWidgets.step_button(Loc.t("prep.back"), menu._stat_row == 4, menu._on_stat_back, 72, 420))
 
 static func _add_stat_row(menu: CanvasLayer, title: String, stat: String, value: int, row: int) -> void:
 	var line := HBoxContainer.new()
@@ -159,10 +239,23 @@ static func _skills(menu: CanvasLayer) -> void:
 		menu._add("技能%d　%s%s" % [i + 1, kind, name], "pick_slot", i)
 	var ult: Dictionary = menu.state.ult_skill()
 	menu._add("奧義　%s" % String(ult.get("name")), "pick_slot", 5)
-	menu._add(Loc.t("prep.back"), "go", "home")
+	menu._add(Loc.t("prep.back"), "go", "hub_char")
 
 
-static func _stock(menu: CanvasLayer) -> void:
+static func _develop(menu: CanvasLayer) -> void:
+	menu._title.text = Loc.t("prep.develop.title")
+	menu._info.text = menu._pair(menu._header(), menu._msg if menu._msg != "" else Loc.t("prep.develop.info"))
+	for sku in Tuning.SELLABLE_SKUS:
+		if not menu.state.sku_unlocked(sku):
+			menu._add("%s　LV%d 開放" % [Tuning.sku_name(sku), int(Tuning.SKU_UNLOCK_LV[sku])], "locked_sku", sku)
+		elif menu.state.developed.has(sku):
+			menu._add("%s　已開發" % Tuning.sku_name(sku), "noop", sku)
+		else:
+			menu._add("開發 %s　$%d" % [Tuning.sku_name(sku), int(Tuning.SKU_DEVELOP[sku])], "dev", sku)
+	menu._add(Loc.t("prep.back"), "go", "hub_goods")
+
+
+static func _buy(menu: CanvasLayer) -> void:
 	if menu._qty_sku != "":
 		var name := Tuning.sku_name(menu._qty_sku)
 		var each := int(Tuning.SKU_COST.get(menu._qty_sku, 0))
@@ -170,16 +263,16 @@ static func _stock(menu: CanvasLayer) -> void:
 		menu._info.text = Loc.t("prep.stock.qty_info", [int(menu.state.stock.get(menu._qty_sku, 0)), each])
 		_build_qty(menu, each * menu._qty_boxes)
 		return
-	menu._title.text = Loc.t("prep.stock.title")
-	menu._info.text = menu._pair(menu._header(), menu._msg if menu._msg != "" else Loc.t("prep.stock.info"))
+	menu._title.text = Loc.t("prep.buy.title")
+	menu._info.text = menu._pair(menu._header(), menu._msg if menu._msg != "" else Loc.t("prep.buy.info"))
 	for sku in Tuning.SELLABLE_SKUS:
 		if not menu.state.sku_unlocked(sku):
 			menu._add("%s　LV%d 開放" % [Tuning.sku_name(sku), int(Tuning.SKU_UNLOCK_LV[sku])], "locked_sku", sku)
 		elif not menu.state.developed.has(sku):
-			menu._add("開發 %s　$%d" % [Tuning.sku_name(sku), int(Tuning.SKU_DEVELOP[sku])], "dev", sku)
+			menu._add("%s　尚未開發" % Tuning.sku_name(sku), "need_develop", sku)
 		else:
 			menu._add("採購 %s　庫存 %d 箱　$%d/箱" % [Tuning.sku_name(sku), int(menu.state.stock.get(sku, 0)), int(Tuning.SKU_COST[sku])], "qty", sku)
-	menu._add(Loc.t("prep.back"), "go", "home")
+	menu._add(Loc.t("prep.back"), "go", "hub_goods")
 
 static func _build_qty(menu: CanvasLayer, total: int) -> void:
 	PrepWidgets.clear(menu._qty_panel)
@@ -251,7 +344,7 @@ static func _furn(menu: CanvasLayer) -> void:
 			menu._add("%s　LV%d 開放　$%d" % [spec["name"], int(spec["unlock"]), int(spec["price"])], "locked_furn", type)
 		else:
 			menu._add("購入 %s　$%d　擁有 %d　未放置 %d" % [spec["name"], int(spec["price"]), int(menu.state.owned.get(type, 0)), menu.state.unplaced(type)], "buy_f", type)
-	menu._add(Loc.t("prep.back"), "go", "home")
+	menu._add(Loc.t("prep.back"), "go", "hub_shop")
 
 
 static func _expand(menu: CanvasLayer) -> void:
@@ -265,7 +358,7 @@ static func _expand(menu: CanvasLayer) -> void:
 		menu._add("擴張到規模 LV%d　$%d" % [nxt, int(menu.state.SCALE_COST[nxt])], "expand", null)
 	else:
 		menu._add("已是最大規模", "expand_max", null)
-	menu._add(Loc.t("prep.back"), "go", "home")
+	menu._add(Loc.t("prep.back"), "go", "hub_shop")
 
 
 static func _layout(menu: CanvasLayer) -> void:
@@ -287,7 +380,7 @@ static func _layout(menu: CanvasLayer) -> void:
 		if n > 0:
 			menu._add("拖放 %s　×%d" % [menu.state.FURNITURE[type]["name"], n], "hold", type)
 	menu._add("收回游標上的物品", "pickup", null)
-	menu._add(Loc.t("prep.back"), "go", "home")
+	menu._add(Loc.t("prep.back"), "go", "hub_shop")
 	menu._grid.queue_redraw()
 
 static func _add_size_row(menu: CanvasLayer, title: String, axis: String, value: int, row: int) -> void:
@@ -348,7 +441,7 @@ static func _sfx(menu: CanvasLayer) -> void:
 				menu._add("[%s] %s　▶" % [group, sid], "play_sfx", sid)
 			else:
 				menu._add("[%s] %s　▶　%s" % [group, sid, trigger], "play_sfx", sid)
-	menu._add(Loc.t("prep.back"), "go", "home")
+	menu._add(Loc.t("prep.back"), "go", "hub_sys")
 
 
 static func _kind_label(kind: String) -> String:
