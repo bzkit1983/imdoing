@@ -94,8 +94,10 @@ static func step_button(text: String, on: bool, cb: Callable, tall: float = 72.0
 static func hub_tile(label: String, icon_id: String, on: bool, locked: bool, cb: Callable) -> Button:
 	var btn := Button.new()
 	btn.focus_mode = Control.FOCUS_NONE
+	## Fixed height — do not let GridContainer stretch the hit box.
 	btn.custom_minimum_size = Vector2(0, HUB_TILE_H)
 	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	btn.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	btn.clip_text = true
 	btn.expand_icon = false
 	btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -116,6 +118,7 @@ static func hub_row(label: String, icon_id: String, on: bool, locked: bool, tag:
 	btn.focus_mode = Control.FOCUS_NONE
 	btn.custom_minimum_size = Vector2(0, HUB_ROW_H)
 	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	btn.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	btn.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	btn.expand_icon = false
