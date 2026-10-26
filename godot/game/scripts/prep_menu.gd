@@ -41,6 +41,10 @@ var _drag_press := Vector2.ZERO
 var _msg: String = ""
 var _list: ItemList
 var _back_btn: Button
+var _hub_panel: GridContainer
+var _open_bar: HBoxContainer
+var _open_main: Button
+var _open_elite: Button
 var _click_arm: int = -1
 var _list_dragging: bool = false
 var _list_press := Vector2.ZERO
@@ -56,6 +60,8 @@ var _size_row: int = 0
 var _size_side: int = 1
 var _on_size_btns: bool = false
 var _qty_panel: VBoxContainer
+var _hub_cols: int = 3
+var _open_focus: int = -1 ## -1 tiles · 0 open main · 1 elite
 var _shade: ColorRect
 var _box: Control
 var _dlg_title: Label
@@ -92,6 +98,10 @@ func _bind_nodes() -> void:
 	_info = %Info
 	_list = %List
 	_back_btn = %BackBtn
+	_hub_panel = %HubPanel
+	_open_bar = %OpenBar
+	_open_main = %OpenMain
+	_open_elite = %OpenElite
 	_stats_panel = %StatsPanel
 	_size_panel = %SizePanel
 	_qty_panel = %QtyPanel
@@ -106,6 +116,8 @@ func _bind_nodes() -> void:
 	_list.item_selected.connect(_on_click)
 	_list.gui_input.connect(_on_list_gui_input)
 	_back_btn.button_down.connect(_on_back_button)
+	_open_main.pressed.connect(_on_open_main_pressed)
+	_open_elite.pressed.connect(_on_open_elite_pressed)
 	_dlg_yes.pressed.connect(_on_dlg_yes)
 	_dlg_no.pressed.connect(_on_dlg_no)
 	UiFont.apply_label(_title, PREP_TITLE)
@@ -114,7 +126,8 @@ func _bind_nodes() -> void:
 	_info.add_theme_color_override("font_color", Color("f4f1ea"))
 	_list.add_theme_font_override("font", UiFont.font())
 	_list.add_theme_font_size_override("font_size", UiFont.px(PREP_LIST))
-	_list.add_theme_constant_override("v_separation", 6)
+	_list.add_theme_constant_override("v_separation", 10)
+	_list.add_theme_constant_override("icon_margin", 12)
 	_list.add_theme_color_override("font_color", Color("f4f1ea"))
 	_list.add_theme_color_override("font_selected_color", Color("1c241f"))
 	_list.add_theme_color_override("font_hovered_color", Color("f4d35e"))
@@ -123,9 +136,20 @@ func _bind_nodes() -> void:
 	_back_btn.text = Loc.t("prep.chrome.back")
 	PrepWidgets.paint_btn(_back_btn, true)
 	UiFont.apply_button(_back_btn, PrepWidgets.PREP_BTN)
+	_back_btn.custom_minimum_size = Vector2(240, 72)
 	UiFont.apply_label(%Hint, PREP_HINT)
 	%Hint.text = Loc.t("prep.chrome.hint")
 	%Hint.add_theme_color_override("font_color", Color("c8d4c5"))
+	_open_main.text = Loc.t("prep.home.open")
+	_open_elite.text = Loc.t("prep.home.elite_test")
+	UiFont.apply_button(_open_main, 34)
+	UiFont.apply_button(_open_elite, 26)
+	_open_main.custom_minimum_size = Vector2(0, PrepWidgets.OPEN_MAIN_H)
+	_open_elite.custom_minimum_size = Vector2(0, PrepWidgets.OPEN_ELITE_H)
+	_open_main.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_open_elite.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	PrepWidgets.paint_open_main(_open_main, false)
+	PrepWidgets.paint_open_elite(_open_elite, false)
 	UiFont.apply_label(_dlg_title, PREP_TITLE)
 	_dlg_title.add_theme_color_override("font_color", Color("f4d35e"))
 	UiFont.apply_label(_dlg_body, PREP_INFO)
@@ -142,8 +166,11 @@ func _show_page(page: String) -> void:
 	# The confirm key that opened this page must not also activate the new page.
 	_confirm_latch = true
 	_close_dialog()
+	if page == "stock":
+		page = "hub_goods"
 	_page = page
 	_index = 0
+	_open_focus = -1
 	_msg = ""
 	_qty_sku = ""
 	_on_size_btns = false
@@ -163,6 +190,8 @@ func _refresh() -> void:
 	_building = true
 	_rows.clear()
 	_list.clear()
+	if _hub_panel:
+		PrepWidgets.clear(_hub_panel)
 	PrepPages.apply_panel_layout(self)
 	PrepPages.fill(self, _page)
 	if _rows.size() > 0 and _list.visible:
@@ -172,6 +201,9 @@ func _refresh() -> void:
 			_list.deselect_all()
 		else:
 			_select_row(_index)
+	elif PrepPages.is_hub_page(_page) and _rows.size() > 0:
+		_index = clampi(_index, 0, _rows.size() - 1)
+		_paint_hub_selection()
 	_building = false
 	_grid.queue_redraw()
 
@@ -197,8 +229,128 @@ func _home_info() -> String:
 
 
 func _add(label: String, action: String, arg = null) -> void:
-	_rows.append({"label": label, "action": action, "arg": arg})
-	_list.add_item(label)
+	_rows.append({"label": label, "action": action, "arg": arg, "icon": "", "locked": false, "tag": ""})
+	if _list.visible:
+		_list.add_item(label)
+
+
+func _add_hub(label: String, action: String, arg = null, icon: String = "", locked: bool = false, tag: String = "") -> void:
+	_rows.append({
+		"label": label,
+		"action": action,
+		"arg": arg,
+		"icon": icon,
+		"locked": locked,
+		"tag": tag,
+	})
+
+
+func _rebuild_hub_tiles() -> void:
+	if _hub_panel == null:
+		return
+	PrepWidgets.clear(_hub_panel)
+	_hub_panel.columns = maxi(1, _hub_cols)
+	var as_rows := _hub_cols <= 1
+	for i in _rows.size():
+		var row: Dictionary = _rows[i]
+		var locked := bool(row.get("locked", false))
+		var on := i == _index and _open_focus < 0
+		var cb := _on_hub_pressed.bind(i)
+		var btn: Button
+		if as_rows:
+			btn = PrepWidgets.hub_row(
+				String(row["label"]),
+				String(row.get("icon", "")),
+				on,
+				locked,
+				String(row.get("tag", "")),
+				cb,
+			)
+		else:
+			btn = PrepWidgets.hub_tile(
+				String(row["label"]),
+				String(row.get("icon", "")),
+				on,
+				locked,
+				cb,
+			)
+		_hub_panel.add_child(btn)
+
+
+func _setup_open_bar() -> void:
+	if _open_bar == null:
+		return
+	_open_main.text = Loc.t("prep.home.open")
+	_open_elite.text = Loc.t("prep.home.elite_test")
+	_open_elite.visible = ProductVersion.test_tools_enabled()
+	_paint_open_selection()
+
+
+func _paint_hub_selection() -> void:
+	if _hub_panel == null:
+		return
+	var as_rows := _hub_cols <= 1
+	for i in _hub_panel.get_child_count():
+		var btn := _hub_panel.get_child(i) as Button
+		if btn == null or i >= _rows.size():
+			continue
+		var row: Dictionary = _rows[i]
+		var locked := bool(row.get("locked", false))
+		var on := i == _index and _open_focus < 0
+		PrepWidgets.paint_hub_surface(btn, on, locked, as_rows)
+	_paint_open_selection()
+
+
+func _paint_open_selection() -> void:
+	if _open_main == null:
+		return
+	PrepWidgets.paint_open_main(_open_main, _page == "home" and _open_focus == 0)
+	PrepWidgets.paint_open_elite(_open_elite, _page == "home" and _open_focus == 1)
+
+
+func _on_hub_pressed(i: int) -> void:
+	if _dlg_open or _swallow_click or _confirm_latch or _building:
+		return
+	if i < 0 or i >= _rows.size():
+		return
+	if bool(_rows[i].get("locked", false)):
+		_activate_locked_row(_rows[i])
+		return
+	_index = i
+	_open_focus = -1
+	_activate()
+
+
+func _on_open_main_pressed() -> void:
+	if _dlg_open or _swallow_click or _confirm_latch or _building:
+		return
+	_open_focus = 0
+	_paint_open_selection()
+	_index = 0
+	## Synthesize try_open without needing a hub row.
+	if demo != null and demo.has_method("clear_elite_test"):
+		demo.call("clear_elite_test")
+	var blocks := state.open_blockers()
+	if blocks.is_empty():
+		_show_page("confirm")
+	else:
+		_popup_info("不能開店", "\n".join(blocks))
+
+
+func _on_open_elite_pressed() -> void:
+	if _dlg_open or _swallow_click or _confirm_latch or _building:
+		return
+	if not ProductVersion.test_tools_enabled():
+		return
+	_open_focus = 1
+	_paint_open_selection()
+	_show_page("elite_test")
+
+
+func _activate_locked_row(row: Dictionary) -> void:
+	var action := String(row.get("action", ""))
+	if action == "locked_look":
+		_popup_info(Loc.t("prep.locked_title"), Loc.t("prep.look.locked_body"))
 
 
 func _on_stat_pressed(stat: String, delta: int, row: int) -> void:
@@ -227,7 +379,7 @@ func _on_stat_reset() -> void:
 func _on_stat_back() -> void:
 	if _dlg_open or _swallow_click:
 		return
-	_show_page("home")
+	_show_page("hub_char")
 
 
 func _on_qty_pressed(focus_i: int) -> void:
@@ -373,7 +525,13 @@ func _activate() -> void:
 				_msg = "已重置能力值（−$%d）" % fee
 			_refresh()
 		else:
-			_show_page("home")
+			_show_page("hub_char")
+		return
+	if _page == "home" and _open_focus == 0:
+		_on_open_main_pressed()
+		return
+	if _page == "home" and _open_focus == 1:
+		_on_open_elite_pressed()
 		return
 	if _page == "layout" and _hold_type != "":
 		try_place()
@@ -381,12 +539,15 @@ func _activate() -> void:
 	if _page == "layout" and _on_size_btns:
 		_nudge_grid("w" if _size_row == 0 else "h", _size_side)
 		return
-	if _page == "stock" and _qty_sku != "":
+	if _page == "buy" and _qty_sku != "":
 		_qty_apply(_qty_focus)
 		return
 	if _index < 0 or _index >= _rows.size():
 		return
 	var row: Dictionary = _rows[_index]
+	if bool(row.get("locked", false)):
+		_activate_locked_row(row)
+		return
 	var action := String(row["action"])
 	var arg = row["arg"]
 	match action:
@@ -426,6 +587,10 @@ func _activate() -> void:
 			_ask_develop(String(arg))
 		"locked_sku":
 			_popup_info("尚未開放", _locked_sku_body(String(arg)))
+		"need_develop":
+			_popup_info(Loc.t("prep.locked_title"), Loc.t("prep.buy.need_develop", [Tuning.sku_name(String(arg))]))
+		"locked_look":
+			_popup_info(Loc.t("prep.locked_title"), Loc.t("prep.look.locked_body"))
 		"qty":
 			_qty_sku = String(arg)
 			_qty_boxes = 1
@@ -488,6 +653,8 @@ func _activate() -> void:
 			_grant_test_money()
 		"play_sfx":
 			SfxBus.play(String(arg))
+		"noop":
+			pass
 		_:
 			pass
 
@@ -845,8 +1012,11 @@ func _move(x: int, y: int) -> void:
 	if _page == "layout":
 		_move_layout(x, y)
 		return
-	if _qty_sku != "" and _page == "stock":
+	if _qty_sku != "" and _page == "buy":
 		_move_qty(x, y)
+		return
+	if PrepPages.is_hub_page(_page):
+		_move_hub(x, y)
 		return
 	if _rows.is_empty():
 		return
@@ -857,6 +1027,51 @@ func _move(x: int, y: int) -> void:
 		_index = posmod(_index + 1, _rows.size())
 		SfxBus.play("sfx_ui_move")
 	_select_row(_index)
+
+
+func _move_hub(x: int, y: int) -> void:
+	if _rows.is_empty() and _page != "home":
+		return
+	if _page == "home" and _open_focus >= 0:
+		if y < 0:
+			_open_focus = -1
+			SfxBus.play("sfx_ui_move")
+			_paint_hub_selection()
+			return
+		if x != 0 and _open_elite.visible:
+			_open_focus = 1 if x > 0 else 0
+			SfxBus.play("sfx_ui_move")
+			_paint_open_selection()
+		return
+	if _rows.is_empty():
+		return
+	var cols := maxi(1, _hub_cols)
+	var n := _rows.size()
+	var next := _index
+	if cols > 1:
+		if x < 0:
+			next = posmod(_index - 1, n)
+		elif x > 0:
+			next = posmod(_index + 1, n)
+		elif y < 0:
+			next = posmod(_index - cols, n)
+		elif y > 0:
+			var cand := _index + cols
+			if _page == "home" and cand >= n:
+				_open_focus = 0
+				SfxBus.play("sfx_ui_move")
+				_paint_hub_selection()
+				return
+			next = posmod(cand, n)
+	else:
+		if y < 0 or x < 0:
+			next = posmod(_index - 1, n)
+		elif y > 0 or x > 0:
+			next = posmod(_index + 1, n)
+	if next != _index:
+		_index = next
+		SfxBus.play("sfx_ui_move")
+		_paint_hub_selection()
 
 
 func _move_qty(x: int, y: int) -> void:
@@ -954,7 +1169,7 @@ func _back() -> void:
 		_show_page("skills")
 		return
 	if _page != "home" and _page != "scenario":
-		_show_page("home")
+		_show_page(PrepPages.parent_page(_page))
 
 
 func _input(event: InputEvent) -> void:
