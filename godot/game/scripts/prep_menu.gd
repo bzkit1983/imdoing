@@ -136,14 +136,14 @@ func _bind_nodes() -> void:
 	_back_btn.text = Loc.t("prep.chrome.back")
 	PrepWidgets.paint_btn(_back_btn, true)
 	UiFont.apply_button(_back_btn, PrepWidgets.PREP_BTN)
-	_back_btn.custom_minimum_size = Vector2(240, 72)
+	_back_btn.custom_minimum_size = Vector2(200, 52)
 	UiFont.apply_label(%Hint, PREP_HINT)
 	%Hint.text = Loc.t("prep.chrome.hint")
 	%Hint.add_theme_color_override("font_color", Color("c8d4c5"))
 	_open_main.text = Loc.t("prep.home.open")
 	_open_elite.text = Loc.t("prep.home.elite_test")
-	UiFont.apply_button(_open_main, 34)
-	UiFont.apply_button(_open_elite, 26)
+	UiFont.apply_button(_open_main, 26)
+	UiFont.apply_button(_open_elite, 20)
 	_open_main.custom_minimum_size = Vector2(0, PrepWidgets.OPEN_MAIN_H)
 	_open_elite.custom_minimum_size = Vector2(0, PrepWidgets.OPEN_ELITE_H)
 	_open_main.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -250,6 +250,7 @@ func _rebuild_hub_tiles() -> void:
 		return
 	PrepWidgets.clear(_hub_panel)
 	_hub_panel.columns = maxi(1, _hub_cols)
+	_hub_panel.clip_contents = true
 	var as_rows := _hub_cols <= 1
 	for i in _rows.size():
 		var row: Dictionary = _rows[i]
@@ -275,6 +276,7 @@ func _rebuild_hub_tiles() -> void:
 				cb,
 			)
 		_hub_panel.add_child(btn)
+	_layout_hub_chrome()
 
 
 func _setup_open_bar() -> void:
@@ -283,7 +285,43 @@ func _setup_open_bar() -> void:
 	_open_main.text = Loc.t("prep.home.open")
 	_open_elite.text = Loc.t("prep.home.elite_test")
 	_open_elite.visible = ProductVersion.test_tools_enabled()
+	_open_main.custom_minimum_size = Vector2(0, PrepWidgets.OPEN_MAIN_H)
+	_open_elite.custom_minimum_size = Vector2(0, PrepWidgets.OPEN_ELITE_H)
+	## Keep open bar from eating vertical space above the tiles.
+	_open_main.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_open_elite.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_paint_open_selection()
+	_layout_hub_chrome()
+
+
+func _layout_hub_chrome() -> void:
+	## Pack hub to content height; park open bar in a clear strip below (no overlap).
+	if _hub_panel == null:
+		return
+	var top := 156.0
+	var gap := 10.0
+	var cols := maxi(1, _hub_cols)
+	var n := maxi(1, _rows.size())
+	var row_n := int(ceil(float(n) / float(cols)))
+	var cell_h := PrepWidgets.HUB_ROW_H if cols <= 1 else PrepWidgets.HUB_TILE_H
+	var hub_h := row_n * cell_h + maxi(0, row_n - 1) * gap
+	_hub_panel.position = Vector2(24, top)
+	_hub_panel.size = Vector2(1232, hub_h)
+	_hub_panel.add_theme_constant_override("h_separation", int(gap))
+	_hub_panel.add_theme_constant_override("v_separation", int(gap))
+	if _open_bar == null:
+		return
+	if _page != "home":
+		return
+	var open_h := PrepWidgets.OPEN_MAIN_H
+	var open_top := top + hub_h + 18.0
+	## Prefer a bottom strip if there is room; never climb back over the hub.
+	var preferred := 600.0 - open_h
+	if preferred > open_top:
+		open_top = preferred
+	_open_bar.position = Vector2(24, open_top)
+	_open_bar.size = Vector2(1232, open_h)
+	_open_bar.clip_contents = true
 
 
 func _paint_hub_selection() -> void:

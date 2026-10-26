@@ -9,10 +9,10 @@ const PREP_LIST := 32
 const PREP_HINT := 24
 const PREP_BTN := 32
 const PREP_NUM := 44
-const HUB_TILE_H := 148.0
-const HUB_ROW_H := 92.0
-const OPEN_MAIN_H := 96.0
-const OPEN_ELITE_H := 96.0
+const HUB_TILE_H := 100.0
+const HUB_ROW_H := 64.0
+const OPEN_MAIN_H := 64.0
+const OPEN_ELITE_H := 64.0
 
 
 static func clear(node: Node) -> void:
@@ -94,8 +94,10 @@ static func step_button(text: String, on: bool, cb: Callable, tall: float = 72.0
 static func hub_tile(label: String, icon_id: String, on: bool, locked: bool, cb: Callable) -> Button:
 	var btn := Button.new()
 	btn.focus_mode = Control.FOCUS_NONE
+	## Fixed height — do not let GridContainer stretch the hit box.
 	btn.custom_minimum_size = Vector2(0, HUB_TILE_H)
 	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	btn.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	btn.clip_text = true
 	btn.expand_icon = false
 	btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -104,7 +106,7 @@ static func hub_tile(label: String, icon_id: String, on: bool, locked: bool, cb:
 	btn.text = label
 	btn.icon = PrepIcons.icon_tex(icon_id)
 	btn.disabled = locked
-	UiFont.apply_button(btn, 28)
+	UiFont.apply_button(btn, 22)
 	paint_hub_surface(btn, on, locked, false)
 	if not locked:
 		btn.pressed.connect(cb)
@@ -116,13 +118,14 @@ static func hub_row(label: String, icon_id: String, on: bool, locked: bool, tag:
 	btn.focus_mode = Control.FOCUS_NONE
 	btn.custom_minimum_size = Vector2(0, HUB_ROW_H)
 	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	btn.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	btn.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	btn.expand_icon = false
 	btn.text = label if tag == "" else "%s　　%s" % [label, tag]
 	btn.icon = PrepIcons.icon_tex(icon_id)
 	btn.disabled = locked
-	UiFont.apply_button(btn, 30)
+	UiFont.apply_button(btn, 24)
 	paint_hub_surface(btn, on, locked, true)
 	if not locked:
 		btn.pressed.connect(cb)
@@ -136,14 +139,14 @@ static func paint_hub_surface(btn: Button, on: bool, locked: bool, row: bool) ->
 	elif on:
 		bg.bg_color = Color("2c3a32")
 		bg.border_color = Color("f4d35e")
-		bg.set_border_width_all(3)
+		bg.set_border_width_all(2)
 	else:
 		bg.bg_color = Color("1e2a24")
-	bg.set_corner_radius_all(16 if not row else 14)
-	bg.content_margin_left = 18
-	bg.content_margin_right = 18
-	bg.content_margin_top = 12
-	bg.content_margin_bottom = 12
+	bg.set_corner_radius_all(10 if not row else 8)
+	bg.content_margin_left = 12
+	bg.content_margin_right = 12
+	bg.content_margin_top = 6
+	bg.content_margin_bottom = 6
 	btn.add_theme_stylebox_override("normal", bg)
 	btn.add_theme_stylebox_override("hover", bg)
 	btn.add_theme_stylebox_override("pressed", bg)
