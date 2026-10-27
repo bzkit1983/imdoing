@@ -52,6 +52,15 @@ var _dash_dir: Vector2 = Vector2.RIGHT
 var _dash_left: float = 0.0
 var _regen_delay: float = 0.0
 var _j_held: bool = false
+## Seconds the interact button has been held this press. Short vs long splits at SKU_PICK_HOLD.
+var _j_time: float = 0.0
+## Long action already started (clean / stock / cashier / hand delivery) — release must not also take.
+var _long_committed: bool = false
+var _deliver_done: bool = false
+## This dash already resolved a guest (deliver or KO).
+var _dash_guest_done: bool = false
+## Short cancel closed a menu or an in-progress action, so it must not toss a piece.
+var _cancel_swallowed: bool = false
 var _pickup_used: bool = false
 var _circle: Node2D
 var _prompt: Node2D
@@ -407,12 +416,15 @@ func set_hold(action: String, pressed: bool) -> void:
 				return
 			if pressed:
 				_j_held = true
+				_j_time = 0.0
+				_long_committed = false
+				_deliver_done = false
 				_restock_hold = 0.0
 				_restock_aborted = false
 				_pickup_used = false
 				_no_queue_logged = false
 			else:
-				_release_restock_interact()
+				_release_interact()
 				_j_held = false
 				_reset_hold()
 				_pickup_used = false
@@ -439,7 +451,7 @@ func set_hold(action: String, pressed: bool) -> void:
 				_cancel_drop_ready = false
 				_cancel_dropped = false
 				_cancel_drop_dir = Vector2.ZERO
-				_begin_drop_aim()
+				_cancel_swallowed = false
 				_sample_cancel_drop_dir()
 				_cancel_input()
 			else:
@@ -522,11 +534,11 @@ func _sync_crowd_say() -> void:
 
 
 func _shelving() -> bool:
-	return _j_held and is_instance_valid(target) and String(target.get("kind")) == "shelf"
+	return _long_committed and _j_held and is_instance_valid(target) and String(target.get("kind")) == "shelf"
 
 
 func _cleaning() -> bool:
-	return _j_held and is_instance_valid(target) and String(target.get("kind")) == "dirt"
+	return _long_committed and _j_held and is_instance_valid(target) and String(target.get("kind")) == "dirt"
 
 
 func _in_dir_mode() -> bool:
@@ -575,23 +587,27 @@ func _begin_drop_aim() -> void:
 func _tick_cancel_hold(delta: float) -> void:
 	if _cancel_dropped:
 		return
-	## Aim while held; drop only happens on release after DROP_HOLD_SEC.
+	## Direction is sampled the whole time. Aim circle and move-lock start only after the long press.
 	_sample_cancel_drop_dir()
 	_cancel_time += delta
 	if _cancel_time >= Tuning.DROP_HOLD_SEC:
 		if not _cancel_drop_ready:
+			_cancel_drop_ready = true
+			_begin_drop_aim()
 			SfxBus.play("sfx_box_drop_aim")
-		_cancel_drop_ready = true
-	_update_drop_aim()
+		_update_drop_aim()
 
 
 func _on_cancel_release() -> void:
-	## Armed by long-press → toss on release. Short press: no drop.
+	## Armed by long-press → toss the top segment on release.
+	## Short press with a direction tosses one piece, unless this press cancelled a menu or action.
 	if _cancel_drop_ready and not _cancel_dropped and not _drop_flight_lock:
 		_cancel_dropped = true
 		_hide_drop_aim()
 		_discard_top_box()
 	elif not _drop_flight_lock:
+		if not _cancel_swallowed:
+			_toss_top_piece()
 		_cancel_drop_dir = Vector2.ZERO
 		_hide_drop_aim()
 	_cancel_time = 0.0
@@ -675,6 +691,35 @@ func _discard_top_box() -> void:
 		log_line.emit("丟掉 %s 1箱 — 掉在腳邊，可以再撿" % name)
 
 
+## Direction + short cancel: throw the top piece. No aim circle, movement stays free.
+func _toss_top_piece() -> void:
+	if not _round_active():
+		return
+	if _stun_left > 0.0 or _slip_left > 0.0 or _fighting or _drop_flight_lock:
+		return
+	if _cancel_drop_dir.length_squared() < 0.01:
+		return
+	if inventory.is_empty():
+		log_line.emit("手上沒有貨箱")
+		return
+	var run: Dictionary = inventory.trailing_run()
+	var sku := String(run["id"])
+	inventory.remove_trailing(1)
+	var game := _game()
+	if game and game.has_method("spawn_dropped_box"):
+		game.call(
+			"spawn_dropped_box",
+			global_position,
+			sku,
+			1,
+			_cancel_drop_dir,
+			drop_toss_dist(),
+			Callable(),
+		)
+	SfxBus.play("sfx_box_toss")
+	log_line.emit("丟掉 %s 1件 — 往%s飛出" % [Tuning.sku_name(sku), _drop_dir_label(_cancel_drop_dir)])
+
+
 func _drop_dir_label(dir: Vector2) -> String:
 	if absf(dir.x) > absf(dir.y):
 		return "右" if dir.x > 0.0 else "左"
@@ -682,20 +727,26 @@ func _drop_dir_label(dir: Vector2) -> String:
 
 
 func _cancel_input() -> void:
+	var used := _fighting or _stun_left > 0.0 or _slip_left > 0.0 or _long_committed or command_lock
 	if _restock_picking:
 		_abort_restock_pick()
 		_restock_aborted = true
 		_j_held = false
 		log_line.emit("取消選貨")
-		return
+		used = true
 	if skill_menu_open or _l_held:
 		_close_skill_hold()
 		SfxBus.play("sfx_skill_menu_cancel")
 		log_line.emit("取消技能選單")
+		used = true
 	if ult_prep:
 		_on_ult_hold(false)
+		used = true
 	if _j_held:
 		set_hold("interact", false)
+		used = true
+	if used:
+		_cancel_swallowed = true
 
 
 func _physics_process(delta: float) -> void:
@@ -715,7 +766,7 @@ func _physics_process(delta: float) -> void:
 		_cast_pose_left = maxf(0.0, _cast_pose_left - delta)
 	if _deliver_pose_left > 0.0:
 		_deliver_pose_left = maxf(0.0, _deliver_pose_left - delta)
-	command_lock = _j_held and is_instance_valid(target) and String(target.get("kind")) == "cashier" and not skill_menu_open and not ult_prep
+	command_lock = _long_committed and _j_held and is_instance_valid(target) and String(target.get("kind")) == "cashier" and not skill_menu_open and not ult_prep
 	if not command_lock and not ult_prep:
 		_prompt.active = false
 	if _k_held and not _cancel_held and not _drop_flight_lock and not command_lock and not skill_menu_open and not ult_prep and not _fighting and _stun_left <= 0.0 and _slip_left <= 0.0:
@@ -724,8 +775,8 @@ func _physics_process(delta: float) -> void:
 			_running = stamina > 1.0
 	if _cancel_held:
 		_tick_cancel_hold(delta)
-	## Aim / toss flight: freeze locomotion (slip overrides below via _tick_slip).
-	if (_cancel_held or _drop_flight_lock) and _slip_left <= 0.0:
+	## Long-press aim / box flight: freeze locomotion. A short cancel does not.
+	if (_cancel_drop_ready or _drop_flight_lock) and _slip_left <= 0.0:
 		_running = false
 		_dashing = false
 		velocity = Vector2.ZERO
@@ -995,8 +1046,8 @@ func _wiggle_axis() -> Vector2:
 
 
 func _move_axis() -> Vector2:
-	## Drop aim / flight: no locomotion (direction still sampled in cancel hold).
-	if _cancel_held or _drop_flight_lock:
+	## Long-press aim / box flight: no locomotion. Short cancel still moves, and still samples direction.
+	if _cancel_drop_ready or _drop_flight_lock:
 		return Vector2.ZERO
 	if _elite_focus_left > 0.0:
 		return Vector2.ZERO
@@ -1084,6 +1135,7 @@ func _tick_move(delta: float) -> void:
 func _try_dash() -> void:
 	if _dashing or _fighting or _stun_left > 0.0 or _slip_left > 0.0:
 		return
+	_dash_guest_done = false
 	if stamina < Tuning.DASH_STAMINA_COST:
 		SfxBus.play("sfx_move_stamina_empty")
 		return
@@ -1209,39 +1261,308 @@ func _regen(delta: float) -> void:
 	stamina = minf(stamina_max_now(), stamina + Tuning.STAMINA_REGEN_PER_SEC * delta)
 
 
-func _update_target() -> void:
-	if _fighting:
-		return
-	## Aim / flight / slip: keep current target (no full scan).
-	if _cancel_held or _drop_flight_lock or _slip_left > 0.0:
-		return
+## Facing and range test. Returns distance, or -1 when this node is not a valid interact target.
+func _interact_dist(node: Node2D) -> float:
+	if node == null or not is_instance_valid(node):
+		return -1.0
+	var to_obj: Vector2 = node.global_position - global_position
+	var dist_sq := to_obj.length_squared()
+	if dist_sq > Tuning.INTERACT_RANGE_SQ or dist_sq < 0.000001:
+		return -1.0
+	var dist := sqrt(dist_sq)
+	var kind := String(node.get("kind"))
+	var dot := facing.dot(to_obj / dist)
+	if kind == "dirt" and _dirt_areas.has(node):
+		dot = 1.0
+	elif kind == "thief":
+		dot = maxf(dot, 0.85)
+	if kind == "cashier":
+		if global_position.y < node.global_position.y - 8.0:
+			return -1.0
+		dot = 1.0
+	elif dot < Tuning.FACE_DOT:
+		return -1.0
+	return dist
+
+
+func _nearest_kind(kind: String) -> Node2D:
 	var best: Node2D = null
-	var best_score := -1.0
-	var range_sq := Tuning.INTERACT_RANGE_SQ
+	var best_d := 1000000.0
 	for node in interactables:
 		if node == null or not is_instance_valid(node):
 			continue
-		var to_obj: Vector2 = node.global_position - global_position
-		var dist_sq := to_obj.length_squared()
-		if dist_sq > range_sq or dist_sq < 0.000001:
+		if String(node.get("kind")) != kind:
 			continue
-		var dist := sqrt(dist_sq)
-		var kind := String(node.get("kind"))
-		var dot := facing.dot(to_obj / dist)
-		if kind == "dirt" and _dirt_areas.has(node):
-			dot = 1.0
-		elif kind == "thief":
-			dot = maxf(dot, 0.85)
-		if kind == "cashier":
-			if global_position.y < node.global_position.y - 8.0:
-				continue
-			dot = 1.0
-		elif dot < Tuning.FACE_DOT:
+		var d := _interact_dist(node)
+		if d < 0.0 or d >= best_d:
 			continue
-		var score := dot * 2.0 - dist / Tuning.INTERACT_RANGE
-		if score > best_score:
-			best_score = score
-			best = node
+		best_d = d
+		best = node
+	return best
+
+
+func _nearest_active_thief() -> Node2D:
+	var best: Node2D = null
+	var best_d := 1000000.0
+	for node in interactables:
+		if node == null or not is_instance_valid(node):
+			continue
+		if String(node.get("kind")) != "thief":
+			continue
+		if not node.has_method("is_active_thief") or not bool(node.call("is_active_thief")):
+			continue
+		var d := _interact_dist(node)
+		if d < 0.0 or d >= best_d:
+			continue
+		best_d = d
+		best = node
+	return best
+
+
+func _nearest_stocked_shelf() -> Node2D:
+	var best: Node2D = null
+	var best_d := 1000000.0
+	for node in interactables:
+		if node == null or not is_instance_valid(node):
+			continue
+		if String(node.get("kind")) != "shelf":
+			continue
+		if int(node.get("count")) <= 0:
+			continue
+		var d := _interact_dist(node)
+		if d < 0.0 or d >= best_d:
+			continue
+		best_d = d
+		best = node
+	return best
+
+
+func _store_open() -> bool:
+	var g := _game()
+	return g != null and String(g.get("phase")) == "open"
+
+
+func _faced_guests() -> Array:
+	var found: Array = []
+	var g := _game()
+	if g == null:
+		return found
+	var custs = g.get("_customers")
+	if custs == null:
+		return found
+	for c in custs.get_children():
+		if c == null or not is_instance_valid(c):
+			continue
+		if not c.has_method("can_receive_delivery") or not bool(c.call("can_receive_delivery")):
+			continue
+		if _interact_dist(c) < 0.0:
+			continue
+		found.append(c)
+	found.sort_custom(func(a, b) -> bool:
+		return global_position.distance_squared_to(a.global_position) < global_position.distance_squared_to(b.global_position)
+	)
+	return found
+
+
+## Long-press target when no thief is in range. Restock ticks from the first frame; the others wait out the tap.
+func _long_kind() -> String:
+	if _nearest_kind("dirt") != null:
+		return "dirt"
+	if _store_open() and not inventory.is_empty() and not _faced_guests().is_empty():
+		return "guest"
+	if _nearest_kind("shelf") != null:
+		return "shelf"
+	if _nearest_kind("cashier") != null:
+		return "cashier"
+	if _nearest_kind("restock") != null:
+		return "restock"
+	if _nearest_kind("drop") != null:
+		return "drop"
+	return ""
+
+
+func _preview_target() -> Node2D:
+	var thief := _nearest_active_thief()
+	if thief != null:
+		return thief
+	var stocked := _nearest_stocked_shelf()
+	if stocked != null:
+		return stocked
+	var restock := _nearest_kind("restock")
+	if restock != null:
+		return restock
+	var drop := _nearest_kind("drop")
+	if drop != null:
+		return drop
+	match _long_kind():
+		"dirt":
+			return _nearest_kind("dirt")
+		"guest":
+			var guests := _faced_guests()
+			return guests[0] if not guests.is_empty() else null
+		"shelf":
+			return _nearest_kind("shelf")
+		"cashier":
+			return _nearest_kind("cashier")
+	return null
+
+
+func _release_interact() -> void:
+	if _restock_aborted:
+		_restock_aborted = false
+		_restock_picking = false
+		_restock_hold = 0.0
+		return
+	if _fighting or _long_committed or _deliver_done or _restock_picking:
+		if _restock_picking and target != null and String(target.get("kind")) == "restock":
+			var sku := String(target.call("commit_pick"))
+			SfxBus.play("sfx_box_sku_confirm")
+			log_line.emit("補貨點改為 %s" % Tuning.sku_name(sku))
+		_restock_picking = false
+		_restock_hold = 0.0
+		return
+	_do_short_interact()
+	_restock_picking = false
+	_restock_hold = 0.0
+
+
+## Tap: thief (already grabbed), else one piece off a stocked shelf, else a restock box, else a floor box.
+func _do_short_interact() -> void:
+	if _nearest_active_thief() != null:
+		return
+	var shelf := _nearest_stocked_shelf()
+	if shelf != null:
+		_take_shelf_piece(shelf)
+		return
+	var restock := _nearest_kind("restock")
+	if restock != null:
+		target = restock
+		_pickup_used = false
+		_try_pickup()
+		return
+	var drop := _nearest_kind("drop")
+	if drop != null:
+		target = drop
+		_pickup_used = false
+		_tick_drop()
+		return
+	if _store_open() and not inventory.is_empty() and not _faced_guests().is_empty():
+		log_line.emit("長按行動鍵把貨交給客人")
+
+
+func _take_shelf_piece(shelf: Node2D) -> void:
+	if inventory.count() >= carry_cap():
+		SfxBus.play("sfx_box_pull_fail")
+		log_line.emit("負重不足：%d/%d 件" % [inventory.count(), carry_cap()])
+		return
+	var sku := String(shelf.get("sku"))
+	if sku == "" or not shelf.has_method("take_n"):
+		return
+	var taken := int(shelf.call("take_n", 1))
+	if taken <= 0:
+		return
+	inventory.add_one(sku)
+	_spawn_fx("suck", shelf.global_position)
+	SfxBus.play("sfx_box_pull")
+	log_line.emit("從貨架取 %s 1件" % Tuning.sku_name(sku))
+
+
+func _guest_wants_carried(guest: Node) -> bool:
+	if guest == null or not is_instance_valid(guest):
+		return false
+	for s in guest.shopping:
+		if inventory.count_of(String(s)) > 0:
+			return true
+	return false
+
+
+func _give_guest(guest: Node) -> int:
+	if guest == null or not guest.has_method("accept_toss_box"):
+		return 0
+	var given := 0
+	var seen := {}
+	var wants: Array[String] = []
+	for s in guest.shopping:
+		var sku := String(s)
+		if seen.has(sku):
+			continue
+		seen[sku] = true
+		wants.append(sku)
+	for sku in wants:
+		if guest.has_method("can_receive_delivery") and not bool(guest.call("can_receive_delivery")):
+			break
+		var need := 0
+		for s in guest.shopping:
+			if String(s) == sku:
+				need += 1
+		var n := mini(need, inventory.count_of(sku))
+		if n <= 0:
+			continue
+		var taken := int(guest.call("accept_toss_box", sku, n))
+		if taken > 0:
+			inventory.remove_sku(sku, taken)
+			given += taken
+	return given
+
+
+## Nearest guest first. `penalize_miss` adds +15 on the nearest guest when nothing matched.
+func _hand_deliver(guests: Array, penalize_miss: bool) -> int:
+	var total := 0
+	var nearest: Node = null
+	for guest in guests:
+		if guest == null or not is_instance_valid(guest):
+			continue
+		if not guest.has_method("can_receive_delivery") or not bool(guest.call("can_receive_delivery")):
+			continue
+		if nearest == null:
+			nearest = guest
+		total += _give_guest(guest)
+	if total > 0:
+		SfxBus.play("sfx_box_hit_guest_ok")
+		log_line.emit("交給客人 ×%d" % total)
+		_deliver_pose_left = 0.4
+		return total
+	if penalize_miss and nearest != null and nearest.has_method("apply_toss_reject"):
+		nearest.call("apply_toss_reject", "")
+		SfxBus.play("sfx_box_hit_guest_reject")
+		log_line.emit("沒有對的貨 — 不滿 +15")
+	return 0
+
+
+func _dash_guests() -> Array:
+	var found: Array = []
+	var g := _game()
+	if g == null:
+		return found
+	var custs = g.get("_customers")
+	if custs == null:
+		return found
+	for c in custs.get_children():
+		if c == null or not is_instance_valid(c):
+			continue
+		if bool(c.get("is_thief")):
+			continue
+		var st := int(c.get("state"))
+		if st == 7 or st == 9:
+			continue
+		if float(c.get("_dash_stun_left")) > 0.0:
+			continue
+		if global_position.distance_to(c.global_position) > Tuning.DASH_HIT_RANGE:
+			continue
+		found.append(c)
+	found.sort_custom(func(a, b) -> bool:
+		return global_position.distance_squared_to(a.global_position) < global_position.distance_squared_to(b.global_position)
+	)
+	return found
+
+
+func _update_target() -> void:
+	if _fighting:
+		return
+	## Aim / flight / slip / held interact: keep the action target (no full rescan).
+	if _j_held or _cancel_drop_ready or _drop_flight_lock or _slip_left > 0.0:
+		return
+	var best := _preview_target()
 	if target != best:
 		if _restock_picking and target != null and String(target.get("kind")) == "restock":
 			target.call("abort_pick")
@@ -1262,24 +1583,44 @@ func _tick_action(delta: float) -> void:
 		if is_instance_valid(target) and String(target.get("kind")) == "dirt":
 			target.call("set_cleaning", false, Vector2.ZERO, 0.0)
 		return
-	if not is_instance_valid(target) or not _j_held:
-		if not _j_held:
-			hold_progress = 0.0
-			_clear_clean_hint()
+	if not _j_held:
+		hold_progress = 0.0
+		_clear_clean_hint()
 		return
-	var kind := String(target.get("kind"))
-	if kind == "restock":
-		_tick_sku_pick(delta)
-	elif kind == "shelf":
-		_tick_restock(delta)
-	elif kind == "cashier":
-		_tick_cashier(delta)
-	elif kind == "dirt":
-		_tick_clean(delta)
-	elif kind == "drop":
-		_tick_drop()
-	elif kind == "thief":
+	_j_time += delta
+	var thief := _nearest_active_thief()
+	if thief != null:
+		target = thief
 		_begin_fight()
+		return
+	var long_kind := _long_kind()
+	if long_kind == "restock":
+		target = _nearest_kind("restock")
+		_tick_sku_pick(delta)
+		return
+	if _j_time < Tuning.SKU_PICK_HOLD:
+		return
+	match long_kind:
+		"dirt":
+			_long_committed = true
+			target = _nearest_kind("dirt")
+			_tick_clean(delta)
+		"guest":
+			_long_committed = true
+			var guests := _faced_guests()
+			if not guests.is_empty():
+				target = guests[0]
+			if not _deliver_done:
+				_deliver_done = true
+				_hand_deliver(guests, true)
+		"shelf":
+			_long_committed = true
+			target = _nearest_kind("shelf")
+			_tick_restock(delta)
+		"cashier":
+			_long_committed = true
+			target = _nearest_kind("cashier")
+			_tick_cashier(delta)
 
 
 func _begin_fight() -> void:
@@ -1504,31 +1845,27 @@ func _try_dash_hits() -> void:
 			if _fighting:
 				_end_fight(false)
 			return
-	## Shopping guests: Screen KO land-in-place.
-	var custs = g.get("_customers")
-	if custs == null:
+	## One guest resolution per dash: deliver if 衝刺交付 is up and the nearest wants a carried piece, else KO.
+	if _dash_guest_done:
 		return
-	for c in custs.get_children():
-		if c == null or not is_instance_valid(c):
-			continue
-		if bool(c.get("is_thief")):
-			continue
-		var st := int(c.get("state"))
-		## Skip leave/flee.
-		if st == 7 or st == 9:
-			continue
-		if float(c.get("_dash_stun_left")) > 0.0:
-			continue
-		if global_position.distance_to(c.global_position) > Tuning.DASH_HIT_RANGE:
-			continue
-		var add := 0.0 if _has_flag("polite_dash") else Tuning.DASH_GUEST_DISSAT
-		if g.has_method("play_ko_banner"):
-			g.call("play_ko_banner")
-		if c.has_method("dash_knock_guest"):
-			c.call("dash_knock_guest", add)
-		SfxBus.play("sfx_ko_guest_dash")
-		log_line.emit("衝刺撞到客人 — 暈眩 2 秒，貨品掉落" if add > 0.0 else "衝刺撞到客人 — 禮貌衝撞，不滿不增加")
+	var guests := _dash_guests()
+	if guests.is_empty():
 		return
+	var nearest: Node = guests[0]
+	if buff_left("dash_deliver") > 0.0 and nearest.has_method("can_receive_delivery") and bool(nearest.call("can_receive_delivery")) and _guest_wants_carried(nearest):
+		var gave := _hand_deliver(guests, false)
+		if gave > 0:
+			_dash_guest_done = true
+			log_line.emit("衝刺交付 ×%d — 不撞飛" % gave)
+			return
+	_dash_guest_done = true
+	var add := 0.0 if _has_flag("polite_dash") else Tuning.DASH_GUEST_DISSAT
+	if g.has_method("play_ko_banner"):
+		g.call("play_ko_banner")
+	if nearest.has_method("dash_knock_guest"):
+		nearest.call("dash_knock_guest", add)
+	SfxBus.play("sfx_ko_guest_dash")
+	log_line.emit("衝刺撞到客人 — 暈眩 2 秒，貨品掉落" if add > 0.0 else "衝刺撞到客人 — 禮貌衝撞，不滿不增加")
 
 
 func _try_wave_dirt_vfx() -> void:
@@ -1560,25 +1897,6 @@ func _tick_sku_pick(delta: float) -> void:
 	log_line.emit("貨品清單 — 上下選擇，放手確定，B／; 取消")
 
 
-func _release_restock_interact() -> void:
-	if _restock_aborted:
-		_restock_aborted = false
-		_restock_picking = false
-		_restock_hold = 0.0
-		return
-	if target != null and String(target.get("kind")) == "restock":
-		if _restock_picking:
-			var sku := String(target.call("commit_pick"))
-			SfxBus.play("sfx_box_sku_confirm")
-			log_line.emit("補貨點改為 %s" % Tuning.sku_name(sku))
-		elif _restock_hold < Tuning.SKU_PICK_HOLD:
-			_try_pickup()
-	elif _restock_picking:
-		_abort_restock_pick()
-	_restock_picking = false
-	_restock_hold = 0.0
-
-
 func _abort_restock_pick() -> void:
 	if target != null and String(target.get("kind")) == "restock":
 		target.call("abort_pick")
@@ -1608,7 +1926,7 @@ func _try_pickup() -> void:
 
 func _tick_restock(delta: float) -> void:
 	if inventory.is_empty():
-		log_line.emit("空手 — 不能對貨架互動")
+		log_line.emit("空手 — 不能上架")
 		_j_held = false
 		return
 	var run: Dictionary = inventory.trailing_run()
@@ -1935,6 +2253,11 @@ func _cast_slot(i: int) -> void:
 		return
 	_cd[sid] = Tuning.cd_seconds(float(sk.get("cd", Skills.ACTIVE_CD)), _int_now())
 	_buffs[sid] = float(sk.get("duration", Skills.ACTIVE_DURATION))
+	## 衝刺交付: the armed window is the cooldown itself, and INT does not shorten this 5s.
+	if bool(sk.get("dash_deliver", false)):
+		var window := float(sk.get("cd", 5.0))
+		_cd[sid] = window
+		_buffs[sid] = window
 	_buff_cache_valid = false
 	if sk.has("customer_move_pct"):
 		_enqueue_cust_speed(sid)

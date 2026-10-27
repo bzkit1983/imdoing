@@ -251,6 +251,16 @@ func occupies_store() -> bool:
 	return state != State.LEAVE and state != State.FLEE and not is_thief
 
 
+## Hand delivery: shopping guests only. Queue, paying, leaving, and thieves are not targets.
+func can_receive_delivery() -> bool:
+	if is_thief or shopping.is_empty():
+		return false
+	match state:
+		State.QUEUE, State.PAYING, State.LEAVE, State.FLEE, State.FIGHT, State.TO_CASHIER:
+			return false
+	return true
+
+
 func is_active_thief() -> bool:
 	## Catchable / dashable until fully off-map — including shopping-done LEAVE.
 	## FLEE is already being knocked away (KO / dash).
@@ -767,7 +777,7 @@ func accept_toss_box(sku: String, n: int) -> int:
 		if idx >= 0:
 			shopping.remove_at(idx)
 	_bump_list()
-	dissatisfaction = 0.0
+	dissatisfaction = maxf(0.0, dissatisfaction - float(take) * Tuning.DELIVER_PIECE_DISSAT)
 	_target_shelf = null
 	if shopping.is_empty():
 		## List completed by toss — go pay; do not linger in THINK「找不到」.
