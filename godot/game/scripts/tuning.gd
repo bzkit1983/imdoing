@@ -143,7 +143,9 @@ const CROWD_SPEED_MULT := 0.5
 ## Dash into a shopping guest: +dissat (base), stun, cart drops in place.
 const DASH_GUEST_DISSAT := 50.0
 const DASH_GUEST_STUN_SEC := 2.0
-## Toss hit normal guest: wrong SKU dissatisfaction.
+## Hand delivery, single toss, and box toss: each correct piece −15; a total miss +15.
+const DELIVER_PIECE_DISSAT := 15.0
+## Toss hit normal guest: wrong SKU dissatisfaction. Same step as DELIVER_PIECE_DISSAT.
 const TOSS_GUEST_WRONG_DISSAT := 15.0
 ## Directional toss: guest within this of flight path / landing.
 const DROP_GUEST_HIT_RADIUS := 72.0
