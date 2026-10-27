@@ -19,11 +19,11 @@ def need(ok: bool, msg: str) -> None:
 need(VER == "1.2.0", f"VERSION should be 1.2.0, got {VER!r}")
 need('TAG := "v1.2.0"' in PV, "product_version tag")
 need("尚未實作" in DOC, "doc must say not implemented")
-need("待拍板" in DOC, "open questions section")
-need("衝刺交付" in DOC and "親手交付" in DOC and "短按" in DOC, "core flows")
-need("禮貌衝撞" in DOC and "Screen KO" in DOC, "dash conflict called out")
-for n in range(1, 15):
-    need(f"{n}. **" in DOC or f"{n}. " in DOC, f"question {n}")
+need("仍待拍板" in DOC, "open questions section")
+need("已拍板" in DOC and "1/4" in DOC, "piece weight locked")
+need("近的先" in DOC and "COST 2" in DOC and "5 秒" in DOC, "locked delivery rules")
+need("短按取消" in DOC, "single-piece toss input")
+need("衝刺交付" in DOC and "親手交付" in DOC, "core flows")
 need("衝刺交付" not in PLAYER, "do not implement dash-delivery in player.gd yet")
 
 if errs:
