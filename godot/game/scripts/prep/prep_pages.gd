@@ -19,14 +19,16 @@ static func parent_page(page: String) -> String:
 			return "home"
 		"stats", "skills":
 			return "hub_char"
+		"skill_set", "skill_rename":
+			return "skills"
+		"skill_pick":
+			return "skill_set"
 		"develop", "buy":
 			return "hub_goods"
 		"furn", "expand", "layout":
 			return "hub_shop"
 		"sfx":
 			return "hub_sys"
-		"skill_pick":
-			return "skills"
 		_:
 			return "home"
 
@@ -79,6 +81,10 @@ static func fill(menu: CanvasLayer, page: String) -> void:
 			_stats(menu)
 		"skills":
 			_skills(menu)
+		"skill_set":
+			_skill_set(menu)
+		"skill_rename":
+			_skill_rename(menu)
 		"develop":
 			_develop(menu)
 		"buy":
@@ -122,7 +128,8 @@ static func fill_skill_pick(menu: CanvasLayer, slot_i: int) -> void:
 	menu._list.clear()
 	menu._title.text = Loc.t("prep.skill_pick.title")
 	var slot_lbl := Loc.t("prep.skill_pick.ult_slot") if slot_i == 5 else str(slot_i + 1)
-	menu._info.text = Loc.t("prep.skill_pick.info", [slot_lbl])
+	var set_name: String = menu.state.skill_set_name(menu._skill_set)
+	menu._info.text = Loc.t("prep.skill_pick.info", [set_name, slot_lbl])
 	var pool: Array = []
 	if slot_i == 5:
 		pool.append_array(Skills.ULTS)
@@ -131,9 +138,8 @@ static func fill_skill_pick(menu: CanvasLayer, slot_i: int) -> void:
 		pool.append_array(Skills.PASSIVES)
 	for sk in pool:
 		menu._add("%s　%s　COST%d　%s" % [_kind_label(String(sk["kind"])), sk["name"], int(sk["cost"]), sk["blurb"]], "equip", [slot_i, sk["id"]])
-	if slot_i < 5:
-		menu._add("卸下", "unequip", slot_i)
-	menu._add(Loc.t("prep.back"), "go", "skills")
+	menu._add(Loc.t("prep.skill_pick.unequip"), "unequip", slot_i)
+	menu._add(Loc.t("prep.back"), "go", "skill_set")
 	menu._index = 0
 	if menu._rows.size():
 		menu._select_row(0)
@@ -226,20 +232,74 @@ static func _add_stat_row(menu: CanvasLayer, title: String, stat: String, value:
 
 static func _skills(menu: CanvasLayer) -> void:
 	menu._title.text = Loc.t("prep.skills.title")
-	var ult_name := String(menu.state.ult_skill().get("name", ""))
-	menu._info.text = Loc.t("prep.skills.info", [menu.state.cost_sum(), ult_name])
-	for i in 5:
-		var id: String = String(menu.state.slots[i])
-		var name := "空"
+	var selected := int(menu.state.skill_set_index)
+	var using: String = menu.state.skill_set_name(selected)
+	menu._info.text = Loc.t("prep.skills.info", [using, menu.state.cost_sum(), _ult_label(menu.state.ult_skill())])
+	if menu._msg != "":
+		menu._info.text = menu._pair(menu._info.text, menu._msg)
+	for i in menu.state.skill_sets.size():
+		var mark := "▶ " if i == selected else "　"
+		var ult := _ult_label(menu.state.ult_of(i))
+		menu._add(Loc.t("prep.skills.set_row", [mark, menu.state.skill_set_name(i), menu.state.cost_sum_of(i), ult]), "edit_set", i)
+	menu._add(Loc.t("prep.back"), "go", "hub_char")
+
+
+static func _skill_set(menu: CanvasLayer) -> void:
+	var i := int(menu._skill_set)
+	var set_name: String = menu.state.skill_set_name(i)
+	menu._title.text = set_name
+	var using := i == int(menu.state.skill_set_index)
+	var status := Loc.t("prep.skill_set.using") if using else Loc.t("prep.skill_set.not_using")
+	menu._info.text = Loc.t("prep.skill_set.info", [menu.state.cost_sum_of(i), status])
+	if menu._msg != "":
+		menu._info.text = menu._pair(menu._info.text, menu._msg)
+	if using:
+		menu._add(Loc.t("prep.skill_set.using"), "use_set", i)
+	else:
+		menu._add(Loc.t("prep.skill_set.use"), "use_set", i)
+	menu._add(Loc.t("prep.skill_set.rename"), "rename_open", i)
+	var pack: Dictionary = menu.state.skill_sets[i]
+	var set_slots: Array = pack.get("slots", [])
+	for s in 5:
+		var id := ""
+		if s < set_slots.size():
+			id = String(set_slots[s])
+		var skill_name := Loc.t("prep.skill_set.empty")
 		var kind := ""
 		if id != "":
 			var sk: Dictionary = Skills.by_id(id)
-			name = String(sk.get("name"))
+			skill_name = String(sk.get("name", id))
 			kind = _kind_label(String(sk.get("kind"))) + "　"
-		menu._add("技能%d　%s%s" % [i + 1, kind, name], "pick_slot", i)
-	var ult: Dictionary = menu.state.ult_skill()
-	menu._add("奧義　%s" % String(ult.get("name")), "pick_slot", 5)
-	menu._add(Loc.t("prep.back"), "go", "hub_char")
+		menu._add(Loc.t("prep.skill_set.slot", [s + 1, kind, skill_name]), "pick_slot", s)
+	menu._add(Loc.t("prep.skill_set.ult", [_ult_label(menu.state.ult_of(i))]), "pick_slot", 5)
+	menu._add(Loc.t("prep.back"), "go", "skills")
+
+
+static func _skill_rename(menu: CanvasLayer) -> void:
+	var i := int(menu._skill_set)
+	var draft := String(menu._rename_draft)
+	var shown := draft if draft != "" else Loc.t("prep.skill_rename.draft_empty")
+	menu._title.text = Loc.t("prep.skill_rename.title")
+	menu._info.text = Loc.t("prep.skill_rename.info", [shown, menu.state.default_skill_set_name(i)])
+	menu._add(Loc.t("prep.skill_rename.save"), "rename_save", i)
+	menu._add(Loc.t("prep.skill_rename.backspace"), "rename_backspace", null)
+	menu._add(Loc.t("prep.skill_rename.clear"), "rename_clear", null)
+	if bool(menu._rename_lower):
+		menu._add(Loc.t("prep.skill_rename.upper"), "rename_case", null)
+	else:
+		menu._add(Loc.t("prep.skill_rename.lower"), "rename_case", null)
+	var letters := "abcdefghijklmnopqrstuvwxyz" if bool(menu._rename_lower) else "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	for n in letters.length():
+		var ch := letters.substr(n, 1)
+		menu._add(ch, "rename_ch", ch)
+	menu._add(Loc.t("prep.back"), "go", "skill_set")
+
+
+static func _ult_label(sk: Dictionary) -> String:
+	if sk.is_empty():
+		return "空"
+	var n := String(sk.get("name", ""))
+	return n if n != "" else "空"
 
 
 static func _develop(menu: CanvasLayer) -> void:

@@ -35,6 +35,8 @@ REQUIRED = {
     "clerks",
     "slots",
     "ult_id",
+    "skill_sets",
+    "skill_set_index",
     "day_procurement",
     "last_loss",
     "level_note",
@@ -68,6 +70,19 @@ def sample() -> dict:
         "clerks": [{"role": "restock", "register": 0}],
         "slots": ["carry_boost", "move_boost", "", "", ""],
         "ult_id": "the_world",
+        "skill_set_index": 0,
+        "skill_sets": [
+            {
+                "name": "自訂技能組合1",
+                "slots": ["carry_boost", "move_boost", "", "", ""],
+                "ult_id": "the_world",
+            },
+            {
+                "name": "自訂技能組合2",
+                "slots": ["", "", "", "", ""],
+                "ult_id": "",
+            },
+        ],
         "day_procurement": 120,
         "last_loss": False,
         "level_note": "",
@@ -83,6 +98,10 @@ def validate(data: dict) -> None:
     assert isinstance(data["owned"], dict)
     assert isinstance(data["placed"], list)
     assert len(data["slots"]) == 5
+    assert isinstance(data["skill_sets"], list)
+    assert int(data["skill_set_index"]) == 0
+    assert data["slots"] == data["skill_sets"][data["skill_set_index"]]["slots"]
+    assert data["ult_id"] == data["skill_sets"][data["skill_set_index"]]["ult_id"]
     assert isinstance(data["clerks"], list)
     for it in data["placed"]:
         for k in ("type", "x", "y", "rot", "w", "h"):
