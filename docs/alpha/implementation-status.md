@@ -37,6 +37,7 @@
 | 技術審查與跟進清單 | `docs/alpha/tech-review-v0.1.md` | 非玩法規格；§6 項目已全部勾完 |
 | Runtime P1＋P2 熱路徑優化 | **`docs/alpha/runtime-perf-audit.md`**（文末 P1／P2 DONE） | `player`/`customer`/`demo`/`pathfinder`/`inventory`/`box_stack`/`floor_tiles`／`cashier`／`clerk`／`hud`／`drop_flight`；A* 預算、髒 HUD、地板單節點、佇列索引、dirt 網格 |
 | 客人貨品交付（v1.2.0） | **`docs/systemdesign/customerdelivery.md`** | **已實作**。貨架短按 1 件、長按親手交付（近的先、每件 −15）、方向＋短按丟一件、整箱改每件 −15、主動技衝刺交付（COST 2、5 秒） |
+| 自訂技能組合 | **`docs/systemdesign/customizedskillset.md`** | **設計中，尚未實作**。五組預存、準備時選用、營運中鎖定、可改名 |
 | Design Gap 拍板（v1.1.0） | **`docs/systemdesign-gaps.md`**；各 systemdesign 檔 | 衝刺撞客人／擁擠／凌波微步／丟掉砸客人／多台選隊／重置費用／衝刺算抓住等；見 gaps「已處理」 |
 | 麻煩客人 EliteCustomer | **`docs/systemdesign/elitecustomer.md`**、`customer.md`、`ecosystem.md` | `customer.become_elite`／詞綴；`demo` 1–5% spawn＋橫幅／ZOOM；收銀雙倍＋`XP_ELITE_SERVE`；活線暫只解鎖 LV1 |
 
