@@ -12,7 +12,7 @@ config_version=5
 
 config/name="imdoing"
 config/description="Living v1 line (from Alpha v0.1). Shop loop with voxel sprites."
-config/version="1.1.0"
+config/version="1.2.0"
 run/main_scene="res://scenes/demo.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
