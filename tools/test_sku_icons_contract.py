@@ -51,7 +51,7 @@ def main() -> int:
         (CUST, "KIND_OK"),
         (CUST, "KIND_BAD"),
         (CUST, "apply_toss_reject(sku"),
-        (CUST, "Vector2(0, -72)"),
+        (CUST, "Vector2(0, -84)"),
         (SHELF, "SkuIcons.texture"),
         (RESTOCK, "SkuIcons.texture"),
         (RESTOCK, "_sku_icon"),
@@ -66,6 +66,13 @@ def main() -> int:
         errors.append("design doc not marked 拍板")
     if "末端＝下一丟" not in doc and "末端 = 下一丟" not in doc:
         errors.append("design lock trailing missing")
+
+    cust = CUST.read_text(encoding="utf-8")
+    sync = cust[cust.find("func _sync_list_icons") : cust.find("\nfunc ", cust.find("func _sync_list_icons") + 1)]
+    if "Thieves keep text label" in sync or "is_thief:" in sync and "_list_icons.visible = false" in sync:
+        errors.append("thieves still hide the pictogram shopping list")
+    if "_list_label.visible = is_thief" in cust:
+        errors.append("thief shopping list still uses the text label")
 
     if errors:
         print("FAIL")

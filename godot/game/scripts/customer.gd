@@ -1117,8 +1117,8 @@ func _build_visual() -> void:
 	_list_label.add_theme_color_override("font_color", Color("ffe566"))
 	_list_label.add_theme_color_override("font_outline_color", Color("121212"))
 	_list_label.add_theme_constant_override("outline_size", 6)
-	## Guests use pictogram list; keep label for thief / elite caption fallback.
-	_list_label.visible = is_thief
+	## Guests and thieves use the pictogram list; text label stays as a hidden fallback.
+	_list_label.visible = false
 	add_child(_list_label)
 	_list_icons = Node2D.new()
 	_list_icons.name = "ListIcons"
@@ -1230,12 +1230,9 @@ func _sku_popup(sku: String, kind: String) -> void:
 func _sync_list_icons() -> void:
 	if _list_icons == null:
 		return
-	var bits: PackedStringArray = []
-	if is_thief:
-		## Thieves keep text label; hide icon row.
-		_list_icons.visible = false
-		return
+	## Guests and thieves: pending shopping as pictograms. Empty list hides the row.
 	_list_icons.visible = true
+	var bits: PackedStringArray = []
 	for sku in shopping:
 		bits.append(String(sku))
 	var fp := "|".join(bits)
