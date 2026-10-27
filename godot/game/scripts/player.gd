@@ -691,7 +691,7 @@ func _discard_top_box() -> void:
 		log_line.emit("丟掉 %s 1箱 — 掉在腳邊，可以再撿" % name)
 
 
-## Direction + short cancel: throw the top piece. No aim circle, movement stays free.
+## Direction + short cancel: throw the top piece. No aim circle. Stop until move input is released.
 func _toss_top_piece() -> void:
 	if not _round_active():
 		return
@@ -716,6 +716,11 @@ func _toss_top_piece() -> void:
 			drop_toss_dist(),
 			Callable(),
 		)
+	## Held direction would otherwise keep walking on the next physics frame.
+	_running = false
+	_dashing = false
+	velocity = Vector2.ZERO
+	_move_locked_until_neutral = true
 	SfxBus.play("sfx_box_toss")
 	log_line.emit("丟掉 %s 1件 — 往%s飛出" % [Tuning.sku_name(sku), _drop_dir_label(_cancel_drop_dir)])
 
@@ -775,7 +780,7 @@ func _physics_process(delta: float) -> void:
 			_running = stamina > 1.0
 	if _cancel_held:
 		_tick_cancel_hold(delta)
-	## Long-press aim / box flight: freeze locomotion. A short cancel does not.
+	## Long-press aim / box flight freeze locomotion. A piece toss stops via _move_locked_until_neutral.
 	if (_cancel_drop_ready or _drop_flight_lock) and _slip_left <= 0.0:
 		_running = false
 		_dashing = false
@@ -1046,7 +1051,7 @@ func _wiggle_axis() -> Vector2:
 
 
 func _move_axis() -> Vector2:
-	## Long-press aim / box flight: no locomotion. Short cancel still moves, and still samples direction.
+	## Long-press aim / box flight: no locomotion. A piece toss stays stopped until the stick is neutral.
 	if _cancel_drop_ready or _drop_flight_lock:
 		return Vector2.ZERO
 	if _elite_focus_left > 0.0:

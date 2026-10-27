@@ -1105,7 +1105,7 @@ func _build_visual() -> void:
 	_body = Vox.animated(_model_id)
 	add_child(_body)
 	_mood_label = Label.new()
-	_mood_label.position = Vector2(-72, -78)
+	_mood_label.position = Vector2(-72, -126)
 	UiFont.apply_label(_mood_label, UiFont.WORLD)
 	_mood_label.add_theme_color_override("font_color", Color("7ecbff"))
 	_mood_label.add_theme_color_override("font_outline_color", Color("121212"))
@@ -1122,8 +1122,8 @@ func _build_visual() -> void:
 	add_child(_list_label)
 	_list_icons = Node2D.new()
 	_list_icons.name = "ListIcons"
-	## Slightly above prior offset — closer to head / under mood.
-	_list_icons.position = Vector2(0, -72)
+	## Above the head, under the mood line. Larger pictograms need the extra lift.
+	_list_icons.position = Vector2(0, -84)
 	_list_icons.z_index = 3
 	add_child(_list_icons)
 	var track := ColorRect.new()
@@ -1140,18 +1140,18 @@ func _build_visual() -> void:
 	add_child(_bar)
 	_hp_track = ColorRect.new()
 	_hp_track.size = Vector2(40, 6)
-	_hp_track.position = Vector2(-20, -88)
+	_hp_track.position = Vector2(-20, -108)
 	_hp_track.color = Color("1b2420")
 	_hp_track.visible = false
 	add_child(_hp_track)
 	_hp_bar = ColorRect.new()
 	_hp_bar.size = Vector2(40, 6)
-	_hp_bar.position = Vector2(-20, -88)
+	_hp_bar.position = Vector2(-20, -108)
 	_hp_bar.color = Color("c0392b")
 	_hp_bar.visible = false
 	add_child(_hp_bar)
 	_timer_lab = Label.new()
-	_timer_lab.position = Vector2(-18, -108)
+	_timer_lab.position = Vector2(-18, -132)
 	_timer_lab.visible = false
 	UiFont.apply_label(_timer_lab, UiFont.WORLD)
 	_timer_lab.add_theme_color_override("font_color", Color("f4d35e"))
@@ -1246,12 +1246,12 @@ func _sync_list_icons() -> void:
 		c.queue_free()
 	if shopping.is_empty():
 		return
-	var gap := 28.0
+	var gap := 40.0
 	var total_w := gap * float(maxi(shopping.size() - 1, 0))
 	var x0 := -total_w * 0.5
 	for i in shopping.size():
 		var sku := String(shopping[i])
-		var spr := SkuIcons.make_sprite(sku, 30.0 if i == 0 else 24.0)
+		var spr := SkuIcons.make_sprite(sku, 40.0 if i == 0 else 32.0)
 		spr.position = Vector2(x0 + gap * float(i), 0)
 		if i == 0:
 			## Current seek target — larger + warm tint.
