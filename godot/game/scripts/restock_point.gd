@@ -25,7 +25,11 @@ class ListOverlay extends Node2D:
 		if host == null:
 			return
 		visible = bool(host.get("picking"))
-		position = host.get_global_transform_with_canvas().origin
+		## Anchor on the clerk. A high shelf used to draw the panel off the top of the view.
+		if host.has_method("_list_anchor"):
+			position = host.call("_list_anchor")
+		else:
+			position = host.get_global_transform_with_canvas().origin
 		queue_redraw()
 
 	func _draw() -> void:
@@ -145,6 +149,19 @@ func remaining(sku: String) -> int:
 	return int(stock.get(sku, 0))
 
 
+func _list_anchor() -> Vector2:
+	## Screen position of the clerk. Fall back to this shelf if the round has no player yet.
+	var fallback := get_global_transform_with_canvas().origin
+	if not is_inside_tree():
+		return fallback
+	var game := get_tree().get_first_node_in_group("game")
+	if game != null:
+		var player = game.get("_player")
+		if player is Node2D and is_instance_valid(player):
+			return (player as Node2D).get_global_transform_with_canvas().origin
+	return fallback
+
+
 func _draw_sku_list(canvas: CanvasItem) -> void:
 	if not picking:
 		return
@@ -154,11 +171,26 @@ func _draw_sku_list(canvas: CanvasItem) -> void:
 	var w := float(maxi(300, fs * 8 + int(icon_px) + 16))
 	var row := float(maxi(fs + 12, int(icon_px) + 8))
 	var h := float(fs + 16) + row * float(list.size())
-	var hy := 72.0
-	if body is Sprite2D:
-		var spr := body as Sprite2D
-		hy = maxf(hy, -spr.offset.y * spr.scale.y)
-	var origin := Vector2(-w * 0.5, -hy - h - 10.0)
+	## Prefer just above the clerk. Clamp into the viewport so a tall list stays visible.
+	var origin := Vector2(-w * 0.5, -h - 56.0)
+	var anchor := Vector2.ZERO
+	if canvas is Node2D:
+		anchor = (canvas as Node2D).position
+	var vp := get_viewport().get_visible_rect().size
+	var margin := 8.0
+	var screen := anchor + origin
+	if screen.y < margin:
+		origin.y = 40.0
+		screen = anchor + origin
+	if screen.x < margin:
+		origin.x += margin - screen.x
+	elif screen.x + w > vp.x - margin:
+		origin.x -= screen.x + w - (vp.x - margin)
+	screen = anchor + origin
+	if screen.y + h > vp.y - margin:
+		origin.y -= screen.y + h - (vp.y - margin)
+	if anchor.y + origin.y < margin:
+		origin.y = margin - anchor.y
 	canvas.draw_rect(Rect2(origin, Vector2(w, h)), Color(0.07, 0.08, 0.07, 0.94))
 	canvas.draw_rect(Rect2(origin, Vector2(w, h)), Color("f4d35e"), false, 2.0)
 	var font := UiFont.font()

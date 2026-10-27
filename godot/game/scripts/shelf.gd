@@ -167,10 +167,10 @@ func _refresh() -> void:
 	else:
 		_goods.visible = true
 		_goods.texture = SkuIcons.texture(sku)
-		## ~22px logical icon on shelf face.
-		var s := 22.0 / float(SkuIcons.SIZE)
+		## ~30px logical icon on shelf face.
+		var s := 30.0 / float(SkuIcons.SIZE)
 		_goods.scale = Vector2(s, s)
-		_goods.position = facing * -8.0 + Vector2(0, -30)
+		_goods.position = facing * -8.0 + Vector2(0, -34)
 	var kind_name := "乾貨架"
 	if category == Tuning.CAT_FROZEN:
 		kind_name = "凍櫃貨架"
