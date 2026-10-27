@@ -1665,7 +1665,7 @@ func _resolve_toss_guest(guest: Node2D, dest: Vector2, sku: String, n: int) -> v
 	SfxBus.play("sfx_box_hit_guest_reject")
 	_place_dropped_box(dest, sku, n)
 	if _player:
-		_player.log_line.emit("丟掉砸到客人 — 不想要這貨品！整箱掉地")
+		_player.log_line.emit("丟掉砸到客人 — 不想要這貨品！掉在地上" if n < Tuning.BOX_SIZE else "丟掉砸到客人 — 不想要這貨品！整箱掉地")
 
 
 ## Active thief nearest the flight segment / landing within hit radius.

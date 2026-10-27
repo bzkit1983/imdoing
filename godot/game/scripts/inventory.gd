@@ -34,6 +34,30 @@ func add_one(sku: String) -> void:
 	_bump()
 
 
+func count_of(sku: String) -> int:
+	var n := 0
+	for id in items:
+		if id == sku:
+			n += 1
+	return n
+
+
+## Remove up to `n` of `sku`, from the top of the stack first. Returns how many left the hand.
+func remove_sku(sku: String, n: int) -> int:
+	if n <= 0 or sku == "":
+		return 0
+	var taken := 0
+	var i := items.size() - 1
+	while i >= 0 and taken < n:
+		if items[i] == sku:
+			items.remove_at(i)
+			taken += 1
+		i -= 1
+	if taken > 0:
+		_bump()
+	return taken
+
+
 func trailing_run() -> Dictionary:
 	if items.is_empty():
 		return {"id": "", "count": 0}
