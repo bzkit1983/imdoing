@@ -102,6 +102,10 @@ var _cancel_dropped: bool = false
 var _cancel_drop_dir: Vector2 = Vector2.ZERO
 ## True from toss start until the flying box lands — movement stays locked.
 var _drop_flight_lock: bool = false
+## Piece tosses in the air. Movement stays stopped until the latest one lands
+## and the player is not already holding another short drop.
+var _piece_flights: int = 0
+var _piece_drop_lock: bool = false
 var _drop_aim_line: Line2D
 var _drop_aim_mark: Polygon2D
 ## Cached game host (avoids get_first_node_in_group every physics frame).
@@ -463,7 +467,7 @@ func move_state() -> String:
 		return "暈眩"
 	if _slip_left > 0.0:
 		return "滑倒"
-	if _drop_flight_lock:
+	if _drop_flight_lock or _piece_drop_lock:
 		return "丟貨"
 	if _cancel_held and not _cancel_dropped:
 		return "掉貨瞄準"
@@ -610,6 +614,10 @@ func _on_cancel_release() -> void:
 			_toss_top_piece()
 		_cancel_drop_dir = Vector2.ZERO
 		_hide_drop_aim()
+	## Previous piece already landed and this press did not throw another: walk again.
+	## A whole-box flight keeps its own lock, so clear the piece lock here too.
+	if _piece_flights <= 0:
+		_piece_drop_lock = false
 	_cancel_time = 0.0
 	_cancel_drop_ready = false
 
@@ -691,38 +699,51 @@ func _discard_top_box() -> void:
 		log_line.emit("丟掉 %s 1箱 — 掉在腳邊，可以再撿" % name)
 
 
-## Direction + short cancel: throw the top piece. No aim circle. Stop until move input is released.
-func _toss_top_piece() -> void:
+## Direction + short cancel: throw the top piece. No aim circle.
+## Stop while it flies. Another toss before it lands keeps the stop.
+## When the last piece lands and cancel is up, a held direction walks again.
+func _toss_top_piece() -> bool:
 	if not _round_active():
-		return
+		return false
 	if _stun_left > 0.0 or _slip_left > 0.0 or _fighting or _drop_flight_lock:
-		return
+		return false
 	if _cancel_drop_dir.length_squared() < 0.01:
-		return
+		return false
 	if inventory.is_empty():
 		log_line.emit("手上沒有貨箱")
-		return
+		return false
 	var run: Dictionary = inventory.trailing_run()
 	var sku := String(run["id"])
 	inventory.remove_trailing(1)
-	var game := _game()
-	if game and game.has_method("spawn_dropped_box"):
-		game.call(
+	var host := _game()
+	if host and host.has_method("spawn_dropped_box"):
+		_piece_flights += 1
+		_piece_drop_lock = true
+		_running = false
+		_dashing = false
+		velocity = Vector2.ZERO
+		host.call(
 			"spawn_dropped_box",
 			global_position,
 			sku,
 			1,
 			_cancel_drop_dir,
 			drop_toss_dist(),
-			Callable(),
+			Callable(self, "_on_piece_drop_landed"),
 		)
-	## Held direction would otherwise keep walking on the next physics frame.
-	_running = false
-	_dashing = false
-	velocity = Vector2.ZERO
-	_move_locked_until_neutral = true
 	SfxBus.play("sfx_box_toss")
 	log_line.emit("丟掉 %s 1件 — 往%s飛出" % [Tuning.sku_name(sku), _drop_dir_label(_cancel_drop_dir)])
+	return true
+
+
+func _on_piece_drop_landed() -> void:
+	_piece_flights = maxi(0, _piece_flights - 1)
+	if _piece_flights > 0:
+		return
+	## Still holding cancel for another short drop: stay stopped until that press ends.
+	if _cancel_held and not _cancel_swallowed and not _cancel_drop_ready:
+		return
+	_piece_drop_lock = false
 
 
 func _drop_dir_label(dir: Vector2) -> String:
@@ -774,14 +795,14 @@ func _physics_process(delta: float) -> void:
 	command_lock = _long_committed and _j_held and is_instance_valid(target) and String(target.get("kind")) == "cashier" and not skill_menu_open and not ult_prep
 	if not command_lock and not ult_prep:
 		_prompt.active = false
-	if _k_held and not _cancel_held and not _drop_flight_lock and not command_lock and not skill_menu_open and not ult_prep and not _fighting and _stun_left <= 0.0 and _slip_left <= 0.0:
+	if _k_held and not _cancel_held and not _drop_flight_lock and not _piece_drop_lock and not command_lock and not skill_menu_open and not ult_prep and not _fighting and _stun_left <= 0.0 and _slip_left <= 0.0:
 		_k_time += delta
 		if _k_time >= Tuning.RUN_HOLD_THRESHOLD:
 			_running = stamina > 1.0
 	if _cancel_held:
 		_tick_cancel_hold(delta)
-	## Long-press aim / box flight freeze locomotion. A piece toss stops via _move_locked_until_neutral.
-	if (_cancel_drop_ready or _drop_flight_lock) and _slip_left <= 0.0:
+	## Long-press aim, a flying box, or a piece still in the air: freeze locomotion.
+	if (_cancel_drop_ready or _drop_flight_lock or _piece_drop_lock) and _slip_left <= 0.0:
 		_running = false
 		_dashing = false
 		velocity = Vector2.ZERO
@@ -1051,8 +1072,9 @@ func _wiggle_axis() -> Vector2:
 
 
 func _move_axis() -> Vector2:
-	## Long-press aim / box flight: no locomotion. A piece toss stays stopped until the stick is neutral.
-	if _cancel_drop_ready or _drop_flight_lock:
+	## Long-press aim, box flight, or a piece still in the air: no locomotion.
+	## After the last piece lands, a direction that is still held walks again.
+	if _cancel_drop_ready or _drop_flight_lock or _piece_drop_lock:
 		return Vector2.ZERO
 	if _elite_focus_left > 0.0:
 		return Vector2.ZERO
