@@ -278,7 +278,11 @@ func _skill_cd_text() -> String:
 		else:
 			bits.append("%d:%.2f" % [i, snappedf(float(player.call("cd_left", sid)), 0.25)])
 	var ult: Dictionary = player.call("_ult_sk") if player.has_method("_ult_sk") else Skills.ULTIMATE
-	bits.append("U:%.2f" % snappedf(float(player.call("cd_left", String(ult.get("id")))), 0.25))
+	var ult_id := String(ult.get("id", ""))
+	if ult_id == "":
+		bits.append("U:-")
+	else:
+		bits.append("U:%.2f" % snappedf(float(player.call("cd_left", ult_id)), 0.25))
 	var fp := "|".join(bits)
 	if fp == _skills_cd_fp:
 		return _skills_cd_txt
@@ -295,8 +299,11 @@ func _skill_cd_text() -> String:
 		else:
 			var cd := float(player.call("cd_left", String(sk2.get("id"))))
 			lines.append("%d %s  %s" % [i + 1, name, "CD %.0f" % cd if cd > 0.05 else "就緒"])
-	var ucd := float(player.call("cd_left", String(ult.get("id"))))
-	lines.append("奧義 %s  %s" % [String(ult.get("name")), "CD %.0f" % ucd if ucd > 0.05 else "就緒"])
+	if ult_id == "":
+		lines.append("奧義 空")
+	else:
+		var ucd := float(player.call("cd_left", ult_id))
+		lines.append("奧義 %s  %s" % [String(ult.get("name")), "CD %.0f" % ucd if ucd > 0.05 else "就緒"])
 	_skills_cd_txt = "\n".join(lines)
 	return _skills_cd_txt
 

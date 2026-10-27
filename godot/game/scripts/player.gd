@@ -950,7 +950,8 @@ func _enqueue_cust_speed(skill_id: String) -> void:
 
 
 func _customer_move_kind(skill_id: String) -> String:
-	if skill_id == String(_ult_sk().get("id")):
+	var ult_id := String(_ult_sk().get("id", ""))
+	if ult_id != "" and skill_id == ult_id:
 		var scale := float(_ult_sk().get("clock_scale", 0.0))
 		if scale <= 0.001:
 			return "stop"
@@ -2210,6 +2211,9 @@ func _on_ult_hold(pressed: bool) -> void:
 			log_line.emit("現在不能發動奧義")
 			return
 		var ult := _ult_sk()
+		if ult.is_empty() or String(ult.get("id", "")) == "":
+			log_line.emit("沒有裝備奧義")
+			return
 		if bool(ult.get("unimplemented", false)):
 			log_line.emit("%s 本 Demo 未實作，不會進入冷卻" % String(ult.get("name")))
 			return
@@ -2243,6 +2247,8 @@ func _on_ult_hold(pressed: bool) -> void:
 
 func _try_ult_dir(dir: int) -> void:
 	var seq: Array = _ult_sk().get("seq", [])
+	if seq.is_empty() or _ult_index < 0 or _ult_index >= seq.size():
+		return
 	if dir == int(seq[_ult_index]):
 		_prompt.fail_at = -1
 		_ult_index += 1
@@ -2323,6 +2329,10 @@ func _lord_seconds(lv: int) -> float:
 
 func _cast_ultimate() -> void:
 	var sk: Dictionary = _ult_sk()
+	if sk.is_empty() or String(sk.get("id", "")) == "":
+		log_line.emit("沒有裝備奧義")
+		_prompt.active = false
+		return
 	if bool(sk.get("unimplemented", false)):
 		log_line.emit("%s 本 Demo 未實作" % String(sk.get("name")))
 		_prompt.active = false

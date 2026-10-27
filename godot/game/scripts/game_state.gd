@@ -58,11 +58,21 @@ var shop_scale: int = 1
 var grid_w: int = 10
 var grid_h: int = 10
 var clerks: Array[Dictionary] = []
+## Selected set, mirrored for older readers. Source of truth is skill_sets.
 var slots: Array[String] = ["", "", "", "", ""]
 var ult_id: String = "the_world"
+## Five saved loadouts. Each is {name, slots, ult_id}. ult_id "" means no ultimate.
+const SKILL_SET_COUNT := 5
+const SKILL_NAME_MAX := 10
+var skill_sets: Array[Dictionary] = []
+var skill_set_index: int = 0
 var day_procurement: int = 0
 var last_loss: bool = false
 var level_note: String = ""
+
+
+func _init() -> void:
+	_install_new_game_sets()
 
 
 func apply_scenario(id: int) -> void:
@@ -75,8 +85,7 @@ func apply_scenario(id: int) -> void:
 	day_procurement = 0
 	last_loss = false
 	level_note = ""
-	slots = ["carry_boost", "move_boost", "metal_rush", "checkout_speed", "instant_restock"]
-	ult_id = "the_world"
+	_install_new_game_sets()
 	match id:
 		2:
 			_scenario_mid()
@@ -535,42 +544,122 @@ func cycle_register(index: int) -> void:
 	clerks[index]["register"] = (int(clerks[index]["register"]) + 1) % n
 
 
+func default_skill_set_name(i: int) -> String:
+	return "自訂技能組合%d" % [i + 1]
+
+
+func skill_set_name(i: int) -> String:
+	if i < 0 or i >= skill_sets.size():
+		return ""
+	return String(skill_sets[i].get("name", ""))
+
+
+func skill_set_name_is_custom(set_name: String) -> bool:
+	return _is_english_letters(set_name) and set_name.length() <= SKILL_NAME_MAX and set_name.length() > 0
+
+
 func equip(slot_i: int, skill_id: String) -> String:
+	return equip_set(skill_set_index, slot_i, skill_id)
+
+
+func equip_set(set_i: int, slot_i: int, skill_id: String) -> String:
+	if set_i < 0 or set_i >= skill_sets.size():
+		return ""
 	var sk := Skills.by_id(skill_id)
 	if sk.is_empty():
 		return "沒有這招"
+	var pack: Dictionary = skill_sets[set_i]
 	if slot_i == 5:
 		if String(sk.get("kind")) != "ultimate":
 			return "奧義格只能放奧義"
-		ult_id = skill_id
+		if String(pack.get("ult_id", "")) == skill_id:
+			return ""
+		pack["ult_id"] = skill_id
+		_after_set_edit(set_i)
 		return ""
 	if String(sk.get("kind")) == "ultimate":
 		return "奧義要放奧義格"
 	if slot_i < 0 or slot_i > 4:
 		return ""
-	for i in slots.size():
-		if i != slot_i and slots[i] == skill_id:
+	var set_slots: Array = pack["slots"]
+	for i in set_slots.size():
+		if i != slot_i and String(set_slots[i]) == skill_id:
 			return "已經裝備在別格"
-	var prev := slots[slot_i]
-	slots[slot_i] = skill_id
-	if cost_sum() > 5:
-		slots[slot_i] = prev
+	if String(set_slots[slot_i]) == skill_id:
+		return ""
+	var prev := String(set_slots[slot_i])
+	set_slots[slot_i] = skill_id
+	if _cost_of_ids(set_slots) > 5:
+		set_slots[slot_i] = prev
 		return "COST 超過 5"
+	_after_set_edit(set_i)
 	return ""
 
 
 func unequip(slot_i: int) -> void:
-	if slot_i >= 0 and slot_i < slots.size():
-		slots[slot_i] = ""
+	unequip_set(skill_set_index, slot_i)
+
+
+func unequip_set(set_i: int, slot_i: int) -> void:
+	if set_i < 0 or set_i >= skill_sets.size():
+		return
+	var pack: Dictionary = skill_sets[set_i]
+	if slot_i == 5:
+		if String(pack.get("ult_id", "")) == "":
+			return
+		pack["ult_id"] = ""
+		_after_set_edit(set_i)
+		return
+	if slot_i < 0 or slot_i > 4:
+		return
+	var set_slots: Array = pack["slots"]
+	if String(set_slots[slot_i]) == "":
+		return
+	set_slots[slot_i] = ""
+	_after_set_edit(set_i)
+
+
+func select_skill_set(set_i: int) -> void:
+	if set_i < 0 or set_i >= skill_sets.size():
+		return
+	if set_i == skill_set_index:
+		return
+	skill_set_index = set_i
+	_mirror_selected()
+	_persist_skill_edit()
+
+
+func rename_skill_set(set_i: int, raw: String) -> String:
+	if set_i < 0 or set_i >= skill_sets.size():
+		return ""
+	var trimmed := raw.strip_edges()
+	var set_name := trimmed
+	if set_name == "":
+		set_name = default_skill_set_name(set_i)
+	else:
+		if not _is_english_letters(set_name) or set_name.length() > SKILL_NAME_MAX:
+			return "名稱只用英文字母，最多 10 個"
+		var folded := set_name.to_lower()
+		for i in skill_sets.size():
+			if i == set_i:
+				continue
+			if String(skill_sets[i].get("name", "")).to_lower() == folded:
+				return "名稱已被使用"
+	if String(skill_sets[set_i].get("name", "")) == set_name:
+		return ""
+	skill_sets[set_i]["name"] = set_name
+	_persist_skill_edit()
+	return ""
 
 
 func cost_sum() -> int:
-	var n := 0
-	for id in slots:
-		if id == "":
-			continue
-		n += int(Skills.by_id(id).get("cost", 1))
-	return n
+	return cost_sum_of(skill_set_index)
+
+
+func cost_sum_of(set_i: int) -> int:
+	if set_i < 0 or set_i >= skill_sets.size():
+		return 0
+	return _cost_of_ids(skill_sets[set_i].get("slots", []))
 
 
 func loadout() -> Array[Dictionary]:
@@ -584,8 +673,18 @@ func loadout() -> Array[Dictionary]:
 
 
 func ult_skill() -> Dictionary:
-	var sk := Skills.by_id(ult_id)
-	if sk.is_empty():
+	return ult_of(skill_set_index)
+
+
+## Empty dictionary means this set has no ultimate. Unknown ids still fall back to The World!.
+func ult_of(set_i: int) -> Dictionary:
+	if set_i < 0 or set_i >= skill_sets.size():
+		return {}
+	var id := String(skill_sets[set_i].get("ult_id", ""))
+	if id == "":
+		return {}
+	var sk := Skills.by_id(id)
+	if sk.is_empty() or String(sk.get("kind")) != "ultimate":
 		return Skills.ULTIMATE
 	return sk
 
@@ -698,6 +797,9 @@ func sellable() -> Array[String]:
 
 
 func to_dict() -> Dictionary:
+	if skill_sets.is_empty():
+		_install_new_game_sets()
+	_mirror_selected()
 	var slot_list: Array = []
 	for id in slots:
 		slot_list.append(String(id))
@@ -740,6 +842,8 @@ func to_dict() -> Dictionary:
 		"clerks": clerk_list,
 		"slots": slot_list,
 		"ult_id": ult_id,
+		"skill_sets": _skill_sets_for_save(),
+		"skill_set_index": skill_set_index,
 		"day_procurement": day_procurement,
 		"last_loss": last_loss,
 		"level_note": level_note,
@@ -804,19 +908,164 @@ func from_dict(data: Dictionary) -> String:
 			if role != "cashier" and role != "restock":
 				role = "restock"
 			clerks.append({"role": role, "register": maxi(0, int(c.get("register", 0)))})
-	slots = ["", "", "", "", ""]
+	var loaded_slots: Array[String] = ["", "", "", "", ""]
 	var raw_slots = data.get("slots", [])
 	if raw_slots is Array:
 		for i in mini(5, raw_slots.size()):
-			slots[i] = String(raw_slots[i])
-	ult_id = String(data.get("ult_id", "the_world"))
-	if Skills.by_id(ult_id).is_empty():
-		ult_id = "the_world"
+			loaded_slots[i] = String(raw_slots[i])
+	var loaded_ult := _sanitize_ult_id(String(data.get("ult_id", "the_world")))
+	if not _load_skill_sets(data.get("skill_sets", null)):
+		_migrate_single_loadout(loaded_slots, loaded_ult)
+		skill_set_index = 0
+	else:
+		skill_set_index = clampi(int(data.get("skill_set_index", 0)), 0, SKILL_SET_COUNT - 1)
+	_repair_set_names()
+	_mirror_selected()
 	day_procurement = maxi(0, int(data.get("day_procurement", 0)))
 	last_loss = bool(data.get("last_loss", false))
 	level_note = String(data.get("level_note", ""))
 	_grant_initial_goods()
 	return ""
+
+
+func _install_new_game_sets() -> void:
+	skill_sets.clear()
+	skill_sets.append(_make_set(default_skill_set_name(0), _default_slot_ids(), "the_world"))
+	for i in range(1, SKILL_SET_COUNT):
+		skill_sets.append(_make_set(default_skill_set_name(i), _blank_slot_ids(), ""))
+	skill_set_index = 0
+	_mirror_selected()
+
+
+func _default_slot_ids() -> Array[String]:
+	return ["carry_boost", "move_boost", "metal_rush", "checkout_speed", "instant_restock"]
+
+
+func _blank_slot_ids() -> Array[String]:
+	return ["", "", "", "", ""]
+
+
+func _make_set(set_name: String, slot_ids: Array[String], ult: String) -> Dictionary:
+	var copied := _blank_slot_ids()
+	for i in mini(5, slot_ids.size()):
+		copied[i] = String(slot_ids[i])
+	return {"name": set_name, "slots": copied, "ult_id": ult}
+
+
+func _mirror_selected() -> void:
+	if skill_sets.is_empty():
+		return
+	skill_set_index = clampi(skill_set_index, 0, skill_sets.size() - 1)
+	var pack: Dictionary = skill_sets[skill_set_index]
+	var src: Array = pack.get("slots", [])
+	slots = _blank_slot_ids()
+	for i in mini(5, src.size()):
+		slots[i] = String(src[i])
+	ult_id = String(pack.get("ult_id", ""))
+
+
+func _after_set_edit(set_i: int) -> void:
+	if set_i == skill_set_index:
+		_mirror_selected()
+	_persist_skill_edit()
+
+
+func _persist_skill_edit() -> void:
+	var err := save_to_disk()
+	if err != "":
+		push_warning("skill set save failed: %s" % err)
+
+
+func _cost_of_ids(ids) -> int:
+	var n := 0
+	if not (ids is Array):
+		return 0
+	for id in ids:
+		if String(id) == "":
+			continue
+		n += int(Skills.by_id(String(id)).get("cost", 1))
+	return n
+
+
+func _is_english_letters(set_name: String) -> bool:
+	if set_name == "":
+		return false
+	for i in set_name.length():
+		var c := set_name.unicode_at(i)
+		var upper := c >= 65 and c <= 90
+		var lower := c >= 97 and c <= 122
+		if not upper and not lower:
+			return false
+	return true
+
+
+func _sanitize_ult_id(id: String) -> String:
+	if id == "":
+		return ""
+	var sk := Skills.by_id(id)
+	if sk.is_empty() or String(sk.get("kind")) != "ultimate":
+		return "the_world"
+	return id
+
+
+func _migrate_single_loadout(loaded_slots: Array[String], loaded_ult: String) -> void:
+	skill_sets.clear()
+	skill_sets.append(_make_set(default_skill_set_name(0), loaded_slots, loaded_ult))
+	for i in range(1, SKILL_SET_COUNT):
+		skill_sets.append(_make_set(default_skill_set_name(i), _blank_slot_ids(), ""))
+
+
+func _load_skill_sets(raw) -> bool:
+	if not (raw is Array) or (raw as Array).is_empty():
+		return false
+	var incoming: Array = raw
+	skill_sets.clear()
+	for i in SKILL_SET_COUNT:
+		if i < incoming.size() and incoming[i] is Dictionary:
+			var src: Dictionary = incoming[i]
+			var slot_ids := _blank_slot_ids()
+			var raw_slots = src.get("slots", [])
+			if raw_slots is Array:
+				for s in mini(5, raw_slots.size()):
+					slot_ids[s] = String(raw_slots[s])
+			var ult := ""
+			if src.has("ult_id"):
+				ult = _sanitize_ult_id(String(src.get("ult_id")))
+			var set_name := String(src.get("name", ""))
+			skill_sets.append(_make_set(set_name, slot_ids, ult))
+		else:
+			skill_sets.append(_make_set(default_skill_set_name(i), _blank_slot_ids(), ""))
+	return true
+
+
+func _repair_set_names() -> void:
+	var used := {}
+	for i in skill_sets.size():
+		var set_name := String(skill_sets[i].get("name", ""))
+		var keep := set_name == default_skill_set_name(i) or skill_set_name_is_custom(set_name)
+		if keep and used.has(set_name.to_lower()):
+			keep = false
+		if not keep:
+			set_name = default_skill_set_name(i)
+		used[set_name.to_lower()] = true
+		skill_sets[i]["name"] = set_name
+
+
+func _skill_sets_for_save() -> Array:
+	var out: Array = []
+	for pack in skill_sets:
+		var slot_list: Array = []
+		var src: Array = pack.get("slots", [])
+		for i in mini(5, src.size()):
+			slot_list.append(String(src[i]))
+		while slot_list.size() < 5:
+			slot_list.append("")
+		out.append({
+			"name": String(pack.get("name", "")),
+			"slots": slot_list,
+			"ult_id": String(pack.get("ult_id", "")),
+		})
+	return out
 
 
 func save_to_disk() -> String:

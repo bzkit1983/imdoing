@@ -80,11 +80,33 @@ prep.look.locked_body,角色外觀調整尚未開放，之後版本會再補上�
 prep.stats.title,角色能力,Stats
 prep.stats.info,按 + 加一點，按 - 減一點。向下可到重置和返回。,"Press + / − to adjust. Down for reset and back."
 prep.stats.reset,重置能力值,Reset stats
-prep.skills.title,裝備技能,Skills
-prep.skills.info,COST %d/5　奧義 %s\n選一格再選技能。奧義不佔 COST。,"COST %d/5 · Ult %s\nPick a slot then a skill. Ult does not use COST."
+prep.skills.title,技能組合,Skill sets
+prep.skills.info,這一局：%s　COST %d/5　奧義 %s\n選一組修改。▶ 是這一局要用的。補貨、開店和暫停都不能換。,"This day: %s · COST %d/5 · Ult %s\nPick a set to edit. ▶ is used this day. Restock, open, and pause cannot switch."
+prep.skills.set_row,%s%s　COST %d/5　奧義 %s,%s%s · COST %d/5 · Ult %s
+prep.skill_set.info,COST %d/5。%s\n改五格和奧義。同一組不能放兩次。被動也佔格、也算 COST。奧義可以空。,"COST %d/5. %s\nEdit the five slots and the ult. One skill once per set. Passives take a slot and COST. Ult may be empty."
+prep.skill_set.using,這一局使用中,In use this day
+prep.skill_set.not_using,還沒選為這一局,Not selected this day
+prep.skill_set.use,選為這一局,Use this day
+prep.skill_set.already,已經是這一局的組合,Already the set for this day
+prep.skill_set.selected_msg,這一局改用「%s」,This day now uses "%s"
+prep.skill_set.rename,改名,Rename
+prep.skill_set.empty,空,Empty
+prep.skill_set.slot,技能%d　%s%s,Skill %d · %s%s
+prep.skill_set.ult,奧義　%s,Ult · %s
+prep.skill_rename.title,改名,Rename
+prep.skill_rename.info,現在：%s\n只限 1–10 個英文字母。清空後儲存會回到「%s」。不能跟別組同名。,"Now: %s\n1–10 English letters. Save empty to restore ""%s"". Names must be unique."
+prep.skill_rename.draft_empty,（空白）,(blank)
+prep.skill_rename.save,儲存,Save
+prep.skill_rename.backspace,刪除最後一個字母,Delete last letter
+prep.skill_rename.clear,清空回到預設名,Clear to default name
+prep.skill_rename.lower,改成小寫,Lower case
+prep.skill_rename.upper,改成大寫,Upper case
+prep.skill_rename.too_long,名稱最多 10 個字母,At most 10 letters
+prep.skill_rename.saved,已改名為「%s」,Renamed to "%s"
 prep.skill_pick.title,選擇技能,Pick skill
-prep.skill_pick.info,格 %s。名字前面是性質：主動、被動或奧義。COST 合計不能超過 5。,"Slot %s. Prefix is active / passive / ult. Total COST ≤ 5."
+prep.skill_pick.info,組合「%s」的格 %s。名字前面是性質：主動、被動或奧義。COST 合計不能超過 5。,"Set ""%s"" slot %s. Prefix is active / passive / ult. Total COST ≤ 5."
 prep.skill_pick.ult_slot,奧義,Ult
+prep.skill_pick.unequip,卸下,Unequip
 prep.stock.title,開發／採購,Develop / buy
 prep.stock.info,罐頭是初始貨物，不用開發就能採購。其他未開發的先付開發費。,"Cans start unlocked. Other goods need a develop fee first."
 prep.develop.title,開發商品,Develop goods

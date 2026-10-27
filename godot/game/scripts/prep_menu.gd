@@ -23,6 +23,9 @@ var state: StateScript
 
 var _page: String = "scenario"
 var _index: int = 0
+var _skill_set: int = 0
+var _rename_draft: String = ""
+var _rename_lower: bool = false
 var _rows: Array[Dictionary] = []
 var _qty_sku: String = ""
 var _qty_boxes: int = 1
@@ -612,16 +615,55 @@ func _activate() -> void:
 			else:
 				_msg = "已重置能力值（−$%d）" % fee
 			_refresh()
+		"edit_set":
+			_skill_set = int(arg)
+			_show_page("skill_set")
+		"use_set":
+			if int(state.skill_set_index) == _skill_set:
+				_popup_info(Loc.t("prep.skills.title"), Loc.t("prep.skill_set.already"))
+			else:
+				state.select_skill_set(_skill_set)
+				_msg = Loc.t("prep.skill_set.selected_msg", [state.skill_set_name(_skill_set)])
+				_refresh()
+		"rename_open":
+			var current := state.skill_set_name(_skill_set)
+			_rename_draft = current if state.skill_set_name_is_custom(current) else ""
+			_rename_lower = false
+			_show_page("skill_rename")
+		"rename_ch":
+			if _rename_draft.length() >= state.SKILL_NAME_MAX:
+				_popup_info(Loc.t("prep.skill_rename.title"), Loc.t("prep.skill_rename.too_long"))
+			else:
+				_rename_draft += String(arg)
+				_refresh()
+		"rename_backspace":
+			if _rename_draft.length() > 0:
+				_rename_draft = _rename_draft.substr(0, _rename_draft.length() - 1)
+				_refresh()
+		"rename_clear":
+			_rename_draft = ""
+			_refresh()
+		"rename_case":
+			_rename_lower = not _rename_lower
+			_refresh()
+		"rename_save":
+			var rename_err := state.rename_skill_set(_skill_set, _rename_draft)
+			if rename_err != "":
+				_popup_info(Loc.t("prep.skill_rename.title"), rename_err)
+			else:
+				_show_page("skill_set")
+				_msg = Loc.t("prep.skill_rename.saved", [state.skill_set_name(_skill_set)])
+				_refresh()
 		"pick_slot":
 			PrepPages.fill_skill_pick(self, int(arg))
 		"equip":
-			var equip_msg := state.equip(int(arg[0]), String(arg[1]))
-			_show_page("skills")
+			var equip_msg := state.equip_set(_skill_set, int(arg[0]), String(arg[1]))
+			_show_page("skill_set")
 			if equip_msg != "":
 				_popup_info("不能裝備", equip_msg)
 		"unequip":
-			state.unequip(int(arg))
-			_show_page("skills")
+			state.unequip_set(_skill_set, int(arg))
+			_show_page("skill_set")
 		"dev":
 			_ask_develop(String(arg))
 		"locked_sku":
@@ -1203,9 +1245,6 @@ func _back() -> void:
 	if _qty_sku != "":
 		_qty_sku = ""
 		_refresh()
-		return
-	if _page == "skill_pick":
-		_show_page("skills")
 		return
 	if _page != "home" and _page != "scenario":
 		_show_page(PrepPages.parent_page(_page))
