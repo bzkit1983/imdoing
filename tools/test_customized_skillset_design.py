@@ -11,6 +11,7 @@ PLAYER = (ROOT / "godot/game/scripts/player.gd").read_text(encoding="utf-8")
 PAUSE = (ROOT / "godot/game/scripts/pause_menu.gd").read_text(encoding="utf-8")
 HUD = (ROOT / "godot/game/scripts/hud.gd").read_text(encoding="utf-8")
 VERSION = (ROOT / "godot/game/scripts/product_version.gd").read_text(encoding="utf-8")
+LOCALE = (ROOT / "godot/game/locale/strings.csv").read_text(encoding="utf-8")
 
 errs: list[str] = []
 
@@ -44,6 +45,9 @@ need("沒有裝備奧義" in PLAYER, "empty ult does not cast")
 need("select_skill_set" not in PAUSE, "pause menu cannot switch sets")
 need("奧義 空" in HUD, "hud shows an empty ult")
 need("1.2.0" in VERSION, "product version stays v1.2.0")
+hub_lines = [line for line in PREP.splitlines() if "prep.home.skills_short" in line]
+need(len(hub_lines) == 1 and "cost_sum" not in hub_lines[0], "character hub skill entry does not show COST")
+need("prep.home.skills_short,裝備技能,Skills" in LOCALE, "hub label is 裝備技能 without COST")
 
 if errs:
     print("FAIL")

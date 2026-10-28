@@ -50,8 +50,8 @@ prep.hub.staff,員工管理　%d 人,Staff · %d
 prep.hub.sys,系統工具,System tools
 prep.hub.sys_info,測試與存檔,Testing and save
 prep.home.stats,角色能力,Stats
-prep.home.skills,裝備技能　COST %d/5,Skills · COST %d/5
-prep.home.skills_short,裝備技能　COST %d/5,Skills · COST %d/5
+prep.home.skills,裝備技能,Skills
+prep.home.skills_short,裝備技能,Skills
 prep.home.look,外觀調整,Appearance
 prep.home.stock,開發／採購貨品,Develop / buy goods
 prep.home.develop,開發商品,Develop goods
