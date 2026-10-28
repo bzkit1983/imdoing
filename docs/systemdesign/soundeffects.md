@@ -104,9 +104,9 @@
 | ID | 觸發（設計） | 建議質感 | 優先 | 來源檔 |
 | --- | --- | --- | --- | --- |
 | `sfx_skill_cast` | 主動技能施放成功（通用層） | 施法 whoosh | P0 | `playeractiveskills.md` |
-| `sfx_skill_menu_open` | 長按技能開選單 | UI 開 | P1 | `control.md` |
+| `sfx_skill_menu_open` | 短按或長按技能開選單 | UI 開 | P1 | `control.md` |
 | `sfx_skill_menu_move` | 選單方向改選 | tick | P2 | `control.md` |
-| `sfx_skill_menu_cancel` | 放手取消選單 | 關 | P2 | `control.md` |
+| `sfx_skill_menu_cancel` | 取消鍵關閉技能選單 | 關 | P2 | `control.md` |
 | `sfx_skill_cd_deny` | CD 中／不能施放 | 拒絕 | P1 | `playerskills.md` |
 | `sfx_ult_prep` | 長按奧義進入指令準備 | 蓄力低音 | P1 | `playerultimateskills.md` |
 | `sfx_ult_dir_ok` | 奧義方向指令正確 | tick（可較沉） | P0 | `playerultimateskills.md` |

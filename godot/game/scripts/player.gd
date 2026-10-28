@@ -71,6 +71,12 @@ var _arrow: Polygon2D
 var _no_queue_logged: bool = false
 var _l_held: bool = false
 var _l_time: float = 0.0
+## Short tap left the menu up. Direction fires now; skill key again fires the center.
+var _skill_latch: bool = false
+## Slot that a held menu will cast on release. 0 is the center skill.
+var _skill_aim: int = 0
+## Second skill press already confirmed the center; ignore that press's release.
+var _skill_release_ignore: bool = false
 var _u_held: bool = false
 var _ult_index: int = 0
 var _cd: Dictionary = {}
@@ -764,8 +770,8 @@ func _cancel_input() -> void:
 		_j_held = false
 		log_line.emit("取消選貨")
 		used = true
-	if skill_menu_open or _l_held:
-		_close_skill_hold()
+	if skill_menu_open or _l_held or _skill_latch:
+		_close_skill_menu()
 		SfxBus.play("sfx_skill_menu_cancel")
 		log_line.emit("取消技能選單")
 		used = true
@@ -815,14 +821,9 @@ func _physics_process(delta: float) -> void:
 	if _l_held and _sick_left <= 0.0 and _stun_left <= 0.0:
 		_l_time += delta
 		if not skill_menu_open and _l_time >= Skills.HOLD_MENU_SEC:
-			skill_menu_open = true
-			_menu.open = true
-			_menu.set_slots(_loadout(), _cd)
-			_move_locked_until_neutral = true
-			_running = false
-			velocity = Vector2.ZERO
-			SfxBus.play("sfx_skill_menu_open")
-			log_line.emit("技能選單 — 方向鍵選技能2–5，放手取消")
+			_open_skill_menu(false)
+		if skill_menu_open and not _skill_latch:
+			_sync_hold_aim()
 	## Skill / ult / checkout dir modes: hard-stop so held WASD cannot coast.
 	if _in_dir_mode() or _move_locked_until_neutral:
 		_running = false
@@ -2222,13 +2223,14 @@ func _try_dir(dir: int) -> void:
 		return
 	if skill_menu_open:
 		var slot_i: int = int(Skills.DIR_TO_SLOT.get(dir, -1))
-		if slot_i >= 0:
+		if slot_i < 0:
+			return
+		if _skill_latch:
 			SfxBus.play("sfx_skill_menu_move")
-			_cast_slot(slot_i)
-			## Keep move locked while the select key is still held.
-			_move_locked_until_neutral = true
-			velocity = Vector2.ZERO
-			_close_skill_hold()
+			_confirm_skill(slot_i)
+			return
+		## Hold: the direction only previews. Release of the skill key confirms.
+		_set_skill_aim(slot_i)
 		return
 	if command_lock:
 		_try_command(dir)
@@ -2299,21 +2301,98 @@ func _on_skill_hold(pressed: bool) -> void:
 		if _sick_left > 0.0 or _stun_left > 0.0 or _fighting:
 			log_line.emit("現在不能發動技能")
 			return
+		if _skill_latch:
+			_confirm_skill(0)
+			_skill_release_ignore = true
+			return
 		_l_held = true
 		_l_time = 0.0
-		skill_menu_open = false
+		_skill_aim = 0
 		return
-	var was_menu := skill_menu_open
-	_close_skill_hold()
-	if not was_menu and _l_time < Skills.HOLD_MENU_SEC:
-		_cast_slot(0)
-
-
-func _close_skill_hold() -> void:
+	if _skill_release_ignore:
+		_skill_release_ignore = false
+		_l_held = false
+		return
+	## Cancel already dropped the hold, or this release is not ours.
+	if not _l_held:
+		return
+	if skill_menu_open:
+		if not _skill_latch:
+			_sync_hold_aim()
+		_confirm_skill(_skill_aim)
+		return
+	var short := _l_time < Skills.HOLD_MENU_SEC
 	_l_held = false
+	if short:
+		_open_skill_menu(true)
+
+
+func _open_skill_menu(latch: bool) -> void:
+	skill_menu_open = true
+	_skill_latch = latch
+	_skill_aim = 0
+	_move_locked_until_neutral = true
+	_running = false
+	velocity = Vector2.ZERO
+	if _menu:
+		_menu.open = true
+		_menu.call("set_slots", _loadout(), _cd)
+		if _menu.has_method("set_aim"):
+			_menu.call("set_aim", 0)
+	_menu_fp = "%s|%s" % [str(_cd), str(_loadout())]
+	## A stick already pushed for walking must not count as the tap-menu choice.
+	if latch and (stick_axis.length() >= 0.42 or _joy_stick_vector().length() >= 0.42):
+		_cardinal_armed = false
+	SfxBus.play("sfx_skill_menu_open")
+	if latch:
+		log_line.emit("技能選單 — 按方向即發動，再按技能鍵發動中間")
+	else:
+		log_line.emit("技能選單 — 拉方向預覽，放開發動；回中則中間")
+
+
+func _sync_hold_aim() -> void:
+	_set_skill_aim(_skill_aim_slot())
+
+
+func _skill_aim_slot() -> int:
+	var v := Controls.move_vector() + stick_axis
+	if v.length() < 0.42:
+		return 0
+	var dir := Skills.DIR_DOWN if v.y > 0.0 else Skills.DIR_UP
+	if absf(v.x) > absf(v.y):
+		dir = Skills.DIR_RIGHT if v.x > 0.0 else Skills.DIR_LEFT
+	return int(Skills.DIR_TO_SLOT.get(dir, 0))
+
+
+func _set_skill_aim(slot: int) -> void:
+	slot = clampi(slot, 0, 4)
+	if slot == _skill_aim:
+		if _menu and _menu.has_method("set_aim"):
+			_menu.call("set_aim", slot)
+		return
+	_skill_aim = slot
+	if _menu and _menu.has_method("set_aim"):
+		_menu.call("set_aim", slot)
+	SfxBus.play("sfx_skill_menu_move")
+
+
+func _confirm_skill(slot: int) -> void:
+	_close_skill_menu()
+	_cast_slot(slot)
+	_move_locked_until_neutral = true
+	velocity = Vector2.ZERO
+
+
+func _close_skill_menu() -> void:
+	_l_held = false
+	_l_time = 0.0
+	_skill_latch = false
+	_skill_aim = 0
 	skill_menu_open = false
 	if _menu:
 		_menu.open = false
+		if _menu.has_method("set_aim"):
+			_menu.call("set_aim", 0)
 
 
 func _on_ult_hold(pressed: bool) -> void:
