@@ -10,6 +10,7 @@ const PromptScript = preload("res://scripts/command_prompt.gd")
 const MenuScript = preload("res://scripts/skill_menu.gd")
 const UiFont = preload("res://scripts/ui_font.gd")
 const FxBurst = preload("res://scripts/fx_burst.gd")
+const GlowScript = preload("res://scripts/interact_glow.gd")
 
 signal stats_changed
 
@@ -108,6 +109,9 @@ var _piece_flights: int = 0
 var _piece_drop_lock: bool = false
 var _drop_aim_line: Line2D
 var _drop_aim_mark: Polygon2D
+## Reused halo. Parented onto the current interact target, or parked off-tree.
+var _interact_glow: Node2D
+var _glow_host: Node2D
 ## Cached game host (avoids get_first_node_in_group every physics frame).
 var game: Node = null
 ## Dirty HUD: skip inventory.grouped() fingerprint until something relevant changes.
@@ -778,6 +782,7 @@ func _cancel_input() -> void:
 func _physics_process(delta: float) -> void:
 	if _asking_early():
 		velocity = Vector2.ZERO
+		_sync_interact_glow()
 		return
 	if _elite_focus_left > 0.0:
 		_elite_focus_left = maxf(0.0, _elite_focus_left - delta)
@@ -785,6 +790,7 @@ func _physics_process(delta: float) -> void:
 		_tick_buffs(delta)
 		_tick_status(delta)
 		_tick_camera_shake(delta)
+		_sync_interact_glow()
 		return
 	_tick_buffs(delta)
 	_tick_status(delta)
@@ -834,6 +840,7 @@ func _physics_process(delta: float) -> void:
 	_regen(delta)
 	_update_target()
 	_tick_action(delta)
+	_sync_interact_glow()
 	if _circle:
 		## Clean uses dirt StickHint (blue meter + stick), not the yellow hold Circle.
 		if _cleaning():
@@ -1582,6 +1589,104 @@ func _dash_guests() -> Array:
 		return global_position.distance_squared_to(a.global_position) < global_position.distance_squared_to(b.global_position)
 	)
 	return found
+
+
+## Warm halo on the one object the interact button would actually use.
+func _sync_interact_glow() -> void:
+	var host := _glow_host_now()
+	if host != null and host == _glow_host and is_instance_valid(_interact_glow) and _interact_glow.get_parent() == host:
+		return
+	_detach_interact_glow()
+	if host == null:
+		return
+	if _interact_glow == null or not is_instance_valid(_interact_glow):
+		_interact_glow = GlowScript.new()
+		_interact_glow.name = "InteractGlow"
+	_interact_glow.call("set_span", _glow_span(host))
+	host.add_child(_interact_glow)
+	_glow_host = host
+
+
+func _detach_interact_glow() -> void:
+	_glow_host = null
+	if _interact_glow == null or not is_instance_valid(_interact_glow):
+		_interact_glow = null
+		return
+	var parent := _interact_glow.get_parent()
+	if parent != null:
+		parent.remove_child(_interact_glow)
+
+
+func _glow_host_now() -> Node2D:
+	if not _round_active() or _asking_early():
+		return null
+	if skill_menu_open or ult_prep or _stun_left > 0.0 or _slip_left > 0.0 or _elite_focus_left > 0.0:
+		return null
+	if _cancel_drop_ready:
+		return null
+	if not is_instance_valid(target):
+		return null
+	if not _interact_available(target):
+		return null
+	return target
+
+
+## True when pressing interact would start a real action on this node.
+func _interact_available(node: Node2D) -> bool:
+	var kind := String(node.get("kind"))
+	if kind == "thief":
+		return inventory.is_empty() and node.has_method("is_active_thief") and bool(node.call("is_active_thief"))
+	if kind == "shelf":
+		return _shelf_interactable(node)
+	if kind == "restock":
+		return _restock_interactable(node)
+	if kind == "drop":
+		var n := int(node.get("count"))
+		return n > 0 and inventory.count() + n <= carry_cap()
+	if kind == "dirt":
+		return inventory.is_empty()
+	if kind == "cashier":
+		return node.has_method("ready_customer") and node.call("ready_customer") != null
+	if kind == "elite" or kind == "":
+		if not _store_open() or inventory.is_empty():
+			return false
+		if not node.has_method("can_receive_delivery"):
+			return false
+		return bool(node.call("can_receive_delivery"))
+	return false
+
+
+func _shelf_interactable(node: Node2D) -> bool:
+	if int(node.get("count")) > 0 and inventory.count() < carry_cap():
+		return true
+	if inventory.is_empty() or not node.has_method("can_accept"):
+		return false
+	var run: Dictionary = inventory.trailing_run()
+	return bool(node.call("can_accept", String(run["id"])))
+
+
+func _restock_interactable(node: Node2D) -> bool:
+	if not node.has_method("skus"):
+		return false
+	var raw = node.call("skus")
+	if not (raw is Array):
+		return false
+	return not (raw as Array).is_empty()
+
+
+func _glow_span(node: Node2D) -> Vector2:
+	var kind := String(node.get("kind"))
+	if kind == "shelf" or kind == "cashier" or kind == "restock":
+		for child in node.get_children():
+			if child is CollisionShape2D and child.shape is RectangleShape2D:
+				var sz: Vector2 = (child.shape as RectangleShape2D).size
+				return Vector2(maxf(sz.x, 64.0) * 1.85, maxf(sz.y, 48.0) * 2.15)
+		return Vector2(240.0, 150.0)
+	if kind == "dirt":
+		return Vector2(168.0, 140.0)
+	if kind == "drop":
+		return Vector2(120.0, 120.0)
+	return Vector2(150.0, 150.0)
 
 
 func _update_target() -> void:
