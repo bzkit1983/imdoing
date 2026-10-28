@@ -91,6 +91,8 @@ func apply_scenario(id: int) -> void:
 			_scenario_mid()
 		3:
 			_scenario_late()
+		4:
+			_scenario_skill()
 		_:
 			_scenario_new()
 	_grant_initial_goods()
@@ -181,6 +183,46 @@ func _scenario_late() -> void:
 	_place("cashier", 14, 18, 0)
 	clerks.append({"role": "cashier", "register": 0})
 	clerks.append({"role": "restock", "register": 0})
+
+
+## Skill sandbox. LV10 budget is 45 points (9 level-ups × 5).
+## Stats sit at 20 (30 points spent from base 10); 15 stay unspent.
+## Every shop item is owned twice. The floor is 18×10 so a round can start:
+## two cashiers beside the door, two frozen restock racks on the left,
+## two dry restock racks on the right, and a matching pair of 12-slot shelves
+## for each of those categories (the open check needs a shelf with its restock).
+func _scenario_skill() -> void:
+	money = 99999
+	level = 10
+	xp = 0
+	unspent = 15
+	base_str = 10
+	base_agi = 10
+	base_int = 10
+	str_stat = 20
+	agi_stat = 20
+	int_stat = 20
+	shop_scale = 3
+	grid_w = 18
+	grid_h = 10
+	for sku in ["can", "snack", "drink", "milk"]:
+		developed[sku] = true
+		stock[sku] = 50
+	for type in FURNITURE.keys():
+		owned[type] = 2
+	# Door is cells (8,0) and (9,0). Cashiers sit on that row, one cell away.
+	_place("cashier", 6, 0, 0)
+	_place("cashier", 10, 0, 0)
+	_place("restock_frozen", 0, 2, 0)
+	_place("restock_frozen", 0, 5, 0)
+	_place("restock_dry", 16, 2, 0)
+	_place("restock_dry", 16, 5, 0)
+	_place("shelf_frozen_12", 4, 3, 0)
+	_place("shelf_frozen_12", 4, 6, 0)
+	_place("shelf_dry_12", 12, 3, 0)
+	_place("shelf_dry_12", 12, 6, 0)
+	clerks.append({"role": "restock", "register": 0})
+	clerks.append({"role": "cashier", "register": 0})
 
 
 func _place(type: String, x: int, y: int, rot: int) -> void:

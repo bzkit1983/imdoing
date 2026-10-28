@@ -151,6 +151,7 @@ static func _scenario(menu: CanvasLayer) -> void:
 	menu._add(Loc.t("prep.scenario.s1"), "sc", 1)
 	menu._add(Loc.t("prep.scenario.s2"), "sc", 2)
 	menu._add(Loc.t("prep.scenario.s3"), "sc", 3)
+	menu._add(Loc.t("prep.scenario.s4"), "sc", 4)
 
 
 static func _home(menu: CanvasLayer) -> void:

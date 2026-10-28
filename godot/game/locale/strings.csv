@@ -35,10 +35,11 @@ hud.cat_ice,冰櫃,Ice
 hud.closeout_title,關店結算,Day settled
 prep.back,返回,Back
 prep.scenario.title,選擇劇本,Choose scenario
-prep.scenario.info,劇本1 從空店開始，資金 $10000。劇本2、3 帶現成店面和店員。,"Scenario 1 starts empty with $10000. 2 and 3 include a shop and clerks."
+prep.scenario.info,劇本1 從空店開始，資金 $10000。劇本2、3 帶現成店面和店員。劇本4 用來試技能。,"Scenario 1 starts empty with $10000. 2 and 3 include a shop and clerks. 4 is for trying skills."
 prep.scenario.s1,劇本1　從新開始　資金 $10000　LV1　空店,Scenario 1 · Fresh start · $10000 · LV1 · empty
 prep.scenario.s2,劇本2　LV5　資金 $10000　店規模 2　1 名店員,Scenario 2 · LV5 · $10000 · scale 2 · 1 clerk
 prep.scenario.s3,劇本3　LV10　資金 $99999　三圍 30　店規模 3　2 名店員,Scenario 3 · LV10 · $99999 · stats 30 · scale 3 · 2 clerks
+prep.scenario.s4,劇本4　技能測試　LV10　三圍20　$99999　規模3　18×10,Scenario 4 · Skill test · LV10 · stats 20 · $99999 · scale 3 · 18×10
 prep.home.title,營運準備,Prep
 prep.hub.char,角色整備,Character
 prep.hub.char_info,能力、技能與外觀,Stats, skills, and look
