@@ -41,10 +41,19 @@ func _run() -> void:
 	shelf.global_position = Vector2(72, 0)
 	shelf.sku = "can"
 	shelf.count = 4
+	var col := CollisionShape2D.new()
+	var rect := RectangleShape2D.new()
+	rect.size = Vector2(128, 64)
+	col.shape = rect
+	shelf.add_child(col)
 	_set_targets(player, [shelf])
 	_aim(player)
 	_need(errors, _has_glow(shelf), "stocked shelf in front glows")
 	_need(errors, not _has_glow(player), "player does not wear the halo")
+	var span: Vector2 = player._glow_span(shelf)
+	_need(errors, is_equal_approx(span.x, 128.0 * 1.85 * player.GLOW_SPAN_SCALE), "shelf halo width %s" % span)
+	_need(errors, is_equal_approx(span.y, 64.0 * 2.15 * player.GLOW_SPAN_SCALE), "shelf halo height %s" % span)
+	_need(errors, span.x < 128.0 * 1.85 and span.y < 64.0 * 2.15, "halo is tighter than the first fit")
 
 	player.facing = Vector2.UP
 	_aim(player)

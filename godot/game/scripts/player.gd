@@ -1674,19 +1674,25 @@ func _restock_interactable(node: Node2D) -> bool:
 	return not (raw as Array).is_empty()
 
 
+## Same halo shape as the first fit, pulled in a little so it sits closer to the body.
+const GLOW_SPAN_SCALE := 0.85
+
+
 func _glow_span(node: Node2D) -> Vector2:
 	var kind := String(node.get("kind"))
+	var span := Vector2(150.0, 150.0)
 	if kind == "shelf" or kind == "cashier" or kind == "restock":
+		span = Vector2(240.0, 150.0)
 		for child in node.get_children():
 			if child is CollisionShape2D and child.shape is RectangleShape2D:
 				var sz: Vector2 = (child.shape as RectangleShape2D).size
-				return Vector2(maxf(sz.x, 64.0) * 1.85, maxf(sz.y, 48.0) * 2.15)
-		return Vector2(240.0, 150.0)
-	if kind == "dirt":
-		return Vector2(168.0, 140.0)
-	if kind == "drop":
-		return Vector2(120.0, 120.0)
-	return Vector2(150.0, 150.0)
+				span = Vector2(maxf(sz.x, 64.0) * 1.85, maxf(sz.y, 48.0) * 2.15)
+				break
+	elif kind == "dirt":
+		span = Vector2(168.0, 140.0)
+	elif kind == "drop":
+		span = Vector2(120.0, 120.0)
+	return span * GLOW_SPAN_SCALE
 
 
 func _update_target() -> void:
