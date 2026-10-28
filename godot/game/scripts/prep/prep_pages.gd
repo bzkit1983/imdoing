@@ -171,7 +171,7 @@ static func _hub_char(menu: CanvasLayer) -> void:
 	menu._title.text = Loc.t("prep.hub.char")
 	menu._info.text = menu._pair(menu._header(), Loc.t("prep.hub.char_info"))
 	menu._add_hub(Loc.t("prep.home.stats"), "go", "stats", "stats")
-	menu._add_hub(Loc.t("prep.home.skills_short", [menu.state.cost_sum()]), "go", "skills", "skills")
+	menu._add_hub(Loc.t("prep.home.skills_short"), "go", "skills", "skills")
 	menu._add_hub(Loc.t("prep.home.look"), "locked_look", null, "look", true, Loc.t("prep.locked"))
 	menu._rebuild_hub_tiles()
 
