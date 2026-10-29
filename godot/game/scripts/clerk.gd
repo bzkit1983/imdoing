@@ -214,6 +214,8 @@ func _skus_on_shelves() -> Dictionary:
 
 
 func _reserved_by_others() -> Dictionary:
+	if _game != null and _game.has_method("restock_holds"):
+		return _game.call("restock_holds", self)
 	var sku := {}
 	var shelf := {}
 	var parent := get_parent()

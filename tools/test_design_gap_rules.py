@@ -55,7 +55,12 @@ def main() -> None:
     assert "不重抽" in cust_doc
     assert "清單清空" in action_doc and "收銀" in action_doc
     assert "thief_sniper" in SKILLS and "guest_sniper" in SKILLS and "shelf_sniper" in SKILLS
+    assert "dark_side" in SKILLS and "Dark Side" in SKILLS
     assert "狙擊手（小偷）" in active_doc and "小偷 → 客人 → 貨架" in active_doc
+    assert "Dark Side" in active_doc
+    dark = (ROOT / "docs/systemdesign/darkside.md").read_text(encoding="utf-8")
+    assert "活線已實作" in dark
+    assert "尚未實作" not in dark
     assert "狙擊手（小偷）" in thief_doc
     assert "狙擊手（貨架）" in restock_doc
     assert "狙擊手（客人）" in delivery_doc

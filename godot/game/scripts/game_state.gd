@@ -705,13 +705,60 @@ func cost_sum_of(set_i: int) -> int:
 
 
 func loadout() -> Array[Dictionary]:
+	var levels := _levels_of(skill_set_index)
 	var out: Array[Dictionary] = []
 	for id in slots:
 		if id == "":
 			out.append({})
 		else:
-			out.append(Skills.by_id(id))
+			out.append(_with_chosen_level(Skills.by_id(id), levels))
 	return out
+
+
+## Dark Side is the only skill whose level is chosen on the prep page.
+## Missing choice means LV3. Other skills keep the catalog level.
+func skill_level_of(set_i: int, skill_id: String) -> int:
+	var sk := Skills.by_id(skill_id)
+	var fallback := 3 if bool(sk.get("dark_side", false)) else int(sk.get("lv", 1))
+	var levels := _levels_of(set_i)
+	if not levels.has(skill_id):
+		return fallback
+	return clampi(int(levels[skill_id]), 1, 3)
+
+
+func set_skill_level(set_i: int, skill_id: String, lv: int) -> void:
+	var sk := Skills.by_id(skill_id)
+	if sk.is_empty() or not bool(sk.get("dark_side", false)):
+		return
+	if set_i < 0 or set_i >= skill_sets.size():
+		return
+	var pack: Dictionary = skill_sets[set_i]
+	var levels: Dictionary = pack.get("levels", {})
+	if not (levels is Dictionary):
+		levels = {}
+	levels[skill_id] = clampi(lv, 1, 3)
+	pack["levels"] = levels
+	_persist_skill_edit()
+
+
+func _levels_of(set_i: int) -> Dictionary:
+	if set_i < 0 or set_i >= skill_sets.size():
+		return {}
+	var raw = skill_sets[set_i].get("levels", {})
+	if raw is Dictionary:
+		return raw
+	return {}
+
+
+func _with_chosen_level(sk: Dictionary, levels: Dictionary) -> Dictionary:
+	if sk.is_empty() or not bool(sk.get("dark_side", false)):
+		return sk
+	var id := String(sk.get("id"))
+	var lv := 3
+	if levels.has(id):
+		lv = clampi(int(levels[id]), 1, 3)
+	sk["lv"] = lv
+	return sk
 
 
 func ult_skill() -> Dictionary:
@@ -987,11 +1034,11 @@ func _blank_slot_ids() -> Array[String]:
 	return ["", "", "", "", ""]
 
 
-func _make_set(set_name: String, slot_ids: Array[String], ult: String) -> Dictionary:
+func _make_set(set_name: String, slot_ids: Array[String], ult: String, levels: Dictionary = {}) -> Dictionary:
 	var copied := _blank_slot_ids()
 	for i in mini(5, slot_ids.size()):
 		copied[i] = String(slot_ids[i])
-	return {"name": set_name, "slots": copied, "ult_id": ult}
+	return {"name": set_name, "slots": copied, "ult_id": ult, "levels": levels.duplicate()}
 
 
 func _mirror_selected() -> void:
@@ -1074,7 +1121,7 @@ func _load_skill_sets(raw) -> bool:
 			if src.has("ult_id"):
 				ult = _sanitize_ult_id(String(src.get("ult_id")))
 			var set_name := String(src.get("name", ""))
-			skill_sets.append(_make_set(set_name, slot_ids, ult))
+			skill_sets.append(_make_set(set_name, slot_ids, ult, _levels_from_save(src.get("levels", {}))))
 		else:
 			skill_sets.append(_make_set(default_skill_set_name(i), _blank_slot_ids(), ""))
 	return true
@@ -1102,11 +1149,30 @@ func _skill_sets_for_save() -> Array:
 			slot_list.append(String(src[i]))
 		while slot_list.size() < 5:
 			slot_list.append("")
+		var saved_levels := {}
+		var raw_levels = pack.get("levels", {})
+		if raw_levels is Dictionary:
+			for key in raw_levels.keys():
+				saved_levels[String(key)] = int(raw_levels[key])
 		out.append({
 			"name": String(pack.get("name", "")),
 			"slots": slot_list,
 			"ult_id": String(pack.get("ult_id", "")),
+			"levels": saved_levels,
 		})
+	return out
+
+
+func _levels_from_save(raw) -> Dictionary:
+	var out := {}
+	if not (raw is Dictionary):
+		return out
+	for key in raw.keys():
+		var id := String(key)
+		var sk := Skills.by_id(id)
+		if sk.is_empty() or not bool(sk.get("dark_side", false)):
+			continue
+		out[id] = clampi(int(raw[key]), 1, 3)
 	return out
 
 

@@ -7,6 +7,7 @@ const PlayerScript = preload("res://scripts/player.gd")
 const RestockScript = preload("res://scripts/restock_point.gd")
 const ShelfScript = preload("res://scripts/shelf.gd")
 const Fundraise = preload("res://scripts/fundraise.gd")
+const DarkSide = preload("res://scripts/dark_side.gd")
 const DirtScript = preload("res://scripts/dirt.gd")
 const DroppedBoxScript = preload("res://scripts/dropped_box.gd")
 const DropFlightScript = preload("res://scripts/drop_flight.gd")
@@ -313,11 +314,122 @@ func soothe_all(keep: float) -> void:
 	if _customers == null:
 		return
 	for c in _customers.get_children():
-		if bool(c.get("is_thief")):
+		if c.has_method("apply_soothe"):
+			c.call("apply_soothe", keep)
+
+
+func cast_dark_side(level: int) -> void:
+	if _customers == null:
+		return
+	var need := DarkSide.draft_count(level)
+	var locked = _checkout_locked_guest()
+	var pool: Array = []
+	for c in _customers.get_children():
+		if DarkSide.eligible(c, locked):
+			pool.append(c)
+	pool.shuffle()
+	var drafted: Array = []
+	for i in mini(need, pool.size()):
+		drafted.append(pool[i])
+	var rolls: Array = []
+	for c in drafted:
+		if DarkSide.roll_cashier():
+			rolls.append(c)
+	var empties: Array = DarkSide.open_registers(
+		cashiers,
+		_hired_cashier_registers(),
+		_temp_cashier_registers(),
+		_dark_side_player_pos(),
+		_player_lock_register(),
+	)
+	var jobs: Dictionary = DarkSide.plan(drafted, rolls, empties)
+	for c in drafted:
+		var row: Dictionary = jobs[c]
+		var reg = row.get("register", null)
+		c.call("begin_temp_clerk", String(row.get("role", "restock")), reg)
+	if _player and _player.has_signal("log_line"):
+		_player.log_line.emit("Dark Side — 臨時員工 %d 名" % drafted.size())
+
+
+func restock_holds(except: Node) -> Dictionary:
+	var sku := {}
+	var shelf := {}
+	if _world != null:
+		for c in _world.get_children():
+			if c == null or c == except or not is_instance_valid(c):
+				continue
+			if String(c.get("role")) != "restock":
+				continue
+			_note_restock_hold(sku, shelf, c.get("_plan_sku"), c.get("_box_sku"), c.get("_shelf"))
+	if _customers != null:
+		for c in _customers.get_children():
+			if c == null or c == except or not is_instance_valid(c):
+				continue
+			if not bool(c.get("temp_clerk")) or String(c.get("temp_role")) != "restock":
+				continue
+			_note_restock_hold(sku, shelf, c.get("_temp_plan_sku"), c.get("_temp_box_sku"), c.get("_temp_shelf"))
+	return {"sku": sku, "shelf": shelf}
+
+
+func _note_restock_hold(sku: Dictionary, shelf: Dictionary, planned, carried, target) -> void:
+	if typeof(planned) == TYPE_STRING and String(planned) != "":
+		sku[String(planned)] = true
+	if typeof(carried) == TYPE_STRING and String(carried) != "":
+		sku[String(carried)] = true
+	if target != null:
+		shelf[target] = true
+
+
+func _hired_cashier_registers() -> Array:
+	var out: Array = []
+	if _world == null:
+		return out
+	for c in _world.get_children():
+		if c == null or not is_instance_valid(c):
 			continue
-		if int(c.get("state")) == 7:
+		if String(c.get("role")) != "cashier":
 			continue
-		c.dissatisfaction = float(c.dissatisfaction) * keep
+		var reg = c.get("register")
+		if reg != null:
+			out.append(reg)
+	return out
+
+
+func _temp_cashier_registers() -> Array:
+	var out: Array = []
+	if _customers == null:
+		return out
+	for c in _customers.get_children():
+		if c == null or not is_instance_valid(c):
+			continue
+		if not bool(c.get("temp_clerk")) or String(c.get("temp_role")) != "cashier":
+			continue
+		var reg = c.get("temp_register")
+		if reg != null:
+			out.append(reg)
+	return out
+
+
+func _dark_side_player_pos() -> Vector2:
+	if _player == null:
+		return Vector2(1.0e8, 1.0e8)
+	return _player.global_position
+
+
+func _player_lock_register():
+	if _player == null or not bool(_player.get("command_lock")):
+		return null
+	var target = _player.get("target")
+	if target != null and String(target.get("kind")) == "cashier":
+		return target
+	return null
+
+
+func _checkout_locked_guest():
+	var reg = _player_lock_register()
+	if reg == null or not reg.has_method("ready_customer"):
+		return null
+	return reg.call("ready_customer")
 
 
 func pick_register(cust: Node) -> Node2D:
@@ -494,18 +606,29 @@ func _collect_player_carry_pieces() -> Dictionary:
 
 func _collect_clerk_held_pieces() -> Dictionary:
 	var out: Dictionary = {}
-	if _world == null:
+	if _world != null:
+		for c in _world.get_children():
+			if c == null or not is_instance_valid(c):
+				continue
+			if String(c.get("role")) != "restock":
+				continue
+			var sku := String(c.get("_box_sku"))
+			var n := int(c.get("_box_n"))
+			if sku == "" or n <= 0:
+				continue
+			out[sku] = int(out.get(sku, 0)) + n
+	if _customers == null:
 		return out
-	for c in _world.get_children():
+	for c in _customers.get_children():
 		if c == null or not is_instance_valid(c):
 			continue
-		if String(c.get("role")) != "restock":
+		if not bool(c.get("temp_clerk")) or String(c.get("temp_role")) != "restock":
 			continue
-		var sku := String(c.get("_box_sku"))
-		var n := int(c.get("_box_n"))
-		if sku == "" or n <= 0:
+		var held := String(c.get("_temp_box_sku"))
+		var pieces := int(c.get("_temp_box_n"))
+		if held == "" or pieces <= 0:
 			continue
-		out[sku] = int(out.get(sku, 0)) + n
+		out[held] = int(out.get(held, 0)) + pieces
 	return out
 
 

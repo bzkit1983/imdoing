@@ -1603,7 +1603,10 @@ func _hand_deliver(guests: Array, penalize_miss: bool) -> int:
 	if penalize_miss and nearest != null and nearest.has_method("apply_toss_reject"):
 		nearest.call("apply_toss_reject", "")
 		SfxBus.play("sfx_box_hit_guest_reject")
-		log_line.emit("沒有對的貨 — 不滿 +15")
+		if bool(nearest.get("temp_clerk")):
+			log_line.emit("沒有對的貨 — 臨時員工不滿不變")
+		else:
+			log_line.emit("沒有對的貨 — 不滿 +15")
 	return 0
 
 
@@ -2517,12 +2520,17 @@ func _cast_slot(i: int) -> void:
 		log_line.emit("%s 冷卻中 %.0fs" % [String(sk.get("name")), cd_left(sid)])
 		return
 	_cd[sid] = Tuning.cd_seconds(float(sk.get("cd", Skills.ACTIVE_CD)), _int_now())
-	_buffs[sid] = float(sk.get("duration", Skills.ACTIVE_DURATION))
 	## 衝刺交付: the armed window is the cooldown itself, and INT does not shorten this 5s.
+	## Dark Side: CD still eats INT, but each drafted guest keeps their own 30s.
+	## Recast must not refresh people already working.
 	if bool(sk.get("dash_deliver", false)):
 		var window := float(sk.get("cd", 5.0))
 		_cd[sid] = window
 		_buffs[sid] = window
+	elif bool(sk.get("dark_side", false)):
+		_buffs.erase(sid)
+	else:
+		_buffs[sid] = float(sk.get("duration", Skills.ACTIVE_DURATION))
 	_buff_cache_valid = false
 	if sk.has("customer_move_pct"):
 		_enqueue_cust_speed(sid)
@@ -2532,6 +2540,10 @@ func _cast_slot(i: int) -> void:
 			game.soothe_all(float(sk.get("soothe_keep")))
 		SfxBus.play("sfx_skill_soothe")
 	else:
+		if bool(sk.get("dark_side", false)):
+			var host := _game()
+			if host and host.has_method("cast_dark_side"):
+				host.call("cast_dark_side", int(sk.get("lv", 3)))
 		SfxBus.play("sfx_skill_cast")
 	log_line.emit("施放 %s LV%d" % [String(sk.get("name")), int(sk.get("lv", 3))])
 	_begin_cast_pose(false)

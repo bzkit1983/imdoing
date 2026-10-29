@@ -116,6 +116,7 @@ const ACTIVES: Array[Dictionary] = [
 	{"id": "shelf_sniper", "name": "狙擊手（貨架）", "kind": "active", "lv": 1, "cost": 2, "shelf_sniper": true, "duration": 30.0, "cd": ACTIVE_CD, "blurb": "30 秒內投出的貨自動飛向最近同 SKU 貨架補貨；已滿則改飛下一格，全滿則飛最近架旁掉落"},
 	{"id": "guest_sniper", "name": "狙擊手（客人）", "kind": "active", "lv": 1, "cost": 2, "guest_sniper": true, "duration": 30.0, "cd": ACTIVE_CD, "blurb": "30 秒內投出的貨自動飛向最近清單需要該貨的客人；該客不要了就改飛下一位，全店沒目標則普通丟掉"},
 	{"id": "thief_sniper", "name": "狙擊手（小偷）", "kind": "active", "lv": 1, "cost": 2, "thief_sniper": true, "duration": 30.0, "cd": ACTIVE_CD, "blurb": "30 秒內投出的貨自動飛向最近小偷擊中並趕走；投一件／一箱都算一擊，擊中後貨品掉落；全店沒小偷則普通丟掉"},
+	{"id": "dark_side", "name": "Dark Side", "kind": "active", "lv": 3, "cost": 2, "dark_side": true, "duration": 30.0, "cd": 30.0, "blurb": "You don’t know the power of the dark side。抽客人當臨時員工 30 秒（準備頁選 LV1／2／3，沒選預設 LV3）"},
 ]
 
 const PASSIVES: Array[Dictionary] = [

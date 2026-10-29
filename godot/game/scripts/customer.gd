@@ -6,7 +6,7 @@ const Vox = preload("res://scripts/voxel_sprite.gd")
 const SkuIcons = preload("res://scripts/sku_icons.gd")
 const SkuPopup = preload("res://scripts/sku_popup.gd")
 
-enum State { ENTER, SEEK, LINGER, THINK, TO_CASHIER, QUEUE, PAYING, LEAVE, FIGHT, FLEE, RAID }
+enum State { ENTER, SEEK, LINGER, THINK, TO_CASHIER, QUEUE, PAYING, LEAVE, FIGHT, FLEE, RAID, TEMP }
 
 var state: int = State.ENTER
 var shopping: Array[String] = []
@@ -37,6 +37,21 @@ var _timer: float = 0.0
 var _target_shelf: Node2D
 var _game: Node
 var register: Node2D
+## Dark Side temp clerk. Timer is real seconds and is not refreshed by a recast.
+const TEMP_CLERK_SEC := 30.0
+var temp_clerk: bool = false
+var temp_role: String = ""
+var temp_left: float = 0.0
+var temp_register: Node2D
+var _temp_list: Array[String] = []
+var _temp_locked_dissat: float = 0.0
+var _temp_work: float = 0.0
+var _temp_shelf: Node2D
+var _temp_plan_sku: String = ""
+var _temp_box_sku: String = ""
+var _temp_box_n: int = 0
+var _temp_job_cd: float = 0.0
+var _dissat_track: ColorRect
 var _path: PackedVector2Array = PackedVector2Array()
 var _path_i: int = 0
 var _goal: Vector2 = Vector2.ZERO
@@ -255,6 +270,9 @@ func occupies_store() -> bool:
 func can_receive_delivery() -> bool:
 	if is_thief or shopping.is_empty():
 		return false
+	## Temp clerks are still hittable by hand delivery and guest sniper.
+	if temp_clerk:
+		return true
 	match state:
 		State.QUEUE, State.PAYING, State.LEAVE, State.FLEE, State.FIGHT, State.TO_CASHIER:
 			return false
@@ -291,6 +309,10 @@ func is_at_register() -> bool:
 
 func _physics_process(delta: float) -> void:
 	if _game == null:
+		return
+	if temp_clerk:
+		_tick_temp(delta)
+		_sync_labels()
 		return
 	if _game.has_method("asking_early_close") and bool(_game.asking_early_close()):
 		velocity = Vector2.ZERO
@@ -460,7 +482,7 @@ func _begin_checkout(pay_mood: String = "去付款") -> void:
 
 
 func _lord_pull() -> bool:
-	if is_thief or _game == null:
+	if is_thief or temp_clerk or _game == null:
 		return false
 	if state == State.LEAVE or state == State.FLEE or state == State.FIGHT:
 		return false
@@ -565,7 +587,10 @@ func _follow_to(pos: Vector2, delta: float) -> bool:
 		velocity = Vector2.ZERO
 		return global_position.distance_squared_to(pos) <= arrive_sq
 	var spd := Tuning.WALK_SPEED * Tuning.agi_mult(Tuning.CUSTOMER_AGI) * _pace_speed
-	spd *= float(_game.customer_move_mult()) if _game.has_method("customer_move_mult") else float(_game.call("customer_move_mult"))
+	## Metal rush and other guest-speed skills do not move a temp clerk.
+	## The World! also does not slow them: this path uses the real frame delta.
+	if not temp_clerk:
+		spd *= float(_game.customer_move_mult()) if _game.has_method("customer_move_mult") else float(_game.call("customer_move_mult"))
 	if on_dirt() and state != State.LEAVE and not is_thief:
 		spd *= Tuning.DIRT_MULT
 	if spd <= 0.01:
@@ -724,6 +749,15 @@ func dash_knock_away(dir: Vector2) -> void:
 func dash_knock_guest(add_dissat: float) -> void:
 	if is_thief or state == State.FLEE or state == State.FIGHT:
 		return
+	## Hit still stuns and drops what they are holding. Dissat and the job stay.
+	if temp_clerk:
+		_drop_temp_box()
+		_drop_cart_inplace()
+		_clear_route()
+		_play_dash_ko_hop()
+		_dash_stun_left = Tuning.DASH_GUEST_STUN_SEC
+		_sync_labels()
+		return
 	if _reg():
 		_reg().dequeue(self)
 	if _game and _game.has_method("release_player_checkout"):
@@ -777,8 +811,13 @@ func accept_toss_box(sku: String, n: int) -> int:
 		if idx >= 0:
 			shopping.remove_at(idx)
 	_bump_list()
-	dissatisfaction = maxf(0.0, dissatisfaction - float(take) * Tuning.DELIVER_PIECE_DISSAT)
+	if not temp_clerk:
+		dissatisfaction = maxf(0.0, dissatisfaction - float(take) * Tuning.DELIVER_PIECE_DISSAT)
 	_target_shelf = null
+	if temp_clerk:
+		_sku_popup(sku, SkuIcons.KIND_OK)
+		_sync_labels()
+		return take
 	if shopping.is_empty():
 		## List completed by toss — go pay; do not linger in THINK「找不到」.
 		_begin_checkout("謝謝！去付款")
@@ -795,6 +834,11 @@ func accept_toss_box(sku: String, n: int) -> int:
 
 func apply_toss_reject(sku: String = "") -> void:
 	if is_thief:
+		return
+	if temp_clerk:
+		if sku != "":
+			_sku_popup(sku, SkuIcons.KIND_BAD)
+		_sync_labels()
 		return
 	dissatisfaction = minf(Tuning.DISSAT_MAX, dissatisfaction + Tuning.TOSS_GUEST_WRONG_DISSAT)
 	mood = "不想要這貨品！"
@@ -838,6 +882,276 @@ func _drop_cart_inplace() -> void:
 	elif _game.has_method("spawn_dropped_box"):
 		for pile in piles:
 			_game.call("spawn_dropped_box", global_position, String(pile["sku"]), int(pile["n"]))
+
+
+## Pull this guest into a 30s temp job. A second call does not refresh the timer.
+func begin_temp_clerk(job: String, reg: Node2D = null) -> void:
+	if temp_clerk or is_thief or is_elite:
+		return
+	var snap: Array[String] = []
+	for s in cart:
+		snap.append(String(s))
+	for s in shopping:
+		snap.append(String(s))
+	_temp_list = snap
+	_temp_locked_dissat = dissatisfaction
+	var qreg := _reg()
+	if qreg != null and qreg.has_method("dequeue"):
+		qreg.dequeue(self)
+	_queue_idx = -1
+	register = null
+	_drop_cart_inplace()
+	temp_clerk = true
+	temp_role = "cashier" if job == "cashier" and reg != null else "restock"
+	temp_register = reg if temp_role == "cashier" else null
+	temp_left = TEMP_CLERK_SEC
+	_temp_work = 0.0
+	_temp_job_cd = 0.0
+	_temp_clear_plan()
+	_temp_box_n = 0
+	_temp_box_sku = ""
+	state = State.TEMP
+	mood = "臨時收銀" if temp_role == "cashier" else "臨時補貨"
+	_target_shelf = null
+	_clear_route()
+	_list_icons_fp = "\u0001"
+	_sync_labels()
+
+
+func end_temp_clerk() -> void:
+	if not temp_clerk:
+		return
+	_drop_temp_box()
+	_drop_cart_inplace()
+	shopping.clear()
+	for s in _temp_list:
+		shopping.append(s)
+	cart.clear()
+	dissatisfaction = _temp_locked_dissat
+	temp_clerk = false
+	temp_role = ""
+	temp_register = null
+	temp_left = 0.0
+	_temp_work = 0.0
+	state = State.SEEK
+	mood = "購物"
+	_target_shelf = null
+	_clear_route()
+	_bump_list()
+	_list_icons_fp = "\u0001"
+	_sync_labels()
+
+
+func apply_soothe(keep: float) -> void:
+	if is_thief or temp_clerk or state == State.LEAVE:
+		return
+	dissatisfaction = dissatisfaction * keep
+
+
+func _tick_temp(delta: float) -> void:
+	if _game.has_method("asking_early_close") and bool(_game.call("asking_early_close")):
+		velocity = Vector2.ZERO
+		temp_left -= delta
+		if temp_left <= 0.0:
+			end_temp_clerk()
+		return
+	if String(_game.get("phase")) == "closed":
+		end_temp_clerk()
+		if state != State.LEAVE and state != State.FLEE:
+			_leave(false)
+		return
+	temp_left -= delta
+	if temp_left <= 0.0:
+		end_temp_clerk()
+		return
+	if _dash_stun_left > 0.0:
+		_dash_stun_left = maxf(0.0, _dash_stun_left - delta)
+		velocity = Vector2.ZERO
+		return
+	if temp_role == "cashier":
+		_tick_temp_cashier(delta)
+	else:
+		_tick_temp_restock(delta)
+
+
+func _tick_temp_cashier(delta: float) -> void:
+	var reg := temp_register
+	if reg == null or not is_instance_valid(reg):
+		velocity = Vector2.ZERO
+		return
+	if not _follow_to(reg.call("back_position"), delta):
+		return
+	var player = _game.get("_player")
+	if player and bool(player.get("command_lock")) and player.get("target") == reg:
+		return
+	var cust = reg.call("ready_customer") if reg.has_method("ready_customer") else null
+	if cust == null:
+		_temp_work = 0.0
+		return
+	_temp_work += delta
+	if _temp_work < Tuning.checkout_seconds(10):
+		return
+	_temp_work = 0.0
+	var amount: int = int(cust.call("payout_total")) if cust.has_method("payout_total") else int(cust.call("cart_total"))
+	var from_elite := bool(cust.get("is_elite"))
+	SfxBus.play("sfx_checkout_clerk")
+	if _game.has_method("_on_paid"):
+		_game.call("_on_paid", amount, from_elite)
+	if cust.has_method("finish_paid"):
+		cust.finish_paid()
+	if reg.has_method("dequeue"):
+		reg.dequeue(cust)
+
+
+func _tick_temp_restock(delta: float) -> void:
+	if _temp_box_n > 0:
+		if _temp_shelf == null or not is_instance_valid(_temp_shelf):
+			_drop_temp_box()
+			return
+		if not _game.has_method("shelf_stand"):
+			_drop_temp_box()
+			return
+		var stand: Vector2 = _game.call("shelf_stand", _temp_shelf)
+		if not _follow_to(stand, delta):
+			return
+		_temp_work += delta
+		if _temp_work < Tuning.restock_seconds(10):
+			return
+		var placed := int(_temp_shelf.call("add_items", _temp_box_sku, _temp_box_n))
+		if placed > 0:
+			SfxBus.play("sfx_clerk_stock")
+		_temp_box_n -= placed
+		_temp_work = 0.0
+		if _temp_box_n <= 0:
+			_temp_box_sku = ""
+			_temp_plan_sku = ""
+			_temp_shelf = null
+		elif placed == 0:
+			_drop_temp_box()
+		return
+	if _temp_plan_sku == "" or _temp_shelf == null or not is_instance_valid(_temp_shelf):
+		_temp_job_cd -= delta
+		if _temp_job_cd > 0.0:
+			velocity = Vector2.ZERO
+			return
+		_temp_job_cd = Tuning.CLERK_JOB_SEARCH_SEC
+		var job := _temp_find_job()
+		if job.is_empty():
+			velocity = Vector2.ZERO
+			return
+		_temp_shelf = job["shelf"]
+		_temp_plan_sku = String(job["sku"])
+	var cat := String(_temp_shelf.get("category"))
+	var point: Node2D = _game.call("restock_for", cat) if _game.has_method("restock_for") else null
+	if point == null:
+		_temp_clear_plan()
+		velocity = Vector2.ZERO
+		return
+	if not _follow_to(point.global_position + Vector2(70, 0), delta):
+		return
+	var st = _game.get("state")
+	if st == null or not st.has_method("consume_box") or not bool(st.call("consume_box", _temp_plan_sku)):
+		_temp_clear_plan()
+		return
+	if _game.has_method("sync_stock"):
+		_game.call("sync_stock")
+	_temp_box_sku = _temp_plan_sku
+	_temp_box_n = Tuning.BOX_SIZE
+	_temp_work = 0.0
+	SfxBus.play("sfx_clerk_pull")
+	_clear_route()
+
+
+func _temp_find_job() -> Dictionary:
+	var st = _game.get("state")
+	if st == null:
+		return {}
+	var shelves = _game.get("shelves")
+	if not (shelves is Array):
+		return {}
+	var present := {}
+	for s in shelves:
+		if s == null:
+			continue
+		var on := String(s.get("sku"))
+		if on != "":
+			present[on] = true
+	var held: Dictionary = _game.call("restock_holds", self) if _game.has_method("restock_holds") else {"sku": {}, "shelf": {}}
+	var reserved_sku: Dictionary = held.get("sku", {})
+	var reserved_shelf: Dictionary = held.get("shelf", {})
+	var best_shelf: Node2D = null
+	var best_sku := ""
+	var best_d := 99999.0
+	var best_empty := false
+	for s in shelves:
+		if s == null or reserved_shelf.has(s):
+			continue
+		var cap := int(s.get("capacity"))
+		if cap <= 0:
+			cap = Tuning.SHELF_CAP
+		if int(s.get("count")) + Tuning.BOX_SIZE > cap:
+			continue
+		var sku := String(s.get("sku"))
+		var pick := ""
+		var is_empty := sku == ""
+		if is_empty:
+			pick = _temp_missing_sku(String(s.get("category")), present, reserved_sku, st)
+		elif int(st.get("stock").get(sku, 0)) > 0 and not reserved_sku.has(sku):
+			pick = sku
+		if pick == "":
+			continue
+		var d := global_position.distance_squared_to(s.global_position)
+		var better := best_shelf == null
+		if not better and is_empty != best_empty:
+			better = is_empty
+		elif not better and d < best_d:
+			better = true
+		if better:
+			best_shelf = s
+			best_sku = pick
+			best_d = d
+			best_empty = is_empty
+	if best_shelf == null:
+		return {}
+	return {"shelf": best_shelf, "sku": best_sku}
+
+
+func _temp_missing_sku(category: String, present: Dictionary, reserved: Dictionary, st) -> String:
+	var developed = st.get("developed")
+	var stock = st.get("stock")
+	if not (developed is Dictionary) or not (stock is Dictionary):
+		return ""
+	for sku in Tuning.skus_for(category):
+		if not developed.has(sku):
+			continue
+		if present.has(sku) or reserved.has(sku):
+			continue
+		if int(stock.get(sku, 0)) <= 0:
+			continue
+		return sku
+	return ""
+
+
+func _temp_clear_plan() -> void:
+	_temp_plan_sku = ""
+	_temp_shelf = null
+
+
+func _drop_temp_box() -> void:
+	var n := _temp_box_n
+	var sku := _temp_box_sku
+	_temp_box_n = 0
+	_temp_box_sku = ""
+	_temp_plan_sku = ""
+	_temp_shelf = null
+	_temp_work = 0.0
+	if n <= 0 or sku == "" or _game == null:
+		return
+	var piles: Array = [{"sku": sku, "n": n}]
+	if _game.has_method("spawn_loot_inplace"):
+		_game.call("spawn_loot_inplace", global_position, piles)
+	elif _game.has_method("spawn_dropped_box"):
+		_game.call("spawn_dropped_box", global_position, sku, n)
 
 
 func _begin_flee(dir: Vector2, flee_mood: String) -> void:
@@ -901,6 +1215,9 @@ func _elite_incite(td: float) -> void:
 		var st := int(c.get("state"))
 		## Affect queue; ignore leaving / fleeing.
 		if st == State.LEAVE or st == State.FLEE:
+			continue
+		## Aura still reaches a temp clerk; the locked number does not move.
+		if bool(c.get("temp_clerk")):
 			continue
 		c.dissatisfaction = minf(Tuning.DISSAT_MAX, float(c.dissatisfaction) + rate * td)
 
@@ -1126,13 +1443,13 @@ func _build_visual() -> void:
 	_list_icons.position = Vector2(0, -84)
 	_list_icons.z_index = 3
 	add_child(_list_icons)
-	var track := ColorRect.new()
-	track.size = Vector2(28, 4)
-	track.position = Vector2(-14, 14)
-	track.color = Color("1b2420")
-	add_child(track)
+	_dissat_track = ColorRect.new()
+	_dissat_track.size = Vector2(28, 4)
+	_dissat_track.position = Vector2(-14, 14)
+	_dissat_track.color = Color("1b2420")
+	add_child(_dissat_track)
 	if is_thief:
-		track.visible = false
+		_dissat_track.visible = false
 	_bar = ColorRect.new()
 	_bar.size = Vector2(28, 4)
 	_bar.position = Vector2(-14, 14)
@@ -1230,6 +1547,9 @@ func _sku_popup(sku: String, kind: String) -> void:
 func _sync_list_icons() -> void:
 	if _list_icons == null:
 		return
+	if temp_clerk:
+		_list_icons.visible = false
+		return
 	## Guests and thieves: pending shopping as pictograms. Empty list hides the row.
 	_list_icons.visible = true
 	var bits: PackedStringArray = []
@@ -1267,7 +1587,15 @@ func _sync_labels() -> void:
 	if _mood_label and mood != _shown_mood:
 		_shown_mood = mood
 		_mood_label.text = mood
-	if _bar and not is_thief:
+	if temp_clerk:
+		if _dissat_track:
+			_dissat_track.visible = false
+		if _bar:
+			_bar.visible = false
+	elif _bar and not is_thief:
+		if _dissat_track:
+			_dissat_track.visible = true
+		_bar.visible = true
 		var t := clampf(dissatisfaction / Tuning.DISSAT_MAX, 0.0, 1.0)
 		var bar_w := snappedf(28.0 * (1.0 - t), 0.5)
 		var t_q := snappedf(t, 0.02)
