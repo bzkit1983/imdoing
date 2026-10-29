@@ -1510,16 +1510,24 @@ func spawn_dropped_box(
 	if not on_landed.is_valid() and toss_dir.length_squared() < 0.0001:
 		_place_dropped_box(dest, sku, n)
 		return
+	var sniper_guest: Node2D = null
 	var sniper_shelf: Node2D = null
-	if toss_dir.length_squared() > 0.0001 and _player != null and _player.has_method("sniper_shelf_active") and bool(_player.call("sniper_shelf_active")):
-		sniper_shelf = _sniper_shelf_for(sku, pos)
-		if sniper_shelf != null:
-			dest = _sniper_drop_pos(sniper_shelf)
+	if toss_dir.length_squared() > 0.0001 and _player != null:
+		if _player.has_method("sniper_guest_active") and bool(_player.call("sniper_guest_active")):
+			sniper_guest = _sniper_guest_for(sku, pos)
+			if sniper_guest != null:
+				dest = _sniper_guest_drop_pos(sniper_guest)
+		if sniper_guest == null and _player.has_method("sniper_shelf_active") and bool(_player.call("sniper_shelf_active")):
+			sniper_shelf = _sniper_shelf_for(sku, pos)
+			if sniper_shelf != null:
+				dest = _sniper_drop_pos(sniper_shelf)
 	var flight: Node2D = DropFlightScript.new()
 	flight.setup(sku, pos, dest, Tuning.DROP_FLIGHT_SEC, n)
 	_world.add_child(flight)
 	flight.finished.connect(func() -> void:
-		if sniper_shelf != null and is_instance_valid(sniper_shelf):
+		if sniper_guest != null and is_instance_valid(sniper_guest):
+			_resolve_sniper_guest_landing(sniper_guest, dest, sku, n)
+		elif sniper_shelf != null and is_instance_valid(sniper_shelf):
 			_resolve_sniper_landing(sniper_shelf, dest, sku, n)
 		else:
 			_resolve_toss_landing(pos, dest, sku, n, toss_dir)
@@ -1700,6 +1708,79 @@ func _dist_point_to_segment(p: Vector2, a: Vector2, b: Vector2) -> float:
 		return p.distance_to(a)
 	var t := clampf((p - a).dot(ab) / len_sq, 0.0, 1.0)
 	return p.distance_to(a + ab * t)
+
+
+## Guests who can still take `sku` from their shopping list. Nearest first.
+## No target → caller keeps the normal toss. Unlike shelf sniper, there is no
+## "fly to a full guest and dump beside them" fallback.
+func _sniper_guest_for(sku: String, from: Vector2) -> Node2D:
+	if _customers == null or sku == "":
+		return null
+	var best: Node2D = null
+	var best_d := INF
+	for c in _customers.get_children():
+		if c == null or not is_instance_valid(c):
+			continue
+		if bool(c.get("is_thief")):
+			continue
+		if not c.has_method("can_receive_delivery") or not bool(c.call("can_receive_delivery")):
+			continue
+		if _guest_wants_sku(c, sku) <= 0:
+			continue
+		var d := from.distance_squared_to(c.global_position)
+		if d < best_d:
+			best_d = d
+			best = c
+	return best
+
+
+func _guest_wants_sku(guest: Node2D, sku: String) -> int:
+	var shopping = guest.get("shopping")
+	if not (shopping is Array):
+		return 0
+	var want := 0
+	for s in shopping:
+		if String(s) == sku:
+			want += 1
+	return want
+
+
+func _sniper_guest_drop_pos(guest: Node2D) -> Vector2:
+	return guest.global_position + Tuning.DROP_FEET_OFFSET
+
+
+func _resolve_sniper_guest_landing(guest: Node2D, dest: Vector2, sku: String, n: int) -> void:
+	if n <= 0:
+		return
+	## Guest may have finished shopping while the box was in the air.
+	if not guest.has_method("can_receive_delivery") or not bool(guest.call("can_receive_delivery")) or _guest_wants_sku(guest, sku) <= 0:
+		_place_dropped_box(dest, sku, n)
+		if _player:
+			_player.log_line.emit(
+				"狙擊手 %s ×%d — 客人已不要這貨，掉在身旁" % [Tuning.sku_name(sku), n]
+			)
+		return
+	var taken := 0
+	if guest.has_method("accept_toss_box"):
+		taken = int(guest.call("accept_toss_box", sku, n))
+	var left := n - taken
+	if taken > 0:
+		SfxBus.play("sfx_box_hit_guest_ok")
+		if _player:
+			if left <= 0:
+				_player.log_line.emit(
+					"狙擊手交付 %s ×%d — 已交給客人" % [Tuning.sku_name(sku), taken]
+				)
+			else:
+				_player.log_line.emit(
+					"狙擊手交付 %s ×%d — 剩 %d 掉在身旁" % [Tuning.sku_name(sku), taken, left]
+				)
+	elif _player:
+		_player.log_line.emit(
+			"狙擊手 %s ×%d — 客人已不要這貨，掉在身旁" % [Tuning.sku_name(sku), n]
+		)
+	if left > 0:
+		_place_dropped_box(dest, sku, left)
 
 
 ## Same-SKU shelves only. Prefer the nearest with free space; otherwise the nearest full one.

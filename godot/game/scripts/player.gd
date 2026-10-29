@@ -389,6 +389,11 @@ func sniper_shelf_active() -> bool:
 	return buff_left("shelf_sniper") > 0.0
 
 
+## Thrown boxes / pieces home to the nearest guest who still wants that SKU.
+func sniper_guest_active() -> bool:
+	return buff_left("guest_sniper") > 0.0
+
+
 func store_status_text() -> String:
 	var bits: PackedStringArray = []
 	if _buffs.has("the_world"):
@@ -413,6 +418,8 @@ func role_status_text() -> String:
 		bits.append("瞬間上架 %.0fs" % _buffs["instant_restock"])
 	if _buffs.has("shelf_sniper"):
 		bits.append("狙擊手（貨架） %.0fs" % _buffs["shelf_sniper"])
+	if _buffs.has("guest_sniper"):
+		bits.append("狙擊手（客人） %.0fs" % _buffs["guest_sniper"])
 	if _buffs.has("dash_deliver"):
 		bits.append("衝刺交付 %.0fs" % _buffs["dash_deliver"])
 	if _sick_left > 0.0:
@@ -710,8 +717,9 @@ func _discard_top_box() -> void:
 	_drop_top_box(toss)
 	if toss.length_squared() > 0.01:
 		SfxBus.play("sfx_box_toss")
-		if sniper_shelf_active():
-			log_line.emit("丟掉 %s 1箱 — 狙擊手飛向同款貨架" % name)
+		var hint := _sniper_toss_log(name, true)
+		if hint != "":
+			log_line.emit(hint)
 		else:
 			log_line.emit(
 				"丟掉 %s 1箱 — 往%s飛出（可砸小偷／同款貨架上架）" % [name, _drop_dir_label(toss)]
@@ -754,11 +762,21 @@ func _toss_top_piece() -> bool:
 			Callable(self, "_on_piece_drop_landed"),
 		)
 	SfxBus.play("sfx_box_toss")
-	if sniper_shelf_active():
-		log_line.emit("丟掉 %s 1件 — 狙擊手飛向同款貨架" % Tuning.sku_name(sku))
+	var hint := _sniper_toss_log(Tuning.sku_name(sku), false)
+	if hint != "":
+		log_line.emit(hint)
 	else:
 		log_line.emit("丟掉 %s 1件 — 往%s飛出" % [Tuning.sku_name(sku), _drop_dir_label(_cancel_drop_dir)])
 	return true
+
+
+func _sniper_toss_log(sku_name: String, whole_box: bool) -> String:
+	var unit := "1箱" if whole_box else "1件"
+	if sniper_guest_active():
+		return "丟掉 %s %s — 狙擊手飛向清單客人" % [sku_name, unit]
+	if sniper_shelf_active():
+		return "丟掉 %s %s — 狙擊手飛向同款貨架" % [sku_name, unit]
+	return ""
 
 
 func _on_piece_drop_landed() -> void:
