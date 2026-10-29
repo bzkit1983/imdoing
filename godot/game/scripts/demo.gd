@@ -1514,18 +1514,18 @@ func spawn_dropped_box(
 	var sniper_thief: Node2D = null
 	var sniper_shelf: Node2D = null
 	if toss_dir.length_squared() > 0.0001 and _player != null:
-		## Priority when several snipers are armed: guest → thief → shelf.
-		if _player.has_method("sniper_guest_active") and bool(_player.call("sniper_guest_active")):
-			sniper_guest = _sniper_guest_for(sku, pos)
-			if sniper_guest != null:
-				dest = _sniper_guest_drop_pos(sniper_guest)
-		if sniper_guest == null and _player.has_method("sniper_thief_active") and bool(_player.call("sniper_thief_active")):
+		## Priority when several snipers are armed: thief → guest → shelf.
+		if _player.has_method("sniper_thief_active") and bool(_player.call("sniper_thief_active")):
 			sniper_thief = _sniper_thief_for(pos)
 			if sniper_thief != null:
 				dest = _sniper_thief_drop_pos(sniper_thief)
+		if sniper_thief == null and _player.has_method("sniper_guest_active") and bool(_player.call("sniper_guest_active")):
+			sniper_guest = _sniper_guest_for(sku, pos)
+			if sniper_guest != null:
+				dest = _sniper_guest_drop_pos(sniper_guest)
 		if (
-			sniper_guest == null
-			and sniper_thief == null
+			sniper_thief == null
+			and sniper_guest == null
 			and _player.has_method("sniper_shelf_active")
 			and bool(_player.call("sniper_shelf_active"))
 		):
@@ -1536,10 +1536,10 @@ func spawn_dropped_box(
 	flight.setup(sku, pos, dest, Tuning.DROP_FLIGHT_SEC, n)
 	_world.add_child(flight)
 	flight.finished.connect(func() -> void:
-		if sniper_guest != null and is_instance_valid(sniper_guest):
-			_resolve_sniper_guest_landing(sniper_guest, dest, sku, n)
-		elif sniper_thief != null and is_instance_valid(sniper_thief):
+		if sniper_thief != null and is_instance_valid(sniper_thief):
 			_resolve_sniper_thief_landing(sniper_thief, dest, sku, n, toss_dir)
+		elif sniper_guest != null and is_instance_valid(sniper_guest):
+			_resolve_sniper_guest_landing(sniper_guest, dest, sku, n)
 		elif sniper_shelf != null and is_instance_valid(sniper_shelf):
 			_resolve_sniper_landing(sniper_shelf, dest, sku, n)
 		else:
