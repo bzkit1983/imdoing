@@ -44,7 +44,7 @@
 | `sfx_box_toss` | 放手丟出（有方向飛出） | 拋出 whoosh | P0 | `playeraction.md` |
 | `sfx_box_drop_feet` | 無方向掉腳邊 | 紙箱落地 | P0 | `playeraction.md` |
 | `sfx_box_land` | 飛箱落地（地／剩貨） | 落地頓音 | P0 | `playeraction.md` |
-| `sfx_box_shelf_toss` | 丟掉軌道命中可接受貨架並補架 | 落地＋入架 | P0 | `replenishmentsystem.md` |
+| `sfx_box_shelf_toss` | 丟掉軌道命中可接受貨架並補架（含狙擊手貨架落地） | 落地＋入架 | P0 | `replenishmentsystem.md`／`playeractiveskills.md` |
 | `sfx_box_pickup_floor` | 撿起地上貨箱 | 提起 | P0 | `playeraction.md` |
 
 ## 3. 收銀
@@ -81,8 +81,8 @@
 | `sfx_thief_dash_out` | 衝刺撞飛小偷離場 | 飛出 whoosh | P0 | `thiefsystem.md`／`playermovement.md` |
 | `sfx_loot_scatter` | 贓物近／遠散落飛行 | 多箱落地滾動 | P1 | `thiefsystem.md` |
 | `sfx_loot_inplace` | 丟掉砸中：贓物原地掉落 | 箱堆落地 | P1 | `thiefsystem.md` |
-| `sfx_box_hit_thief` | 飛箱命中小偷（可與 KO 疊或作前導） | 紙箱砸中 | P1 | `thiefsystem.md` |
-| `sfx_box_hit_guest_ok` | 丟掉砸中客人且 SKU 在清單 | 正向交接／謝謝 | P1 | `playeraction.md` |
+| `sfx_box_hit_thief` | 飛箱命中小偷（含狙擊手小偷；可與 KO 疊或作前導） | 紙箱砸中 | P1 | `thiefsystem.md`／`playeractiveskills.md` |
+| `sfx_box_hit_guest_ok` | 丟掉砸中客人且 SKU 在清單（含狙擊手客人交付） | 正向交接／謝謝 | P1 | `playeraction.md`／`customerdelivery.md` |
 | `sfx_box_hit_guest_reject` | 丟掉砸中客人且 SKU 不在清單 | 拒絕／不滿 tip | P1 | `playeraction.md` |
 | `sfx_thief_escape` | 小偷持贓走到出口：橫幅「你已經被偷了！」 | 警鈴／失敗 stinger | P0 | `thiefsystem.md` |
 | `sfx_thief_spawn` | 小偷進店（可選） | 鬼祟 tip | P2 | `thiefsystem.md` |
