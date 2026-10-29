@@ -1510,11 +1510,19 @@ func spawn_dropped_box(
 	if not on_landed.is_valid() and toss_dir.length_squared() < 0.0001:
 		_place_dropped_box(dest, sku, n)
 		return
+	var sniper_shelf: Node2D = null
+	if toss_dir.length_squared() > 0.0001 and _player != null and _player.has_method("sniper_shelf_active") and bool(_player.call("sniper_shelf_active")):
+		sniper_shelf = _sniper_shelf_for(sku, pos)
+		if sniper_shelf != null:
+			dest = _sniper_drop_pos(sniper_shelf)
 	var flight: Node2D = DropFlightScript.new()
 	flight.setup(sku, pos, dest, Tuning.DROP_FLIGHT_SEC, n)
 	_world.add_child(flight)
 	flight.finished.connect(func() -> void:
-		_resolve_toss_landing(pos, dest, sku, n, toss_dir)
+		if sniper_shelf != null and is_instance_valid(sniper_shelf):
+			_resolve_sniper_landing(sniper_shelf, dest, sku, n)
+		else:
+			_resolve_toss_landing(pos, dest, sku, n, toss_dir)
 		if on_landed.is_valid():
 			on_landed.call()
 	)
@@ -1692,6 +1700,62 @@ func _dist_point_to_segment(p: Vector2, a: Vector2, b: Vector2) -> float:
 		return p.distance_to(a)
 	var t := clampf((p - a).dot(ab) / len_sq, 0.0, 1.0)
 	return p.distance_to(a + ab * t)
+
+
+## Same-SKU shelves only. Prefer the nearest with free space; otherwise the nearest full one.
+func _sniper_shelf_for(sku: String, from: Vector2) -> Node2D:
+	var list = _shelves_by_sku.get(sku)
+	if list == null:
+		return null
+	var best_open: Node2D = null
+	var best_open_d := INF
+	var best_any: Node2D = null
+	var best_any_d := INF
+	for s in list:
+		if s == null or not is_instance_valid(s):
+			continue
+		if String(s.get("sku")) != sku or int(s.get("count")) <= 0:
+			continue
+		var d := from.distance_squared_to(s.global_position)
+		if d < best_any_d:
+			best_any_d = d
+			best_any = s
+		if s.has_method("can_accept") and bool(s.call("can_accept", sku)) and d < best_open_d:
+			best_open_d = d
+			best_open = s
+	return best_open if best_open != null else best_any
+
+
+func _sniper_drop_pos(shelf: Node2D) -> Vector2:
+	if shelf.has_method("stand_position"):
+		return shelf.call("stand_position")
+	return shelf.global_position + Vector2(0.0, 48.0)
+
+
+func _resolve_sniper_landing(shelf: Node2D, dest: Vector2, sku: String, n: int) -> void:
+	if n <= 0:
+		return
+	var placed := 0
+	if shelf.has_method("can_accept") and bool(shelf.call("can_accept", sku)) and shelf.has_method("add_items"):
+		placed = int(shelf.call("add_items", sku, n))
+	var left := n - placed
+	if placed > 0:
+		SfxBus.play("sfx_box_shelf_toss")
+		if _player:
+			if left <= 0:
+				_player.log_line.emit(
+					"狙擊手補架 %s ×%d — 已飛上貨架" % [Tuning.sku_name(sku), placed]
+				)
+			else:
+				_player.log_line.emit(
+					"狙擊手補架 %s ×%d — 剩 %d 掉在架旁" % [Tuning.sku_name(sku), placed, left]
+				)
+	elif _player:
+		_player.log_line.emit(
+			"狙擊手 %s ×%d — 同款貨架已滿，掉在架旁" % [Tuning.sku_name(sku), n]
+		)
+	if left > 0:
+		_place_dropped_box(dest, sku, left)
 
 
 ## Nearest shelf that can accept `sku` and sits under the toss landing.
