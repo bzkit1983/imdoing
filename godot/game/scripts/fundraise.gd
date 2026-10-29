@@ -18,9 +18,11 @@ static func choose(customers: Array, level: int) -> Array:
 
 
 static func _eligible(c) -> bool:
-	if bool(c.get("is_thief")):
+	if bool(c.get("is_thief")) or bool(c.get("temp_clerk")):
 		return false
 	var st := int(c.get("state"))
+	if st == Customer.State.TEMP:
+		return false
 	return st != Customer.State.LEAVE and st != Customer.State.FLEE
 
 

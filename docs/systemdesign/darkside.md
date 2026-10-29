@@ -1,6 +1,6 @@
 # You don’t know the power of the dark side
 
-- 狀態：**設計已齊，未實作**。下面問題都已拍板。實作前不改 `skills.gd`、不改店員／客人程式。
+- 狀態：**已實作**（`skills.gd` 的 `dark_side`、`customer.gd` 臨時崗位、`demo.gd` 抽人）。下面問題都已拍板。準備頁可選 LV1／2／3，沒選預設 LV3。
 - 對照：`clerksystem.md`、`cashiersystem.md`、`customer.md`、`customerdelivery.md`、`elitecustomer.md`、`playeractiveskills.md`、`playerultimateskills.md`、`playerskills.md`、`storeoperationphase.md`
 
 #提案
@@ -122,4 +122,4 @@
 
 #待拍板
 
-沒有。設計已齊，尚未實作。
+沒有。設計已齊，活線已實作。

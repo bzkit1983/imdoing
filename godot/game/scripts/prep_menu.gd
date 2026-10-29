@@ -664,6 +664,11 @@ func _activate() -> void:
 		"unequip":
 			state.unequip_set(_skill_set, int(arg))
 			_show_page("skill_set")
+		"cycle_skill_lv":
+			var skill_id := String(arg)
+			var cur := state.skill_level_of(_skill_set, skill_id)
+			state.set_skill_level(_skill_set, skill_id, 1 if cur >= 3 else cur + 1)
+			_show_page("skill_set")
 		"dev":
 			_ask_develop(String(arg))
 		"locked_sku":
