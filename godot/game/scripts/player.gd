@@ -394,6 +394,11 @@ func sniper_guest_active() -> bool:
 	return buff_left("guest_sniper") > 0.0
 
 
+## Thrown boxes / pieces home to the nearest active thief and KO them.
+func sniper_thief_active() -> bool:
+	return buff_left("thief_sniper") > 0.0
+
+
 func store_status_text() -> String:
 	var bits: PackedStringArray = []
 	if _buffs.has("the_world"):
@@ -420,6 +425,8 @@ func role_status_text() -> String:
 		bits.append("狙擊手（貨架） %.0fs" % _buffs["shelf_sniper"])
 	if _buffs.has("guest_sniper"):
 		bits.append("狙擊手（客人） %.0fs" % _buffs["guest_sniper"])
+	if _buffs.has("thief_sniper"):
+		bits.append("狙擊手（小偷） %.0fs" % _buffs["thief_sniper"])
 	if _buffs.has("dash_deliver"):
 		bits.append("衝刺交付 %.0fs" % _buffs["dash_deliver"])
 	if _sick_left > 0.0:
@@ -774,6 +781,8 @@ func _sniper_toss_log(sku_name: String, whole_box: bool) -> String:
 	var unit := "1箱" if whole_box else "1件"
 	if sniper_guest_active():
 		return "丟掉 %s %s — 狙擊手飛向清單客人" % [sku_name, unit]
+	if sniper_thief_active():
+		return "丟掉 %s %s — 狙擊手飛向小偷" % [sku_name, unit]
 	if sniper_shelf_active():
 		return "丟掉 %s %s — 狙擊手飛向同款貨架" % [sku_name, unit]
 	return ""
