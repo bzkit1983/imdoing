@@ -1511,13 +1511,24 @@ func spawn_dropped_box(
 		_place_dropped_box(dest, sku, n)
 		return
 	var sniper_guest: Node2D = null
+	var sniper_thief: Node2D = null
 	var sniper_shelf: Node2D = null
 	if toss_dir.length_squared() > 0.0001 and _player != null:
+		## Priority when several snipers are armed: guest → thief → shelf.
 		if _player.has_method("sniper_guest_active") and bool(_player.call("sniper_guest_active")):
 			sniper_guest = _sniper_guest_for(sku, pos)
 			if sniper_guest != null:
 				dest = _sniper_guest_drop_pos(sniper_guest)
-		if sniper_guest == null and _player.has_method("sniper_shelf_active") and bool(_player.call("sniper_shelf_active")):
+		if sniper_guest == null and _player.has_method("sniper_thief_active") and bool(_player.call("sniper_thief_active")):
+			sniper_thief = _sniper_thief_for(pos)
+			if sniper_thief != null:
+				dest = _sniper_thief_drop_pos(sniper_thief)
+		if (
+			sniper_guest == null
+			and sniper_thief == null
+			and _player.has_method("sniper_shelf_active")
+			and bool(_player.call("sniper_shelf_active"))
+		):
 			sniper_shelf = _sniper_shelf_for(sku, pos)
 			if sniper_shelf != null:
 				dest = _sniper_drop_pos(sniper_shelf)
@@ -1527,6 +1538,8 @@ func spawn_dropped_box(
 	flight.finished.connect(func() -> void:
 		if sniper_guest != null and is_instance_valid(sniper_guest):
 			_resolve_sniper_guest_landing(sniper_guest, dest, sku, n)
+		elif sniper_thief != null and is_instance_valid(sniper_thief):
+			_resolve_sniper_thief_landing(sniper_thief, dest, sku, n, toss_dir)
 		elif sniper_shelf != null and is_instance_valid(sniper_shelf):
 			_resolve_sniper_landing(sniper_shelf, dest, sku, n)
 		else:
@@ -1708,6 +1721,49 @@ func _dist_point_to_segment(p: Vector2, a: Vector2, b: Vector2) -> float:
 		return p.distance_to(a)
 	var t := clampf((p - a).dot(ab) / len_sq, 0.0, 1.0)
 	return p.distance_to(a + ab * t)
+
+
+## Nearest active thief. No target → caller keeps the normal toss.
+func _sniper_thief_for(from: Vector2) -> Node2D:
+	var best: Node2D = null
+	var best_d := INF
+	for t in thieves():
+		if t == null or not is_instance_valid(t):
+			continue
+		if not t.has_method("is_active_thief") or not bool(t.call("is_active_thief")):
+			continue
+		var d := from.distance_squared_to(t.global_position)
+		if d < best_d:
+			best_d = d
+			best = t
+	return best
+
+
+func _sniper_thief_drop_pos(thief: Node2D) -> Vector2:
+	return thief.global_position + Tuning.DROP_FEET_OFFSET
+
+
+func _resolve_sniper_thief_landing(
+	thief: Node2D, dest: Vector2, sku: String, n: int, toss_dir: Vector2
+) -> void:
+	if n <= 0:
+		return
+	## Thief fled / became uncatchable while the box was in the air.
+	if not thief.has_method("is_active_thief") or not bool(thief.call("is_active_thief")):
+		_place_dropped_box(dest, sku, n)
+		if _player:
+			_player.log_line.emit(
+				"狙擊手 %s ×%d — 小偷已逃走，掉在地上" % [Tuning.sku_name(sku), n]
+			)
+		return
+	## Hit lands at the thief; whole throw drops (thief does not take shopping).
+	_place_dropped_box(thief.global_position + Tuning.DROP_FEET_OFFSET, sku, n)
+	if _player and _player.has_method("apply_toss_ko"):
+		_player.call("apply_toss_ko", thief, toss_dir)
+	elif _player:
+		_player.log_line.emit(
+			"狙擊手擊中小偷 %s ×%d — 貨品掉落" % [Tuning.sku_name(sku), n]
+		)
 
 
 ## Guests who can still take `sku` from their shopping list. Nearest first.
