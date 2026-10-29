@@ -779,10 +779,10 @@ func _toss_top_piece() -> bool:
 
 func _sniper_toss_log(sku_name: String, whole_box: bool) -> String:
 	var unit := "1箱" if whole_box else "1件"
-	if sniper_guest_active():
-		return "丟掉 %s %s — 狙擊手飛向清單客人" % [sku_name, unit]
 	if sniper_thief_active():
 		return "丟掉 %s %s — 狙擊手飛向小偷" % [sku_name, unit]
+	if sniper_guest_active():
+		return "丟掉 %s %s — 狙擊手飛向清單客人" % [sku_name, unit]
 	if sniper_shelf_active():
 		return "丟掉 %s %s — 狙擊手飛向同款貨架" % [sku_name, unit]
 	return ""
