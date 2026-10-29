@@ -44,12 +44,22 @@ def main() -> None:
     clean_doc = (ROOT / "docs/systemdesign/cleaningsystem.md").read_text(encoding="utf-8")
     cust_doc = (ROOT / "docs/systemdesign/customer.md").read_text(encoding="utf-8")
     action_doc = (ROOT / "docs/systemdesign/playeraction.md").read_text(encoding="utf-8")
+    active_doc = (ROOT / "docs/systemdesign/playeractiveskills.md").read_text(encoding="utf-8")
+    thief_doc = (ROOT / "docs/systemdesign/thiefsystem.md").read_text(encoding="utf-8")
+    restock_doc = (ROOT / "docs/systemdesign/replenishmentsystem.md").read_text(encoding="utf-8")
+    delivery_doc = (ROOT / "docs/systemdesign/customerdelivery.md").read_text(encoding="utf-8")
     assert "每幀繼續跟隨" in clerk_doc or "每幀繼續跟蹤" in clerk_doc
     assert "CLERK_JOB_SEARCH_SEC" in clerk_doc
     assert "sit on _job_search_cd" in clerk or "Active plan: keep walking" in clerk
     assert "黃色" in clean_doc and "Loading Circle" in clean_doc
     assert "不重抽" in cust_doc
     assert "清單清空" in action_doc and "收銀" in action_doc
+    assert "thief_sniper" in SKILLS and "guest_sniper" in SKILLS and "shelf_sniper" in SKILLS
+    assert "狙擊手（小偷）" in active_doc and "小偷 → 客人 → 貨架" in active_doc
+    assert "狙擊手（小偷）" in thief_doc
+    assert "狙擊手（貨架）" in restock_doc
+    assert "狙擊手（客人）" in delivery_doc
+    assert "小偷 → 客人 → 貨架" in action_doc
     print("OK design-gap constants / docs anchors")
 
 

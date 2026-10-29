@@ -34,7 +34,7 @@ Repository for game project
 - 缺口檢視：`docs/systemdesign-gaps.md`
 - Alpha 計劃／審查／設計：`docs/alpha/plan.md`、`docs/alpha/design.md`、`docs/alpha/tech-review-v0.1.md`
 - 執行期優化分析：`docs/alpha/runtime-perf-audit.md`
-- 工程對照：`docs/alpha/implementation-status.md`（存檔、InputMap、暫停／SFX、i18n、TTF 字型、掉貨／清潔單圈／衝刺不重抽／店員跟蹤、Pages 等）
+- 工程對照：`docs/alpha/implementation-status.md`（存檔、InputMap、暫停／SFX、i18n、客人交付、技能組、互動發光、三招狙擊手、Pages 等）
 - 字串表／字型／匯出：`docs/alpha/i18n.md`、`docs/alpha/fonts-subset.md`、`docs/alpha/export-presets.md`
 - 角色動畫：`docs/alpha/animation-v1.0.md`；待辦：`docs/alpha/animation-pending.md`
 - 主機：`docs/alpha/console-business.md`、`docs/alpha/godot-middleware-pin.md`

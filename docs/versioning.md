@@ -145,7 +145,7 @@ v1.0 Milestone 建議直接收錄 `docs/alpha/tech-review-v0.1.md` §6 跟進清
 2. ~~建立 `godot/game`（自 `alpha_v0_1` 複製一次）~~ **已做**；`demo_v0_*`／`alpha_v0_1` 已放 `FROZEN.md`，見 `godot/README.md`。  
 3. 把 tech-review §6 checklist 建成 Issues，全掛 Milestone `v1.0`。  
 4. ~~存檔~~ **已做**；~~InputMap~~ **已做**（Autoload `Controls`）；~~`PlatformServices` stub~~ **已做**；~~暫停選單＋掛起鉤子~~ **已做**；~~Win／Linux 匯出預設~~ **已做**（`docs/alpha/export-presets.md`）；~~字串表 i18n~~ **已做**（`docs/alpha/i18n.md`）；~~主機商務評估~~ **已做**（`docs/alpha/console-business.md`）；~~Godot／middleware 釘版~~ **已做**（`docs/alpha/godot-middleware-pin.md`：桌面 4.7，主機對齊 W4 表）。接著：Steamworks／內容與 v1.0 里程碑收尾等。  
-5. ~~Web 匯出到 Pages `docs/play/`~~ **已做**（持續以 Pages PR 刷新 `docs/play/`）。~~打 `v1.0.0`~~ **已做**（2026-10-22 重錨；其後約 PR #21–#39）。~~打 `v1.1.0`~~ **已做**（2026-10-22：錨在含 Runtime P1＋P2 熱路徑優化的 `main`／PR #42；版號字串同步本檔與 `VERSION`）。其後活線熱修仍掛在已發佈的 `v1.1.0` tag 之後。**v1.2.0**（2026-10-26）：產品字串改為 `1.2.0`；客人貨品交付（`customerdelivery.md`）已實作。Git tag `v1.2.0` 打在該分支合併進 `main` 的 commit。
+5. ~~Web 匯出到 Pages `docs/play/`~~ **已做**（持續以 Pages PR 刷新 `docs/play/`）。~~打 `v1.0.0`~~ **已做**（2026-10-22 重錨；其後約 PR #21–#39）。~~打 `v1.1.0`~~ **已做**（2026-10-22：錨在含 Runtime P1＋P2 熱路徑優化的 `main`／PR #42；版號字串同步本檔與 `VERSION`）。其後活線熱修仍掛在已發佈的 `v1.1.0` tag 之後。**v1.2.0**（2026-10-26 起）：產品字串改為 `1.2.0`；客人貨品交付（`customerdelivery.md`）已實作；其後同版字串內再加自訂技能組、互動發光、三招狙擊手（貨架／客人／小偷；同時生效優先序小偷 → 客人 → 貨架）。Git tag `v1.2.0` 打在交付系統合併進 `main` 的 commit。
 
 長線設計對應：存檔 → `savesystem.md`；操作 → `control.md`；準備／營運回合已交叉連到上述檔。
 
