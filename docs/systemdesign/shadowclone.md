@@ -1,7 +1,7 @@
 #多重影分身
 
 - 狀態：**已拍板，未實作**。下面問題都已拍板。
-- 對照：`darkside.md`、`clerksystem.md`、`cashiersystem.md`、`playeractiveskills.md`、`playerskills.md`、`playeraction.md`、`playermovement.md`、`customerdelivery.md`、`playerstats.md`
+- 對照：`darkside.md`、`clerksystem.md`、`cashiersystem.md`、`playeractiveskills.md`、`playerskills.md`、`playeraction.md`、`playermovement.md`、`customerdelivery.md`、`playerstats.md`、`storeoperationphase.md`、`storepreparationphase.md`、`replenishmentsystem.md`、`customer.md`、`playerultimateskills.md`、`cleaningsystem.md`、`thiefsystem.md`、`playersetup.md`、`customizedskillset.md`、`savesystem.md`
 
 #提案
 

@@ -1,6 +1,6 @@
 # 長線設計文件缺口
 
-- 對照日：2026-10-29（含 v1.1.0 拍板＋v1.2.0 客人交付／技能組／三招狙擊手 #63–#108；對齊至 main tip）
+- 對照日：2026-10-30（含 v1.1.0 拍板＋v1.2.0 客人交付／技能組／三招狙擊手／Dark Side／多重影分身設計 #63–#117；對齊至 main tip）
 - 範圍：只讀 `docs/systemdesign/`（含 `savesystem.md`、`pausemenu.md`），**不含** Demo scope
 - 工程落地對照：`docs/alpha/implementation-status.md`
 - 執行期優化分析（非玩法缺口）：`docs/alpha/runtime-perf-audit.md`

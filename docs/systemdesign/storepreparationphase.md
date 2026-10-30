@@ -8,7 +8,7 @@
 
 1. 角色整備（`hub_char`）
 - 角色能力
-- 裝備技能（五組自訂組合，準備時選用並可改未選用的組。入口不顯示 COST；見 `customizedskillset.md`）
+- 裝備技能（五組自訂組合，準備時選用並可改未選用的組。入口不顯示 COST；見 `customizedskillset.md`）。Dark Side、多重影分身在該組可選 LV1／2／3（沒選預設 LV3；見 `darkside.md`、`shadowclone.md`）
 - 外觀調整（未開放）
 2. 貨品管理（`hub_goods`）
 - 開發商品
