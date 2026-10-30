@@ -37,10 +37,10 @@
 - 劇本、資金、經驗、等級、未分配點數  
 - STR／AGI／INT 與劇本基底  
 - 已開發貨、倉庫箱數、已購傢俬、店舖擺放、店規模與格線  
-- 店員崗位、技能裝備格、奧義。另有五組 `skill_sets` 和選中編號 `skill_set_index`（`SAVE_VERSION` 仍是 1）。`slots`／`ult_id` 是目前選中那一組的副本。見 `customizedskillset.md`  
+- 店員崗位、技能裝備格、奧義。另有五組 `skill_sets` 和選中編號 `skill_set_index`（`SAVE_VERSION` 仍是 1）。`slots`／`ult_id` 是目前選中那一組的副本。每組可另存 `levels`（Dark Side、多重影分身準備頁選等；沒選預設 LV3）。見 `customizedskillset.md`、`darkside.md`、`shadowclone.md`  
 - 當日進貨支出累計、上一局是否虧損、升級備註  
 
-不存：當日營運中的客人、污物、時鐘進度、玩家手上貨箱、地上散落貨（營運中狀態）。關店時貨架／地上／手上／店員持箱／已完成清單未付款購物車的未售件數會先換算退回倉庫箱數再寫檔（見 `storeoperationphase.md`）。
+不存：當日營運中的客人、污物、時鐘進度、玩家手上貨箱、地上散落貨、分身（營運中狀態）。關店時貨架／地上／手上／店員持箱／分身持箱／Dark Side 臨時補貨持箱／已完成清單未付款購物車的未售件數會先換算退回倉庫箱數再寫檔（見 `storeoperationphase.md`）。
 
 # 平台
 

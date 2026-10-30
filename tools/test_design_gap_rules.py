@@ -58,9 +58,22 @@ def main() -> None:
     assert "dark_side" in SKILLS and "Dark Side" in SKILLS
     assert "狙擊手（小偷）" in active_doc and "小偷 → 客人 → 貨架" in active_doc
     assert "Dark Side" in active_doc
+    assert "多重影分身" in active_doc
     dark = (ROOT / "docs/systemdesign/darkside.md").read_text(encoding="utf-8")
     assert "活線已實作" in dark
     assert "尚未實作" not in dark
+    clone = (ROOT / "docs/systemdesign/shadowclone.md").read_text(encoding="utf-8")
+    assert "已拍板，未實作" in clone
+    assert "shadow_clone" in clone
+    assert "不是客人" in clone
+    assert "撞到多重影分身" in MOVE
+    assert "多重影分身不計入" in MOVE
+    stats_doc = (ROOT / "docs/systemdesign/playerstats.md").read_text(encoding="utf-8")
+    assert "多重影分身" in stats_doc and "快照" in stats_doc
+    assert "多重影分身" in clerk_doc and "不是客人" in clerk_doc
+    assert "多重影分身" in cust_doc
+    assert "多重影分身" in ULT
+    assert "不亮" in action_doc and "多重影分身" in action_doc
     assert "狙擊手（小偷）" in thief_doc
     assert "狙擊手（貨架）" in restock_doc
     assert "狙擊手（客人）" in delivery_doc

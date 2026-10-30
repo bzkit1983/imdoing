@@ -58,7 +58,7 @@
 | `sfx_checkout_circle_done` | Circle 填滿、完成收銀 | 收銀鈴／錢匣 | P0 | `cashiersystem.md` |
 | `sfx_checkout_cash_pop` | 完成後彈出 $ 圖示 | 硬幣／錢音 | P0 | `cashiersystem.md` |
 | `sfx_checkout_release_reset` | 收銀中放手重置指令 | 短取消 | P2 | `cashiersystem.md` |
-| `sfx_checkout_clerk` | 店員自動收銀完成（可共用完成鈴變體） | 較淡收銀鈴 | P1 | `clerksystem.md` |
+| `sfx_checkout_clerk` | 店員自動收銀完成（可共用完成鈴變體；Dark Side 臨時收銀、多重影分身分身收銀同） | 較淡收銀鈴 | P1 | `clerksystem.md`／`shadowclone.md` |
 
 ## 4. 清潔
 
@@ -117,6 +117,7 @@
 | `sfx_ult_yes_my_lord` | Yes! My Lord! 發動 | 號令／搶購起哄短層 | P0 | `playerultimateskills.md` |
 | `sfx_ult_fundraise` | 全體集資發動／批次入帳 | 錢潮／批量收銀 | P0 | `playerultimateskills.md` |
 | `sfx_skill_soothe` | 安撫生效 | 柔和減壓 | P1 | `playeractiveskills.md` |
+| `sfx_skill_clone_vanish` | 多重影分身消失（煙霧；再放舊分身、30 秒到、提早關、關店） | 煙霧／消散 | P1 | `shadowclone.md` |
 
 > 頂硬上／移速／收銀加速／瞬間補貨：可用通用 `sfx_skill_cast`＋各自極短 buff tip（P2），不必各做長床。
 
@@ -124,8 +125,8 @@
 
 | ID | 觸發（設計） | 建議質感 | 優先 | 來源檔 |
 | --- | --- | --- | --- | --- |
-| `sfx_clerk_pull` | 補貨店員取箱（可共用 `sfx_box_pull` 降音量） | 紙箱 | P2 | `clerksystem.md` |
-| `sfx_clerk_stock` | 補貨店員上架完成 | 入架淡 | P2 | `clerksystem.md` |
+| `sfx_clerk_pull` | 補貨店員取箱（可共用 `sfx_box_pull` 降音量；分身補貨同） | 紙箱 | P2 | `clerksystem.md`／`shadowclone.md` |
+| `sfx_clerk_stock` | 補貨店員上架完成（分身補貨同） | 入架淡 | P2 | `clerksystem.md`／`shadowclone.md` |
 
 ## 9. 回合／世界事件（非 BGM）
 
@@ -175,6 +176,6 @@
 - 行動：`playeraction.md` · 移動：`playermovement.md` · 操作：`control.md`
 - 補貨：`replenishmentsystem.md` · 收銀：`cashiersystem.md` · 清潔：`cleaningsystem.md`
 - 小偷：`thiefsystem.md` · 客人：`customer.md` · 店員：`clerksystem.md`
-- 技能：`playeractiveskills.md` · 奧義：`playerultimateskills.md`
+- 技能：`playeractiveskills.md` · 奧義：`playerultimateskills.md` · 多重影分身：`shadowclone.md`
 - 回合：`storeoperationphase.md` · 準備：`storepreparationphase.md` · 暫停：`pausemenu.md`
 - 動畫插座（視覺對齊）：`docs/alpha/animation-v1.0.md`；plan 註明本階段原不做音效：`docs/alpha/plan.md`

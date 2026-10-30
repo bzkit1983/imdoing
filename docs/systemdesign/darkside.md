@@ -1,7 +1,7 @@
 # You don’t know the power of the dark side
 
 - 狀態：**已實作**（`skills.gd` 的 `dark_side`、`customer.gd` 臨時崗位、`demo.gd` 抽人）。下面問題都已拍板。準備頁可選 LV1／2／3，沒選預設 LV3。
-- 對照：`clerksystem.md`、`cashiersystem.md`、`customer.md`、`customerdelivery.md`、`elitecustomer.md`、`playeractiveskills.md`、`playerultimateskills.md`、`playerskills.md`、`storeoperationphase.md`
+- 對照：`clerksystem.md`、`cashiersystem.md`、`customer.md`、`customerdelivery.md`、`elitecustomer.md`、`playeractiveskills.md`、`playerultimateskills.md`、`playerskills.md`、`storeoperationphase.md`、`shadowclone.md`
 
 #提案
 
@@ -26,7 +26,7 @@
 
 | 提案 | 現況 | 卡在哪 |
 | --- | --- | --- |
-| LV1／LV2／LV3 人數不同 | 活線裝備表用的是單一等級。COST 1 主動技在文件有三級，程式裡上場的是 LV3 那一檔。COST 2 技能（衝刺交付、三招狙擊手）寫明沒有 LV2／LV3。技能幾級學會仍無表（Beta） | **已拍板**：技能升級表以後再做。現在準備頁就能選 LV1／2／3，仍佔一格、COST 仍是 2。測試版沒選時預設 LV3 |
+| LV1／LV2／LV3 人數不同 | 活線裝備表用的是單一等級。COST 1 主動技在文件有三級，程式裡上場的是 LV3 那一檔。COST 2 技能裡，衝刺交付與三招狙擊手寫明沒有 LV2／LV3；Dark Side 與 COST 3 的多重影分身則在準備頁選 LV1／2／3。技能幾級學會仍無表（Beta） | **已拍板**：技能升級表以後再做。現在準備頁就能選 LV1／2／3，仍佔一格、COST 仍是 2。測試版沒選時預設 LV3。多重影分身同樣用準備頁選等，COST 仍是 3（見 `shadowclone.md`） |
 | CD 30 秒、效果也是 30 秒 | 主動技表列 CD 預設吃 INT（INT 50＝表列／1.5）。例外是衝刺交付：5 秒固定、不縮 | **已拍板**：吃 INT。效果還在時再放會再抽新的人，不刷新上一批的 30 秒 |
 | 隨機客人 | 客人狀態有進店、尋貨、逗留、思考、去收銀、排隊、付款中、離開、搶購。小偷不是客人。麻煩客人是客人。補貨時段沒有客人 | **已拍板**，見下方「抽誰」 |
 | 放下已完成的購物清單 | 資料是兩條：`shopping`（還沒拿）和 `cart`（已拿到）。衝刺撞客會把 cart 掉地，再把那些件放回清單重買。關店時只有「清單已空、cart 未付款」才退倉；未買完的 cart 不退 | **已拍板**：掉的是 `cart`，變回要重買。地上多一份、架上再拿一次是定案，見下方 |

@@ -42,7 +42,7 @@
 
 #沒有衝突、實作時沿用
 - 一般技能 COST 合計不能大於 5。奧義不算進去。
-- 每招不論 COST 多少，只佔五格裡的一格。空格按了不會發動。
+- 每招不論 COST 多少，只佔五格裡的一格。空格按了不會發動。目錄現有 COST 3 主動「多重影分身」（見 `shadowclone.md`）；第 1 組預設五招不變，不預裝這招。
 - 奧義只能放奧義格；一般技能不能放進奧義格。
 - 同一組裡同一招不能佔兩格。
 - 被動放在任一格：營運中自動生效；技能選單仍顯示名稱但較暗，主動輸入無效。
@@ -89,6 +89,7 @@
 #交叉
 - 技能 COST、五格施放、奧義：`playerskills.md`
 - 準備頁角色整備：`playersetup.md`、`storepreparationphase.md`
-- 存檔欄位：`savesystem.md`
+- 存檔欄位：`savesystem.md`（每組可存 Dark Side／多重影分身的選等 `levels`；沒選預設 LV3）
 - 技能表：`playeractiveskills.md`、`playerpassiveskills.md`、`playerultimateskills.md`
+- Dark Side／多重影分身選等：`darkside.md`、`shadowclone.md`
 - 網頁中文字型：`docs/alpha/fonts-subset.md`
