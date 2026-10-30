@@ -14,6 +14,7 @@ const HUB_TILE_H := 100.0
 const HUB_ROW_H := 80.0
 const OPEN_MAIN_H := 64.0
 const OPEN_ELITE_H := 64.0
+const DIFF_H := 52.0
 ## ItemList leaf pages — touch-friendly row height via spacer icon.
 const LIST_ROW_H := 72
 const LIST_V_SEP := 14
@@ -84,6 +85,23 @@ static func paint_open_main(btn: Button, on: bool) -> void:
 	btn.add_theme_stylebox_override("focus", bg)
 	btn.add_theme_color_override("font_color", Color("1c241f"))
 	btn.add_theme_color_override("font_hover_color", Color("1c241f"))
+	btn.add_theme_color_override("font_pressed_color", Color("1c241f"))
+
+
+static func paint_choice(btn: Button, selected: bool, focused: bool) -> void:
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color("f4d35e") if selected else Color("24302a")
+	bg.set_corner_radius_all(10)
+	if focused:
+		bg.border_color = Color("1c241f") if selected else Color("f4d35e")
+		bg.set_border_width_all(3)
+	btn.add_theme_stylebox_override("normal", bg)
+	btn.add_theme_stylebox_override("hover", bg)
+	btn.add_theme_stylebox_override("pressed", bg)
+	btn.add_theme_stylebox_override("focus", bg)
+	var col := Color("1c241f") if selected else Color("f4f1ea")
+	btn.add_theme_color_override("font_color", col)
+	btn.add_theme_color_override("font_hover_color", Color("1c241f") if selected else Color("f4d35e"))
 	btn.add_theme_color_override("font_pressed_color", Color("1c241f"))
 
 

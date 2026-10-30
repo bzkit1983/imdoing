@@ -186,6 +186,12 @@ const CUSTOMER_CAP := 15
 const LIST_MIN := 2
 const LIST_MAX := 8
 const LIST_HARD_MAX := 15
+## Test-build「簡易」. Normal keeps the scenario rules. See storepreparationphase.md.
+const EASY_LIST_CAP := 5
+const EASY_DIRT_INTERVAL_MULT := 2.0
+const EASY_DIRT_START := 1
+const EASY_THIEF_RATE_MULT := 0.5
+const EASY_DISSAT_MULT := 0.5
 const LINGER_SEC := 1.0
 const THINK_SEC := 3.0
 const DISSAT_MAX := 100.0
@@ -411,6 +417,33 @@ static func dirt_color(dtype: String) -> Color:
 		DIRT_VOMIT:
 			return Color(0.55, 0.72, 0.22, 0.82)
 	return Color(0.34, 0.27, 0.16, 0.8)
+
+
+## Guest list upper bound. Easy never raises a scenario that is already under the cap.
+static func list_hi(hi: int, easy: bool) -> int:
+	return mini(hi, EASY_LIST_CAP) if easy else hi
+
+
+static func list_lo(lo: int, hi: int) -> int:
+	return mini(lo, hi)
+
+
+static func dirt_interval(sec: float, easy: bool) -> float:
+	return sec * EASY_DIRT_INTERVAL_MULT if easy else sec
+
+
+static func dirt_start(easy: bool) -> int:
+	return EASY_DIRT_START if easy else DIRT_START_COUNT
+
+
+static func thief_rate(rate: float, easy: bool) -> float:
+	return rate * EASY_THIEF_RATE_MULT if easy else rate
+
+
+static func dissat_gain(amount: float, easy: bool) -> float:
+	if amount <= 0.0:
+		return 0.0
+	return amount * EASY_DISSAT_MULT if easy else amount
 
 
 static func dirt_dissat(dtype: String) -> float:

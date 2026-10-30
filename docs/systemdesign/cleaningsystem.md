@@ -32,5 +32,5 @@
 增加幅度按AGI數值大小決定, AGI數值越大增加得越快。
 對齊 `playerstats.md`：全力轉搖桿時，AGI 10 約 5 秒滿計、AGI 50 約 1 秒，中間線性。放手重置。清潔要空手。
 **清潔期間不顯示**角色黃色長按 Loading Circle（上架／收銀用那種）；只保留污物上的藍色計＋搖桿，避免雙圈重疊。
-生成頻率、同時上限、三類不滿／氣力數字以各 Demo scope 為準。長線數字留待 Beta，見 `docs/beta/design.md`。
+生成頻率、同時上限、三類不滿／氣力數字以各 Demo scope 為準。長線數字留待 Beta，見 `docs/beta/design.md`。測試版難度「簡易」把生成間隔加倍、開場污物改為 1 團；同時上限不變。見 `storepreparationphase.md`。
 凌波微步對三類額外效果的豁免見 `playerpassiveskills.md`。小偷踩污物不受影響（見 `thiefsystem.md`）。

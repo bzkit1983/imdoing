@@ -68,6 +68,42 @@ theme_override_constants/h_separation = 10
 theme_override_constants/v_separation = 10
 columns = 3
 
+[node name="DiffBar" type="HBoxContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+clip_contents = true
+offset_left = 24.0
+offset_top = 468.0
+offset_right = 1256.0
+offset_bottom = 520.0
+theme_override_constants/separation = 10
+
+[node name="DiffLabel" type="Label" parent="DiffBar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 52)
+size_flags_vertical = 4
+text = "難度"
+vertical_alignment = 1
+text_overrun_behavior = 3
+
+[node name="DiffEasy" type="Button" parent="DiffBar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 52)
+size_flags_horizontal = 3
+size_flags_vertical = 4
+focus_mode = 0
+text = "簡易"
+text_overrun_behavior = 3
+
+[node name="DiffNormal" type="Button" parent="DiffBar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 52)
+size_flags_horizontal = 3
+size_flags_vertical = 4
+focus_mode = 0
+text = "普通"
+text_overrun_behavior = 3
+
 [node name="OpenBar" type="HBoxContainer" parent="."]
 unique_name_in_owner = true
 visible = false
