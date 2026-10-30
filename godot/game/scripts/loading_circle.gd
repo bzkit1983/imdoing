@@ -1,7 +1,8 @@
 extends Node2D
 
-## Hold-to-act ring. Drawn on a viewport-root CanvasLayer so y-sorted world
-## sprites (shelves, player) cannot cover it.
+## Hold-to-act ring. Drawn on a viewport-root CanvasLayer so y-sorted shelves
+## cannot cover it. The overlay is a Control with a real rect: a Node2D that
+## only custom-draws is culled on that layer, so the ring never appeared.
 
 const OVERLAY_LAYER := 40
 
@@ -9,11 +10,15 @@ var progress: float = 0.0
 var blocked: bool = false
 
 var _layer: CanvasLayer
-var _overlay: Node2D
+var _overlay: Control
 
 
-class Overlay extends Node2D:
+class Overlay extends Control:
 	var host: Node
+
+	func _init() -> void:
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+		size = Vector2(120, 120)
 
 	func _process(_delta: float) -> void:
 		if host == null or not is_instance_valid(host):
@@ -22,25 +27,26 @@ class Overlay extends Node2D:
 		visible = show
 		if not show:
 			return
-		position = host.get_global_transform_with_canvas().origin
+		var origin: Vector2 = host.get_global_transform_with_canvas().origin + Vector2(0, -78)
+		position = origin - size * 0.5
 		queue_redraw()
 
 	func _draw() -> void:
 		if host == null or not is_instance_valid(host):
 			return
-		host.call("_draw_ring", self)
+		host.call("_draw_ring", self, size * 0.5)
 
 
 func _ready() -> void:
 	_layer = CanvasLayer.new()
 	_layer.name = "LoadingCircleLayer"
 	_layer.layer = OVERLAY_LAYER
-	# Sibling of the main scene under the viewport — not under World y-sort.
-	get_tree().root.add_child(_layer)
 	_overlay = Overlay.new()
 	_overlay.name = "LoadingCircleOverlay"
 	_overlay.host = self
 	_layer.add_child(_overlay)
+	# Root may still be entering the tree when the player is spawned.
+	get_tree().root.add_child.call_deferred(_layer)
 
 
 func _exit_tree() -> void:
@@ -49,9 +55,8 @@ func _exit_tree() -> void:
 		_layer = null
 
 
-func _draw_ring(canvas: CanvasItem) -> void:
+func _draw_ring(canvas: CanvasItem, c: Vector2) -> void:
 	## Sit above the sprite so the hold ring does not cover character anims.
-	var c := Vector2(0, -78)
 	if blocked:
 		canvas.draw_arc(c, 22, 0.0, TAU, 40, Color("c45c26", 0.95), 5.0)
 		canvas.draw_line(c + Vector2(-10, -10), c + Vector2(10, 10), Color("f4f1ea"), 3.2)
