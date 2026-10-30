@@ -19,7 +19,7 @@ Yes! My Lord!／安撫／全體集資等「全體客人」**不包括**小偷
 若在離場途中被抓住 KO、貨箱砸中 KO、或衝刺撞飛，贓物散落／原地掉落可撿，**不計被偷**。
 被偷貨品不會算進營業額
 被偷貨品和價值會另外計算被偷統計，在營運結束後顯示
-清單件數、同時人數和出現間隔以各 Demo scope 為準。長線數字留待 Beta，見 `docs/beta/design.md`。
+清單件數、同時人數和出現間隔以各 Demo scope 為準。長線數字留待 Beta，見 `docs/beta/design.md`。測試版難度「簡易」把每次出現判定的機率減半（與霸王色疊乘）；間隔與清單件數不變。見 `storepreparationphase.md`。
 近／遠／原地三種贓物落地半徑**暫定跟活線**（`Tuning.LOOT_SCATTER_*`／`LOOT_INPLACE_MAX`）；若要改再提。
 
 #**打擊小偷行動方式**

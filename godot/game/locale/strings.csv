@@ -70,6 +70,11 @@ prep.elite_test.info,選等級後進入確認開店。此模式保證至少出�
 prep.elite_test.lv,麻煩客人 LV%d,Elite guest LV%d
 prep.elite_test.mixed,混合 LV（不同等級）,Mixed levels
 prep.elite_test.confirm_note,【測試】麻煩客人模式：%s　（必出≥1；其後約40%）,【Test】Elite mode: %s (≥1 guaranteed; ~40% after)
+prep.difficulty.label,難度,Difficulty
+prep.difficulty.easy,簡易,Easy
+prep.difficulty.normal,普通,Normal
+prep.difficulty.confirm_easy,【測試】簡易：一般客人清單最多 5 件（劇本更少則維持）。污物間隔加倍、開場 1 團。小偷出現率減半。不滿增加減半。,"[Test] Easy. Guest lists at most 5 (or the lower scenario cap). Dirt spawns half as often and starts with 1. Thief chance is halved. Dissatisfaction gains are halved."
+prep.difficulty.confirm_normal,【測試】難度：普通（按現有設計）,[Test] Normal (current rules)
 prep.home.test_money_ok,已增加資金 $1000　現有 $%d,Added $1000 · now $%d
 prep.home.sfx_test,音效測試,SFX test
 prep.sfx.title,音效測試,SFX Test

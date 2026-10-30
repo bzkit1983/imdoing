@@ -17,6 +17,7 @@
 | 暫停選單＋掛起／恢復＋SFX 音量 | **`docs/systemdesign/pausemenu.md`** | `pause_menu.tscn`；`SfxBus` mute／volume；手機 Web「暫停」鈕 |
 | 音效需求表＋SfxBus＋測試頁 map | **`docs/systemdesign/soundeffects.md`** | `sfx_bus.gd`／`sfx_catalog.gd`；`sfx_test.tscn` 標註觸發 |
 | 準備選單測試資金 $1000 | **`docs/systemdesign/storepreparationphase.md`** | `ProductVersion.TEST_TOOLS`；prep home 按鈕 |
+| 測試版難度（簡易／普通） | **`docs/systemdesign/storepreparationphase.md`**；`customer.md`、`cleaningsystem.md`、`thiefsystem.md` | prep 主畫面；`Tuning` 簡易係數；`demo` 在開始營運後套用 |
 | Win／Linux 匯出（Steam 候選） | **`docs/alpha/export-presets.md`** | `export_presets.cfg`；輸出 `build/windows`／`build/linux`；feature `steam_candidate` |
 | 字串表 i18n | **`docs/alpha/i18n.md`** | `locale/strings.csv`；Autoload `Loc`；準備／暫停／HUD 已遷 |
 | 主機商務評估（帳號／W4／埠接） | **`docs/alpha/console-business.md`** | 文件結論：帳號可早開；W4 自埠預設；買工具前過釘版閘門 |

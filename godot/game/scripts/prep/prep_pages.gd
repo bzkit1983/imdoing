@@ -34,6 +34,9 @@ static func parent_page(page: String) -> String:
 
 
 static func apply_panel_layout(menu: CanvasLayer) -> void:
+	menu._info.position = Vector2(24, 72)
+	menu._info.size = Vector2(976, 76)
+	menu._info.clip_contents = false
 	var qty_on: bool = menu._page == "buy" and menu._qty_sku != ""
 	var hub := is_hub_page(menu._page)
 	menu._grid.visible = menu._page == "layout"
@@ -45,6 +48,8 @@ static func apply_panel_layout(menu: CanvasLayer) -> void:
 		menu._hub_panel.visible = hub
 	if menu._open_bar:
 		menu._open_bar.visible = menu._page == "home"
+	if menu._diff_bar:
+		menu._diff_bar.visible = menu._page == "home" and ProductVersion.test_tools_enabled()
 	if menu._back_btn:
 		menu._back_btn.visible = menu._page != "scenario" and menu._page != "home"
 	if menu._page == "stats":
@@ -59,8 +64,17 @@ static func apply_panel_layout(menu: CanvasLayer) -> void:
 		menu._list.z_index = 0
 	else:
 		menu._list.z_index = 0
-		menu._list.position = Vector2(24, 168)
-		menu._list.size = Vector2(1232, 430)
+		if menu._page == "confirm":
+			menu._info.position = Vector2(24, 72)
+			menu._info.size = Vector2(980, 180)
+			menu._info.clip_contents = true
+			menu._list.position = Vector2(24, 260)
+			menu._list.size = Vector2(1232, 390)
+		else:
+			menu._info.position = Vector2(24, 72)
+			menu._info.size = Vector2(976, 76)
+			menu._list.position = Vector2(24, 168)
+			menu._list.size = Vector2(1232, 430)
 
 
 static func fill(menu: CanvasLayer, page: String) -> void:
@@ -488,6 +502,9 @@ static func _confirm(menu: CanvasLayer) -> void:
 	if menu.demo != null and bool(menu.demo.get("elite_test_active")):
 		var mode := String(menu.demo.call("elite_test_label"))
 		info += "\n" + Loc.t("prep.elite_test.confirm_note", [mode])
+	if ProductVersion.test_tools_enabled() and menu.demo != null and menu.demo.has_method("play_is_easy"):
+		var easy := bool(menu.demo.call("play_is_easy"))
+		info += "\n" + Loc.t("prep.difficulty.confirm_easy" if easy else "prep.difficulty.confirm_normal")
 	menu._info.text = info
 	menu._add("開始　工資後資金約 $%d" % (menu.state.money - wage), "open", null)
 	menu._add(Loc.t("prep.back"), "go", "home")

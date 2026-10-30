@@ -196,6 +196,14 @@ func on_dirt() -> bool:
 	return _on_dirt_cached
 
 
+## Positive dissatisfaction. Easy difficulty scales the gain; reductions stay full.
+func gain_dissat(amount: float) -> void:
+	if amount <= 0.0 or temp_clerk:
+		return
+	var easy := _game != null and _game.has_method("play_is_easy") and bool(_game.call("play_is_easy"))
+	dissatisfaction = minf(Tuning.DISSAT_MAX, dissatisfaction + Tuning.dissat_gain(amount, easy))
+
+
 func _dirt_dissat_rate() -> float:
 	var rate := 0.0
 	for a in _dirt_areas:
@@ -329,7 +337,7 @@ func _physics_process(delta: float) -> void:
 		else:
 			_leave(true)
 	if on_dirt() and state != State.LEAVE and state != State.FIGHT and state != State.FLEE and not is_thief:
-		dissatisfaction = minf(Tuning.DISSAT_MAX, dissatisfaction + _dirt_dissat_rate() * td)
+		gain_dissat(_dirt_dissat_rate() * td)
 		mood = _dirt_mood()
 	if is_elite and state != State.LEAVE and state != State.FLEE and state != State.FIGHT:
 		_tick_elite_affixes(delta, td)
@@ -402,7 +410,7 @@ func _tick_seek(delta: float) -> void:
 		_timer = Tuning.THINK_SEC
 		SfxBus.play("sfx_guest_think")
 		if not is_thief:
-			dissatisfaction = minf(Tuning.DISSAT_MAX, dissatisfaction + Tuning.DISSAT_MISS)
+			gain_dissat(Tuning.DISSAT_MISS)
 		mood = "找不到%s" % Tuning.sku_name(want)
 		_sku_popup(want, SkuIcons.KIND_MISS)
 		return
@@ -433,7 +441,7 @@ func _take_current() -> void:
 		_timer = Tuning.THINK_SEC
 		SfxBus.play("sfx_guest_think")
 		if not is_thief:
-			dissatisfaction = minf(Tuning.DISSAT_MAX, dissatisfaction + Tuning.DISSAT_MISS)
+			gain_dissat(Tuning.DISSAT_MISS)
 		mood = "找不到%s" % Tuning.sku_name(want)
 		_sku_popup(want, SkuIcons.KIND_MISS)
 		_target_shelf = null
@@ -457,7 +465,7 @@ func _after_think() -> void:
 			return
 		state = State.THINK
 		_timer = Tuning.THINK_SEC
-		dissatisfaction = minf(Tuning.DISSAT_MAX, dissatisfaction + Tuning.DISSAT_MISS)
+		gain_dissat(Tuning.DISSAT_MISS)
 		mood = "還是找不到…"
 		if not shopping.is_empty():
 			_sku_popup(String(shopping[0]), SkuIcons.KIND_MISS)
@@ -540,7 +548,7 @@ func _tick_queue(delta: float, td: float) -> void:
 		velocity = Vector2.ZERO
 	var blocked := _game and _game.has_method("queue_dissat_blocked") and bool(_game.queue_dissat_blocked())
 	if not is_thief and not blocked:
-		dissatisfaction = minf(Tuning.DISSAT_MAX, dissatisfaction + Tuning.DISSAT_QUEUE_PER_SEC * td)
+		gain_dissat(Tuning.DISSAT_QUEUE_PER_SEC * td)
 	mood = "排隊中"
 
 
@@ -769,7 +777,7 @@ func dash_knock_guest(add_dissat: float) -> void:
 	for s in shopping:
 		rebuy.append(s)
 	_drop_cart_inplace()
-	dissatisfaction = minf(Tuning.DISSAT_MAX, dissatisfaction + maxf(0.0, add_dissat))
+	gain_dissat(add_dissat)
 	shopping = rebuy
 	cart.clear()
 	raided = false
@@ -840,7 +848,7 @@ func apply_toss_reject(sku: String = "") -> void:
 			_sku_popup(sku, SkuIcons.KIND_BAD)
 		_sync_labels()
 		return
-	dissatisfaction = minf(Tuning.DISSAT_MAX, dissatisfaction + Tuning.TOSS_GUEST_WRONG_DISSAT)
+	gain_dissat(Tuning.TOSS_GUEST_WRONG_DISSAT)
 	mood = "不想要這貨品！"
 	if sku != "":
 		_sku_popup(sku, SkuIcons.KIND_BAD)
@@ -1219,7 +1227,8 @@ func _elite_incite(td: float) -> void:
 		## Aura still reaches a temp clerk; the locked number does not move.
 		if bool(c.get("temp_clerk")):
 			continue
-		c.dissatisfaction = minf(Tuning.DISSAT_MAX, float(c.dissatisfaction) + rate * td)
+		if c.has_method("gain_dissat"):
+			c.gain_dissat(rate * td)
 
 
 func _elite_contact_shelf() -> Node2D:
@@ -1379,7 +1388,7 @@ func elite_drive_off(add: float) -> void:
 		return
 	if state == State.LEAVE or state == State.FLEE or state == State.FIGHT:
 		return
-	dissatisfaction = minf(Tuning.DISSAT_MAX, dissatisfaction + maxf(0.0, add))
+	gain_dissat(add)
 	mood = "被趕走…？"
 	if dissatisfaction >= Tuning.DISSAT_MAX:
 		_drop_cart_inplace()

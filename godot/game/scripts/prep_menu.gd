@@ -48,6 +48,10 @@ var _hub_panel: GridContainer
 var _open_bar: HBoxContainer
 var _open_main: Button
 var _open_elite: Button
+var _diff_bar: HBoxContainer
+var _diff_easy: Button
+var _diff_normal: Button
+var _diff_cursor: int = 1
 var _click_arm: int = -1
 var _list_dragging: bool = false
 var _list_press := Vector2.ZERO
@@ -64,7 +68,7 @@ var _size_side: int = 1
 var _on_size_btns: bool = false
 var _qty_panel: VBoxContainer
 var _hub_cols: int = 3
-var _open_focus: int = -1 ## -1 tiles · 0 open main · 1 elite
+var _open_focus: int = -1 ## -1 tiles · 10 difficulty · 0 open main · 1 elite
 var _shade: ColorRect
 var _box: Control
 var _dlg_title: Label
@@ -105,6 +109,9 @@ func _bind_nodes() -> void:
 	_open_bar = %OpenBar
 	_open_main = %OpenMain
 	_open_elite = %OpenElite
+	_diff_bar = %DiffBar
+	_diff_easy = %DiffEasy
+	_diff_normal = %DiffNormal
 	_stats_panel = %StatsPanel
 	_size_panel = %SizePanel
 	_qty_panel = %QtyPanel
@@ -121,6 +128,8 @@ func _bind_nodes() -> void:
 	_back_btn.button_down.connect(_on_back_button)
 	_open_main.pressed.connect(_on_open_main_pressed)
 	_open_elite.pressed.connect(_on_open_elite_pressed)
+	_diff_easy.pressed.connect(_on_diff_easy_pressed)
+	_diff_normal.pressed.connect(_on_diff_normal_pressed)
 	_dlg_yes.pressed.connect(_on_dlg_yes)
 	_dlg_no.pressed.connect(_on_dlg_no)
 	UiFont.apply_label(_title, PREP_TITLE)
@@ -146,6 +155,14 @@ func _bind_nodes() -> void:
 	%Hint.add_theme_color_override("font_color", Color("c8d4c5"))
 	_open_main.text = Loc.t("prep.home.open")
 	_open_elite.text = Loc.t("prep.home.elite_test")
+	%DiffLabel.text = Loc.t("prep.difficulty.label")
+	UiFont.apply_label(%DiffLabel, 26)
+	%DiffLabel.add_theme_color_override("font_color", Color("f4f1ea"))
+	%DiffLabel.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_diff_easy.text = Loc.t("prep.difficulty.easy")
+	_diff_normal.text = Loc.t("prep.difficulty.normal")
+	UiFont.apply_button(_diff_easy, 26)
+	UiFont.apply_button(_diff_normal, 26)
 	UiFont.apply_button(_open_main, 26)
 	UiFont.apply_button(_open_elite, 20)
 	_open_main.custom_minimum_size = Vector2(0, PrepWidgets.OPEN_MAIN_H)
@@ -154,6 +171,7 @@ func _bind_nodes() -> void:
 	_open_elite.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	PrepWidgets.paint_open_main(_open_main, false)
 	PrepWidgets.paint_open_elite(_open_elite, false)
+	_paint_diff()
 	UiFont.apply_label(_dlg_title, PREP_TITLE)
 	_dlg_title.add_theme_color_override("font_color", Color("f4d35e"))
 	UiFont.apply_label(_dlg_body, PREP_INFO)
@@ -289,6 +307,7 @@ func _setup_open_bar() -> void:
 	_open_main.text = Loc.t("prep.home.open")
 	_open_elite.text = Loc.t("prep.home.elite_test")
 	_open_elite.visible = ProductVersion.test_tools_enabled()
+	_sync_diff_from_demo()
 	_open_main.custom_minimum_size = Vector2(0, PrepWidgets.OPEN_MAIN_H)
 	_open_elite.custom_minimum_size = Vector2(0, PrepWidgets.OPEN_ELITE_H)
 	## Keep open bar from eating vertical space above the tiles.
@@ -323,6 +342,16 @@ func _layout_hub_chrome() -> void:
 	var preferred := 600.0 - open_h
 	if preferred > open_top:
 		open_top = preferred
+	if _diff_bar != null and _diff_bar.visible:
+		var diff_h := PrepWidgets.DIFF_H
+		var diff_top := open_top - 10.0 - diff_h
+		var min_top := top + hub_h + 12.0
+		if diff_top < min_top:
+			diff_top = min_top
+			open_top = diff_top + diff_h + 10.0
+		_diff_bar.position = Vector2(24, diff_top)
+		_diff_bar.size = Vector2(1232, diff_h)
+		_diff_bar.clip_contents = true
 	_open_bar.position = Vector2(24, open_top)
 	_open_bar.size = Vector2(1232, open_h)
 	_open_bar.clip_contents = true
@@ -348,6 +377,7 @@ func _paint_open_selection() -> void:
 		return
 	PrepWidgets.paint_open_main(_open_main, _page == "home" and _open_focus == 0)
 	PrepWidgets.paint_open_elite(_open_elite, _page == "home" and _open_focus == 1)
+	_paint_diff()
 
 
 func _on_hub_pressed(i: int) -> void:
@@ -377,6 +407,53 @@ func _on_open_main_pressed() -> void:
 		_show_page("confirm")
 	else:
 		_popup_info("不能開店", "\n".join(blocks))
+
+
+func _diff_on() -> bool:
+	return _diff_bar != null and _diff_bar.visible and _page == "home"
+
+
+func _sync_diff_from_demo() -> void:
+	var easy := false
+	if demo != null and demo.has_method("play_is_easy"):
+		easy = bool(demo.call("play_is_easy"))
+	_diff_cursor = 0 if easy else 1
+	_paint_diff()
+
+
+func _choose_difficulty(easy: bool) -> void:
+	if demo != null and demo.has_method("set_play_difficulty"):
+		demo.call("set_play_difficulty", "easy" if easy else "normal")
+	_diff_cursor = 0 if easy else 1
+	_paint_diff()
+
+
+func _paint_diff() -> void:
+	if _diff_easy == null or _diff_normal == null:
+		return
+	var focus := _page == "home" and _open_focus == 10
+	PrepWidgets.paint_choice(_diff_easy, _diff_cursor == 0, focus and _diff_cursor == 0)
+	PrepWidgets.paint_choice(_diff_normal, _diff_cursor == 1, focus and _diff_cursor == 1)
+
+
+func _on_diff_easy_pressed() -> void:
+	if _dlg_open or _swallow_click or _confirm_latch or _building:
+		return
+	if not ProductVersion.test_tools_enabled():
+		return
+	_open_focus = 10
+	_choose_difficulty(true)
+	SfxBus.play("sfx_ui_confirm")
+
+
+func _on_diff_normal_pressed() -> void:
+	if _dlg_open or _swallow_click or _confirm_latch or _building:
+		return
+	if not ProductVersion.test_tools_enabled():
+		return
+	_open_focus = 10
+	_choose_difficulty(false)
+	SfxBus.play("sfx_ui_confirm")
 
 
 func _on_open_elite_pressed() -> void:
@@ -568,6 +645,9 @@ func _activate() -> void:
 			_refresh()
 		else:
 			_show_page("hub_char")
+		return
+	if _page == "home" and _open_focus == 10:
+		_choose_difficulty(_diff_cursor == 0)
 		return
 	if _page == "home" and _open_focus == 0:
 		_on_open_main_pressed()
@@ -1118,9 +1198,27 @@ func _move(x: int, y: int) -> void:
 func _move_hub(x: int, y: int) -> void:
 	if _rows.is_empty() and _page != "home":
 		return
-	if _page == "home" and _open_focus >= 0:
+	if _page == "home" and _open_focus == 10:
 		if y < 0:
 			_open_focus = -1
+			SfxBus.play("sfx_ui_move")
+			_paint_hub_selection()
+			return
+		if y > 0:
+			_open_focus = 0
+			SfxBus.play("sfx_ui_move")
+			_paint_open_selection()
+			return
+		if x < 0:
+			_choose_difficulty(true)
+			SfxBus.play("sfx_ui_move")
+		elif x > 0:
+			_choose_difficulty(false)
+			SfxBus.play("sfx_ui_move")
+		return
+	if _page == "home" and _open_focus >= 0:
+		if y < 0:
+			_open_focus = 10 if _diff_on() else -1
 			SfxBus.play("sfx_ui_move")
 			_paint_hub_selection()
 			return
@@ -1144,7 +1242,7 @@ func _move_hub(x: int, y: int) -> void:
 		elif y > 0:
 			var cand := _index + cols
 			if _page == "home" and cand >= n:
-				_open_focus = 0
+				_open_focus = 10 if _diff_on() else 0
 				SfxBus.play("sfx_ui_move")
 				_paint_hub_selection()
 				return

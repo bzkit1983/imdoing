@@ -20,6 +20,7 @@ const PauseScene = preload("res://scenes/pause_menu.tscn")
 const UiFont = preload("res://scripts/ui_font.gd")
 const Vox = preload("res://scripts/voxel_sprite.gd")
 const FloorTilesScript = preload("res://scripts/floor_tiles.gd")
+const ProductVersion = preload("res://scripts/product_version.gd")
 
 var FLOOR_SIZE := Vector2(640, 640)
 var FLOOR_ORIGIN := Vector2(48, 36)
@@ -44,6 +45,8 @@ var angry_left: int = 0
 ## EliteCustomer zoom queue (fight/dash camera has priority).
 var _elite_zoom_queue: Array = []
 var _elite_zoom_busy: bool = false
+## Prep test difficulty（TEST_TOOLS）: "normal" keeps current rules, "easy" eases the day.
+var play_difficulty: String = "normal"
 ## Prep test: 麻煩客人模式（TEST_TOOLS）. lv 0 = mixed 1–6; else fixed LV.
 var elite_test_active: bool = false
 var elite_test_lv: int = 0
@@ -122,7 +125,7 @@ func _begin_day() -> void:
 	_sfx_phase = "restock"
 	SfxBus.play("sfx_phase_restock")
 	_spawn_in = 2.0
-	_dirt_spawn_in = state.dirt_spawn_sec()
+	_dirt_spawn_in = dirt_spawn_interval()
 	_thief_spawn_in = state.thief_spawn_first()
 	FLOOR_SIZE = Vector2(state.grid_w, state.grid_h) * StateScript.CELL
 	_world = Node2D.new()
@@ -178,7 +181,7 @@ func _begin_day() -> void:
 			_player.set_hold(action, pressed)
 	)
 	_spawn_clerks()
-	for i in Tuning.DIRT_START_COUNT:
+	for i in Tuning.dirt_start(_play_easy()):
 		_try_spawn_dirt()
 
 
@@ -303,7 +306,33 @@ func sellable() -> Array[String]:
 
 
 func customer_list_bounds() -> Vector2i:
-	return Vector2i(state.customer_list_min(), state.customer_list_max())
+	var hi := Tuning.list_hi(state.customer_list_max(), _play_easy())
+	var lo := Tuning.list_lo(state.customer_list_min(), hi)
+	return Vector2i(lo, hi)
+
+
+func set_play_difficulty(id: String) -> void:
+	play_difficulty = "easy" if id == "easy" else "normal"
+
+
+func play_is_easy() -> bool:
+	return _play_easy()
+
+
+func dissat_gain_mult() -> float:
+	return Tuning.EASY_DISSAT_MULT if _play_easy() else 1.0
+
+
+func dirt_spawn_interval() -> float:
+	return Tuning.dirt_interval(state.dirt_spawn_sec(), _play_easy())
+
+
+func thief_appear_rate() -> float:
+	return Tuning.thief_rate(state.thief_spawn_rate(), _play_easy())
+
+
+func _play_easy() -> bool:
+	return ProductVersion.test_tools_enabled() and play_difficulty == "easy"
 
 
 func queue_dissat_blocked() -> bool:
@@ -993,7 +1022,7 @@ func _process(delta: float) -> void:
 	_dirt_spawn_in -= world_delta(delta)
 	if _dirt_spawn_in <= 0.0:
 		_try_spawn_dirt()
-		_dirt_spawn_in = state.dirt_spawn_sec()
+		_dirt_spawn_in = dirt_spawn_interval()
 
 
 func find_shelf(sku: String) -> Node2D:
@@ -1363,7 +1392,7 @@ func _play_elite_zoom(c: Node) -> void:
 func _spawn_thief() -> void:
 	if state.sellable().is_empty():
 		return
-	if randf() > state.thief_spawn_rate():
+	if randf() > thief_appear_rate():
 		return
 	if thief_count() >= Tuning.THIEF_CAP:
 		return
