@@ -16,6 +16,7 @@
 | shelf_dry／frozen／ice | fill_0…fill_3 | 四向 | 已接 `shelf.gd` |
 | trash／puddle／vomit | clean_0…clean_2 | 清潔中 | 已接 `dirt.gd` |
 | fx | suck／spray／coin／combo／timestop／clean_spark／skid | 短序列 | 已接 `fx_burst.gd` |
+| fx | smoke（多重影分身消失） | 短序列 | **未做**。規則見 `docs/systemdesign/shadowclone.md`；實作可先用現有 burst 佔位 |
 
 檔名：`art/sprites/{id}_{anim}_{facing}_{frame}.png` · 清單：`art/sprites/anim_manifest.json` · 道具：`props_manifest.json`
 

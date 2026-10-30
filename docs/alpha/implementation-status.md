@@ -43,6 +43,7 @@
 | 技能選單先開再放 | **`docs/systemdesign/playerskills.md`**、`control.md` | **已實作**。短按／長按技能鍵都先開選單；選單開著時方向不走路 |
 | 狙擊手（貨架／客人／小偷） | **`docs/systemdesign/playeractiveskills.md`**、`playeraction.md`、`replenishmentsystem.md`、`customerdelivery.md`、`thiefsystem.md` | **已實作**。各 COST 2、維持 30 秒、表列 CD 10。有方向投出改飛技能目標；腳邊丟掉不受影響。同時生效優先序：**小偷 → 客人 → 貨架** |
 | Dark Side | **`docs/systemdesign/darkside.md`**、`playeractiveskills.md` | **已實作**。COST 2、表列 CD 30（吃 INT）。準備頁選 LV1／2／3（預設 LV3），抽 1／2／3 名客人當臨時收銀或補貨 30 現實秒。不佔雇員、不扣日薪、仍算在店客人 |
+| 多重影分身 | **`docs/systemdesign/shadowclone.md`**、`playeractiveskills.md` | **已拍板，未實作**。COST 3、表列 CD 30（吃 INT）。準備頁選 LV1／2／3（預設 LV3），身旁生 1／2／3 個半透明玩家分身當收銀／補貨 30 現實秒。能力用施放當下 STR／AGI／INT＋被動。再放先讓舊分身消失 |
 | 技能測試劇本 | **`docs/systemdesign/storepreparationphase.md`** | **已實作**。劇本4：LV10、三圍 20、$99999、規模 LV3 18×10、已放好可開工店面 |
 | Design Gap 拍板（v1.1.0） | **`docs/systemdesign-gaps.md`**；各 systemdesign 檔 | 衝刺撞客人／擁擠／凌波微步／丟掉砸客人／多台選隊／重置費用／衝刺算抓住等；見 gaps「已處理」 |
 | 麻煩客人 EliteCustomer | **`docs/systemdesign/elitecustomer.md`**、`customer.md`、`ecosystem.md` | `customer.become_elite`／詞綴；`demo` 1–5% spawn＋橫幅／ZOOM；收銀雙倍＋`XP_ELITE_SERVE`；活線暫只解鎖 LV1 |
