@@ -243,6 +243,31 @@ func _has_flag(flag: String) -> bool:
 	return stats != null and stats.has_method("has_flag") and bool(stats.has_flag(flag))
 
 
+## Snapshot for Multiple Shadow Clone. Actives and carry/polite/global passives stay off.
+func clone_snapshot() -> Dictionary:
+	var move_pct := 0.0
+	var restock_pct := 0.0
+	var checkout_pct := 0.0
+	var wave := false
+	for sk in _loadout():
+		if String(sk.get("kind")) != "passive":
+			continue
+		move_pct += float(sk.get("move_pct", 0.0))
+		restock_pct += float(sk.get("restock_pct", 0.0))
+		checkout_pct += float(sk.get("checkout_pct", 0.0))
+		if bool(sk.get("ignore_dirt_slow", false)):
+			wave = true
+	return {
+		"str": _stat_base("str"),
+		"agi": _stat_base("agi"),
+		"int": _stat_base("int"),
+		"move_pct": move_pct,
+		"restock_pct": restock_pct,
+		"checkout_pct": checkout_pct,
+		"wave_step": wave,
+	}
+
+
 func _refresh_passive_checkout() -> void:
 	_passive_checkout_pct = 0.0
 	for sk in _loadout():
@@ -1637,6 +1662,26 @@ func _dash_guests() -> Array:
 	return found
 
 
+func _dash_clone() -> Node:
+	var g := _game()
+	if g == null or not g.has_method("shadow_clones"):
+		return null
+	var best: Node = null
+	var best_d := Tuning.DASH_HIT_RANGE
+	for c in g.call("shadow_clones"):
+		if c == null or not is_instance_valid(c):
+			continue
+		if bool(c.get("_vanishing")):
+			continue
+		if float(c.get("_dash_stun_left")) > 0.0:
+			continue
+		var d := global_position.distance_to(c.global_position)
+		if d <= best_d:
+			best_d = d
+			best = c
+	return best
+
+
 ## Warm halo on the one object the interact button would actually use.
 func _sync_interact_glow() -> void:
 	var host := _glow_host_now()
@@ -2031,26 +2076,38 @@ func _try_dash_hits() -> void:
 				_end_fight(false)
 			return
 	## One guest resolution per dash: deliver if 衝刺交付 is up and the nearest wants a carried piece, else KO.
+	## Clones are after guests so 衝刺交付 never hands goods to a clone.
+	if not _dash_guest_done:
+		var guests := _dash_guests()
+		if not guests.is_empty():
+			var nearest: Node = guests[0]
+			if buff_left("dash_deliver") > 0.0 and nearest.has_method("can_receive_delivery") and bool(nearest.call("can_receive_delivery")) and _guest_wants_carried(nearest):
+				var gave := _hand_deliver(guests, false)
+				if gave > 0:
+					_dash_guest_done = true
+					log_line.emit("衝刺交付 ×%d — 不撞飛" % gave)
+					return
+			_dash_guest_done = true
+			var add := 0.0 if _has_flag("polite_dash") else Tuning.DASH_GUEST_DISSAT
+			if g.has_method("play_ko_banner"):
+				g.call("play_ko_banner")
+			if nearest.has_method("dash_knock_guest"):
+				nearest.call("dash_knock_guest", add)
+			SfxBus.play("sfx_ko_guest_dash")
+			log_line.emit("衝刺撞到客人 — 暈眩 2 秒，貨品掉落" if add > 0.0 else "衝刺撞到客人 — 禮貌衝撞，不滿不增加")
+			return
 	if _dash_guest_done:
 		return
-	var guests := _dash_guests()
-	if guests.is_empty():
+	var clone := _dash_clone()
+	if clone == null:
 		return
-	var nearest: Node = guests[0]
-	if buff_left("dash_deliver") > 0.0 and nearest.has_method("can_receive_delivery") and bool(nearest.call("can_receive_delivery")) and _guest_wants_carried(nearest):
-		var gave := _hand_deliver(guests, false)
-		if gave > 0:
-			_dash_guest_done = true
-			log_line.emit("衝刺交付 ×%d — 不撞飛" % gave)
-			return
 	_dash_guest_done = true
-	var add := 0.0 if _has_flag("polite_dash") else Tuning.DASH_GUEST_DISSAT
 	if g.has_method("play_ko_banner"):
 		g.call("play_ko_banner")
-	if nearest.has_method("dash_knock_guest"):
-		nearest.call("dash_knock_guest", add)
+	if clone.has_method("dash_knock"):
+		clone.call("dash_knock")
 	SfxBus.play("sfx_ko_guest_dash")
-	log_line.emit("衝刺撞到客人 — 暈眩 2 秒，貨品掉落" if add > 0.0 else "衝刺撞到客人 — 禮貌衝撞，不滿不增加")
+	log_line.emit("衝刺撞到分身 — 暈眩 2 秒，箱子掉落")
 
 
 func _try_wave_dirt_vfx() -> void:
@@ -2521,13 +2578,13 @@ func _cast_slot(i: int) -> void:
 		return
 	_cd[sid] = Tuning.cd_seconds(float(sk.get("cd", Skills.ACTIVE_CD)), _int_now())
 	## 衝刺交付: the armed window is the cooldown itself, and INT does not shorten this 5s.
-	## Dark Side: CD still eats INT, but each drafted guest keeps their own 30s.
-	## Recast must not refresh people already working.
+	## Dark Side / Multiple Shadow Clone: CD still eats INT, but each body keeps its own 30s.
+	## Recast must not refresh people already working (clones despawn then respawn).
 	if bool(sk.get("dash_deliver", false)):
 		var window := float(sk.get("cd", 5.0))
 		_cd[sid] = window
 		_buffs[sid] = window
-	elif bool(sk.get("dark_side", false)):
+	elif bool(sk.get("dark_side", false)) or bool(sk.get("shadow_clone", false)):
 		_buffs.erase(sid)
 	else:
 		_buffs[sid] = float(sk.get("duration", Skills.ACTIVE_DURATION))
@@ -2544,6 +2601,10 @@ func _cast_slot(i: int) -> void:
 			var host := _game()
 			if host and host.has_method("cast_dark_side"):
 				host.call("cast_dark_side", int(sk.get("lv", 3)))
+		elif bool(sk.get("shadow_clone", false)):
+			var clone_host := _game()
+			if clone_host and clone_host.has_method("cast_shadow_clone"):
+				clone_host.call("cast_shadow_clone", int(sk.get("lv", 3)))
 		SfxBus.play("sfx_skill_cast")
 	log_line.emit("施放 %s LV%d" % [String(sk.get("name")), int(sk.get("lv", 3))])
 	_begin_cast_pose(false)

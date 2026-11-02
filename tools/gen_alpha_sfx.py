@@ -322,6 +322,10 @@ R("sfx_ult_fundraise", lambda: mix(
     gap=0.025,
 ))
 R("sfx_skill_soothe", lambda: tone(0.22, 380, kind="sine", vol=0.26, a=0.02, d=0.08, s=0.35, r=0.1, slide=0.15, seed=150))
+R("sfx_skill_clone_vanish", lambda: overlay(
+    tone(0.22, 220, kind="sine", vol=0.22, a=0.01, d=0.06, s=0.2, r=0.12, slide=-0.35, noise_mix=0.45, seed=151),
+    tone(0.16, 140, kind="tri", vol=0.16, a=0.005, d=0.05, s=0.15, r=0.08, slide=-0.2, seed=152),
+))
 
 # --- clerks ---
 R("sfx_clerk_pull", lambda: tone(0.12, 170, kind="tri", vol=0.22, a=0.002, d=0.04, s=0.15, r=0.05, slide=0.2, seed=160))
@@ -402,7 +406,7 @@ PRIORITY = {
     "sfx_box_hit_guest_ok": "P1", "sfx_box_hit_guest_reject": "P1",
     "sfx_guest_angry_leave": "P1", "sfx_guest_dash_land": "P1",
     "sfx_skill_menu_open": "P1", "sfx_skill_cd_deny": "P1", "sfx_ult_prep": "P1",
-    "sfx_ult_the_world_end": "P1", "sfx_skill_soothe": "P1",
+    "sfx_ult_the_world_end": "P1", "sfx_skill_soothe": "P1", "sfx_skill_clone_vanish": "P1",
     "sfx_phase_restock": "P1", "sfx_phase_open": "P1", "sfx_early_close_ask": "P1",
     "sfx_ui_move": "P1", "sfx_ui_confirm": "P1", "sfx_ui_cancel": "P1",
     "sfx_ui_purchase": "P1", "sfx_ui_place": "P1", "sfx_ui_pause_open": "P1",

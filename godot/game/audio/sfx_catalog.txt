@@ -52,6 +52,7 @@ sfx_phase_open	P1	res://audio/sfx/sfx_phase_open.wav	補貨結束→營運時段
 sfx_phase_restock	P1	res://audio/sfx/sfx_phase_restock.wav	進入補貨時段（日開始）
 sfx_shelf_stock_instant	P1	res://audio/sfx/sfx_shelf_stock_instant.wav	瞬間補貨 LV3 略過 Circle 完成
 sfx_skill_cd_deny	P1	res://audio/sfx/sfx_skill_cd_deny.wav	CD 中／不能施放
+sfx_skill_clone_vanish	P1	res://audio/sfx/sfx_skill_clone_vanish.wav	多重影分身消失（煙霧；再放舊分身、30 秒到、提早關、關店）
 sfx_skill_menu_open	P1	res://audio/sfx/sfx_skill_menu_open.wav	長按技能開選單
 sfx_skill_soothe	P1	res://audio/sfx/sfx_skill_soothe.wav	安撫生效
 sfx_ui_cancel	P1	res://audio/sfx/sfx_ui_cancel.wav	選單取消／返回

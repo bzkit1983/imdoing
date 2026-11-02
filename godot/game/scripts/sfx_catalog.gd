@@ -58,6 +58,7 @@ const ENTRIES: Array[Dictionary] = [
 	{"id": "sfx_phase_restock", "priority": "P1", "path": "res://audio/sfx/sfx_phase_restock.wav", "group": "phase", "trigger": "進入補貨時段（日開始）"},
 	{"id": "sfx_shelf_stock_instant", "priority": "P1", "path": "res://audio/sfx/sfx_shelf_stock_instant.wav", "group": "shelf", "trigger": "瞬間補貨 LV3 略過 Circle 完成"},
 	{"id": "sfx_skill_cd_deny", "priority": "P1", "path": "res://audio/sfx/sfx_skill_cd_deny.wav", "group": "skill", "trigger": "CD 中／不能施放"},
+	{"id": "sfx_skill_clone_vanish", "priority": "P1", "path": "res://audio/sfx/sfx_skill_clone_vanish.wav", "group": "skill", "trigger": "多重影分身消失（煙霧；再放舊分身、30 秒到、提早關、關店）"},
 	{"id": "sfx_skill_menu_open", "priority": "P1", "path": "res://audio/sfx/sfx_skill_menu_open.wav", "group": "skill", "trigger": "短按或長按技能開選單"},
 	{"id": "sfx_skill_soothe", "priority": "P1", "path": "res://audio/sfx/sfx_skill_soothe.wav", "group": "skill", "trigger": "安撫生效"},
 	{"id": "sfx_ui_cancel", "priority": "P1", "path": "res://audio/sfx/sfx_ui_cancel.wav", "group": "ui", "trigger": "選單取消／返回"},

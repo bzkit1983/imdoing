@@ -285,12 +285,17 @@ static func _skill_set(menu: CanvasLayer) -> void:
 			var sk: Dictionary = Skills.by_id(id)
 			skill_name = String(sk.get("name", id))
 			kind = _kind_label(String(sk.get("kind"))) + "　"
-			if bool(sk.get("dark_side", false)):
+			if Skills.prep_picks_level(sk):
 				skill_name = "%s　LV%d" % [skill_name, menu.state.skill_level_of(i, id)]
 		menu._add(Loc.t("prep.skill_set.slot", [s + 1, kind, skill_name]), "pick_slot", s)
-	var dark_id := _dark_side_id(set_slots)
-	if dark_id != "":
-		menu._add("Dark Side 等級　LV%d" % menu.state.skill_level_of(i, dark_id), "cycle_skill_lv", dark_id)
+	for sid in set_slots:
+		var level_id := String(sid)
+		if level_id == "":
+			continue
+		var level_sk: Dictionary = Skills.by_id(level_id)
+		if not Skills.prep_picks_level(level_sk):
+			continue
+		menu._add("%s 等級　LV%d" % [String(level_sk.get("name")), menu.state.skill_level_of(i, level_id)], "cycle_skill_lv", level_id)
 	menu._add(Loc.t("prep.skill_set.ult", [_ult_label(menu.state.ult_of(i))]), "pick_slot", 5)
 	menu._add(Loc.t("prep.back"), "go", "skills")
 
@@ -313,14 +318,6 @@ static func _skill_rename(menu: CanvasLayer) -> void:
 		var ch := letters.substr(n, 1)
 		menu._add(ch, "rename_ch", ch)
 	menu._add(Loc.t("prep.back"), "go", "skill_set")
-
-
-static func _dark_side_id(set_slots: Array) -> String:
-	for id in set_slots:
-		if String(id) != "dark_side":
-			continue
-		return "dark_side"
-	return ""
 
 
 static func _ult_label(sk: Dictionary) -> String:
