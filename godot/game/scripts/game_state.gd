@@ -5,7 +5,8 @@ const Tuning = preload("res://scripts/tuning.gd")
 const Skills = preload("res://scripts/skills.gd")
 
 ## Bump when the save schema changes; from_dict must migrate or reject.
-const SAVE_VERSION := 1
+## 2+: stock is pieces. v1 saves store boxes and are multiplied by BOX_SIZE on load.
+const SAVE_VERSION := 2
 
 const CELL := 64.0
 const WAGE := 100
@@ -136,7 +137,7 @@ func _scenario_mid() -> void:
 	grid_h = 15
 	for sku in ["can", "snack", "cup", "drink", "milk"]:
 		developed[sku] = true
-		stock[sku] = 50
+		stock[sku] = 50 * Tuning.BOX_SIZE
 	owned = {"cashier": 1, "restock_dry": 1, "restock_frozen": 1, "shelf_dry_12": 2, "shelf_frozen_12": 2}
 	_place("restock_frozen", 1, 1, 0)
 	_place("restock_dry", 1, 5, 0)
@@ -164,7 +165,7 @@ func _scenario_late() -> void:
 	grid_h = 20
 	for sku in Tuning.SELLABLE_SKUS:
 		developed[sku] = true
-		stock[sku] = 99
+		stock[sku] = Tuning.RESTOCK_PIECES
 	owned = {
 		"cashier": 2,
 		"restock_dry": 1, "restock_frozen": 1, "restock_ice": 1,
@@ -207,7 +208,7 @@ func _scenario_skill() -> void:
 	grid_h = 10
 	for sku in ["can", "snack", "drink", "milk"]:
 		developed[sku] = true
-		stock[sku] = 50
+		stock[sku] = 50 * Tuning.BOX_SIZE
 	for type in FURNITURE.keys():
 		owned[type] = 2
 	# Door is cells (8,0) and (9,0). Cashiers sit on that row, one cell away.
@@ -330,30 +331,36 @@ func develop(sku: String) -> String:
 	return ""
 
 
-func buy_stock(sku: String, boxes: int) -> String:
+func buy_stock(sku: String, pieces: int) -> String:
 	if not developed.has(sku):
 		return "尚未開發"
-	boxes = clampi(boxes, 1, 99)
-	var cost := int(Tuning.SKU_COST.get(sku, 0)) * boxes
+	pieces = clampi(pieces, 1, Tuning.RESTOCK_PIECES)
+	var cost := Tuning.cost_for_pieces(sku, pieces)
 	if money < cost:
 		return "資金不足"
 	money -= cost
-	stock[sku] = int(stock.get(sku, 0)) + boxes
+	stock[sku] = int(stock.get(sku, 0)) + pieces
 	day_procurement += cost
 	return ""
 
 
-func consume_box(sku: String) -> bool:
-	if int(stock.get(sku, 0)) <= 0:
+## Consume `n` warehouse pieces. Returns false if stock is insufficient.
+func consume_stock(sku: String, n: int = 1) -> bool:
+	if n <= 0:
 		return false
-	stock[sku] = int(stock[sku]) - 1
+	if int(stock.get(sku, 0)) < n:
+		return false
+	stock[sku] = int(stock[sku]) - n
 	return true
 
 
-## Credit unsold shop pieces back to warehouse boxes at closeout.
-## `pieces_by_sku` maps sku → piece count (shelf + floor aggregate).
-## Remainders round up so leftover pieces are not discarded (`ceil(n / BOX_SIZE)`).
-## Returns total boxes added.
+func consume_box(sku: String) -> bool:
+	## Legacy alias: one piece (was one box). Prefer consume_stock.
+	return consume_stock(sku, 1)
+
+
+## Credit unsold shop pieces back to warehouse at closeout (exact pieces).
+## Returns total pieces added.
 func credit_unsold_pieces(pieces_by_sku: Dictionary) -> int:
 	var total := 0
 	for sku_v in pieces_by_sku.keys():
@@ -361,9 +368,8 @@ func credit_unsold_pieces(pieces_by_sku: Dictionary) -> int:
 		var pieces := int(pieces_by_sku[sku_v])
 		if sku == "" or pieces <= 0:
 			continue
-		var boxes := (pieces + Tuning.BOX_SIZE - 1) / Tuning.BOX_SIZE
-		stock[sku] = int(stock.get(sku, 0)) + boxes
-		total += boxes
+		stock[sku] = int(stock.get(sku, 0)) + pieces
+		total += pieces
 	return total
 
 
@@ -963,6 +969,10 @@ func from_dict(data: Dictionary) -> String:
 	int_stat = int(data.get("int_stat", base_int))
 	developed = _string_bool_dict(data.get("developed", {}))
 	stock = _string_int_dict(data.get("stock", {}))
+	if ver < 2:
+		## v1 stock was warehouse boxes; v2+ is pieces.
+		for sku_v in stock.keys():
+			stock[sku_v] = int(stock[sku_v]) * Tuning.BOX_SIZE
 	owned = _string_int_dict(data.get("owned", {}))
 	placed.clear()
 	var raw_placed = data.get("placed", [])

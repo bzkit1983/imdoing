@@ -20,7 +20,7 @@ hud.pause,暫停,Pause
 hud.revenue,營業額  $%d  ·  被偷 $%d,Sales  $%d  ·  Stolen $%d
 hud.guests,在店客人  %d  ·  小偷 %d,Guests  %d  ·  Thieves %d
 hud.state,狀態  %s,State  %s
-hud.carry,負重  %d / %d 箱,Carry  %d / %d boxes
+hud.carry,負重  %d / %d 件,Carry  %d / %d pcs
 hud.target_none,目標  補貨 / 貨架 / 污物 / 小偷 / 收銀機後方,Target  restock / shelf / dirt / thief / register
 hud.target_restock,目標  %s補貨 · 輕放執貨 · 長按選貨 [%s],Target  %s restock · tap take · hold pick [%s]
 hud.target_cashier,目標  收銀機 · 長按行動再輸方向,Target  register · hold act then move
@@ -121,7 +121,7 @@ prep.buy.title,採購貨品,Buy goods
 prep.buy.info,只列出已開發的貨品。未開發的請先到「開發商品」。,"Only developed goods. Undeveloped items need Develop first."
 prep.buy.need_develop,%s尚未開發，請先到開發商品。,%s is not developed yet — open Develop first.
 prep.stock.qty_title,採購 %s,Buy %s
-prep.stock.qty_info,庫存 %d 箱　$%d／箱。中間是箱數（01–99），按按鈕加減。,"Stock %d boxes · $%d/box. Middle is qty (01–99)."
+prep.stock.qty_info,庫存 %d 件　標示 $%d／件（4 件價÷4）。中間是件數，按按鈕加減。,"Stock %d pcs · ~$%d/pc. Middle is qty in pieces."
 prep.furn.title,購入商店物品,Buy furniture
 prep.furn.info,買入後到店舖設計才放進店裡。展示貨架有 4、8、12、24 件，越大越貴。凍櫃 LV4、冰櫃 LV7 才開放。,"Place bought items in Layout. Shelf sizes 4/8/12/24. Frozen LV4 · Ice LV7."
 prep.expand.title,擴張店舖,Expand shop

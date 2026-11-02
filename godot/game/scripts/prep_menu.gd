@@ -877,15 +877,15 @@ func _ask_develop(sku: String) -> void:
 
 func _ask_buy() -> void:
 	var name := Tuning.sku_name(_qty_sku)
-	var boxes := _qty_boxes
+	var pieces := _qty_boxes
 	if not state.developed.has(_qty_sku):
 		_popup_info("尚未開放", "%s尚未開發，不能採購。" % name)
 		return
-	var cost := int(Tuning.SKU_COST.get(_qty_sku, 0)) * boxes
+	var cost := Tuning.cost_for_pieces(_qty_sku, pieces)
 	if state.money < cost:
-		_popup_info("資金不足", _funds_line("採購%s %d 箱" % [name, boxes], cost))
+		_popup_info("資金不足", _funds_line("採購%s %d 件" % [name, pieces], cost))
 		return
-	_popup_confirm("確認購入", "採購%s %d 箱，支付 $%d？" % [name, boxes, cost], {"action": "buy", "sku": _qty_sku, "boxes": boxes})
+	_popup_confirm("確認購入", "採購%s %d 件，支付 $%d？" % [name, pieces, cost], {"action": "buy", "sku": _qty_sku, "boxes": pieces})
 
 
 func _ask_furniture(type: String) -> void:
@@ -958,7 +958,7 @@ func _run_pending(pending: Dictionary) -> void:
 			else:
 				SfxBus.play("sfx_ui_purchase")
 				_qty_sku = ""
-				_msg = "已採購 %s ×%d 箱" % [Tuning.sku_name(sku2), boxes]
+				_msg = "已採購 %s ×%d 件" % [Tuning.sku_name(sku2), boxes]
 				_refresh()
 		"furn":
 			var type := String(pending["type"])

@@ -343,10 +343,10 @@ static func _develop(menu: CanvasLayer) -> void:
 static func _buy(menu: CanvasLayer) -> void:
 	if menu._qty_sku != "":
 		var name := Tuning.sku_name(menu._qty_sku)
-		var each := int(Tuning.SKU_COST.get(menu._qty_sku, 0))
+		var each := Tuning.sku_piece_price_label(menu._qty_sku)
 		menu._title.text = Loc.t("prep.stock.qty_title", [name])
 		menu._info.text = Loc.t("prep.stock.qty_info", [int(menu.state.stock.get(menu._qty_sku, 0)), each])
-		_build_qty(menu, each * menu._qty_boxes)
+		_build_qty(menu, Tuning.cost_for_pieces(menu._qty_sku, menu._qty_boxes))
 		return
 	menu._title.text = Loc.t("prep.buy.title")
 	menu._info.text = menu._pair(menu._header(), menu._msg if menu._msg != "" else Loc.t("prep.buy.info"))
@@ -356,7 +356,17 @@ static func _buy(menu: CanvasLayer) -> void:
 		elif not menu.state.developed.has(sku):
 			menu._add("%s　尚未開發" % Tuning.sku_name(sku), "need_develop", sku)
 		else:
-			menu._add("採購 %s　庫存 %d 箱　$%d/箱" % [Tuning.sku_name(sku), int(menu.state.stock.get(sku, 0)), int(Tuning.SKU_COST[sku])], "qty", sku)
+			menu._add(
+				"採購 %s　庫存 %d 件　約$%d/件（4件$%d）"
+				% [
+					Tuning.sku_name(sku),
+					int(menu.state.stock.get(sku, 0)),
+					Tuning.sku_piece_price_label(sku),
+					int(Tuning.SKU_COST[sku]),
+				],
+				"qty",
+				sku,
+			)
 	menu._add(Loc.t("prep.back"), "go", "hub_goods")
 
 static func _build_qty(menu: CanvasLayer, total: int) -> void:
@@ -401,7 +411,7 @@ static func _qty_figure(menu: CanvasLayer) -> Control:
 	sb.set_corner_radius_all(10)
 	holder.add_theme_stylebox_override("panel", sb)
 	var num := Label.new()
-	num.text = "%02d 箱" % menu._qty_boxes
+	num.text = "%02d 件" % menu._qty_boxes
 	num.position = Vector2(0, 0)
 	num.size = Vector2(210, 84)
 	num.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

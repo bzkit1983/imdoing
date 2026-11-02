@@ -11,7 +11,7 @@ const SHELF_COUNT = 6;
 const skuById = Object.fromEntries(SKUS.map((s) => [s.id, s]));
 
 const state = {
-  restock: { can: 99, snack: 99, cup: 99 },
+  restock: { can: 396, snack: 396, cup: 396 },
   queue: [],
   shelves: Array.from({ length: SHELF_COUNT }, () => ({ sku: null, count: 0 })),
   carryCap: 16,
@@ -84,15 +84,15 @@ function pick(skuId) {
     render();
     return;
   }
-  if (remainingCarry() < BOX_SIZE) {
-    log(`負重已滿（${state.queue.length}/${state.carryCap}），不能再提取一箱`, "bad");
-    setStatus(`負重不足：還可帶 ${remainingCarry()} 件，一箱需要 ${BOX_SIZE} 件`, "bad");
+  if (remainingCarry() < 1) {
+    log(`負重已滿（${state.queue.length}/${state.carryCap}），不能再提取`, "bad");
+    setStatus(`負重不足：還可帶 ${remainingCarry()} 件`, "bad");
     render();
     return;
   }
   state.restock[skuId] -= 1;
-  for (let i = 0; i < BOX_SIZE; i += 1) state.queue.push(skuId);
-  log(`提取 ${skuById[skuId].name} 1 箱（+${BOX_SIZE} 件）。清單末項現為 ${skuById[skuId].name}`);
+  state.queue.push(skuId);
+  log(`提取 ${skuById[skuId].name} 1 件。清單末項現為 ${skuById[skuId].name}`);
   setStatus(`已提取 ${skuById[skuId].name}`, "ok");
   render();
 }
@@ -143,14 +143,14 @@ function rejectShelf(index) {
 
 function loadExample() {
   pushHistory();
-  state.restock = { can: 96, snack: 99, cup: 98 };
+  state.restock = { can: 384, snack: 396, cup: 392 };
   state.queue = [];
   const order = ["can", "can", "cup", "can"];
   for (const id of order) {
     for (let i = 0; i < BOX_SIZE; i += 1) state.queue.push(id);
   }
   state.shelves = Array.from({ length: SHELF_COUNT }, () => ({ sku: null, count: 0 }));
-  log("載入文件例子（乾貨對照）：罐頭×2箱、杯麵×1箱、罐頭×1箱。HUD 應顯示 罐頭×8、杯麵×4、罐頭×4。最後一箱罐頭才能先上架。");
+  log("載入例子：罐頭×8、杯麵×4、罐頭×4（視覺仍按 4 件一層箱）。最上段罐頭先上架／丟掉。");
   setStatus("已載入文件例子", "ok");
   render();
 }
@@ -165,7 +165,7 @@ function undo() {
 
 function reset() {
   pushHistory();
-  state.restock = { can: 99, snack: 99, cup: 99 };
+  state.restock = { can: 396, snack: 396, cup: 396 };
   state.queue = [];
   state.shelves = Array.from({ length: SHELF_COUNT }, () => ({ sku: null, count: 0 }));
   log("Reset 到 Demo v0.1 空店");
@@ -184,7 +184,7 @@ function render() {
     (s) => `
     <button type="button" class="sku ${s.id}" data-pick="${s.id}">
       <span><span class="swatch"></span>${s.name} <small>${s.en}</small></span>
-      <strong>${state.restock[s.id]} 箱</strong>
+      <strong>${state.restock[s.id]} 件</strong>
     </button>`
   ).join("");
 
@@ -228,7 +228,7 @@ function render() {
 
   const countEl = document.getElementById("carry-count");
   countEl.textContent = `攜帶 ${state.queue.length}/${state.carryCap} 件`;
-  countEl.className = remainingCarry() < BOX_SIZE ? "status bad" : "status ok";
+  countEl.className = remainingCarry() < 1 ? "status bad" : "status ok";
 }
 
 document.addEventListener("click", (e) => {

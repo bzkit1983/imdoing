@@ -124,13 +124,14 @@ func abort_pick() -> void:
 
 
 func take_box() -> bool:
+	## Player restock: consume 1 piece from warehouse.
 	var sku := selected_sku()
 	if sku == "":
 		return false
 	var game := get_tree().get_first_node_in_group("game") if is_inside_tree() else null
 	if game == null or game.get("state") == null:
 		return false
-	if not bool(game.state.consume_box(sku)):
+	if not bool(game.state.consume_stock(sku, 1)):
 		return false
 	pull_stock()
 	return true
@@ -204,7 +205,7 @@ func _draw_sku_list(canvas: CanvasItem) -> void:
 		var tex: Texture2D = SkuIcons.texture(sku)
 		var icon_pos := origin + Vector2(10, row_y + (row - icon_px) * 0.5)
 		canvas.draw_texture_rect(tex, Rect2(icon_pos, Vector2(icon_px, icon_px)), false)
-		var line := "%s  %d箱" % [Tuning.sku_name(sku), remaining(sku)]
+		var line := "%s  %d件" % [Tuning.sku_name(sku), remaining(sku)]
 		var text_x := 10.0 + icon_px + 8.0
 		canvas.draw_string(
 			font,
@@ -243,5 +244,5 @@ func _refresh() -> void:
 		if sku == "":
 			label.text = "%s\n尚未開發\n先在準備頁開發商品" % title
 		else:
-			## Icon shows SKU; caption keeps box count + hints.
-			label.text = "%s\n%d箱\n輕放執貨 · 長按選貨" % [title, remaining(sku)]
+			## Icon shows SKU; caption keeps piece count + hints.
+			label.text = "%s\n%d件\n輕放執貨 · 長按選貨" % [title, remaining(sku)]

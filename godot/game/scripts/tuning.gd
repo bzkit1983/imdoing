@@ -35,6 +35,7 @@ const SKU_PRICE := {
 	"drink": 8, "milk": 10, "soda": 20,
 	"icecream": 50, "meat": 45, "rice": 70,
 }
+## Price for BOX_SIZE pieces (legacy per-box). Charge with cost_for_pieces().
 const SKU_COST := {
 	"can": 10, "snack": 5, "cup": 3,
 	"drink": 2, "milk": 3, "soda": 6,
@@ -52,9 +53,12 @@ const SKU_UNLOCK_LV := {
 	"icecream": 7, "meat": 8, "rice": 10,
 }
 
+## Visual chunk / legacy save scale. Gameplay units are pieces.
 const BOX_SIZE := 4
 const SHELF_CAP := 12
-const RESTOCK_BOXES := 99
+## Starting / max warehouse display scale in pieces (was 99 boxes).
+const RESTOCK_PIECES := 99 * BOX_SIZE
+const RESTOCK_BOXES := 99 ## legacy alias; prefer RESTOCK_PIECES
 const STR_EFFECT_CAP := 50
 
 ## Collision edge of the clerk; 1 身位. Shared AGI 10 rate = 3 body-lengths / sec.
@@ -243,11 +247,22 @@ static func run_seconds_from_str(str_stat: int = STR) -> float:
 
 
 static func carry_boxes_from_str(str_stat: int = STR) -> int:
+	## Legacy box-count formula; carry_items_from_str is the piece cap.
 	return 1 + str_for_effects(str_stat) / 5
 
 
 static func carry_items_from_str(str_stat: int = STR) -> int:
 	return carry_boxes_from_str(str_stat) * BOX_SIZE
+
+
+static func cost_for_pieces(sku: String, pieces: int) -> int:
+	## Buying BOX_SIZE pieces costs SKU_COST (old 1-box price).
+	return int(SKU_COST.get(sku, 0)) * maxi(pieces, 0) / BOX_SIZE
+
+
+static func sku_piece_price_label(sku: String) -> int:
+	## Floored display $/piece; line totals use cost_for_pieces.
+	return int(SKU_COST.get(sku, 0)) / BOX_SIZE
 
 
 static func agi_for_effects(agi: int = AGI) -> int:

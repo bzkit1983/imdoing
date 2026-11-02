@@ -17,16 +17,27 @@ func is_empty() -> bool:
 	return items.is_empty()
 
 
+func can_take_pieces(n: int = 1, cap: int = Tuning.carry_items_from_str()) -> bool:
+	return n > 0 and cap - items.size() >= n
+
+
 func can_take_box(cap: int = Tuning.carry_items_from_str()) -> bool:
-	return cap - items.size() >= Tuning.BOX_SIZE
+	## Legacy name: one free piece slot (player restock is 1 piece).
+	return can_take_pieces(1, cap)
+
+
+func take_pieces(sku: String, n: int) -> void:
+	var i := 0
+	while i < n:
+		items.append(sku)
+		i += 1
+	if n > 0:
+		_bump()
 
 
 func take_box(sku: String) -> void:
-	var i := 0
-	while i < Tuning.BOX_SIZE:
-		items.append(sku)
-		i += 1
-	_bump()
+	## Legacy name: take one piece.
+	take_pieces(sku, 1)
 
 
 func add_one(sku: String) -> void:
@@ -96,6 +107,7 @@ func grouped() -> Array[Dictionary]:
 
 
 func boxes() -> Array[Dictionary]:
+	## Visual layers only: chunk contiguous same-SKU runs into BOX_SIZE pieces.
 	var out: Array[Dictionary] = []
 	var i := 0
 	while i < items.size():

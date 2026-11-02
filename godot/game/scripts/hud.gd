@@ -316,8 +316,8 @@ func _refresh() -> void:
 	_stamina.value = float(player.get("stamina"))
 	var inv = player.get("inventory")
 	_carry.text = Loc.t("hud.carry", [
-		int(inv.count()) / Tuning.BOX_SIZE,
-		int(player.call("carry_boxes")),
+		int(inv.count()),
+		int(player.call("carry_cap")),
 	])
 	_sync_carry_icons(inv)
 	var t: Node = player.get("target")

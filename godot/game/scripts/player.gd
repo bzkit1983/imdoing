@@ -343,7 +343,13 @@ func stamina_max_now() -> float:
 
 
 func carry_boxes() -> int:
-	var n := Tuning.carry_boxes_from_str(_str_now())
+	## Legacy display helper: piece cap / BOX_SIZE (visual boxes).
+	return int(ceil(float(carry_cap()) / float(Tuning.BOX_SIZE)))
+
+
+func carry_cap() -> int:
+	## Piece carry limit (STR base pieces + skill carry_add in pieces).
+	var n := Tuning.carry_items_from_str(_str_now())
 	for sk in _loadout():
 		var add := int(sk.get("carry_add", 0))
 		if add == 0:
@@ -351,10 +357,6 @@ func carry_boxes() -> int:
 		if String(sk.get("kind")) == "passive" or _buffs.has(String(sk.get("id"))):
 			n += add
 	return n
-
-
-func carry_cap() -> int:
-	return carry_boxes() * Tuning.BOX_SIZE
 
 
 func move_speed_rate() -> float:
@@ -441,7 +443,7 @@ func role_status_text() -> String:
 	var bits: PackedStringArray = []
 	bits.append("STR%d AGI%d INT%d" % [_stat_base("str"), _stat_base("agi"), _stat_base("int")])
 	if _buffs.has("carry_boost"):
-		bits.append("負重+60箱 %.0fs" % _buffs["carry_boost"])
+		bits.append("負重+240件 %.0fs" % _buffs["carry_boost"])
 	if _buffs.has("move_boost"):
 		bits.append("移速+60%% %.0fs" % _buffs["move_boost"])
 	if _buffs.has("instant_restock"):
@@ -740,11 +742,12 @@ func _discard_top_box() -> void:
 	if _stun_left > 0.0 or _slip_left > 0.0 or _fighting:
 		return
 	if inventory.is_empty():
-		log_line.emit("手上沒有貨箱")
+		log_line.emit("手上沒有貨")
 		_hide_drop_aim()
 		return
 	var run: Dictionary = inventory.trailing_run()
 	var name := Tuning.sku_name(String(run["id"]))
+	var n := int(run["count"])
 	var toss := _cancel_drop_dir
 	_drop_top_box(toss)
 	if toss.length_squared() > 0.01:
@@ -754,11 +757,11 @@ func _discard_top_box() -> void:
 			log_line.emit(hint)
 		else:
 			log_line.emit(
-				"丟掉 %s 1箱 — 往%s飛出（可砸小偷／同款貨架上架）" % [name, _drop_dir_label(toss)]
+				"丟掉 %s ×%d — 往%s飛出（可砸小偷／同款貨架上架）" % [name, n, _drop_dir_label(toss)]
 			)
 	else:
 		SfxBus.play("sfx_box_drop_feet")
-		log_line.emit("丟掉 %s 1箱 — 掉在腳邊，可以再撿" % name)
+		log_line.emit("丟掉 %s ×%d — 掉在腳邊，可以再撿" % [name, n])
 
 
 ## Direction + short cancel: throw the top piece. No aim circle.
@@ -772,7 +775,7 @@ func _toss_top_piece() -> bool:
 	if _cancel_drop_dir.length_squared() < 0.01:
 		return false
 	if inventory.is_empty():
-		log_line.emit("手上沒有貨箱")
+		log_line.emit("手上沒有貨")
 		return false
 	var run: Dictionary = inventory.trailing_run()
 	var sku := String(run["id"])
@@ -802,8 +805,8 @@ func _toss_top_piece() -> bool:
 	return true
 
 
-func _sniper_toss_log(sku_name: String, whole_box: bool) -> String:
-	var unit := "1箱" if whole_box else "1件"
+func _sniper_toss_log(sku_name: String, whole_run: bool) -> String:
+	var unit := "一段" if whole_run else "1件"
 	if sniper_thief_active():
 		return "丟掉 %s %s — 狙擊手飛向小偷" % [sku_name, unit]
 	if sniper_guest_active():
@@ -974,7 +977,7 @@ func _emit_stats_if_changed() -> void:
 	var move := move_state()
 	var stam := snappedf(stamina, 0.25)
 	var stam_max := snappedf(stamina_max_now(), 0.25)
-	var carry := int(carry_boxes())
+	var carry := int(carry_cap())
 	var hold := snappedf(hold_progress, 0.01)
 	var tid: int = target.get_instance_id() if is_instance_valid(target) else 0
 	var need := _hud_dirty
@@ -1307,7 +1310,7 @@ func _drop_top_box(toss_dir: Vector2 = Vector2.ZERO, lock_until_land: bool = tru
 	if inventory.is_empty():
 		return
 	var run: Dictionary = inventory.trailing_run()
-	var n := mini(Tuning.BOX_SIZE, int(run["count"]))
+	var n := int(run["count"])
 	inventory.remove_trailing(n)
 	var game := _game()
 	if game and game.has_method("spawn_dropped_box"):
@@ -2148,19 +2151,19 @@ func _try_pickup() -> void:
 	if _pickup_used:
 		return
 	_pickup_used = true
-	if not inventory.can_take_box(carry_cap()):
+	if not inventory.can_take_pieces(1, carry_cap()):
 		SfxBus.play("sfx_box_pull_fail")
-		log_line.emit("負重不足：%d/%d 箱" % [inventory.count() / Tuning.BOX_SIZE, carry_boxes()])
+		log_line.emit("負重不足：%d/%d 件" % [inventory.count(), carry_cap()])
 		return
 	if not bool(target.call("take_box")):
 		SfxBus.play("sfx_box_pull_fail")
 		log_line.emit("%s 補貨點已空" % Tuning.sku_name(String(target.call("selected_sku"))))
 		return
 	var sku := String(target.call("selected_sku"))
-	inventory.take_box(sku)
+	inventory.take_pieces(sku, 1)
 	_spawn_fx("suck", target.global_position)
 	SfxBus.play("sfx_box_pull")
-	log_line.emit("執貨（即時）%s 1箱 +%d" % [Tuning.sku_name(sku), Tuning.BOX_SIZE])
+	log_line.emit("執貨（即時）%s 1件" % Tuning.sku_name(sku))
 
 
 func _tick_restock(delta: float) -> void:

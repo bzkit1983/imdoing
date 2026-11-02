@@ -137,12 +137,18 @@ func _tick_restock(delta: float) -> void:
 		return
 	if not _follow(point.global_position + Vector2(70, 0), delta):
 		return
-	if not bool(_game.state.consume_box(_plan_sku)):
+	var cap := int(_shelf.get("capacity"))
+	if cap <= 0:
+		cap = Tuning.SHELF_CAP
+	var free := maxi(0, cap - int(_shelf.get("count")))
+	var avail := int(_game.state.stock.get(_plan_sku, 0))
+	var n := mini(free, avail)
+	if n <= 0 or not bool(_game.state.consume_stock(_plan_sku, n)):
 		_clear_plan()
 		return
 	_game.call("sync_stock")
 	_box_sku = _plan_sku
-	_box_n = Tuning.BOX_SIZE
+	_box_n = n
 	_timer = 0.0
 	SfxBus.play("sfx_clerk_pull")
 	_clear_path()
@@ -163,7 +169,7 @@ func _find_job() -> Dictionary:
 		var cap := int(s.get("capacity"))
 		if cap <= 0:
 			cap = Tuning.SHELF_CAP
-		if int(s.get("count")) + Tuning.BOX_SIZE > cap:
+		if int(s.get("count")) >= cap:
 			continue
 		var sku := String(s.get("sku"))
 		var pick := ""
@@ -245,9 +251,9 @@ func _clear_plan() -> void:
 
 
 func _drop_box() -> void:
+	## Failed restock: return held pieces to warehouse (piece-native; no ceil).
 	if _box_n > 0 and _box_sku != "":
-		_game.state.stock[_box_sku] = int(_game.state.stock.get(_box_sku, 0))
-		# Partial items are not a full box; leave them out of stock rather than invent a box.
+		_game.state.stock[_box_sku] = int(_game.state.stock.get(_box_sku, 0)) + _box_n
 	_box_n = 0
 	_box_sku = ""
 	_plan_sku = ""

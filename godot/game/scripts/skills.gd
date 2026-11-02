@@ -23,7 +23,7 @@ const EQUIPPED: Array[Dictionary] = [
 		"name": "頂硬上",
 		"kind": "active",
 		"lv": 3,
-		"carry_add": 60,  # boxes; stacks on top of STR cap
+		"carry_add": 240,  # pieces; stacks on top of STR cap (was +60 boxes)
 		"duration": ACTIVE_DURATION,
 		"cd": ACTIVE_CD,
 	},
@@ -106,7 +106,7 @@ static func catalog() -> Array[Dictionary]:
 
 
 const ACTIVES: Array[Dictionary] = [
-	{"id": "carry_boost", "name": "頂硬上", "kind": "active", "lv": 3, "cost": 1, "carry_add": 60, "duration": ACTIVE_DURATION, "cd": ACTIVE_CD, "blurb": "負重 +60 箱，20 秒"},
+	{"id": "carry_boost", "name": "頂硬上", "kind": "active", "lv": 3, "cost": 1, "carry_add": 240, "duration": ACTIVE_DURATION, "cd": ACTIVE_CD, "blurb": "負重 +240 件，20 秒"},
 	{"id": "move_boost", "name": "無人可以喺我前面", "kind": "active", "lv": 3, "cost": 1, "move_pct": 0.60, "duration": ACTIVE_DURATION, "cd": ACTIVE_CD, "blurb": "移速 +60%，20 秒"},
 	{"id": "checkout_rush", "name": "人肉數錢機", "kind": "active", "lv": 3, "cost": 1, "checkout_pct": 0.60, "duration": ACTIVE_DURATION, "cd": ACTIVE_CD, "blurb": "收銀 +60%，20 秒"},
 	{"id": "instant_restock", "name": "瞬間補貨", "kind": "active", "lv": 3, "cost": 1, "restock_instant": true, "restock_circle_mult": 0.0, "duration": ACTIVE_DURATION, "cd": ACTIVE_CD, "blurb": "上架瞬間完成，20 秒"},
@@ -115,13 +115,13 @@ const ACTIVES: Array[Dictionary] = [
 	{"id": "dash_deliver", "name": "衝刺交付", "kind": "active", "lv": 1, "cost": 2, "dash_deliver": true, "duration": 5.0, "cd": 5.0, "blurb": "5 秒內每記衝刺把對的貨交給客人且不 KO。沒對上則照常撞飛。技能不扣氣"},
 	{"id": "shelf_sniper", "name": "狙擊手（貨架）", "kind": "active", "lv": 1, "cost": 2, "shelf_sniper": true, "duration": 30.0, "cd": ACTIVE_CD, "blurb": "30 秒內投出的貨自動飛向最近同 SKU 貨架補貨；已滿則改飛下一格，全滿則飛最近架旁掉落"},
 	{"id": "guest_sniper", "name": "狙擊手（客人）", "kind": "active", "lv": 1, "cost": 2, "guest_sniper": true, "duration": 30.0, "cd": ACTIVE_CD, "blurb": "30 秒內投出的貨自動飛向最近清單需要該貨的客人；該客不要了就改飛下一位，全店沒目標則普通丟掉"},
-	{"id": "thief_sniper", "name": "狙擊手（小偷）", "kind": "active", "lv": 1, "cost": 2, "thief_sniper": true, "duration": 30.0, "cd": ACTIVE_CD, "blurb": "30 秒內投出的貨自動飛向最近小偷擊中並趕走；投一件／一箱都算一擊，擊中後貨品掉落；全店沒小偷則普通丟掉"},
+	{"id": "thief_sniper", "name": "狙擊手（小偷）", "kind": "active", "lv": 1, "cost": 2, "thief_sniper": true, "duration": 30.0, "cd": ACTIVE_CD, "blurb": "30 秒內投出的貨自動飛向最近小偷擊中並趕走；投 1 件／一段都算一擊，擊中後貨品掉落；全店沒小偷則普通丟掉"},
 	{"id": "dark_side", "name": "Dark Side", "kind": "active", "lv": 3, "cost": 2, "dark_side": true, "duration": 30.0, "cd": 30.0, "blurb": "You don't know the power of the dark side。抽客人當臨時員工 30 秒（準備頁選 LV1／2／3，沒選預設 LV3）"},
 	{"id": "shadow_clone", "name": "多重影分身", "kind": "active", "lv": 3, "cost": 3, "shadow_clone": true, "duration": 30.0, "cd": 30.0, "blurb": "身旁生出玩家分身當收銀／補貨 30 秒（準備頁選 LV1／2／3，沒選預設 LV3）"},
 ]
 
 const PASSIVES: Array[Dictionary] = [
-	{"id": "carry_passive", "name": "負重增加", "kind": "passive", "lv": 3, "cost": 1, "carry_add": 20, "blurb": "負重 +20 箱"},
+	{"id": "carry_passive", "name": "負重增加", "kind": "passive", "lv": 3, "cost": 1, "carry_add": 80, "blurb": "負重 +80 件"},
 	{"id": "move_passive", "name": "移動速度增加", "kind": "passive", "lv": 3, "cost": 1, "move_pct": 0.20, "blurb": "移速 +20%"},
 	{"id": "checkout_speed", "name": "收銀速度增加", "kind": "passive", "lv": 3, "cost": 1, "checkout_pct": 0.20, "blurb": "收銀 +20%"},
 	{"id": "restock_speed", "name": "上架速度增加", "kind": "passive", "lv": 3, "cost": 1, "restock_pct": 0.20, "blurb": "上架 +20%"},

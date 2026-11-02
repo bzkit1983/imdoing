@@ -1058,13 +1058,22 @@ func _tick_temp_restock(delta: float) -> void:
 	if not _follow_to(point.global_position + Vector2(70, 0), delta):
 		return
 	var st = _game.get("state")
-	if st == null or not st.has_method("consume_box") or not bool(st.call("consume_box", _temp_plan_sku)):
+	if st == null or not st.has_method("consume_stock"):
+		_temp_clear_plan()
+		return
+	var cap_t := int(_temp_shelf.get("capacity"))
+	if cap_t <= 0:
+		cap_t = Tuning.SHELF_CAP
+	var free_t := maxi(0, cap_t - int(_temp_shelf.get("count")))
+	var avail_t := int(st.get("stock").get(_temp_plan_sku, 0))
+	var n_t := mini(free_t, avail_t)
+	if n_t <= 0 or not bool(st.call("consume_stock", _temp_plan_sku, n_t)):
 		_temp_clear_plan()
 		return
 	if _game.has_method("sync_stock"):
 		_game.call("sync_stock")
 	_temp_box_sku = _temp_plan_sku
-	_temp_box_n = Tuning.BOX_SIZE
+	_temp_box_n = n_t
 	_temp_work = 0.0
 	SfxBus.play("sfx_clerk_pull")
 	_clear_route()
@@ -1097,7 +1106,7 @@ func _temp_find_job() -> Dictionary:
 		var cap := int(s.get("capacity"))
 		if cap <= 0:
 			cap = Tuning.SHELF_CAP
-		if int(s.get("count")) + Tuning.BOX_SIZE > cap:
+		if int(s.get("count")) >= cap:
 			continue
 		var sku := String(s.get("sku"))
 		var pick := ""

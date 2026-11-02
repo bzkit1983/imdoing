@@ -1,23 +1,14 @@
 #!/usr/bin/env python3
-"""Pure logic check for closeout unsold goods → warehouse box credit.
+"""Pure logic check for closeout unsold goods → warehouse piece credit.
 
 Mirrors game_state.credit_unsold_pieces + demo collection sources:
 shelves, floor/flights, player carry, clerk held, unpaid completed carts.
-Aggregate pieces by SKU, then ceil(pieces / BOX_SIZE) boxes to stock.
+Aggregate pieces by SKU, then add exact piece counts to stock (no ceil).
 """
 
 from __future__ import annotations
 
-import math
 import sys
-
-BOX_SIZE = 4
-
-# customer.gd State enum indices
-TO_CASHIER = 4
-QUEUE = 5
-PAYING = 6
-LEAVE = 7
 
 
 def credit_unsold_pieces(stock: dict[str, int], pieces_by_sku: dict[str, int]) -> int:
@@ -25,9 +16,8 @@ def credit_unsold_pieces(stock: dict[str, int], pieces_by_sku: dict[str, int]) -
     for sku, pieces in pieces_by_sku.items():
         if not sku or pieces <= 0:
             continue
-        boxes = (pieces + BOX_SIZE - 1) // BOX_SIZE
-        stock[sku] = int(stock.get(sku, 0)) + boxes
-        total += boxes
+        stock[sku] = int(stock.get(sku, 0)) + pieces
+        total += pieces
     return total
 
 
@@ -71,6 +61,12 @@ def collect_clerk_held(clerks: list[dict]) -> dict[str, int]:
     return out
 
 
+TO_CASHIER = 4
+QUEUE = 5
+PAYING = 6
+LEAVE = 7
+
+
 def unsold_checkout_cart(guest: dict) -> list[str]:
     """Mirror customer.unsold_checkout_cart after finish_paid clears cart."""
     if guest.get("is_thief"):
@@ -79,7 +75,6 @@ def unsold_checkout_cart(guest: dict) -> list[str]:
     cart = guest.get("cart") or []
     if shopping or not cart:
         return []
-    # Paid guests clear cart in finish_paid before LEAVE.
     if guest.get("paid"):
         return []
     return list(cart)
@@ -112,19 +107,19 @@ def collect_all(
 def main() -> int:
     errors: list[str] = []
 
-    # Exact box on shelf → 1 box back
+    # Exact pieces on shelf → same pieces back
     stock = {"can": 2}
-    boxes = credit_unsold_pieces(stock, {"can": 4})
-    if boxes != 1 or stock["can"] != 3:
-        errors.append(f"exact box {boxes} {stock}")
+    added = credit_unsold_pieces(stock, {"can": 4})
+    if added != 4 or stock["can"] != 6:
+        errors.append(f"exact pieces {added} {stock}")
 
-    # Partial shelf pieces ceil to 1 box
+    # Partial shelf pieces credit 1:1 (no ceil-to-box)
     stock = {"can": 0}
-    boxes = credit_unsold_pieces(stock, {"can": 1})
-    if boxes != 1 or stock["can"] != 1:
-        errors.append(f"ceil remainder {boxes} {stock}")
+    added = credit_unsold_pieces(stock, {"can": 1})
+    if added != 1 or stock["can"] != 1:
+        errors.append(f"partial pieces {added} {stock}")
 
-    # Aggregate shelf+floor before ceil (4×1pc must be 1 box, not 4)
+    # Aggregate shelf+floor before credit
     pieces = collect_all(
         shelves=[{"sku": "can", "count": 1}],
         drops=[
@@ -134,9 +129,9 @@ def main() -> int:
         ],
     )
     stock = {"can": 0}
-    boxes = credit_unsold_pieces(stock, pieces)
-    if pieces["can"] != 4 or boxes != 1 or stock["can"] != 1:
-        errors.append(f"aggregate before ceil {pieces} {boxes} {stock}")
+    added = credit_unsold_pieces(stock, pieces)
+    if pieces["can"] != 4 or added != 4 or stock["can"] != 4:
+        errors.append(f"aggregate {pieces} {added} {stock}")
 
     # Player carry + clerk held
     pieces = collect_all(
@@ -165,14 +160,14 @@ def main() -> int:
                 "cart": ["snack"],
                 "state": 1,
                 "paid": False,
-            },  # list not done
+            },
             {
                 "is_thief": False,
                 "shopping": [],
                 "cart": [],
                 "state": LEAVE,
                 "paid": True,
-            },  # paid cleared
+            },
             {
                 "is_thief": True,
                 "shopping": [],
@@ -215,31 +210,24 @@ def main() -> int:
         ],
     )
     stock = {"can": 0, "snack": 1}
-    boxes = credit_unsold_pieces(stock, pieces)
-    # can: 3+1=4 → 1; snack: 4+1=5 → 2
+    added = credit_unsold_pieces(stock, pieces)
     if pieces != {"can": 4, "snack": 5}:
         errors.append(f"combined collect {pieces}")
-    if boxes != 3 or stock != {"can": 1, "snack": 3}:
-        errors.append(f"combined credit {boxes} {stock}")
+    if added != 9 or stock != {"can": 4, "snack": 6}:
+        errors.append(f"combined credit {added} {stock}")
 
     # Empty → no-op
     stock = {"can": 7}
-    boxes = credit_unsold_pieces(stock, {})
-    if boxes != 0 or stock["can"] != 7:
+    added = credit_unsold_pieces(stock, {})
+    if added != 0 or stock["can"] != 7:
         errors.append("empty credit changed stock")
-
-    for n in range(0, 17):
-        got = (n + BOX_SIZE - 1) // BOX_SIZE if n > 0 else 0
-        want = int(math.ceil(n / BOX_SIZE)) if n > 0 else 0
-        if got != want:
-            errors.append(f"ceil formula {n}: {got}!={want}")
 
     if errors:
         print("FAIL")
         for e in errors:
             print(" ", e)
         return 1
-    print("OK unsold return (shelf/floor/carry/clerk/unpaid-checkout)")
+    print("OK unsold return (exact pieces, no ceil)")
     return 0
 
 
