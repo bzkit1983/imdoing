@@ -35,14 +35,22 @@ def main() -> int:
     player = (GAME / "scripts" / "player.gd").read_text(encoding="utf-8")
     assert "Controls.INTERACT" in player
     assert "Controls.move_vector()" in player
+    assert "Controls.stick_vector()" in player
     assert "KEY_J" not in player
     assert "JOY_BUTTON_A" not in player
+    assert "get_joy_axis(0" not in controls
+    assert "get_joy_axis(0" not in player
+    assert "JOY_ALL_DEVICES" in controls
+    assert "ev.device = JOY_ALL_DEVICES" in controls
+    assert "get_connected_joypads" in controls
     prep = (GAME / "scripts" / "prep_menu.gd").read_text(encoding="utf-8")
     assert "Controls.ROTATE" in prep
     assert "KEY_J" not in prep
     demo = (GAME / "scripts" / "demo.gd").read_text(encoding="utf-8")
     assert "Controls.CANCEL" in demo
     assert "KEY_J" not in demo
+    control_doc = (ROOT / "docs" / "systemdesign" / "control.md").read_text(encoding="utf-8")
+    assert "device = -1" in control_doc or "device` 為 **-1" in control_doc
     print("ok: InputMap actions wired (Controls autoload)")
     return 0
 

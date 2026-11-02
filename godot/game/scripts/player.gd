@@ -1192,10 +1192,7 @@ func _poll_stick_cardinal() -> void:
 
 
 func _joy_stick_vector() -> Vector2:
-	var v := Vector2(
-		Input.get_joy_axis(0, JOY_AXIS_LEFT_X),
-		Input.get_joy_axis(0, JOY_AXIS_LEFT_Y)
-	)
+	var v := Controls.stick_vector()
 	if v.length() < Controls.MOVE_DEADZONE:
 		return Vector2.ZERO
 	if v.length_squared() > 1.0:
