@@ -715,11 +715,11 @@ func loadout() -> Array[Dictionary]:
 	return out
 
 
-## Dark Side is the only skill whose level is chosen on the prep page.
+## Dark Side / Multiple Shadow Clone pick LV on the prep page.
 ## Missing choice means LV3. Other skills keep the catalog level.
 func skill_level_of(set_i: int, skill_id: String) -> int:
 	var sk := Skills.by_id(skill_id)
-	var fallback := 3 if bool(sk.get("dark_side", false)) else int(sk.get("lv", 1))
+	var fallback := 3 if Skills.prep_picks_level(sk) else int(sk.get("lv", 1))
 	var levels := _levels_of(set_i)
 	if not levels.has(skill_id):
 		return fallback
@@ -728,7 +728,7 @@ func skill_level_of(set_i: int, skill_id: String) -> int:
 
 func set_skill_level(set_i: int, skill_id: String, lv: int) -> void:
 	var sk := Skills.by_id(skill_id)
-	if sk.is_empty() or not bool(sk.get("dark_side", false)):
+	if sk.is_empty() or not Skills.prep_picks_level(sk):
 		return
 	if set_i < 0 or set_i >= skill_sets.size():
 		return
@@ -751,7 +751,7 @@ func _levels_of(set_i: int) -> Dictionary:
 
 
 func _with_chosen_level(sk: Dictionary, levels: Dictionary) -> Dictionary:
-	if sk.is_empty() or not bool(sk.get("dark_side", false)):
+	if sk.is_empty() or not Skills.prep_picks_level(sk):
 		return sk
 	var id := String(sk.get("id"))
 	var lv := 3
@@ -1170,7 +1170,7 @@ func _levels_from_save(raw) -> Dictionary:
 	for key in raw.keys():
 		var id := String(key)
 		var sk := Skills.by_id(id)
-		if sk.is_empty() or not bool(sk.get("dark_side", false)):
+		if sk.is_empty() or not Skills.prep_picks_level(sk):
 			continue
 		out[id] = clampi(int(raw[key]), 1, 3)
 	return out

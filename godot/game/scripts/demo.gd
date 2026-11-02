@@ -8,6 +8,8 @@ const RestockScript = preload("res://scripts/restock_point.gd")
 const ShelfScript = preload("res://scripts/shelf.gd")
 const Fundraise = preload("res://scripts/fundraise.gd")
 const DarkSide = preload("res://scripts/dark_side.gd")
+const ShadowCloneCast = preload("res://scripts/shadow_clone_cast.gd")
+const ShadowCloneScript = preload("res://scripts/shadow_clone.gd")
 const DirtScript = preload("res://scripts/dirt.gd")
 const DroppedBoxScript = preload("res://scripts/dropped_box.gd")
 const DropFlightScript = preload("res://scripts/drop_flight.gd")
@@ -378,6 +380,87 @@ func cast_dark_side(level: int) -> void:
 		c.call("begin_temp_clerk", String(row.get("role", "restock")), reg)
 	if _player and _player.has_signal("log_line"):
 		_player.log_line.emit("Dark Side — 臨時員工 %d 名" % drafted.size())
+
+
+func cast_shadow_clone(level: int) -> void:
+	dismiss_shadow_clones()
+	var need := ShadowCloneCast.clone_count(level)
+	var snap := {}
+	if _player != null and _player.has_method("clone_snapshot"):
+		snap = _player.call("clone_snapshot")
+	var facing := Vector2.RIGHT
+	if _player != null:
+		facing = Vector2(_player.get("facing"))
+	var origin := _dark_side_player_pos()
+	var spots: Array = ShadowCloneCast.spawn_positions(
+		origin, facing, need, _obstacles, _clone_spawn_people()
+	)
+	var drafted: Array = []
+	for i in need:
+		var clone: CharacterBody2D = ShadowCloneScript.new()
+		if _world != null:
+			_world.add_child(clone)
+		else:
+			add_child(clone)
+		var at: Vector2 = spots[i] if i < spots.size() else origin
+		clone.setup(self, at, snap)
+		drafted.append(clone)
+	var rolls: Array = []
+	for c in drafted:
+		if DarkSide.roll_cashier():
+			rolls.append(c)
+	var empties: Array = DarkSide.open_registers(
+		cashiers,
+		_hired_cashier_registers(),
+		_temp_cashier_registers(),
+		origin,
+		_player_lock_register(),
+	)
+	var jobs: Dictionary = DarkSide.plan(drafted, rolls, empties)
+	for c in drafted:
+		var row: Dictionary = jobs[c]
+		c.call("begin_job", String(row.get("role", "restock")), row.get("register", null))
+	if _player and _player.has_signal("log_line"):
+		_player.log_line.emit("多重影分身 — 分身 %d 名" % drafted.size())
+
+
+func dismiss_shadow_clones() -> void:
+	for c in shadow_clones():
+		if c != null and is_instance_valid(c) and c.has_method("vanish"):
+			c.call("vanish")
+
+
+func shadow_clones() -> Array:
+	var out: Array = []
+	if _world == null:
+		return out
+	for c in _world.get_children():
+		if c == null or not is_instance_valid(c):
+			continue
+		if not c.has_method("is_shadow_clone_unit") or not bool(c.call("is_shadow_clone_unit")):
+			continue
+		if bool(c.get("_vanishing")):
+			continue
+		out.append(c)
+	return out
+
+
+func _clone_spawn_people() -> Array:
+	var people: Array = []
+	if _player != null and is_instance_valid(_player):
+		people.append(_player.global_position)
+	if _world != null:
+		for c in _world.get_children():
+			if c == null or not is_instance_valid(c):
+				continue
+			if c is CharacterBody2D:
+				people.append(c.global_position)
+	if _customers != null:
+		for c in _customers.get_children():
+			if c == null or not is_instance_valid(c):
+				continue
+			people.append(c.global_position)
+	return people
 
 
 func restock_holds(except: Node) -> Dictionary:
@@ -1288,6 +1371,8 @@ func _finish_day() -> void:
 		return
 	_settled = true
 	SfxBus.play("sfx_phase_close")
+	## Clones drop held boxes onto the floor before unsold collect, then vanish.
+	dismiss_shadow_clones()
 	## Unsold shelf + floor (+ in-flight) pieces → warehouse boxes before save.
 	_return_unsold_to_warehouse()
 	var result: Dictionary = state.settle(revenue, served, thieves_caught, cleaned, _skip_xp, elite_served)
@@ -1781,6 +1866,10 @@ func _resolve_toss_landing(
 		return
 	var shelf := _shelf_for_toss(dest, sku)
 	if shelf == null:
+		var clone := _clone_for_toss(from, dest)
+		if clone != null:
+			_resolve_toss_clone(clone, sku, n)
+			return
 		_place_dropped_box(dest, sku, n)
 		return
 	var placed := int(shelf.call("add_items", sku, n))
@@ -1801,6 +1890,32 @@ func _resolve_toss_landing(
 	if left > 0:
 		_place_dropped_box(dest, sku, left)
 
+
+
+func _clone_for_toss(from: Vector2, dest: Vector2) -> Node2D:
+	var best: Node2D = null
+	var best_d := Tuning.DROP_GUEST_HIT_RADIUS
+	for c in shadow_clones():
+		if c == null or not is_instance_valid(c):
+			continue
+		if bool(c.get("_vanishing")):
+			continue
+		var p: Vector2 = c.global_position
+		var d := minf(_dist_point_to_segment(p, from, dest), dest.distance_to(p))
+		if d <= best_d:
+			best_d = d
+			best = c
+	return best
+
+
+func _resolve_toss_clone(clone: Node2D, sku: String, n: int) -> void:
+	if clone.has_method("apply_toss_hit"):
+		clone.call("apply_toss_hit")
+	_place_dropped_box(clone.global_position + Tuning.DROP_FEET_OFFSET, sku, n)
+	if _player:
+		_player.log_line.emit(
+			"丟掉砸到分身 %s ×%d — 打斷，貨品掉在該處" % [Tuning.sku_name(sku), n]
+		)
 
 
 func _guest_for_toss(from: Vector2, dest: Vector2) -> Node2D:

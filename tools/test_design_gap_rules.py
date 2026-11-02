@@ -62,8 +62,10 @@ def main() -> None:
     dark = (ROOT / "docs/systemdesign/darkside.md").read_text(encoding="utf-8")
     assert "活線已實作" in dark
     assert "尚未實作" not in dark
+    assert "shadow_clone" in SKILLS and "多重影分身" in SKILLS
     clone = (ROOT / "docs/systemdesign/shadowclone.md").read_text(encoding="utf-8")
-    assert "已拍板，未實作" in clone
+    assert "已實作" in clone
+    assert "尚未實作" not in clone
     assert "shadow_clone" in clone
     assert "不是客人" in clone
     assert "撞到多重影分身" in MOVE

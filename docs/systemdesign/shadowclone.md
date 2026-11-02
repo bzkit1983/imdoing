@@ -1,6 +1,6 @@
 #多重影分身
 
-- 狀態：**已拍板，未實作**。下面問題都已拍板。
+- 狀態：**已實作**（`skills.gd` 的 `shadow_clone`、`shadow_clone.gd` 分身、`demo.gd` 施放）。下面問題都已拍板。準備頁可選 LV1／2／3，沒選預設 LV3。
 - 對照：`darkside.md`、`clerksystem.md`、`cashiersystem.md`、`playeractiveskills.md`、`playerskills.md`、`playeraction.md`、`playermovement.md`、`customerdelivery.md`、`playerstats.md`、`storeoperationphase.md`、`storepreparationphase.md`、`replenishmentsystem.md`、`customer.md`、`playerultimateskills.md`、`cleaningsystem.md`、`thiefsystem.md`、`playersetup.md`、`customizedskillset.md`、`savesystem.md`
 
 #提案
@@ -110,4 +110,4 @@
 
 #待拍板
 
-沒有。設計已齊，尚未實作。
+沒有。設計已齊，活線已實作。

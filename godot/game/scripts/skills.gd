@@ -117,6 +117,7 @@ const ACTIVES: Array[Dictionary] = [
 	{"id": "guest_sniper", "name": "狙擊手（客人）", "kind": "active", "lv": 1, "cost": 2, "guest_sniper": true, "duration": 30.0, "cd": ACTIVE_CD, "blurb": "30 秒內投出的貨自動飛向最近清單需要該貨的客人；該客不要了就改飛下一位，全店沒目標則普通丟掉"},
 	{"id": "thief_sniper", "name": "狙擊手（小偷）", "kind": "active", "lv": 1, "cost": 2, "thief_sniper": true, "duration": 30.0, "cd": ACTIVE_CD, "blurb": "30 秒內投出的貨自動飛向最近小偷擊中並趕走；投一件／一箱都算一擊，擊中後貨品掉落；全店沒小偷則普通丟掉"},
 	{"id": "dark_side", "name": "Dark Side", "kind": "active", "lv": 3, "cost": 2, "dark_side": true, "duration": 30.0, "cd": 30.0, "blurb": "You don't know the power of the dark side。抽客人當臨時員工 30 秒（準備頁選 LV1／2／3，沒選預設 LV3）"},
+	{"id": "shadow_clone", "name": "多重影分身", "kind": "active", "lv": 3, "cost": 3, "shadow_clone": true, "duration": 30.0, "cd": 30.0, "blurb": "身旁生出玩家分身當收銀／補貨 30 秒（準備頁選 LV1／2／3，沒選預設 LV3）"},
 ]
 
 const PASSIVES: Array[Dictionary] = [
@@ -135,6 +136,13 @@ const ULTS: Array[Dictionary] = [
 	{"id": "yes_my_lord", "name": "Yes! My Lord!", "kind": "ultimate", "lv": 3, "cost": 0, "duration": 10.0, "cd": ULT_CD, "seq": [0, 2, 1, 3, 0, 2, 1, 3], "blurb": "LV3：客人搶空最近貨架 10 秒，然後去排隊。指令上左下右上左下右"},
 	{"id": "fundraise", "name": "全體集資", "kind": "ultimate", "lv": 3, "cost": 0, "duration": 0.0, "cd": ULT_CD, "seq": [0, 1, 0, 1, 2, 3, 2, 3], "blurb": "LV3：在店客人立刻按已取貨全額付款，不含離開與小偷。指令上下上下左右左右"},
 ]
+
+
+## Prep page picks LV1/2/3 for these actives. Unset means LV3.
+static func prep_picks_level(sk: Dictionary) -> bool:
+	if sk.is_empty():
+		return false
+	return bool(sk.get("dark_side", false)) or bool(sk.get("shadow_clone", false))
 
 
 static func restock_circle_mult(lv: int) -> float:
