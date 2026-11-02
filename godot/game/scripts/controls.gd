@@ -4,6 +4,9 @@ extends Node
 ## If an action already has events (e.g. edited in Project Settings), defaults are left alone.
 
 const MOVE_DEADZONE := 0.25
+## InputMap: -1 matches every connected pad. Windows Xbox often is not device 0
+## (XInput + DirectInput / a ghost pad at 0); macOS usually is 0.
+const JOY_ALL_DEVICES := -1
 
 ## Logical actions used by gameplay + prep UI.
 const MOVE_UP := "move_up"
@@ -74,11 +77,21 @@ func move_vector() -> Vector2:
 
 ## Left stick only — excludes keyboard / d-pad so menu `_process` polling
 ## does not double-fire with `_unhandled_input` action presses (esp. Web).
+## Uses the strongest deflection among connected pads so a Windows ghost
+## device at index 0 cannot hide the real Xbox stick.
 func stick_vector() -> Vector2:
-	return Vector2(
-		Input.get_joy_axis(0, JOY_AXIS_LEFT_X),
-		Input.get_joy_axis(0, JOY_AXIS_LEFT_Y)
-	)
+	var best := Vector2.ZERO
+	var best_len_sq := 0.0
+	for device in Input.get_connected_joypads():
+		var v := Vector2(
+			Input.get_joy_axis(device, JOY_AXIS_LEFT_X),
+			Input.get_joy_axis(device, JOY_AXIS_LEFT_Y)
+		)
+		var len_sq := v.length_squared()
+		if len_sq > best_len_sq:
+			best = v
+			best_len_sq = len_sq
+	return best
 
 
 ## Checkout / skill-menu cardinal: 0 up, 1 down, 2 left, 3 right. -1 if none.
@@ -111,10 +124,17 @@ func _ensure_action(action: String, deadzone: float, events: Array) -> void:
 		InputMap.add_action(action, deadzone)
 	elif not is_zero_approx(InputMap.action_get_deadzone(action) - deadzone):
 		InputMap.action_set_deadzone(action, deadzone)
-	if not InputMap.action_get_events(action).is_empty():
+	var existing := InputMap.action_get_events(action)
+	if existing.is_empty():
+		for ev in events:
+			InputMap.action_add_event(action, ev)
 		return
-	for ev in events:
-		InputMap.action_add_event(action, ev)
+	## Project Settings may keep which buttons are bound, but a saved
+	## device 0 filter still drops Windows Xbox pads that are not index 0.
+	for ev in existing:
+		if ev is InputEventJoypadButton or ev is InputEventJoypadMotion:
+			if ev.device != JOY_ALL_DEVICES:
+				ev.device = JOY_ALL_DEVICES
 
 
 func _key(physical: Key) -> InputEventKey:
@@ -125,12 +145,14 @@ func _key(physical: Key) -> InputEventKey:
 
 func _joy_btn(button: JoyButton) -> InputEventJoypadButton:
 	var ev := InputEventJoypadButton.new()
+	ev.device = JOY_ALL_DEVICES
 	ev.button_index = button
 	return ev
 
 
 func _joy_axis(axis: JoyAxis, value: float) -> InputEventJoypadMotion:
 	var ev := InputEventJoypadMotion.new()
+	ev.device = JOY_ALL_DEVICES
 	ev.axis = axis
 	ev.axis_value = value
 	return ev
