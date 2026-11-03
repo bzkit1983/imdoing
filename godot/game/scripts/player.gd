@@ -1725,6 +1725,38 @@ func _give_guest(guest: Node) -> int:
 	return given
 
 
+## Instant force_sell into nearest hand-deliverable guest cart. False = fail (no CD).
+func _cast_force_sell(lv: int) -> bool:
+	if inventory.is_empty():
+		log_line.emit("手上沒貨 — 我都賺夠啦比啲你賺 失敗")
+		return false
+	var guest: Node = null
+	for g in _faced_guests():
+		if g == null or not is_instance_valid(g):
+			continue
+		if bool(g.get("temp_clerk")):
+			continue
+		guest = g
+		break
+	if guest == null or not guest.has_method("accept_force_sell"):
+		log_line.emit("附近沒有可交付客人 — 我都賺夠啦比啲你賺 失敗")
+		return false
+	var n := mini(Skills.force_sell_count(lv), inventory.count())
+	var pieces: Array[String] = inventory.pop_trailing(n)
+	if pieces.is_empty():
+		log_line.emit("手上沒貨 — 我都賺夠啦比啲你賺 失敗")
+		return false
+	var taken := int(guest.call("accept_force_sell", pieces))
+	if taken <= 0:
+		for sku in pieces:
+			inventory.add_one(String(sku))
+		log_line.emit("附近沒有可交付客人 — 我都賺夠啦比啲你賺 失敗")
+		return false
+	log_line.emit("強塞 ×%d" % taken)
+	_deliver_pose_left = 0.4
+	return true
+
+
 ## Nearest guest first. `penalize_miss` adds +15 on the nearest guest when nothing matched.
 func _hand_deliver(guests: Array, penalize_miss: bool) -> int:
 	var total := 0
@@ -2776,6 +2808,19 @@ func _cast_slot(i: int) -> void:
 	if cd_left(sid) > 0.05:
 		SfxBus.play("sfx_skill_cd_deny")
 		log_line.emit("%s 冷卻中 %.0fs" % [String(sk.get("name")), cd_left(sid)])
+		return
+	## Instant force_sell: empty hands / no target must not start CD.
+	if bool(sk.get("force_sell", false)):
+		if not _cast_force_sell(int(sk.get("lv", 3))):
+			return
+		_cd[sid] = Tuning.cd_seconds(float(sk.get("cd", Skills.ACTIVE_CD)), _int_now())
+		_buffs.erase(sid)
+		_buff_cache_valid = false
+		SfxBus.play("sfx_skill_cast")
+		log_line.emit("施放 %s LV%d" % [String(sk.get("name")), int(sk.get("lv", 3))])
+		_begin_cast_pose(false)
+		skill_cast.emit(String(sk.get("name")), false)
+		_play_zoom(false)
 		return
 	_cd[sid] = Tuning.cd_seconds(float(sk.get("cd", Skills.ACTIVE_CD)), _int_now())
 	## 衝刺交付: the armed window is the cooldown itself, and INT does not shorten this 5s.

@@ -89,6 +89,20 @@ func remove_trailing(n: int) -> void:
 	_bump()
 
 
+## Top-of-stack first (same order as remove_trailing). Returns the removed pieces.
+func pop_trailing(n: int) -> Array[String]:
+	n = mini(n, items.size())
+	var out: Array[String] = []
+	if n <= 0:
+		return out
+	var start := items.size() - n
+	for i in range(start, items.size()):
+		out.append(items[i])
+	items.resize(start)
+	_bump()
+	return out
+
+
 func clear() -> void:
 	if items.is_empty():
 		return
