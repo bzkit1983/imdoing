@@ -9,8 +9,8 @@ pause.sfx_on,音效：開,SFX: On
 pause.sfx_off,音效：關,SFX: Off
 pause.sfx_volume,音效聲量：%d%%,SFX volume: %d%%
 pause.end_day,結束本日並結算,End day & settle
-pause.virtual_stick_on,虛擬搖桿：開,Virtual stick: On
-pause.virtual_stick_off,虛擬搖桿：關,Virtual stick: Off
+pause.virtual_stick_on,觸控搖桿：開,Touch stick: On
+pause.virtual_stick_off,觸控搖桿：關,Touch stick: Off
 early.title,提早關店,Close early
 early.body,所有補貨架都沒有貨了，收銀機也沒有人排隊。\n要提早關店，並結算今天嗎？,"All restock points are empty and no one is queued.\nClose early and settle today?"
 early.hint,A／D 選擇　　J 確定　　; 取消,"A/D select · J confirm · ; cancel"
@@ -51,9 +51,9 @@ prep.hub.shop,店舖管理,Shop
 prep.hub.shop_info,規模 LV%d　地圖 %d×%d　購入、擴張、設計,Scale LV%d · map %d×%d · buy, expand, layout
 prep.hub.staff,員工管理　%d 人,Staff · %d
 prep.hub.sys,系統工具,System tools
-prep.hub.sys_info,畫面／測試與存檔（虛擬搖桿預設關；開後僅觸控模式顯示，手掣／鍵盤會自動隱藏）,Display / testing / save (VJ default off; shows in touch mode only — auto-hides for pad/keyboard)
-prep.sys.virtual_stick_on,虛擬搖桿：開,Virtual stick: On
-prep.sys.virtual_stick_off,虛擬搖桿：關,Virtual stick: Off
+prep.hub.sys_info,畫面／測試與存檔（觸控搖桿預設關；開後僅觸控模式顯示，手掣／鍵盤會自動隱藏）,Display / testing / save (touch stick default off; shows in touch mode only — auto-hides for pad/keyboard)
+prep.sys.virtual_stick_on,觸控搖桿：開,Touch stick: On
+prep.sys.virtual_stick_off,觸控搖桿：關,Touch stick: Off
 prep.home.stats,角色能力,Stats
 prep.home.skills,裝備技能,Skills
 prep.home.skills_short,裝備技能,Skills
