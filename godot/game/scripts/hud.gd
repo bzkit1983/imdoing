@@ -270,6 +270,20 @@ func _sync_right() -> void:
 	_refresh()
 
 
+func _skill_cd_label(cd: float) -> String:
+	## Match cast gate (cd > 0.05). Never show "CD 0" while not ready — ceil whole seconds.
+	if cd <= 0.05:
+		return "就緒"
+	return "CD %d" % maxi(1, int(ceil(cd)))
+
+
+func _skill_cd_fp_bit(cd: float) -> String:
+	## Ready bit must flip when crossing 0.05 even if 0.25s snap stays at 0.00.
+	if cd <= 0.05:
+		return "R"
+	return "%.2f" % snappedf(cd, 0.25)
+
+
 func _skill_cd_text() -> String:
 	## Snap CD to 0.25s so left HUD skips string rebuild most frames.
 	var equipped: Array = player.call("_loadout") if player.has_method("_loadout") else Skills.EQUIPPED
@@ -283,13 +297,13 @@ func _skill_cd_text() -> String:
 		if String(sk.get("kind")) == "passive":
 			bits.append("%d:P" % i)
 		else:
-			bits.append("%d:%.2f" % [i, snappedf(float(player.call("cd_left", sid)), 0.25)])
+			bits.append("%d:%s" % [i, _skill_cd_fp_bit(float(player.call("cd_left", sid)))])
 	var ult: Dictionary = player.call("_ult_sk") if player.has_method("_ult_sk") else Skills.ULTIMATE
 	var ult_id := String(ult.get("id", ""))
 	if ult_id == "":
 		bits.append("U:-")
 	else:
-		bits.append("U:%.2f" % snappedf(float(player.call("cd_left", ult_id)), 0.25))
+		bits.append("U:%s" % _skill_cd_fp_bit(float(player.call("cd_left", ult_id))))
 	var fp := "|".join(bits)
 	if fp == _skills_cd_fp:
 		return _skills_cd_txt
@@ -305,12 +319,12 @@ func _skill_cd_text() -> String:
 			lines.append("%d %s 被動" % [i + 1, name])
 		else:
 			var cd := float(player.call("cd_left", String(sk2.get("id"))))
-			lines.append("%d %s  %s" % [i + 1, name, "CD %.0f" % cd if cd > 0.05 else "就緒"])
+			lines.append("%d %s  %s" % [i + 1, name, _skill_cd_label(cd)])
 	if ult_id == "":
 		lines.append("奧義 空")
 	else:
 		var ucd := float(player.call("cd_left", ult_id))
-		lines.append("奧義 %s  %s" % [String(ult.get("name")), "CD %.0f" % ucd if ucd > 0.05 else "就緒"])
+		lines.append("奧義 %s  %s" % [String(ult.get("name")), _skill_cd_label(ucd)])
 	_skills_cd_txt = "\n".join(lines)
 	return _skills_cd_txt
 
