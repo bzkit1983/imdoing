@@ -482,6 +482,8 @@ func role_status_text() -> String:
 		bits.append("Dasher %.0fs" % _buffs["dasher"])
 	if _buffs.has("senior_cashier"):
 		bits.append("資深收銀員 %.0fs" % _buffs["senior_cashier"])
+	if _buffs.has("hoop_ace"):
+		bits.append("投籃高手 %.0fs" % _buffs["hoop_ace"])
 	if _sick_left > 0.0:
 		bits.append("嘔吐物 −30%% %.0fs" % _sick_left)
 	if _fighting:
@@ -811,31 +813,46 @@ func _toss_top_piece() -> bool:
 	if inventory.is_empty():
 		log_line.emit("手上沒有貨")
 		return false
-	var run: Dictionary = inventory.trailing_run()
-	var sku := String(run["id"])
-	inventory.remove_trailing(1)
+	## 投籃高手：短按方向一次飛出最上 2 件（可不同 SKU）；只有 1 件則 1。
+	var want := 2 if buff_left("hoop_ace") > 0.05 else 1
+	var tossed: PackedStringArray = []
 	var host := _game()
-	if host and host.has_method("spawn_dropped_box"):
-		_piece_flights += 1
-		_piece_drop_lock = true
-		_running = false
-		_dashing = false
-		velocity = Vector2.ZERO
-		host.call(
-			"spawn_dropped_box",
-			global_position,
-			sku,
-			1,
-			_cancel_drop_dir,
-			drop_toss_dist(),
-			Callable(self, "_on_piece_drop_landed"),
-		)
-	SfxBus.play("sfx_box_toss")
-	var hint := _sniper_toss_log(Tuning.sku_name(sku), false)
+	for _i in want:
+		if inventory.is_empty():
+			break
+		var run: Dictionary = inventory.trailing_run()
+		var sku := String(run["id"])
+		inventory.remove_trailing(1)
+		tossed.append(sku)
+		if host and host.has_method("spawn_dropped_box"):
+			_piece_flights += 1
+			_piece_drop_lock = true
+			_running = false
+			_dashing = false
+			velocity = Vector2.ZERO
+			host.call(
+				"spawn_dropped_box",
+				global_position,
+				sku,
+				1,
+				_cancel_drop_dir,
+				drop_toss_dist(),
+				Callable(self, "_on_piece_drop_landed"),
+			)
+		SfxBus.play("sfx_box_toss")
+	if tossed.is_empty():
+		return false
+	var names: PackedStringArray = []
+	for s in tossed:
+		names.append(Tuning.sku_name(String(s)))
+	var label := "、".join(names)
+	var hint := _sniper_toss_log(label, false)
 	if hint != "":
 		log_line.emit(hint)
+	elif tossed.size() >= 2:
+		log_line.emit("投籃高手 %s — 往%s飛出" % [label, _drop_dir_label(_cancel_drop_dir)])
 	else:
-		log_line.emit("丟掉 %s 1件 — 往%s飛出" % [Tuning.sku_name(sku), _drop_dir_label(_cancel_drop_dir)])
+		log_line.emit("丟掉 %s 1件 — 往%s飛出" % [label, _drop_dir_label(_cancel_drop_dir)])
 	return true
 
 
@@ -2727,6 +2744,8 @@ func _cast_slot(i: int) -> void:
 		_buffs[sid] = window
 	elif bool(sk.get("dasher", false)):
 		_buffs[sid] = Skills.dasher_seconds(int(sk.get("lv", 3)))
+	elif bool(sk.get("hoop_ace", false)):
+		_buffs[sid] = Skills.hoop_ace_seconds(int(sk.get("lv", 3)))
 	elif bool(sk.get("senior_cashier", false)):
 		_senior_cashier_lv = int(sk.get("lv", 3))
 		_buffs[sid] = Skills.senior_cashier_seconds(_senior_cashier_lv)
