@@ -28,10 +28,16 @@ const RESTOCK_SLOT_1 := "restock_slot_1"
 const RESTOCK_SLOT_2 := "restock_slot_2"
 const RESTOCK_SLOT_3 := "restock_slot_3"
 
-## Analog trigger "pressed" threshold (Xbox LT/RT).
+## Analog trigger "pressed" threshold (Xbox LT/RT), after normalize to 0..1.
 const TRIGGER_DEADZONE := 0.5
 ## Solo LT/RT waits this long before casting so LT+RT can form an ult chord.
 const TRIGGER_SKILL_GRACE := 0.1
+## HTML5 Standard Gamepad: buttons[6]/[7] are LT/RT (Godot uses the same indices on Web).
+const WEB_BTN_LT := 6
+const WEB_BTN_RT := 7
+## Stick vs trigger alias epsilon (Web often exposes only 4 axes; axis 4/5 can mirror stick).
+const TRIGGER_ALIAS_EPS := 0.08
+const TRIGGER_ALIAS_STICK_MIN := 0.35
 
 const HOLD_ACTIONS: Array[String] = [INTERACT, CANCEL, DASH, SKILL, ULT]
 const MOVE_ACTIONS: Array[String] = [MOVE_UP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT]
@@ -195,14 +201,56 @@ func _ensure_joy_btn(action: String, button: JoyButton) -> void:
 	InputMap.action_add_event(action, _joy_btn(button))
 
 
-## Strongest LT/RT deflection across connected pads (0..1-ish).
+## Strongest LT/RT deflection across connected pads, normalized to 0..1.
+## Web safety: if trigger axes mirror the left stick (common 4-axis alias), ignore axes
+## and fall back to Standard Gamepad LT/RT buttons (6/7).
 func trigger_values() -> Vector2:
 	var best_lt := 0.0
 	var best_rt := 0.0
+	var on_web := OS.has_feature("web")
 	for device in Input.get_connected_joypads():
-		best_lt = maxf(best_lt, Input.get_joy_axis(device, JOY_AXIS_TRIGGER_LEFT))
-		best_rt = maxf(best_rt, Input.get_joy_axis(device, JOY_AXIS_TRIGGER_RIGHT))
+		var lx := Input.get_joy_axis(device, JOY_AXIS_LEFT_X)
+		var ly := Input.get_joy_axis(device, JOY_AXIS_LEFT_Y)
+		var raw_lt := Input.get_joy_axis(device, JOY_AXIS_TRIGGER_LEFT)
+		var raw_rt := Input.get_joy_axis(device, JOY_AXIS_TRIGGER_RIGHT)
+		var lt := _normalize_trigger_axis(raw_lt)
+		var rt := _normalize_trigger_axis(raw_rt)
+		if _triggers_alias_left_stick(raw_lt, raw_rt, lx, ly):
+			lt = 0.0
+			rt = 0.0
+		if on_web:
+			lt = maxf(lt, _web_trigger_button(device, true))
+			rt = maxf(rt, _web_trigger_button(device, false))
+		best_lt = maxf(best_lt, lt)
+		best_rt = maxf(best_rt, rt)
 	return Vector2(best_lt, best_rt)
+
+
+## Map raw axis to 0..1. Handles rest-at-0 and rest-at--1 (SDL / some pads).
+func _normalize_trigger_axis(raw: float) -> float:
+	if raw < -0.01:
+		return clampf((raw + 1.0) * 0.5, 0.0, 1.0)
+	return clampf(raw, 0.0, 1.0)
+
+
+## True when LT/RT axis pair is clearly the left stick (Web 4-axis alias bug).
+func _triggers_alias_left_stick(raw_lt: float, raw_rt: float, lx: float, ly: float) -> bool:
+	if Vector2(lx, ly).length() < TRIGGER_ALIAS_STICK_MIN:
+		return false
+	var match_xy := (
+		absf(raw_lt - lx) <= TRIGGER_ALIAS_EPS and absf(raw_rt - ly) <= TRIGGER_ALIAS_EPS
+	)
+	var match_yx := (
+		absf(raw_lt - ly) <= TRIGGER_ALIAS_EPS and absf(raw_rt - lx) <= TRIGGER_ALIAS_EPS
+	)
+	return match_xy or match_yx
+
+
+func _web_trigger_button(device: int, left: bool) -> float:
+	var btn := WEB_BTN_LT if left else WEB_BTN_RT
+	if Input.is_joy_button_pressed(device, btn):
+		return 1.0
+	return 0.0
 
 
 func _key(physical: Key) -> InputEventKey:
