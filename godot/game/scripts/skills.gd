@@ -109,6 +109,7 @@ const ACTIVES: Array[Dictionary] = [
 	{"id": "carry_boost", "name": "頂硬上", "kind": "active", "lv": 3, "cost": 1, "carry_add": 240, "duration": ACTIVE_DURATION, "cd": ACTIVE_CD, "blurb": "負重 +240 件，20 秒"},
 	{"id": "move_boost", "name": "無人可以喺我前面", "kind": "active", "lv": 3, "cost": 1, "move_pct": 0.60, "duration": ACTIVE_DURATION, "cd": ACTIVE_CD, "blurb": "移速 +60%，20 秒"},
 	{"id": "checkout_rush", "name": "人肉數錢機", "kind": "active", "lv": 3, "cost": 1, "checkout_pct": 0.60, "duration": ACTIVE_DURATION, "cd": ACTIVE_CD, "blurb": "收銀 +60%，20 秒"},
+	{"id": "senior_cashier", "name": "資深收銀員", "kind": "active", "lv": 3, "cost": 2, "senior_cashier": true, "duration": 45.0, "cd": 15.0, "blurb": "減指令次數／LV3免指令且Circle×0.5。準備頁選 LV1／2／3，沒選預設 LV3"},
 	{"id": "instant_restock", "name": "瞬間補貨", "kind": "active", "lv": 3, "cost": 1, "restock_instant": true, "restock_circle_mult": 0.0, "duration": ACTIVE_DURATION, "cd": ACTIVE_CD, "blurb": "上架瞬間完成，20 秒"},
 	{"id": "soothe", "name": "安撫", "kind": "active", "lv": 3, "cost": 1, "soothe_keep": 0.0, "duration": 0.0, "cd": ACTIVE_CD, "blurb": "全店不滿歸零（已離開不拉回）"},
 	{"id": "metal_rush", "name": "金屬狂潮", "kind": "active", "lv": 3, "cost": 1, "customer_move_pct": 1.50, "duration": ACTIVE_DURATION, "cd": ACTIVE_CD, "blurb": "客人移速 +150%，20 秒"},
@@ -148,6 +149,7 @@ static func prep_picks_level(sk: Dictionary) -> bool:
 		bool(sk.get("dark_side", false))
 		or bool(sk.get("shadow_clone", false))
 		or bool(sk.get("dasher", false))
+		or bool(sk.get("senior_cashier", false))
 	)
 
 
@@ -159,6 +161,26 @@ static func dasher_seconds(lv: int) -> float:
 			return 10.0
 		_:
 			return 15.0
+
+
+static func senior_cashier_seconds(lv: int) -> float:
+	match lv:
+		1:
+			return 15.0
+		2:
+			return 30.0
+		_:
+			return 45.0
+
+
+## Apply LV1/2 keep ratios; LV3 → 0 (skip commands). lv≤0 = no buff.
+static func senior_cashier_command_count(base: int, lv: int) -> int:
+	if lv <= 0:
+		return base
+	if lv >= 3:
+		return 0
+	var keep := 0.7 if lv == 1 else 0.4
+	return maxi(1, int(ceil(float(base) * keep)))
 
 
 static func restock_circle_mult(lv: int) -> float:

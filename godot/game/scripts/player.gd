@@ -37,6 +37,8 @@ var _clean_hint: bool = false
 var command_lock: bool = false
 var seq_index: int = 0
 var seq_done: bool = false
+## Cast level while `senior_cashier` buff is up (0 = inactive).
+var _senior_cashier_lv: int = 0
 var skill_menu_open: bool = false
 var ult_prep: bool = false
 var stick_axis: Vector2 = Vector2.ZERO
@@ -416,7 +418,11 @@ func checkout_seconds_now() -> float:
 			continue
 		if sk.has("checkout_pct"):
 			rate *= 1.0 + float(sk.get("checkout_pct"))
-	return sec / rate
+	var out := sec / rate
+	## 資深收銀員 LV3：Circle ×0.5（可與人肉數錢機等疊乘之後再砍）。
+	if _senior_cashier_lv_now() >= 3:
+		out *= 0.5
+	return out
 
 
 func cd_left(skill_id: String) -> float:
@@ -474,6 +480,8 @@ func role_status_text() -> String:
 		bits.append("衝刺交付 %.0fs" % _buffs["dash_deliver"])
 	if _buffs.has("dasher"):
 		bits.append("Dasher %.0fs" % _buffs["dasher"])
+	if _buffs.has("senior_cashier"):
+		bits.append("資深收銀員 %.0fs" % _buffs["senior_cashier"])
 	if _sick_left > 0.0:
 		bits.append("嘔吐物 −30%% %.0fs" % _sick_left)
 	if _fighting:
@@ -1153,6 +1161,8 @@ func _tick_buffs(delta: float) -> void:
 	for id in gone:
 		if id == "the_world":
 			SfxBus.play("sfx_ult_the_world_end")
+		if id == "senior_cashier":
+			_senior_cashier_lv = 0
 		_buffs.erase(id)
 	for id in _cd.keys():
 		_cd[id] = maxf(0.0, float(_cd[id]) - delta)
@@ -2337,17 +2347,37 @@ func _tick_cashier(delta: float) -> void:
 		_finish_checkout(cust)
 
 
+func _senior_cashier_lv_now() -> int:
+	if buff_left("senior_cashier") <= 0.05:
+		return 0
+	return _senior_cashier_lv
+
+
 func _ensure_seq(cust) -> void:
 	if cust.checkout_seq.is_empty():
+		## LV3 skip leaves seq empty but marks init so we do not re-roll each frame.
+		if cust.has_meta("checkout_seq_init") and bool(cust.get_meta("checkout_seq_init")):
+			seq_done = true
+			cust.begin_paying()
+			return
 		var n := Tuning.command_count(cust.cart.size())
-		var seq: Array[int] = []
-		for i in n:
-			seq.append(randi() % 4)
-		cust.checkout_seq = seq
+		n = Skills.senior_cashier_command_count(n, _senior_cashier_lv_now())
+		cust.set_meta("checkout_seq_init", true)
 		seq_index = 0
-		seq_done = false
-		SfxBus.play("sfx_checkout_enter")
-		log_line.emit("收銀指令 %d 次（購物 %d 件）" % [n, cust.cart.size()])
+		if n <= 0:
+			cust.checkout_seq = []
+			seq_done = true
+			SfxBus.play("sfx_checkout_enter")
+			SfxBus.play("sfx_checkout_seq_done")
+			log_line.emit("資深收銀員 — 略過指令，直接 Loading Circle（購物 %d 件）" % cust.cart.size())
+		else:
+			var seq: Array[int] = []
+			for i in n:
+				seq.append(randi() % 4)
+			cust.checkout_seq = seq
+			seq_done = false
+			SfxBus.play("sfx_checkout_enter")
+			log_line.emit("收銀指令 %d 次（購物 %d 件）" % [n, cust.cart.size()])
 	cust.begin_paying()
 
 
@@ -2697,6 +2727,9 @@ func _cast_slot(i: int) -> void:
 		_buffs[sid] = window
 	elif bool(sk.get("dasher", false)):
 		_buffs[sid] = Skills.dasher_seconds(int(sk.get("lv", 3)))
+	elif bool(sk.get("senior_cashier", false)):
+		_senior_cashier_lv = int(sk.get("lv", 3))
+		_buffs[sid] = Skills.senior_cashier_seconds(_senior_cashier_lv)
 	elif bool(sk.get("dark_side", false)) or bool(sk.get("shadow_clone", false)):
 		_buffs.erase(sid)
 	else:
