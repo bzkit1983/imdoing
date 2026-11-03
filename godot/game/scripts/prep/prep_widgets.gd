@@ -26,12 +26,13 @@ static var _list_spacer: ImageTexture
 
 
 static func clear(node: Node) -> void:
-	## Free immediately — queue_free leaves stale children for the rest of the frame,
-	## so hub layout would count old+new tiles and balloon the grid height.
+	## Detach now so layout/get_child_count see an empty parent this frame.
+	## queue_free (not free): hub tiles often call refresh from pressed, and
+	## free()-ing the emitter mid-signal errors with "Object is locked".
 	while node.get_child_count() > 0:
 		var c := node.get_child(0)
 		node.remove_child(c)
-		c.free()
+		c.queue_free()
 
 
 static func list_row_spacer() -> Texture2D:

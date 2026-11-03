@@ -168,7 +168,7 @@ func _begin_day() -> void:
 	var pad = preload("res://scripts/touch_pad.gd").new()
 	pad.name = "TouchPad"
 	add_child(pad)
-	pad.visible = PlatformServices.show_touch_pad()
+	pad.visible = InputMode.show_vj()
 	pad.stick_changed.connect(func(axis: Vector2) -> void: _player.stick_axis = axis)
 	pad.hold_changed.connect(func(action: String, pressed: bool) -> void:
 		if _early_open and pressed:
@@ -187,6 +187,14 @@ func _begin_day() -> void:
 		if _player:
 			_player.set_hold(action, pressed)
 	)
+	pad.skill_hotkey.connect(func(slot: int) -> void:
+		if _player and _player.has_method("cast_skill_hotkey"):
+			_player.call("cast_skill_hotkey", slot)
+	)
+	if not InputMode.show_vj_changed.is_connected(_on_show_vj_changed):
+		InputMode.show_vj_changed.connect(_on_show_vj_changed)
+	if not InputMode.clear_virtual_holds.is_connected(_clear_virtual_holds):
+		InputMode.clear_virtual_holds.connect(_clear_virtual_holds)
 	_spawn_clerks()
 	for i in Tuning.dirt_start(_play_easy()):
 		_try_spawn_dirt()
@@ -887,16 +895,30 @@ func request_pause() -> void:
 
 
 func on_pause_opened() -> void:
+	_clear_virtual_holds()
+
+
+func on_pause_closed() -> void:
+	pass
+
+
+func _on_show_vj_changed(visible_now: bool) -> void:
+	var pad := get_node_or_null("TouchPad")
+	if pad:
+		pad.visible = visible_now
+	if not visible_now:
+		_clear_virtual_holds()
+
+
+func _clear_virtual_holds() -> void:
 	if _player and _player.has_method("set_hold"):
 		_player.set_hold("interact", false)
 		_player.set_hold("cancel", false)
 		_player.set_hold("dash", false)
 		_player.set_hold("skill", false)
 		_player.set_hold("ult", false)
-
-
-func on_pause_closed() -> void:
-	pass
+	if _player:
+		_player.stick_axis = Vector2.ZERO
 
 
 func _on_pause_end_day() -> void:

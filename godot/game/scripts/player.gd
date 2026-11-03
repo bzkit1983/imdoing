@@ -2531,6 +2531,11 @@ func _try_skill_hotkey(slot: int) -> void:
 	_confirm_skill(slot)
 
 
+## TouchPad / external callers: slot 0–4 = skills 1–5 (0 = center; 1–4 = LB/RB/LT/RT).
+func cast_skill_hotkey(slot: int) -> void:
+	_try_skill_hotkey(slot)
+
+
 func _tick_triggers(delta: float) -> void:
 	var tr := Controls.trigger_values()
 	var lt := tr.x >= Controls.TRIGGER_DEADZONE
