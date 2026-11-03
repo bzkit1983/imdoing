@@ -474,7 +474,7 @@ static func _layout(menu: CanvasLayer) -> void:
 		var n: int = int(menu.state.unplaced(type))
 		if n > 0:
 			menu._add("拖放 %s　×%d" % [menu.state.FURNITURE[type]["name"], n], "hold", type)
-	menu._add("收回游標上的物品", "pickup", null)
+	menu._add(Loc.t("prep.layout.focus_map"), "map_focus", null)
 	menu._add(Loc.t("prep.back"), "go", "hub_shop")
 	menu._grid.queue_redraw()
 

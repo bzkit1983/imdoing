@@ -32,6 +32,11 @@ var _qty_boxes: int = 1
 var _qty_focus: int = 2
 var _hold_type: String = ""
 var _hold_rot: int = 0
+## Pad/keyboard layout: "map" moves the grid cursor; "list" is size row + inventory list.
+var _layout_focus: String = "map"
+## True when the held piece was lifted off the grid (cancel restores origin).
+var _hold_from_map: bool = false
+var _hold_origin := Vector2i.ZERO
 var _cursor := Vector2i(2, 2)
 var _drag_on: bool = false
 var _drag_moved: bool = false
@@ -200,8 +205,13 @@ func _show_page(page: String) -> void:
 	_qty_sku = ""
 	_on_size_btns = false
 	if page != "layout":
-		_hold_type = ""
+		_clear_hold()
 		_cancel_drag()
+	else:
+		_layout_focus = "map"
+		_on_size_btns = false
+		_cursor.x = clampi(_cursor.x, 0, maxi(0, state.grid_w - 1))
+		_cursor.y = clampi(_cursor.y, 0, maxi(0, state.grid_h - 1))
 	if page == "stats":
 		_on_stats_btns = true
 		_stat_row = 0
@@ -667,7 +677,7 @@ func _activate() -> void:
 	if _page == "home" and _open_focus == 1:
 		_on_open_elite_pressed()
 		return
-	if _page == "layout" and _hold_type != "":
+	if _page == "layout" and (_layout_focus == "map" or _hold_type != ""):
 		try_place()
 		return
 	if _page == "layout" and _on_size_btns:
@@ -783,17 +793,11 @@ func _activate() -> void:
 		"expand_max":
 			_popup_info("尚未開放", "店舖已是最大規模 LV3，不能再擴張。")
 		"hold":
-			_hold_type = String(arg)
-			_hold_rot = 0
-			_refresh()
-		"pickup":
-			var hit := state.item_at(_cursor.x, _cursor.y)
-			if hit >= 0:
-				state.remove_at(hit)
-				SfxBus.play("sfx_ui_pickup_item")
-				_msg = "已收回"
-			else:
-				_msg = "游標上沒有物品"
+			_begin_hold_from_list(String(arg))
+		"map_focus":
+			_layout_focus = "map"
+			_on_size_btns = false
+			_msg = ""
 			_refresh()
 		"hire":
 			_try_hire()
@@ -1179,7 +1183,7 @@ func _move(x: int, y: int) -> void:
 	if _dlg_open:
 		_dialog_move(x, y)
 		return
-	if _page == "layout" and _hold_type != "":
+	if _page == "layout" and (_layout_focus == "map" or _hold_type != ""):
 		_cursor.x = clampi(_cursor.x + x, 0, state.grid_w - 1)
 		_cursor.y = clampi(_cursor.y + y, 0, state.grid_h - 1)
 		_grid.queue_redraw()
@@ -1353,8 +1357,12 @@ func _back() -> void:
 		else:
 			_on_dlg_no()
 		return
-	if _hold_type != "":
-		_hold_type = ""
+	if _page == "layout" and _hold_type != "":
+		_cancel_hold()
+		return
+	if _page == "layout" and _layout_focus == "map":
+		_layout_focus = "list"
+		_msg = ""
 		_refresh()
 		return
 	if _qty_sku != "":
@@ -1436,7 +1444,7 @@ func _release_layout(screen: Vector2) -> void:
 		if from >= 0:
 			state.remove_at(from)
 			_msg = "已收回"
-			_hold_type = ""
+			_clear_hold()
 			_refresh()
 			get_viewport().set_input_as_handled()
 		return
@@ -1447,7 +1455,7 @@ func _release_layout(screen: Vector2) -> void:
 		if from >= 0:
 			state.remove_at(from)
 			_msg = "已收回"
-		_hold_type = ""
+		_clear_hold()
 		_refresh()
 		return
 	var cell := _cell_of(grid_local) - grab
@@ -1459,7 +1467,7 @@ func _release_layout(screen: Vector2) -> void:
 		_msg = state.place_item(typ, cell.x, cell.y, rot)
 		if _msg == "":
 			_msg = "已放置"
-	_hold_type = ""
+	_clear_hold()
 	_cursor = cell
 	_refresh()
 
@@ -1503,17 +1511,73 @@ func try_place() -> void:
 	if _dlg_open:
 		return
 	if _hold_type == "":
-		var hit := state.item_at(_cursor.x, _cursor.y)
-		if hit >= 0:
-			state.remove_at(hit)
-			_msg = "已收回"
-			_refresh()
+		_pickup_at_cursor()
 		return
+	var from_map := _hold_from_map
 	_msg = state.place_item(_hold_type, _cursor.x, _cursor.y, _hold_rot)
 	if _msg == "":
 		SfxBus.play("sfx_ui_place")
-		_hold_type = ""
+		_clear_hold()
+		_layout_focus = "map"
+		_msg = "已移動" if from_map else "已放置"
 	_refresh()
+
+
+func _begin_hold_from_list(type: String) -> void:
+	_hold_type = type
+	_hold_rot = 0
+	_hold_from_map = false
+	_hold_origin = Vector2i.ZERO
+	_layout_focus = "map"
+	_on_size_btns = false
+	_msg = ""
+	_refresh()
+
+
+func _pickup_at_cursor() -> void:
+	var hit := state.item_at(_cursor.x, _cursor.y)
+	if hit < 0:
+		_msg = "游標上沒有物品"
+		_refresh()
+		return
+	var it: Dictionary = state.placed[hit]
+	_hold_type = String(it["type"])
+	_hold_rot = int(it["rot"])
+	_hold_from_map = true
+	_hold_origin = Vector2i(int(it["x"]), int(it["y"]))
+	_cursor = _hold_origin
+	state.remove_at(hit)
+	SfxBus.play("sfx_ui_pickup_item")
+	_layout_focus = "map"
+	_msg = ""
+	_refresh()
+
+
+func _cancel_hold() -> void:
+	if _hold_type == "":
+		return
+	if _hold_from_map:
+		var err := state.place_item(_hold_type, _hold_origin.x, _hold_origin.y, _hold_rot)
+		if err != "":
+			## Origin should be free; if not, still drop the hold so the item is not lost from stock counts.
+			_msg = err
+		else:
+			_msg = "已放回"
+			SfxBus.play("sfx_ui_place")
+		_clear_hold()
+		_layout_focus = "map"
+	else:
+		_clear_hold()
+		_layout_focus = "list"
+		_msg = ""
+	_refresh()
+
+
+func _clear_hold() -> void:
+	_hold_type = ""
+	_hold_rot = 0
+	_hold_from_map = false
+	_hold_origin = Vector2i.ZERO
 
 
 
