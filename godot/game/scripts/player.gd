@@ -1471,6 +1471,13 @@ func _faced_guests() -> Array:
 func _long_kind() -> String:
 	if _nearest_kind("dirt") != null:
 		return "dirt"
+	## Shelf that can take the carried top run beats guest delivery. Otherwise
+	## open-hour guests steal long-press and the shelf Loading Circle never runs
+	## (glow still aims the stocked shelf for short-tap take).
+	if not inventory.is_empty():
+		var stock_shelf := _nearest_kind("shelf")
+		if stock_shelf != null and _shelf_can_take_carried(stock_shelf):
+			return "shelf"
 	if _store_open() and not inventory.is_empty() and not _faced_guests().is_empty():
 		return "guest"
 	if _nearest_kind("shelf") != null:
@@ -1482,6 +1489,13 @@ func _long_kind() -> String:
 	if _nearest_kind("drop") != null:
 		return "drop"
 	return ""
+
+
+func _shelf_can_take_carried(shelf: Node2D) -> bool:
+	if shelf == null or not shelf.has_method("can_accept") or inventory.is_empty():
+		return false
+	var run: Dictionary = inventory.trailing_run()
+	return bool(shelf.call("can_accept", String(run["id"])))
 
 
 func _preview_target() -> Node2D:

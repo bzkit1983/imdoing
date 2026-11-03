@@ -470,24 +470,28 @@ func restock_holds(except: Node) -> Dictionary:
 		for c in _world.get_children():
 			if c == null or c == except or not is_instance_valid(c):
 				continue
-			if String(c.get("role")) != "restock":
+			## str() — String(null) throws in Godot 4.7 and aborts the whole scan,
+			## so hired clerks never finish _find_job.
+			if str(c.get("role")) != "restock":
 				continue
 			_note_restock_hold(sku, shelf, c.get("_plan_sku"), c.get("_box_sku"), c.get("_shelf"))
 	if _customers != null:
 		for c in _customers.get_children():
 			if c == null or c == except or not is_instance_valid(c):
 				continue
-			if not bool(c.get("temp_clerk")) or String(c.get("temp_role")) != "restock":
+			if not bool(c.get("temp_clerk")) or str(c.get("temp_role")) != "restock":
 				continue
 			_note_restock_hold(sku, shelf, c.get("_temp_plan_sku"), c.get("_temp_box_sku"), c.get("_temp_shelf"))
 	return {"sku": sku, "shelf": shelf}
 
 
 func _note_restock_hold(sku: Dictionary, shelf: Dictionary, planned, carried, target) -> void:
-	if typeof(planned) == TYPE_STRING and String(planned) != "":
-		sku[String(planned)] = true
-	if typeof(carried) == TYPE_STRING and String(carried) != "":
-		sku[String(carried)] = true
+	var plan_s := str(planned) if planned != null else ""
+	if plan_s != "":
+		sku[plan_s] = true
+	var carry_s := str(carried) if carried != null else ""
+	if carry_s != "":
+		sku[carry_s] = true
 	if target != null:
 		shelf[target] = true
 
@@ -499,7 +503,7 @@ func _hired_cashier_registers() -> Array:
 	for c in _world.get_children():
 		if c == null or not is_instance_valid(c):
 			continue
-		if String(c.get("role")) != "cashier":
+		if str(c.get("role")) != "cashier":
 			continue
 		var reg = c.get("register")
 		if reg != null:
@@ -514,7 +518,7 @@ func _temp_cashier_registers() -> Array:
 	for c in _customers.get_children():
 		if c == null or not is_instance_valid(c):
 			continue
-		if not bool(c.get("temp_clerk")) or String(c.get("temp_role")) != "cashier":
+		if not bool(c.get("temp_clerk")) or str(c.get("temp_role")) != "cashier":
 			continue
 		var reg = c.get("temp_register")
 		if reg != null:
@@ -722,9 +726,9 @@ func _collect_clerk_held_pieces() -> Dictionary:
 		for c in _world.get_children():
 			if c == null or not is_instance_valid(c):
 				continue
-			if String(c.get("role")) != "restock":
+			if str(c.get("role")) != "restock":
 				continue
-			var sku := String(c.get("_box_sku"))
+			var sku := str(c.get("_box_sku"))
 			var n := int(c.get("_box_n"))
 			if sku == "" or n <= 0:
 				continue
@@ -734,9 +738,9 @@ func _collect_clerk_held_pieces() -> Dictionary:
 	for c in _customers.get_children():
 		if c == null or not is_instance_valid(c):
 			continue
-		if not bool(c.get("temp_clerk")) or String(c.get("temp_role")) != "restock":
+		if not bool(c.get("temp_clerk")) or str(c.get("temp_role")) != "restock":
 			continue
-		var held := String(c.get("_temp_box_sku"))
+		var held := str(c.get("_temp_box_sku"))
 		var pieces := int(c.get("_temp_box_n"))
 		if held == "" or pieces <= 0:
 			continue
@@ -797,7 +801,7 @@ func _clear_credited_unsold() -> void:
 		if kind == "drop" or kind == "drop_flight":
 			kill.append(c)
 			continue
-		if String(c.get("role")) == "restock":
+		if str(c.get("role")) == "restock":
 			c.set("_box_n", 0)
 			c.set("_box_sku", "")
 	for c in kill:

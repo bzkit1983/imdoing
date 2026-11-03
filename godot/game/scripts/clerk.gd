@@ -157,8 +157,8 @@ func _tick_restock(delta: float) -> void:
 func _find_job() -> Dictionary:
 	var present := _skus_on_shelves()
 	var held := _reserved_by_others()
-	var reserved_sku: Dictionary = held["sku"]
-	var reserved_shelf: Dictionary = held["shelf"]
+	var reserved_sku: Dictionary = held.get("sku", {})
+	var reserved_shelf: Dictionary = held.get("shelf", {})
 	var best_shelf: Node2D = null
 	var best_sku := ""
 	var best_d := 99999.0
