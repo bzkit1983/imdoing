@@ -22,7 +22,8 @@ signal virtual_stick_changed(enabled: bool)
 
 var _backend = DesktopPlatform.new()
 ## Player preference; only applies when the platform profile is touch (Web / mobile).
-var _virtual_stick: bool = true
+## Default off (tester/PM): player opts in via Prep System tools or Pause.
+var _virtual_stick: bool = false
 
 
 func _ready() -> void:
@@ -66,8 +67,11 @@ func wants_touch_pad() -> bool:
 	return get_ui_profile() == "touch"
 
 
-## On-screen TouchPad should be drawn (platform touch + player left it on).
+## On-screen TouchPad visibility. Live rule lives on InputMode (pref + active device).
 func show_touch_pad() -> bool:
+	var im := get_node_or_null("/root/InputMode")
+	if im and im.has_method("show_vj"):
+		return bool(im.call("show_vj"))
 	return wants_touch_pad() and _virtual_stick
 
 
@@ -98,7 +102,7 @@ func _load_ui_settings() -> void:
 	var cf := ConfigFile.new()
 	if cf.load(SETTINGS_PATH) != OK:
 		return
-	_virtual_stick = bool(cf.get_value(SETTINGS_SECTION, SETTINGS_VIRTUAL_STICK, true))
+	_virtual_stick = bool(cf.get_value(SETTINGS_SECTION, SETTINGS_VIRTUAL_STICK, false))
 
 
 func _save_ui_settings() -> void:

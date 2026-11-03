@@ -860,11 +860,7 @@ func _toggle_virtual_stick() -> void:
 	var on := PlatformServices.toggle_virtual_stick()
 	SfxBus.play("sfx_ui_confirm")
 	_msg = Loc.t("prep.sys.virtual_stick_on" if on else "prep.sys.virtual_stick_off")
-	## Live ops TouchPad (if world already spawned) follows the preference on touch platforms.
-	if demo != null:
-		var pad = demo.get_node_or_null("TouchPad")
-		if pad != null:
-			pad.visible = PlatformServices.show_touch_pad()
+	## Visibility updates via InputMode.show_vj_changed → demo._on_show_vj_changed.
 	_refresh()
 
 

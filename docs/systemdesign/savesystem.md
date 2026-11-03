@@ -45,6 +45,6 @@
 # 平台
 
 - 玩法只呼叫 `PlatformServices`（`write_save`／`read_save`／`has_save`／`delete_save`／`checkpoint`）  
-- Desktop stub：`user://save.json`；Web／mobile UI profile 為 `touch`，桌面為 `gamepad`（隱藏 TouchPad）  
+- Desktop stub：`user://save.json`；Web／mobile UI profile 為 `touch`，桌面為 `gamepad`（隱藏 TouchPad）。VJ 另受 `InputMode`＋`[ui] virtual_stick`（預設關）約束，見 `inputmodes-vj.md`
 - 掛起前 `checkpoint` 與暫停選單銜接見 `pausemenu.md`  
 - 日後 Steam Cloud／Switch／Xbox 換 backend，不另開玩法存檔格式（商務／釘版見 `docs/alpha/console-business.md`、`docs/alpha/godot-middleware-pin.md`）

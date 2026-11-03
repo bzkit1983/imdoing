@@ -21,12 +21,9 @@ config/icon="res://icon.svg"
 
 Controls="*res://scripts/controls.gd"
 PlatformServices="*res://scripts/platform_services.gd"
+InputMode="*res://scripts/input_mode.gd"
 Loc="*res://scripts/loc.gd"
 SfxBus="*res://scripts/sfx_bus.gd"
-
-[audio]
-
-buses/default_bus_layout="res://default_bus_layout.tres"
 
 [display]
 
@@ -41,14 +38,14 @@ window/handheld/orientation=4
 theme/custom="res://themes/default.tres"
 theme/custom_font="res://fonts/NotoSansTC-Game.ttf"
 
-[internationalization]
-
-locale/fallback="zh_TW"
-locale/include_text_server_data=true
-
 [input_devices]
 
 pointing/emulate_touch_from_mouse=true
+
+[internationalization]
+
+locale/include_text_server_data=true
+locale/fallback="zh_TW"
 
 [physics]
 
@@ -56,10 +53,9 @@ pointing/emulate_touch_from_mouse=true
 
 [rendering]
 
+textures/canvas_textures/default_texture_filter=0
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
-renderer/rendering_method.web="gl_compatibility"
-textures/vram_compression/import_etc2_astc=true
 textures/vram_compression/import_s3tc_bptc=true
-textures/canvas_textures/default_texture_filter=0
+textures/vram_compression/import_etc2_astc=true
 environment/defaults/default_clear_color=Color(0.11, 0.14, 0.13, 1)
