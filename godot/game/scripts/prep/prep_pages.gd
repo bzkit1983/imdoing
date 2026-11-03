@@ -458,7 +458,15 @@ static func _expand(menu: CanvasLayer) -> void:
 
 static func _layout(menu: CanvasLayer) -> void:
 	menu._title.text = Loc.t("prep.layout.title")
-	if menu._hold_type != "":
+	var pick_i: int = int(menu.get("_sku_pick_i"))
+	if pick_i >= 0 and menu.state != null and pick_i < menu.state.placed.size():
+		var list: Array = menu.call("_sku_pick_list")
+		var cur := ""
+		if list is Array and not list.is_empty():
+			var cidx: int = clampi(int(menu.get("_sku_pick_cursor")), 0, list.size() - 1)
+			cur = Tuning.sku_name(String(list[cidx]))
+		menu._info.text = Loc.t("prep.layout.sku_pick", [cur])
+	elif menu._hold_type != "":
 		menu._info.text = Loc.t("prep.layout.holding", [menu.state.FURNITURE[menu._hold_type]["name"]])
 	elif menu._msg != "":
 		menu._info.text = menu._msg

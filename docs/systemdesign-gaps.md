@@ -57,7 +57,7 @@
 | Beta | 未定數值 | 污物／小偷的長線流量未定 | 留待 Beta 設計，見 `docs/beta/design.md`。清潔檔的生成頻率、同時上限、垃圾氣力、三類不滿長線未定。小偷清單件數、同時人數、出現間隔長線未定。霸王色「減少 50%」沒有基礎出現率可乘。 | cleaningsystem.md, thiefsystem.md, playerpassiveskills.md |
 | 已處理 | 規則含糊 | 凌波微步只寫不減速 | 發動時：污物不減速；dash 遇污物高速繞過（特效）；垃圾不扣氣；水漬跑／衝不滑（自水漬 dash 則高速離污）；嘔吐物不禁技能、不減能力。擁擠減速見衝刺／擁擠項。 | playerpassiveskills.md, cleaningsystem.md, playermovement.md |
 | Beta | 未定數值 | 技能幾級學會仍無表 | 留待 Beta（見 `docs/beta/design.md`）。技能 LV1–LV3 效果已寫；角色幾級解鎖哪招仍無表。 | playerskills.md, playerlevel.md, docs/beta/design.md |
-| 已處理 | 未定數值 | 擁擠與操作門檻 | 擁擠見上（3 身位、×0.5、「唔該借借⋯」）。輕放／長按門檻跟活線：衝刺／跑 0.18s、丟掉 0.2s、選貨／技能選單 0.18s。重置能力值費用＝角色等級 × $1000。 | playermovement.md, control.md, playersetup.md |
+| 已處理 | 未定數值 | 擁擠與操作門檻 | 擁擠見上（3 身位、×0.5、「唔該借借⋯」）。輕放／長按門檻跟活線：衝刺／跑 0.1s、丟掉 0.2s、選貨／技能選單 0.18s。重置能力值費用＝角色等級 × $1000。 | playermovement.md, control.md, playersetup.md |
 | 已處理 | 規則含糊 | 收銀方向如何抽 | **隨機**四向，**可連續重複**。 | cashiersystem.md |
 | 已處理 | 規則含糊 | 多台收銀機客人選哪一隊 | 先最短隊；人數相同選最近台；距離相同則隨機。 | cashiersystem.md, customer.md, clerksystem.md |
 | 已處理 | 規則含糊 | 掉落物歸誰 | 地上箱只有玩家可撿。客人**不會**撿走、**不會**算進該客人清單。 | cleaningsystem.md, thiefsystem.md, customer.md, playeraction.md, replenishmentsystem.md |

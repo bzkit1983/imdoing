@@ -127,15 +127,17 @@ prep.furn.info,買入後到店舖設計才放進店裡。展示貨架有 4、8�
 prep.expand.title,擴張店舖,Expand shop
 prep.expand.info,現時規模 LV%d　地圖 %d×%d　總面積 %d／%d。闊度和長度在店舖設計裡調，一邊減少就能加另一邊。\nLV2＝$3000、總面積 225，要角色 LV4。LV3＝$6000、總面積 400，要角色 LV7。,"Scale LV%d · map %d×%d · area %d/%d. Adjust width/height in Layout.\nLV2=$3000 area 225 (need LV4). LV3=$6000 area 400 (need LV7)."
 prep.layout.title,店舖設計,Layout
-prep.layout.info,拖：左列放到圖上；圖上拖移，拖出或輕點收回。手制／鍵盤：進頁先移游標；確定拿起／放下；取消回清單；轉向鍵轉向。,"Drag from the list onto the grid; drag to move, off or tap to recall. Pad/keyboard: cursor first; confirm pick/place; cancel to list; rotate to turn."
+prep.layout.info,拖：左列放到圖上；圖上拖移，拖出或輕點收回。手制：短按拿起／放下；補貨架長按設預設貨；取消回清單。,"Drag from the list onto the grid; drag to move, off or tap to recall. Pad: tap pick/place; long-press restock for default SKU; cancel to list."
 prep.layout.holding,正在放 %s。移游標後確定放下；轉向鍵轉向；取消則還原或退回庫。,"Placing %s. Move cursor and confirm; rotate to turn; cancel restores or returns to stock."
 prep.layout.focus_map,設計圖游標,Layout cursor
+prep.layout.sku_pick,預設貨品：%s　↑↓ 改選　確定　取消,"Default SKU: %s · ↑↓ change · confirm · cancel"
+prep.layout.sku_set,已設預設 %s,Default set: %s
 prep.clerks.title,員工管理,Staff
 prep.confirm.title,開始營運,Open shop
 prep.kind.active,主動,Active
 prep.kind.passive,被動,Passive
 prep.kind.ult,奧義,Ult
-prep.chrome.hint,方向移動　行動確定　取消返回　店舖設計：地圖游標／拿起放下／轉向（K／X）,"Move · confirm · cancel · layout: cursor / pick-place / rotate (K/X)"
+prep.chrome.hint,方向移動　行動確定　取消返回　店舖設計：短按拿起　補貨架長按預設貨　轉向（K／X）,"Move · confirm · cancel · layout: tap pick · restock hold default SKU · rotate (K/X)"
 prep.chrome.back,返回,Back
 prep.chrome.dialog_yes,確定,OK
 prep.chrome.dialog_no,取消,Cancel

@@ -71,7 +71,7 @@ const AGI_EFFECT_CAP := 50
 const RUN_SPEED_MULT := 1.75
 const DASH_DISTANCE := 140.0
 const DASH_TIME := 0.12
-const RUN_HOLD_THRESHOLD := 0.18
+const RUN_HOLD_THRESHOLD := 0.1
 ## Long-press cancel (B or ;) drops the top carried box. A tap still only cancels.
 const DROP_HOLD_SEC := 0.2
 ## Base toss distance (5 身位). Future drop-range skills multiply via player.drop_toss_dist().

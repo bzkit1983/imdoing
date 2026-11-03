@@ -84,6 +84,20 @@ func set_highlight(index: int) -> void:
 	_refresh()
 
 
+## Apply prep-layout default. Invalid / empty → first developed SKU. Day-only picks use set_highlight / commit_pick.
+## Caller must add this node to the tree first so skus() can resolve developed_of via the game group.
+func apply_default_sku(sku: String) -> void:
+	var list := skus()
+	if list.is_empty():
+		highlight = 0
+		_refresh()
+		return
+	var want := String(sku)
+	var idx := list.find(want) if want != "" else -1
+	highlight = idx if idx >= 0 else 0
+	_refresh()
+
+
 func begin_pick() -> void:
 	picking = true
 	cursor = highlight

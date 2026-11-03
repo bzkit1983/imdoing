@@ -231,7 +231,7 @@ func _build_furniture(nodes: Array[Node2D]) -> void:
 				cat = Tuning.CAT_FROZEN
 			elif t.ends_with("ice"):
 				cat = Tuning.CAT_ICE
-			nodes.append(_restock(r, cat))
+			nodes.append(_restock(r, cat, String(it.get("default_sku", ""))))
 		elif t.begins_with("shelf"):
 			var cat := Tuning.CAT_DRY
 			if t.contains("frozen"):
@@ -1547,14 +1547,16 @@ func _run_wall(a: Vector2, b: Vector2, k: int) -> void:
 		_world.add_child(spr)
 
 
-func _restock(r: Rect2, cat: String) -> Node2D:
+func _restock(r: Rect2, cat: String, default_sku: String = "") -> Node2D:
 	_obstacles.append(r)
 	var node: StaticBody2D = RestockScript.new()
 	_fit_body(node, r, "restock_" + cat, 0, 2)
 	node.body = node.get_node("Body")
 	node.label = _caption(r.position + Vector2(4, 18), "")
 	node.setup(cat)
+	## Must be in-tree before apply_default_sku — skus() reads game state via the tree.
 	_world.add_child(node)
+	node.apply_default_sku(default_sku)
 	node.pull_stock()
 	return node
 

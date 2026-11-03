@@ -226,9 +226,33 @@ func _scenario_skill() -> void:
 	clerks.append({"role": "cashier", "register": 0})
 
 
-func _place(type: String, x: int, y: int, rot: int) -> void:
+func _place(type: String, x: int, y: int, rot: int, default_sku: String = "") -> void:
 	var fp := footprint(type, rot)
-	placed.append({"type": type, "x": x, "y": y, "rot": rot, "w": fp.x, "h": fp.y})
+	var row := {"type": type, "x": x, "y": y, "rot": rot, "w": fp.x, "h": fp.y}
+	if is_restock_type(type):
+		row["default_sku"] = String(default_sku)
+	placed.append(row)
+
+
+func is_restock_type(type: String) -> bool:
+	return String(type).begins_with("restock")
+
+
+func restock_category_of_type(type: String) -> String:
+	var t := String(type)
+	if t.ends_with("frozen"):
+		return Tuning.CAT_FROZEN
+	if t.ends_with("ice"):
+		return Tuning.CAT_ICE
+	return Tuning.CAT_DRY
+
+
+func set_restock_default_sku(index: int, sku: String) -> void:
+	if index < 0 or index >= placed.size():
+		return
+	if not is_restock_type(String(placed[index].get("type", ""))):
+		return
+	placed[index]["default_sku"] = String(sku)
 
 
 func xp_to_next() -> int:
@@ -441,11 +465,14 @@ func can_place(type: String, x: int, y: int, rot: int, ignore: int = -1) -> bool
 	return true
 
 
-func place_item(type: String, x: int, y: int, rot: int) -> String:
+func place_item(type: String, x: int, y: int, rot: int, default_sku: String = "") -> String:
 	if not can_place(type, x, y, rot):
 		return "放不下"
 	var fp := footprint(type, rot)
-	placed.append({"type": type, "x": x, "y": y, "rot": rot, "w": fp.x, "h": fp.y})
+	var row := {"type": type, "x": x, "y": y, "rot": rot, "w": fp.x, "h": fp.y}
+	if is_restock_type(type):
+		row["default_sku"] = String(default_sku)
+	placed.append(row)
 	return ""
 
 
@@ -900,14 +927,17 @@ func to_dict() -> Dictionary:
 		slot_list.append(String(id))
 	var placed_list: Array = []
 	for it in placed:
-		placed_list.append({
+		var row := {
 			"type": String(it.get("type", "")),
 			"x": int(it.get("x", 0)),
 			"y": int(it.get("y", 0)),
 			"rot": int(it.get("rot", 0)),
 			"w": int(it.get("w", 1)),
 			"h": int(it.get("h", 1)),
-		})
+		}
+		if is_restock_type(String(row["type"])):
+			row["default_sku"] = String(it.get("default_sku", ""))
+		placed_list.append(row)
 	var clerk_list: Array = []
 	for c in clerks:
 		clerk_list.append({
@@ -986,14 +1016,17 @@ func from_dict(data: Dictionary) -> String:
 				continue
 			var rot := int(d.get("rot", 0))
 			var fp := footprint(t, rot)
-			placed.append({
+			var row := {
 				"type": t,
 				"x": int(d.get("x", 0)),
 				"y": int(d.get("y", 0)),
 				"rot": rot,
 				"w": int(d.get("w", fp.x)),
 				"h": int(d.get("h", fp.y)),
-			})
+			}
+			if is_restock_type(t):
+				row["default_sku"] = String(d.get("default_sku", ""))
+			placed.append(row)
 	shop_scale = clampi(int(data.get("shop_scale", 1)), 1, 3)
 	grid_w = maxi(8, int(data.get("grid_w", 10)))
 	grid_h = maxi(8, int(data.get("grid_h", 10)))

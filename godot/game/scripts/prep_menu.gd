@@ -37,6 +37,15 @@ var _layout_focus: String = "map"
 ## True when the held piece was lifted off the grid (cancel restores origin).
 var _hold_from_map: bool = false
 var _hold_origin := Vector2i.ZERO
+## Preserved when picking up a restock rack so place/cancel keeps its default SKU.
+var _hold_default_sku: String = ""
+## Layout interact hold: short = pick up / place; long on restock = default SKU picker.
+var _layout_act_held: bool = false
+var _layout_act_time: float = 0.0
+var _layout_act_long: bool = false
+## ≥0 while choosing default_sku for placed[index].
+var _sku_pick_i: int = -1
+var _sku_pick_cursor: int = 0
 var _cursor := Vector2i(2, 2)
 var _drag_on: bool = false
 var _drag_moved: bool = false
@@ -206,10 +215,14 @@ func _show_page(page: String) -> void:
 	_on_size_btns = false
 	if page != "layout":
 		_clear_hold()
+		_cancel_sku_pick(false)
 		_cancel_drag()
+		_layout_act_held = false
 	else:
 		_layout_focus = "map"
 		_on_size_btns = false
+		_cancel_sku_pick(false)
+		_layout_act_held = false
 		_cursor.x = clampi(_cursor.x, 0, maxi(0, state.grid_w - 1))
 		_cursor.y = clampi(_cursor.y, 0, maxi(0, state.grid_h - 1))
 	if page == "stats":
@@ -1102,11 +1115,20 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_pressed(Controls.MOVE_RIGHT):
 		_move(1, 0)
 	elif event.is_action_pressed(Controls.INTERACT):
-		_activate()
+		if _sku_pick_i >= 0:
+			_commit_sku_pick()
+		elif _page == "layout" and _layout_focus == "map" and _hold_type == "":
+			## Defer short/long until release / hold threshold (restock default SKU).
+			_layout_act_held = true
+			_layout_act_time = 0.0
+			_layout_act_long = false
+		else:
+			_activate()
 	elif event.is_action_pressed(Controls.CANCEL):
 		_back()
 	elif event.is_action_pressed(Controls.ROTATE):
-		_rotate()
+		if _sku_pick_i < 0:
+			_rotate()
 	else:
 		return
 	get_viewport().set_input_as_handled()
@@ -1129,6 +1151,18 @@ func _dialog_action(event: InputEvent) -> void:
 func _process(_delta: float) -> void:
 	if not visible:
 		return
+	if _layout_act_held and _page == "layout":
+		if Input.is_action_pressed(Controls.INTERACT):
+			_layout_act_time += _delta
+			if not _layout_act_long and _layout_act_time >= Tuning.SKU_PICK_HOLD:
+				if _try_begin_restock_sku_pick():
+					_layout_act_long = true
+		else:
+			if not _layout_act_long:
+				_activate()
+			_layout_act_held = false
+			_layout_act_time = 0.0
+			_layout_act_long = false
 	if _swallow_click and not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
 		_swallow_click = false
 	if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
@@ -1182,6 +1216,9 @@ var _stick_armed: bool = true
 func _move(x: int, y: int) -> void:
 	if _dlg_open:
 		_dialog_move(x, y)
+		return
+	if _sku_pick_i >= 0:
+		_nudge_sku_pick(y if y != 0 else x)
 		return
 	if _page == "layout" and (_layout_focus == "map" or _hold_type != ""):
 		_cursor.x = clampi(_cursor.x + x, 0, state.grid_w - 1)
@@ -1357,6 +1394,9 @@ func _back() -> void:
 		else:
 			_on_dlg_no()
 		return
+	if _sku_pick_i >= 0:
+		_cancel_sku_pick(true)
+		return
 	if _page == "layout" and _hold_type != "":
 		_cancel_hold()
 		return
@@ -1508,13 +1548,14 @@ func _row_at(local: Vector2) -> int:
 
 
 func try_place() -> void:
-	if _dlg_open:
+	if _dlg_open or _sku_pick_i >= 0:
 		return
 	if _hold_type == "":
 		_pickup_at_cursor()
 		return
 	var from_map := _hold_from_map
-	_msg = state.place_item(_hold_type, _cursor.x, _cursor.y, _hold_rot)
+	var def := _hold_default_sku
+	_msg = state.place_item(_hold_type, _cursor.x, _cursor.y, _hold_rot, def)
 	if _msg == "":
 		SfxBus.play("sfx_ui_place")
 		_clear_hold()
@@ -1528,6 +1569,7 @@ func _begin_hold_from_list(type: String) -> void:
 	_hold_rot = 0
 	_hold_from_map = false
 	_hold_origin = Vector2i.ZERO
+	_hold_default_sku = ""
 	_layout_focus = "map"
 	_on_size_btns = false
 	_msg = ""
@@ -1545,6 +1587,7 @@ func _pickup_at_cursor() -> void:
 	_hold_rot = int(it["rot"])
 	_hold_from_map = true
 	_hold_origin = Vector2i(int(it["x"]), int(it["y"]))
+	_hold_default_sku = String(it.get("default_sku", "")) if state.is_restock_type(_hold_type) else ""
 	_cursor = _hold_origin
 	state.remove_at(hit)
 	SfxBus.play("sfx_ui_pickup_item")
@@ -1557,7 +1600,7 @@ func _cancel_hold() -> void:
 	if _hold_type == "":
 		return
 	if _hold_from_map:
-		var err := state.place_item(_hold_type, _hold_origin.x, _hold_origin.y, _hold_rot)
+		var err := state.place_item(_hold_type, _hold_origin.x, _hold_origin.y, _hold_rot, _hold_default_sku)
 		if err != "":
 			## Origin should be free; if not, still drop the hold so the item is not lost from stock counts.
 			_msg = err
@@ -1578,6 +1621,72 @@ func _clear_hold() -> void:
 	_hold_rot = 0
 	_hold_from_map = false
 	_hold_origin = Vector2i.ZERO
+	_hold_default_sku = ""
+
+
+func _try_begin_restock_sku_pick() -> bool:
+	if _dlg_open or _hold_type != "" or _layout_focus != "map" or state == null:
+		return false
+	var hit := state.item_at(_cursor.x, _cursor.y)
+	if hit < 0:
+		return false
+	var it: Dictionary = state.placed[hit]
+	var typ := String(it.get("type", ""))
+	if not state.is_restock_type(typ):
+		return false
+	var cat := state.restock_category_of_type(typ)
+	var list: Array[String] = state.developed_of(cat)
+	if list.is_empty():
+		_msg = "尚未開發此類貨品"
+		_refresh()
+		return true
+	_sku_pick_i = hit
+	var cur := String(it.get("default_sku", ""))
+	var idx := list.find(cur)
+	_sku_pick_cursor = idx if idx >= 0 else 0
+	_msg = ""
+	_refresh()
+	SfxBus.play("sfx_ui_confirm")
+	return true
+
+
+func _sku_pick_list() -> Array[String]:
+	if _sku_pick_i < 0 or _sku_pick_i >= state.placed.size():
+		return []
+	var typ := String(state.placed[_sku_pick_i].get("type", ""))
+	return state.developed_of(state.restock_category_of_type(typ))
+
+
+func _nudge_sku_pick(dir: int) -> void:
+	var list := _sku_pick_list()
+	if list.is_empty() or dir == 0:
+		return
+	_sku_pick_cursor = posmod(_sku_pick_cursor + (1 if dir > 0 else -1), list.size())
+	SfxBus.play("sfx_ui_move")
+	_refresh()
+
+
+func _commit_sku_pick() -> void:
+	var list := _sku_pick_list()
+	if list.is_empty() or _sku_pick_i < 0:
+		_cancel_sku_pick(false)
+		_refresh()
+		return
+	var sku := list[clampi(_sku_pick_cursor, 0, list.size() - 1)]
+	state.set_restock_default_sku(_sku_pick_i, sku)
+	_sku_pick_i = -1
+	_sku_pick_cursor = 0
+	_msg = Loc.t("prep.layout.sku_set", [Tuning.sku_name(sku)])
+	SfxBus.play("sfx_ui_confirm")
+	_refresh()
+
+
+func _cancel_sku_pick(play_sfx: bool) -> void:
+	_sku_pick_i = -1
+	_sku_pick_cursor = 0
+	if play_sfx:
+		_msg = ""
+		_refresh()
 
 
 
