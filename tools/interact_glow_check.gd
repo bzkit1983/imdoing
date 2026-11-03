@@ -126,7 +126,7 @@ func _run() -> void:
 	shelf.count = 4
 	player.inventory.add_one("can")
 	_aim(player)
-	_need(errors, not _has_glow(thief), "thief does not glow while hands are full")
+	_need(errors, _has_glow(thief), "thief glows while hands are full")
 	_need(errors, not _has_glow(shelf), "full-hands thief still blocks the shelf halo")
 	player.inventory.clear()
 	_aim(player)

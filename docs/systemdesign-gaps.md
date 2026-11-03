@@ -34,7 +34,7 @@
 | 已處理 | 規則含糊 | Buff／時停疊加未定義 | 客人完全停止則不能再疊移速。加速+減速依施放先後。同向加速 % 相乘。瞬間補貨 LV3 略過被動上架。CD／持續用現實秒。補貨時段可放技能。 | playeractiveskills.md, playerultimateskills.md, storeoperationphase.md, playerskills.md |
 | 已處理 | 規則含糊 | The World「變慢 50%／80%」語意不清 | 減慢 X%＝世界流速剩 (100−X)%。時鐘、生成、不滿、排隊、客人動作一併變慢。玩家行動／Circle／CD／持續仍用現實秒。打擊倒數亦用現實秒。 | playerultimateskills.md, customer.md, thiefsystem.md |
 | 已處理 | 規則含糊 | 安撫 25%／50% 的基數 | 相對**目前不滿度**。已離開者不拉回。 | playeractiveskills.md, customer.md |
-| 已處理 | 缺檔／缺系統 | 清潔只有行動列 | `cleaningsystem.md` 已有：三類污物、移速 ×0.5、長按＋轉搖桿清潔計、AGI 決定全力轉滿秒數、空手、放手重置。 | cleaningsystem.md, playeraction.md, playerstats.md |
+| 已處理 | 缺檔／缺系統 | 清潔只有行動列 | `cleaningsystem.md` 已有：三類污物、移速 ×0.5、長按＋轉搖桿清潔計、AGI 決定全力轉滿秒數、持貨亦可、放手重置。 | cleaningsystem.md, playeraction.md, playerstats.md |
 | 已處理 | 缺檔／缺系統 | 打擊只有行動列 | `thiefsystem.md` 已對齊活線：近距 KO 散落／衝刺遠距散落（≤5 身位）／方向丟掉砸中（Screen KO、贓物原地掉落、算抓住）、離店途中仍可抓／砸／撞、得手出口才計被偷＋橫幅、Screen KO／連打晃動。 | thiefsystem.md, playeraction.md, playermovement.md, playerstats.md, replenishmentsystem.md |
 | 已處理 | 未定數值 | 移動沒有基值 | AGI 10＝每秒 3 身位、上限 5×、跑 −20 氣力/秒、衝刺 −50、氣力 0 不能跑、污物 ×0.5 已寫進長線。擁擠減速與輕放／長按門檻仍缺。 | playermovement.md, playerstats.md |
 | 已處理 | 缺檔／缺系統 | 沒有資金／採購／經營值文件 | 已有 `ecosystem.md`、`procurement.md`、`stockpricesystem.md`、`shopitem.md`、`shopprogress.md`。虧損＝當日營業額低於當日買入倉庫的貨；開發費、傢俬、工資不算；被偷不入帳。關店把當日營業額加入資金。「經營值」這個詞仍無定義，見下方未處理項。 | ecosystem.md, procurement.md, stockpricesystem.md, cashiersystem.md |
@@ -87,7 +87,7 @@
 | 能力值 | STR／AGI／INT 主表已定（各項 50 封頂）；打擊每下扣血已定；每級 +5 點；重置＝等級 × $1000 | |
 | 移動 | AGI 基值 3 身位/秒、上限 5×；跑 −20 氣力/秒；衝刺 −50；污物 ×0.5；擁擠 3 身位 ×0.5；衝刺撞客人 +50／暈 2s／不重抽清單；門檻跟活線 | |
 | 客人 | 清單上限 15、逗留 1s、思考 3s、不滿 0–100、排隊 15 秒滿；丟掉交齊→立刻收銀；衝刺撞後清單不變 | 生成間隔、在店上限、抽出件數、找不到貨長線數字、客人類別留待 Beta |
-| 清潔 | 三類效果框架、清潔計 AGI 秒數、空手轉搖桿；清潔只顯示藍計（無黃 Circle） | 生成間隔／同時上限、垃圾氣力／秒、三類不滿／秒留待 Beta |
+| 清潔 | 三類效果框架、清潔計 AGI 秒數、持貨亦可轉搖桿；清潔只顯示藍計（無黃 Circle） | 生成間隔／同時上限、垃圾氣力／秒、三類不滿／秒留待 Beta |
 | 小偷 | 不付款、被偷另計、連按 STR 傷害、5 秒失敗；衝刺撞飛／丟掉砸中／狙擊手（小偷）都算抓住；不佔客人數、不受污物 | 出現間隔／同時上限／清單件數、霸王色基率留待 Beta |
 | 資金 | 價格表、開發費、虧損定義、關店入帳、日薪 $100、起始資金 $2500 | |
 | 店面 | 總面積三級、邊長最少 8、拖放、每種展示貨架 4／8／12／24 件、規模 LV2 要角色 LV4、規模 LV3 要角色 LV7 | 冰櫃與凍櫃的操作差異 |

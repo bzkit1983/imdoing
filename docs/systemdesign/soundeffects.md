@@ -73,7 +73,7 @@
 
 | ID | 觸發（設計） | 建議質感 | 優先 | 來源檔 |
 | --- | --- | --- | --- | --- |
-| `sfx_fight_grab` | 空手長按抓住小偷進打擊 | 抓住／鎖住 | P0 | `thiefsystem.md` |
+| `sfx_fight_grab` | 長按抓住小偷進打擊（持貨亦可） | 抓住／鎖住 | P0 | `thiefsystem.md` |
 | `sfx_fight_hit` | 連按行動扣血（每有效一下） | 打擊 hit | P0 | `thiefsystem.md` |
 | `sfx_fight_fail` | 5 秒內未打倒：玩家被撞開倒地 | 撞開＋倒地 | P0 | `thiefsystem.md` |
 | `sfx_ko_screen` | Screen KO（近身打倒／丟掉砸中小偷） | 衝擊＋閃白 stinger | P0 | `thiefsystem.md` |

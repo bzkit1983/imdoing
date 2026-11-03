@@ -1468,18 +1468,16 @@ func _faced_guests() -> Array:
 
 
 ## Long-press target when no thief is in range. Restock ticks from the first frame; the others wait out the tap.
+## Order (after thief): dirt → guest → stockable shelf → other shelf / cashier / …
 func _long_kind() -> String:
 	if _nearest_kind("dirt") != null:
 		return "dirt"
-	## Shelf that can take the carried top run beats guest delivery. Otherwise
-	## open-hour guests steal long-press and the shelf Loading Circle never runs
-	## (glow still aims the stocked shelf for short-tap take).
+	if _store_open() and not inventory.is_empty() and not _faced_guests().is_empty():
+		return "guest"
 	if not inventory.is_empty():
 		var stock_shelf := _nearest_kind("shelf")
 		if stock_shelf != null and _shelf_can_take_carried(stock_shelf):
 			return "shelf"
-	if _store_open() and not inventory.is_empty() and not _faced_guests().is_empty():
-		return "guest"
 	if _nearest_kind("shelf") != null:
 		return "shelf"
 	if _nearest_kind("cashier") != null:
@@ -1740,7 +1738,8 @@ func _glow_host_now() -> Node2D:
 func _interact_available(node: Node2D) -> bool:
 	var kind := String(node.get("kind"))
 	if kind == "thief":
-		return inventory.is_empty() and node.has_method("is_active_thief") and bool(node.call("is_active_thief"))
+		## Carry allowed; goods stay in hand during the fight.
+		return node.has_method("is_active_thief") and bool(node.call("is_active_thief"))
 	if kind == "shelf":
 		return _shelf_interactable(node)
 	if kind == "restock":
@@ -1749,7 +1748,8 @@ func _interact_available(node: Node2D) -> bool:
 		var n := int(node.get("count"))
 		return n > 0 and inventory.count() + n <= carry_cap()
 	if kind == "dirt":
-		return inventory.is_empty()
+		## Carry allowed; goods stay in hand while cleaning.
+		return true
 	if kind == "cashier":
 		return node.has_method("ready_customer") and node.call("ready_customer") != null
 	if kind == "elite" or kind == "":
@@ -1868,11 +1868,7 @@ func _tick_action(delta: float) -> void:
 
 
 func _begin_fight() -> void:
-	if not inventory.is_empty():
-		if not _pickup_used:
-			log_line.emit("打擊要空手 — 先把貨上架")
-			_pickup_used = true
-		return
+	## Carry allowed; goods stay in hand for the mash window.
 	if not is_instance_valid(target) or not bool(target.get("is_thief")):
 		return
 	if not bool(target.call("is_active_thief")):
@@ -2219,11 +2215,7 @@ func _tick_restock(delta: float) -> void:
 
 
 func _tick_clean(_delta: float) -> void:
-	if not inventory.is_empty():
-		log_line.emit("清潔要空手 — 先把貨上架")
-		_j_held = false
-		_clear_clean_hint()
-		return
+	## Carry allowed; goods stay in hand while scrubbing.
 	var axis := _wiggle_axis()
 	if not _clean_hint:
 		_last_wiggle = axis
