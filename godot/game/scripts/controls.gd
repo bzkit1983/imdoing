@@ -18,6 +18,9 @@ const CANCEL := "cancel"
 const DASH := "dash"
 const SKILL := "skill"
 const ULT := "ult"
+## Xbox shoulder hotkeys: LB=skill2, RB=skill3 (slots 1/2). LT/RT polled in player.
+const SKILL_2 := "skill_2"
+const SKILL_3 := "skill_3"
 const ROTATE := "rotate"
 const RESTOCK_PREV := "restock_prev"
 const RESTOCK_NEXT := "restock_next"
@@ -25,8 +28,14 @@ const RESTOCK_SLOT_1 := "restock_slot_1"
 const RESTOCK_SLOT_2 := "restock_slot_2"
 const RESTOCK_SLOT_3 := "restock_slot_3"
 
+## Analog trigger "pressed" threshold (Xbox LT/RT).
+const TRIGGER_DEADZONE := 0.5
+## Solo LT/RT waits this long before casting so LT+RT can form an ult chord.
+const TRIGGER_SKILL_GRACE := 0.1
+
 const HOLD_ACTIONS: Array[String] = [INTERACT, CANCEL, DASH, SKILL, ULT]
 const MOVE_ACTIONS: Array[String] = [MOVE_UP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT]
+const SKILL_SLOT_ACTIONS: Array[String] = [SKILL_2, SKILL_3]
 
 
 func _enter_tree() -> void:
@@ -61,7 +70,11 @@ func ensure_actions() -> void:
 	])
 	_ensure_action(DASH, 0.5, [_key(KEY_K), _joy_btn(JOY_BUTTON_X)])
 	_ensure_action(SKILL, 0.5, [_key(KEY_L), _joy_btn(JOY_BUTTON_Y)])
-	_ensure_action(ULT, 0.5, [_key(KEY_U), _joy_btn(JOY_BUTTON_RIGHT_SHOULDER)])
+	## Keyboard U only — Xbox ult is LT+RT long-press (polled). Touch still set_hold("ult").
+	_ensure_action(ULT, 0.5, [_key(KEY_U)])
+	_ensure_action(SKILL_2, 0.5, [_joy_btn(JOY_BUTTON_LEFT_SHOULDER)])
+	_ensure_action(SKILL_3, 0.5, [_joy_btn(JOY_BUTTON_RIGHT_SHOULDER)])
+	_migrate_xbox_skill_bindings()
 	## Prep layout rotate — same physical defaults as dash (contexts do not overlap).
 	_ensure_action(ROTATE, 0.5, [_key(KEY_K), _key(KEY_X), _joy_btn(JOY_BUTTON_X)])
 	_ensure_action(RESTOCK_PREV, 0.5, [_key(KEY_Q)])
@@ -135,6 +148,45 @@ func _ensure_action(action: String, deadzone: float, events: Array) -> void:
 		if ev is InputEventJoypadButton or ev is InputEventJoypadMotion:
 			if ev.device != JOY_ALL_DEVICES:
 				ev.device = JOY_ALL_DEVICES
+
+
+## RB used to be ult; now RB=skill3 and Xbox ult is LT+RT. Fix saved Project Settings.
+func _migrate_xbox_skill_bindings() -> void:
+	if InputMap.has_action(ULT):
+		var drop: Array[InputEvent] = []
+		var has_u := false
+		for ev in InputMap.action_get_events(ULT):
+			if ev is InputEventJoypadButton and ev.button_index == JOY_BUTTON_RIGHT_SHOULDER:
+				drop.append(ev)
+			elif ev is InputEventKey and (ev as InputEventKey).physical_keycode == KEY_U:
+				has_u = true
+		for ev2 in drop:
+			InputMap.action_erase_event(ULT, ev2)
+		if not has_u:
+			InputMap.action_add_event(ULT, _key(KEY_U))
+	_ensure_joy_btn(SKILL_2, JOY_BUTTON_LEFT_SHOULDER)
+	_ensure_joy_btn(SKILL_3, JOY_BUTTON_RIGHT_SHOULDER)
+
+
+func _ensure_joy_btn(action: String, button: JoyButton) -> void:
+	if not InputMap.has_action(action):
+		InputMap.add_action(action, 0.5)
+	for ev in InputMap.action_get_events(action):
+		if ev is InputEventJoypadButton and ev.button_index == button:
+			if ev.device != JOY_ALL_DEVICES:
+				ev.device = JOY_ALL_DEVICES
+			return
+	InputMap.action_add_event(action, _joy_btn(button))
+
+
+## Strongest LT/RT deflection across connected pads (0..1-ish).
+func trigger_values() -> Vector2:
+	var best_lt := 0.0
+	var best_rt := 0.0
+	for device in Input.get_connected_joypads():
+		best_lt = maxf(best_lt, Input.get_joy_axis(device, JOY_AXIS_TRIGGER_LEFT))
+		best_rt = maxf(best_rt, Input.get_joy_axis(device, JOY_AXIS_TRIGGER_RIGHT))
+	return Vector2(best_lt, best_rt)
 
 
 func _key(physical: Key) -> InputEventKey:

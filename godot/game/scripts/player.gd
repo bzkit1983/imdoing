@@ -77,8 +77,24 @@ var _skill_latch: bool = false
 var _skill_aim: int = 0
 ## Second skill press already confirmed the center; ignore that press's release.
 var _skill_release_ignore: bool = false
+## True when this skill press came from Xbox Y (short = cast slot 0; keyboard/touch short = menu).
+var _skill_from_pad: bool = false
+## Staged by _unhandled_input before set_hold so touch/default stays false.
+var _skill_pad_hint: bool = false
 var _u_held: bool = false
 var _ult_index: int = 0
+## Xbox LT/RT: solo → skill 4/5 after grace; both held → ult chord.
+var _lt_held: bool = false
+var _rt_held: bool = false
+var _lt_time: float = 0.0
+var _rt_time: float = 0.0
+var _both_trigger_time: float = 0.0
+var _lt_fired: bool = false
+var _rt_fired: bool = false
+## Both triggers were down this gesture — do not cast skill 4/5 on release.
+var _trigger_chord_block: bool = false
+## Ult prep started via LT+RT (release both cancels; keyboard U uses _u_held alone).
+var _ult_chord_active: bool = false
 var _cd: Dictionary = {}
 var _buffs: Dictionary = {}
 var _cust_speed_q: Array[String] = []
@@ -505,8 +521,14 @@ func set_hold(action: String, pressed: bool) -> void:
 				_k_held = false
 				_running = false
 		"skill":
+			if pressed:
+				_skill_from_pad = _skill_pad_hint
+				_skill_pad_hint = false
 			_on_skill_hold(pressed)
 		"ult":
+			## Keyboard U / touch RB button. Xbox pad uses LT+RT chord instead.
+			if pressed:
+				_ult_chord_active = false
 			_on_ult_hold(pressed)
 		"cancel":
 			_cancel_held = pressed
@@ -634,6 +656,8 @@ func _input(event: InputEvent) -> void:
 			return
 	for action in Controls.HOLD_ACTIONS:
 		if event.is_action(action) and (event is InputEventKey or event is InputEventJoypadButton):
+			if action == Controls.SKILL and event.is_pressed():
+				_skill_pad_hint = event is InputEventJoypadButton
 			set_hold(action, event.is_pressed())
 			get_viewport().set_input_as_handled()
 			return
@@ -894,6 +918,8 @@ func _physics_process(delta: float) -> void:
 			_open_skill_menu(false)
 		if skill_menu_open and not _skill_latch:
 			_sync_hold_aim()
+	if _round_active() and not _asking_early():
+		_tick_triggers(delta)
 	## Skill / ult / checkout dir modes: hard-stop so held WASD cannot coast.
 	if _in_dir_mode() or _move_locked_until_neutral:
 		_running = false
@@ -2430,9 +2456,14 @@ func _on_skill_hold(pressed: bool) -> void:
 		_confirm_skill(_skill_aim)
 		return
 	var short := _l_time < Skills.HOLD_MENU_SEC
+	var from_pad := _skill_from_pad
 	_l_held = false
+	_skill_from_pad = false
 	if short:
-		_open_skill_menu(true)
+		if from_pad:
+			_confirm_skill(0)
+		else:
+			_open_skill_menu(true)
 
 
 func _open_skill_menu(latch: bool) -> void:
@@ -2489,6 +2520,65 @@ func _confirm_skill(slot: int) -> void:
 	_cast_slot(slot)
 	_move_locked_until_neutral = true
 	velocity = Vector2.ZERO
+
+
+func _try_skill_hotkey(slot: int) -> void:
+	if _sick_left > 0.0 or _stun_left > 0.0 or _fighting:
+		log_line.emit("現在不能發動技能")
+		return
+	if ult_prep or _elite_focus_left > 0.0:
+		return
+	_confirm_skill(slot)
+
+
+func _tick_triggers(delta: float) -> void:
+	var tr := Controls.trigger_values()
+	var lt := tr.x >= Controls.TRIGGER_DEADZONE
+	var rt := tr.y >= Controls.TRIGGER_DEADZONE
+	if lt and not _lt_held:
+		_lt_held = true
+		_lt_time = 0.0
+		_lt_fired = false
+	if rt and not _rt_held:
+		_rt_held = true
+		_rt_time = 0.0
+		_rt_fired = false
+	if lt:
+		_lt_time += delta
+	if rt:
+		_rt_time += delta
+	if lt and rt:
+		_trigger_chord_block = true
+		_both_trigger_time += delta
+		if not _ult_chord_active and not ult_prep and _both_trigger_time >= Skills.HOLD_MENU_SEC:
+			_on_ult_hold(true)
+			if ult_prep:
+				_ult_chord_active = true
+				_lt_fired = true
+				_rt_fired = true
+	else:
+		_both_trigger_time = 0.0
+	## Solo LT/RT → skill 4/5 after grace (skipped if the other trigger joined).
+	if lt and not rt and not _trigger_chord_block and not _lt_fired and not ult_prep:
+		if _lt_time >= Controls.TRIGGER_SKILL_GRACE:
+			_lt_fired = true
+			_try_skill_hotkey(3)
+	if rt and not lt and not _trigger_chord_block and not _rt_fired and not ult_prep:
+		if _rt_time >= Controls.TRIGGER_SKILL_GRACE:
+			_rt_fired = true
+			_try_skill_hotkey(4)
+	if not lt and _lt_held:
+		_lt_held = false
+	if not rt and _rt_held:
+		_rt_held = false
+	if not lt and not rt:
+		if _ult_chord_active:
+			_on_ult_hold(false)
+			_ult_chord_active = false
+		_trigger_chord_block = false
+		_both_trigger_time = 0.0
+		_lt_fired = false
+		_rt_fired = false
 
 
 func _close_skill_menu() -> void:
@@ -2556,6 +2646,7 @@ func _try_ult_dir(dir: int) -> void:
 			_cast_ultimate()
 			_u_held = false
 			ult_prep = false
+			_ult_chord_active = false
 	else:
 		_prompt.fail_at = _ult_index
 		_ult_index = 0
@@ -2727,6 +2818,14 @@ func _reset_hold() -> void:
 
 
 func _handle_hotkey_actions(event: InputEvent) -> void:
+	if event.is_action_pressed(Controls.SKILL_2):
+		_try_skill_hotkey(1)
+		get_viewport().set_input_as_handled()
+		return
+	if event.is_action_pressed(Controls.SKILL_3):
+		_try_skill_hotkey(2)
+		get_viewport().set_input_as_handled()
+		return
 	if target == null or String(target.get("kind")) != "restock":
 		return
 	if event.is_action_pressed(Controls.RESTOCK_PREV):

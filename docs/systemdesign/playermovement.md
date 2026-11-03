@@ -25,8 +25,10 @@
 | 取消鍵長按丟掉進入瞄準 | 0.2 秒（`Tuning.DROP_HOLD_SEC`） |
 | 補貨點長按彈清單 | 0.18 秒（`Tuning.SKU_PICK_HOLD`） |
 | 技能鍵長按開選單 | 0.18 秒（`Skills.HOLD_MENU_SEC`） |
+| Xbox LT／RT 單邊直放技能前等待（讓 LT+RT 可組奧義） | 0.1 秒（`Controls.TRIGGER_SKILL_GRACE`） |
+| Xbox 長按 LT+RT 進奧義準備 | 0.18 秒（同 `Skills.HOLD_MENU_SEC`） |
 
-微調日後再提；長線以活線常數為準。
+微調日後再提；長線以活線常數為準。Xbox 技能快捷見 `control.md`（Y 短＝技能1；LB／RB／LT／RT＝技能2–5）。
 
 #**移動速度上限**
 最終位移（含 AGI 倍率、移動技能 %、奔跑）最高為 **AGI 10 基值的 5 倍**（15 身位/秒）。

@@ -3,7 +3,7 @@
 - Demo 實作範圍與試玩數值以 `docs/demo/` 各版本 scope 為準（v0.3 起已實作下列營運回合操作；清潔見 v0.4，打擊見 v0.5）
 - **v1 活線工程：** `godot/game`。輸入以 Godot **InputMap action** 為準（Autoload `Controls`）。鍵盤／手制／觸控都對到同一套 action；下列鍵位是**預設綁定**，可在專案設定改鍵，不改玩法邏輯。
 - **手制裝置：** Xbox 預設綁定的 InputMap `device` 為 **-1（任何已連接手把）**；左搖桿輪詢走 `Input.get_connected_joypads()`，不寫死 device 0。Windows 常把 Xbox 編成 0 以外的裝置（XInput + DirectInput 雙重列舉、虛擬／幽靈手把佔 0），Mac 則多半就是 0。
-- 主要 action：`move_up`／`move_down`／`move_left`／`move_right`、`interact`、`cancel`、`dash`、`skill`、`ult`；準備店舖設計另有 `rotate`；補貨快捷有 `restock_prev`／`restock_next`／`restock_slot_1..3`
+- 主要 action：`move_up`／`move_down`／`move_left`／`move_right`、`interact`、`cancel`、`dash`、`skill`、`ult`；Xbox 肩鍵快捷 `skill_2`／`skill_3`（LB／RB）；Xbox 奧義為 LT+RT 長按（輪詢板機軸，非 InputMap）；準備店舖設計另有 `rotate`；補貨快捷有 `restock_prev`／`restock_next`／`restock_slot_1..3`
 - **暫停選單：** 營運日 Esc／手把 Start 開關（見 `pausemenu.md`）；選單內移動／確定／取消仍走 `move_*`／`interact`／`cancel`
 - **UI 文案：** 準備／暫停／HUD 等已遷字串表者走 Autoload `Loc`（`docs/alpha/i18n.md`），與鍵位無關
 
@@ -56,20 +56,32 @@
 
 鍵盤、Xbox 手制、行動裝置虛擬鍵對應**同一套 InputMap 動作**（見檔首 action 表）。Xbox 的 X／Y／A／B **只是手制與虛擬鈕名稱**，不是鍵盤 WASD；邏輯層只認 `interact`／`dash`／`skill`／`cancel` 等。
 
-##手制操作 (Xbox Layout) / 行動裝置操作
+##手制操作 (Xbox Layout)
 - 移動
 - - 左搖桿／十字鍵
 
 - A: 行動 (與物件互動)
 - X 按下放開: 衝刺
 - X 長按: 奔跑
-- Y 短按: 彈出技能選單（不發動）。再按方向即發動該格；再按一次 Y 發動中間技能1
+- Y 短按: **直接施放技能1**
 - Y 長按: 彈出技能選單。拉方向只預覽，放手 Y 才發動；沒拉方向就放手則發動中間技能1
-- - 上: 技能2　右: 技能3　下: 技能4　左: 技能5
+- - 選單方向：上: 技能2　右: 技能3　下: 技能4　左: 技能5
+- LB: 直接施放技能2
+- RB: 直接施放技能3
+- LT: 直接施放技能4（單邊；與 RT 同時按則改走奧義和弦，不施放）
+- RT: 直接施放技能5（同上）
+- 長按 LT+RT（約 0.18 秒）: 準備施放奧義（按住期間輸入方向指令；**兩邊都放手**取消）
 - B 在技能選單中: 關閉選單，不發動
 - B 按下: 取消
 - B 長按（約 0.2 秒進入瞄準）: 丟掉手上最上連續同 SKU 段。達門檻後仍按住可瞄準，**放手才掉出**；鎖移動但可用方向改面向。有方向則飛出約 5 身位並以**青色**顯示軌道／落點（免與暖色地板撞色），落地後才可再移動；軌道／落點擊中小偷 → Screen KO（贓物原地掉落）；否則可砸客人／落在同款／可接受貨架上直接補架（剩貨掉地）。生效中的**狙擊手**會改寫落點（優先序小偷 → 客人 → 貨架；見 `playeractiveskills.md`）。沒方向則掉腳邊。一次長按只丟最上一段。空手、暈眩、滑倒、打擊中不會丟
-- 長按 RB: 準備施放奧義技能（按住期間輸入方向指令；放手取消）
+
+##行動裝置操作（虛擬鍵；短按技能仍開選單）
+- 佈局同右上虛擬菱形：A 行動／X 衝刺／Y 技能／B 取消；菱形右上方虛擬「RB 奧義」鈕
+- Y 短按: 彈出技能選單（不發動）。再按方向即發動該格；再按一次 Y 發動中間技能1
+- Y 長按: 彈出技能選單。拉方向只預覽，放手 Y 才發動；沒拉方向就放手則發動中間技能1
+- - 上: 技能2　右: 技能3　下: 技能4　左: 技能5
+- 長按虛擬奧義鈕: 準備施放奧義（按住期間輸入方向；放手取消）
+- 其餘行動／衝刺／取消／丟掉與 Xbox 面鈕相同語意
 
 ##鍵盤操作
 - 移動
