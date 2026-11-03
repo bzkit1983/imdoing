@@ -57,9 +57,17 @@ static func apply_panel_layout(menu: CanvasLayer) -> void:
 		menu._list.size = Vector2(1232, 220)
 		menu._list.z_index = 2
 	elif menu._page == "layout":
+		## Compact size strip (2×44 rows + area + gaps) then furniture list below — no overlap.
+		var size_top := 156.0
+		var size_h := 148.0
+		var gap := 10.0
+		menu._size_panel.position = Vector2(24, size_top)
+		menu._size_panel.size = Vector2(520, size_h)
+		menu._size_panel.custom_minimum_size = Vector2(520, size_h)
+		menu._size_panel.clip_contents = true
 		menu._list.z_index = 0
-		menu._list.position = Vector2(24, 360)
-		menu._list.size = Vector2(520, 276)
+		menu._list.position = Vector2(24, size_top + size_h + gap)
+		menu._list.size = Vector2(520, 668.0 - (size_top + size_h + gap))
 	elif hub:
 		menu._list.z_index = 0
 	else:
@@ -216,6 +224,13 @@ static func _hub_sys(menu: CanvasLayer) -> void:
 	menu._hub_cols = 1
 	menu._title.text = Loc.t("prep.hub.sys")
 	menu._info.text = menu._pair(menu._header(), Loc.t("prep.hub.sys_info"))
+	var stick_on := PlatformServices.is_virtual_stick_enabled()
+	menu._add_hub(
+		Loc.t("prep.sys.virtual_stick_on" if stick_on else "prep.sys.virtual_stick_off"),
+		"toggle_virtual_stick",
+		null,
+		"stick"
+	)
 	if ProductVersion.test_tools_enabled():
 		menu._add_hub(Loc.t("prep.home.test_money"), "test_money", null, "money")
 		menu._add_hub(Loc.t("prep.home.sfx_test"), "go", "sfx", "sfx")
@@ -473,9 +488,16 @@ static func _layout(menu: CanvasLayer) -> void:
 	else:
 		menu._info.text = Loc.t("prep.layout.info")
 	PrepWidgets.clear(menu._size_panel)
+	menu._size_panel.add_theme_constant_override("separation", 6)
 	_add_size_row(menu, "闊度", "w", menu.state.grid_w, 0)
 	_add_size_row(menu, "長度", "h", menu.state.grid_h, 1)
-	var area := PrepWidgets.name_label("總面積  %d／%d" % [menu.state.grid_w * menu.state.grid_h, menu.state.area_cap()], 420, 48)
+	## Compact area line — default text_label tall=84 was expanding SizePanel over the list.
+	var area := PrepWidgets.name_label(
+		"總面積  %d／%d" % [menu.state.grid_w * menu.state.grid_h, menu.state.area_cap()],
+		500,
+		36
+	)
+	UiFont.apply_label(area, 22)
 	area.add_theme_color_override("font_color", Color("f4d35e"))
 	menu._size_panel.add_child(area)
 	for type in menu.state.FURNITURE.keys():
@@ -484,15 +506,36 @@ static func _layout(menu: CanvasLayer) -> void:
 			menu._add("拖放 %s　×%d" % [menu.state.FURNITURE[type]["name"], n], "hold", type)
 	menu._add(Loc.t("prep.layout.focus_map"), "map_focus", null)
 	menu._add(Loc.t("prep.back"), "go", "hub_shop")
+	## Re-clamp after children (VBox min-size must not push into the ItemList).
+	menu._size_panel.custom_minimum_size = Vector2(520, 148)
+	menu._size_panel.size = Vector2(520, 148)
+	menu._size_panel.clip_contents = true
 	menu._grid.queue_redraw()
 
+
 static func _add_size_row(menu: CanvasLayer, title: String, axis: String, value: int, row: int) -> void:
+	const ROW_H := 44.0
 	var line := HBoxContainer.new()
-	line.add_theme_constant_override("separation", 14)
+	line.add_theme_constant_override("separation", 10)
+	line.custom_minimum_size = Vector2(0, ROW_H)
 	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	line.add_child(PrepWidgets.name_label("%s  %d" % [title, value], 180))
-	line.add_child(PrepWidgets.step_button("+", menu._on_size_btns and menu._size_row == row and menu._size_side == 1, menu._on_size_pressed.bind(axis, 1, row)))
-	line.add_child(PrepWidgets.step_button("-", menu._on_size_btns and menu._size_row == row and menu._size_side == -1, menu._on_size_pressed.bind(axis, -1, row)))
+	var lab := PrepWidgets.name_label("%s  %d" % [title, value], 160, ROW_H)
+	UiFont.apply_label(lab, 24)
+	line.add_child(lab)
+	line.add_child(PrepWidgets.step_button(
+		"+",
+		menu._on_size_btns and menu._size_row == row and menu._size_side == 1,
+		menu._on_size_pressed.bind(axis, 1, row),
+		ROW_H,
+		72.0
+	))
+	line.add_child(PrepWidgets.step_button(
+		"-",
+		menu._on_size_btns and menu._size_row == row and menu._size_side == -1,
+		menu._on_size_pressed.bind(axis, -1, row),
+		ROW_H,
+		72.0
+	))
 	menu._size_panel.add_child(line)
 
 

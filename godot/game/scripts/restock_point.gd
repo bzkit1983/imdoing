@@ -256,7 +256,7 @@ func _refresh() -> void:
 		_sku_icon.position = Vector2(0, -40)
 	if label:
 		if sku == "":
-			label.text = "%s\n尚未開發\n先在準備頁開發商品" % title
+			label.text = "%s\n尚未開發" % title
 		else:
-			## Icon shows SKU; caption keeps piece count + hints.
-			label.text = "%s\n%d件\n輕放執貨 · 長按選貨" % [title, remaining(sku)]
+			## Icon shows SKU; world label is title + stock only (no control hints).
+			label.text = "%s\n%d件" % [title, remaining(sku)]

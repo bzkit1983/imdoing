@@ -84,6 +84,10 @@ static func _draw(id: String) -> ImageTexture:
 		"wipe":
 			_box(img, 28, 22, 40, 12, Color("c45c26"))
 			_box(img, 34, 34, 28, 36, Color("c45c26"))
+		"stick":
+			_disk(img, 48, 52, 28, Color("5a655e"))
+			_disk(img, 48, 52, 22, Color("24302a"))
+			_disk(img, 48, 44, 10, Color("f4d35e"))
 		_:
 			_disk(img, 48, 48, 20, Color("f4d35e"))
 	img.resize(DISPLAY, DISPLAY, Image.INTERPOLATE_LANCZOS)

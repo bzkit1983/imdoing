@@ -32,6 +32,9 @@ var _sfx_phase: String = "prep"
 var state: StateScript
 var cleaned: int = 0
 var _settled: bool = false
+## After closeout, block confirm/cancel return until this game time (msec).
+var _closeout_ready_msec: int = 0
+const CLOSEOUT_HOLD_MSEC := 2000
 var _prep: CanvasLayer
 var _pause: CanvasLayer
 var _world: Node2D
@@ -122,6 +125,7 @@ func _begin_day() -> void:
 	thieves_escaped = 0
 	cleaned = 0
 	_settled = false
+	_closeout_ready_msec = 0
 	real_time = 0.0
 	phase = "restock"
 	_sfx_phase = "restock"
@@ -164,7 +168,7 @@ func _begin_day() -> void:
 	var pad = preload("res://scripts/touch_pad.gd").new()
 	pad.name = "TouchPad"
 	add_child(pad)
-	pad.visible = PlatformServices.wants_touch_pad()
+	pad.visible = PlatformServices.show_touch_pad()
 	pad.stick_changed.connect(func(axis: Vector2) -> void: _player.stick_axis = axis)
 	pad.hold_changed.connect(func(action: String, pressed: bool) -> void:
 		if _early_open and pressed:
@@ -177,7 +181,8 @@ func _begin_day() -> void:
 				_decline_early_close()
 			return
 		if phase == "closed" and pressed and (action == "interact" or action == "cancel"):
-			_return_to_prep()
+			if _closeout_input_ready():
+				_return_to_prep()
 			return
 		if _player:
 			_player.set_hold(action, pressed)
@@ -818,12 +823,21 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if not (event.is_action_pressed(Controls.INTERACT) or event.is_action_pressed(Controls.CANCEL)):
 		return
+	if not _closeout_input_ready():
+		get_viewport().set_input_as_handled()
+		return
 	_return_to_prep()
 	get_viewport().set_input_as_handled()
 
 
+func _closeout_input_ready() -> bool:
+	return _settled and Time.get_ticks_msec() >= _closeout_ready_msec
+
+
 func _return_to_prep() -> void:
 	if phase != "closed":
+		return
+	if not _closeout_input_ready():
 		return
 	phase = "prep"
 	clear_elite_test()
@@ -1374,6 +1388,7 @@ func _finish_day() -> void:
 	if _settled:
 		return
 	_settled = true
+	_closeout_ready_msec = Time.get_ticks_msec() + CLOSEOUT_HOLD_MSEC
 	SfxBus.play("sfx_phase_close")
 	## Clones drop held boxes onto the floor before unsold collect, then vanish.
 	dismiss_shadow_clones()

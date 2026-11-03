@@ -63,4 +63,4 @@ func _refresh_label() -> void:
 	if n == _label_n:
 		return
 	_label_n = n
-	label.text = "收銀機 %d\n排隊 %d 人\n後方長按 行動" % [register_index + 1, n]
+	label.text = "收銀機 %d\n排隊 %d 人" % [register_index + 1, n]

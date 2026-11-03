@@ -60,10 +60,17 @@ func setup(g: Node, p: CharacterBody2D) -> void:
 	_cast.modulate.a = 0.0
 	_build_skip()
 	_build_pause()
-	_banner.text = Loc.t("hud.banner")
-	var tw := create_tween()
-	tw.tween_interval(1.8)
-	tw.tween_property(_banner, "modulate:a", 0.0, 0.7)
+	## No round-start demo banner; hide legacy scope copy on the right panel.
+	_banner.visible = false
+	var title := $Root/Right/Margin/VBox/Title
+	var hint := $Root/Right/Margin/VBox/Hint
+	var out := $Root/Right/Margin/VBox/Out
+	if title:
+		title.visible = false
+	if hint:
+		hint.visible = false
+	if out:
+		out.visible = false
 	_right_dirty = true
 	_left_fp = ""
 	_sync_left()

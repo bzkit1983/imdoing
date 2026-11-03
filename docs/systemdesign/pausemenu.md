@@ -16,8 +16,8 @@
 | 操作 | 預設（InputMap／鍵） | 觸控／Web |
 | --- | --- | --- |
 | 開關暫停 | Esc／手把 Start | HUD 右上「暫停」按鈕（`hud.pause`） |
-| 選擇 | `move_up`／`move_down`（預設 W／S、方向鍵、D-Pad） | 點選按鈕 |
-| 調音量 | 音量列上 `move_left`／`move_right`（A／D、←／→、D-Pad） | 「−」「＋」 |
+| 選擇 | `move_up`／`move_down`（預設 W／S、方向鍵、D-Pad）；左／右搖桿（暫停時輪詢，含右類比） | 點選按鈕 |
+| 調音量 | 音量列上 `move_left`／`move_right`（A／D、←／→、D-Pad）；左／右搖桿左右 | 「−」「＋」 |
 | 確定 | `interact`（預設 J／Enter／A） | 點選按鈕 |
 | 返回（繼續） | `cancel`（預設 ;／Backspace／B） | 「繼續遊戲」 |
 

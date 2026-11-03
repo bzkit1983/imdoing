@@ -17,6 +17,9 @@ var game: Node
 var _open: bool = false
 var _focus: int = 0
 var _from_suspend: bool = false
+## Stick UI: one step on deflect, then must recenter (same as prep dialogs).
+var _stick_armed: bool = true
+const STICK_UI_DEAD := 0.55
 
 @onready var _shade: ColorRect = %Shade
 @onready var _title: Label = %Title
@@ -85,6 +88,7 @@ func open_menu(from_suspend: bool = false) -> void:
 	_open = true
 	_from_suspend = from_suspend
 	_focus = FOCUS_RESUME
+	_stick_armed = true
 	visible = true
 	_refresh_copy()
 	_paint_focus()
@@ -100,11 +104,30 @@ func close_menu() -> void:
 		return
 	_open = false
 	_from_suspend = false
+	_stick_armed = true
 	visible = false
 	get_tree().paused = false
 	SfxBus.play("sfx_ui_pause_close")
 	if game and game.has_method("on_pause_closed"):
 		game.call("on_pause_closed")
+
+
+func _process(_delta: float) -> void:
+	if not _open:
+		return
+	## Left + right sticks (right is not on move_*). PROCESS_MODE_ALWAYS while tree paused.
+	var v := Controls.menu_stick_vector()
+	if v.length() < STICK_UI_DEAD:
+		_stick_armed = true
+		return
+	if not _stick_armed:
+		return
+	_stick_armed = false
+	if absf(v.x) > absf(v.y):
+		if _focus == FOCUS_VOL:
+			_on_vol_nudge(1 if v.x > 0.0 else -1)
+	else:
+		_move_focus(1 if v.y > 0.0 else -1)
 
 
 func _refresh_copy() -> void:
@@ -113,7 +136,7 @@ func _refresh_copy() -> void:
 		_body.text = Loc.t("pause.body_suspend")
 	else:
 		_body.text = Loc.t("pause.body")
-	if PlatformServices.wants_touch_pad():
+	if PlatformServices.show_touch_pad():
 		_hint.text = Loc.t("pause.hint_touch")
 	else:
 		_hint.text = Loc.t("pause.hint")

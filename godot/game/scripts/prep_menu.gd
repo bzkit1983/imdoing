@@ -846,12 +846,26 @@ func _activate() -> void:
 			start_day.emit()
 		"test_money":
 			_grant_test_money()
+		"toggle_virtual_stick":
+			_toggle_virtual_stick()
 		"play_sfx":
 			SfxBus.play(String(arg))
 		"noop":
 			pass
 		_:
 			pass
+
+
+func _toggle_virtual_stick() -> void:
+	var on := PlatformServices.toggle_virtual_stick()
+	SfxBus.play("sfx_ui_confirm")
+	_msg = Loc.t("prep.sys.virtual_stick_on" if on else "prep.sys.virtual_stick_off")
+	## Live ops TouchPad (if world already spawned) follows the preference on touch platforms.
+	if demo != null:
+		var pad = demo.get_node_or_null("TouchPad")
+		if pad != null:
+			pad.visible = PlatformServices.show_touch_pad()
+	_refresh()
 
 
 func _grant_test_money() -> void:
@@ -1198,19 +1212,49 @@ func _process(_delta: float) -> void:
 	## Stick only — WASD / arrows / d-pad already handled in `_unhandled_input`.
 	## Using `move_vector()` here double-steps on Web (key event + same-frame poll).
 	var v := Controls.stick_vector()
-	if v.length() < 0.55:
+	if v.length() < _STICK_DEAD:
 		_stick_armed = true
+		_stick_hold = 0.0
+		_stick_repeats = 0
+		return
+	var dx := 0
+	var dy := 0
+	if absf(v.x) > absf(v.y):
+		dx = 1 if v.x > 0.0 else -1
+	else:
+		dy = 1 if v.y > 0.0 else -1
+	## Layout map: hold stick to keep stepping. Other pages: one step then recenter.
+	var map_hold := (
+		_page == "layout"
+		and _sku_pick_i < 0
+		and (_layout_focus == "map" or _hold_type != "")
+	)
+	if map_hold:
+		if _stick_armed:
+			_stick_armed = false
+			_stick_hold = 0.0
+			_stick_repeats = 0
+			_move(dx, dy)
+			return
+		_stick_hold += _delta
+		var need := _STICK_REPEAT_FIRST if _stick_repeats == 0 else _STICK_REPEAT
+		if _stick_hold >= need:
+			_stick_hold = 0.0
+			_stick_repeats += 1
+			_move(dx, dy)
 		return
 	if not _stick_armed:
 		return
 	_stick_armed = false
-	if absf(v.x) > absf(v.y):
-		_move(1 if v.x > 0 else -1, 0)
-	else:
-		_move(0, 1 if v.y > 0 else -1)
+	_move(dx, dy)
 
 
 var _stick_armed: bool = true
+var _stick_hold: float = 0.0
+var _stick_repeats: int = 0
+const _STICK_DEAD := 0.55
+const _STICK_REPEAT_FIRST := 0.22
+const _STICK_REPEAT := 0.07
 
 
 func _move(x: int, y: int) -> void:
@@ -1344,11 +1388,12 @@ func _move_stats(x: int, y: int) -> void:
 
 func _move_layout(x: int, y: int) -> void:
 	if _on_size_btns:
-		if x < 0:
-			_size_side = -1
-		elif x > 0:
-			_size_side = 1
-		elif y < 0:
+		## Left/right immediately nudge width/height (pad-friendly).
+		if x != 0:
+			_size_side = 1 if x > 0 else -1
+			_nudge_grid("w" if _size_row == 0 else "h", _size_side)
+			return
+		if y < 0:
 			_size_row = maxi(0, _size_row - 1)
 		elif y > 0:
 			if _size_row < 1:
@@ -1356,6 +1401,8 @@ func _move_layout(x: int, y: int) -> void:
 			else:
 				_on_size_btns = false
 				_index = 0
+				if not _rows.is_empty():
+					_select_row(_index)
 		_refresh()
 		return
 	if y < 0 and _index <= 0:
@@ -1402,6 +1449,10 @@ func _back() -> void:
 		return
 	if _page == "layout" and _layout_focus == "map":
 		_layout_focus = "list"
+		## Land on size controls so pad can change width/height without hunting.
+		_on_size_btns = true
+		_size_row = 0
+		_size_side = 1
 		_msg = ""
 		_refresh()
 		return

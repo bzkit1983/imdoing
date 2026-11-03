@@ -93,12 +93,28 @@ func move_vector() -> Vector2:
 ## Uses the strongest deflection among connected pads so a Windows ghost
 ## device at index 0 cannot hide the real Xbox stick.
 func stick_vector() -> Vector2:
+	return _best_stick_vector(JOY_AXIS_LEFT_X, JOY_AXIS_LEFT_Y)
+
+
+## Right stick — not on move_* InputMap; menus (pause) poll this explicitly.
+func right_stick_vector() -> Vector2:
+	return _best_stick_vector(JOY_AXIS_RIGHT_X, JOY_AXIS_RIGHT_Y)
+
+
+## Stronger of left / right sticks for UI navigation.
+func menu_stick_vector() -> Vector2:
+	var left := stick_vector()
+	var right := right_stick_vector()
+	return right if right.length_squared() > left.length_squared() else left
+
+
+func _best_stick_vector(axis_x: JoyAxis, axis_y: JoyAxis) -> Vector2:
 	var best := Vector2.ZERO
 	var best_len_sq := 0.0
 	for device in Input.get_connected_joypads():
 		var v := Vector2(
-			Input.get_joy_axis(device, JOY_AXIS_LEFT_X),
-			Input.get_joy_axis(device, JOY_AXIS_LEFT_Y)
+			Input.get_joy_axis(device, axis_x),
+			Input.get_joy_axis(device, axis_y)
 		)
 		var len_sq := v.length_squared()
 		if len_sq > best_len_sq:
