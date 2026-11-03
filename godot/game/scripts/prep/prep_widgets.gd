@@ -9,7 +9,8 @@ const PREP_LIST := 34
 const PREP_HINT := 24
 const PREP_BTN := 32
 const PREP_NUM := 44
-const HUB_TILE_H := 100.0
+## Icon-on-top tile: keep ≥ icon + label + style margins (see hub_tile fonts).
+const HUB_TILE_H := 122.0
 ## Subdirectory option rows (角色整備／貨品管理…).
 const HUB_ROW_H := 80.0
 const OPEN_MAIN_H := 64.0
@@ -25,8 +26,12 @@ static var _list_spacer: ImageTexture
 
 
 static func clear(node: Node) -> void:
-	for c in node.get_children():
-		c.queue_free()
+	## Free immediately — queue_free leaves stale children for the rest of the frame,
+	## so hub layout would count old+new tiles and balloon the grid height.
+	while node.get_child_count() > 0:
+		var c := node.get_child(0)
+		node.remove_child(c)
+		c.free()
 
 
 static func list_row_spacer() -> Texture2D:
@@ -142,7 +147,8 @@ static func hub_tile(label: String, icon_id: String, on: bool, locked: bool, cb:
 	btn.text = label
 	btn.icon = PrepIcons.icon_tex(icon_id)
 	btn.disabled = locked
-	UiFont.apply_button(btn, 22)
+	## px_btn doubles size and blows past HUB_TILE_H; hub chrome uses px().
+	_apply_hub_button_font(btn, 22)
 	paint_hub_surface(btn, on, locked, false)
 	if not locked:
 		btn.pressed.connect(cb)
@@ -161,11 +167,16 @@ static func hub_row(label: String, icon_id: String, on: bool, locked: bool, tag:
 	btn.text = label if tag == "" else "%s　　%s" % [label, tag]
 	btn.icon = PrepIcons.icon_tex(icon_id)
 	btn.disabled = locked
-	UiFont.apply_button(btn, 24)
+	_apply_hub_button_font(btn, 24)
 	paint_hub_surface(btn, on, locked, true)
 	if not locked:
 		btn.pressed.connect(cb)
 	return btn
+
+
+static func _apply_hub_button_font(btn: Button, size: int) -> void:
+	UiFont.apply_button(btn, size)
+	btn.add_theme_font_size_override("font_size", UiFont.px(size))
 
 
 static func paint_hub_surface(btn: Button, on: bool, locked: bool, row: bool) -> void:

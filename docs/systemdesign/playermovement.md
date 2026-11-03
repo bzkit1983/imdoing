@@ -22,7 +22,7 @@
 | 操作 | 門檻 |
 | --- | --- |
 | 取消鍵輕放＝衝刺／長按＝奔跑 | 0.18 秒（`Tuning.RUN_HOLD_THRESHOLD`） |
-| 取消鍵長按丟掉進入瞄準 | 0.45 秒（`Tuning.DROP_HOLD_SEC`） |
+| 取消鍵長按丟掉進入瞄準 | 0.2 秒（`Tuning.DROP_HOLD_SEC`） |
 | 補貨點長按彈清單 | 0.18 秒（`Tuning.SKU_PICK_HOLD`） |
 | 技能鍵長按開選單 | 0.18 秒（`Skills.HOLD_MENU_SEC`） |
 

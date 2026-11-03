@@ -161,10 +161,13 @@ func _bind_nodes() -> void:
 	%DiffLabel.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_diff_easy.text = Loc.t("prep.difficulty.easy")
 	_diff_normal.text = Loc.t("prep.difficulty.normal")
-	UiFont.apply_button(_diff_easy, 26)
-	UiFont.apply_button(_diff_normal, 26)
-	UiFont.apply_button(_open_main, 26)
-	UiFont.apply_button(_open_elite, 20)
+	## Fixed-height chrome: use UiFont.px, not px_btn (×2 blows DiffBar/OpenBar).
+	_apply_chrome_button_font(_diff_easy, 26)
+	_apply_chrome_button_font(_diff_normal, 26)
+	_apply_chrome_button_font(_open_main, 26)
+	_apply_chrome_button_font(_open_elite, 20)
+	_diff_easy.custom_minimum_size = Vector2(0, PrepWidgets.DIFF_H)
+	_diff_normal.custom_minimum_size = Vector2(0, PrepWidgets.DIFF_H)
 	_open_main.custom_minimum_size = Vector2(0, PrepWidgets.OPEN_MAIN_H)
 	_open_elite.custom_minimum_size = Vector2(0, PrepWidgets.OPEN_ELITE_H)
 	_open_main.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -317,8 +320,13 @@ func _setup_open_bar() -> void:
 	_layout_hub_chrome()
 
 
+func _apply_chrome_button_font(btn: Button, size: int) -> void:
+	UiFont.apply_button(btn, size)
+	btn.add_theme_font_size_override("font_size", UiFont.px(size))
+
+
 func _layout_hub_chrome() -> void:
-	## Pack hub to content height; park open bar in a clear strip below (no overlap).
+	## Pack hub to content height; stack diff + open below (no overlap).
 	if _hub_panel == null:
 		return
 	var top := 156.0
@@ -327,7 +335,13 @@ func _layout_hub_chrome() -> void:
 	var n := maxi(1, _rows.size())
 	var row_n := int(ceil(float(n) / float(cols)))
 	var cell_h := PrepWidgets.HUB_ROW_H if cols <= 1 else PrepWidgets.HUB_TILE_H
-	var hub_h := row_n * cell_h + maxi(0, row_n - 1) * gap
+	if _hub_panel.get_child_count() > 0:
+		var c0 := _hub_panel.get_child(0) as Control
+		if c0 != null:
+			cell_h = maxf(cell_h, c0.get_combined_minimum_size().y)
+	var hub_h := float(row_n) * cell_h + float(maxi(0, row_n - 1)) * gap
+	## Undersizing a free GridContainer below its minimum balloons the panel.
+	hub_h = maxf(hub_h, _hub_panel.get_combined_minimum_size().y)
 	_hub_panel.position = Vector2(24, top)
 	_hub_panel.size = Vector2(1232, hub_h)
 	_hub_panel.add_theme_constant_override("h_separation", int(gap))
@@ -336,22 +350,20 @@ func _layout_hub_chrome() -> void:
 		return
 	if _page != "home":
 		return
+	var y := top + hub_h + 12.0
 	var open_h := PrepWidgets.OPEN_MAIN_H
-	var open_top := top + hub_h + 18.0
-	## Prefer a bottom strip if there is room; never climb back over the hub.
-	var preferred := 600.0 - open_h
-	if preferred > open_top:
-		open_top = preferred
 	if _diff_bar != null and _diff_bar.visible:
 		var diff_h := PrepWidgets.DIFF_H
-		var diff_top := open_top - 10.0 - diff_h
-		var min_top := top + hub_h + 12.0
-		if diff_top < min_top:
-			diff_top = min_top
-			open_top = diff_top + diff_h + 10.0
+		var preferred_open := 600.0 - open_h
+		var diff_top := preferred_open - 10.0 - diff_h
+		if diff_top < y:
+			diff_top = y
 		_diff_bar.position = Vector2(24, diff_top)
 		_diff_bar.size = Vector2(1232, diff_h)
 		_diff_bar.clip_contents = true
+		y = diff_top + diff_h + 10.0
+	var preferred := 600.0 - open_h
+	var open_top := preferred if preferred > y else y
 	_open_bar.position = Vector2(24, open_top)
 	_open_bar.size = Vector2(1232, open_h)
 	_open_bar.clip_contents = true
