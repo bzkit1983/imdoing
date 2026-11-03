@@ -816,7 +816,6 @@ func _toss_top_piece() -> bool:
 	## 投籃高手：短按方向一次飛出最上 2 件（可不同 SKU）；只有 1 件則 1。
 	var want := 2 if buff_left("hoop_ace") > 0.05 else 1
 	var tossed: PackedStringArray = []
-	var host := _game()
 	for _i in want:
 		if inventory.is_empty():
 			break
@@ -824,24 +823,29 @@ func _toss_top_piece() -> bool:
 		var sku := String(run["id"])
 		inventory.remove_trailing(1)
 		tossed.append(sku)
-		if host and host.has_method("spawn_dropped_box"):
-			_piece_flights += 1
-			_piece_drop_lock = true
-			_running = false
-			_dashing = false
-			velocity = Vector2.ZERO
-			host.call(
-				"spawn_dropped_box",
-				global_position,
-				sku,
-				1,
-				_cancel_drop_dir,
-				drop_toss_dist(),
-				Callable(self, "_on_piece_drop_landed"),
-			)
-		SfxBus.play("sfx_box_toss")
 	if tossed.is_empty():
 		return false
+	var dir := _cancel_drop_dir
+	var dist := drop_toss_dist()
+	_launch_piece_toss(String(tossed[0]), dir, dist, Vector2.ZERO)
+	if tossed.size() >= 2:
+		## Delay + lateral land offset so the second box reads as a separate toss.
+		var sku2 := String(tossed[1])
+		var nudge := _hoop_ace_side_nudge(dir)
+		_piece_flights += 1
+		_piece_drop_lock = true
+		_running = false
+		_dashing = false
+		velocity = Vector2.ZERO
+		get_tree().create_timer(Tuning.HOOP_ACE_SECOND_DELAY_SEC).timeout.connect(
+			func() -> void:
+				if not is_instance_valid(self):
+					return
+				if not _round_active():
+					_on_piece_drop_landed()
+					return
+				_launch_piece_toss(sku2, dir, dist, nudge, false)
+		)
 	var names: PackedStringArray = []
 	for s in tossed:
 		names.append(Tuning.sku_name(String(s)))
@@ -850,10 +854,49 @@ func _toss_top_piece() -> bool:
 	if hint != "":
 		log_line.emit(hint)
 	elif tossed.size() >= 2:
-		log_line.emit("投籃高手 %s — 往%s飛出" % [label, _drop_dir_label(_cancel_drop_dir)])
+		log_line.emit("投籃高手 %s — 往%s飛出" % [label, _drop_dir_label(dir)])
 	else:
-		log_line.emit("丟掉 %s 1件 — 往%s飛出" % [label, _drop_dir_label(_cancel_drop_dir)])
+		log_line.emit("丟掉 %s 1件 — 往%s飛出" % [label, _drop_dir_label(dir)])
 	return true
+
+
+func _hoop_ace_side_nudge(dir: Vector2) -> Vector2:
+	if dir.length_squared() < 0.0001:
+		return Vector2(Tuning.HOOP_ACE_SIDE_OFFSET, 0.0)
+	var forward := dir.normalized()
+	## Perpendicular to toss (screen-right of throw direction).
+	return Vector2(-forward.y, forward.x) * Tuning.HOOP_ACE_SIDE_OFFSET
+
+
+func _launch_piece_toss(
+	sku: String,
+	dir: Vector2,
+	dist: float,
+	land_nudge: Vector2 = Vector2.ZERO,
+	count_flight: bool = true,
+) -> void:
+	var host := _game()
+	if host == null or not host.has_method("spawn_dropped_box"):
+		if not count_flight:
+			_on_piece_drop_landed()
+		return
+	if count_flight:
+		_piece_flights += 1
+	_piece_drop_lock = true
+	_running = false
+	_dashing = false
+	velocity = Vector2.ZERO
+	host.call(
+		"spawn_dropped_box",
+		global_position,
+		sku,
+		1,
+		dir,
+		dist,
+		Callable(self, "_on_piece_drop_landed"),
+		land_nudge,
+	)
+	SfxBus.play("sfx_box_toss")
 
 
 func _sniper_toss_log(sku_name: String, whole_run: bool) -> String:

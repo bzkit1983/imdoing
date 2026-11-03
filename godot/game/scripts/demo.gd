@@ -1812,11 +1812,12 @@ func spawn_dropped_box(
 	toss_dir: Vector2 = Vector2.ZERO,
 	toss_dist: float = -1.0,
 	on_landed: Callable = Callable(),
+	land_nudge: Vector2 = Vector2.ZERO,
 ) -> void:
 	var dest := pos + Tuning.drop_offset(toss_dir, toss_dist)
 	## Instant place when no flight needed (e.g. legacy callers).
 	if not on_landed.is_valid() and toss_dir.length_squared() < 0.0001:
-		_place_dropped_box(dest, sku, n)
+		_place_dropped_box(dest + land_nudge, sku, n)
 		return
 	var sniper_guest: Node2D = null
 	var sniper_thief: Node2D = null
@@ -1840,6 +1841,8 @@ func spawn_dropped_box(
 			sniper_shelf = _sniper_shelf_for(sku, pos)
 			if sniper_shelf != null:
 				dest = _sniper_drop_pos(sniper_shelf)
+	## Optional side offset (投籃高手第二件) after sniper dest so piles do not stack.
+	dest += land_nudge
 	var flight: Node2D = DropFlightScript.new()
 	flight.setup(sku, pos, dest, Tuning.DROP_FLIGHT_SEC, n)
 	_world.add_child(flight)

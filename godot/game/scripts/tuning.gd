@@ -81,6 +81,10 @@ const DROP_DIR_DEADZONE := 0.35
 ## Flight time for the tossed box (movement stays locked until it lands).
 const DROP_FLIGHT_SEC := 0.28
 const DROP_FEET_OFFSET := Vector2(0.0, 22.0)
+## 投籃高手：第二件延遲出手 + 落點沿投向法線微偏，避免兩箱完全重疊。
+const HOOP_ACE_SECOND_DELAY_SEC := 0.1
+const HOOP_ACE_SIDE_OFFSET := 0.55 * BODY_LENGTH
+
 ## Aim / flight trail — cool cyan so it reads on warm floor tiles.
 const DROP_AIM_LINE_COLOR := Color(0.2, 0.92, 1.0, 0.9)
 const DROP_AIM_MARK_COLOR := Color(0.15, 0.85, 0.98, 0.85)
