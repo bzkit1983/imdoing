@@ -1586,13 +1586,23 @@ func _sync_list_icons() -> void:
 	var x0 := -total_w * 0.5
 	for i in shopping.size():
 		var sku := String(shopping[i])
-		var spr := SkuIcons.make_sprite(sku, 40.0 if i == 0 else 32.0)
-		spr.position = Vector2(x0 + gap * float(i), 0)
+		var px := 40.0 if i == 0 else 32.0
+		var pos := Vector2(x0 + gap * float(i), 0)
 		if i == 0:
-			## Current seek target — larger + warm tint.
-			spr.modulate = Color(1.15, 1.1, 0.75, 1.0)
-		else:
-			spr.modulate = Color(0.9, 0.9, 0.9, 0.92)
+			## Current seek — size + under-bar only; keep true SKU_COLOR (same as shelf/HUD).
+			var bar := Polygon2D.new()
+			bar.color = Color("f4d35e", 0.4)
+			var half := px * 0.55
+			bar.polygon = PackedVector2Array([
+				Vector2(-half, half * 0.55),
+				Vector2(half, half * 0.55),
+				Vector2(half, half * 0.85),
+				Vector2(-half, half * 0.85),
+			])
+			bar.position = pos
+			_list_icons.add_child(bar)
+		var spr := SkuIcons.make_sprite(sku, px)
+		spr.position = pos
 		_list_icons.add_child(spr)
 
 

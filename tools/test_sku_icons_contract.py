@@ -73,6 +73,10 @@ def main() -> int:
         errors.append("thieves still hide the pictogram shopping list")
     if "_list_label.visible = is_thief" in cust:
         errors.append("thief shopping list still uses the text label")
+    if "spr.modulate" in sync or "1.15, 1.1, 0.75" in sync:
+        errors.append("shopping list icons must not recolor via modulate (keep SKU_COLOR)")
+    if "SkuIcons.make_sprite" not in sync:
+        errors.append("shopping list must use SkuIcons.make_sprite")
 
     if errors:
         print("FAIL")
