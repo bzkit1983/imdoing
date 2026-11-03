@@ -748,7 +748,7 @@ func loadout() -> Array[Dictionary]:
 	return out
 
 
-## Dark Side / Multiple Shadow Clone pick LV on the prep page.
+## Dark Side / Multiple Shadow Clone / Dasher pick LV on the prep page.
 ## Missing choice means LV3. Other skills keep the catalog level.
 func skill_level_of(set_i: int, skill_id: String) -> int:
 	var sk := Skills.by_id(skill_id)

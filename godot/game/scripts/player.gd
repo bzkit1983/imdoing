@@ -472,6 +472,8 @@ func role_status_text() -> String:
 		bits.append("狙擊手（小偷） %.0fs" % _buffs["thief_sniper"])
 	if _buffs.has("dash_deliver"):
 		bits.append("衝刺交付 %.0fs" % _buffs["dash_deliver"])
+	if _buffs.has("dasher"):
+		bits.append("Dasher %.0fs" % _buffs["dasher"])
 	if _sick_left > 0.0:
 		bits.append("嘔吐物 −30%% %.0fs" % _sick_left)
 	if _fighting:
@@ -904,7 +906,7 @@ func _physics_process(delta: float) -> void:
 	if _k_held and not _cancel_held and not _drop_flight_lock and not _piece_drop_lock and not command_lock and not skill_menu_open and not ult_prep and not _fighting and _stun_left <= 0.0 and _slip_left <= 0.0:
 		_k_time += delta
 		if _k_time >= Tuning.RUN_HOLD_THRESHOLD:
-			_running = stamina > 1.0
+			_running = _dasher_active() or stamina > 1.0
 	if _cancel_held:
 		_tick_cancel_hold(delta)
 	## Long-press aim, a flying box, or a piece still in the air: freeze locomotion.
@@ -1239,7 +1241,8 @@ func _tick_move(delta: float) -> void:
 		_begin_slip()
 		return
 	var want_run := _running and axis != Vector2.ZERO
-	if want_run:
+	var free_stam := _dasher_active()
+	if want_run and not free_stam:
 		if stamina <= 0.0:
 			want_run = false
 			_running = false
@@ -1261,11 +1264,16 @@ func _tick_move(delta: float) -> void:
 	move_and_slide()
 
 
+func _dasher_active() -> bool:
+	return buff_left("dasher") > 0.05
+
+
 func _try_dash() -> void:
 	if _dashing or _fighting or _stun_left > 0.0 or _slip_left > 0.0:
 		return
 	_dash_guest_done = false
-	if stamina < Tuning.DASH_STAMINA_COST:
+	var free_stam := _dasher_active()
+	if not free_stam and stamina < Tuning.DASH_STAMINA_COST:
 		SfxBus.play("sfx_move_stamina_empty")
 		return
 	var dir := _move_axis()
@@ -1274,8 +1282,9 @@ func _try_dash() -> void:
 	_dashing = true
 	_dash_dir = dir.normalized()
 	_dash_left = Tuning.DASH_TIME
-	stamina = maxf(0.0, stamina - Tuning.DASH_STAMINA_COST)
-	_regen_delay = Tuning.STAMINA_REGEN_DELAY
+	if not free_stam:
+		stamina = maxf(0.0, stamina - Tuning.DASH_STAMINA_COST)
+		_regen_delay = Tuning.STAMINA_REGEN_DELAY
 	SfxBus.play("sfx_move_dash")
 	_reset_hold()
 
@@ -2681,6 +2690,8 @@ func _cast_slot(i: int) -> void:
 		var window := float(sk.get("cd", 5.0))
 		_cd[sid] = window
 		_buffs[sid] = window
+	elif bool(sk.get("dasher", false)):
+		_buffs[sid] = Skills.dasher_seconds(int(sk.get("lv", 3)))
 	elif bool(sk.get("dark_side", false)) or bool(sk.get("shadow_clone", false)):
 		_buffs.erase(sid)
 	else:
@@ -2749,6 +2760,16 @@ func _cast_ultimate() -> void:
 			game.call("cast_fundraise", lv)
 		SfxBus.play("sfx_ult_fundraise")
 		log_line.emit("奧義 全體集資 LV%d" % lv)
+		_begin_cast_pose(true)
+		skill_cast.emit(String(sk.get("name")), true)
+		_play_zoom(true)
+		_prompt.active = false
+		return
+	if sid == "close_gate":
+		if game and game.has_method("cast_close_gate"):
+			game.call("cast_close_gate")
+		SfxBus.play("sfx_ult_close_gate")
+		log_line.emit("奧義 落閘放狗")
 		_begin_cast_pose(true)
 		skill_cast.emit(String(sk.get("name")), true)
 		_play_zoom(true)

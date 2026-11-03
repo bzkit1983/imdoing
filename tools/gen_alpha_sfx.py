@@ -321,6 +321,11 @@ R("sfx_ult_fundraise", lambda: mix(
     tone(0.12, 1300, kind="sine", vol=0.24, seed=149),
     gap=0.025,
 ))
+R("sfx_ult_close_gate", lambda: overlay(
+    tone(0.18, 90, kind="saw", vol=0.38, a=0.005, d=0.06, s=0.25, r=0.08, slide=-0.35, seed=153),
+    tone(0.12, 220, kind="square", vol=0.22, a=0.002, d=0.04, s=0.15, r=0.06, seed=154),
+    tone(0.1, 60, kind="sine", vol=0.2, a=0.001, d=0.03, s=0.1, r=0.05, noise_mix=0.35, seed=155),
+))
 R("sfx_skill_soothe", lambda: tone(0.22, 380, kind="sine", vol=0.26, a=0.02, d=0.08, s=0.35, r=0.1, slide=0.15, seed=150))
 R("sfx_skill_clone_vanish", lambda: overlay(
     tone(0.22, 220, kind="sine", vol=0.22, a=0.01, d=0.06, s=0.2, r=0.12, slide=-0.35, noise_mix=0.45, seed=151),
@@ -396,6 +401,7 @@ PRIORITY = {
     "sfx_thief_escape": "P0",
     "sfx_skill_cast": "P0", "sfx_ult_dir_ok": "P0", "sfx_ult_dir_fail": "P0",
     "sfx_ult_the_world": "P0", "sfx_ult_yes_my_lord": "P0", "sfx_ult_fundraise": "P0",
+    "sfx_ult_close_gate": "P0",
     "sfx_phase_close": "P0", "sfx_ui_deny": "P0",
     "sfx_move_foot_walk": "P1", "sfx_move_foot_run": "P1", "sfx_move_stun": "P1",
     "sfx_box_pull_fail": "P1", "sfx_box_sku_open": "P1", "sfx_shelf_stock_instant": "P1",

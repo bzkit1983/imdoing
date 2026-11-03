@@ -147,6 +147,7 @@ demo.thief_enter,小偷進店！,A thief entered!
 demo.elite_banner,麻煩客人注意！,Troublesome customer!
 demo.stolen_banner,你已經被偷了！,You've been robbed!
 demo.fundraise,全體集資　%d 人　+$%d,Fundraise · %d guests · +$%d
+demo.close_gate,落閘放狗　排隊 %d　離店 %d　小偷 %d,Close gate · queue %d · leave %d · thieves %d
 demo.closeout_early,提早關店結算,Early closeout
 demo.closeout_test,營業結束,Shop closed
 demo.closeout_head,關店結算,Day settled

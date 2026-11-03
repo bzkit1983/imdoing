@@ -113,6 +113,7 @@ const ACTIVES: Array[Dictionary] = [
 	{"id": "soothe", "name": "安撫", "kind": "active", "lv": 3, "cost": 1, "soothe_keep": 0.0, "duration": 0.0, "cd": ACTIVE_CD, "blurb": "全店不滿歸零（已離開不拉回）"},
 	{"id": "metal_rush", "name": "金屬狂潮", "kind": "active", "lv": 3, "cost": 1, "customer_move_pct": 1.50, "duration": ACTIVE_DURATION, "cd": ACTIVE_CD, "blurb": "客人移速 +150%，20 秒"},
 	{"id": "dash_deliver", "name": "衝刺交付", "kind": "active", "lv": 1, "cost": 2, "dash_deliver": true, "duration": 5.0, "cd": 5.0, "blurb": "5 秒內每記衝刺把對的貨交給客人且不 KO。沒對上則照常撞飛。技能不扣氣"},
+	{"id": "dasher", "name": "Dasher", "kind": "active", "lv": 3, "cost": 2, "dasher": true, "duration": 15.0, "cd": 15.0, "blurb": "衝刺與奔跑不扣氣（氣 0 也能）；LV3＝15 秒。準備頁選 LV1／2／3，沒選預設 LV3"},
 	{"id": "shelf_sniper", "name": "狙擊手（貨架）", "kind": "active", "lv": 1, "cost": 2, "shelf_sniper": true, "duration": 30.0, "cd": ACTIVE_CD, "blurb": "30 秒內投出的貨自動飛向最近同 SKU 貨架補貨；已滿則改飛下一格，全滿則飛最近架旁掉落"},
 	{"id": "guest_sniper", "name": "狙擊手（客人）", "kind": "active", "lv": 1, "cost": 2, "guest_sniper": true, "duration": 30.0, "cd": ACTIVE_CD, "blurb": "30 秒內投出的貨自動飛向最近清單需要該貨的客人；該客不要了就改飛下一位，全店沒目標則普通丟掉"},
 	{"id": "thief_sniper", "name": "狙擊手（小偷）", "kind": "active", "lv": 1, "cost": 2, "thief_sniper": true, "duration": 30.0, "cd": ACTIVE_CD, "blurb": "30 秒內投出的貨自動飛向最近小偷擊中並趕走；投 1 件／一段都算一擊，擊中後貨品掉落；全店沒小偷則普通丟掉"},
@@ -135,6 +136,7 @@ const ULTS: Array[Dictionary] = [
 	{"id": "the_world", "name": "The World!", "kind": "ultimate", "lv": 3, "cost": 0, "clock_scale": 0.0, "duration": ULT_DURATION, "cd": ULT_CD, "seq": [0, 0, 1, 1, 2, 3, 2, 3], "blurb": "時停 10 秒。指令上上下下左右左右"},
 	{"id": "yes_my_lord", "name": "Yes! My Lord!", "kind": "ultimate", "lv": 3, "cost": 0, "duration": 10.0, "cd": ULT_CD, "seq": [0, 2, 1, 3, 0, 2, 1, 3], "blurb": "LV3：客人搶空最近貨架 10 秒，然後去排隊。指令上左下右上左下右"},
 	{"id": "fundraise", "name": "全體集資", "kind": "ultimate", "lv": 3, "cost": 0, "duration": 0.0, "cd": ULT_CD, "seq": [0, 1, 0, 1, 2, 3, 2, 3], "blurb": "LV3：在店客人立刻按已取貨全額付款，不含離開與小偷。指令上下上下左右左右"},
+	{"id": "close_gate", "name": "落閘放狗", "kind": "ultimate", "lv": 1, "cost": 0, "duration": 0.0, "cd": 120.0, "seq": [0, 1, 0, 1, 2, 3, 2, 3], "blurb": "有貨趕去排隊（只付已取）；空車離店；小偷掉贓離店。單階 CD120。指令上下上下左右左右"},
 ]
 
 
@@ -142,7 +144,21 @@ const ULTS: Array[Dictionary] = [
 static func prep_picks_level(sk: Dictionary) -> bool:
 	if sk.is_empty():
 		return false
-	return bool(sk.get("dark_side", false)) or bool(sk.get("shadow_clone", false))
+	return (
+		bool(sk.get("dark_side", false))
+		or bool(sk.get("shadow_clone", false))
+		or bool(sk.get("dasher", false))
+	)
+
+
+static func dasher_seconds(lv: int) -> float:
+	match lv:
+		1:
+			return 5.0
+		2:
+			return 10.0
+		_:
+			return 15.0
 
 
 static func restock_circle_mult(lv: int) -> float:

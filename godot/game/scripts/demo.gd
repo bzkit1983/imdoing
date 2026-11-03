@@ -308,6 +308,34 @@ func cast_fundraise(level: int) -> void:
 		_player.log_line.emit(Loc.t("demo.fundraise", [picked.size(), total]))
 
 
+func cast_close_gate() -> void:
+	## 落閘放狗：有貨清 shopping 排隊；空車離店；小偷掉贓離店（不計逃走）。
+	if _customers == null:
+		return
+	var queued := 0
+	var left := 0
+	var thieves := 0
+	for c in _customers.get_children():
+		if bool(c.get("is_thief")):
+			var st := int(c.get("state"))
+			if st == CustomerScript.State.FLEE:
+				continue
+			if c.has_method("drop_loot_and_leave"):
+				c.call("drop_loot_and_leave")
+			thieves += 1
+			continue
+		if not c.has_method("apply_close_gate"):
+			continue
+		var result := String(c.call("apply_close_gate"))
+		if result == "leave":
+			left += 1
+		elif result == "queue":
+			queued += 1
+	release_player_checkout()
+	if _player:
+		_player.log_line.emit(Loc.t("demo.close_gate", [queued, left, thieves]))
+
+
 func sellable() -> Array[String]:
 	return state.sellable()
 

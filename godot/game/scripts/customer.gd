@@ -254,6 +254,33 @@ func finish_paid() -> void:
 	_leave(false)
 
 
+## 落閘放狗：空車被趕離；有貨清 shopping 去排隊（已在隊則保留）。回傳 "leave" | "queue" | "skip"。
+func apply_close_gate() -> String:
+	if is_thief or temp_clerk or state == State.TEMP:
+		return "skip"
+	if state == State.LEAVE or state == State.FLEE or state == State.FIGHT:
+		return "skip"
+	_target_shelf = null
+	raided = false
+	if cart.is_empty():
+		_leave(false)
+		mood = "被趕離"
+		_sync_labels()
+		return "leave"
+	if not shopping.is_empty():
+		shopping.clear()
+		_bump_list()
+	if state == State.QUEUE or state == State.PAYING:
+		_sync_labels()
+		return "queue"
+	if state == State.TO_CASHIER:
+		mood = "去付款"
+		_sync_labels()
+		return "queue"
+	_begin_checkout("去付款")
+	return "queue"
+
+
 ## Completed shopping list but not paid: cart pieces for warehouse return at closeout.
 func unsold_checkout_cart() -> Array[String]:
 	if is_thief:
