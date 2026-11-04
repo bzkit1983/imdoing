@@ -657,13 +657,23 @@ func pick_register(cust: Node) -> Node2D:
 
 
 func customers_near(origin: Vector2, radius_sq: float) -> bool:
+	## 「唔該借借」擁擠＝附近至少 2 人（設計／sfx：多人）。單一名交付對象不算擁擠。
 	if _customers == null:
 		return false
+	var n := 0
 	for c in _customers.get_children():
 		if c == null or not is_instance_valid(c):
 			continue
+		if bool(c.get("temp_clerk")):
+			continue
+		## Leave / flee / temp job are not blocking the aisle.
+		var st := int(c.get("state"))
+		if st == CustomerScript.State.LEAVE or st == CustomerScript.State.FLEE or st == CustomerScript.State.TEMP:
+			continue
 		if origin.distance_squared_to(c.global_position) <= radius_sq:
-			return true
+			n += 1
+			if n >= 2:
+				return true
 	return false
 
 

@@ -63,6 +63,8 @@ var _long_committed: bool = false
 var _deliver_done: bool = false
 ## This dash already resolved a guest (deliver or KO).
 var _dash_guest_done: bool = false
+## Segment start for swept dash hit tests (set each dash physics step).
+var _dash_from: Vector2 = Vector2.ZERO
 ## Short cancel closed a menu or an in-progress action, so it must not toss a piece.
 var _cancel_swallowed: bool = false
 var _pickup_used: bool = false
@@ -549,6 +551,7 @@ func set_hold(action: String, pressed: bool) -> void:
 				_k_held = true
 				_k_time = 0.0
 			else:
+				## 輕放＝衝刺；已過門檻變成奔跑的這次按鍵不再補衝（起跑不會先衝一記）。
 				if _k_held and not _running and _k_time < Tuning.RUN_HOLD_THRESHOLD:
 					_try_dash()
 				_k_held = false
@@ -633,20 +636,25 @@ func _crowd_near() -> bool:
 
 func _crowd_near_fallback() -> bool:
 	var g := _game()
-	if g == null:
+	if g == null or g.get("_customers") == null:
 		return false
 	var rsq := Tuning.CROWD_RADIUS_SQ
-	if g.get("_customers") != null:
-		for c in g._customers.get_children():
-			if c == null or not is_instance_valid(c):
-				continue
-			if global_position.distance_squared_to(c.global_position) <= rsq:
+	var n := 0
+	for c in g._customers.get_children():
+		if c == null or not is_instance_valid(c):
+			continue
+		if bool(c.get("temp_clerk")):
+			continue
+		if global_position.distance_squared_to(c.global_position) <= rsq:
+			n += 1
+			if n >= 2:
 				return true
 	return false
 
 
 func _sync_crowd_say() -> void:
-	var on := _crowd_near()
+	## Hide during dash so「唔該借借」is not mistaken for a failed 衝刺交付.
+	var on := (not _dashing) and _crowd_near()
 	if on and not _crowd_active:
 		SfxBus.play("sfx_move_crowd")
 	_crowd_active = on
@@ -1364,6 +1372,16 @@ func _dasher_active() -> bool:
 	return buff_left("dasher") > 0.05
 
 
+## Stick/keys for dash aim. Ignores post-skill move-lock so LT skill → dash still aims at the stick.
+func _dash_dir_input() -> Vector2:
+	var v := Controls.move_vector() + stick_axis
+	if v.length() < Controls.MOVE_DEADZONE:
+		return Vector2.ZERO
+	if v.length_squared() > 1.0:
+		v = v.normalized()
+	return v
+
+
 func _try_dash() -> void:
 	if _dashing or _fighting or _stun_left > 0.0 or _slip_left > 0.0:
 		return
@@ -1372,11 +1390,15 @@ func _try_dash() -> void:
 	if not free_stam and stamina < Tuning.DASH_STAMINA_COST:
 		SfxBus.play("sfx_move_stamina_empty")
 		return
-	var dir := _move_axis()
+	var dir := _dash_dir_input()
 	if dir == Vector2.ZERO:
 		dir = facing
+	## Skill cast locks move until stick neutral; dash must still use held aim and then unlock walk.
+	_move_locked_until_neutral = false
 	_dashing = true
 	_dash_dir = dir.normalized()
+	facing = _dash_dir
+	_dash_from = global_position
 	_dash_left = Tuning.DASH_TIME
 	if not free_stam:
 		stamina = maxf(0.0, stamina - Tuning.DASH_STAMINA_COST)
@@ -1386,6 +1408,7 @@ func _try_dash() -> void:
 
 
 func _tick_dash(delta: float) -> void:
+	_dash_from = global_position
 	_dash_left -= delta
 	var speed := Tuning.DASH_DISTANCE / Tuning.DASH_TIME
 	velocity = _dash_dir * speed
@@ -1398,6 +1421,18 @@ func _tick_dash(delta: float) -> void:
 	if _dash_left <= 0.0:
 		_dashing = false
 		velocity *= 0.35
+
+
+## True if `pos` is within dash hit range of the current dash segment (_dash_from → global_position).
+func _dash_segment_hits(pos: Vector2) -> bool:
+	var a := _dash_from
+	var b := global_position
+	var ab := b - a
+	var len_sq := ab.length_squared()
+	if len_sq < 0.0001:
+		return a.distance_squared_to(pos) <= Tuning.DASH_HIT_RANGE_SQ
+	var t := clampf((pos - a).dot(ab) / len_sq, 0.0, 1.0)
+	return (a + ab * t).distance_squared_to(pos) <= Tuning.DASH_HIT_RANGE_SQ
 
 
 func _can_slip() -> bool:
@@ -2067,7 +2102,7 @@ func _dash_guests() -> Array:
 			continue
 		if float(c.get("_dash_stun_left")) > 0.0:
 			continue
-		if global_position.distance_to(c.global_position) > Tuning.DASH_HIT_RANGE:
+		if not _dash_segment_hits(c.global_position):
 			continue
 		found.append(c)
 	found.sort_custom(func(a, b) -> bool:
@@ -2081,7 +2116,7 @@ func _dash_clone() -> Node:
 	if g == null or not g.has_method("shadow_clones"):
 		return null
 	var best: Node = null
-	var best_d := Tuning.DASH_HIT_RANGE
+	var best_d_sq := Tuning.DASH_HIT_RANGE_SQ
 	for c in g.call("shadow_clones"):
 		if c == null or not is_instance_valid(c):
 			continue
@@ -2089,9 +2124,11 @@ func _dash_clone() -> Node:
 			continue
 		if float(c.get("_dash_stun_left")) > 0.0:
 			continue
-		var d := global_position.distance_to(c.global_position)
-		if d <= best_d:
-			best_d = d
+		if not _dash_segment_hits(c.global_position):
+			continue
+		var d_sq := global_position.distance_squared_to(c.global_position)
+		if d_sq <= best_d_sq:
+			best_d_sq = d_sq
 			best = c
 	return best
 
@@ -2477,7 +2514,7 @@ func _try_dash_hits() -> void:
 				continue
 			if not bool(t.call("is_active_thief")):
 				continue
-			if global_position.distance_to(t.global_position) > Tuning.DASH_HIT_RANGE:
+			if not _dash_segment_hits(t.global_position):
 				continue
 			t.call("dash_knock_away", _dash_dir)
 			if g.has_method("record_caught"):
@@ -2487,18 +2524,28 @@ func _try_dash_hits() -> void:
 			if _fighting:
 				_end_fight(false)
 			return
-	## One guest resolution per dash: deliver if 衝刺交付 is up and the nearest wants a carried piece, else KO.
+	## One guest resolution per dash. 衝刺交付: prefer guests who want carried goods (near→far), not only nearest.
 	## Clones are after guests so 衝刺交付 never hands goods to a clone.
 	if not _dash_guest_done:
 		var guests := _dash_guests()
 		if not guests.is_empty():
+			if buff_left("dash_deliver") > 0.0:
+				var deliver_targets: Array = []
+				for guest in guests:
+					if guest == null or not is_instance_valid(guest):
+						continue
+					if not guest.has_method("can_receive_delivery") or not bool(guest.call("can_receive_delivery")):
+						continue
+					if not _guest_wants_carried(guest):
+						continue
+					deliver_targets.append(guest)
+				if not deliver_targets.is_empty():
+					var gave := _hand_deliver(deliver_targets, false)
+					if gave > 0:
+						_dash_guest_done = true
+						log_line.emit("衝刺交付 ×%d — 不撞飛" % gave)
+						return
 			var nearest: Node = guests[0]
-			if buff_left("dash_deliver") > 0.0 and nearest.has_method("can_receive_delivery") and bool(nearest.call("can_receive_delivery")) and _guest_wants_carried(nearest):
-				var gave := _hand_deliver(guests, false)
-				if gave > 0:
-					_dash_guest_done = true
-					log_line.emit("衝刺交付 ×%d — 不撞飛" % gave)
-					return
 			_dash_guest_done = true
 			var add := 0.0 if _has_flag("polite_dash") else Tuning.DASH_GUEST_DISSAT
 			if g.has_method("play_ko_banner"):

@@ -71,7 +71,8 @@ const AGI_EFFECT_CAP := 50
 const RUN_SPEED_MULT := 1.75
 const DASH_DISTANCE := 140.0
 const DASH_TIME := 0.12
-const RUN_HOLD_THRESHOLD := 0.1
+## Tap-release shorter than this → dash; hold past this → run (no dash on that press).
+const RUN_HOLD_THRESHOLD := 0.18
 ## Long-press cancel (B or ;) drops the top carried box. A tap still only cancels.
 const DROP_HOLD_SEC := 0.2
 ## Base toss distance (5 身位). Future drop-range skills multiply via player.drop_toss_dist().
@@ -143,7 +144,9 @@ const LOOT_SCATTER_MIN_GAP := 30.0
 const LOOT_SCATTER_FLIGHT_SEC := 0.38
 const HIT_AT_10 := 3.5
 const HIT_AT_50 := 12.0
-const DASH_HIT_RANGE := 32.0
+## Dash hit (guests / thieves / clones). Wider than crowd so a dash into an aisle still registers.
+const DASH_HIT_RANGE := 5.0 * BODY_LENGTH
+const DASH_HIT_RANGE_SQ := DASH_HIT_RANGE * DASH_HIT_RANGE
 ## Crowd slow: guests/thieves within this radius of the player.
 const CROWD_RADIUS := 3.0 * BODY_LENGTH
 const CROWD_RADIUS_SQ := CROWD_RADIUS * CROWD_RADIUS
