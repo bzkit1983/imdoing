@@ -36,8 +36,13 @@ const TRIGGER_SKILL_GRACE := 0.1
 const WEB_BTN_LT := 6
 const WEB_BTN_RT := 7
 ## Stick vs trigger alias epsilon (Web often exposes only 4 axes; axis 4/5 can mirror stick).
-const TRIGGER_ALIAS_EPS := 0.08
+const TRIGGER_ALIAS_EPS := 0.15
 const TRIGGER_ALIAS_STICK_MIN := 0.35
+## Web: while left stick is this far out, never trust axis LT/RT (deep diagonal → false ult).
+const WEB_STICK_SUPPRESS_AXIS_TRIGGERS := 0.45
+
+## device_id → once true, axis LT/RT stay ignored (buttons 6/7 only on Web).
+var _web_axis_triggers_untrusted: Dictionary = {}
 
 const HOLD_ACTIONS: Array[String] = [INTERACT, CANCEL, DASH, SKILL, ULT]
 const MOVE_ACTIONS: Array[String] = [MOVE_UP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT]
@@ -202,8 +207,9 @@ func _ensure_joy_btn(action: String, button: JoyButton) -> void:
 
 
 ## Strongest LT/RT deflection across connected pads, normalized to 0..1.
-## Web safety: if trigger axes mirror the left stick (common 4-axis alias), ignore axes
-## and fall back to Standard Gamepad LT/RT buttons (6/7).
+## Web safety: axis 4/5 often alias the left stick (4-axis pads). Deep stick
+## (especially diagonal) then reads as LT+RT and false-starts ult. Ignore bad
+## axes and use Standard Gamepad buttons 6/7 instead.
 func trigger_values() -> Vector2:
 	var best_lt := 0.0
 	var best_rt := 0.0
@@ -211,11 +217,21 @@ func trigger_values() -> Vector2:
 	for device in Input.get_connected_joypads():
 		var lx := Input.get_joy_axis(device, JOY_AXIS_LEFT_X)
 		var ly := Input.get_joy_axis(device, JOY_AXIS_LEFT_Y)
+		var stick_len := Vector2(lx, ly).length()
 		var raw_lt := Input.get_joy_axis(device, JOY_AXIS_TRIGGER_LEFT)
 		var raw_rt := Input.get_joy_axis(device, JOY_AXIS_TRIGGER_RIGHT)
 		var lt := _normalize_trigger_axis(raw_lt)
 		var rt := _normalize_trigger_axis(raw_rt)
-		if _triggers_alias_left_stick(raw_lt, raw_rt, lx, ly):
+		var aliased := _triggers_alias_left_stick(raw_lt, raw_rt, lx, ly)
+		if aliased:
+			_web_axis_triggers_untrusted[device] = true
+		var untrusted := bool(_web_axis_triggers_untrusted.get(device, false))
+		## Web: suppress axis triggers while stick is deflected, or forever once aliased.
+		## Real LT/RT still come from buttons 6/7 below.
+		if on_web and (untrusted or stick_len >= WEB_STICK_SUPPRESS_AXIS_TRIGGERS):
+			lt = 0.0
+			rt = 0.0
+		elif aliased:
 			lt = 0.0
 			rt = 0.0
 		if on_web:
@@ -243,7 +259,12 @@ func _triggers_alias_left_stick(raw_lt: float, raw_rt: float, lx: float, ly: flo
 	var match_yx := (
 		absf(raw_lt - ly) <= TRIGGER_ALIAS_EPS and absf(raw_rt - lx) <= TRIGGER_ALIAS_EPS
 	)
-	return match_xy or match_yx
+	## Also catch near-match on magnitude (browser axis noise at full deflection).
+	var as_stick := Vector2(raw_lt, raw_rt)
+	var stick := Vector2(lx, ly)
+	var near := as_stick.distance_to(stick) <= TRIGGER_ALIAS_EPS * 2.0
+	var near_swap := as_stick.distance_to(Vector2(ly, lx)) <= TRIGGER_ALIAS_EPS * 2.0
+	return match_xy or match_yx or near or near_swap
 
 
 func _web_trigger_button(device: int, left: bool) -> float:
