@@ -32,6 +32,7 @@ const ENTRIES: Array[Dictionary] = [
 	{"id": "sfx_thief_escape", "priority": "P0", "path": "res://audio/sfx/sfx_thief_escape.wav", "group": "thief", "trigger": "小偷持贓走到出口：橫幅「你已經被偷了！」"},
 	{"id": "sfx_ui_deny", "priority": "P0", "path": "res://audio/sfx/sfx_ui_deny.wav", "group": "ui", "trigger": "不能執行（開店條件不足、買不起等）"},
 	{"id": "sfx_ult_close_gate", "priority": "P0", "path": "res://audio/sfx/sfx_ult_close_gate.wav", "group": "ult", "trigger": "落閘放狗發動"},
+	{"id": "sfx_ult_guest_dusk", "priority": "P2", "path": "res://audio/sfx/sfx_ult_yes_my_lord.wav", "group": "ult", "trigger": "諸客的黃昏發動（暫共用 Yes! My Lord! 音檔）"},
 	{"id": "sfx_ult_dir_fail", "priority": "P0", "path": "res://audio/sfx/sfx_ult_dir_fail.wav", "group": "ult", "trigger": "奧義指令錯誤重置"},
 	{"id": "sfx_ult_dir_ok", "priority": "P0", "path": "res://audio/sfx/sfx_ult_dir_ok.wav", "group": "ult", "trigger": "奧義方向指令正確"},
 	{"id": "sfx_ult_fundraise", "priority": "P0", "path": "res://audio/sfx/sfx_ult_fundraise.wav", "group": "ult", "trigger": "全體集資發動／批次入帳"},

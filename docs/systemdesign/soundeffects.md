@@ -117,6 +117,7 @@
 | `sfx_ult_yes_my_lord` | Yes! My Lord! 發動 | 號令／搶購起哄短層 | P0 | `playerultimateskills.md` |
 | `sfx_ult_fundraise` | 全體集資發動／批次入帳 | 錢潮／批量收銀 | P0 | `playerultimateskills.md` |
 | `sfx_ult_close_gate` | 落閘放狗發動 | 落閘／趕客短層 | P0 | `playerultimateskills.md` |
+| `sfx_ult_guest_dusk` | 諸客的黃昏發動 | 人潮湧入短層 | P2 | `playerultimateskills.md`（暫可共用其他奧義發動音） |
 | `sfx_skill_soothe` | 安撫生效 | 柔和減壓 | P1 | `playeractiveskills.md` |
 | `sfx_skill_clone_vanish` | 多重影分身消失（煙霧；再放舊分身、30 秒到、提早關、關店） | 煙霧／消散 | P1 | `shadowclone.md` |
 

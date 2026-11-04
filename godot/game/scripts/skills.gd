@@ -143,7 +143,13 @@ const ULTS: Array[Dictionary] = [
 	{"id": "yes_my_lord", "name": "Yes! My Lord!", "kind": "ultimate", "lv": 3, "cost": 0, "duration": 10.0, "cd": ULT_CD, "seq": [0, 2, 1, 3, 0, 2, 1, 3], "blurb": "LV3：客人搶空最近貨架 10 秒，然後去排隊。指令上左下右上左下右"},
 	{"id": "fundraise", "name": "全體集資", "kind": "ultimate", "lv": 3, "cost": 0, "duration": 0.0, "cd": ULT_CD, "seq": [0, 1, 0, 1, 2, 3, 2, 3], "blurb": "LV3：在店客人立刻按已取貨全額付款，不含離開與小偷。指令上下上下左右左右"},
 	{"id": "close_gate", "name": "落閘放狗", "kind": "ultimate", "lv": 1, "cost": 0, "duration": 0.0, "cd": 120.0, "seq": [0, 1, 0, 1, 2, 3, 2, 3], "blurb": "有貨趕去排隊（只付已取）；空車離店；小偷掉贓離店。單階 CD120。指令上下上下左右左右"},
+	{"id": "guest_dusk", "name": "諸客的黃昏", "kind": "ultimate", "lv": 1, "cost": 0, "duration": 30.0, "cd": 120.0, "seq": [0, 2, 3, 1, 1, 2, 3, 0], "blurb": "30 現實秒內成功進店 15 人（可超 cap、無小偷）。單階 CD120。指令上左右下下左右上"},
 ]
+
+
+const GUEST_DUSK_DURATION := 30.0
+const GUEST_DUSK_COUNT := 15
+const GUEST_DUSK_INTERVAL := 2.0
 
 
 ## Prep page picks LV1/2/3 for these actives. Unset means LV3.

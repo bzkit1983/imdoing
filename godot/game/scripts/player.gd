@@ -473,6 +473,8 @@ func store_status_text() -> String:
 		bits.append("The World! 時停 %.0fs" % _buffs["the_world"])
 	if _buffs.has("yes_my_lord"):
 		bits.append("Yes! My Lord! %.0fs" % _buffs["yes_my_lord"])
+	if _buffs.has("guest_dusk"):
+		bits.append("諸客的黃昏 %.0fs" % _buffs["guest_dusk"])
 	if _buffs.has("metal_rush"):
 		bits.append("金屬狂潮 +150%% %.0fs" % _buffs["metal_rush"])
 	if bits.is_empty():
@@ -3183,6 +3185,24 @@ func _cast_ultimate() -> void:
 		SfxBus.play("sfx_ult_close_gate")
 		log_line.emit("奧義 落閘放狗")
 		_begin_cast_pose(true)
+		skill_cast.emit(String(sk.get("name")), true)
+		_play_zoom(true)
+		_prompt.active = false
+		return
+	if sid == "guest_dusk":
+		var dusk_ok := false
+		if game and game.has_method("cast_guest_dusk"):
+			dusk_ok = bool(game.call("cast_guest_dusk"))
+		if dusk_ok:
+			_buffs[sid] = Skills.GUEST_DUSK_DURATION
+			log_line.emit("奧義 諸客的黃昏 — 30 秒吸引 %d 人" % Skills.GUEST_DUSK_COUNT)
+		else:
+			_buffs.erase(sid)
+			log_line.emit("奧義 諸客的黃昏 — 非營業時段無效")
+		_buff_cache_valid = false
+		SfxBus.play("sfx_ult_guest_dusk")
+		_begin_cast_pose(true)
+		_spawn_fx("combo", global_position + Vector2(0, -36))
 		skill_cast.emit(String(sk.get("name")), true)
 		_play_zoom(true)
 		_prompt.active = false

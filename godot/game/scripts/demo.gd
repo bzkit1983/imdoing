@@ -2,6 +2,7 @@ extends Node2D
 ## Living v1 line (from Alpha v0.1): Demo v0.6 shop loop with voxel sprites.
 
 const Tuning = preload("res://scripts/tuning.gd")
+const Skills = preload("res://scripts/skills.gd")
 const StateScript = preload("res://scripts/game_state.gd")
 const PlayerScript = preload("res://scripts/player.gd")
 const RestockScript = preload("res://scripts/restock_point.gd")
@@ -65,6 +66,10 @@ var shelves: Array[Node2D] = []
 var pathfinder
 var _obstacles: Array[Rect2] = []
 var _spawn_in: float = 2.0
+## 諸客的黃昏: real-second inject window (ignore guest_cap; never thieves).
+var _guest_dusk_left: float = 0.0
+var _guest_dusk_remain: int = 0
+var _guest_dusk_in: float = 0.0
 var _player: CharacterBody2D
 var _customers: Node2D
 var _hud: CanvasLayer
@@ -131,6 +136,7 @@ func _begin_day() -> void:
 	_sfx_phase = "restock"
 	SfxBus.play("sfx_phase_restock")
 	_spawn_in = 2.0
+	clear_guest_dusk()
 	_dirt_spawn_in = dirt_spawn_interval()
 	_thief_spawn_in = state.thief_spawn_first()
 	FLOOR_SIZE = Vector2(state.grid_w, state.grid_h) * StateScript.CELL
@@ -314,6 +320,23 @@ func cast_fundraise(level: int) -> void:
 	release_player_checkout()
 	if _player:
 		_player.log_line.emit(Loc.t("demo.fundraise", [picked.size(), total]))
+
+
+func cast_guest_dusk() -> bool:
+	## 諸客的黃昏: 30 real seconds, up to 15 successful guest entries (ignore cap).
+	if phase != "open":
+		clear_guest_dusk()
+		return false
+	_guest_dusk_left = Skills.GUEST_DUSK_DURATION
+	_guest_dusk_remain = Skills.GUEST_DUSK_COUNT
+	_guest_dusk_in = 0.0
+	return true
+
+
+func clear_guest_dusk() -> void:
+	_guest_dusk_left = 0.0
+	_guest_dusk_remain = 0
+	_guest_dusk_in = 0.0
 
 
 func cast_close_gate() -> void:
@@ -1108,6 +1131,7 @@ func _confirm_early_close() -> void:
 		return
 	_hide_early_dialog()
 	_early_closed = true
+	clear_guest_dusk()
 	phase = "closed"
 	game_hours = Tuning.CLOSE_HOUR
 	_finish_day()
@@ -1157,6 +1181,7 @@ func _process(delta: float) -> void:
 		game_hours = lerpf(Tuning.OPEN_HOUR, Tuning.CLOSE_HOUR, t)
 		if _consider_early_close():
 			return
+		_tick_guest_dusk(delta)
 		_spawn_in -= world_delta(delta)
 		if _spawn_in <= 0.0:
 			_spawn_customer()
@@ -1166,6 +1191,7 @@ func _process(delta: float) -> void:
 			_spawn_thief()
 			_thief_spawn_in = state.thief_spawn_sec()
 	else:
+		clear_guest_dusk()
 		phase = "closed"
 		game_hours = Tuning.CLOSE_HOUR
 		_finish_day()
@@ -1465,11 +1491,41 @@ func _finish_day() -> void:
 		]
 
 
-func _spawn_customer() -> void:
+## Real-second inject for 諸客的黃昏. Successful entries only count toward remain.
+func _tick_guest_dusk(delta: float) -> void:
+	if _guest_dusk_left <= 0.0 and _guest_dusk_remain <= 0:
+		return
+	if phase != "open":
+		clear_guest_dusk()
+		return
+	_guest_dusk_left = maxf(0.0, _guest_dusk_left - delta)
+	if _guest_dusk_remain <= 0:
+		return
+	if _guest_dusk_left <= 0.0:
+		clear_guest_dusk()
+		return
+	_guest_dusk_in -= delta
+	## Empty sellable: retry next frame (skip, do not burn a slot or the interval).
+	while _guest_dusk_remain > 0 and _guest_dusk_in <= 0.0:
+		if state.sellable().is_empty():
+			_guest_dusk_in = 0.0
+			break
+		if _spawn_customer(true):
+			_guest_dusk_remain -= 1
+			_guest_dusk_in += Skills.GUEST_DUSK_INTERVAL
+		else:
+			_guest_dusk_in = 0.0
+			break
+	if _guest_dusk_remain <= 0:
+		_guest_dusk_remain = 0
+
+
+## Returns true when a guest was spawned. `ignore_cap` for 諸客的黃昏.
+func _spawn_customer(ignore_cap: bool = false) -> bool:
 	if state.sellable().is_empty():
-		return
-	if guest_count() >= state.guest_cap():
-		return
+		return false
+	if not ignore_cap and guest_count() >= state.guest_cap():
+		return false
 	## EliteCustomer only during open phase (not restock).
 	var make_elite := false
 	var elite_lv := 1
@@ -1495,6 +1551,7 @@ func _spawn_customer() -> void:
 		announce_elite_customer(c)
 	register_customer(c)
 	SfxBus.play("sfx_guest_enter")
+	return true
 
 
 func announce_elite_customer(c: Node) -> void:
