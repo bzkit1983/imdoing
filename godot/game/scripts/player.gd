@@ -11,6 +11,7 @@ const MenuScript = preload("res://scripts/skill_menu.gd")
 const UiFont = preload("res://scripts/ui_font.gd")
 const FxBurst = preload("res://scripts/fx_burst.gd")
 const GlowScript = preload("res://scripts/interact_glow.gd")
+const SkuIcons = preload("res://scripts/sku_icons.gd")
 
 signal stats_changed
 
@@ -133,6 +134,13 @@ var _piece_flights: int = 0
 var _piece_drop_lock: bool = false
 var _drop_aim_line: Line2D
 var _drop_aim_mark: Polygon2D
+## 使命必達: range preview (follows player). Confirm with skill; cancel drops aim (no CD).
+var _must_deliver_aim: bool = false
+var _must_deliver_lv: int = 3
+var _must_deliver_sid: String = ""
+var _must_deliver_cd: float = 15.0
+var _must_deliver_name: String = "使命必達"
+var _must_deliver_ring: Line2D
 ## Reused halo. Parented onto the current interact target, or parked off-tree.
 var _interact_glow: Node2D
 var _glow_host: Node2D
@@ -178,6 +186,7 @@ func _ready() -> void:
 	if inventory.has_signal("changed"):
 		inventory.changed.connect(_mark_hud_dirty)
 	_setup_drop_aim()
+	_setup_must_deliver_ring()
 	_setup_crowd_say()
 	_refresh_passive_checkout()
 
@@ -213,6 +222,16 @@ func _setup_drop_aim() -> void:
 	_drop_aim_mark.visible = false
 	_drop_aim_mark.z_index = 6
 	add_child(_drop_aim_mark)
+
+
+func _setup_must_deliver_ring() -> void:
+	_must_deliver_ring = Line2D.new()
+	_must_deliver_ring.name = "MustDeliverRing"
+	_must_deliver_ring.width = 2.0
+	_must_deliver_ring.default_color = Color(0.35, 0.9, 1.0, 0.55)
+	_must_deliver_ring.visible = false
+	_must_deliver_ring.z_index = 5
+	add_child(_must_deliver_ring)
 
 
 ## Base 5 身位; later drop-range skills can multiply this.
@@ -567,6 +586,8 @@ func move_state() -> String:
 		return "掉貨瞄準"
 	if ult_prep:
 		return "奧義指令"
+	if _must_deliver_aim:
+		return "使命必達"
 	if skill_menu_open:
 		return "技能選單"
 	if _restock_picking:
@@ -933,6 +954,9 @@ func _cancel_input() -> void:
 		_restock_aborted = true
 		_j_held = false
 		log_line.emit("取消選貨")
+		used = true
+	if _must_deliver_aim:
+		_cancel_must_deliver_aim()
 		used = true
 	if skill_menu_open or _l_held or _skill_latch:
 		_close_skill_menu()
@@ -1723,6 +1747,230 @@ func _give_guest(guest: Node) -> int:
 			inventory.remove_sku(sku, taken)
 			given += taken
 	return given
+
+
+func _begin_must_deliver_aim(sk: Dictionary) -> void:
+	_must_deliver_aim = true
+	_must_deliver_lv = int(sk.get("lv", 3))
+	_must_deliver_sid = String(sk.get("id"))
+	_must_deliver_cd = float(sk.get("cd", Skills.ACTIVE_CD))
+	_must_deliver_name = String(sk.get("name"))
+	_rebuild_must_deliver_ring(Skills.must_deliver_range(_must_deliver_lv))
+	if _must_deliver_ring:
+		_must_deliver_ring.visible = true
+	SfxBus.play("sfx_skill_cast")
+	log_line.emit("%s — 範圍預覽，再按技能確認，取消取消" % _must_deliver_name)
+
+
+func _cancel_must_deliver_aim() -> void:
+	if not _must_deliver_aim:
+		return
+	_must_deliver_aim = false
+	if _must_deliver_ring:
+		_must_deliver_ring.visible = false
+	SfxBus.play("sfx_skill_menu_cancel")
+	log_line.emit("取消 %s" % _must_deliver_name)
+
+
+func _rebuild_must_deliver_ring(radius: float) -> void:
+	if _must_deliver_ring == null:
+		return
+	var pts := PackedVector2Array()
+	var n := 48
+	for i in n + 1:
+		var a := TAU * float(i) / float(n)
+		pts.append(Vector2(cos(a), sin(a)) * radius)
+	_must_deliver_ring.points = pts
+
+
+func _finish_must_deliver_aim() -> void:
+	if not _must_deliver_aim:
+		return
+	var lv := _must_deliver_lv
+	var sid := _must_deliver_sid
+	var name := _must_deliver_name
+	var cd_base := _must_deliver_cd
+	if not _cast_must_deliver(lv):
+		_must_deliver_aim = false
+		if _must_deliver_ring:
+			_must_deliver_ring.visible = false
+		return
+	_must_deliver_aim = false
+	if _must_deliver_ring:
+		_must_deliver_ring.visible = false
+	_cd[sid] = Tuning.cd_seconds(cd_base, _int_now())
+	_buffs.erase(sid)
+	_buff_cache_valid = false
+	SfxBus.play("sfx_skill_cast")
+	log_line.emit("施放 %s LV%d" % [name, lv])
+	_begin_cast_pose(false)
+	skill_cast.emit(name, false)
+	_play_zoom(false)
+
+
+## Complete-first fill for guests in range. False = fail (no CD).
+func _cast_must_deliver(lv: int) -> bool:
+	if inventory.is_empty():
+		log_line.emit("手上沒貨 — 使命必達 失敗")
+		return false
+	if not _store_open():
+		log_line.emit("附近沒有可交付客人 — 使命必達 失敗")
+		return false
+	var radius := Skills.must_deliver_range(lv)
+	var max_n := Skills.must_deliver_max_guests(lv)
+	var guests := _must_deliver_guests(radius)
+	if guests.is_empty():
+		log_line.emit("附近沒有可交付客人 — 使命必達 失敗")
+		return false
+	var ordered := _must_deliver_order_guests(guests, inventory.items)
+	var counts := _must_deliver_count_map(inventory.items)
+	var plan: Array = []
+	for g in ordered:
+		if plan.size() >= max_n:
+			break
+		var pieces := _must_deliver_match_pieces(g.shopping, counts)
+		if pieces.is_empty():
+			continue
+		plan.append({"guest": g, "pieces": pieces})
+	if plan.is_empty():
+		log_line.emit("沒有對得上的貨 — 使命必達 失敗")
+		return false
+	var total := 0
+	var vfx: Array = []
+	for entry in plan:
+		var guest: Node = entry["guest"]
+		var pieces: Array = entry["pieces"]
+		if guest == null or not is_instance_valid(guest) or not guest.has_method("accept_must_deliver"):
+			continue
+		for sku in pieces:
+			inventory.remove_sku(String(sku), 1)
+		var taken := int(guest.call("accept_must_deliver", pieces))
+		if taken <= 0:
+			for sku in pieces:
+				inventory.add_one(String(sku))
+			continue
+		total += taken
+		var shown: Array = []
+		for j in taken:
+			shown.append(String(pieces[j]))
+		vfx.append({"pos": guest.global_position, "skus": shown})
+	if total <= 0:
+		log_line.emit("沒有對得上的貨 — 使命必達 失敗")
+		return false
+	_play_must_deliver_vfx(vfx)
+	log_line.emit("使命必達 ×%d" % total)
+	_deliver_pose_left = 0.4
+	return true
+
+
+func _must_deliver_guests(radius: float) -> Array:
+	var found: Array = []
+	var g := _game()
+	if g == null:
+		return found
+	var custs = g.get("_customers")
+	if custs == null:
+		return found
+	var r2 := radius * radius
+	for c in custs.get_children():
+		if c == null or not is_instance_valid(c):
+			continue
+		if bool(c.get("temp_clerk")):
+			continue
+		if not c.has_method("can_receive_delivery") or not bool(c.call("can_receive_delivery")):
+			continue
+		if global_position.distance_squared_to(c.global_position) > r2:
+			continue
+		found.append(c)
+	found.sort_custom(func(a, b) -> bool:
+		return global_position.distance_squared_to(a.global_position) < global_position.distance_squared_to(b.global_position)
+	)
+	return found
+
+
+func _must_deliver_count_map(items: Array) -> Dictionary:
+	var counts := {}
+	for s in items:
+		var sku := String(s)
+		counts[sku] = int(counts.get(sku, 0)) + 1
+	return counts
+
+
+func _must_deliver_can_complete(shopping: Array, sim: Dictionary) -> bool:
+	if shopping.is_empty():
+		return false
+	var need := {}
+	for s in shopping:
+		var sku := String(s)
+		need[sku] = int(need.get(sku, 0)) + 1
+	for sku in need:
+		if int(sim.get(sku, 0)) < int(need[sku]):
+			return false
+	return true
+
+
+func _must_deliver_deduct_shopping(shopping: Array, sim: Dictionary) -> void:
+	for s in shopping:
+		var sku := String(s)
+		sim[sku] = int(sim.get(sku, 0)) - 1
+
+
+## Completable guests first (near→far with inventory reservation), then partials near→far.
+func _must_deliver_order_guests(guests: Array, inv_items: Array) -> Array:
+	var sim := _must_deliver_count_map(inv_items)
+	var completable: Array = []
+	var rest: Array = []
+	for g in guests:
+		var shopping: Array = g.shopping if g != null else []
+		if _must_deliver_can_complete(shopping, sim):
+			_must_deliver_deduct_shopping(shopping, sim)
+			completable.append(g)
+		else:
+			rest.append(g)
+	return completable + rest
+
+
+## Match shopping needs against counts (mutates counts). Any inventory order.
+func _must_deliver_match_pieces(shopping: Array, counts: Dictionary) -> Array[String]:
+	var pieces: Array[String] = []
+	for s in shopping:
+		var sku := String(s)
+		if int(counts.get(sku, 0)) <= 0:
+			continue
+		pieces.append(sku)
+		counts[sku] = int(counts.get(sku, 0)) - 1
+	return pieces
+
+
+func _play_must_deliver_vfx(deliveries: Array) -> void:
+	if deliveries.is_empty():
+		return
+	var parent: Node = get_parent()
+	var g := _game()
+	if g != null:
+		var world = g.get("_world")
+		if world != null:
+			parent = world
+	var gather := global_position + Vector2(0.0, -72.0)
+	var i := 0
+	for d in deliveries:
+		var dest_base: Vector2 = d.get("pos", global_position)
+		var skus: Array = d.get("skus", [])
+		for sku_v in skus:
+			var sku := String(sku_v)
+			var spr: Sprite2D = SkuIcons.make_sprite(sku, 20.0)
+			spr.z_index = 12
+			parent.add_child(spr)
+			spr.global_position = global_position + Vector2(randf_range(-10.0, 10.0), -18.0)
+			var gather_pt := gather + Vector2(randf_range(-22.0, 22.0), randf_range(-12.0, 12.0))
+			var land := dest_base + Vector2(randf_range(-8.0, 8.0), -44.0)
+			var tw := spr.create_tween()
+			tw.tween_interval(0.02 * float(i))
+			tw.tween_property(spr, "global_position", gather_pt, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+			tw.tween_interval(0.1)
+			tw.tween_property(spr, "global_position", land, 0.28).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+			tw.tween_callback(spr.queue_free)
+			i += 1
 
 
 ## Instant force_sell into nearest hand-deliverable guest cart. False = fail (no CD).
@@ -2566,6 +2814,11 @@ func _on_skill_hold(pressed: bool) -> void:
 		if _sick_left > 0.0 or _stun_left > 0.0 or _fighting:
 			log_line.emit("現在不能發動技能")
 			return
+		## Second skill press confirms 使命必達 range preview.
+		if _must_deliver_aim:
+			_finish_must_deliver_aim()
+			_skill_release_ignore = true
+			return
 		if _skill_latch:
 			_confirm_skill(0)
 			_skill_release_ignore = true
@@ -2658,6 +2911,9 @@ func _try_skill_hotkey(slot: int) -> void:
 		log_line.emit("現在不能發動技能")
 		return
 	if ult_prep or _elite_focus_left > 0.0:
+		return
+	if _must_deliver_aim:
+		_finish_must_deliver_aim()
 		return
 	_confirm_skill(slot)
 
@@ -2811,6 +3067,8 @@ func _cast_slot(i: int) -> void:
 		return
 	## Instant force_sell: empty hands / no target must not start CD.
 	if bool(sk.get("force_sell", false)):
+		if _must_deliver_aim:
+			_cancel_must_deliver_aim()
 		if not _cast_force_sell(int(sk.get("lv", 3))):
 			return
 		_cd[sid] = Tuning.cd_seconds(float(sk.get("cd", Skills.ACTIVE_CD)), _int_now())
@@ -2822,6 +3080,15 @@ func _cast_slot(i: int) -> void:
 		skill_cast.emit(String(sk.get("name")), false)
 		_play_zoom(false)
 		return
+	## 使命必達: first cast = range preview (no CD); confirm is via skill press while aiming.
+	if bool(sk.get("must_deliver", false)):
+		if _must_deliver_aim:
+			_finish_must_deliver_aim()
+			return
+		_begin_must_deliver_aim(sk)
+		return
+	if _must_deliver_aim:
+		_cancel_must_deliver_aim()
 	_cd[sid] = Tuning.cd_seconds(float(sk.get("cd", Skills.ACTIVE_CD)), _int_now())
 	## 衝刺交付: the armed window is the cooldown itself, and INT does not shorten this 5s.
 	## Dark Side / Multiple Shadow Clone: CD still eats INT, but each body keeps its own 30s.

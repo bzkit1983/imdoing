@@ -829,6 +829,39 @@ func _play_dash_ko_hop() -> void:
 	_dash_ko_tween.tween_callback(func() -> void: SfxBus.play("sfx_guest_dash_land"))
 
 
+## Must-deliver: only SKUs still on shopping. Dissatisfaction unchanged. Returns pieces accepted.
+func accept_must_deliver(pieces: Array) -> int:
+	if is_thief or temp_clerk or pieces.is_empty():
+		return 0
+	if not can_receive_delivery():
+		return 0
+	var taken := 0
+	for p in pieces:
+		var sku := String(p)
+		if sku == "":
+			continue
+		var idx := shopping.find(sku)
+		if idx < 0:
+			continue
+		shopping.remove_at(idx)
+		cart.append(sku)
+		taken += 1
+	if taken <= 0:
+		return 0
+	_bump_list()
+	_target_shelf = null
+	if shopping.is_empty():
+		_begin_checkout("謝謝！去付款")
+	else:
+		mood = "謝謝！"
+		if state == State.THINK or state == State.LINGER:
+			state = State.SEEK
+			_timer = 0.0
+			_clear_route()
+	_sync_labels()
+	return taken
+
+
 ## Force-sell: dump pieces into cart regardless of list. Matching shopping removed; empty → queue.
 ## Dissatisfaction unchanged. Returns pieces accepted.
 func accept_force_sell(pieces: Array) -> int:
