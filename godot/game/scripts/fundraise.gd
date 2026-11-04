@@ -17,6 +17,22 @@ static func choose(customers: Array, level: int) -> Array:
 	return pool
 
 
+## 割韭菜: take up to `max_n` QUEUE/PAYING guests in register queue order (skip TO_CASHIER).
+static func choose_from_register_queue(queue: Array, max_n: int) -> Array:
+	var out: Array = []
+	if max_n <= 0:
+		return out
+	for c in queue:
+		if out.size() >= max_n:
+			break
+		if not _eligible(c):
+			continue
+		if not _queued(c):
+			continue
+		out.append(c)
+	return out
+
+
 static func _eligible(c) -> bool:
 	if bool(c.get("is_thief")) or bool(c.get("temp_clerk")):
 		return false

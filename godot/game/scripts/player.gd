@@ -2025,6 +2025,28 @@ func _cast_summon_guest(lv: int) -> bool:
 	return true
 
 
+## Instant harvest_chives on aimed cashier queue. False = fail (no CD).
+func _cast_harvest_chives(lv: int) -> bool:
+	var reg: Node2D = null
+	if is_instance_valid(target) and String(target.get("kind")) == "cashier":
+		reg = target
+	else:
+		reg = _nearest_kind("cashier")
+	if reg == null or _interact_dist(reg) < 0.0:
+		log_line.emit("要對準收銀機 — 割韭菜 失敗")
+		return false
+	var want := Skills.harvest_chives_count(lv)
+	var game := _game()
+	if game == null or not game.has_method("cast_harvest_chives"):
+		log_line.emit("割韭菜 失敗")
+		return false
+	var n := int(game.call("cast_harvest_chives", reg, want))
+	if n <= 0:
+		log_line.emit("這台沒人可收 — 割韭菜 失敗")
+		return false
+	return true
+
+
 ## Instant force_sell into nearest hand-deliverable guest cart. False = fail (no CD).
 func _cast_force_sell(lv: int) -> bool:
 	if inventory.is_empty():
@@ -3134,6 +3156,21 @@ func _cast_slot(i: int) -> void:
 		if _must_deliver_aim:
 			_cancel_must_deliver_aim()
 		if not _cast_force_sell(int(sk.get("lv", 3))):
+			return
+		_cd[sid] = Tuning.cd_seconds(float(sk.get("cd", Skills.ACTIVE_CD)), _int_now())
+		_buffs.erase(sid)
+		_buff_cache_valid = false
+		SfxBus.play("sfx_skill_cast")
+		log_line.emit("施放 %s LV%d" % [String(sk.get("name")), int(sk.get("lv", 3))])
+		_begin_cast_pose(false)
+		skill_cast.emit(String(sk.get("name")), false)
+		_play_zoom(false)
+		return
+	## Instant harvest_chives: must aim a cashier with QUEUE/PAYING; 0 must not start CD.
+	if bool(sk.get("harvest_chives", false)):
+		if _must_deliver_aim:
+			_cancel_must_deliver_aim()
+		if not _cast_harvest_chives(int(sk.get("lv", 3))):
 			return
 		_cd[sid] = Tuning.cd_seconds(float(sk.get("cd", Skills.ACTIVE_CD)), _int_now())
 		_buffs.erase(sid)

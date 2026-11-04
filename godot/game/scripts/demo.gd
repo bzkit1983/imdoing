@@ -322,6 +322,38 @@ func cast_fundraise(level: int) -> void:
 		_player.log_line.emit(Loc.t("demo.fundraise", [picked.size(), total]))
 
 
+## 割韭菜: cash up to `max_n` QUEUE/PAYING on one register (queue order). Returns how many paid.
+func cast_harvest_chives(reg: Node, max_n: int) -> int:
+	if reg == null or not is_instance_valid(reg) or max_n <= 0:
+		return 0
+	if String(reg.get("kind")) != "cashier":
+		return 0
+	var q: Array = reg.get("queue") if reg.get("queue") != null else []
+	var picked: Array = Fundraise.choose_from_register_queue(q, max_n)
+	if picked.is_empty():
+		return 0
+	var total := 0
+	for c in picked:
+		if c == null or not is_instance_valid(c):
+			continue
+		var amount := int(c.call("payout_total")) if c.has_method("payout_total") else int(c.call("cart_total"))
+		total += amount
+		_on_paid(amount, bool(c.get("is_elite")))
+		c.finish_paid()
+	release_player_checkout()
+	var n := picked.size()
+	_play_banner_flash(
+		"割韭菜 ×%d" % n,
+		Color(0.95, 0.92, 0.35, 1.0),
+		56,
+		Color(0.08, 0.12, 0.04, 0.55),
+		0.85,
+	)
+	if _player:
+		_player.log_line.emit("割韭菜 ×%d — $%d" % [n, total])
+	return n
+
+
 ## Instant summon at door; ignore guest_cap. Returns how many guests spawned.
 func cast_summon_guest(n: int) -> int:
 	if phase != "open" or n <= 0:
