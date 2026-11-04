@@ -322,6 +322,21 @@ func cast_fundraise(level: int) -> void:
 		_player.log_line.emit(Loc.t("demo.fundraise", [picked.size(), total]))
 
 
+## Instant summon at door; ignore guest_cap. Returns how many guests spawned.
+func cast_summon_guest(n: int) -> int:
+	if phase != "open" or n <= 0:
+		return 0
+	var spawned := 0
+	for _i in n:
+		if state.sellable().is_empty():
+			break
+		if _spawn_customer(true):
+			spawned += 1
+		else:
+			break
+	return spawned
+
+
 func cast_guest_dusk() -> bool:
 	## 諸客的黃昏: 30 real seconds, up to 15 successful guest entries (ignore cap).
 	if phase != "open":

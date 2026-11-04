@@ -1975,6 +1975,21 @@ func _play_must_deliver_vfx(deliveries: Array) -> void:
 			i += 1
 
 
+## Instant door summon. False = 0 guests (no CD).
+func _cast_summon_guest(lv: int) -> bool:
+	var want := Skills.summon_guest_count(lv)
+	var game := _game()
+	if game == null or not game.has_method("cast_summon_guest"):
+		log_line.emit("召喚客人 失敗")
+		return false
+	var n := int(game.call("cast_summon_guest", want))
+	if n <= 0:
+		log_line.emit("召喚客人 失敗 — 非營業或無可售貨")
+		return false
+	log_line.emit("召喚客人 ×%d" % n)
+	return true
+
+
 ## Instant force_sell into nearest hand-deliverable guest cart. False = fail (no CD).
 func _cast_force_sell(lv: int) -> bool:
 	if inventory.is_empty():
@@ -3072,6 +3087,21 @@ func _cast_slot(i: int) -> void:
 		if _must_deliver_aim:
 			_cancel_must_deliver_aim()
 		if not _cast_force_sell(int(sk.get("lv", 3))):
+			return
+		_cd[sid] = Tuning.cd_seconds(float(sk.get("cd", Skills.ACTIVE_CD)), _int_now())
+		_buffs.erase(sid)
+		_buff_cache_valid = false
+		SfxBus.play("sfx_skill_cast")
+		log_line.emit("施放 %s LV%d" % [String(sk.get("name")), int(sk.get("lv", 3))])
+		_begin_cast_pose(false)
+		skill_cast.emit(String(sk.get("name")), false)
+		_play_zoom(false)
+		return
+	## Instant summon_guest: 0 spawned must not start CD.
+	if bool(sk.get("summon_guest", false)):
+		if _must_deliver_aim:
+			_cancel_must_deliver_aim()
+		if not _cast_summon_guest(int(sk.get("lv", 3))):
 			return
 		_cd[sid] = Tuning.cd_seconds(float(sk.get("cd", Skills.ACTIVE_CD)), _int_now())
 		_buffs.erase(sid)

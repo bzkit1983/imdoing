@@ -120,6 +120,7 @@ const ACTIVES: Array[Dictionary] = [
 	{"id": "dasher", "name": "Dasher", "kind": "active", "lv": 3, "cost": 2, "dasher": true, "duration": 15.0, "cd": 15.0, "blurb": "衝刺與奔跑不扣氣（氣 0 也能）；LV3＝15 秒。準備頁選 LV1／2／3，沒選預設 LV3"},
 	{"id": "force_sell", "name": "我都賺夠啦比啲你賺", "kind": "active", "lv": 3, "cost": 2, "force_sell": true, "duration": 0.0, "cd": 15.0, "blurb": "瞬發強塞手上貨進最近可交付客人 cart；LV3＝最多 20 件。準備頁選 LV1／2／3，沒選預設 LV3"},
 	{"id": "must_deliver", "name": "使命必達", "kind": "active", "lv": 3, "cost": 2, "must_deliver": true, "duration": 0.0, "cd": 15.0, "blurb": "兩段施放：範圍內完成優先交清單貨；LV3＝15 身位／最多 4 人。準備頁選 LV1／2／3，沒選預設 LV3"},
+	{"id": "summon_guest", "name": "召喚客人", "kind": "active", "lv": 3, "cost": 2, "summon_guest": true, "duration": 0.0, "cd": 15.0, "blurb": "瞬發門口召喚客人（可超 cap）；LV3＝3 人。準備頁選 LV1／2／3，沒選預設 LV3"},
 	{"id": "shelf_sniper", "name": "狙擊手（貨架）", "kind": "active", "lv": 1, "cost": 2, "shelf_sniper": true, "duration": 30.0, "cd": ACTIVE_CD, "blurb": "30 秒內投出的貨自動飛向最近同 SKU 貨架補貨；已滿則改飛下一格，全滿則飛最近架旁掉落"},
 	{"id": "guest_sniper", "name": "狙擊手（客人）", "kind": "active", "lv": 1, "cost": 2, "guest_sniper": true, "duration": 30.0, "cd": ACTIVE_CD, "blurb": "30 秒內投出的貨自動飛向最近清單需要該貨的客人；該客不要了就改飛下一位，全店沒目標則普通丟掉"},
 	{"id": "thief_sniper", "name": "狙擊手（小偷）", "kind": "active", "lv": 1, "cost": 2, "thief_sniper": true, "duration": 30.0, "cd": ACTIVE_CD, "blurb": "30 秒內投出的貨自動飛向最近小偷擊中並趕走；投 1 件／一段都算一擊，擊中後貨品掉落；全店沒小偷則普通丟掉"},
@@ -164,6 +165,7 @@ static func prep_picks_level(sk: Dictionary) -> bool:
 		or bool(sk.get("hoop_ace", false))
 		or bool(sk.get("force_sell", false))
 		or bool(sk.get("must_deliver", false))
+		or bool(sk.get("summon_guest", false))
 	)
 
 
@@ -205,6 +207,16 @@ static func force_sell_count(lv: int) -> int:
 			return 10
 		_:
 			return 20
+
+
+static func summon_guest_count(lv: int) -> int:
+	match lv:
+		1:
+			return 1
+		2:
+			return 2
+		_:
+			return 3
 
 
 static func must_deliver_body_lengths(lv: int) -> float:
