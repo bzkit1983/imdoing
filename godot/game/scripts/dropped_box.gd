@@ -36,3 +36,23 @@ func take_all() -> int:
 	count = 0
 	queue_free()
 	return n
+
+
+## Partial take for 攝石人 (and similar). Remaining 0 → free.
+func take_count(n: int) -> int:
+	var take := mini(maxi(n, 0), count)
+	if take <= 0:
+		return 0
+	count -= take
+	if count <= 0:
+		queue_free()
+	else:
+		_refresh_label()
+	return take
+
+
+func _refresh_label() -> void:
+	for c in get_children():
+		if c is Label:
+			c.text = "%s×%d" % [Tuning.sku_name(sku), count]
+			return

@@ -121,7 +121,7 @@
 | `sfx_skill_soothe` | 安撫生效 | 柔和減壓 | P1 | `playeractiveskills.md` |
 | `sfx_skill_clone_vanish` | 多重影分身消失（煙霧；再放舊分身、30 秒到、提早關、關店） | 煙霧／消散 | P1 | `shadowclone.md` |
 
-> 頂硬上／移速／收銀加速／瞬間補貨／Dasher／資深收銀員／投籃高手／我都賺夠啦比啲你賺／使命必達／召喚客人／割韭菜：可用通用 `sfx_skill_cast`＋各自極短 buff tip（P2），不必各做長床。
+> 頂硬上／移速／收銀加速／瞬間補貨／Dasher／資深收銀員／投籃高手／我都賺夠啦比啲你賺／使命必達／召喚客人／割韭菜／攝石人：可用通用 `sfx_skill_cast`＋各自極短 buff tip（P2），不必各做長床。
 
 ## 8. 店員
 

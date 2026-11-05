@@ -122,6 +122,7 @@ const ACTIVES: Array[Dictionary] = [
 	{"id": "must_deliver", "name": "使命必達", "kind": "active", "lv": 3, "cost": 2, "must_deliver": true, "duration": 0.0, "cd": 15.0, "blurb": "兩段施放：範圍內完成優先交清單貨；LV3＝15 身位／最多 4 人。準備頁選 LV1／2／3，沒選預設 LV3"},
 	{"id": "summon_guest", "name": "召喚客人", "kind": "active", "lv": 3, "cost": 2, "summon_guest": true, "duration": 0.0, "cd": 15.0, "blurb": "瞬發門口召喚客人（可超 cap）；LV3＝3 人。準備頁選 LV1／2／3，沒選預設 LV3"},
 	{"id": "harvest_chives", "name": "割韭菜", "kind": "active", "lv": 3, "cost": 2, "harvest_chives": true, "duration": 0.0, "cd": 15.0, "blurb": "對準一台收銀機瞬發清隊 QUEUE／PAYING；LV3＝最多 10 人。準備頁選 LV1／2／3，沒選預設 LV3"},
+	{"id": "magneto", "name": "攝石人", "kind": "active", "lv": 3, "cost": 2, "magneto": true, "duration": 0.0, "cd": 15.0, "blurb": "兩段：預覽範圍後吸地上貨飛入手（可拆堆）；LV3＝15 身位。準備頁選 LV1／2／3，沒選預設 LV3"},
 	{"id": "shelf_sniper", "name": "狙擊手（貨架）", "kind": "active", "lv": 1, "cost": 2, "shelf_sniper": true, "duration": 30.0, "cd": ACTIVE_CD, "blurb": "30 秒內投出的貨自動飛向最近同 SKU 貨架補貨；已滿則改飛下一格，全滿則飛最近架旁掉落"},
 	{"id": "guest_sniper", "name": "狙擊手（客人）", "kind": "active", "lv": 1, "cost": 2, "guest_sniper": true, "duration": 30.0, "cd": ACTIVE_CD, "blurb": "30 秒內投出的貨自動飛向最近清單需要該貨的客人；該客不要了就改飛下一位，全店沒目標則普通丟掉"},
 	{"id": "thief_sniper", "name": "狙擊手（小偷）", "kind": "active", "lv": 1, "cost": 2, "thief_sniper": true, "duration": 30.0, "cd": ACTIVE_CD, "blurb": "30 秒內投出的貨自動飛向最近小偷擊中並趕走；投 1 件／一段都算一擊，擊中後貨品掉落；全店沒小偷則普通丟掉"},
@@ -168,6 +169,7 @@ static func prep_picks_level(sk: Dictionary) -> bool:
 		or bool(sk.get("must_deliver", false))
 		or bool(sk.get("summon_guest", false))
 		or bool(sk.get("harvest_chives", false))
+		or bool(sk.get("magneto", false))
 	)
 
 
@@ -229,6 +231,20 @@ static func harvest_chives_count(lv: int) -> int:
 			return 6
 		_:
 			return 10
+
+
+static func magneto_body_lengths(lv: int) -> float:
+	match lv:
+		1:
+			return 5.0
+		2:
+			return 10.0
+		_:
+			return 15.0
+
+
+static func magneto_range(lv: int) -> float:
+	return magneto_body_lengths(lv) * Tuning.BODY_LENGTH
 
 
 static func must_deliver_body_lengths(lv: int) -> float:

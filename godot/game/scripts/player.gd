@@ -143,6 +143,12 @@ var _must_deliver_sid: String = ""
 var _must_deliver_cd: float = 15.0
 var _must_deliver_name: String = "使命必達"
 var _must_deliver_ring: Line2D
+var _magneto_aim: bool = false
+var _magneto_lv: int = 3
+var _magneto_sid: String = ""
+var _magneto_cd: float = 15.0
+var _magneto_name: String = "攝石人"
+var _magneto_ring: Line2D
 ## Reused halo. Parented onto the current interact target, or parked off-tree.
 var _interact_glow: Node2D
 var _glow_host: Node2D
@@ -189,6 +195,7 @@ func _ready() -> void:
 		inventory.changed.connect(_mark_hud_dirty)
 	_setup_drop_aim()
 	_setup_must_deliver_ring()
+	_setup_magneto_ring()
 	_setup_crowd_say()
 	_refresh_passive_checkout()
 
@@ -234,6 +241,16 @@ func _setup_must_deliver_ring() -> void:
 	_must_deliver_ring.visible = false
 	_must_deliver_ring.z_index = 5
 	add_child(_must_deliver_ring)
+
+
+func _setup_magneto_ring() -> void:
+	_magneto_ring = Line2D.new()
+	_magneto_ring.name = "MagnetoRing"
+	_magneto_ring.width = 2.0
+	_magneto_ring.default_color = Color(0.75, 0.45, 1.0, 0.55)
+	_magneto_ring.visible = false
+	_magneto_ring.z_index = 5
+	add_child(_magneto_ring)
 
 
 ## Base 5 身位; later drop-range skills can multiply this.
@@ -593,6 +610,8 @@ func move_state() -> String:
 		return "奧義指令"
 	if _must_deliver_aim:
 		return "使命必達"
+	if _magneto_aim:
+		return "攝石人"
 	if skill_menu_open:
 		return "技能選單"
 	if _restock_picking:
@@ -967,6 +986,9 @@ func _cancel_input() -> void:
 		used = true
 	if _must_deliver_aim:
 		_cancel_must_deliver_aim()
+		used = true
+	if _magneto_aim:
+		_cancel_magneto_aim()
 		used = true
 	if skill_menu_open or _l_held or _skill_latch:
 		_close_skill_menu()
@@ -2025,6 +2047,157 @@ func _cast_summon_guest(lv: int) -> bool:
 	return true
 
 
+func _begin_magneto_aim(sk: Dictionary) -> void:
+	if inventory.count() >= carry_cap():
+		log_line.emit("負重已滿 — 攝石人 失敗")
+		return
+	if _must_deliver_aim:
+		_cancel_must_deliver_aim()
+	_magneto_aim = true
+	_magneto_lv = int(sk.get("lv", 3))
+	_magneto_sid = String(sk.get("id"))
+	_magneto_cd = float(sk.get("cd", Skills.ACTIVE_CD))
+	_magneto_name = String(sk.get("name"))
+	_rebuild_magneto_ring(Skills.magneto_range(_magneto_lv))
+	if _magneto_ring:
+		_magneto_ring.visible = true
+	SfxBus.play("sfx_skill_cast")
+	log_line.emit("%s — 範圍預覽，再按技能確認，取消取消" % _magneto_name)
+
+
+func _cancel_magneto_aim() -> void:
+	if not _magneto_aim:
+		return
+	_magneto_aim = false
+	if _magneto_ring:
+		_magneto_ring.visible = false
+	SfxBus.play("sfx_skill_menu_cancel")
+	log_line.emit("取消 %s" % _magneto_name)
+
+
+func _rebuild_magneto_ring(radius: float) -> void:
+	if _magneto_ring == null:
+		return
+	var pts := PackedVector2Array()
+	var n := 48
+	for i in n + 1:
+		var a := TAU * float(i) / float(n)
+		pts.append(Vector2(cos(a), sin(a)) * radius)
+	_magneto_ring.points = pts
+
+
+func _finish_magneto_aim() -> void:
+	if not _magneto_aim:
+		return
+	var lv := _magneto_lv
+	var sid := _magneto_sid
+	var name := _magneto_name
+	var cd_base := _magneto_cd
+	## Full carry: abort without CD (preview shouldn't have started, but re-check).
+	if inventory.count() >= carry_cap():
+		_magneto_aim = false
+		if _magneto_ring:
+			_magneto_ring.visible = false
+		log_line.emit("負重已滿 — 攝石人 失敗")
+		return
+	_cast_magneto(lv)
+	_magneto_aim = false
+	if _magneto_ring:
+		_magneto_ring.visible = false
+	## Empty absorb still starts CD.
+	_cd[sid] = Tuning.cd_seconds(cd_base, _int_now())
+	_buffs.erase(sid)
+	_buff_cache_valid = false
+	SfxBus.play("sfx_skill_cast")
+	log_line.emit("施放 %s LV%d" % [name, lv])
+	_begin_cast_pose(false)
+	skill_cast.emit(name, false)
+	_play_zoom(false)
+
+
+## Absorb landed drops in radius until carry_cap. Always "succeeds" for CD (0 pieces ok).
+func _cast_magneto(lv: int) -> void:
+	var range_px := Skills.magneto_range(lv)
+	var range_sq := range_px * range_px
+	var piles: Array = []
+	for node in interactables:
+		if node == null or not is_instance_valid(node):
+			continue
+		if String(node.get("kind")) != "drop":
+			continue
+		if int(node.get("count")) <= 0:
+			continue
+		if global_position.distance_squared_to(node.global_position) > range_sq:
+			continue
+		piles.append(node)
+	piles.sort_custom(func(a, b) -> bool:
+		return global_position.distance_squared_to(a.global_position) < global_position.distance_squared_to(b.global_position)
+	)
+	var flights: Array = []
+	for pile in piles:
+		if not is_instance_valid(pile):
+			continue
+		var room := carry_cap() - inventory.count()
+		if room <= 0:
+			break
+		if not pile.has_method("take_count"):
+			continue
+		var sku := String(pile.get("sku"))
+		var at: Vector2 = pile.global_position
+		var got := int(pile.call("take_count", room))
+		if got <= 0:
+			continue
+		for _i in got:
+			inventory.add_one(sku)
+			flights.append({"sku": sku, "from": at})
+		_spawn_fx("suck", at)
+	_spawn_fx("suck", global_position)
+	_play_magneto_vfx(flights)
+	var taken_total := flights.size()
+	var game := _game()
+	if game != null and game.has_method("play_skill_banner"):
+		game.call("play_skill_banner", "攝石人 ×%d 件" % taken_total)
+	log_line.emit("攝石人 ×%d 件" % taken_total)
+
+
+## One-by-one fly from pile toward player (visual only; inventory already updated).
+func _play_magneto_vfx(flights: Array) -> void:
+	if flights.is_empty():
+		return
+	var parent: Node = get_parent()
+	var g := _game()
+	if g != null:
+		var world = g.get("_world")
+		if world != null:
+			parent = world
+	var i := 0
+	for f in flights:
+		var sku := String(f.get("sku", ""))
+		var from: Vector2 = f["from"] as Vector2 if f.has("from") else global_position
+		var spr: Sprite2D = SkuIcons.make_sprite(sku, 18.0)
+		spr.z_index = 12
+		parent.add_child(spr)
+		spr.global_position = from + Vector2(randf_range(-6.0, 6.0), randf_range(-6.0, 6.0))
+		## Capture landing target each tween start so it tracks a walking player.
+		var delay := 0.035 * float(i)
+		var dur := 0.22
+		var tw := spr.create_tween()
+		tw.tween_interval(delay)
+		tw.tween_callback(func() -> void:
+			if not is_instance_valid(spr):
+				return
+			var land := global_position + Vector2(randf_range(-10.0, 10.0), -20.0)
+			var fly := spr.create_tween()
+			fly.tween_property(spr, "global_position", land, dur).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+			fly.tween_property(spr, "scale", Vector2(0.35, 0.35), dur * 0.85)
+			fly.tween_callback(spr.queue_free)
+		)
+		i += 1
+		## Soft cap so huge pulls stay readable.
+		if i >= 48:
+			break
+
+
 ## Instant harvest_chives on aimed cashier queue. False = fail (no CD).
 func _cast_harvest_chives(lv: int) -> bool:
 	var reg: Node2D = null
@@ -2900,9 +3073,13 @@ func _on_skill_hold(pressed: bool) -> void:
 		if _sick_left > 0.0 or _stun_left > 0.0 or _fighting:
 			log_line.emit("現在不能發動技能")
 			return
-		## Second skill press confirms 使命必達 range preview.
+		## Second skill press confirms range preview skills.
 		if _must_deliver_aim:
 			_finish_must_deliver_aim()
+			_skill_release_ignore = true
+			return
+		if _magneto_aim:
+			_finish_magneto_aim()
 			_skill_release_ignore = true
 			return
 		if _skill_latch:
@@ -3000,6 +3177,9 @@ func _try_skill_hotkey(slot: int) -> void:
 		return
 	if _must_deliver_aim:
 		_finish_must_deliver_aim()
+		return
+	if _magneto_aim:
+		_finish_magneto_aim()
 		return
 	_confirm_skill(slot)
 
@@ -3155,6 +3335,8 @@ func _cast_slot(i: int) -> void:
 	if bool(sk.get("force_sell", false)):
 		if _must_deliver_aim:
 			_cancel_must_deliver_aim()
+		if _magneto_aim:
+			_cancel_magneto_aim()
 		if not _cast_force_sell(int(sk.get("lv", 3))):
 			return
 		_cd[sid] = Tuning.cd_seconds(float(sk.get("cd", Skills.ACTIVE_CD)), _int_now())
@@ -3170,6 +3352,8 @@ func _cast_slot(i: int) -> void:
 	if bool(sk.get("harvest_chives", false)):
 		if _must_deliver_aim:
 			_cancel_must_deliver_aim()
+		if _magneto_aim:
+			_cancel_magneto_aim()
 		if not _cast_harvest_chives(int(sk.get("lv", 3))):
 			return
 		_cd[sid] = Tuning.cd_seconds(float(sk.get("cd", Skills.ACTIVE_CD)), _int_now())
@@ -3185,6 +3369,8 @@ func _cast_slot(i: int) -> void:
 	if bool(sk.get("summon_guest", false)):
 		if _must_deliver_aim:
 			_cancel_must_deliver_aim()
+		if _magneto_aim:
+			_cancel_magneto_aim()
 		if not _cast_summon_guest(int(sk.get("lv", 3))):
 			return
 		_cd[sid] = Tuning.cd_seconds(float(sk.get("cd", Skills.ACTIVE_CD)), _int_now())
@@ -3196,15 +3382,26 @@ func _cast_slot(i: int) -> void:
 		skill_cast.emit(String(sk.get("name")), false)
 		_play_zoom(false)
 		return
+	## 攝石人: first cast = range preview (no CD); confirm via skill press while aiming.
+	if bool(sk.get("magneto", false)):
+		if _magneto_aim:
+			_finish_magneto_aim()
+			return
+		_begin_magneto_aim(sk)
+		return
 	## 使命必達: first cast = range preview (no CD); confirm is via skill press while aiming.
 	if bool(sk.get("must_deliver", false)):
 		if _must_deliver_aim:
 			_finish_must_deliver_aim()
 			return
+		if _magneto_aim:
+			_cancel_magneto_aim()
 		_begin_must_deliver_aim(sk)
 		return
 	if _must_deliver_aim:
 		_cancel_must_deliver_aim()
+	if _magneto_aim:
+		_cancel_magneto_aim()
 	_cd[sid] = Tuning.cd_seconds(float(sk.get("cd", Skills.ACTIVE_CD)), _int_now())
 	## 衝刺交付: the armed window is the cooldown itself, and INT does not shorten this 5s.
 	## Dark Side / Multiple Shadow Clone: CD still eats INT, but each body keeps its own 30s.

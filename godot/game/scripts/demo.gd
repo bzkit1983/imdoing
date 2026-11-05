@@ -354,6 +354,17 @@ func cast_harvest_chives(reg: Node, max_n: int) -> int:
 	return n
 
 
+## Short skill feedback banner (攝石人 etc.).
+func play_skill_banner(text: String) -> void:
+	_play_banner_flash(
+		text,
+		Color(0.85, 0.95, 1.0, 1.0),
+		52,
+		Color(0.04, 0.08, 0.14, 0.5),
+		0.8,
+	)
+
+
 ## Instant summon at door; ignore guest_cap. Returns how many guests spawned.
 func cast_summon_guest(n: int) -> int:
 	if phase != "open" or n <= 0:
