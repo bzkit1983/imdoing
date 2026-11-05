@@ -63,6 +63,8 @@ const ENTRIES: Array[Dictionary] = [
 	{"id": "sfx_skill_clone_vanish", "priority": "P1", "path": "res://audio/sfx/sfx_skill_clone_vanish.wav", "group": "skill", "trigger": "多重影分身消失（煙霧；再放舊分身、30 秒到、提早關、關店）"},
 	{"id": "sfx_skill_menu_open", "priority": "P1", "path": "res://audio/sfx/sfx_skill_menu_open.wav", "group": "skill", "trigger": "短按或長按技能開選單"},
 	{"id": "sfx_skill_soothe", "priority": "P1", "path": "res://audio/sfx/sfx_skill_soothe.wav", "group": "skill", "trigger": "安撫生效"},
+	## Placeholder asset: reuse soothe until dedicated whoosh is authored.
+	{"id": "sfx_skill_sweeping_monk", "priority": "P0", "path": "res://audio/sfx/sfx_skill_soothe.wav", "group": "skill", "trigger": "掃地僧施放／龍捲起動"},
 	{"id": "sfx_ui_cancel", "priority": "P1", "path": "res://audio/sfx/sfx_ui_cancel.wav", "group": "ui", "trigger": "選單取消／返回"},
 	{"id": "sfx_ui_confirm", "priority": "P1", "path": "res://audio/sfx/sfx_ui_confirm.wav", "group": "ui", "trigger": "選單確定"},
 	{"id": "sfx_ui_level_up", "priority": "P1", "path": "res://audio/sfx/sfx_ui_level_up.wav", "group": "ui", "trigger": "結算升級（若有）"},

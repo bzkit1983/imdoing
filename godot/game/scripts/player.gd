@@ -149,6 +149,8 @@ var _magneto_sid: String = ""
 var _magneto_cd: float = 15.0
 var _magneto_name: String = "攝石人"
 var _magneto_ring: Line2D
+## 掃地僧 follow tornado VFX (visible while buff active).
+var _monk_tornado: Node2D
 ## Reused halo. Parented onto the current interact target, or parked off-tree.
 var _interact_glow: Node2D
 var _glow_host: Node2D
@@ -196,6 +198,7 @@ func _ready() -> void:
 	_setup_drop_aim()
 	_setup_must_deliver_ring()
 	_setup_magneto_ring()
+	_setup_monk_tornado()
 	_setup_crowd_say()
 	_refresh_passive_checkout()
 
@@ -253,6 +256,29 @@ func _setup_magneto_ring() -> void:
 	add_child(_magneto_ring)
 
 
+func _setup_monk_tornado() -> void:
+	_monk_tornado = Node2D.new()
+	_monk_tornado.name = "SweepingMonkTornado"
+	_monk_tornado.visible = false
+	_monk_tornado.z_index = 6
+	var r := Skills.SWEEPING_MONK_RANGE
+	for i in 3:
+		var ring := Line2D.new()
+		ring.width = 2.0 - float(i) * 0.35
+		ring.default_color = Color(0.55, 0.95, 0.75, 0.45 - float(i) * 0.08)
+		var pts := PackedVector2Array()
+		var n := 28
+		var rr := r * (0.55 + float(i) * 0.18)
+		for k in n + 1:
+			var a := TAU * float(k) / float(n) + float(i) * 0.7
+			## Slight spiral so it reads as a tornado, not a flat circle.
+			var spiral := rr * (0.85 + 0.15 * sin(a * 3.0 + float(i)))
+			pts.append(Vector2(cos(a), sin(a)) * spiral)
+		ring.points = pts
+		_monk_tornado.add_child(ring)
+	add_child(_monk_tornado)
+
+
 ## Base 5 身位; later drop-range skills can multiply this.
 func drop_toss_dist() -> float:
 	return Tuning.DROP_TOSS_DIST
@@ -296,7 +322,14 @@ func _stat_base(which: String) -> int:
 
 
 func _has_flag(flag: String) -> bool:
-	return stats != null and stats.has_method("has_flag") and bool(stats.has_flag(flag))
+	if stats != null and stats.has_method("has_flag") and bool(stats.has_flag(flag)):
+		return true
+	## 掃地僧: timed full dirt immunity (same flags as 凌波微步).
+	if buff_left("sweeping_monk") > 0.05:
+		match flag:
+			"ignore_dirt_slow", "ignore_trash_stamina", "ignore_puddle_slip", "ignore_vomit_sick":
+				return true
+	return false
 
 
 ## Snapshot for Multiple Shadow Clone. Actives and carry/polite/global passives stay off.
@@ -524,6 +557,8 @@ func role_status_text() -> String:
 		bits.append("資深收銀員 %.0fs" % _buffs["senior_cashier"])
 	if _buffs.has("hoop_ace"):
 		bits.append("投籃高手 %.0fs" % _buffs["hoop_ace"])
+	if _buffs.has("sweeping_monk"):
+		bits.append("掃地僧 %.0fs" % _buffs["sweeping_monk"])
 	if _sick_left > 0.0:
 		bits.append("嘔吐物 −30%% %.0fs" % _sick_left)
 	if _fighting:
@@ -1063,6 +1098,7 @@ func _physics_process(delta: float) -> void:
 	_regen(delta)
 	_update_target()
 	_tick_action(delta)
+	_tick_sweeping_monk(delta)
 	_sync_interact_glow()
 	if _circle:
 		## Clean uses dirt StickHint (blue meter + stick), not the yellow hold Circle.
@@ -1279,6 +1315,8 @@ func _tick_buffs(delta: float) -> void:
 			SfxBus.play("sfx_ult_the_world_end")
 		if id == "senior_cashier":
 			_senior_cashier_lv = 0
+		if id == "sweeping_monk":
+			_sync_monk_tornado(false)
 		_buffs.erase(id)
 	for id in _cd.keys():
 		_cd[id] = maxf(0.0, float(_cd[id]) - delta)
@@ -1658,7 +1696,8 @@ func _faced_guests() -> Array:
 ## Long-press target when no thief is in range. Restock ticks from the first frame; the others wait out the tap.
 ## Order (after thief): dirt → guest → stockable shelf → other shelf / cashier / …
 func _long_kind() -> String:
-	if _nearest_kind("dirt") != null:
+	## 掃地僧 aura blocks manual clean (skill clears dirt instead).
+	if _nearest_kind("dirt") != null and buff_left("sweeping_monk") <= 0.05:
 		return "dirt"
 	if _store_open() and not inventory.is_empty() and not _faced_guests().is_empty():
 		return "guest"
@@ -2858,7 +2897,83 @@ func _tick_restock(delta: float) -> void:
 		hold_progress = 0.0
 
 
+func _abort_manual_clean_for_monk() -> void:
+	if _cleaning() or _clean_hint:
+		_clear_clean_hint()
+		_long_committed = false
+		hold_progress = 0.0
+		log_line.emit("掃地僧期間不能手動清潔")
+
+
+func _activate_sweeping_monk() -> void:
+	_abort_manual_clean_for_monk()
+	## Timed immunity: drop lingering vomit debuff while aura is up.
+	_sick_left = 0.0
+	_sync_monk_tornado(true)
+	## Immediate pulse; ongoing clears happen in _tick_sweeping_monk.
+	_clear_dirt_in_monk_range()
+	var game := _game()
+	if game != null and game.has_method("play_skill_banner"):
+		game.call("play_skill_banner", "掃地僧")
+
+
+func _sync_monk_tornado(force_on: bool = false) -> void:
+	if _monk_tornado == null:
+		return
+	var on := force_on or buff_left("sweeping_monk") > 0.05
+	_monk_tornado.visible = on
+
+
+func _tick_sweeping_monk(delta: float) -> void:
+	if buff_left("sweeping_monk") <= 0.05:
+		_sync_monk_tornado(false)
+		return
+	_sync_monk_tornado(true)
+	if _monk_tornado != null:
+		_monk_tornado.rotation += delta * 7.5
+	_clear_dirt_in_monk_range()
+
+
+func _clear_dirt_in_monk_range() -> void:
+	var g := _game()
+	if g == null:
+		return
+	var dirts = g.get("_dirts")
+	if dirts == null:
+		return
+	var rsq := Skills.SWEEPING_MONK_RANGE_SQ
+	var hit: Array = []
+	for d in dirts:
+		if d == null or not is_instance_valid(d):
+			continue
+		## Skip nodes already queued for free this frame (avoid double note_clean).
+		if d.is_queued_for_deletion():
+			continue
+		if global_position.distance_squared_to(d.global_position) > rsq:
+			continue
+		hit.append(d)
+	for d in hit:
+		if d == null or not is_instance_valid(d) or d.is_queued_for_deletion():
+			continue
+		var at: Vector2 = d.global_position
+		var name := String(d.call("type_name")) if d.has_method("type_name") else "污物"
+		if is_instance_valid(target) and target == d:
+			target = null
+			_long_committed = false
+			hold_progress = 0.0
+			_clear_clean_hint()
+		d.queue_free()
+		_spawn_fx("clean_spark", at)
+		SfxBus.play("sfx_clean_done")
+		if g.has_method("note_clean"):
+			g.note_clean()
+		log_line.emit("掃地僧清除 — %s" % name)
+
+
 func _tick_clean(_delta: float) -> void:
+	if buff_left("sweeping_monk") > 0.05:
+		_abort_manual_clean_for_monk()
+		return
 	## Carry allowed; goods stay in hand while scrubbing.
 	var axis := _wiggle_axis()
 	if not _clean_hint:
@@ -3417,6 +3532,8 @@ func _cast_slot(i: int) -> void:
 	elif bool(sk.get("senior_cashier", false)):
 		_senior_cashier_lv = int(sk.get("lv", 3))
 		_buffs[sid] = Skills.senior_cashier_seconds(_senior_cashier_lv)
+	elif bool(sk.get("sweeping_monk", false)):
+		_buffs[sid] = Skills.sweeping_monk_seconds(int(sk.get("lv", 3)))
 	elif bool(sk.get("dark_side", false)) or bool(sk.get("shadow_clone", false)):
 		_buffs.erase(sid)
 	else:
@@ -3438,7 +3555,11 @@ func _cast_slot(i: int) -> void:
 			var clone_host := _game()
 			if clone_host and clone_host.has_method("cast_shadow_clone"):
 				clone_host.call("cast_shadow_clone", int(sk.get("lv", 3)))
-		SfxBus.play("sfx_skill_cast")
+		elif bool(sk.get("sweeping_monk", false)):
+			_activate_sweeping_monk()
+			SfxBus.play("sfx_skill_sweeping_monk")
+		else:
+			SfxBus.play("sfx_skill_cast")
 	log_line.emit("施放 %s LV%d" % [String(sk.get("name")), int(sk.get("lv", 3))])
 	_begin_cast_pose(false)
 	skill_cast.emit(String(sk.get("name")), false)

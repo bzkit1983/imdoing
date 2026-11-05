@@ -119,6 +119,7 @@
 | `sfx_ult_close_gate` | 落閘放狗發動 | 落閘／趕客短層 | P0 | `playerultimateskills.md` |
 | `sfx_ult_guest_dusk` | 諸客的黃昏發動 | 人潮湧入短層 | P2 | `playerultimateskills.md`（暫可共用其他奧義發動音） |
 | `sfx_skill_soothe` | 安撫生效 | 柔和減壓 | P1 | `playeractiveskills.md` |
+| `sfx_skill_sweeping_monk` | 掃地僧施放／龍捲起動 | 風捲／掃塵 whoosh | P0 | `playeractiveskills.md` |
 | `sfx_skill_clone_vanish` | 多重影分身消失（煙霧；再放舊分身、30 秒到、提早關、關店） | 煙霧／消散 | P1 | `shadowclone.md` |
 
 > 頂硬上／移速／收銀加速／瞬間補貨／Dasher／資深收銀員／投籃高手／我都賺夠啦比啲你賺／使命必達／召喚客人／割韭菜／攝石人：可用通用 `sfx_skill_cast`＋各自極短 buff tip（P2），不必各做長床。
