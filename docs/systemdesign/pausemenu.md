@@ -27,7 +27,8 @@
 2. **音效：開／關** — 靜音事件 SFX（不含 BGM；跨局保留）  
 3. **音效聲量：N%** — 0–100%、每檔 10%；−／＋ 或 A／D；J／點中間可試聽  
 4. **虛擬搖桿：開／關** — 與準備「系統工具」共用 `[ui] virtual_stick`（預設關）。開後只在觸控活躍時顯示；手掣／鍵盤自動隱藏（見 `inputmodes-vj.md`）。Desktop 編輯器亦顯示此列方便預覽  
-5. **結束本日並結算** — 等同 HUD「馬上完成營運」（`skip_operate`）
+5. **鏡頭：正常／稍遠／全地圖** — 循環三種視野（見 `control.md`）。寫入 `user://settings.cfg` → `[ui] camera_view`（`normal`｜`far`｜`overview`，預設 `normal`）。改完繼續即套用，之後營運日沿用。營運中亦可用 Xbox 視圖鍵／鍵盤 `V` 循環（暫停開著時改由本列操作）  
+6. **結束本日並結算** — 等同 HUD「馬上完成營運」（`skip_operate`）
 
 > 手機 Web 沒有 Esc／Start：用右上「暫停」。系統掛起（切 App／鎖屏）仍會經 `PlatformServices` 自動開暫停選單。
 

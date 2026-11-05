@@ -3,16 +3,20 @@
 - Demo 實作範圍與試玩數值以 `docs/demo/` 各版本 scope 為準（v0.3 起已實作下列營運回合操作；清潔見 v0.4，打擊見 v0.5）
 - **v1 活線工程：** `godot/game`。輸入以 Godot **InputMap action** 為準（Autoload `Controls`）。鍵盤／手制／觸控都對到同一套 action；下列鍵位是**預設綁定**，可在專案設定改鍵，不改玩法邏輯。
 - **手制裝置：** Xbox 預設綁定的 InputMap `device` 為 **-1（任何已連接手把）**；左搖桿輪詢走 `Input.get_connected_joypads()`，不寫死 device 0。Windows 常把 Xbox 編成 0 以外的裝置（XInput + DirectInput 雙重列舉、虛擬／幽靈手把佔 0），Mac 則多半就是 0。
-- 主要 action：`move_up`／`move_down`／`move_left`／`move_right`、`interact`、`cancel`、`dash`、`skill`、`ult`；Xbox 肩鍵快捷 `skill_2`／`skill_3`（LB／RB）；Xbox 奧義為 LT+RT 長按（輪詢板機軸，非 InputMap）；準備店舖設計另有 `rotate`；補貨快捷有 `restock_prev`／`restock_next`／`restock_slot_1..3`
+- 主要 action：`move_up`／`move_down`／`move_left`／`move_right`、`interact`、`cancel`、`dash`、`skill`、`ult`；Xbox 肩鍵快捷 `skill_2`／`skill_3`（LB／RB）；Xbox 奧義為 LT+RT 長按（輪詢板機軸，非 InputMap）；準備店舖設計另有 `rotate`；補貨快捷有 `restock_prev`／`restock_next`／`restock_slot_1..3`；鏡頭視野循環 `camera_view`（鍵盤 `V`、Xbox 視圖鍵／`JOY_BUTTON_BACK`）
 - **暫停選單：** 營運日 Esc／手把 Start 開關（見 `pausemenu.md`）；選單內移動／確定／取消仍走 `move_*`／`interact`／`cancel`
 - **UI 文案：** 準備／暫停／HUD 等已遷字串表者走 Autoload `Loc`（`docs/alpha/i18n.md`），與鍵位無關
 
 #**遊玩視點**
 - 以俯瞰視角觀察商店
-- 鏡頭會追蹤玩家角色隨角色移動
-- Demo v0.3：預設鏡頭略為拉近（Camera2D zoom 1.22），人物與店內物件看起來較大；HUD 與虛擬鍵不隨世界放大
-- 施放技能／奧義時鏡頭會短暫再 ZOOM IN，然後回到預設倍率
-- 抓住小偷打擊時鏡頭再拉近（約 2.45）；連打短暫晃動；打完 Screen KO 時再短暫拉近。方向丟掉砸中小偷同樣播 Screen KO（見 `thiefsystem.md`）
+- 鏡頭預設追蹤玩家角色隨角色移動（全地圖模式除外）
+- 三種可調視野（暫停選單循環，或營運中 `camera_view`：鍵盤 `V`／Xbox 視圖鍵）。寫入 `user://settings.cfg` → `[ui] camera_view`；改完立刻生效，跨營運日保留
+- - **正常**（`normal`，預設）：Camera2D zoom **1.22**，跟隨玩家
+- - **稍遠**（`far`）：固定 zoom **0.95**，跟隨玩家，可見範圍略大於正常
+- - **全地圖**（`overview`）：依當日店舖地板尺寸與 viewport 計算 zoom（約 8% 邊距），鏡頭**鎖在店中心**、不跟隨玩家
+- HUD 與虛擬鍵不隨世界放大
+- 施放技能／奧義時鏡頭會短暫再 ZOOM IN，然後回到**當前視野**基值
+- 抓住小偷打擊時鏡頭再拉近（約 2.45）；連打短暫晃動；打完 Screen KO 時再短暫拉近，之後回到當前視野。方向丟掉砸中小偷同樣播 Screen KO（見 `thiefsystem.md`）
 
 #**行動裝置操作方式 (iOS/Android／網頁觸控)**
 操作模式
@@ -75,6 +79,7 @@
 - B 在技能選單中: 關閉選單，不發動
 - B 按下: 取消
 - B 長按（約 0.2 秒進入瞄準）: 丟掉手上最上連續同 SKU 段。達門檻後仍按住可瞄準，**放手才掉出**；鎖移動但可用方向改面向。有方向則飛出約 5 身位並以**青色**顯示軌道／落點（免與暖色地板撞色），落地後才可再移動；軌道／落點擊中小偷 → Screen KO（贓物原地掉落）；否則可砸客人／落在同款／可接受貨架上直接補架（剩貨掉地）。生效中的**狙擊手**會改寫落點（優先序小偷 → 客人 → 貨架；見 `playeractiveskills.md`）。沒方向則掉腳邊。一次長按只丟最上一段。空手、暈眩、滑倒、打擊中不會丟
+- **視圖鍵（View／Select）:** 營運中循環鏡頭視野（正常 → 稍遠 → 全地圖）；暫停開著時改由暫停選單「鏡頭」列操作
 
 ##行動裝置操作（虛擬鍵）
 - 佈局見上／`inputmodes-vj.md`：大核行動、左衝刺、上取消、最上奧義、斜弧技1–5 直放
@@ -92,6 +97,7 @@
 - J: 行動 (與物件互動)
 - K 輕放（約 0.18 秒內）: 衝刺
 - K 長按: 奔跑（不會先衝一記）
+- V: 循環鏡頭視野（正常 → 稍遠 → 全地圖；同 Xbox 視圖鍵）
 - L 短按: 彈出技能選單（不發動）。再按方向即發動該格；再按一次 L 發動中間技能1
 - L 長按: 彈出技能選單。拉方向只預覽，放手 L 才發動；沒拉方向就放手則發動中間技能1
 - - 上: 技能2　右: 技能3　下: 技能4　左: 技能5

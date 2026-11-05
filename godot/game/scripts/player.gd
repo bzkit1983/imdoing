@@ -2553,6 +2553,7 @@ func _begin_fight() -> void:
 	SfxBus.play("sfx_fight_grab")
 	log_line.emit("抓住小偷 — 連按行動鍵扣血，剩 5 秒")
 	if camera:
+		_prepare_camera_for_local_focus()
 		camera.position = (target.global_position - global_position) * 0.35
 		var tw := create_tween()
 		tw.tween_property(
@@ -2632,6 +2633,7 @@ func _play_ko_sequence(
 	_shake_camera(Tuning.FIGHT_KO_SHAKE, 0.22)
 	SfxBus.play("sfx_ko_screen")
 	if camera:
+		_prepare_camera_for_local_focus()
 		var punch := create_tween()
 		punch.tween_property(
 			camera, "zoom",
@@ -2654,8 +2656,7 @@ func _play_ko_sequence(
 		_end_fight(true)
 	elif camera:
 		## Toss KO outside a fight: restore shop framing after the punch-in.
-		camera.zoom = Vector2(Tuning.CAMERA_ZOOM, Tuning.CAMERA_ZOOM)
-		camera.offset = Vector2.ZERO
+		restore_base_camera()
 
 
 func _fight_fail() -> void:
@@ -2683,10 +2684,7 @@ func _end_fight(_won: bool) -> void:
 	_fight_ko = false
 	_shake_left = 0.0
 	hold_progress = 0.0
-	if camera:
-		camera.zoom = Vector2(Tuning.CAMERA_ZOOM, Tuning.CAMERA_ZOOM)
-		camera.position = Vector2.ZERO
-		camera.offset = Vector2.ZERO
+	restore_base_camera()
 	var game := _game()
 	if game != null and game.has_method("notify_camera_priority_idle"):
 		game.call("notify_camera_priority_idle")
@@ -2697,21 +2695,60 @@ func camera_priority_busy() -> bool:
 	return _fighting or _fight_ko
 
 
+func base_camera_zoom() -> float:
+	match PlatformServices.get_camera_view():
+		PlatformServices.CAMERA_VIEW_FAR:
+			return Tuning.CAMERA_ZOOM_FAR
+		PlatformServices.CAMERA_VIEW_OVERVIEW:
+			var game := _game()
+			if game != null and game.has_method("overview_camera_zoom"):
+				return float(game.call("overview_camera_zoom"))
+			return Tuning.CAMERA_ZOOM_FAR
+		_:
+			return Tuning.CAMERA_ZOOM
+
+
+## Restore zoom / follow from PlatformServices camera_view (after fight, skill, elite).
+func restore_base_camera() -> void:
+	if camera == null:
+		return
+	var z := base_camera_zoom()
+	camera.offset = Vector2.ZERO
+	if PlatformServices.get_camera_view() == PlatformServices.CAMERA_VIEW_OVERVIEW:
+		camera.top_level = true
+		var game := _game()
+		if game != null and game.has_method("shop_camera_center"):
+			camera.global_position = game.call("shop_camera_center") as Vector2
+		camera.zoom = Vector2(z, z)
+	else:
+		camera.top_level = false
+		camera.position = Vector2.ZERO
+		camera.zoom = Vector2(z, z)
+
+
+## Leave overview lock so temporary fight / elite framing can offset from the player.
+func _prepare_camera_for_local_focus() -> void:
+	if camera == null:
+		return
+	if camera.top_level:
+		camera.top_level = false
+		camera.position = Vector2.ZERO
+
+
 func play_elite_focus(target_node: Node, sec: float = Tuning.ELITE_ZOOM_SEC) -> void:
 	if target_node == null or not is_instance_valid(target_node) or camera == null:
 		await get_tree().create_timer(sec).timeout
 		return
 	_elite_focus_left = maxf(_elite_focus_left, sec)
-	var base_z := Tuning.CAMERA_ZOOM
+	_prepare_camera_for_local_focus()
+	var base_z := base_camera_zoom()
 	var punch_z := base_z * 1.35
 	camera.position = ((target_node as Node2D).global_position - global_position) * 0.55
 	var tw := create_tween()
 	tw.tween_property(camera, "zoom", Vector2(punch_z, punch_z), 0.18)
 	await get_tree().create_timer(sec).timeout
 	if camera:
-		var back := create_tween()
-		back.tween_property(camera, "zoom", Vector2(base_z, base_z), 0.22)
-		back.parallel().tween_property(camera, "position", Vector2.ZERO, 0.22)
+		restore_base_camera()
 	_elite_focus_left = 0.0
 
 
@@ -3676,12 +3713,12 @@ func _spawn_fx(fx_id: String, at: Vector2) -> void:
 func _play_zoom(ult: bool) -> void:
 	if camera == null:
 		return
-	var base := Tuning.CAMERA_ZOOM
+	var base := base_camera_zoom()
 	var z := base * (1.28 if ult else 1.12)
 	var tw := create_tween()
 	tw.tween_property(camera, "zoom", Vector2(z, z), 0.18)
 	tw.tween_interval(0.22 if ult else 0.12)
-	tw.tween_property(camera, "zoom", Vector2(base, base), 0.28)
+	tw.tween_callback(restore_base_camera)
 
 
 func _reset_hold() -> void:

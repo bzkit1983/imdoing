@@ -11,8 +11,9 @@ const FOCUS_RESUME := 0
 const FOCUS_SFX := 1
 const FOCUS_VOL := 2
 const FOCUS_STICK := 3
-const FOCUS_END := 4
-const FOCUS_COUNT := 5
+const FOCUS_CAMERA := 4
+const FOCUS_END := 5
+const FOCUS_COUNT := 6
 
 var game: Node
 var _open: bool = false
@@ -32,6 +33,7 @@ const STICK_UI_DEAD := 0.55
 @onready var _vol_down: Button = %VolDownBtn
 @onready var _vol_up: Button = %VolUpBtn
 @onready var _stick_btn: Button = %StickBtn
+@onready var _camera_btn: Button = %CameraBtn
 @onready var _end_btn: Button = %EndDayBtn
 
 
@@ -47,7 +49,7 @@ func setup(host: Node) -> void:
 	_body.add_theme_color_override("font_color", Color("f4f1ea"))
 	UiFont.apply_label(_hint, 20)
 	_hint.add_theme_color_override("font_color", Color("c8c2b4"))
-	for b in [_resume_btn, _sfx_btn, _vol_btn, _vol_down, _vol_up, _stick_btn, _end_btn]:
+	for b in [_resume_btn, _sfx_btn, _vol_btn, _vol_down, _vol_up, _stick_btn, _camera_btn, _end_btn]:
 		UiFont.apply_button(b, 22)
 		b.focus_mode = Control.FOCUS_NONE
 	_resume_btn.pressed.connect(_on_resume)
@@ -56,10 +58,12 @@ func setup(host: Node) -> void:
 	_vol_down.pressed.connect(_on_vol_nudge.bind(-1))
 	_vol_up.pressed.connect(_on_vol_nudge.bind(1))
 	_stick_btn.pressed.connect(_on_stick_toggle)
+	_camera_btn.pressed.connect(_on_camera_cycle)
 	_end_btn.pressed.connect(_on_end_day)
 	_paint_focus()
 	_refresh_audio_labels()
 	_refresh_stick_row()
+	_refresh_camera_row()
 	if not PlatformServices.pause_menu_requested.is_connected(_on_platform_pause_requested):
 		PlatformServices.pause_menu_requested.connect(_on_platform_pause_requested)
 	if not PlatformServices.suspended.is_connected(_on_platform_suspended):
@@ -148,6 +152,7 @@ func _refresh_copy() -> void:
 	_end_btn.text = Loc.t("pause.end_day")
 	_refresh_audio_labels()
 	_refresh_stick_row()
+	_refresh_camera_row()
 
 
 func _refresh_audio_labels() -> void:
@@ -215,7 +220,7 @@ func _stick_row_visible() -> bool:
 
 
 func _refresh_stick_row() -> void:
-	if _stick_btn == null or _end_btn == null:
+	if _stick_btn == null:
 		return
 	var show_row := _stick_row_visible()
 	_stick_btn.visible = show_row
@@ -223,16 +228,42 @@ func _refresh_stick_row() -> void:
 		_stick_btn.text = Loc.t(
 			"pause.virtual_stick_on" if PlatformServices.is_virtual_stick_enabled() else "pause.virtual_stick_off"
 		)
-		## Stick row at y=472; end day below it.
+	_layout_option_rows()
+	if not show_row and _focus == FOCUS_STICK:
+		_focus = FOCUS_CAMERA
+		_paint_focus()
+
+
+func _refresh_camera_row() -> void:
+	if _camera_btn == null:
+		return
+	match PlatformServices.get_camera_view():
+		PlatformServices.CAMERA_VIEW_FAR:
+			_camera_btn.text = Loc.t("pause.camera_far")
+		PlatformServices.CAMERA_VIEW_OVERVIEW:
+			_camera_btn.text = Loc.t("pause.camera_overview")
+		_:
+			_camera_btn.text = Loc.t("pause.camera_normal")
+	_layout_option_rows()
+
+
+func _layout_option_rows() -> void:
+	if _end_btn == null or _camera_btn == null:
+		return
+	var stick_on := _stick_btn != null and _stick_btn.visible
+	## Rows: stick (optional) → camera → end day.
+	if stick_on:
+		_stick_btn.offset_top = 472.0
+		_stick_btn.offset_bottom = 544.0
+		_camera_btn.offset_top = 558.0
+		_camera_btn.offset_bottom = 630.0
+		_end_btn.offset_top = 644.0
+		_end_btn.offset_bottom = 716.0
+	else:
+		_camera_btn.offset_top = 472.0
+		_camera_btn.offset_bottom = 544.0
 		_end_btn.offset_top = 558.0
 		_end_btn.offset_bottom = 630.0
-	else:
-		## Collapse gap when the stick toggle is hidden (desktop).
-		_end_btn.offset_top = 472.0
-		_end_btn.offset_bottom = 544.0
-	if not show_row and _focus == FOCUS_STICK:
-		_focus = FOCUS_END
-		_paint_focus()
 
 
 func _move_focus(delta: int) -> void:
@@ -260,6 +291,8 @@ func _activate_focus() -> void:
 			_on_vol_preview()
 		FOCUS_STICK:
 			_on_stick_toggle()
+		FOCUS_CAMERA:
+			_on_camera_cycle()
 		FOCUS_END:
 			SfxBus.play("sfx_ui_confirm")
 			_on_end_day()
@@ -306,6 +339,14 @@ func _on_stick_toggle() -> void:
 	_paint_focus()
 
 
+func _on_camera_cycle() -> void:
+	PlatformServices.cycle_camera_view()
+	SfxBus.play("sfx_ui_confirm")
+	_refresh_camera_row()
+	_focus = FOCUS_CAMERA
+	_paint_focus()
+
+
 func _on_end_day() -> void:
 	close_menu()
 	end_day_requested.emit()
@@ -320,6 +361,8 @@ func _paint_focus() -> void:
 	_style_btn(_vol_up, vol_on)
 	if _stick_btn and _stick_btn.visible:
 		_style_btn(_stick_btn, _focus == FOCUS_STICK)
+	if _camera_btn:
+		_style_btn(_camera_btn, _focus == FOCUS_CAMERA)
 	_style_btn(_end_btn, _focus == FOCUS_END)
 
 

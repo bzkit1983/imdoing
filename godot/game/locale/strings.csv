@@ -11,6 +11,9 @@ pause.sfx_volume,音效聲量：%d%%,SFX volume: %d%%
 pause.end_day,結束本日並結算,End day & settle
 pause.virtual_stick_on,觸控搖桿：開,Touch stick: On
 pause.virtual_stick_off,觸控搖桿：關,Touch stick: Off
+pause.camera_normal,鏡頭：正常,Camera: Normal
+pause.camera_far,鏡頭：稍遠,Camera: Farther
+pause.camera_overview,鏡頭：全地圖,Camera: Full map
 early.title,提早關店,Close early
 early.body,所有補貨架都沒有貨了，收銀機也沒有人排隊。\n要提早關店，並結算今天嗎？,"All restock points are empty and no one is queued.\nClose early and settle today?"
 early.hint,A／D 選擇　　J 確定　　; 取消,"A/D select · J confirm · ; cancel"

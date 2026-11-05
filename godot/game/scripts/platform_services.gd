@@ -13,17 +13,31 @@ const DesktopPlatform = preload("res://scripts/platform/desktop_platform.gd")
 const SETTINGS_PATH := "user://settings.cfg"
 const SETTINGS_SECTION := "ui"
 const SETTINGS_VIRTUAL_STICK := "virtual_stick"
+const SETTINGS_CAMERA_VIEW := "camera_view"
+
+const CAMERA_VIEW_NORMAL := "normal"
+const CAMERA_VIEW_FAR := "far"
+const CAMERA_VIEW_OVERVIEW := "overview"
+const CAMERA_VIEW_CYCLE: Array[String] = [
+	CAMERA_VIEW_NORMAL,
+	CAMERA_VIEW_FAR,
+	CAMERA_VIEW_OVERVIEW,
+]
 
 signal suspended
 signal resumed
 signal pause_menu_requested
 ## Fired when the player toggles on-screen stick visibility (prep System tools).
 signal virtual_stick_changed(enabled: bool)
+## Fired when shop camera framing mode changes (pause / View button).
+signal camera_view_changed(mode: String)
 
 var _backend = DesktopPlatform.new()
 ## Player preference; only applies when the platform profile is touch (Web / mobile).
 ## Default off (tester/PM): player opts in via Prep System tools or Pause.
 var _virtual_stick: bool = false
+## Shop camera framing: normal | far | overview. Persists across days.
+var _camera_view: String = CAMERA_VIEW_NORMAL
 
 
 func _ready() -> void:
@@ -93,9 +107,38 @@ func toggle_virtual_stick() -> bool:
 	return _virtual_stick
 
 
+func get_camera_view() -> String:
+	return _camera_view
+
+
+func set_camera_view(mode: String) -> void:
+	var next := _normalize_camera_view(mode)
+	if next == _camera_view:
+		return
+	_camera_view = next
+	_save_ui_settings()
+	camera_view_changed.emit(_camera_view)
+
+
+func cycle_camera_view() -> String:
+	var i := CAMERA_VIEW_CYCLE.find(_camera_view)
+	if i < 0:
+		i = 0
+	var next := CAMERA_VIEW_CYCLE[(i + 1) % CAMERA_VIEW_CYCLE.size()]
+	set_camera_view(next)
+	return _camera_view
+
+
 func wants_focus_ui() -> bool:
 	var profile := get_ui_profile()
 	return profile == "gamepad" or profile == "tv"
+
+
+func _normalize_camera_view(mode: String) -> String:
+	var m := String(mode).strip_edges()
+	if m in CAMERA_VIEW_CYCLE:
+		return m
+	return CAMERA_VIEW_NORMAL
 
 
 func _load_ui_settings() -> void:
@@ -103,12 +146,16 @@ func _load_ui_settings() -> void:
 	if cf.load(SETTINGS_PATH) != OK:
 		return
 	_virtual_stick = bool(cf.get_value(SETTINGS_SECTION, SETTINGS_VIRTUAL_STICK, false))
+	_camera_view = _normalize_camera_view(
+		String(cf.get_value(SETTINGS_SECTION, SETTINGS_CAMERA_VIEW, CAMERA_VIEW_NORMAL))
+	)
 
 
 func _save_ui_settings() -> void:
 	var cf := ConfigFile.new()
 	cf.load(SETTINGS_PATH)
 	cf.set_value(SETTINGS_SECTION, SETTINGS_VIRTUAL_STICK, _virtual_stick)
+	cf.set_value(SETTINGS_SECTION, SETTINGS_CAMERA_VIEW, _camera_view)
 	cf.save(SETTINGS_PATH)
 
 

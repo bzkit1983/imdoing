@@ -168,6 +168,9 @@ func _begin_day() -> void:
 	_player.add_child(cam)
 	cam.make_current()
 	_player.camera = cam
+	if not PlatformServices.camera_view_changed.is_connected(_on_camera_view_changed):
+		PlatformServices.camera_view_changed.connect(_on_camera_view_changed)
+	apply_camera_view()
 	_hud = preload("res://scenes/hud.tscn").instantiate()
 	add_child(_hud)
 	_hud.setup(self, _player)
@@ -1018,7 +1021,62 @@ func on_pause_opened() -> void:
 
 
 func on_pause_closed() -> void:
-	pass
+	apply_camera_view()
+
+
+func shop_camera_center() -> Vector2:
+	return FLOOR_ORIGIN + FLOOR_SIZE * 0.5
+
+
+func overview_camera_zoom() -> float:
+	## Fit the whole floor in the viewport with a small margin (Godot zoom: smaller = wider).
+	var vp := get_viewport().get_visible_rect().size
+	if vp.x <= 1.0 or vp.y <= 1.0 or FLOOR_SIZE.x <= 1.0 or FLOOR_SIZE.y <= 1.0:
+		return Tuning.CAMERA_ZOOM_FAR
+	var margin := 1.08
+	var zx := vp.x / (FLOOR_SIZE.x * margin)
+	var zy := vp.y / (FLOOR_SIZE.y * margin)
+	return minf(zx, zy)
+
+
+func apply_camera_view() -> void:
+	if _player == null:
+		return
+	if _player.has_method("camera_priority_busy") and bool(_player.call("camera_priority_busy")):
+		return
+	if _elite_zoom_busy:
+		return
+	if _player.has_method("restore_base_camera"):
+		_player.call("restore_base_camera")
+
+
+func _on_camera_view_changed(_mode: String) -> void:
+	apply_camera_view()
+
+
+func _poll_camera_view_hotkey() -> void:
+	if phase != "restock" and phase != "open":
+		return
+	if _pause != null and _pause.has_method("is_open") and bool(_pause.call("is_open")):
+		return
+	if not Input.is_action_just_pressed(Controls.CAMERA_VIEW):
+		return
+	PlatformServices.cycle_camera_view()
+
+
+func _maintain_overview_camera() -> void:
+	if PlatformServices.get_camera_view() != PlatformServices.CAMERA_VIEW_OVERVIEW:
+		return
+	if _player == null or _player.camera == null:
+		return
+	if _player.has_method("camera_priority_busy") and bool(_player.call("camera_priority_busy")):
+		return
+	if _elite_zoom_busy:
+		return
+	var cam: Camera2D = _player.camera
+	if not cam.top_level:
+		return
+	cam.global_position = shop_camera_center()
 
 
 func _on_show_vj_changed(visible_now: bool) -> void:
@@ -1235,6 +1293,8 @@ func customer_move_mult() -> float:
 func _process(delta: float) -> void:
 	if phase == "prep" or phase == "closed" or _early_open:
 		return
+	_poll_camera_view_hotkey()
+	_maintain_overview_camera()
 	real_time += world_delta(delta)
 	if real_time < Tuning.RESTOCK_REAL_SEC:
 		phase = "restock"

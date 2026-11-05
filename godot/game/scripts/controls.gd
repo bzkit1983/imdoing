@@ -27,6 +27,8 @@ const RESTOCK_NEXT := "restock_next"
 const RESTOCK_SLOT_1 := "restock_slot_1"
 const RESTOCK_SLOT_2 := "restock_slot_2"
 const RESTOCK_SLOT_3 := "restock_slot_3"
+## Cycle shop camera framing (normal / far / overview). Xbox View = JOY_BUTTON_BACK.
+const CAMERA_VIEW := "camera_view"
 
 ## Analog trigger "pressed" threshold (Xbox LT/RT), after normalize to 0..1.
 const TRIGGER_DEADZONE := 0.5
@@ -93,6 +95,7 @@ func ensure_actions() -> void:
 	_ensure_action(RESTOCK_SLOT_1, 0.5, [_key(KEY_1)])
 	_ensure_action(RESTOCK_SLOT_2, 0.5, [_key(KEY_2)])
 	_ensure_action(RESTOCK_SLOT_3, 0.5, [_key(KEY_3)])
+	_ensure_action(CAMERA_VIEW, 0.5, [_key(KEY_V), _joy_btn(JOY_BUTTON_BACK)])
 
 
 func move_vector() -> Vector2:
