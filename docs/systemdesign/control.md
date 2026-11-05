@@ -2,17 +2,19 @@
 - 此檔案包含操作設定
 - Demo 實作範圍與試玩數值以 `docs/demo/` 各版本 scope 為準（v0.3 起已實作下列營運回合操作；清潔見 v0.4，打擊見 v0.5）
 - **v1 活線工程：** `godot/game`。輸入以 Godot **InputMap action** 為準（Autoload `Controls`）。鍵盤／手制／觸控都對到同一套 action；下列鍵位是**預設綁定**，可在專案設定改鍵，不改玩法邏輯。
-- **手制裝置：** Xbox 預設綁定的 InputMap `device` 為 **-1（任何已連接手把）**；左搖桿輪詢走 `Input.get_connected_joypads()`，不寫死 device 0。Windows 常把 Xbox 編成 0 以外的裝置（XInput + DirectInput 雙重列舉、虛擬／幽靈手把佔 0），Mac 則多半就是 0。
+- **手制裝置：** 單機時 Xbox 預設綁定的 InputMap `device` 為 **-1（任何已連接手把）**；左搖桿輪詢走 `Input.get_connected_joypads()`，不寫死 device 0。Windows 常把 Xbox 編成 0 以外的裝置（XInput + DirectInput 雙重列舉、虛擬／幽靈手把佔 0），Mac 則多半就是 0。
+- **本機雙人（M1）：** Seat0＝手把 **device 0**，Seat1＝手把 **device 1**。鍵盤可佔**尚未被手把綁定**的 seat；兩 seat 都已被手把佔用時鍵盤無效。詳見 `multiplayer.md` §11.4。
 - 主要 action：`move_up`／`move_down`／`move_left`／`move_right`、`interact`、`cancel`、`dash`、`skill`、`ult`；Xbox 肩鍵快捷 `skill_2`／`skill_3`（LB／RB）；Xbox 奧義為 LT+RT 長按（輪詢板機軸，非 InputMap）；準備店舖設計另有 `rotate`；補貨快捷有 `restock_prev`／`restock_next`／`restock_slot_1..3`；鏡頭視野循環 `camera_view`（鍵盤 `V`、Xbox 視圖鍵／`JOY_BUTTON_BACK`）
-- **暫停選單：** 營運日 Esc／手把 Start 開關（見 `pausemenu.md`）；選單內移動／確定／取消仍走 `move_*`／`interact`／`cancel`
+- **暫停選單：** 營運日 Esc／手把 Start 開關（見 `pausemenu.md`）。本機雙人時**任一 seat** 都可開／關。選單內移動／確定／取消仍走 `move_*`／`interact`／`cancel`
 - **UI 文案：** 準備／暫停／HUD 等已遷字串表者走 Autoload `Loc`（`docs/alpha/i18n.md`），與鍵位無關
 
 #**遊玩視點**
 - 以俯瞰視角觀察商店
 - 鏡頭預設追蹤玩家角色隨角色移動（全地圖模式除外）
+- **本機雙人（M1，見 `multiplayer.md` §11）：** 鏡頭**永遠跟隨兩可控角色的中點**；不做焦點切換。全地圖仍鎖店中心。
 - 三種可調視野（暫停選單循環，或營運中 `camera_view`：鍵盤 `V`／Xbox 視圖鍵）。寫入 `user://settings.cfg` → `[ui] camera_view`；改完立刻生效，跨營運日保留
-- - **正常**（`normal`，預設）：Camera2D zoom **1.22**，跟隨玩家
-- - **稍遠**（`far`）：固定 zoom **0.95**，跟隨玩家，可見範圍略大於正常
+- - **正常**（`normal`，預設）：Camera2D zoom **1.22**，跟隨玩家（雙人時為中點）
+- - **稍遠**（`far`）：固定 zoom **0.95**，跟隨玩家（雙人時為中點），可見範圍略大於正常
 - - **全地圖**（`overview`）：依當日店舖地板尺寸與 viewport 計算 zoom（約 8% 邊距），鏡頭**鎖在店中心**、不跟隨玩家
 - HUD 與虛擬鍵不隨世界放大
 - 施放技能／奧義時鏡頭會短暫再 ZOOM IN，然後回到**當前視野**基值

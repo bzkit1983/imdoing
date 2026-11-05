@@ -78,7 +78,7 @@
 - **循環與進度：** 劇情／事件表、過關與失敗、經營值、技能解鎖表。~~存檔~~ 見 `savesystem.md`。~~暫停／掛起~~ 見 `pausemenu.md`
 - **店內系統：** 冰櫃與凍櫃的操作差異。幫忙取貨與 COMBO 留待 Alpha
 - **幾乎是空檔：** 角色導出的連線與檔案留待 Alpha。Voxel 初模和給設計師加細節的規矩在 `docs/alpha/voxel-v0.1.md`。外觀配置只有一句
-- **多人連線：** 設計草案見 [`docs/systemdesign/multiplayer.md`](systemdesign/multiplayer.md)（本機最多二人＋線上補位至同房四人；Seat≠Peer；**尚未實作**）。現行 `ecosystem.md`／`playerexport.md` 單機語意尚未因此改寫
+- **多人連線：** 設計見 [`docs/systemdesign/multiplayer.md`](systemdesign/multiplayer.md)（§10 企劃已拍板；**§11 M1 本機雙人規格已定稿**；**尚未實作**）。`ecosystem.md`／`savesystem.md`／`control.md` 已加 M1 交叉註記
 - **工程路徑：** Demo／Alpha 專案目錄已凍結；v1 只改 `godot/game`（`docs/versioning.md`）。平台商務／Godot 釘版見 `docs/alpha/console-business.md`、`docs/alpha/godot-middleware-pin.md`（非玩法規則）
 
 # 已有檔但仍寫不進程式的數值
