@@ -20,10 +20,10 @@ Alpha V0.1 已寫明「不做 3D 鏡頭遊玩」。本文件把該凍結升成�
 ## 現行正確升級路徑（已開）
 
 1. 精修 `art/src/*.vox`
-2. `python3 tools/voxel_sprites.py`（靜態；角色八向、傢俬四向）
+2. `python3 tools/voxel_sprites.py`（靜態；角色十六向、傢俬四向；anchors 合併寫入）
 3. `python3 tools/voxel_character_anims.py`（讀設計師源＋肢體偏移；可選 `art/src/anim/` MagicaVoxel 完整幀）
-4. 執行期合約：`{id}_{anim}_{facing}_{frame}.png`（角色 facing `0..7`；見 [`animation-facing-8way.md`](animation-facing-8way.md)）
-5. 轉身短淡入已在 `voxel_sprite.play_anim`（不必上立體相機）
+4. 執行期合約：`{id}_{anim}_{facing}_{frame}.png`（角色 facing `0..15`；見 [`animation-facing-8way.md`](animation-facing-8way.md)）
+5. 重 bake 後跑 Godot `--import`；轉身交叉淡入維持關閉（不必上立體相機）
 
 ## 若日後產品拍板「立體店」
 

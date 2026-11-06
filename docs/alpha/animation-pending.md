@@ -20,23 +20,23 @@
 
 檔名：`art/sprites/{id}_{anim}_{facing}_{frame}.png` · 清單：`art/sprites/anim_manifest.json` · 道具：`props_manifest.json`
 
-## 已落地（八向試行）
+## 已落地（十六向試行）
 
 | 項目 | 說明 |
 | --- | --- |
-| 角色八向烘焙 | `voxel_sprites`／`voxel_character_anims`；合約見 [`animation-facing-8way.md`](animation-facing-8way.md) |
-| 轉身短淡入 | `voxel_sprite.play_anim` 換向約 90ms |
+| 角色十六向烘焙 | `voxel_sprites`／`voxel_character_anims`；合約見 [`animation-facing-8way.md`](animation-facing-8way.md) |
+| 轉身 | 面向滯後；**交叉淡入已關**（殘影坑） |
 | 貨架 | 維持四向（`k_from_facing(..., 4)`） |
 
 ## 仍待設計師／之後版本
 
 | 優先 | 對象 | 缺什麼 | 說明 |
 | --- | --- | --- | --- |
-| P1 | player 等 | MagicaVoxel 精修幀 | 靜態 `.vox` 已自動進動作烘焙；完整幀可放 `art/src/anim/`（八向齊或舊四向包均可） |
+| P1 | player 等 | MagicaVoxel 精修幀 | 靜態 `.vox` 已自動進動作烘焙；完整幀可放 `art/src/anim/`（十六向齊、舊八向或四向包均可） |
 | P2 | 工程 | SpriteFrames 圖集打包 | tech-review：比每幀 load 更省 |
 | P3 | 幫忙取貨／COMBO | 玩法規則＋正式交付姿 | Alpha 已有 `deliver` 姿插座；規則見 `docs/alpha/design.md` |
 | P3 | 命名對齊 plan | `walk_s_01` 目錄結構 | 現用 `{id}_{anim}_{facing}_{frame}`；可加轉檔 |
-| 之後 | 十六向／連續水平角 | 產品評估 | 八向驗證後再談；真 3D 見 deferred |
+| 之後 | 連續水平角／真 3D | 產品評估 | 見 deferred |
 
 ## 驗收
 

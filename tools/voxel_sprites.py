@@ -4,7 +4,7 @@
 Reads godot/game/art/src/*.vox and writes godot/game/art/sprites.
 Does not modify the .vox sources. 4 px = 1 voxel, so 16 voxels match one 64 px shop tile.
 
-Facing (characters, 8-way): 0 south, 1 SE, 2 east, 3 NE, 4 north, 5 NW, 6 west, 7 SW.
+Facing (characters, 16-way): 0 south … 15 SSW (22.5° steps).
 Facing (furniture, 4-way): 0 south, 1 east, 2 north, 3 west — same as legacy.
 
 Frozen Alpha art stays in godot/alpha_v0_1/art/ — do not point this tool there.
@@ -23,15 +23,17 @@ SRC = ROOT / "godot" / "game" / "art" / "src"
 OUT = ROOT / "godot" / "game" / "art" / "sprites"
 PX = 4
 
-# Characters: 8 yaw steps. Furniture / props: still 4 cardinals.
-EIGHT_WAY = {
+# Characters: 16 yaw steps. Furniture / props: still 4 cardinals.
+CHAR_WAY = {
     "player",
     "customer",
     "thief",
     "clerk_cashier",
     "clerk_restock",
 }
-FOUR_WAY = EIGHT_WAY | {
+## Back-compat alias for older callers / docs.
+EIGHT_WAY = CHAR_WAY
+FOUR_WAY = CHAR_WAY | {
     "register",
     "restock_dry",
     "restock_frozen",
@@ -120,21 +122,34 @@ def rotate_yaw_degrees(size, cells, degrees: float):
     return (out_sx, out_sy, sz), out
 
 
-def rotate_facing(size, cells, facing: int, facings: int = 8):
-    """Rotate model to facing index. facings=1 → identity; 4 → legacy; 8 → south…SW."""
+def rotate_facing(size, cells, facing: int, facings: int = 16):
+    """Rotate model to facing index.
+
+    facings=1 → identity; 4 → exact 90°; 8/16 (power-of-2 ≥8) → south… with
+    45°/22.5° yaw steps via rotate + rotate_yaw_degrees.
+    """
     if facings <= 1:
         return size, cells
     facing = int(facing) % facings
     if facings == 4:
         return rotate(size, cells, facing)
-    if facings != 8:
+    if facings < 8 or (facings & (facings - 1)) != 0:
         raise ValueError(f"unsupported facings count: {facings}")
-    # Even indices are exact 90° cardinals (legacy 0,1,2,3 → 0,2,4,6).
-    if facing % 2 == 0:
-        return rotate(size, cells, facing // 2)
-    cardinal, rem = divmod(facing, 2)
-    rsize, rcells = rotate(size, cells, cardinal)
-    return rotate_yaw_degrees(rsize, rcells, 45.0 * rem)
+    ## Degrees clockwise from south; exact 90° uses discrete rotate().
+    deg = facing * (360.0 / float(facings))
+    turns = int(round(deg / 90.0)) % 4
+    rem = deg - turns * 90.0
+    ## Keep rem in (-45, 45] for stable nearest-cardinal + yaw.
+    if rem > 45.0:
+        turns = (turns + 1) % 4
+        rem -= 90.0
+    elif rem <= -45.0:
+        turns = (turns - 1) % 4
+        rem += 90.0
+    rsize, rcells = rotate(size, cells, turns)
+    if abs(rem) < 1e-6:
+        return rsize, rcells
+    return rotate_yaw_degrees(rsize, rcells, rem)
 
 
 def render(size, cells, palette):
@@ -201,8 +216,8 @@ def main():
     anchors["tile_px"] = 16 * PX
     for path in sorted(SRC.glob("*.vox")):
         size, cells, palette = read_vox(path)
-        if path.stem in EIGHT_WAY:
-            facings = 8
+        if path.stem in CHAR_WAY:
+            facings = 16
         elif path.stem in FOUR_WAY:
             facings = 4
         else:

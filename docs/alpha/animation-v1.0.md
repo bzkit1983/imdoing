@@ -18,7 +18,7 @@
 
 遊玩仍是俯瞰 2D；真 3D 店／Skeleton3D 見 [`voxel-3d-play-deferred.md`](voxel-3d-play-deferred.md)。
 
-**角色 Facing（八向）：** `0` 南 · `1` 東南 · `2` 東 · `3` 東北 · `4` 北 · `5` 西北 · `6` 西 · `7` 西南。換向約 90ms 交叉淡入。詳見 [`animation-facing-8way.md`](animation-facing-8way.md)。貨架／傢俬仍四向。
+**角色 Facing（十六向）：** `0` 南 … `15` 南偏西（22.5°；偶數 = 舊八向）。轉身交叉淡入已關；面向滯後見 [`animation-facing-8way.md`](animation-facing-8way.md)。貨架／傢俬仍四向。
 
 ## 本輪已接狀態
 

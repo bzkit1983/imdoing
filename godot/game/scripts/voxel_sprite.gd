@@ -1,6 +1,6 @@
 extends RefCounted
 ## Gameplay sprites baked from art/src (+ character anims from tools/voxel_character_anims.py).
-## Character facing (8-way): 0 S, 1 SE, 2 E, 3 NE, 4 N, 5 NW, 6 W, 7 SW.
+## Character facing (16-way): 0 S … 15 SSW (22.5°). Manifest facings drives count.
 ## Furniture / static 4-way still uses 0 S, 1 E, 2 N, 3 W via k_from_facing(..., 4).
 ## Anim frames: {id}_{anim}_{facing}_{frame}.png — see art/sprites/anim_manifest.json.
 
@@ -22,7 +22,15 @@ static func facing_count() -> int:
 	var names: Variant = _anim_manifest().get("facing", [])
 	if names is Array and names.size() >= 4:
 		return names.size()
-	return 8
+	return 16
+
+
+## Cardinal stride inside an N-way pack (8→2, 16→4). Furniture stays 4-way (stride 1).
+static func facing_cardinal_stride() -> int:
+	var n := facing_count()
+	if n < 8:
+		return 1
+	return maxi(n / 4, 1)
 
 
 static func k_from_rot(rot: int) -> int:
@@ -144,9 +152,9 @@ static func _anim_key_with_frames(frames: SpriteFrames, anim: String, k: int, fa
 	var key := "%s_%d" % [anim, k]
 	if _has_anim_frames(frames, key):
 		return key
-	## Fallback: nearest cardinal if an old 4-way pack is still loaded.
+	## Fallback: nearest cardinal in the N-way pack (stride = N/4).
 	var k4 := k_from_facing(facing, 4)
-	var mapped := k4 * 2 if facing_count() >= 8 else k4
+	var mapped := k4 * facing_cardinal_stride()
 	key = "%s_%d" % [anim, mapped]
 	if _has_anim_frames(frames, key):
 		return key
@@ -243,7 +251,7 @@ static func _key(id: String, k: int) -> String:
 	if _meta().has(exact):
 		return exact
 	## Furniture / props already pass 4-way k (0..3). Prefer that file before
-	## treating k as an 8-way index (k>>1 would map east/west wrongly).
+	## treating k as an N-way index (wrong stride would map east/west badly).
 	if k >= 0 and k <= 3:
 		var as4 := "%s_%d" % [id, k]
 		if _meta().has(as4):
@@ -253,9 +261,10 @@ static func _key(id: String, k: int) -> String:
 		var tex4 := _DIR + as4 + ".png"
 		if ResourceLoader.exists(tex4):
 			return as4
-	## Missing diagonal / 8-way → nearest cardinal file (0,2,4,6 → 0,1,2,3).
+	## Missing diagonal / N-way → nearest 4-way cardinal file (0..3).
 	if facing_count() >= 8:
-		var cardinal := clampi(k >> 1, 0, 3)
+		var stride := facing_cardinal_stride()
+		var cardinal := clampi(k / stride, 0, 3)
 		var mapped := "%s_%d" % [id, cardinal]
 		if _meta().has(mapped):
 			return mapped
@@ -314,8 +323,10 @@ static func _sprite_frames(id: String) -> SpriteFrames:
 				if tex != null:
 					frames.add_frame(anim_name, tex)
 				elif fi == 0:
-					## Last resort: nearest imported cardinal so the body stays visible.
-					tex = texture(id, (facing >> 1) * 2 if facing_count() >= 8 else facing)
+					## Last resort: nearest imported cardinal in the N-way pack.
+					var stride := facing_cardinal_stride()
+					var nearest := (facing / stride) * stride if facing_count() >= 8 else facing
+					tex = texture(id, nearest)
 					if tex != null:
 						frames.add_frame(anim_name, tex)
 	_frames_cache[id] = frames
@@ -346,5 +357,5 @@ static func _anim_manifest() -> Dictionary:
 			var parsed = JSON.parse_string(FileAccess.get_file_as_string(_MANIFEST))
 			_manifest = parsed if parsed is Dictionary else {}
 		else:
-			_manifest = {"characters": {}, "facings": 8}
+			_manifest = {"characters": {}, "facings": 16}
 	return _manifest

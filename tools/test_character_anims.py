@@ -35,7 +35,13 @@ def main() -> int:
         return 1
     data = json.loads(MANIFEST.read_text(encoding="utf-8"))
     chars = data.get("characters", {})
+    names = data.get("facing", [])
+    n_face = int(data.get("facings", 0))
+    if n_face < 4:
+        n_face = len(names) if isinstance(names, list) and len(names) >= 4 else 16
     errors: list[str] = []
+    if isinstance(names, list) and names and len(names) != n_face:
+        errors.append(f"manifest facings={n_face} but facing names={len(names)}")
     for cid, anims in REQUIRED.items():
         if cid not in chars:
             errors.append(f"manifest missing character {cid}")
@@ -45,7 +51,7 @@ def main() -> int:
                 errors.append(f"{cid} missing anim {anim}")
                 continue
             n = int(chars[cid][anim]["frames"])
-            for facing in range(4):
+            for facing in range(n_face):
                 for fi in range(n):
                     path = SPRITES / f"{cid}_{anim}_{facing}_{fi}.png"
                     if not path.exists():
