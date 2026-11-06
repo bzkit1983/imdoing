@@ -358,9 +358,42 @@ func yes_my_lord_on() -> bool:
 	return _player != null and _player.buff_left("yes_my_lord") > 0.05
 
 
-func release_player_checkout() -> void:
-	if _player and _player.has_method("release_checkout"):
-		_player.release_checkout()
+## Force-release checkout command UI.
+## `guest == null`: clear every seat mid-cashier (global skills).
+## `guest` set: only the seat whose locked register is serving that guest (coop-safe).
+func release_player_checkout(guest = null) -> void:
+	var seats: Array = _players
+	if seats.is_empty() and _player != null:
+		seats = [_player]
+	for p in seats:
+		if p == null or not is_instance_valid(p):
+			continue
+		if not p.has_method("release_checkout"):
+			continue
+		if guest != null:
+			if not bool(p.get("command_lock")):
+				continue
+			var reg = p.get("target")
+			if reg == null or not reg.has_method("ready_customer"):
+				continue
+			if reg.call("ready_customer") != guest:
+				continue
+		p.release_checkout()
+
+
+## True if any seated player has A4 command_lock on this cashier.
+func seat_locks_register(reg: Node) -> bool:
+	if reg == null:
+		return false
+	var seats: Array = _players
+	if seats.is_empty() and _player != null:
+		seats = [_player]
+	for p in seats:
+		if p == null or not is_instance_valid(p):
+			continue
+		if bool(p.get("command_lock")) and p.get("target") == reg:
+			return true
+	return false
 
 
 func nearest_stocked_shelf(from: Vector2) -> Node2D:

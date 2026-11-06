@@ -3718,9 +3718,14 @@ func release_checkout() -> void:
 	seq_done = false
 	hold_progress = 0.0
 	_j_held = false
+	_long_committed = false
 	if _prompt and not ult_prep:
 		_prompt.active = false
 		_prompt.fail_at = -1
+	## Drop InteractLock so a forced KO interrupt cannot leave the register stuck.
+	if target != null and String(target.get("kind")) == "cashier":
+		_interact_release(target)
+	_interact_release_held()
 
 
 func _lord_seconds(lv: int) -> float:

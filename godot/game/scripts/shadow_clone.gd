@@ -156,8 +156,7 @@ func _tick_cashier(delta: float) -> void:
 		return
 	if not _follow(register.call("back_position"), delta):
 		return
-	var player = _game.get("_player")
-	if player and bool(player.get("command_lock")) and player.get("target") == register:
+	if _game != null and _game.has_method("seat_locks_register") and bool(_game.call("seat_locks_register", register)):
 		return
 	var cust = register.call("ready_customer")
 	if cust == null:

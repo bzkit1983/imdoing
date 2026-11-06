@@ -383,7 +383,7 @@ func _physics_process(delta: float) -> void:
 	if _lord_pull():
 		if state != State.RAID:
 			if state == State.PAYING and _game.has_method("release_player_checkout"):
-				_game.call("release_player_checkout")
+				_game.call("release_player_checkout", self)
 			if _reg():
 				_reg().dequeue(self)
 			state = State.RAID
@@ -805,10 +805,13 @@ func dash_knock_guest(add_dissat: float) -> void:
 		_dash_stun_left = Tuning.DASH_GUEST_STUN_SEC
 		_sync_labels()
 		return
+	## Release the seat locking this guest while they are still the ready customer,
+	## then dequeue — otherwise ready_customer no longer matches and the UI sticks.
+	var was_paying := state == State.PAYING
+	if was_paying and _game and _game.has_method("release_player_checkout"):
+		_game.call("release_player_checkout", self)
 	if _reg():
 		_reg().dequeue(self)
-	if _game and _game.has_method("release_player_checkout"):
-		_game.call("release_player_checkout")
 	## Rebuild wanted list = taken (cart) + still needed (shopping), then drop cart.
 	var rebuy: Array[String] = []
 	for s in cart:
@@ -1094,8 +1097,7 @@ func _tick_temp_cashier(delta: float) -> void:
 		return
 	if not _follow_to(reg.call("back_position"), delta):
 		return
-	var player = _game.get("_player")
-	if player and bool(player.get("command_lock")) and player.get("target") == reg:
+	if _game != null and _game.has_method("seat_locks_register") and bool(_game.call("seat_locks_register", reg)):
 		return
 	var cust = reg.call("ready_customer") if reg.has_method("ready_customer") else null
 	if cust == null:
