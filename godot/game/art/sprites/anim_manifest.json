@@ -1,11 +1,16 @@
 {
-  "version": 2,
+  "version": 3,
   "facing": [
     "s",
+    "se",
     "e",
+    "ne",
     "n",
-    "w"
+    "nw",
+    "w",
+    "sw"
   ],
+  "facings": 8,
   "characters": {
     "player": {
       "idle": {

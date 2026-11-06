@@ -3,12 +3,17 @@
 
 Reads godot/game/art/src/*.vox and writes godot/game/art/sprites.
 Does not modify the .vox sources. 4 px = 1 voxel, so 16 voxels match one 64 px shop tile.
-Facing: 0 south, 1 east, 2 north, 3 west.
+
+Facing (characters, 8-way): 0 south, 1 SE, 2 east, 3 NE, 4 north, 5 NW, 6 west, 7 SW.
+Facing (furniture, 4-way): 0 south, 1 east, 2 north, 3 west — same as legacy.
 
 Frozen Alpha art stays in godot/alpha_v0_1/art/ — do not point this tool there.
 """
 
+from __future__ import annotations
+
 import json
+import math
 import struct
 import zlib
 from pathlib import Path
@@ -18,10 +23,24 @@ SRC = ROOT / "godot" / "game" / "art" / "src"
 OUT = ROOT / "godot" / "game" / "art" / "sprites"
 PX = 4
 
-FOUR_WAY = {
-    "player", "customer", "thief", "clerk_cashier", "clerk_restock",
-    "register", "restock_dry", "restock_frozen", "restock_ice",
-    "shelf_dry", "shelf_frozen", "shelf_ice", "wall", "door",
+# Characters: 8 yaw steps. Furniture / props: still 4 cardinals.
+EIGHT_WAY = {
+    "player",
+    "customer",
+    "thief",
+    "clerk_cashier",
+    "clerk_restock",
+}
+FOUR_WAY = EIGHT_WAY | {
+    "register",
+    "restock_dry",
+    "restock_frozen",
+    "restock_ice",
+    "shelf_dry",
+    "shelf_frozen",
+    "shelf_ice",
+    "wall",
+    "door",
 }
 
 
@@ -57,6 +76,7 @@ def _chunk(data, pos):
 
 
 def rotate(size, cells, turns):
+    """Rotate yaw by `turns` × 90° clockwise (Z-up), matching MagicaVoxel top view."""
     sx, sy, sz = size
     out = cells
     for _ in range(turns % 4):
@@ -66,6 +86,55 @@ def rotate(size, cells, turns):
         out = nxt
         sx, sy = sy, sx
     return (sx, sy, sz), out
+
+
+def rotate_yaw_degrees(size, cells, degrees: float):
+    """Nearest-neighbor yaw about Z (clockwise from above). Used for 45° diagonals."""
+    sx, sy, sz = size
+    if not cells:
+        return size, cells
+    rad = math.radians(degrees)
+    cos_a = math.cos(rad)
+    sin_a = math.sin(rad)
+    cx = (sx - 1) / 2.0
+    cy = (sy - 1) / 2.0
+    pts: list[tuple[float, float, int, int]] = []
+    for (x, y, z), index in cells.items():
+        xc = x - cx
+        yc = y - cy
+        # Clockwise: matches rotate() 90° = (x,y)->(y, sx-1-x)
+        nx = xc * cos_a + yc * sin_a
+        ny = -xc * sin_a + yc * cos_a
+        pts.append((nx, ny, z, index))
+    min_x = min(p[0] for p in pts)
+    min_y = min(p[1] for p in pts)
+    max_x = max(p[0] for p in pts)
+    max_y = max(p[1] for p in pts)
+    out: dict = {}
+    for nx, ny, z, index in pts:
+        x = int(round(nx - min_x))
+        y = int(round(ny - min_y))
+        out[(x, y, z)] = index
+    out_sx = int(round(max_x - min_x)) + 1
+    out_sy = int(round(max_y - min_y)) + 1
+    return (out_sx, out_sy, sz), out
+
+
+def rotate_facing(size, cells, facing: int, facings: int = 8):
+    """Rotate model to facing index. facings=1 → identity; 4 → legacy; 8 → south…SW."""
+    if facings <= 1:
+        return size, cells
+    facing = int(facing) % facings
+    if facings == 4:
+        return rotate(size, cells, facing)
+    if facings != 8:
+        raise ValueError(f"unsupported facings count: {facings}")
+    # Even indices are exact 90° cardinals (legacy 0,1,2,3 → 0,2,4,6).
+    if facing % 2 == 0:
+        return rotate(size, cells, facing // 2)
+    cardinal, rem = divmod(facing, 2)
+    rsize, rcells = rotate(size, cells, cardinal)
+    return rotate_yaw_degrees(rsize, rcells, 45.0 * rem)
 
 
 def render(size, cells, palette):
@@ -120,9 +189,14 @@ def main():
     anchors = {"px": PX, "tile_px": 16 * PX}
     for path in sorted(SRC.glob("*.vox")):
         size, cells, palette = read_vox(path)
-        turns = (0, 1, 2, 3) if path.stem in FOUR_WAY else (0,)
-        for k in turns:
-            rsize, rcells = rotate(size, cells, k)
+        if path.stem in EIGHT_WAY:
+            facings = 8
+        elif path.stem in FOUR_WAY:
+            facings = 4
+        else:
+            facings = 1
+        for k in range(facings):
+            rsize, rcells = rotate_facing(size, cells, k, facings)
             width, height, image = render(rsize, rcells, palette)
             name = f"{path.stem}_{k}"
             save_png(OUT / f"{name}.png", width, height, image)
@@ -133,7 +207,7 @@ def main():
                 "fw": sx * PX,
                 "fh": sy * PX,
             }
-        print(path.stem, "x".join(str(n) for n in size))
+        print(path.stem, "x".join(str(n) for n in size), f"facings={facings}")
     (OUT / "anchors.json").write_text(json.dumps(anchors, indent=2) + "\n", encoding="utf-8")
     print(f"sprites {len(anchors) - 2}")
 

@@ -9,13 +9,15 @@ When missing, falls back to the procedural person template (voxel_blockout).
 
 Designer MagicaVoxel frame sequences can also override a whole anim by placing:
   art/src/anim/{id}_{anim}_{facing}_{frame}.vox
-(those frames are rendered as-is; no procedural pose).
+Facing in that path is 8-way (0 south … 7 SW). Legacy 4-way packs (only 0–3 =
+S/E/N/W) are still accepted: they map to even indices 0/2/4/6; diagonals are
+auto-yawed 45° from the previous cardinal Magica frame.
 
 Output:
   godot/game/art/sprites/{id}_{anim}_{facing}_{frame}.png
   godot/game/art/sprites/anim_manifest.json
 
-Facing: 0 south, 1 east, 2 north, 3 west (same as voxel_sprites).
+Facing (8-way): 0 south, 1 SE, 2 east, 3 NE, 4 north, 5 NW, 6 west, 7 SW.
 """
 
 from __future__ import annotations
@@ -34,6 +36,8 @@ OUT = vs.OUT
 SRC = vs.SRC
 ANIM_SRC = SRC / "anim"
 MANIFEST_PATH = OUT / "anim_manifest.json"
+FACINGS = 8
+FACING_NAMES = ["s", "se", "e", "ne", "n", "nw", "w", "sw"]
 
 # Character kits: shirt, shirt_dark, hair, extras
 # customer_hurry / customer_slow = Alpha pace variants (not full recolors of one mesh).
@@ -214,13 +218,49 @@ def _mv_frame_path(char_id: str, anim: str, facing: int, frame: int) -> Path:
     return ANIM_SRC / f"{char_id}_{anim}_{facing}_{frame}.vox"
 
 
-def _has_mv_anim(char_id: str, anim: str, frame_count: int) -> bool:
-    """True when every facing×frame MagicaVoxel override exists."""
+def _has_mv_anim_8(char_id: str, anim: str, frame_count: int) -> bool:
+    """True when every 8-way facing×frame MagicaVoxel override exists."""
+    for facing in range(FACINGS):
+        for fi in range(frame_count):
+            if not _mv_frame_path(char_id, anim, facing, fi).exists():
+                return False
+    return True
+
+
+def _has_mv_anim_legacy4(char_id: str, anim: str, frame_count: int) -> bool:
+    """True when legacy S/E/N/W (facing 0–3) MagicaVoxel overrides are complete."""
     for facing in range(4):
         for fi in range(frame_count):
             if not _mv_frame_path(char_id, anim, facing, fi).exists():
                 return False
     return True
+
+
+def _write_mv_frames(
+    anchors: dict,
+    char_id: str,
+    anim: str,
+    frame_count: int,
+    mode: str,
+) -> int:
+    """Bake MagicaVoxel overrides into 8-way PNGs. Returns frames written."""
+    written = 0
+    for fi in range(frame_count):
+        for facing in range(FACINGS):
+            name = f"{char_id}_{anim}_{facing}_{fi}"
+            if mode == "full8":
+                size, cells, pal = vs.read_vox(_mv_frame_path(char_id, anim, facing, fi))
+                _write_frame(anchors, name, size, cells, pal)
+            else:
+                # Legacy 4-way filenames: 0/1/2/3 = S/E/N/W → even out facings.
+                # Diagonals: previous cardinal Magica frame + 45° yaw.
+                leg = facing // 2
+                size, cells, pal = vs.read_vox(_mv_frame_path(char_id, anim, leg, fi))
+                if facing % 2 == 1:
+                    size, cells = vs.rotate_yaw_degrees(size, cells, 45.0)
+                _write_frame(anchors, name, size, cells, pal)
+            written += 1
+    return written
 
 
 def _apply_pose_to_vox(size, cells: dict, pose: dict | None):
@@ -396,8 +436,9 @@ def bake() -> dict:
         blockout_pal[i] = rgb
 
     manifest: dict = {
-        "version": 2,
-        "facing": ["s", "e", "n", "w"],
+        "version": 3,
+        "facing": list(FACING_NAMES),
+        "facings": FACINGS,
         "characters": {},
         "sources": {},
     }
@@ -416,15 +457,13 @@ def bake() -> dict:
             frames = spec["frames"]
             fps = int(spec["fps"])
             char_anims[anim] = {"frames": len(frames), "fps": fps}
-            use_mv = _has_mv_anim(char_id, anim, len(frames))
-            if use_mv:
+            if _has_mv_anim_8(char_id, anim, len(frames)):
                 char_anims[anim]["source"] = "magica_frames"
-                for fi in range(len(frames)):
-                    for facing in range(4):
-                        size, cells, pal = vs.read_vox(_mv_frame_path(char_id, anim, facing, fi))
-                        name = f"{char_id}_{anim}_{facing}_{fi}"
-                        _write_frame(anchors, name, size, cells, pal)
-                        written += 1
+                written += _write_mv_frames(anchors, char_id, anim, len(frames), "full8")
+                continue
+            if _has_mv_anim_legacy4(char_id, anim, len(frames)):
+                char_anims[anim]["source"] = "magica_frames_legacy4"
+                written += _write_mv_frames(anchors, char_id, anim, len(frames), "legacy4")
                 continue
             for fi, pose in enumerate(frames):
                 if designer is not None:
@@ -435,8 +474,8 @@ def bake() -> dict:
                     size = model.size
                     cells = model.cells
                     pal = blockout_pal
-                for facing in range(4):
-                    rsize, rcells = vs.rotate(size, cells, facing)
+                for facing in range(FACINGS):
+                    rsize, rcells = vs.rotate_facing(size, cells, facing, FACINGS)
                     name = f"{char_id}_{anim}_{facing}_{fi}"
                     _write_frame(anchors, name, rsize, rcells, pal)
                     written += 1
