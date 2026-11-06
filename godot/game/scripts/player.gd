@@ -3817,7 +3817,8 @@ func _spawn_fx(fx_id: String, at: Vector2) -> void:
 	var host: Node = _game()
 	if host == null:
 		host = get_parent()
-	FxBurst.spawn(host, fx_id, at)
+	## World-space burst; pass facing so suck/spray/skid can aim + smear.
+	FxBurst.spawn(host, fx_id, at, 12.0, facing)
 
 
 func _shared_camera() -> Camera2D:

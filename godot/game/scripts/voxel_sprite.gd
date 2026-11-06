@@ -7,6 +7,7 @@ extends RefCounted
 const _DIR := "res://art/sprites/"
 const _MANIFEST := "res://art/sprites/anim_manifest.json"
 const FACING_FADE_SEC := 0.09
+const TURN_STEP_FADE_SEC := 0.12
 
 static var _anchors: Dictionary = {}
 static var _manifest: Dictionary = {}
@@ -96,8 +97,13 @@ static func play_anim(spr: AnimatedSprite2D, id: String, anim: String, facing: V
 	if not frames.has_animation(key):
 		key = "idle_0"
 	var prev_k := int(spr.get_meta("vox_anim_facing", -1))
+	var n_face := facing_count()
 	if prev_k >= 0 and prev_k != k and spr.is_playing():
 		_kick_facing_fade(spr)
+		## Large turns (≥2 octants): flash one mid-facing ghost before the new anim.
+		if _facing_delta(prev_k, k, n_face) >= 2:
+			var mid := _facing_midpoint(prev_k, k, n_face)
+			_kick_facing_ghost(spr, id, anim if frames.has_animation("%s_%d" % [anim, mid]) else "idle", mid)
 	var anim_for_anchor := anim if frames.has_animation("%s_%d" % [anim, k]) else "idle"
 	if spr.animation != key or not spr.is_playing():
 		_apply_anchor(spr, id, anim_for_anchor, k, 0)
@@ -136,10 +142,22 @@ static func has_anim(id: String, anim: String) -> bool:
 	return ch.has(anim)
 
 
+static func _facing_delta(a: int, b: int, n: int) -> int:
+	var d := absi(a - b) % n
+	return mini(d, n - d)
+
+
+static func _facing_midpoint(from_k: int, to_k: int, n: int) -> int:
+	var forward := posmod(to_k - from_k, n)
+	var backward := posmod(from_k - to_k, n)
+	if forward == 0 and backward == 0:
+		return from_k
+	if forward <= backward:
+		return posmod(from_k + maxi(forward >> 1, 1), n)
+	return posmod(from_k - maxi(backward >> 1, 1), n)
+
+
 static func _kick_facing_fade(spr: AnimatedSprite2D) -> void:
-	var parent := spr.get_parent()
-	if parent == null:
-		return
 	var tex: Texture2D = null
 	var frames: SpriteFrames = spr.sprite_frames
 	if frames != null and frames.has_animation(spr.animation):
@@ -148,28 +166,63 @@ static func _kick_facing_fade(spr: AnimatedSprite2D) -> void:
 			tex = frames.get_frame_texture(spr.animation, clampi(spr.frame, 0, fc - 1))
 	if tex == null:
 		return
+	_spawn_fade_sprite(spr, "vox_fade_spr", "VoxFacingFade", tex, spr.offset, FACING_FADE_SEC)
+
+
+static func _kick_facing_ghost(spr: AnimatedSprite2D, id: String, anim: String, facing: int) -> void:
+	var frames: SpriteFrames = spr.sprite_frames
+	if frames == null:
+		return
+	var key := "%s_%d" % [anim, facing]
+	if not frames.has_animation(key):
+		key = "idle_%d" % facing
+	if not frames.has_animation(key):
+		return
+	var fc := frames.get_frame_count(key)
+	if fc <= 0:
+		return
+	var tex := frames.get_frame_texture(key, 0)
+	if tex == null:
+		return
+	var info: Dictionary = _meta().get(_anim_tex_key(id, anim, facing, 0), {})
+	if info.is_empty():
+		info = _meta().get(_key(id, facing), {})
+	var off := Vector2(-float(info.get("ax", 0)), -float(info.get("ay", 0)))
+	_spawn_fade_sprite(spr, "vox_turn_ghost", "VoxTurnGhost", tex, off, TURN_STEP_FADE_SEC)
+
+
+static func _spawn_fade_sprite(
+	spr: AnimatedSprite2D,
+	meta_key: String,
+	node_name: String,
+	tex: Texture2D,
+	offset: Vector2,
+	duration: float
+) -> void:
+	var parent := spr.get_parent()
+	if parent == null:
+		return
 	var fade: Sprite2D = null
-	if spr.has_meta("vox_fade_spr"):
-		fade = spr.get_meta("vox_fade_spr") as Sprite2D
+	if spr.has_meta(meta_key):
+		fade = spr.get_meta(meta_key) as Sprite2D
 	if fade == null or not is_instance_valid(fade):
 		fade = Sprite2D.new()
-		fade.name = "VoxFacingFade"
+		fade.name = node_name
 		fade.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		fade.centered = false
 		parent.add_child(fade)
-		spr.set_meta("vox_fade_spr", fade)
+		spr.set_meta(meta_key, fade)
 	fade.z_index = spr.z_index
 	fade.position = spr.position
-	fade.offset = spr.offset
+	fade.offset = offset
 	fade.scale = spr.scale
 	fade.texture = tex
 	fade.visible = true
 	fade.modulate = Color(1, 1, 1, 1)
-	## Draw fade under the live sprite for the blend window.
 	if fade.get_index() > spr.get_index():
 		parent.move_child(fade, spr.get_index())
 	var tw := spr.create_tween()
-	tw.tween_property(fade, "modulate:a", 0.0, FACING_FADE_SEC)
+	tw.tween_property(fade, "modulate:a", 0.0, duration)
 	tw.tween_callback(func() -> void:
 		if is_instance_valid(fade):
 			fade.visible = false
@@ -200,39 +253,103 @@ static func _sprite_frames(id: String) -> SpriteFrames:
 		frames.remove_animation("default")
 	var n_face := facing_count()
 	var ch: Dictionary = _anim_manifest().get("characters", {}).get(id, {})
+	## Collect raw textures first, then pack into one atlas (fewer GPU binds).
+	var slots: Array = [] ## {anim_name, fps, loop, textures: Array}
 	if ch.is_empty():
 		for k in range(n_face):
 			var anim_name := "idle_%d" % k
-			frames.add_animation(anim_name)
-			frames.set_animation_speed(anim_name, 1.0)
-			frames.set_animation_loop(anim_name, true)
-			var tex: Texture2D = texture(id, k)
-			frames.add_frame(anim_name, tex)
-		_frames_cache[id] = frames
-		return frames
-	for anim in ch.keys():
-		var spec: Dictionary = ch[anim]
-		var n: int = int(spec.get("frames", 1))
-		var fps: float = float(spec.get("fps", 8))
-		for facing in range(n_face):
-			var anim_name := "%s_%d" % [anim, facing]
-			frames.add_animation(anim_name)
-			frames.set_animation_speed(anim_name, fps)
-			frames.set_animation_loop(
-				anim_name,
-				anim in [
-					"walk", "run", "leave", "idle", "clean", "fight", "restock", "dash", "fly",
-					"walk_carry", "angry", "checkout", "cast", "deliver", "slip",
-				]
-			)
-			for fi in range(n):
-				var path := _DIR + _anim_tex_key(id, anim, facing, fi) + ".png"
-				if ResourceLoader.exists(path):
-					frames.add_frame(anim_name, load(path) as Texture2D)
-				elif fi == 0:
-					frames.add_frame(anim_name, texture(id, facing))
+			slots.append({
+				"anim_name": anim_name,
+				"fps": 1.0,
+				"loop": true,
+				"textures": [texture(id, k)],
+			})
+	else:
+		for anim in ch.keys():
+			var spec: Dictionary = ch[anim]
+			var n: int = int(spec.get("frames", 1))
+			var fps: float = float(spec.get("fps", 8))
+			var loop := anim in [
+				"walk", "run", "leave", "idle", "clean", "fight", "restock", "dash", "fly",
+				"walk_carry", "angry", "checkout", "cast", "deliver", "slip",
+			]
+			for facing in range(n_face):
+				var anim_name := "%s_%d" % [anim, facing]
+				var texes: Array = []
+				for fi in range(n):
+					var path := _DIR + _anim_tex_key(id, anim, facing, fi) + ".png"
+					if ResourceLoader.exists(path):
+						texes.append(load(path) as Texture2D)
+					elif fi == 0:
+						texes.append(texture(id, facing))
+				slots.append({"anim_name": anim_name, "fps": fps, "loop": loop, "textures": texes})
+	var packed: Dictionary = _pack_slot_atlas(slots)
+	for slot in slots:
+		var anim_name: String = slot["anim_name"]
+		frames.add_animation(anim_name)
+		frames.set_animation_speed(anim_name, float(slot["fps"]))
+		frames.set_animation_loop(anim_name, bool(slot["loop"]))
+		var texes: Array = packed.get(anim_name, slot["textures"])
+		for tex in texes:
+			if tex != null:
+				frames.add_frame(anim_name, tex as Texture2D)
 	_frames_cache[id] = frames
 	return frames
+
+
+## Pack every frame of a character into one ImageTexture; returns anim_name -> AtlasTexture[].
+static func _pack_slot_atlas(slots: Array) -> Dictionary:
+	var all_tex: Array = []
+	var index_of: Dictionary = {} ## anim_name -> Array[int] into all_tex
+	for slot in slots:
+		var anim_name: String = slot["anim_name"]
+		var idxs: Array = []
+		for tex in slot["textures"]:
+			idxs.append(all_tex.size())
+			all_tex.append(tex)
+		index_of[anim_name] = idxs
+	if all_tex.is_empty():
+		return {}
+	var cell_w := 1
+	var cell_h := 1
+	var images: Array = []
+	for tex in all_tex:
+		var img: Image = null
+		if tex is Texture2D:
+			img = (tex as Texture2D).get_image()
+		if img == null:
+			img = Image.create(1, 1, false, Image.FORMAT_RGBA8)
+		elif img.get_format() != Image.FORMAT_RGBA8:
+			img.convert(Image.FORMAT_RGBA8)
+		images.append(img)
+		cell_w = maxi(cell_w, img.get_width())
+		cell_h = maxi(cell_h, img.get_height())
+	var cols := int(ceil(sqrt(float(images.size()))))
+	cols = maxi(cols, 1)
+	var rows := int(ceil(float(images.size()) / float(cols)))
+	var atlas_img := Image.create(cols * cell_w, rows * cell_h, false, Image.FORMAT_RGBA8)
+	atlas_img.fill(Color(0, 0, 0, 0))
+	for i in range(images.size()):
+		var img: Image = images[i]
+		var cx := i % cols
+		var cy := int(i / cols)
+		var dx := cx * cell_w + ((cell_w - img.get_width()) >> 1)
+		var dy := cy * cell_h + ((cell_h - img.get_height()) >> 1)
+		atlas_img.blit_rect(img, Rect2i(0, 0, img.get_width(), img.get_height()), Vector2i(dx, dy))
+	var atlas_tex := ImageTexture.create_from_image(atlas_img)
+	var out: Dictionary = {}
+	for anim_name in index_of.keys():
+		var atlases: Array = []
+		for i in index_of[anim_name]:
+			var cx: int = int(i) % cols
+			var cy: int = int(int(i) / cols)
+			var at := AtlasTexture.new()
+			at.atlas = atlas_tex
+			at.region = Rect2(cx * cell_w, cy * cell_h, cell_w, cell_h)
+			at.filter_clip = true
+			atlases.append(at)
+		out[anim_name] = atlases
+	return out
 
 
 static func _apply_anchor(spr: AnimatedSprite2D, id: String, anim: String, facing: int, frame: int) -> void:

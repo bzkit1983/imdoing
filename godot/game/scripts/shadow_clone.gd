@@ -346,7 +346,7 @@ func vanish() -> void:
 	if host == null:
 		host = get_parent()
 	if host != null:
-		FxBurst.spawn(host, "spray", global_position)
+		FxBurst.spawn(host, "spray", global_position, 12.0, _facing)
 	SfxBus.play("sfx_skill_clone_vanish")
 	var p := get_parent()
 	if p != null:

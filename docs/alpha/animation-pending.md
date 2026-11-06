@@ -25,8 +25,10 @@
 | 項目 | 說明 |
 | --- | --- |
 | 角色八向烘焙 | `voxel_sprites`／`voxel_character_anims`；合約見 [`animation-facing-8way.md`](animation-facing-8way.md) |
-| 轉身短淡入 | `voxel_sprite.play_anim` 換向約 90ms |
+| 轉身短淡入 | `voxel_sprite.play_anim` 換向約 90ms；差 ≥2 向再疊中間向幽靈 |
 | 貨架 | 維持四向（`k_from_facing(..., 4)`） |
+| 特效 | `fx_burst` 可傳 facing（朝向＋拖影）；世界座標 |
+| 圖集 | 角色 SpriteFrames 執行期打包成單圖集 |
 
 ## 仍待設計師／之後版本
 

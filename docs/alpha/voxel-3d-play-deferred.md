@@ -25,14 +25,15 @@ Alpha V0.1 已寫明「不做 3D 鏡頭遊玩」。本文件把該凍結升成�
 4. 執行期合約：`{id}_{anim}_{facing}_{frame}.png`（角色 facing `0..7`；見 [`animation-facing-8way.md`](animation-facing-8way.md)）
 5. 轉身短淡入已在 `voxel_sprite.play_anim`（不必上立體相機）
 
-## 若日後產品拍板「立體店」
+## 若日後產品拍板「連續旋轉／立體店」
 
 獨立里程碑（勿與幀動作 PR 綁在一起）：
 
-1. 新場景：正交 `Camera3D`（或固定等距）
-2. 離線 bake `.vox` → `ArrayMesh`；道具優先 MultiMesh
-3. 角色動畫優先 **幀 mesh 切換／morph**，Skeleton3D 列最後手段
-4. 優先試「2D 模擬 + 3D 外觀」，再考慮整店 3D 物理
+1. **較輕：** 店面仍 2D；角色用 SubViewport／`vox_mesh` 正交渲，水平角跟面向連續插值（2D 模擬 + 3D 外觀）
+2. **整店：** 正交 `Camera3D`（或固定等距）
+3. 離線 bake `.vox` → `ArrayMesh`；道具優先 MultiMesh
+4. 角色動畫優先 **幀 mesh 切換／morph**，Skeleton3D 列最後手段
+5. 再考慮整店 3D 物理
 
 ## 明確禁止（在拍板前）
 
