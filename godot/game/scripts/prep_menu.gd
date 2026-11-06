@@ -952,7 +952,7 @@ func _configure_local_seats_for_day() -> bool:
 	## Web: always solo. Desktop: 1｜2; seat1 loads selected guest slot.
 	var seats := 1 if OS.has_feature("web") else clampi(_local_seats, 1, 2)
 	if seats < 2:
-		SeatTable.reset_solo()
+		SessionService.create_room(1)
 		return true
 	_ensure_guest_store()
 	if _guest_slot_index < 0 or _guest_store.is_empty(_guest_slot_index):
@@ -972,7 +972,7 @@ func _configure_local_seats_for_day() -> bool:
 	if guest == null:
 		_popup_info(Loc.t("prep.confirm.guest_need_title"), Loc.t("prep.confirm.guest_need_body"))
 		return false
-	SeatTable.configure_local(2, guest, _guest_slot_index)
+	SessionService.create_room(2, guest, _guest_slot_index)
 	return true
 
 

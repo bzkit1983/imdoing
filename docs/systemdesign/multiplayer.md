@@ -1,6 +1,6 @@
 # 多人連線設計報告（本機二＋線上補滿至四人）
 
-- **狀態：** 設計草案（尚未實作；非現行玩法規格）；§10 企劃項已於 2026-11-05 拍板
+- **狀態：** 設計草案；**M1 本機雙人已落地**（`SeatTable`／`InteractLock`／`SessionService`）；M2 RPC／NetTransport 尚未實作；§10 企劃項已於 2026-11-05 拍板
 - **範圍：** 本機合作、線上合作、以及兩者混合的同一 Session 模型；技術分層與平台差異
 - **產品錨點：** 活線 `godot/game`（Godot 4.7）；版控見 `docs/versioning.md`
 - **對照：** `docs/alpha/tech-review-v0.1.md`、`docs/systemdesign/ecosystem.md`、`docs/systemdesign/playerexport.md`、`docs/systemdesign/control.md`、`docs/systemdesign/savesystem.md`、`godot/game/scripts/platform_services.gd`

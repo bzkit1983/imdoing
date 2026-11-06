@@ -24,8 +24,7 @@
 
 | 優先 | 對象 | 缺什麼 | 說明 |
 | --- | --- | --- | --- |
-| P1 | 全角色 | 與 `art/src/*.vox` 外觀對齊 | 動畫姿仍來自程序模板，未讀設計師已改的靜態 `.vox` |
-| P1 | player | walk／run／dash／clean／fight MagicaVoxel 精修 | 現為程序肢體偏移；覆寫同名 PNG 即可 |
+| P1 | player 等 | MagicaVoxel 精修幀 | 靜態 `.vox` 已自動進動作烘焙；完整幀可放 `art/src/anim/` |
 | P2 | 工程 | SpriteFrames 圖集打包 | tech-review：比每幀 load 更省 |
 | P3 | 幫忙取貨／COMBO | 玩法規則＋正式交付姿 | Alpha 已有 `deliver` 姿插座；規則見 `docs/alpha/design.md` |
 | P3 | 命名對齊 plan | `walk_s_01` 目錄結構 | 現用 `{id}_{anim}_{facing}_{frame}`；可加轉檔 |
@@ -36,4 +35,4 @@
 - [x] 客人／小偷／店員移動播 walk；趕時間／慢客不同模型
 - [x] 清潔／打擊／收銀／滑倒／暈眩／施法切到對應姿
 - [x] 貨架填滿級、執貨／上架／收銀／時停等短特效
-- [ ] 設計師重雕 `.vox` 後自動從源檔抽肢體做動畫（未做；仍走程序模板）
+- [x] 設計師重雕 `.vox` 後動作烘焙讀取該源（肢體區偏移）；可選 `art/src/anim/` 完整幀覆寫

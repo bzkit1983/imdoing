@@ -12,6 +12,7 @@ const UiFont = preload("res://scripts/ui_font.gd")
 const FxBurst = preload("res://scripts/fx_burst.gd")
 const GlowScript = preload("res://scripts/interact_glow.gd")
 const SkuIcons = preload("res://scripts/sku_icons.gd")
+const InteractScan = preload("res://scripts/player/interact_scan.gd")
 
 signal stats_changed
 
@@ -1604,80 +1605,25 @@ func _regen(delta: float) -> void:
 	stamina = minf(stamina_max_now(), stamina + Tuning.STAMINA_REGEN_PER_SEC * delta)
 
 
+func _kind_of(node: Object) -> StringName:
+	return InteractScan.kind_of(node)
+
+
 ## Facing and range test. Returns distance, or -1 when this node is not a valid interact target.
 func _interact_dist(node: Node2D) -> float:
-	if node == null or not is_instance_valid(node):
-		return -1.0
-	var to_obj: Vector2 = node.global_position - global_position
-	var dist_sq := to_obj.length_squared()
-	if dist_sq > Tuning.INTERACT_RANGE_SQ or dist_sq < 0.000001:
-		return -1.0
-	var dist := sqrt(dist_sq)
-	var kind := String(node.get("kind"))
-	var dot := facing.dot(to_obj / dist)
-	if kind == "dirt" and _dirt_areas.has(node):
-		dot = 1.0
-	elif kind == "thief":
-		dot = maxf(dot, 0.85)
-	if kind == "cashier":
-		if global_position.y < node.global_position.y - 8.0:
-			return -1.0
-		dot = 1.0
-	elif dot < Tuning.FACE_DOT:
-		return -1.0
-	return dist
+	return InteractScan.interact_dist(self, node, facing, _dirt_areas)
 
 
 func _nearest_kind(kind: String) -> Node2D:
-	var best: Node2D = null
-	var best_d := 1000000.0
-	for node in interactables:
-		if node == null or not is_instance_valid(node):
-			continue
-		if String(node.get("kind")) != kind:
-			continue
-		var d := _interact_dist(node)
-		if d < 0.0 or d >= best_d:
-			continue
-		best_d = d
-		best = node
-	return best
+	return InteractScan.nearest_kind(self, interactables, kind, facing, _dirt_areas)
 
 
 func _nearest_active_thief() -> Node2D:
-	var best: Node2D = null
-	var best_d := 1000000.0
-	for node in interactables:
-		if node == null or not is_instance_valid(node):
-			continue
-		if String(node.get("kind")) != "thief":
-			continue
-		if not node.has_method("is_active_thief") or not bool(node.call("is_active_thief")):
-			continue
-		var d := _interact_dist(node)
-		if d < 0.0 or d >= best_d:
-			continue
-		best_d = d
-		best = node
-	return best
+	return InteractScan.nearest_active_thief(self, interactables, facing, _dirt_areas)
 
 
 func _nearest_stocked_shelf() -> Node2D:
-	var best: Node2D = null
-	var best_d := 1000000.0
-	for node in interactables:
-		if node == null or not is_instance_valid(node):
-			continue
-		if String(node.get("kind")) != "shelf":
-			continue
-		if int(node.get("count")) <= 0:
-			continue
-		var d := _interact_dist(node)
-		if d < 0.0 or d >= best_d:
-			continue
-		best_d = d
-		best = node
-	return best
+	return InteractScan.nearest_stocked_shelf(self, interactables, facing, _dirt_areas)
 
 
 func _store_open() -> bool:

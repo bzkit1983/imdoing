@@ -59,6 +59,7 @@ func set_cleaning(active: bool, axis: Vector2, meter: float, seat: int = -1) -> 
 		clean_seat = -1
 	_sync_clean_visual()
 	if _stick_draw:
+		_stick_draw.set_process(cleaning)
 		_stick_draw.queue_redraw()
 	return true
 
@@ -118,6 +119,7 @@ func _build() -> void:
 	## Above the dirt / character head so clean anims stay readable.
 	_stick_draw.position = Vector2(0, -patch_size.y * 0.5 - 88)
 	_stick_draw.z_index = 8
+	_stick_draw.set_process(false)
 	add_child(_stick_draw)
 	_stick_draw.host = self
 
@@ -136,6 +138,7 @@ class StickHint extends Node2D:
 	var host: Area2D
 
 	func _process(_delta: float) -> void:
+		## Only enabled while cleaning (see set_cleaning).
 		queue_redraw()
 
 	func _draw() -> void:

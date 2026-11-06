@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "facing": [
     "s",
     "e",
@@ -173,5 +173,14 @@
         "fps": 8
       }
     }
+  },
+  "sources": {
+    "player": "designer_vox",
+    "customer": "designer_vox",
+    "customer_hurry": "procedural",
+    "customer_slow": "procedural",
+    "thief": "designer_vox",
+    "clerk_cashier": "designer_vox",
+    "clerk_restock": "designer_vox"
   }
 }

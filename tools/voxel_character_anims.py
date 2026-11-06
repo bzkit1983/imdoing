@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
 """Bake Alpha character action sprites (pose × facing × frame).
 
-Does NOT overwrite designer .vox in art/src/. Poses are built procedurally from
-the shared 12×10×20 person template (same as voxel_blockout.person), then
-rendered with voxel_sprites.rotate/render.
+Does NOT overwrite designer .vox in art/src/.
+
+When `art/src/{id}.vox` exists, that MagicaVoxel model is the appearance source:
+limb/torso pose offsets are applied to its voxels (shared 12×10×20 regions).
+When missing, falls back to the procedural person template (voxel_blockout).
+
+Designer MagicaVoxel frame sequences can also override a whole anim by placing:
+  art/src/anim/{id}_{anim}_{facing}_{frame}.vox
+(those frames are rendered as-is; no procedural pose).
 
 Output:
   godot/game/art/sprites/{id}_{anim}_{facing}_{frame}.png
@@ -25,6 +31,8 @@ import voxel_blockout as vb  # noqa: E402
 import voxel_sprites as vs  # noqa: E402
 
 OUT = vs.OUT
+SRC = vs.SRC
+ANIM_SRC = SRC / "anim"
 MANIFEST_PATH = OUT / "anim_manifest.json"
 
 # Character kits: shirt, shirt_dark, hair, extras
@@ -194,6 +202,73 @@ def _clamp(v: int, lo: int, hi: int) -> int:
     return max(lo, min(hi, v))
 
 
+def _load_designer(char_id: str):
+    """Return (size, cells, palette) from art/src/{id}.vox, or None."""
+    path = SRC / f"{char_id}.vox"
+    if not path.exists():
+        return None
+    return vs.read_vox(path)
+
+
+def _mv_frame_path(char_id: str, anim: str, facing: int, frame: int) -> Path:
+    return ANIM_SRC / f"{char_id}_{anim}_{facing}_{frame}.vox"
+
+
+def _has_mv_anim(char_id: str, anim: str, frame_count: int) -> bool:
+    """True when every facing×frame MagicaVoxel override exists."""
+    for facing in range(4):
+        for fi in range(frame_count):
+            if not _mv_frame_path(char_id, anim, facing, fi).exists():
+                return False
+    return True
+
+
+def _apply_pose_to_vox(size, cells: dict, pose: dict | None):
+    """Shift designer voxels by shared limb regions (12×10×20 person layout).
+
+    Regions (MagicaVoxel: X right, Y forward, Z up):
+      leg L x3-5 z0-6 · leg R x7-9 z0-6
+      arm L x0-1 z7-11 · arm R x10-11 z7-11
+      torso/head: lean (+Y) and bob (+Z)
+    """
+    pose = pose or {}
+    leg_l_y = int(pose.get("leg_l_y", 0))
+    leg_r_y = int(pose.get("leg_r_y", 0))
+    arm_l_y = int(pose.get("arm_l_y", 0))
+    arm_r_y = int(pose.get("arm_r_y", 0))
+    arm_l_z = int(pose.get("arm_l_z", 0))
+    arm_r_z = int(pose.get("arm_r_z", 0))
+    lean = int(pose.get("lean", 0))
+    bob = int(pose.get("bob", 0))
+    if not any((leg_l_y, leg_r_y, arm_l_y, arm_r_y, arm_l_z, arm_r_z, lean, bob)):
+        return size, cells
+
+    sx, sy, sz = size
+    out_sy = sy + abs(lean) + 2
+    out_sz = sz + max(0, bob) + max(0, max(arm_l_z, arm_r_z))
+    moved: dict = {}
+
+    def put(x: int, y: int, z: int, index: int) -> None:
+        if 0 <= x < sx and 0 <= y < out_sy and 0 <= z < out_sz:
+            moved[(x, y, z)] = index
+
+    for (x, y, z), index in cells.items():
+        dy = lean if lean > 0 and z >= 7 else (lean if lean < 0 and z >= 7 else 0)
+        dz = bob
+        if 3 <= x <= 5 and z <= 6:
+            dy += leg_l_y
+        elif 7 <= x <= 9 and z <= 6:
+            dy += leg_r_y
+        elif x <= 1 and 7 <= z <= 11:
+            dy += arm_l_y
+            dz += arm_l_z
+        elif x >= 10 and 7 <= z <= 11:
+            dy += arm_r_y
+            dz += arm_r_z
+        put(x, y + dy, z + dz, index)
+    return (sx, out_sy, out_sz), moved
+
+
 def person_posed(
     shirt: str,
     shirt_dark: str,
@@ -295,6 +370,18 @@ def _palette_list():
     return [rgb for _name, rgb in vb.PALETTE]
 
 
+def _write_frame(anchors: dict, name: str, size, cells, palette) -> None:
+    width, height, image = vs.render(size, cells, palette)
+    vs.save_png(OUT / f"{name}.png", width, height, image)
+    sx, sy, sz = size
+    anchors[name] = {
+        "ax": sx * vs.PX / 2,
+        "ay": sz * vs.PX + sy * vs.PX / 2,
+        "fw": sx * vs.PX,
+        "fh": sy * vs.PX,
+    }
+
+
 def bake() -> dict:
     OUT.mkdir(parents=True, exist_ok=True)
     # Keep existing anchors from static bake; merge anim keys.
@@ -304,15 +391,24 @@ def bake() -> dict:
     else:
         anchors = {"px": vs.PX, "tile_px": 16 * vs.PX}
 
-    palette = _palette_list()
-    # Pad to 256 like MagicaVoxel
-    while len(palette) < 256:
-        palette.append((0, 0, 0))
+    blockout_pal = [(0, 0, 0)] * 256
+    for i, (_n, rgb) in enumerate(vb.PALETTE):
+        blockout_pal[i] = rgb
 
-    manifest: dict = {"version": 1, "facing": ["s", "e", "n", "w"], "characters": {}}
+    manifest: dict = {
+        "version": 2,
+        "facing": ["s", "e", "n", "w"],
+        "characters": {},
+        "sources": {},
+    }
     written = 0
 
     for char_id, kit in CHARS.items():
+        designer = _load_designer(char_id)
+        source = "procedural"
+        if designer is not None:
+            source = "designer_vox"
+        manifest["sources"][char_id] = source
         char_anims: dict = {}
         for anim, spec in ANIMS.items():
             if char_id not in _chars_for(spec):
@@ -320,27 +416,29 @@ def bake() -> dict:
             frames = spec["frames"]
             fps = int(spec["fps"])
             char_anims[anim] = {"frames": len(frames), "fps": fps}
+            use_mv = _has_mv_anim(char_id, anim, len(frames))
+            if use_mv:
+                char_anims[anim]["source"] = "magica_frames"
+                for fi in range(len(frames)):
+                    for facing in range(4):
+                        size, cells, pal = vs.read_vox(_mv_frame_path(char_id, anim, facing, fi))
+                        name = f"{char_id}_{anim}_{facing}_{fi}"
+                        _write_frame(anchors, name, size, cells, pal)
+                        written += 1
+                continue
             for fi, pose in enumerate(frames):
-                model = person_posed(**kit, pose=pose)
-                # Convert Model cells (color names → indices already in model.cells)
-                size = model.size
-                cells = model.cells
-                # Build palette array indexed by color index (1-based in cells)
-                pal = [(0, 0, 0)] * 256
-                for i, (_n, rgb) in enumerate(vb.PALETTE):
-                    pal[i] = rgb  # voxel_sprites.render uses palette[index-1]
+                if designer is not None:
+                    size, cells = _apply_pose_to_vox(designer[0], designer[1], pose)
+                    pal = designer[2]
+                else:
+                    model = person_posed(**kit, pose=pose)
+                    size = model.size
+                    cells = model.cells
+                    pal = blockout_pal
                 for facing in range(4):
                     rsize, rcells = vs.rotate(size, cells, facing)
-                    width, height, image = vs.render(rsize, rcells, pal)
                     name = f"{char_id}_{anim}_{facing}_{fi}"
-                    vs.save_png(OUT / f"{name}.png", width, height, image)
-                    sx, sy, sz = rsize
-                    anchors[name] = {
-                        "ax": sx * vs.PX / 2,
-                        "ay": sz * vs.PX + sy * vs.PX / 2,
-                        "fw": sx * vs.PX,
-                        "fh": sy * vs.PX,
-                    }
+                    _write_frame(anchors, name, rsize, rcells, pal)
                     written += 1
         manifest["characters"][char_id] = char_anims
 
@@ -348,6 +446,8 @@ def bake() -> dict:
     MANIFEST_PATH.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     print(f"wrote {written} anim sprites → {OUT}")
     print(f"manifest → {MANIFEST_PATH}")
+    for cid, src in manifest["sources"].items():
+        print(f"  {cid}: {src}")
     return manifest
 
 

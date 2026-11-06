@@ -1,5 +1,6 @@
-extends Node2D
+extends "res://scripts/host/game_host.gd"
 ## Living v1 line (from Alpha v0.1): Demo v0.6 shop loop with voxel sprites.
+## Extends GameHost — stable surface for player/customer/HUD/Session.
 
 const Tuning = preload("res://scripts/tuning.gd")
 const Skills = preload("res://scripts/skills.gd")
@@ -24,11 +25,11 @@ const UiFont = preload("res://scripts/ui_font.gd")
 const Vox = preload("res://scripts/voxel_sprite.gd")
 const FloorTilesScript = preload("res://scripts/floor_tiles.gd")
 const ProductVersion = preload("res://scripts/product_version.gd")
+const DaySettle = preload("res://scripts/host/day_settle.gd")
 
 var FLOOR_SIZE := Vector2(640, 640)
 var FLOOR_ORIGIN := Vector2(48, 36)
 
-var phase: String = "prep"
 var _sfx_phase: String = "prep"
 var state: StateScript
 var cleaned: int = 0
@@ -49,7 +50,6 @@ var cashiers: Array[Node2D] = []
 ## SKU id → Array of stocked shelves (maintained via shelf.stock_sku_changed).
 var _shelves_by_sku: Dictionary = {}
 var real_time: float = 0.0
-var game_hours: float = Tuning.GAME_START_HOUR
 var revenue: int = 0
 var served: int = 0
 var elite_served: int = 0
@@ -148,6 +148,8 @@ func _begin_day() -> void:
 	_settled = false
 	_closeout_ready_msec = 0
 	real_time = 0.0
+	game_hours = Tuning.GAME_START_HOUR
+	hud_rev = 0
 	phase = "restock"
 	var ComboState = preload("res://scripts/session/combo_state.gd")
 	_combo = ComboState.new()
@@ -330,12 +332,14 @@ func combo_note_qualify(seat: int) -> void:
 	if _combo == null:
 		return
 	_combo.note_qualify(seat)
+	bump_hud()
 
 
 func combo_break_personal(seat: int) -> void:
 	if _combo == null:
 		return
 	_combo.note_break_personal(seat)
+	bump_hud()
 
 
 func combo_personal(seat: int) -> int:
@@ -1039,7 +1043,7 @@ func _return_to_prep() -> void:
 		return
 	phase = "prep"
 	clear_elite_test()
-	SeatTable.reset_solo()
+	SessionService.close()
 	_clear_world()
 	_prep.visible = true
 	_prep.set_process_unhandled_input(true)
@@ -1426,17 +1430,21 @@ func _process(delta: float) -> void:
 	_maintain_coop_camera()
 	_soft_push_players(delta)
 	real_time += world_delta(delta)
-	if real_time < Tuning.RESTOCK_REAL_SEC:
-		phase = "restock"
-		var t := real_time / Tuning.RESTOCK_REAL_SEC
-		game_hours = lerpf(Tuning.GAME_START_HOUR, Tuning.OPEN_HOUR, t)
-	elif real_time < Tuning.RESTOCK_REAL_SEC + Tuning.OPEN_REAL_SEC:
-		if _sfx_phase != "open":
+	var prev_phase := phase
+	var tick: Dictionary = DayPhase.advance(real_time)
+	phase = String(tick["phase"])
+	game_hours = float(tick["game_hours"])
+	if bool(tick["finished"]):
+		clear_guest_dusk()
+		if phase != prev_phase:
+			bump_hud()
+			host_phase_changed.emit(phase)
+		_finish_day()
+		return
+	if phase == "open":
+		if bool(tick["open_sfx"]) and _sfx_phase != "open":
 			_sfx_phase = "open"
 			SfxBus.play("sfx_phase_open")
-		phase = "open"
-		var t := (real_time - Tuning.RESTOCK_REAL_SEC) / Tuning.OPEN_REAL_SEC
-		game_hours = lerpf(Tuning.OPEN_HOUR, Tuning.CLOSE_HOUR, t)
 		if _consider_early_close():
 			return
 		_tick_guest_dusk(delta)
@@ -1448,12 +1456,9 @@ func _process(delta: float) -> void:
 		if _thief_spawn_in <= 0.0:
 			_spawn_thief()
 			_thief_spawn_in = state.thief_spawn_sec()
-	else:
-		clear_guest_dusk()
-		phase = "closed"
-		game_hours = Tuning.CLOSE_HOUR
-		_finish_day()
-		return
+	if phase != prev_phase:
+		bump_hud()
+		host_phase_changed.emit(phase)
 	_dirt_spawn_in -= world_delta(delta)
 	if _dirt_spawn_in <= 0.0:
 		_try_spawn_dirt()
@@ -1629,6 +1634,7 @@ func register_customer(c: Node) -> void:
 		_recount_active_thieves()
 	else:
 		_guest_n += 1
+		bump_hud()
 	if not c.tree_exiting.is_connected(_on_customer_exiting):
 		c.tree_exiting.connect(_on_customer_exiting.bind(c))
 
@@ -1641,6 +1647,7 @@ func note_customer_occupy_changed(c: Node, occupies: bool) -> void:
 		_guest_n += 1
 	else:
 		_guest_n = maxi(0, _guest_n - 1)
+	bump_hud()
 
 
 func note_thief_active_changed() -> void:
@@ -1657,6 +1664,7 @@ func _on_customer_exiting(c: Node) -> void:
 		## If still counted as occupying when freed, drop one.
 		if c.has_method("occupies_store") and bool(c.call("occupies_store")):
 			_guest_n = maxi(0, _guest_n - 1)
+			bump_hud()
 
 
 func _recount_active_thieves() -> void:
@@ -1664,7 +1672,9 @@ func _recount_active_thieves() -> void:
 	for c in _thieves:
 		if c != null and is_instance_valid(c) and c.has_method("is_active_thief") and bool(c.call("is_active_thief")):
 			n += 1
-	_active_thief_n = n
+	if n != _active_thief_n:
+		_active_thief_n = n
+		bump_hud()
 
 
 func record_stolen(items: Array) -> void:
@@ -1672,27 +1682,13 @@ func record_stolen(items: Array) -> void:
 		stolen_count += 1
 		stolen_value += Tuning.sku_price(String(sku))
 	thieves_escaped += 1
+	bump_hud()
 
 
 func record_caught(seat: int = 0) -> void:
 	thieves_caught += 1
 	_seat_bump(seat_caught, seat, 1)
-
-
-func clock_text() -> String:
-	var h := int(floor(game_hours)) % 24
-	var m := int(floor((game_hours - floorf(game_hours)) * 60.0))
-	return "%02d:%02d" % [h, m]
-
-
-func phase_text() -> String:
-	match phase:
-		"restock":
-			return "補貨時段  06:00–08:00  無客人"
-		"open":
-			return "營運時段  08:00–22:00"
-		_:
-			return "關店結算"
+	bump_hud()
 
 
 func _on_paid(amount: int, from_elite: bool = false, seat: int = 0) -> void:
@@ -1702,6 +1698,7 @@ func _on_paid(amount: int, from_elite: bool = false, seat: int = 0) -> void:
 	if from_elite:
 		elite_served += 1
 		_seat_bump(seat_elite, seat, 1)
+	bump_hud()
 	if _player != null:
 		var FxBurst = preload("res://scripts/fx_burst.gd")
 		var at: Vector2 = _player.global_position + Vector2(0, -28)
@@ -1732,37 +1729,16 @@ func _finish_day() -> void:
 	## Unsold shelf + floor (+ in-flight) pieces → warehouse boxes before save.
 	_return_unsold_to_warehouse()
 	var seat_n := maxi(1, SeatTable.seat_count)
-	var raw_sum := 0
-	var raws: Array[int] = []
-	for s in seat_n:
-		var bonus := _skip_xp if s == 0 else 0
-		var raw := StateScript.raw_xp_for_counts(
-			_seat_get(seat_served, s),
-			_seat_get(seat_caught, s),
-			_seat_get(seat_cleaned, s),
-			_seat_get(seat_elite, s),
-			bonus,
-		)
-		raws.append(raw)
-		raw_sum += raw
-	var shared_xp := int(raw_sum / seat_n)
+	var xp_pack: Dictionary = DaySettle.shared_xp_for_seats(
+		seat_served, seat_caught, seat_cleaned, seat_elite, seat_n, _skip_xp
+	)
+	var shared_xp: int = int(xp_pack["shared_xp"])
 	var result: Dictionary = state.settle(
 		revenue, served, thieves_caught, cleaned, _skip_xp, elite_served, shared_xp
 	)
-	var guest_xp_line := ""
-	var guest_ups := 0
-	if SeatTable.is_coop() and SeatTable.guest_stats != null:
-		var guest_res: Dictionary = SeatTable.guest_stats.apply_xp_gain(shared_xp)
-		guest_ups = int(guest_res.get("ups", 0))
-		var gnote := String(guest_res.get("note", ""))
-		guest_xp_line = "\n訪客經驗 +%d　%s" % [shared_xp, gnote]
-		if SeatTable.guest_slot_index >= 0:
-			var GuestSlots = preload("res://scripts/session/guest_slots.gd")
-			var store = GuestSlots.create()
-			store.set_sheet(SeatTable.guest_slot_index, SeatTable.guest_stats)
-			var gerr: String = store.save_to_disk()
-			if gerr != "":
-				guest_xp_line += "（訪客存檔失敗：" + gerr + "）"
+	var guest_pack: Dictionary = DaySettle.persist_guest_xp(shared_xp)
+	var guest_xp_line: String = String(guest_pack["guest_xp_line"])
+	var guest_ups: int = int(guest_pack["guest_ups"])
 	if int(result.get("ups", 0)) > 0 or guest_ups > 0:
 		SfxBus.play("sfx_ui_level_up")
 	var save_err := state.save_to_disk()
@@ -1781,11 +1757,11 @@ func _finish_day() -> void:
 			xp_line = "平分經驗 +%d%s　店主 %s%s" % [
 				shared_xp, bonus, state.level_note, guest_xp_line
 			]
-		_hud._close_text.text = "%s　%s\n營業額 $%d　入帳後資金 $%d\n進貨成本 $%d\n成功收銀 %d　生氣離開 %d\n被偷 %d 件 $%d　抓住 %d／逃走 %d\n%s\n%s\n按 J／A 返回準備" % [
+		_hud._close_text.text = DaySettle.closeout_body(
 			head, loss, revenue, state.money, int(result["spent"]), served, angry_left,
 			stolen_count, stolen_value, thieves_caught, thieves_escaped,
 			xp_line, save_line
-		]
+		)
 
 
 func _seat_get(arr: Array, seat: int) -> int:

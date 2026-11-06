@@ -16,6 +16,9 @@ var _font_debounce: float = 0.0
 var _font_pending: bool = false
 var _skills_cd_fp: String = ""
 var _skills_cd_txt: String = ""
+## Skip rebuilding store/role when game hud_rev + clock bucket + skill fp unchanged.
+var _left_hud_rev: int = -1
+var _left_hour_bucket: int = -1
 ## Per-seat right panes: {player, title, state, stamina, carry, icons, target, progress, icons_fp}.
 var _panes: Array = []
 
@@ -364,6 +367,14 @@ func _sync_left() -> void:
 	if game == null or player == null:
 		return
 	var hours := float(game.game_hours)
+	## ~1 game-minute buckets so the clock label still ticks without full rebuild spam.
+	var hour_bucket := int(floor(hours * 60.0))
+	var rev := int(game.get("hud_rev")) if game.get("hud_rev") != null else 0
+	var skills_txt := _skill_cd_text_all()
+	if rev == _left_hud_rev and hour_bucket == _left_hour_bucket and skills_txt == _skills.text:
+		return
+	_left_hud_rev = rev
+	_left_hour_bucket = hour_bucket
 	var time_txt: String = game.clock_text()
 	var phase_txt: String = game.phase_text()
 	var rev_n := int(game.revenue)
@@ -372,13 +383,12 @@ func _sync_left() -> void:
 	var thieves_n := int(game.call("thief_count"))
 	var store_txt := String(player.call("store_status_text"))
 	var role_txt := _role_status_all()
-	var skills_txt := _skill_cd_text_all()
 	var p1 := int(game.call("combo_personal", 0)) if game.has_method("combo_personal") else 0
 	var p2 := int(game.call("combo_personal", 1)) if game.has_method("combo_personal") else 0
 	var team := int(game.call("combo_team")) if game.has_method("combo_team") else 0
-	var fp := "%s|%s|%d|%d|%d|%d|%s|%s|%s|%d|%d|%d|%.2f" % [
+	var fp := "%s|%s|%d|%d|%d|%d|%s|%s|%s|%d|%d|%d|%d|%d" % [
 		time_txt, phase_txt, rev_n, stolen_n, guests_n, thieves_n,
-		store_txt, role_txt, skills_txt, p1, p2, team, snappedf(hours, 0.01),
+		store_txt, role_txt, skills_txt, p1, p2, team, rev, hour_bucket,
 	]
 	if fp == _left_fp:
 		return

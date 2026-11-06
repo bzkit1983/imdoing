@@ -4,15 +4,18 @@ extends RefCounted
 const CELL := 20.0
 const PAD := 10.0
 ## Shared per-frame A* budget (customers + clerks). Excess callers reuse last path / wait.
-const BUDGET_PER_FRAME := 3
-## Soft cap on cell-pair path cache entries (cleared on setup).
-const CACHE_MAX := 64
+const BUDGET_PER_FRAME := 5
+## Soft cap on cell-pair path cache entries (LRU eviction).
+const CACHE_MAX := 96
 
 var grid := AStarGrid2D.new()
 var origin := Vector2.ZERO
 var _budget_frame: int = -1
 var _budget_left: int = BUDGET_PER_FRAME
+## key -> PackedVector2Array
 var _path_cache: Dictionary = {}
+## Insertion-ordered keys for LRU (oldest at front).
+var _cache_order: Array[int] = []
 
 
 func setup(floor_origin: Vector2, floor_size: Vector2, obstacles: Array[Rect2]) -> void:
@@ -30,6 +33,7 @@ func setup(floor_origin: Vector2, floor_size: Vector2, obstacles: Array[Rect2]) 
 	for r in obstacles:
 		_mark_rect(r.grow(PAD))
 	_path_cache.clear()
+	_cache_order.clear()
 	_budget_frame = -1
 	_budget_left = BUDGET_PER_FRAME
 
@@ -65,14 +69,32 @@ func find_path(from: Vector2, to: Vector2) -> PackedVector2Array:
 		return PackedVector2Array([to])
 	var key := _cache_key(a, b)
 	if _path_cache.has(key):
+		_touch_cache(key)
 		return _path_cache[key]
 	var pts := grid.get_point_path(a, b)
 	if pts.is_empty():
 		pts = PackedVector2Array([to])
-	if _path_cache.size() >= CACHE_MAX:
-		_path_cache.clear()
-	_path_cache[key] = pts
+	_store_cache(key, pts)
 	return pts
+
+
+func _touch_cache(key: int) -> void:
+	var idx := _cache_order.find(key)
+	if idx >= 0:
+		_cache_order.remove_at(idx)
+	_cache_order.append(key)
+
+
+func _store_cache(key: int, pts: PackedVector2Array) -> void:
+	if _path_cache.has(key):
+		_path_cache[key] = pts
+		_touch_cache(key)
+		return
+	while _path_cache.size() >= CACHE_MAX and not _cache_order.is_empty():
+		var old: int = _cache_order.pop_front()
+		_path_cache.erase(old)
+	_path_cache[key] = pts
+	_cache_order.append(key)
 
 
 func _cache_key(a: Vector2i, b: Vector2i) -> int:
