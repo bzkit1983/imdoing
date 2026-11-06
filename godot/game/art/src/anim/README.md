@@ -10,15 +10,17 @@
 
 - `id`：與 `art/src/{id}.vox` 相同（如 `player`、`customer`）
 - `anim`：與執行期一致（`idle`、`walk`、`run`、`dash`、`clean`、`fight`…）
-- `facing`：`0` 南 · `1` 東 · `2` 北 · `3` 西
+- `facing`（八向）：`0` 南 · `1` 東南 · `2` 東 · `3` 東北 · `4` 北 · `5` 西北 · `6` 西 · `7` 西南  
+  - **完整八向：** `0..7` × 每幀都齊 → 原樣烘焙  
+  - **舊四向包：** 僅 `0..3`（南／東／北／西）齊亦可；對應輸出偶數向，斜向由烘焙自動轉 45°  
 - `frame`：從 `0` 起，張數須與 `tools/voxel_character_anims.py` 裡該 anim 的 frames 數相同
 
-某一角色某一 anim **四向×每幀** 檔都齊，烘焙才會走 MagicaVoxel 幀路徑；缺一幀則整段 anim 退回設計師靜態 `.vox`＋肢體偏移（或程序模板）。
+缺檔則該 anim 退回設計師靜態 `.vox`＋肢體偏移（或程序模板），再做八向旋轉。詳見 `docs/alpha/animation-facing-8way.md`。
 
 ## 烘焙
 
 ```bash
-python3 tools/voxel_sprites.py          # 靜態物件／角色四向
+python3 tools/voxel_sprites.py          # 角色靜態八向；傢俬四向
 python3 tools/voxel_character_anims.py  # 動作幀（讀 src + 本目錄）
 ```
 

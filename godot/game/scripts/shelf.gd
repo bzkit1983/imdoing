@@ -149,7 +149,7 @@ func _refresh() -> void:
 	var level := fill_level()
 	if body is Sprite2D and level != _fill_level:
 		_fill_level = level
-		var k := Vox.k_from_facing(facing)
+		var k := Vox.k_from_facing(facing, 4)
 		var fill_id := "%s_fill_%d" % [_shelf_model_base(), level]
 		var path := "res://art/sprites/%s_%d.png" % [fill_id, k]
 		if ResourceLoader.exists(path):
