@@ -3973,18 +3973,21 @@ func _visual_anim() -> String:
 
 func _update_visuals() -> void:
 	if _arrow:
-		_arrow.rotation = facing.angle() + PI / 2.0
+		## Tip is authored toward +Y (south); rotate so tip matches facing.
+		_arrow.rotation = facing.angle() - PI / 2.0
 	if _body == null:
 		return
 	var anim := _visual_anim()
-	var anim_key := "%s_%d_%.2f" % [anim, Vox.k_from_facing(facing), 1.25 if _running else 1.0]
+	var prev_face := int(_body.get_meta("vox_anim_facing", -1)) if _body is AnimatedSprite2D else -1
+	var face_k := Vox.k_from_facing_stable(facing, prev_face) if _body is AnimatedSprite2D else Vox.k_from_facing(facing)
+	var anim_key := "%s_%d_%.2f" % [anim, face_k, 1.25 if _running else 1.0]
 	if _body is AnimatedSprite2D:
 		if anim_key != _shown_anim:
 			_shown_anim = anim_key
 			var spd := 1.25 if _running else 1.0
 			Vox.play_anim(_body as AnimatedSprite2D, "player", anim, facing, spd)
 	elif _body is Sprite2D:
-		Vox.apply(_body as Sprite2D, "player", Vox.k_from_facing(facing))
+		Vox.apply(_body as Sprite2D, "player", face_k)
 	var status := Color.WHITE
 	if ult_prep:
 		status = Color(1.0, 0.45, 0.4)

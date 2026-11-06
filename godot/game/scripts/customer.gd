@@ -1772,7 +1772,8 @@ func _sync_labels() -> void:
 			_shown_tint = tint
 			_body.modulate = tint
 		var face_v := velocity if velocity.length() > 8.0 else Vector2.DOWN
-		var facing := Vox.k_from_facing(face_v)
+		var prev_k := int(_body.get_meta("vox_anim_facing", _shown_facing)) if _body is AnimatedSprite2D else _shown_facing
+		var facing := Vox.k_from_facing_stable(face_v, prev_k) if _body is AnimatedSprite2D else Vox.k_from_facing(face_v)
 		var anim := _visual_anim()
 		var anim_key := "%s_%d" % [anim, facing]
 		if _body is AnimatedSprite2D:

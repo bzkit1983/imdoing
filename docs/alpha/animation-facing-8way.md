@@ -8,7 +8,7 @@
 | 項目 | 決定 |
 | --- | --- |
 | 角色面向 | **八向**（南、東南、東、東北、北、西北、西、西南） |
-| 轉身表現 | 換向時約 **90ms** 舊幀交叉淡出（`voxel_sprite.gd`） |
+| 轉身表現 | 八向帶滯後避免搖桿邊界閃向；**交叉淡入已關**（實測換向時殘影造成消失／錯向） |
 | 貨架／傢俬 | 維持 **四向**（放置旋轉仍是 90°） |
 | 十六向 | 本輪不做；八向驗證後再評估 |
 | 真 3D 店／連續水平角 | 仍見延後文件；不與本輪綁死 |
@@ -33,8 +33,9 @@
 ## 烘焙
 
 ```bash
-python3 tools/voxel_sprites.py          # 角色靜態八向；傢俬仍四向
+python3 tools/voxel_sprites.py          # 角色靜態八向；傢俬仍四向（合併寫入 anchors，不整檔覆寫）
 python3 tools/voxel_character_anims.py  # 動作 × 八向
+python3 tools/voxel_alpha_props.py      # 貨架 fill／污物／fx 錨點；須在靜態 bake 之後跑，或保留既有 keys
 ```
 
 斜向由同一 `.vox`／姿勢網格做 45° 水平旋轉後渲成 PNG（非手繪）。

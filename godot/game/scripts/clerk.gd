@@ -292,14 +292,19 @@ func _follow(pos: Vector2, delta: float) -> bool:
 
 
 func _sync_visual(anim: String, face: Vector2) -> void:
-	var key := "%s_%d" % [anim, Vox.k_from_facing(face)]
+	## Gate with the same stable k play_anim uses so hysteresis cannot skip updates.
+	var prev_k := -1
+	if _sprite is AnimatedSprite2D:
+		prev_k = int((_sprite as AnimatedSprite2D).get_meta("vox_anim_facing", -1))
+	var k := Vox.k_from_facing_stable(face, prev_k)
+	var key := "%s_%d" % [anim, k]
 	if key == _shown_anim:
 		return
 	_shown_anim = key
 	if _sprite is AnimatedSprite2D:
 		Vox.play_anim(_sprite as AnimatedSprite2D, _model_id, anim, face)
 	elif _sprite is Sprite2D:
-		Vox.apply(_sprite as Sprite2D, _model_id, Vox.k_from_facing(face))
+		Vox.apply(_sprite as Sprite2D, _model_id, k)
 
 
 func _clear_path() -> void:

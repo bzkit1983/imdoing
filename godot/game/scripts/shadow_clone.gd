@@ -419,14 +419,18 @@ func _follow(pos: Vector2, delta: float) -> bool:
 func _sync_visual(anim: String, face: Vector2) -> void:
 	if face.length_squared() > 0.01:
 		_facing = face
-	var key := "%s_%d" % [anim, Vox.k_from_facing(_facing)]
+	var prev_k := -1
+	if _sprite is AnimatedSprite2D:
+		prev_k = int((_sprite as AnimatedSprite2D).get_meta("vox_anim_facing", -1))
+	var k := Vox.k_from_facing_stable(_facing, prev_k)
+	var key := "%s_%d" % [anim, k]
 	if key == _shown_anim:
 		return
 	_shown_anim = key
 	if _sprite is AnimatedSprite2D:
 		Vox.play_anim(_sprite as AnimatedSprite2D, "player", anim, _facing)
 	elif _sprite is Sprite2D:
-		Vox.apply(_sprite as Sprite2D, "player", Vox.k_from_facing(_facing))
+		Vox.apply(_sprite as Sprite2D, "player", k)
 
 
 func _clear_path() -> void:

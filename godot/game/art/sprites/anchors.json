@@ -6492,5 +6492,491 @@
     "ay": 112.0,
     "fw": 40,
     "fh": 40
+  },
+  "shelf_dry_fill_0_0": {
+    "ax": 28.0,
+    "ay": 84.0,
+    "fw": 56,
+    "fh": 40
+  },
+  "shelf_dry_fill_0_1": {
+    "ax": 20.0,
+    "ay": 92.0,
+    "fw": 40,
+    "fh": 56
+  },
+  "shelf_dry_fill_0_2": {
+    "ax": 28.0,
+    "ay": 84.0,
+    "fw": 56,
+    "fh": 40
+  },
+  "shelf_dry_fill_0_3": {
+    "ax": 20.0,
+    "ay": 92.0,
+    "fw": 40,
+    "fh": 56
+  },
+  "shelf_dry_fill_1_0": {
+    "ax": 28.0,
+    "ay": 84.0,
+    "fw": 56,
+    "fh": 40
+  },
+  "shelf_dry_fill_1_1": {
+    "ax": 20.0,
+    "ay": 92.0,
+    "fw": 40,
+    "fh": 56
+  },
+  "shelf_dry_fill_1_2": {
+    "ax": 28.0,
+    "ay": 84.0,
+    "fw": 56,
+    "fh": 40
+  },
+  "shelf_dry_fill_1_3": {
+    "ax": 20.0,
+    "ay": 92.0,
+    "fw": 40,
+    "fh": 56
+  },
+  "shelf_dry_fill_2_0": {
+    "ax": 28.0,
+    "ay": 84.0,
+    "fw": 56,
+    "fh": 40
+  },
+  "shelf_dry_fill_2_1": {
+    "ax": 20.0,
+    "ay": 92.0,
+    "fw": 40,
+    "fh": 56
+  },
+  "shelf_dry_fill_2_2": {
+    "ax": 28.0,
+    "ay": 84.0,
+    "fw": 56,
+    "fh": 40
+  },
+  "shelf_dry_fill_2_3": {
+    "ax": 20.0,
+    "ay": 92.0,
+    "fw": 40,
+    "fh": 56
+  },
+  "shelf_dry_fill_3_0": {
+    "ax": 28.0,
+    "ay": 84.0,
+    "fw": 56,
+    "fh": 40
+  },
+  "shelf_dry_fill_3_1": {
+    "ax": 20.0,
+    "ay": 92.0,
+    "fw": 40,
+    "fh": 56
+  },
+  "shelf_dry_fill_3_2": {
+    "ax": 28.0,
+    "ay": 84.0,
+    "fw": 56,
+    "fh": 40
+  },
+  "shelf_dry_fill_3_3": {
+    "ax": 20.0,
+    "ay": 92.0,
+    "fw": 40,
+    "fh": 56
+  },
+  "shelf_frozen_fill_0_0": {
+    "ax": 28.0,
+    "ay": 84.0,
+    "fw": 56,
+    "fh": 40
+  },
+  "shelf_frozen_fill_0_1": {
+    "ax": 20.0,
+    "ay": 92.0,
+    "fw": 40,
+    "fh": 56
+  },
+  "shelf_frozen_fill_0_2": {
+    "ax": 28.0,
+    "ay": 84.0,
+    "fw": 56,
+    "fh": 40
+  },
+  "shelf_frozen_fill_0_3": {
+    "ax": 20.0,
+    "ay": 92.0,
+    "fw": 40,
+    "fh": 56
+  },
+  "shelf_frozen_fill_1_0": {
+    "ax": 28.0,
+    "ay": 84.0,
+    "fw": 56,
+    "fh": 40
+  },
+  "shelf_frozen_fill_1_1": {
+    "ax": 20.0,
+    "ay": 92.0,
+    "fw": 40,
+    "fh": 56
+  },
+  "shelf_frozen_fill_1_2": {
+    "ax": 28.0,
+    "ay": 84.0,
+    "fw": 56,
+    "fh": 40
+  },
+  "shelf_frozen_fill_1_3": {
+    "ax": 20.0,
+    "ay": 92.0,
+    "fw": 40,
+    "fh": 56
+  },
+  "shelf_frozen_fill_2_0": {
+    "ax": 28.0,
+    "ay": 84.0,
+    "fw": 56,
+    "fh": 40
+  },
+  "shelf_frozen_fill_2_1": {
+    "ax": 20.0,
+    "ay": 92.0,
+    "fw": 40,
+    "fh": 56
+  },
+  "shelf_frozen_fill_2_2": {
+    "ax": 28.0,
+    "ay": 84.0,
+    "fw": 56,
+    "fh": 40
+  },
+  "shelf_frozen_fill_2_3": {
+    "ax": 20.0,
+    "ay": 92.0,
+    "fw": 40,
+    "fh": 56
+  },
+  "shelf_frozen_fill_3_0": {
+    "ax": 28.0,
+    "ay": 84.0,
+    "fw": 56,
+    "fh": 40
+  },
+  "shelf_frozen_fill_3_1": {
+    "ax": 20.0,
+    "ay": 92.0,
+    "fw": 40,
+    "fh": 56
+  },
+  "shelf_frozen_fill_3_2": {
+    "ax": 28.0,
+    "ay": 84.0,
+    "fw": 56,
+    "fh": 40
+  },
+  "shelf_frozen_fill_3_3": {
+    "ax": 20.0,
+    "ay": 92.0,
+    "fw": 40,
+    "fh": 56
+  },
+  "shelf_ice_fill_0_0": {
+    "ax": 28.0,
+    "ay": 84.0,
+    "fw": 56,
+    "fh": 40
+  },
+  "shelf_ice_fill_0_1": {
+    "ax": 20.0,
+    "ay": 92.0,
+    "fw": 40,
+    "fh": 56
+  },
+  "shelf_ice_fill_0_2": {
+    "ax": 28.0,
+    "ay": 84.0,
+    "fw": 56,
+    "fh": 40
+  },
+  "shelf_ice_fill_0_3": {
+    "ax": 20.0,
+    "ay": 92.0,
+    "fw": 40,
+    "fh": 56
+  },
+  "shelf_ice_fill_1_0": {
+    "ax": 28.0,
+    "ay": 84.0,
+    "fw": 56,
+    "fh": 40
+  },
+  "shelf_ice_fill_1_1": {
+    "ax": 20.0,
+    "ay": 92.0,
+    "fw": 40,
+    "fh": 56
+  },
+  "shelf_ice_fill_1_2": {
+    "ax": 28.0,
+    "ay": 84.0,
+    "fw": 56,
+    "fh": 40
+  },
+  "shelf_ice_fill_1_3": {
+    "ax": 20.0,
+    "ay": 92.0,
+    "fw": 40,
+    "fh": 56
+  },
+  "shelf_ice_fill_2_0": {
+    "ax": 28.0,
+    "ay": 84.0,
+    "fw": 56,
+    "fh": 40
+  },
+  "shelf_ice_fill_2_1": {
+    "ax": 20.0,
+    "ay": 92.0,
+    "fw": 40,
+    "fh": 56
+  },
+  "shelf_ice_fill_2_2": {
+    "ax": 28.0,
+    "ay": 84.0,
+    "fw": 56,
+    "fh": 40
+  },
+  "shelf_ice_fill_2_3": {
+    "ax": 20.0,
+    "ay": 92.0,
+    "fw": 40,
+    "fh": 56
+  },
+  "shelf_ice_fill_3_0": {
+    "ax": 28.0,
+    "ay": 84.0,
+    "fw": 56,
+    "fh": 40
+  },
+  "shelf_ice_fill_3_1": {
+    "ax": 20.0,
+    "ay": 92.0,
+    "fw": 40,
+    "fh": 56
+  },
+  "shelf_ice_fill_3_2": {
+    "ax": 28.0,
+    "ay": 84.0,
+    "fw": 56,
+    "fh": 40
+  },
+  "shelf_ice_fill_3_3": {
+    "ax": 20.0,
+    "ay": 92.0,
+    "fw": 40,
+    "fh": 56
+  },
+  "trash_clean_0_0": {
+    "ax": 20.0,
+    "ay": 36.0,
+    "fw": 40,
+    "fh": 40
+  },
+  "trash_clean_1_0": {
+    "ax": 20.0,
+    "ay": 36.0,
+    "fw": 40,
+    "fh": 40
+  },
+  "trash_clean_2_0": {
+    "ax": 20.0,
+    "ay": 36.0,
+    "fw": 40,
+    "fh": 40
+  },
+  "puddle_clean_0_0": {
+    "ax": 20.0,
+    "ay": 36.0,
+    "fw": 40,
+    "fh": 40
+  },
+  "puddle_clean_1_0": {
+    "ax": 20.0,
+    "ay": 36.0,
+    "fw": 40,
+    "fh": 40
+  },
+  "puddle_clean_2_0": {
+    "ax": 20.0,
+    "ay": 36.0,
+    "fw": 40,
+    "fh": 40
+  },
+  "vomit_clean_0_0": {
+    "ax": 20.0,
+    "ay": 36.0,
+    "fw": 40,
+    "fh": 40
+  },
+  "vomit_clean_1_0": {
+    "ax": 20.0,
+    "ay": 36.0,
+    "fw": 40,
+    "fh": 40
+  },
+  "vomit_clean_2_0": {
+    "ax": 20.0,
+    "ay": 36.0,
+    "fw": 40,
+    "fh": 40
+  },
+  "fx_suck_0": {
+    "ax": 12,
+    "ay": 12,
+    "fw": 24,
+    "fh": 24
+  },
+  "fx_suck_1": {
+    "ax": 12,
+    "ay": 12,
+    "fw": 24,
+    "fh": 24
+  },
+  "fx_suck_2": {
+    "ax": 12,
+    "ay": 12,
+    "fw": 24,
+    "fh": 24
+  },
+  "fx_suck_3": {
+    "ax": 12,
+    "ay": 12,
+    "fw": 24,
+    "fh": 24
+  },
+  "fx_spray_0": {
+    "ax": 12,
+    "ay": 12,
+    "fw": 24,
+    "fh": 24
+  },
+  "fx_spray_1": {
+    "ax": 12,
+    "ay": 12,
+    "fw": 24,
+    "fh": 24
+  },
+  "fx_spray_2": {
+    "ax": 12,
+    "ay": 12,
+    "fw": 24,
+    "fh": 24
+  },
+  "fx_spray_3": {
+    "ax": 12,
+    "ay": 12,
+    "fw": 24,
+    "fh": 24
+  },
+  "fx_coin_0": {
+    "ax": 12,
+    "ay": 12,
+    "fw": 24,
+    "fh": 24
+  },
+  "fx_coin_1": {
+    "ax": 12,
+    "ay": 12,
+    "fw": 24,
+    "fh": 24
+  },
+  "fx_coin_2": {
+    "ax": 12,
+    "ay": 12,
+    "fw": 24,
+    "fh": 24
+  },
+  "fx_combo_0": {
+    "ax": 12,
+    "ay": 12,
+    "fw": 24,
+    "fh": 24
+  },
+  "fx_combo_1": {
+    "ax": 12,
+    "ay": 12,
+    "fw": 24,
+    "fh": 24
+  },
+  "fx_combo_2": {
+    "ax": 12,
+    "ay": 12,
+    "fw": 24,
+    "fh": 24
+  },
+  "fx_timestop_0": {
+    "ax": 12,
+    "ay": 12,
+    "fw": 24,
+    "fh": 24
+  },
+  "fx_timestop_1": {
+    "ax": 12,
+    "ay": 12,
+    "fw": 24,
+    "fh": 24
+  },
+  "fx_timestop_2": {
+    "ax": 12,
+    "ay": 12,
+    "fw": 24,
+    "fh": 24
+  },
+  "fx_timestop_3": {
+    "ax": 12,
+    "ay": 12,
+    "fw": 24,
+    "fh": 24
+  },
+  "fx_clean_spark_0": {
+    "ax": 12,
+    "ay": 12,
+    "fw": 24,
+    "fh": 24
+  },
+  "fx_clean_spark_1": {
+    "ax": 12,
+    "ay": 12,
+    "fw": 24,
+    "fh": 24
+  },
+  "fx_clean_spark_2": {
+    "ax": 12,
+    "ay": 12,
+    "fw": 24,
+    "fh": 24
+  },
+  "fx_skid_0": {
+    "ax": 12,
+    "ay": 12,
+    "fw": 24,
+    "fh": 24
+  },
+  "fx_skid_1": {
+    "ax": 12,
+    "ay": 12,
+    "fw": 24,
+    "fh": 24
+  },
+  "fx_skid_2": {
+    "ax": 12,
+    "ay": 12,
+    "fw": 24,
+    "fh": 24
   }
 }

@@ -186,7 +186,19 @@ def save_png(path, width, height, image):
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
-    anchors = {"px": PX, "tile_px": 16 * PX}
+    ## Merge — do not wipe shelf fill / dirt clean / fx keys from voxel_alpha_props.
+    anchors_path = OUT / "anchors.json"
+    if anchors_path.exists():
+        try:
+            anchors = json.loads(anchors_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            anchors = {}
+    else:
+        anchors = {}
+    if not isinstance(anchors, dict):
+        anchors = {}
+    anchors["px"] = PX
+    anchors["tile_px"] = 16 * PX
     for path in sorted(SRC.glob("*.vox")):
         size, cells, palette = read_vox(path)
         if path.stem in EIGHT_WAY:
@@ -208,7 +220,7 @@ def main():
                 "fh": sy * PX,
             }
         print(path.stem, "x".join(str(n) for n in size), f"facings={facings}")
-    (OUT / "anchors.json").write_text(json.dumps(anchors, indent=2) + "\n", encoding="utf-8")
+    anchors_path.write_text(json.dumps(anchors, indent=2) + "\n", encoding="utf-8")
     print(f"sprites {len(anchors) - 2}")
 
 
