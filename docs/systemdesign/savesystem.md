@@ -11,12 +11,13 @@
 - JSON 物件。頂層必有整數欄 **`version`**（與產品 SemVer tag 分開；目前實作 `SAVE_VERSION = 2`）
 - `version` 過新：拒絕載入並提示更新遊戲。之後升版時在此檔補 migration 規則
 
-## 訪客角色槽（本機雙人 M1；草案）
+## 訪客角色槽（本機雙人 M1）
 
-- 用途：本機 coop 的 P2 等**只含角色進度**的存檔（無店舖／資金／倉庫／擺放）。規則見 `multiplayer.md` §11.2。
-- 上限 **3** 槽。可從店主角色**複製**等級／能力／技能裝備（不複製店舖與資金）；外觀欄位預留。
-- 路徑／JSON shape：**實作時定**（例如 `user://guest_slots.json` 或主存檔內獨立陣列）。升 `SAVE_VERSION` 與否屆時再拍。
-- 日結：店主檔照常寫店資金；訪客槽只寫入該角色經驗等角色欄（平分公式見 multiplayer §11.7）。
+- 用途：本機 coop 的 P2 **只含角色進度**（無店舖／資金／倉庫／擺放）。規則見 `multiplayer.md` §11.2。
+- 路徑：`user://guest_slots.json`（經 `PlatformServices` `read`／`write`／`has`／`delete_guest_slots`；與店主 `SAVE_VERSION=2` 分開，不升主存檔版號）。
+- 上限 **3** 槽。可從店主**複製**等級／能力／技能／`tint`，或新建空白；準備頁可選 tint `0..3`。
+- JSON：`{ "version": 1, "slots": [ dict|{}, … ] }`；角色 dict 含 `xp`／`level`／`unspent`／`base_*`／`*_stat`／`slots`／`ult_id`／`skill_sets`／`flags`／`tint`／`display_name`（**無** money／stock／layout）。
+- 日結：店主檔寫資金＋平分後 XP；選中槽寫入訪客 XP（平分公式見 multiplayer §11.7）。清除主存檔時一併 `delete_guest_slots`。
 
 # 寫入時機
 

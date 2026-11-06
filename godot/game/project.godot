@@ -24,6 +24,8 @@ PlatformServices="*res://scripts/platform_services.gd"
 InputMode="*res://scripts/input_mode.gd"
 Loc="*res://scripts/loc.gd"
 SfxBus="*res://scripts/sfx_bus.gd"
+SeatTable="*res://scripts/session/seat_table.gd"
+InteractLock="*res://scripts/session/interact_lock.gd"
 
 [display]
 

@@ -97,6 +97,11 @@ var _dlg_wait: int = 0
 var _pending: Dictionary = {}
 var _swallow_click: bool = false
 var _confirm_latch: bool = false
+## M1 local coop seat claim for the next day (1 = solo, 2 = local duo). Web forced to 1.
+var _local_seats: int = 1
+## GuestSlots index for P2 when seats=2 (−1 = none yet).
+var _guest_slot_index: int = -1
+var _guest_store = null
 var _building: bool = false
 var _suppress_select: bool = false
 
@@ -714,6 +719,8 @@ func _activate() -> void:
 			_show_page("home")
 		"wipe_save":
 			state.delete_save()
+			_guest_store = null
+			_guest_slot_index = -1
 			_msg = "已清除存檔"
 			_show_page("scenario")
 		"go":
@@ -833,6 +840,54 @@ func _activate() -> void:
 				_popup_info("不能開店", "\n".join(blocks))
 		"elite_open":
 			_try_elite_open(int(arg))
+		"set_seats":
+			if OS.has_feature("web"):
+				_local_seats = 1
+				_guest_slot_index = -1
+			else:
+				_local_seats = clampi(int(arg), 1, 2)
+				if _local_seats < 2:
+					_guest_slot_index = -1
+				else:
+					_ensure_guest_store()
+					_auto_pick_guest_slot()
+			_refresh()
+		"pick_guest_slot":
+			_ensure_guest_store()
+			_guest_slot_index = clampi(int(arg), 0, 2)
+			_refresh()
+		"clone_guest_slot":
+			_ensure_guest_store()
+			var ci := clampi(int(arg), 0, 2)
+			_guest_store.clone_host_into(ci, state)
+			_guest_store.save_to_disk()
+			_guest_slot_index = ci
+			_msg = Loc.t("prep.confirm.guest_cloned", [ci + 1])
+			_refresh()
+		"blank_guest_slot":
+			_ensure_guest_store()
+			var bi := clampi(int(arg), 0, 2)
+			_guest_store.create_blank_at(bi)
+			_guest_store.save_to_disk()
+			_guest_slot_index = bi
+			_msg = Loc.t("prep.confirm.guest_blank", [bi + 1])
+			_refresh()
+		"cycle_guest_tint":
+			_ensure_guest_store()
+			if _guest_slot_index < 0 or _guest_store.is_empty(_guest_slot_index):
+				_refresh()
+				return
+			var sheet = _guest_store.get_sheet(_guest_slot_index)
+			if sheet == null:
+				_refresh()
+				return
+			sheet.tint = (int(sheet.tint) + 1) % 4
+			_guest_store.set_sheet(_guest_slot_index, sheet)
+			_guest_store.save_to_disk()
+			_refresh()
+		"cycle_host_tint":
+			state.tint = (int(state.tint) + 1) % 4
+			_refresh()
 		"open":
 			var open_msg := state.begin_day()
 			if open_msg != "":
@@ -841,6 +896,8 @@ func _activate() -> void:
 			var save_err := state.save_to_disk()
 			if save_err != "":
 				push_warning("prep end save failed: %s" % save_err)
+			if not _configure_local_seats_for_day():
+				return
 			visible = false
 			set_process_unhandled_input(false)
 			start_day.emit()
@@ -871,6 +928,52 @@ func _grant_test_money() -> void:
 	state.money += 1000
 	_msg = Loc.t("prep.home.test_money_ok", [state.money])
 	_refresh()
+
+
+func _ensure_guest_store() -> void:
+	if _guest_store != null:
+		return
+	var GuestSlots = load("res://scripts/session/guest_slots.gd")
+	_guest_store = GuestSlots.create()
+
+
+func _auto_pick_guest_slot() -> void:
+	_ensure_guest_store()
+	if _guest_slot_index >= 0 and not _guest_store.is_empty(_guest_slot_index):
+		return
+	for i in 3:
+		if not _guest_store.is_empty(i):
+			_guest_slot_index = i
+			return
+	_guest_slot_index = -1
+
+
+func _configure_local_seats_for_day() -> bool:
+	## Web: always solo. Desktop: 1｜2; seat1 loads selected guest slot.
+	var seats := 1 if OS.has_feature("web") else clampi(_local_seats, 1, 2)
+	if seats < 2:
+		SeatTable.reset_solo()
+		return true
+	_ensure_guest_store()
+	if _guest_slot_index < 0 or _guest_store.is_empty(_guest_slot_index):
+		## Prefer first empty for clone; else require UI pick.
+		var empty_i := -1
+		for i in 3:
+			if _guest_store.is_empty(i):
+				empty_i = i
+				break
+		if empty_i < 0:
+			_popup_info(Loc.t("prep.confirm.guest_need_title"), Loc.t("prep.confirm.guest_need_body"))
+			return false
+		_guest_store.clone_host_into(empty_i, state)
+		_guest_store.save_to_disk()
+		_guest_slot_index = empty_i
+	var guest = _guest_store.get_sheet(_guest_slot_index)
+	if guest == null:
+		_popup_info(Loc.t("prep.confirm.guest_need_title"), Loc.t("prep.confirm.guest_need_body"))
+		return false
+	SeatTable.configure_local(2, guest, _guest_slot_index)
+	return true
 
 
 func _try_elite_open(lv: int) -> void:

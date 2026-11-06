@@ -10,6 +10,8 @@ var patch_size: Vector2 = Tuning.DIRT_SIZE
 var clean_meter: float = 0.0
 var cleaning: bool = false
 var stick: Vector2 = Vector2.ZERO
+## Seat currently driving the clean UI (-1 = free). Blocks other seats from wiping it.
+var clean_seat: int = -1
 
 var _label: Label
 var _stick_draw: Node2D
@@ -38,13 +40,31 @@ func diss_per_sec() -> float:
 	return Tuning.dirt_dissat(dirt_type)
 
 
-func set_cleaning(active: bool, axis: Vector2, meter: float) -> void:
-	cleaning = active
-	stick = axis
-	clean_meter = clampf(meter, 0.0, 100.0)
+## `seat` owns the clean session. Other seats cannot start/clear while locked.
+func set_cleaning(active: bool, axis: Vector2, meter: float, seat: int = -1) -> bool:
+	if active:
+		if clean_seat >= 0 and seat >= 0 and clean_seat != seat:
+			return false
+		if seat >= 0:
+			clean_seat = seat
+		cleaning = true
+		stick = axis
+		clean_meter = clampf(meter, 0.0, 100.0)
+	else:
+		if clean_seat >= 0 and seat >= 0 and clean_seat != seat:
+			return false
+		cleaning = false
+		stick = Vector2.ZERO
+		clean_meter = clampf(meter, 0.0, 100.0)
+		clean_seat = -1
 	_sync_clean_visual()
 	if _stick_draw:
 		_stick_draw.queue_redraw()
+	return true
+
+
+func is_clean_locked_by_other(seat: int) -> bool:
+	return cleaning and clean_seat >= 0 and clean_seat != seat
 
 
 func _dirt_model() -> String:

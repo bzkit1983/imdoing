@@ -1,10 +1,11 @@
 extends Node2D
 
-## Hold-to-act ring. Drawn on a viewport-root CanvasLayer so y-sorted shelves
-## cannot cover it. The overlay is a Control with a real rect: a Node2D that
-## only custom-draws is culled on that layer, so the ring never appeared.
+## Hold-to-act ring. CanvasLayer child (same pattern as restock SKU list) so
+## y-sorted shelves cannot cover it. Overlay is a sized Control so the draw
+## is not culled. Screen position tracks the clerk via canvas transform.
 
-const OVERLAY_LAYER := 40
+const OVERLAY_LAYER := 128
+const RING_SIZE := Vector2(120, 120)
 
 var progress: float = 0.0
 var blocked: bool = false
@@ -18,15 +19,20 @@ class Overlay extends Control:
 
 	func _init() -> void:
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
-		size = Vector2(120, 120)
+		custom_minimum_size = RING_SIZE
+		size = RING_SIZE
 
 	func _process(_delta: float) -> void:
 		if host == null or not is_instance_valid(host):
 			return
+		## Keep a real rect — layout can clear size and cull draws.
+		custom_minimum_size = RING_SIZE
+		size = RING_SIZE
 		var show := float(host.get("progress")) > 0.0 or bool(host.get("blocked"))
 		visible = show
 		if not show:
 			return
+		## CanvasLayer without follow_viewport is screen-space; use local position.
 		var origin: Vector2 = host.get_global_transform_with_canvas().origin + Vector2(0, -78)
 		position = origin - size * 0.5
 		queue_redraw()
@@ -41,18 +47,13 @@ func _ready() -> void:
 	_layer = CanvasLayer.new()
 	_layer.name = "LoadingCircleLayer"
 	_layer.layer = OVERLAY_LAYER
+	## Child of the clerk (not viewport root) — matches working restock list overlays.
+	add_child(_layer)
 	_overlay = Overlay.new()
 	_overlay.name = "LoadingCircleOverlay"
 	_overlay.host = self
+	_overlay.visible = false
 	_layer.add_child(_overlay)
-	# Root may still be entering the tree when the player is spawned.
-	get_tree().root.add_child.call_deferred(_layer)
-
-
-func _exit_tree() -> void:
-	if _layer != null and is_instance_valid(_layer):
-		_layer.queue_free()
-		_layer = null
 
 
 func _draw_ring(canvas: CanvasItem, c: Vector2) -> void:

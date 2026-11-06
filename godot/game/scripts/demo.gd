@@ -32,6 +32,12 @@ var phase: String = "prep"
 var _sfx_phase: String = "prep"
 var state: StateScript
 var cleaned: int = 0
+## Per-seat day XP inputs (seat 0 = host). Summed then averaged at settle.
+var seat_cleaned: Array[int] = [0]
+var seat_served: Array[int] = [0]
+var seat_caught: Array[int] = [0]
+var seat_elite: Array[int] = [0]
+var _combo = null
 var _settled: bool = false
 ## After closeout, block confirm/cancel return until this game time (msec).
 var _closeout_ready_msec: int = 0
@@ -71,6 +77,12 @@ var _guest_dusk_left: float = 0.0
 var _guest_dusk_remain: int = 0
 var _guest_dusk_in: float = 0.0
 var _player: CharacterBody2D
+## M1 local coop: all seated players. `_player` stays seat0 alias.
+var _players: Array[CharacterBody2D] = []
+const COOP_SOFT_RADIUS := 28.0
+const COOP_SOFT_PUSH := 220.0
+## Ignore hairline overlap so soft push does not idle-nudge at the radius edge.
+const COOP_SOFT_MIN_PEN := 2.0
 var _customers: Node2D
 var _hud: CanvasLayer
 var _dirts: Array[Node2D] = []
@@ -129,10 +141,20 @@ func _begin_day() -> void:
 	thieves_caught = 0
 	thieves_escaped = 0
 	cleaned = 0
+	seat_cleaned = [0]
+	seat_served = [0]
+	seat_caught = [0]
+	seat_elite = [0]
 	_settled = false
 	_closeout_ready_msec = 0
 	real_time = 0.0
 	phase = "restock"
+	var ComboState = preload("res://scripts/session/combo_state.gd")
+	_combo = ComboState.new()
+	_combo.reset(SeatTable.seat_count)
+	var il := get_node_or_null("/root/InteractLock")
+	if il != null and il.has_method("clear"):
+		il.clear()
 	_sfx_phase = "restock"
 	SfxBus.play("sfx_phase_restock")
 	_spawn_in = 2.0
@@ -155,24 +177,34 @@ func _begin_day() -> void:
 	_customers.name = "Customers"
 	_customers.y_sort_enabled = true
 	_world.add_child(_customers)
-	_player = _make_player()
-	_player.stats = state
-	_world.add_child(_player)
-	_player.global_position = FLOOR_ORIGIN + Vector2(FLOOR_SIZE.x * 0.5, FLOOR_SIZE.y - 80)
-	_player.interactables = nodes
-	_player.paid.connect(_on_paid)
+	_players.clear()
+	var spawn0 := FLOOR_ORIGIN + Vector2(FLOOR_SIZE.x * 0.5, FLOOR_SIZE.y - 80)
+	_player = _spawn_seated_player(0, state, nodes, spawn0)
+	if SeatTable.is_coop():
+		var guest = SeatTable.guest_stats
+		if guest == null:
+			guest = load("res://scripts/session/character_sheet.gd").from_game_state(state)
+			SeatTable.guest_stats = guest
+		var spawn1 := spawn0 + Vector2(40, 0)
+		var p2 := _spawn_seated_player(1, guest, nodes, spawn1)
+		_player.add_collision_exception_with(p2)
+		p2.add_collision_exception_with(_player)
 	var cam := Camera2D.new()
 	cam.zoom = Vector2(Tuning.CAMERA_ZOOM, Tuning.CAMERA_ZOOM)
 	cam.position_smoothing_enabled = true
 	cam.position_smoothing_speed = 7.5
 	_player.add_child(cam)
 	cam.make_current()
-	_player.camera = cam
+	## One shared Camera2D; every seat needs the ref for skill/fight zoom.
+	for p in _players:
+		if p != null:
+			p.camera = cam
 	if not PlatformServices.camera_view_changed.is_connected(_on_camera_view_changed):
 		PlatformServices.camera_view_changed.connect(_on_camera_view_changed)
 	apply_camera_view()
 	_hud = preload("res://scenes/hud.tscn").instantiate()
 	add_child(_hud)
+	## setup binds every seat in `_players` (right panes + cast/log).
 	_hud.setup(self, _player)
 	var pad = preload("res://scripts/touch_pad.gd").new()
 	pad.name = "TouchPad"
@@ -231,6 +263,7 @@ func _clear_world() -> void:
 	_obstacles.clear()
 	cashier = null
 	_player = null
+	_players.clear()
 	_customers = null
 	_early_open = false
 	_early_latched = false
@@ -282,8 +315,39 @@ func _spawn_clerks() -> void:
 		i += 1
 
 
-func note_clean() -> void:
+func note_clean(seat: int = 0) -> void:
 	cleaned += 1
+	_seat_bump(seat_cleaned, seat, 1)
+
+
+func _seat_bump(arr: Array, seat: int, n: int) -> void:
+	while arr.size() <= seat:
+		arr.append(0)
+	arr[seat] = int(arr[seat]) + n
+
+
+func combo_note_qualify(seat: int) -> void:
+	if _combo == null:
+		return
+	_combo.note_qualify(seat)
+
+
+func combo_break_personal(seat: int) -> void:
+	if _combo == null:
+		return
+	_combo.note_break_personal(seat)
+
+
+func combo_personal(seat: int) -> int:
+	if _combo == null:
+		return 0
+	return int(_combo.personal_of(seat))
+
+
+func combo_team() -> int:
+	if _combo == null:
+		return 0
+	return int(_combo.team)
 
 
 func yes_my_lord_on() -> bool:
@@ -658,11 +722,15 @@ func _dark_side_player_pos() -> Vector2:
 
 
 func _player_lock_register():
-	if _player == null or not bool(_player.get("command_lock")):
-		return null
-	var target = _player.get("target")
-	if target != null and String(target.get("kind")) == "cashier":
-		return target
+	## Any seat holding a cashier under command_lock (A4).
+	for p in _players:
+		if p == null or not is_instance_valid(p):
+			continue
+		if not bool(p.get("command_lock")):
+			continue
+		var target = p.get("target")
+		if target != null and String(target.get("kind")) == "cashier":
+			return target
 	return null
 
 
@@ -971,6 +1039,7 @@ func _return_to_prep() -> void:
 		return
 	phase = "prep"
 	clear_elite_test()
+	SeatTable.reset_solo()
 	_clear_world()
 	_prep.visible = true
 	_prep.set_process_unhandled_input(true)
@@ -1028,6 +1097,25 @@ func shop_camera_center() -> Vector2:
 	return FLOOR_ORIGIN + FLOOR_SIZE * 0.5
 
 
+func coop_camera_midpoint() -> Vector2:
+	var pts: Array[Vector2] = []
+	for p in _players:
+		if p != null and is_instance_valid(p):
+			pts.append(p.global_position)
+	if pts.is_empty():
+		if _player != null and is_instance_valid(_player):
+			return _player.global_position
+		return shop_camera_center()
+	var mid := Vector2.ZERO
+	for p in pts:
+		mid += p
+	return mid / float(pts.size())
+
+
+func is_local_coop() -> bool:
+	return SeatTable.is_coop()
+
+
 func overview_camera_zoom() -> float:
 	## Fit the whole floor in the viewport with a small margin (Godot zoom: smaller = wider).
 	var vp := get_viewport().get_visible_rect().size
@@ -1077,6 +1165,46 @@ func _maintain_overview_camera() -> void:
 	if not cam.top_level:
 		return
 	cam.global_position = shop_camera_center()
+
+
+func _maintain_coop_camera() -> void:
+	if not SeatTable.is_coop():
+		return
+	if PlatformServices.get_camera_view() == PlatformServices.CAMERA_VIEW_OVERVIEW:
+		return
+	if _player == null or _player.camera == null:
+		return
+	if _player.has_method("camera_priority_busy") and bool(_player.call("camera_priority_busy")):
+		return
+	if _elite_zoom_busy:
+		return
+	## Seat1 fight/elite may also busy the shared cam — treat any seated priority as busy.
+	for p in _players:
+		if p != null and p != _player and p.has_method("camera_priority_busy") and bool(p.call("camera_priority_busy")):
+			return
+	var cam: Camera2D = _player.camera
+	cam.top_level = true
+	cam.global_position = coop_camera_midpoint()
+
+
+func _soft_push_players(delta: float) -> void:
+	if _players.size() < 2:
+		return
+	var a: CharacterBody2D = _players[0]
+	var b: CharacterBody2D = _players[1]
+	if a == null or b == null or not is_instance_valid(a) or not is_instance_valid(b):
+		return
+	var delta_pos := b.global_position - a.global_position
+	var dist := delta_pos.length()
+	if dist <= 0.001:
+		return
+	var pen := COOP_SOFT_RADIUS - dist
+	if pen < COOP_SOFT_MIN_PEN:
+		return
+	var n := delta_pos / dist
+	var push := pen / COOP_SOFT_RADIUS * COOP_SOFT_PUSH * delta
+	a.global_position -= n * push
+	b.global_position += n * push
 
 
 func _on_show_vj_changed(visible_now: bool) -> void:
@@ -1295,6 +1423,8 @@ func _process(delta: float) -> void:
 		return
 	_poll_camera_view_hotkey()
 	_maintain_overview_camera()
+	_maintain_coop_camera()
+	_soft_push_players(delta)
 	real_time += world_delta(delta)
 	if real_time < Tuning.RESTOCK_REAL_SEC:
 		phase = "restock"
@@ -1544,8 +1674,9 @@ func record_stolen(items: Array) -> void:
 	thieves_escaped += 1
 
 
-func record_caught() -> void:
+func record_caught(seat: int = 0) -> void:
 	thieves_caught += 1
+	_seat_bump(seat_caught, seat, 1)
 
 
 func clock_text() -> String:
@@ -1564,11 +1695,13 @@ func phase_text() -> String:
 			return "關店結算"
 
 
-func _on_paid(amount: int, from_elite: bool = false) -> void:
+func _on_paid(amount: int, from_elite: bool = false, seat: int = 0) -> void:
 	revenue += amount
 	served += 1
+	_seat_bump(seat_served, seat, 1)
 	if from_elite:
 		elite_served += 1
+		_seat_bump(seat_elite, seat, 1)
 	if _player != null:
 		var FxBurst = preload("res://scripts/fx_burst.gd")
 		var at: Vector2 = _player.global_position + Vector2(0, -28)
@@ -1598,8 +1731,39 @@ func _finish_day() -> void:
 	dismiss_shadow_clones()
 	## Unsold shelf + floor (+ in-flight) pieces → warehouse boxes before save.
 	_return_unsold_to_warehouse()
-	var result: Dictionary = state.settle(revenue, served, thieves_caught, cleaned, _skip_xp, elite_served)
-	if int(result.get("ups", 0)) > 0:
+	var seat_n := maxi(1, SeatTable.seat_count)
+	var raw_sum := 0
+	var raws: Array[int] = []
+	for s in seat_n:
+		var bonus := _skip_xp if s == 0 else 0
+		var raw := StateScript.raw_xp_for_counts(
+			_seat_get(seat_served, s),
+			_seat_get(seat_caught, s),
+			_seat_get(seat_cleaned, s),
+			_seat_get(seat_elite, s),
+			bonus,
+		)
+		raws.append(raw)
+		raw_sum += raw
+	var shared_xp := int(raw_sum / seat_n)
+	var result: Dictionary = state.settle(
+		revenue, served, thieves_caught, cleaned, _skip_xp, elite_served, shared_xp
+	)
+	var guest_xp_line := ""
+	var guest_ups := 0
+	if SeatTable.is_coop() and SeatTable.guest_stats != null:
+		var guest_res: Dictionary = SeatTable.guest_stats.apply_xp_gain(shared_xp)
+		guest_ups = int(guest_res.get("ups", 0))
+		var gnote := String(guest_res.get("note", ""))
+		guest_xp_line = "\n訪客經驗 +%d　%s" % [shared_xp, gnote]
+		if SeatTable.guest_slot_index >= 0:
+			var GuestSlots = preload("res://scripts/session/guest_slots.gd")
+			var store = GuestSlots.create()
+			store.set_sheet(SeatTable.guest_slot_index, SeatTable.guest_stats)
+			var gerr: String = store.save_to_disk()
+			if gerr != "":
+				guest_xp_line += "（訪客存檔失敗：" + gerr + "）"
+	if int(result.get("ups", 0)) > 0 or guest_ups > 0:
 		SfxBus.play("sfx_ui_level_up")
 	var save_err := state.save_to_disk()
 	if _hud:
@@ -1612,11 +1776,22 @@ func _finish_day() -> void:
 			head = Loc.t("demo.closeout_test")
 		var bonus := "（含測試 +%d）" % _skip_xp if _skip_xp > 0 else ""
 		var save_line := "已寫入存檔" if save_err == "" else ("存檔失敗：" + save_err)
-		_hud._close_text.text = "%s　%s\n營業額 $%d　入帳後資金 $%d\n進貨成本 $%d\n成功收銀 %d　生氣離開 %d\n被偷 %d 件 $%d　抓住 %d／逃走 %d\n經驗 +%d%s　%s\n%s\n按 J／A 返回準備" % [
+		var xp_line := "店主經驗 +%d%s　%s" % [int(result["xp"]), bonus, state.level_note]
+		if SeatTable.is_coop():
+			xp_line = "平分經驗 +%d%s　店主 %s%s" % [
+				shared_xp, bonus, state.level_note, guest_xp_line
+			]
+		_hud._close_text.text = "%s　%s\n營業額 $%d　入帳後資金 $%d\n進貨成本 $%d\n成功收銀 %d　生氣離開 %d\n被偷 %d 件 $%d　抓住 %d／逃走 %d\n%s\n%s\n按 J／A 返回準備" % [
 			head, loss, revenue, state.money, int(result["spent"]), served, angry_left,
 			stolen_count, stolen_value, thieves_caught, thieves_escaped,
-			int(result["xp"]), bonus, state.level_note, save_line
+			xp_line, save_line
 		]
+
+
+func _seat_get(arr: Array, seat: int) -> int:
+	if seat < 0 or seat >= arr.size():
+		return 0
+	return int(arr[seat])
 
 
 ## Real-second inject for 諸客的黃昏. Successful entries only count toward remain.
@@ -2546,6 +2721,21 @@ func _make_player() -> CharacterBody2D:
 	arrow.polygon = PackedVector2Array([Vector2(-6, 4), Vector2(6, 4), Vector2(0, 14)])
 	p.add_child(arrow)
 	p.bind_visuals(body, arrow)
+	return p
+
+
+func _spawn_seated_player(seat: int, stats_src, nodes: Array[Node2D], spawn: Vector2) -> CharacterBody2D:
+	var p := _make_player()
+	p.name = "Clerk" if seat == 0 else "Clerk%d" % (seat + 1)
+	p.set("seat_id", seat)
+	p.stats = stats_src
+	_world.add_child(p)
+	p.global_position = spawn
+	p.interactables = nodes
+	p.paid.connect(_on_paid)
+	_players.append(p)
+	if seat == 0:
+		_player = p
 	return p
 
 

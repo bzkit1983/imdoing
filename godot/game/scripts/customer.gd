@@ -148,12 +148,24 @@ func elite_effect_lv(affix: String) -> int:
 	return int(elite_affixes.get(affix, elite_lv))
 
 
+## Set by delivery COMBO qualify: −40 dissat + 1.2× checkout payout.
+var _combo_pay_bonus: bool = false
+
+
 ## Checkout payout (營業額); elites pay double.
 func payout_total() -> int:
 	var n := cart_total()
 	if is_elite:
-		return n * Tuning.ELITE_REVENUE_MULT
+		n *= Tuning.ELITE_REVENUE_MULT
+	if _combo_pay_bonus:
+		n = int(ceil(float(n) * 1.2))
 	return n
+
+
+func apply_combo_bonus() -> void:
+	dissatisfaction = maxf(0.0, dissatisfaction - 40.0)
+	_combo_pay_bonus = true
+	_sync_labels()
 
 
 func _roll_pace() -> void:

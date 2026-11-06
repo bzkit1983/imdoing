@@ -74,10 +74,10 @@ static func apply_panel_layout(menu: CanvasLayer) -> void:
 		menu._list.z_index = 0
 		if menu._page == "confirm":
 			menu._info.position = Vector2(24, 72)
-			menu._info.size = Vector2(980, 180)
+			menu._info.size = Vector2(980, 220)
 			menu._info.clip_contents = true
-			menu._list.position = Vector2(24, 260)
-			menu._list.size = Vector2(1232, 390)
+			menu._list.position = Vector2(24, 300)
+			menu._list.size = Vector2(1232, 350)
 		else:
 			menu._info.position = Vector2(24, 72)
 			menu._info.size = Vector2(976, 76)
@@ -563,7 +563,39 @@ static func _confirm(menu: CanvasLayer) -> void:
 	if ProductVersion.test_tools_enabled() and menu.demo != null and menu.demo.has_method("play_is_easy"):
 		var easy := bool(menu.demo.call("play_is_easy"))
 		info += "\n" + Loc.t("prep.difficulty.confirm_easy" if easy else "prep.difficulty.confirm_normal")
+	var web_solo := OS.has_feature("web")
+	if web_solo:
+		menu._local_seats = 1
+		info += "\n" + Loc.t("prep.confirm.players_web")
+	else:
+		info += "\n" + Loc.t("prep.confirm.players") + "：" + (
+			Loc.t("prep.confirm.players_2") if menu._local_seats >= 2 else Loc.t("prep.confirm.players_1")
+		)
+		info += "\n" + Loc.t("prep.confirm.host_tint", [int(menu.state.tint)])
+		if menu._local_seats >= 2:
+			menu._ensure_guest_store()
+			menu._auto_pick_guest_slot()
+			var gi: int = int(menu._guest_slot_index)
+			if gi >= 0 and not menu._guest_store.is_empty(gi):
+				info += "\n" + Loc.t("prep.confirm.guest_selected", [gi + 1, menu._guest_store.label_for(gi)])
+			else:
+				info += "\n" + Loc.t("prep.confirm.guest_none")
 	menu._info.text = info
+	if not web_solo:
+		menu._add(Loc.t("prep.confirm.players_1"), "set_seats", 1)
+		menu._add(Loc.t("prep.confirm.players_2"), "set_seats", 2)
+		menu._add(Loc.t("prep.confirm.cycle_host_tint"), "cycle_host_tint", null)
+		if menu._local_seats >= 2:
+			menu._ensure_guest_store()
+			for i in 3:
+				var lab := Loc.t("prep.confirm.guest_slot", [i + 1, menu._guest_store.label_for(i)])
+				if menu._guest_store.is_empty(i):
+					menu._add(Loc.t("prep.confirm.guest_clone", [i + 1]), "clone_guest_slot", i)
+					menu._add(Loc.t("prep.confirm.guest_blank_btn", [i + 1]), "blank_guest_slot", i)
+				else:
+					menu._add(lab, "pick_guest_slot", i)
+			if menu._guest_slot_index >= 0 and not menu._guest_store.is_empty(menu._guest_slot_index):
+				menu._add(Loc.t("prep.confirm.cycle_guest_tint"), "cycle_guest_tint", null)
 	menu._add("開始　工資後資金約 $%d" % (menu.state.money - wage), "open", null)
 	menu._add(Loc.t("prep.back"), "go", "home")
 

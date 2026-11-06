@@ -16,9 +16,8 @@ var _font_debounce: float = 0.0
 var _font_pending: bool = false
 var _skills_cd_fp: String = ""
 var _skills_cd_txt: String = ""
-## Fingerprint of carry icon strip (sku×n…|trailing).
-var _carry_icons_fp: String = ""
-var _carry_icons: HBoxContainer
+## Per-seat right panes: {player, title, state, stamina, carry, icons, target, progress, icons_fp}.
+var _panes: Array = []
 
 @onready var _clock: Control = $Root/Left/Clock
 @onready var _time: Label = $Root/Left/Time
@@ -28,6 +27,8 @@ var _carry_icons: HBoxContainer
 @onready var _store: Label = $Root/Left/Store
 @onready var _role: Label = $Root/Left/Role
 @onready var _skills: Label = $Root/Left/Skills
+var _combo: Label
+@onready var _right_vbox: VBoxContainer = $Root/Right/Margin/VBox
 @onready var _state: Label = $Root/Right/Margin/VBox/State
 @onready var _stamina: ProgressBar = $Root/Right/Margin/VBox/Stamina
 @onready var _carry: Label = $Root/Right/Margin/VBox/Carry
@@ -50,16 +51,7 @@ func setup(g: Node, p: CharacterBody2D) -> void:
 	_log.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	## Icon strip replaces text HudList (P0 ops SKU UI).
 	_hud_list.visible = false
-	_build_carry_icons()
-	_apply_cjk_fonts($Root)
-	get_viewport().size_changed.connect(_on_viewport_resized)
-	player.connect("stats_changed", _mark_right_dirty)
-	player.connect("log_line", _on_log)
-	player.connect("skill_cast", _on_skill_cast)
-	_close.visible = false
-	_cast.modulate.a = 0.0
-	_build_skip()
-	_build_pause()
+	_build_combo_label()
 	## No round-start demo banner; hide legacy scope copy on the right panel.
 	_banner.visible = false
 	var title := $Root/Right/Margin/VBox/Title
@@ -71,21 +63,156 @@ func setup(g: Node, p: CharacterBody2D) -> void:
 		hint.visible = false
 	if out:
 		out.visible = false
+	_setup_seat_panes()
+	if _panes.size() >= 2:
+		## Dual seat panes need room; shrink shared log min height.
+		_log.custom_minimum_size = Vector2(0, 64)
+	_apply_cjk_fonts($Root)
+	get_viewport().size_changed.connect(_on_viewport_resized)
+	_close.visible = false
+	_cast.modulate.a = 0.0
+	_build_skip()
+	_build_pause()
 	_right_dirty = true
 	_left_fp = ""
 	_sync_left()
 	_sync_right()
 
 
-func _build_carry_icons() -> void:
-	_carry_icons = HBoxContainer.new()
-	_carry_icons.name = "CarryIcons"
-	_carry_icons.add_theme_constant_override("separation", 6)
-	_carry_icons.custom_minimum_size = Vector2(0, 40)
-	var vbox: VBoxContainer = $Root/Right/Margin/VBox
-	var idx := _hud_list.get_index()
-	vbox.add_child(_carry_icons)
-	vbox.move_child(_carry_icons, idx)
+## Coop: also listen to seat1+ for cast name / log lines.
+func bind_cast_events(p: CharacterBody2D) -> void:
+	if p == null:
+		return
+	if p.has_signal("log_line") and not p.is_connected("log_line", _on_log):
+		p.connect("log_line", _on_log)
+	if p.has_signal("skill_cast") and not p.is_connected("skill_cast", _on_skill_cast):
+		p.connect("skill_cast", _on_skill_cast)
+
+
+func _setup_seat_panes() -> void:
+	_panes.clear()
+	var seats: Array = _collect_seat_players()
+	## Seat 0 reuses scene nodes; add a title above State.
+	var title0 := _make_seat_title(0 if seats.is_empty() else int(seats[0].get("seat_id")))
+	_right_vbox.add_child(title0)
+	_right_vbox.move_child(title0, _state.get_index())
+	var icons0 := _make_carry_icons()
+	_right_vbox.add_child(icons0)
+	_right_vbox.move_child(icons0, _hud_list.get_index())
+	var p0: CharacterBody2D = seats[0] if not seats.is_empty() else player
+	_panes.append(_pane_dict(p0, title0, _state, _stamina, _carry, icons0, _target, _progress))
+	_wire_seat_player(p0)
+	## Extra seats: stacked panes before the shared log.
+	for i in range(1, seats.size()):
+		var p: CharacterBody2D = seats[i]
+		var pane := _build_extra_seat_pane(p)
+		_panes.append(pane)
+		_wire_seat_player(p)
+
+
+func _collect_seat_players() -> Array:
+	var out: Array = []
+	if game != null and game.get("_players") is Array:
+		for p in game._players:
+			if p != null and is_instance_valid(p):
+				out.append(p)
+	if out.is_empty() and player != null:
+		out.append(player)
+	return out
+
+
+func _wire_seat_player(p: CharacterBody2D) -> void:
+	if p == null:
+		return
+	if p.has_signal("stats_changed") and not p.is_connected("stats_changed", _mark_right_dirty):
+		p.connect("stats_changed", _mark_right_dirty)
+	bind_cast_events(p)
+
+
+func _pane_dict(
+	p: CharacterBody2D,
+	title: Label,
+	state: Label,
+	stamina: ProgressBar,
+	carry: Label,
+	icons: HBoxContainer,
+	target: Label,
+	progress: ProgressBar,
+) -> Dictionary:
+	return {
+		"player": p,
+		"title": title,
+		"state": state,
+		"stamina": stamina,
+		"carry": carry,
+		"icons": icons,
+		"target": target,
+		"progress": progress,
+		"icons_fp": "",
+	}
+
+
+func _make_seat_title(seat: int) -> Label:
+	var lab := Label.new()
+	lab.name = "SeatTitle%d" % seat
+	lab.text = Loc.t("hud.seat", [seat + 1])
+	UiFont.apply_label(lab, UiFont.BODY)
+	lab.add_theme_color_override("font_color", Color("f4d35e"))
+	return lab
+
+
+func _make_carry_icons() -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.name = "CarryIcons"
+	row.add_theme_constant_override("separation", 6)
+	row.custom_minimum_size = Vector2(0, 40)
+	return row
+
+
+func _build_extra_seat_pane(p: CharacterBody2D) -> Dictionary:
+	var seat := int(p.get("seat_id")) if p != null else _panes.size()
+	var box := VBoxContainer.new()
+	box.name = "SeatPane%d" % seat
+	box.add_theme_constant_override("separation", 5)
+	var sep := HSeparator.new()
+	box.add_child(sep)
+	var title := _make_seat_title(seat)
+	box.add_child(title)
+	var state := Label.new()
+	state.text = Loc.t("hud.state", ["—"])
+	box.add_child(state)
+	var stamina := ProgressBar.new()
+	stamina.custom_minimum_size = Vector2(0, 22)
+	stamina.show_percentage = false
+	box.add_child(stamina)
+	var carry := Label.new()
+	carry.text = Loc.t("hud.carry", [0, 0])
+	box.add_child(carry)
+	var icons := _make_carry_icons()
+	box.add_child(icons)
+	var target := Label.new()
+	target.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	target.text = Loc.t("hud.target_none")
+	box.add_child(target)
+	var progress := ProgressBar.new()
+	progress.custom_minimum_size = Vector2(0, 20)
+	progress.show_percentage = false
+	box.add_child(progress)
+	## Insert before shared Log so log stays at the bottom.
+	_right_vbox.add_child(box)
+	_right_vbox.move_child(box, _log.get_index())
+	_apply_cjk_fonts(box)
+	return _pane_dict(p, title, state, stamina, carry, icons, target, progress)
+
+
+func _build_combo_label() -> void:
+	_combo = Label.new()
+	_combo.name = "Combo"
+	_combo.text = Loc.t("hud.combo", [0, 0])
+	var left: VBoxContainer = $Root/Left
+	var skills_i := _skills.get_index()
+	left.add_child(_combo)
+	left.move_child(_combo, skills_i + 1)
 
 
 func _mark_right_dirty() -> void:
@@ -244,11 +371,14 @@ func _sync_left() -> void:
 	var guests_n := int(game.guest_count())
 	var thieves_n := int(game.call("thief_count"))
 	var store_txt := String(player.call("store_status_text"))
-	var role_txt := String(player.call("role_status_text"))
-	var skills_txt := _skill_cd_text()
-	var fp := "%s|%s|%d|%d|%d|%d|%s|%s|%s|%.2f" % [
+	var role_txt := _role_status_all()
+	var skills_txt := _skill_cd_text_all()
+	var p1 := int(game.call("combo_personal", 0)) if game.has_method("combo_personal") else 0
+	var p2 := int(game.call("combo_personal", 1)) if game.has_method("combo_personal") else 0
+	var team := int(game.call("combo_team")) if game.has_method("combo_team") else 0
+	var fp := "%s|%s|%d|%d|%d|%d|%s|%s|%s|%d|%d|%d|%.2f" % [
 		time_txt, phase_txt, rev_n, stolen_n, guests_n, thieves_n,
-		store_txt, role_txt, skills_txt, snappedf(hours, 0.01),
+		store_txt, role_txt, skills_txt, p1, p2, team, snappedf(hours, 0.01),
 	]
 	if fp == _left_fp:
 		return
@@ -261,6 +391,24 @@ func _sync_left() -> void:
 	_store.text = store_txt
 	_role.text = role_txt
 	_skills.text = skills_txt
+	if _combo:
+		if SeatTable.is_coop():
+			_combo.text = Loc.t("hud.combo_coop", [p1, p2, team])
+		else:
+			_combo.text = Loc.t("hud.combo", [p1, team])
+
+
+func _role_status_all() -> String:
+	if _panes.size() <= 1:
+		return String(player.call("role_status_text"))
+	var lines: PackedStringArray = []
+	for pane in _panes:
+		var p: CharacterBody2D = pane["player"]
+		if p == null or not is_instance_valid(p):
+			continue
+		var seat := int(p.get("seat_id")) + 1
+		lines.append("P%d %s" % [seat, String(p.call("role_status_text"))])
+	return "\n".join(lines)
 
 
 func _sync_right() -> void:
@@ -284,9 +432,29 @@ func _skill_cd_fp_bit(cd: float) -> String:
 	return "%.2f" % snappedf(cd, 0.25)
 
 
-func _skill_cd_text() -> String:
-	## Snap CD to 0.25s so left HUD skips string rebuild most frames.
-	var equipped: Array = player.call("_loadout") if player.has_method("_loadout") else Skills.EQUIPPED
+func _skill_cd_text_all() -> String:
+	if _panes.size() <= 1:
+		return _skill_cd_text_for(player, "")
+	var blocks: PackedStringArray = []
+	for pane in _panes:
+		var p: CharacterBody2D = pane["player"]
+		if p == null or not is_instance_valid(p):
+			continue
+		var seat := int(p.get("seat_id")) + 1
+		blocks.append(_skill_cd_text_for(p, "P%d " % seat))
+	var joined := "\n".join(blocks)
+	## Keep left fingerprint path simple via shared cache key.
+	if joined == _skills_cd_txt:
+		return _skills_cd_txt
+	_skills_cd_fp = joined
+	_skills_cd_txt = joined
+	return _skills_cd_txt
+
+
+func _skill_cd_text_for(p: CharacterBody2D, prefix: String) -> String:
+	if p == null:
+		return ""
+	var equipped: Array = p.call("_loadout") if p.has_method("_loadout") else Skills.EQUIPPED
 	var bits: PackedStringArray = []
 	for i in equipped.size():
 		var sk: Dictionary = equipped[i]
@@ -297,18 +465,22 @@ func _skill_cd_text() -> String:
 		if String(sk.get("kind")) == "passive":
 			bits.append("%d:P" % i)
 		else:
-			bits.append("%d:%s" % [i, _skill_cd_fp_bit(float(player.call("cd_left", sid)))])
-	var ult: Dictionary = player.call("_ult_sk") if player.has_method("_ult_sk") else Skills.ULTIMATE
+			bits.append("%d:%s" % [i, _skill_cd_fp_bit(float(p.call("cd_left", sid)))])
+	var ult: Dictionary = p.call("_ult_sk") if p.has_method("_ult_sk") else Skills.ULTIMATE
 	var ult_id := String(ult.get("id", ""))
 	if ult_id == "":
 		bits.append("U:-")
 	else:
-		bits.append("U:%s" % _skill_cd_fp_bit(float(player.call("cd_left", ult_id))))
-	var fp := "|".join(bits)
-	if fp == _skills_cd_fp:
+		bits.append("U:%s" % _skill_cd_fp_bit(float(p.call("cd_left", ult_id))))
+	var fp := prefix + "|".join(bits)
+	## Solo path keeps old cache; coop rebuilds each left sync via _skill_cd_text_all.
+	if prefix == "" and fp == _skills_cd_fp:
 		return _skills_cd_txt
-	_skills_cd_fp = fp
+	if prefix == "":
+		_skills_cd_fp = fp
 	var lines: PackedStringArray = []
+	if prefix != "":
+		lines.append(prefix.strip_edges())
 	for i in equipped.size():
 		var sk2: Dictionary = equipped[i]
 		if sk2.is_empty():
@@ -318,64 +490,81 @@ func _skill_cd_text() -> String:
 		if String(sk2.get("kind")) == "passive":
 			lines.append("%d %s 被動" % [i + 1, name])
 		else:
-			var cd := float(player.call("cd_left", String(sk2.get("id"))))
+			var cd := float(p.call("cd_left", String(sk2.get("id"))))
 			lines.append("%d %s  %s" % [i + 1, name, _skill_cd_label(cd)])
 	if ult_id == "":
 		lines.append("奧義 空")
 	else:
-		var ucd := float(player.call("cd_left", ult_id))
+		var ucd := float(p.call("cd_left", ult_id))
 		lines.append("奧義 %s  %s" % [String(ult.get("name")), _skill_cd_label(ucd)])
-	_skills_cd_txt = "\n".join(lines)
-	return _skills_cd_txt
+	var txt := "\n".join(lines)
+	if prefix == "":
+		_skills_cd_txt = txt
+	return txt
 
 
 func _refresh() -> void:
-	if player == null:
+	for pane in _panes:
+		_refresh_pane(pane)
+
+
+func _refresh_pane(pane: Dictionary) -> void:
+	var p: CharacterBody2D = pane.get("player")
+	if p == null or not is_instance_valid(p):
 		return
-	_state.text = Loc.t("hud.state", [player.call("move_state")])
-	_stamina.max_value = float(player.call("stamina_max_now"))
-	_stamina.value = float(player.get("stamina"))
-	var inv = player.get("inventory")
-	_carry.text = Loc.t("hud.carry", [
-		int(inv.count()),
-		int(player.call("carry_cap")),
+	var state_l: Label = pane["state"]
+	var stam: ProgressBar = pane["stamina"]
+	var carry_l: Label = pane["carry"]
+	var target_l: Label = pane["target"]
+	var prog: ProgressBar = pane["progress"]
+	var title_l: Label = pane["title"]
+	if title_l:
+		title_l.text = Loc.t("hud.seat", [int(p.get("seat_id")) + 1])
+	state_l.text = Loc.t("hud.state", [p.call("move_state")])
+	stam.max_value = float(p.call("stamina_max_now"))
+	stam.value = float(p.get("stamina"))
+	var inv = p.get("inventory")
+	carry_l.text = Loc.t("hud.carry", [
+		int(inv.count()) if inv != null else 0,
+		int(p.call("carry_cap")),
 	])
-	_sync_carry_icons(inv)
-	var t: Node = player.get("target")
+	_sync_carry_icons(pane, inv)
+	var t: Node = p.get("target")
 	if t == null:
-		_target.text = Loc.t("hud.target_none")
+		target_l.text = Loc.t("hud.target_none")
 	elif String(t.get("kind")) == "restock":
 		var cat_name := Loc.t("hud.cat_dry")
 		if String(t.get("category")) == Tuning.CAT_FROZEN:
 			cat_name = Loc.t("hud.cat_frozen")
 		elif String(t.get("category")) == Tuning.CAT_ICE:
 			cat_name = Loc.t("hud.cat_ice")
-		_target.text = Loc.t("hud.target_restock", [
+		target_l.text = Loc.t("hud.target_restock", [
 			cat_name,
 			Tuning.sku_name(String(t.call("selected_sku")))
 		])
 	elif String(t.get("kind")) == "cashier":
-		_target.text = Loc.t("hud.target_cashier")
+		target_l.text = Loc.t("hud.target_cashier")
 	elif String(t.get("kind")) == "dirt":
-		_target.text = Loc.t("hud.target_dirt", [String(t.call("type_name"))])
+		target_l.text = Loc.t("hud.target_dirt", [String(t.call("type_name"))])
 	elif String(t.get("kind")) == "drop":
-		_target.text = Loc.t("hud.target_drop", [Tuning.sku_name(String(t.get("sku"))), int(t.get("count"))])
+		target_l.text = Loc.t("hud.target_drop", [Tuning.sku_name(String(t.get("sku"))), int(t.get("count"))])
 	elif String(t.get("kind")) == "thief":
-		_target.text = Loc.t("hud.target_thief")
+		target_l.text = Loc.t("hud.target_thief")
 	else:
 		var sku := String(t.get("sku"))
 		var cap := int(t.get("capacity"))
 		if cap <= 0:
 			cap = Tuning.SHELF_CAP
 		var shelf_bit := Loc.t("hud.shelf_empty", [cap]) if sku == "" else "%s %d/%d" % [Tuning.sku_name(sku), int(t.get("count")), cap]
-		_target.text = Loc.t("hud.target_shelf", [shelf_bit])
-	_progress.value = float(player.get("hold_progress")) * 100.0
-	_progress.modulate = Color("e07a5f") if bool(player.get("blocked_mismatch")) else Color("f4d35e")
+		target_l.text = Loc.t("hud.target_shelf", [shelf_bit])
+	prog.value = float(p.get("hold_progress")) * 100.0
+	prog.modulate = Color("e07a5f") if bool(p.get("blocked_mismatch")) else Color("f4d35e")
 
 
 ## Hand-carry sequence: left→right, last slot = next drop (trailing).
-func _sync_carry_icons(inv) -> void:
-	if _carry_icons == null:
+func _sync_carry_icons(pane: Dictionary, inv) -> void:
+	var icons: HBoxContainer = pane.get("icons")
+	if icons == null:
 		return
 	var groups: Array = []
 	if inv != null and not inv.is_empty():
@@ -384,10 +573,10 @@ func _sync_carry_icons(inv) -> void:
 	for g in groups:
 		bits.append("%s:%d" % [String(g["id"]), int(g["count"])])
 	var fp := "|".join(bits)
-	if fp == _carry_icons_fp:
+	if fp == String(pane.get("icons_fp", "")):
 		return
-	_carry_icons_fp = fp
-	for c in _carry_icons.get_children():
+	pane["icons_fp"] = fp
+	for c in icons.get_children():
 		c.queue_free()
 	if groups.is_empty():
 		return
@@ -420,4 +609,4 @@ func _sync_carry_icons(inv) -> void:
 		qty.add_theme_color_override("font_outline_color", Color("121212"))
 		qty.add_theme_constant_override("outline_size", 4)
 		cell.add_child(qty)
-		_carry_icons.add_child(cell)
+		icons.add_child(cell)

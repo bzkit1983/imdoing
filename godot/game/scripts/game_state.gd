@@ -51,6 +51,8 @@ var base_int: int = 10
 var str_stat: int = 10
 var agi_stat: int = 10
 var int_stat: int = 10
+## Appearance palette 0..3 (CharacterSheet.TINT_COUNT).
+var tint: int = 0
 var developed: Dictionary = {}
 var stock: Dictionary = {}
 var owned: Dictionary = {}
@@ -841,6 +843,7 @@ func settle(
 	cleaned: int,
 	bonus_xp: int = 0,
 	elite_served: int = 0,
+	xp_override: int = -1,
 ) -> Dictionary:
 	var gain_xp := (
 		XP_CLOSE
@@ -850,6 +853,8 @@ func settle(
 		+ elite_served * XP_ELITE_SERVE
 		+ bonus_xp
 	)
+	if xp_override >= 0:
+		gain_xp = xp_override
 	xp += gain_xp
 	var ups := 0
 	while level < 10:
@@ -872,6 +877,24 @@ func settle(
 	var spent := day_procurement
 	day_procurement = 0
 	return {"xp": gain_xp, "ups": ups, "loss": loss, "spent": spent, "wage_note": note}
+
+
+## Per-seat raw XP (includes XP_CLOSE). Coop averages these.
+static func raw_xp_for_counts(
+	served: int,
+	caught: int,
+	cleaned: int,
+	elite_served: int = 0,
+	bonus_xp: int = 0,
+) -> int:
+	return (
+		XP_CLOSE
+		+ served * XP_SERVE
+		+ caught * XP_CATCH
+		+ cleaned * XP_CLEAN
+		+ elite_served * XP_ELITE_SERVE
+		+ bonus_xp
+	)
 
 
 func developed_of(category: String) -> Array[String]:
@@ -957,6 +980,7 @@ func to_dict() -> Dictionary:
 		"str_stat": str_stat,
 		"agi_stat": agi_stat,
 		"int_stat": int_stat,
+		"tint": clampi(tint, 0, 3),
 		"developed": developed.duplicate(true),
 		"stock": stock.duplicate(true),
 		"owned": owned.duplicate(true),
@@ -997,6 +1021,7 @@ func from_dict(data: Dictionary) -> String:
 	str_stat = int(data.get("str_stat", base_str))
 	agi_stat = int(data.get("agi_stat", base_agi))
 	int_stat = int(data.get("int_stat", base_int))
+	tint = clampi(int(data.get("tint", 0)), 0, 3)
 	developed = _string_bool_dict(data.get("developed", {}))
 	stock = _string_int_dict(data.get("stock", {}))
 	if ver < 2:
@@ -1242,6 +1267,7 @@ func has_save() -> bool:
 
 func delete_save() -> void:
 	PlatformServices.delete_save()
+	PlatformServices.delete_guest_slots()
 
 
 func _string_bool_dict(raw) -> Dictionary:

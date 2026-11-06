@@ -62,6 +62,22 @@ func delete_save() -> void:
 	_backend.delete_save()
 
 
+func write_guest_slots(text: String) -> String:
+	return _backend.write_guest_slots(text)
+
+
+func read_guest_slots() -> String:
+	return _backend.read_guest_slots()
+
+
+func has_guest_slots() -> bool:
+	return _backend.has_guest_slots()
+
+
+func delete_guest_slots() -> void:
+	_backend.delete_guest_slots()
+
+
 ## Call before app suspend / pause menu; Desktop writes are already sync.
 func checkpoint() -> void:
 	_backend.checkpoint()

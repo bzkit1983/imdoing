@@ -376,6 +376,7 @@ func _style_btn(btn: Button, on: bool) -> void:
 
 
 func _is_toggle(event: InputEvent) -> bool:
+	## M1: any seat may open/close — Esc or any pad's Start (no device filter).
 	if not event.is_pressed() or event.is_echo():
 		return false
 	if event is InputEventKey:

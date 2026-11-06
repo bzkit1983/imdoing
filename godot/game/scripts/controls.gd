@@ -102,12 +102,146 @@ func move_vector() -> Vector2:
 	return Input.get_vector(MOVE_LEFT, MOVE_RIGHT, MOVE_UP, MOVE_DOWN, MOVE_DEADZONE)
 
 
+## Per-seat move (M1 coop). Solo falls back to global move_vector().
+func move_vector_for(seat: int) -> Vector2:
+	if not _coop():
+		return move_vector()
+	var v := Vector2.ZERO
+	var joy := SeatTable.joy_device_for_seat(seat)
+	if joy >= 0:
+		v += _stick_on_device(joy, JOY_AXIS_LEFT_X, JOY_AXIS_LEFT_Y)
+		v += _dpad_on_device(joy)
+	if SeatTable.keyboard_owns_seat(seat):
+		v += _keyboard_move_vector()
+	## Same deadzone as Input.get_vector / solo path — raw axes drift otherwise.
+	if v.length() < MOVE_DEADZONE:
+		return Vector2.ZERO
+	if v.length_squared() > 1.0:
+		v = v.normalized()
+	return v
+
+
 ## Left stick only — excludes keyboard / d-pad so menu `_process` polling
 ## does not double-fire with `_unhandled_input` action presses (esp. Web).
 ## Uses the strongest deflection among connected pads so a Windows ghost
 ## device at index 0 cannot hide the real Xbox stick.
 func stick_vector() -> Vector2:
 	return _best_stick_vector(JOY_AXIS_LEFT_X, JOY_AXIS_LEFT_Y)
+
+
+func stick_vector_for(seat: int) -> Vector2:
+	if not _coop():
+		return stick_vector()
+	var joy := SeatTable.joy_device_for_seat(seat)
+	if joy < 0:
+		return Vector2.ZERO
+	var v := _stick_on_device(joy, JOY_AXIS_LEFT_X, JOY_AXIS_LEFT_Y)
+	if v.length() < MOVE_DEADZONE:
+		return Vector2.ZERO
+	if v.length_squared() > 1.0:
+		v = v.normalized()
+	return v
+
+
+func trigger_values_for(seat: int) -> Vector2:
+	if not _coop():
+		return trigger_values()
+	var joy := SeatTable.joy_device_for_seat(seat)
+	if joy < 0:
+		return Vector2.ZERO
+	return _trigger_values_on_device(joy)
+
+
+## True if this event should drive the given seat (coop) or any seat (solo).
+func event_for_seat(event: InputEvent, seat: int) -> bool:
+	if not _coop():
+		return true
+	if event is InputEventKey:
+		return SeatTable.keyboard_owns_seat(seat)
+	if event is InputEventJoypadButton or event is InputEventJoypadMotion:
+		var joy := SeatTable.joy_device_for_seat(seat)
+		if joy < 0:
+			return false
+		return int(event.device) == joy
+	return false
+
+
+func dir_just_pressed_for(seat: int) -> int:
+	if not _coop():
+		return dir_just_pressed()
+	## Poll discrete edges per device / keyboard.
+	if SeatTable.keyboard_owns_seat(seat):
+		if Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP):
+			## just_pressed needs edge; use InputMap only when keyboard owns seat — but
+			## global just_pressed fires for everyone. Use raw echo-free via Input.
+			pass
+	## Fall back: use event path in player._input with event_for_seat filter.
+	return -1
+
+
+func _coop() -> bool:
+	var st := get_node_or_null("/root/SeatTable")
+	return st != null and bool(st.call("is_coop"))
+
+
+func _keyboard_move_vector() -> Vector2:
+	var x := 0.0
+	var y := 0.0
+	if Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT):
+		x -= 1.0
+	if Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT):
+		x += 1.0
+	if Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP):
+		y -= 1.0
+	if Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN):
+		y += 1.0
+	return Vector2(x, y)
+
+
+func _stick_on_device(device: int, axis_x: JoyAxis, axis_y: JoyAxis) -> Vector2:
+	return Vector2(
+		Input.get_joy_axis(device, axis_x),
+		Input.get_joy_axis(device, axis_y)
+	)
+
+
+func _dpad_on_device(device: int) -> Vector2:
+	var x := 0.0
+	var y := 0.0
+	if Input.is_joy_button_pressed(device, JOY_BUTTON_DPAD_LEFT):
+		x -= 1.0
+	if Input.is_joy_button_pressed(device, JOY_BUTTON_DPAD_RIGHT):
+		x += 1.0
+	if Input.is_joy_button_pressed(device, JOY_BUTTON_DPAD_UP):
+		y -= 1.0
+	if Input.is_joy_button_pressed(device, JOY_BUTTON_DPAD_DOWN):
+		y += 1.0
+	return Vector2(x, y)
+
+
+func _trigger_values_on_device(device: int) -> Vector2:
+	var on_web := OS.has_feature("web")
+	var lx := Input.get_joy_axis(device, JOY_AXIS_LEFT_X)
+	var ly := Input.get_joy_axis(device, JOY_AXIS_LEFT_Y)
+	var stick_len := Vector2(lx, ly).length()
+	var raw_lt := Input.get_joy_axis(device, JOY_AXIS_TRIGGER_LEFT)
+	var raw_rt := Input.get_joy_axis(device, JOY_AXIS_TRIGGER_RIGHT)
+	var lt := _normalize_trigger_axis(raw_lt)
+	var rt := _normalize_trigger_axis(raw_rt)
+	var aliased := _triggers_alias_left_stick(raw_lt, raw_rt, lx, ly)
+	if aliased:
+		_web_axis_triggers_untrusted[device] = true
+	var untrusted := bool(_web_axis_triggers_untrusted.get(device, false))
+	if on_web and (untrusted or stick_len >= WEB_STICK_SUPPRESS_AXIS_TRIGGERS):
+		lt = 0.0
+		rt = 0.0
+	elif aliased:
+		lt = 0.0
+		rt = 0.0
+	if on_web:
+		lt = maxf(lt, _web_trigger_button(device, true))
+		rt = maxf(rt, _web_trigger_button(device, false))
+	return Vector2(lt, rt)
 
 
 ## Right stick — not on move_* InputMap; menus (pause) poll this explicitly.

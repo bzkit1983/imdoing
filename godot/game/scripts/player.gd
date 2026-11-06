@@ -47,6 +47,10 @@ var clock_scale: float = 1.0
 var customer_move_mult: float = 1.0
 var camera: Camera2D
 var stats = null
+## M1 local coop seat (0 = host). Solo always 0.
+var seat_id: int = 0
+## L-class target currently held via InteractLock (shelf/cashier/restock/…).
+var _lock_node: Node = null
 
 var _k_held: bool = false
 var _k_time: float = 0.0
@@ -339,7 +343,7 @@ func clone_snapshot() -> Dictionary:
 	var checkout_pct := 0.0
 	var wave := false
 	for sk in _loadout():
-		if String(sk.get("kind")) != "passive":
+		if str(sk.get("kind", "")) != "passive":
 			continue
 		move_pct += float(sk.get("move_pct", 0.0))
 		restock_pct += float(sk.get("restock_pct", 0.0))
@@ -360,7 +364,8 @@ func clone_snapshot() -> Dictionary:
 func _refresh_passive_checkout() -> void:
 	_passive_checkout_pct = 0.0
 	for sk in _loadout():
-		if String(sk.get("kind")) == "passive":
+		## Godot 4.7: String(null) errors — empty loadout slots omit "kind".
+		if str(sk.get("kind", "")) == "passive":
 			_passive_checkout_pct += float(sk.get("checkout_pct", 0.0))
 
 
@@ -443,7 +448,7 @@ func carry_cap() -> int:
 		var add := int(sk.get("carry_add", 0))
 		if add == 0:
 			continue
-		if String(sk.get("kind")) == "passive" or _buffs.has(String(sk.get("id"))):
+		if str(sk.get("kind", "")) == "passive" or _buffs.has(str(sk.get("id", ""))):
 			n += add
 	return n
 
@@ -454,27 +459,31 @@ func move_speed_rate() -> float:
 		var pct := float(sk.get("move_pct", 0.0))
 		if pct == 0.0:
 			continue
-		if String(sk.get("kind")) == "passive" or _buffs.has(String(sk.get("id"))):
+		if str(sk.get("kind", "")) == "passive" or _buffs.has(str(sk.get("id", ""))):
 			rate *= 1.0 + pct
 	return rate
 
 
 func restock_seconds_now() -> float:
-	var base := Tuning.restock_seconds(_agi_now())
+	## Same formula as _tick_restock (inlined there after helper returned 0 wrongly).
+	var base := float(Tuning.restock_seconds(_agi_now()))
+	if buff_left("instant_restock") > 0.05:
+		var lv := 3
+		for sk in _loadout():
+			if str(sk.get("id", "")) == "instant_restock":
+				lv = int(sk.get("lv", 3))
+				break
+		var mult := float(Skills.restock_circle_mult(lv))
+		if mult <= 0.0:
+			return 0.0
+		return maxf(base * mult, 0.05)
 	var restock_pct := 0.0
 	for sk in _loadout():
-		var sid := String(sk.get("id"))
-		if String(sk.get("kind")) == "passive":
+		if str(sk.get("kind", "")) == "passive":
 			restock_pct += float(sk.get("restock_pct", 0.0))
-			continue
-		if not _buffs.has(sid):
-			continue
-		if bool(sk.get("restock_instant", false)):
-			return 0.0
-		base *= float(sk.get("restock_circle_mult", 1.0))
 	if restock_pct > 0.0:
 		base /= 1.0 + restock_pct
-	return base
+	return maxf(base, 0.05)
 
 
 func checkout_seconds_now() -> float:
@@ -484,8 +493,9 @@ func checkout_seconds_now() -> float:
 	if _passive_checkout_pct > 0.0:
 		rate *= 1.0 + _passive_checkout_pct
 	for sk in _loadout():
-		var sid := String(sk.get("id"))
-		if String(sk.get("kind")) != "active" or not _buffs.has(sid):
+		## Godot 4.7: String(null) errors on empty loadout slots → default return 0 → instant checkout.
+		var sid := str(sk.get("id", ""))
+		if str(sk.get("kind", "")) != "active" or not _buffs.has(sid):
 			continue
 		if sk.has("checkout_pct"):
 			rate *= 1.0 + float(sk.get("checkout_pct"))
@@ -493,7 +503,7 @@ func checkout_seconds_now() -> float:
 	## 資深收銀員 LV3：Circle ×0.5（可與人肉數錢機等疊乘之後再砍）。
 	if _senior_cashier_lv_now() >= 3:
 		out *= 0.5
-	return out
+	return maxf(out, 0.05)
 
 
 func cd_left(skill_id: String) -> float:
@@ -737,6 +747,8 @@ func _in_dir_mode() -> bool:
 func _input(event: InputEvent) -> void:
 	if event.is_echo():
 		return
+	if not Controls.event_for_seat(event, seat_id):
+		return
 	# Early-close dialog and closeout own confirm / cancel.
 	if _asking_early():
 		return
@@ -805,7 +817,7 @@ func _on_cancel_release() -> void:
 
 func _sample_cancel_drop_dir() -> void:
 	## Direction keys retarget aim; no input keeps last aim or feet (zero).
-	var v := Controls.move_vector() + stick_axis
+	var v := Controls.move_vector_for(seat_id) + stick_axis
 	if v.length() >= Tuning.DROP_DIR_DEADZONE:
 		_cancel_drop_dir = v.normalized()
 		facing = _cancel_drop_dir
@@ -1336,7 +1348,7 @@ func _tick_buffs(delta: float) -> void:
 
 
 func _wiggle_axis() -> Vector2:
-	var v := Controls.move_vector() + stick_axis
+	var v := Controls.move_vector_for(seat_id) + stick_axis
 	if v.length_squared() > 1.0:
 		v = v.normalized()
 	return v
@@ -1355,12 +1367,14 @@ func _move_axis() -> Vector2:
 		## Arm latch: skill menu / ult / checkout / restock pick consume move_* .
 		_move_locked_until_neutral = true
 		return Vector2.ZERO
-	var v := Controls.move_vector() + stick_axis
+	var v := Controls.move_vector_for(seat_id) + stick_axis
 	if _move_locked_until_neutral:
 		if v.length() < Controls.MOVE_DEADZONE:
 			_move_locked_until_neutral = false
 		else:
 			return Vector2.ZERO
+	if v.length() < Controls.MOVE_DEADZONE:
+		return Vector2.ZERO
 	if v.length_squared() > 1.0:
 		v = v.normalized()
 	return v
@@ -1387,7 +1401,7 @@ func _poll_stick_cardinal() -> void:
 
 
 func _joy_stick_vector() -> Vector2:
-	var v := Controls.stick_vector()
+	var v := Controls.stick_vector_for(seat_id)
 	if v.length() < Controls.MOVE_DEADZONE:
 		return Vector2.ZERO
 	if v.length_squared() > 1.0:
@@ -1434,7 +1448,7 @@ func _dasher_active() -> bool:
 
 ## Stick/keys for dash aim. Ignores post-skill move-lock so LT skill → dash still aims at the stick.
 func _dash_dir_input() -> Vector2:
-	var v := Controls.move_vector() + stick_axis
+	var v := Controls.move_vector_for(seat_id) + stick_axis
 	if v.length() < Controls.MOVE_DEADZONE:
 		return Vector2.ZERO
 	if v.length_squared() > 1.0:
@@ -1821,6 +1835,9 @@ func _guest_wants_carried(guest: Node) -> bool:
 func _give_guest(guest: Node) -> int:
 	if guest == null or not guest.has_method("accept_toss_box"):
 		return 0
+	var before := 0
+	if guest.get("shopping") != null:
+		before = int((guest.shopping as Array).size())
 	var given := 0
 	var seen := {}
 	var wants: Array[String] = []
@@ -1844,6 +1861,9 @@ func _give_guest(guest: Node) -> int:
 		if taken > 0:
 			inventory.remove_sku(sku, taken)
 			given += taken
+	## COMBO: cleared remaining list (≥3) in this burst.
+	if given > 0 and before >= 3 and guest.shopping.is_empty():
+		guest.set_meta("combo_cleared_n", before)
 	return given
 
 
@@ -1935,11 +1955,17 @@ func _cast_must_deliver(lv: int) -> bool:
 		return false
 	var total := 0
 	var vfx: Array = []
+	var touched: Array = []
 	for entry in plan:
 		var guest: Node = entry["guest"]
 		var pieces: Array = entry["pieces"]
 		if guest == null or not is_instance_valid(guest) or not guest.has_method("accept_must_deliver"):
 			continue
+		## D3 L — skill delivery target.
+		if not _interact_try(guest):
+			continue
+		touched.append(guest)
+		var before := int((guest.shopping as Array).size()) if guest.get("shopping") != null else 0
 		for sku in pieces:
 			inventory.remove_sku(String(sku), 1)
 		var taken := int(guest.call("accept_must_deliver", pieces))
@@ -1948,16 +1974,21 @@ func _cast_must_deliver(lv: int) -> bool:
 				inventory.add_one(String(sku))
 			continue
 		total += taken
+		if before >= 3 and guest.shopping.is_empty():
+			guest.set_meta("combo_cleared_n", before)
 		var shown: Array = []
 		for j in taken:
 			shown.append(String(pieces[j]))
 		vfx.append({"pos": guest.global_position, "skus": shown})
+	for g in touched:
+		_interact_release(g)
 	if total <= 0:
 		log_line.emit("沒有對得上的貨 — 使命必達 失敗")
 		return false
 	_play_must_deliver_vfx(vfx)
 	log_line.emit("使命必達 ×%d" % total)
 	_deliver_pose_left = 0.4
+	_note_delivery_combo(touched, total)
 	return true
 
 
@@ -2173,6 +2204,7 @@ func _cast_magneto(lv: int) -> void:
 		return global_position.distance_squared_to(a.global_position) < global_position.distance_squared_to(b.global_position)
 	)
 	var flights: Array = []
+	var locked_piles: Array = []
 	for pile in piles:
 		if not is_instance_valid(pile):
 			continue
@@ -2181,6 +2213,10 @@ func _cast_magneto(lv: int) -> void:
 			break
 		if not pile.has_method("take_count"):
 			continue
+		## D4 L — magneto floor pile.
+		if not _interact_try(pile):
+			continue
+		locked_piles.append(pile)
 		var sku := String(pile.get("sku"))
 		var at: Vector2 = pile.global_position
 		var got := int(pile.call("take_count", room))
@@ -2190,6 +2226,8 @@ func _cast_magneto(lv: int) -> void:
 			inventory.add_one(sku)
 			flights.append({"sku": sku, "from": at})
 		_spawn_fx("suck", at)
+	for pile in locked_piles:
+		_interact_release(pile)
 	_spawn_fx("suck", global_position)
 	_play_magneto_vfx(flights)
 	var taken_total := flights.size()
@@ -2247,12 +2285,18 @@ func _cast_harvest_chives(lv: int) -> bool:
 	if reg == null or _interact_dist(reg) < 0.0:
 		log_line.emit("要對準收銀機 — 割韭菜 失敗")
 		return false
+	## D4 L — harvest register.
+	if not _interact_try(reg):
+		log_line.emit("收銀機使用中 — 割韭菜 失敗")
+		return false
 	var want := Skills.harvest_chives_count(lv)
 	var game := _game()
 	if game == null or not game.has_method("cast_harvest_chives"):
+		_interact_release(reg)
 		log_line.emit("割韭菜 失敗")
 		return false
 	var n := int(game.call("cast_harvest_chives", reg, want))
+	_interact_release(reg)
 	if n <= 0:
 		log_line.emit("這台沒人可收 — 割韭菜 失敗")
 		return false
@@ -2275,19 +2319,30 @@ func _cast_force_sell(lv: int) -> bool:
 	if guest == null or not guest.has_method("accept_force_sell"):
 		log_line.emit("附近沒有可交付客人 — 我都賺夠啦比啲你賺 失敗")
 		return false
+	## D3 L — force_sell guest.
+	if not _interact_try(guest):
+		log_line.emit("客人互動中 — 我都賺夠啦比啲你賺 失敗")
+		return false
+	var before := int((guest.shopping as Array).size()) if guest.get("shopping") != null else 0
 	var n := mini(Skills.force_sell_count(lv), inventory.count())
 	var pieces: Array[String] = inventory.pop_trailing(n)
 	if pieces.is_empty():
+		_interact_release(guest)
 		log_line.emit("手上沒貨 — 我都賺夠啦比啲你賺 失敗")
 		return false
 	var taken := int(guest.call("accept_force_sell", pieces))
 	if taken <= 0:
 		for sku in pieces:
 			inventory.add_one(String(sku))
+		_interact_release(guest)
 		log_line.emit("附近沒有可交付客人 — 我都賺夠啦比啲你賺 失敗")
 		return false
+	if before >= 3 and guest.shopping.is_empty():
+		guest.set_meta("combo_cleared_n", before)
+	_interact_release(guest)
 	log_line.emit("強塞 ×%d" % taken)
 	_deliver_pose_left = 0.4
+	_note_delivery_combo([guest], taken)
 	return true
 
 
@@ -2295,11 +2350,16 @@ func _cast_force_sell(lv: int) -> bool:
 func _hand_deliver(guests: Array, penalize_miss: bool) -> int:
 	var total := 0
 	var nearest: Node = null
+	var locked: Array = []
 	for guest in guests:
 		if guest == null or not is_instance_valid(guest):
 			continue
 		if not guest.has_method("can_receive_delivery") or not bool(guest.call("can_receive_delivery")):
 			continue
+		## A7 L — hand delivery target.
+		if not _interact_try(guest):
+			continue
+		locked.append(guest)
 		if nearest == null:
 			nearest = guest
 		total += _give_guest(guest)
@@ -2307,6 +2367,9 @@ func _hand_deliver(guests: Array, penalize_miss: bool) -> int:
 		SfxBus.play("sfx_box_hit_guest_ok")
 		log_line.emit("交給客人 ×%d" % total)
 		_deliver_pose_left = 0.4
+		_note_delivery_combo(guests, total)
+		for g in locked:
+			_interact_release(g)
 		return total
 	if penalize_miss and nearest != null and nearest.has_method("apply_toss_reject"):
 		nearest.call("apply_toss_reject", "")
@@ -2315,6 +2378,11 @@ func _hand_deliver(guests: Array, penalize_miss: bool) -> int:
 			log_line.emit("沒有對的貨 — 臨時員工不滿不變")
 		else:
 			log_line.emit("沒有對的貨 — 不滿 +15")
+	var game := _game()
+	if game != null and game.has_method("combo_break_personal"):
+		game.call("combo_break_personal", seat_id)
+	for g in locked:
+		_interact_release(g)
 	return 0
 
 
@@ -2498,7 +2566,7 @@ func _tick_action(delta: float) -> void:
 		return
 	if _stun_left > 0.0 or _slip_left > 0.0:
 		if is_instance_valid(target) and String(target.get("kind")) == "dirt":
-			target.call("set_cleaning", false, Vector2.ZERO, 0.0)
+			target.call("set_cleaning", false, Vector2.ZERO, 0.0, seat_id)
 		return
 	if not _j_held:
 		hold_progress = 0.0
@@ -2546,15 +2614,18 @@ func _begin_fight() -> void:
 		return
 	if not bool(target.call("is_active_thief")):
 		return
+	## A6 L — another seat already fighting this thief.
+	if not _interact_try(target):
+		log_line.emit("對方正在抓這名小偷")
+		return
 	_fighting = true
 	_fight_ko = false
 	_fight_release = true
 	target.call("begin_fight")
 	SfxBus.play("sfx_fight_grab")
 	log_line.emit("抓住小偷 — 連按行動鍵扣血，剩 5 秒")
-	if camera:
-		_prepare_camera_for_local_focus()
-		camera.position = (target.global_position - global_position) * 0.35
+	if _shared_camera() != null:
+		_focus_camera_toward(target.global_position, 0.35)
 		var tw := create_tween()
 		tw.tween_property(
 			camera, "zoom",
@@ -2594,7 +2665,7 @@ func _fight_win() -> void:
 	_fight_ko = true
 	var game := _game()
 	if game and game.has_method("record_caught"):
-		game.call("record_caught")
+		game.call("record_caught", seat_id)
 	log_line.emit("打倒小偷 — KO！贓物散落地上")
 	_play_ko_sequence(target, "ko_scatter_and_flee")
 
@@ -2609,7 +2680,7 @@ func apply_toss_ko(thief: Node, knock_dir: Vector2) -> void:
 		return
 	var game := _game()
 	if game and game.has_method("record_caught"):
-		game.call("record_caught")
+		game.call("record_caught", seat_id)
 	log_line.emit("貨箱砸中小偷 — KO！贓物原地掉落")
 	SfxBus.play("sfx_box_hit_thief")
 	## If this toss finishes an ongoing grab fight, clear fight state after the KO.
@@ -2632,8 +2703,9 @@ func _play_ko_sequence(
 ) -> void:
 	_shake_camera(Tuning.FIGHT_KO_SHAKE, 0.22)
 	SfxBus.play("sfx_ko_screen")
-	if camera:
-		_prepare_camera_for_local_focus()
+	if _shared_camera() != null:
+		if is_instance_valid(thief):
+			_focus_camera_toward((thief as Node2D).global_position, 0.35)
 		var punch := create_tween()
 		punch.tween_property(
 			camera, "zoom",
@@ -2679,6 +2751,8 @@ func _fight_fail() -> void:
 
 
 func _end_fight(_won: bool) -> void:
+	if is_instance_valid(target):
+		_interact_release(target)
 	_fighting = false
 	_fight_release = false
 	_fight_ko = false
@@ -2714,11 +2788,17 @@ func restore_base_camera() -> void:
 		return
 	var z := base_camera_zoom()
 	camera.offset = Vector2.ZERO
+	var game := _game()
 	if PlatformServices.get_camera_view() == PlatformServices.CAMERA_VIEW_OVERVIEW:
 		camera.top_level = true
-		var game := _game()
 		if game != null and game.has_method("shop_camera_center"):
 			camera.global_position = game.call("shop_camera_center") as Vector2
+		camera.zoom = Vector2(z, z)
+	elif game != null and game.has_method("is_local_coop") and bool(game.call("is_local_coop")):
+		## Coop follow: world-space midpoint (demo keeps it each frame).
+		camera.top_level = true
+		if game.has_method("coop_camera_midpoint"):
+			camera.global_position = game.call("coop_camera_midpoint") as Vector2
 		camera.zoom = Vector2(z, z)
 	else:
 		camera.top_level = false
@@ -2735,15 +2815,33 @@ func _prepare_camera_for_local_focus() -> void:
 		camera.position = Vector2.ZERO
 
 
+## Frame toward a world point. Shared cam (parent ≠ this seat) must use top_level
+## global_position — local offset would be relative to seat0 and land in the wrong place.
+func _focus_camera_toward(focus_global: Vector2, blend: float) -> void:
+	var cam := _shared_camera()
+	if cam == null:
+		return
+	camera = cam
+	var want := global_position.lerp(focus_global, blend)
+	if cam.get_parent() != self:
+		cam.top_level = true
+		cam.global_position = want
+	else:
+		_prepare_camera_for_local_focus()
+		cam.position = (focus_global - global_position) * blend
+
+
 func play_elite_focus(target_node: Node, sec: float = Tuning.ELITE_ZOOM_SEC) -> void:
-	if target_node == null or not is_instance_valid(target_node) or camera == null:
+	if target_node == null or not is_instance_valid(target_node):
+		await get_tree().create_timer(sec).timeout
+		return
+	if _shared_camera() == null:
 		await get_tree().create_timer(sec).timeout
 		return
 	_elite_focus_left = maxf(_elite_focus_left, sec)
-	_prepare_camera_for_local_focus()
+	_focus_camera_toward((target_node as Node2D).global_position, 0.55)
 	var base_z := base_camera_zoom()
 	var punch_z := base_z * 1.35
-	camera.position = ((target_node as Node2D).global_position - global_position) * 0.55
 	var tw := create_tween()
 	tw.tween_property(camera, "zoom", Vector2(punch_z, punch_z), 0.18)
 	await get_tree().create_timer(sec).timeout
@@ -2789,7 +2887,7 @@ func _try_dash_hits() -> void:
 				continue
 			t.call("dash_knock_away", _dash_dir)
 			if g.has_method("record_caught"):
-				g.call("record_caught")
+				g.call("record_caught", seat_id)
 			SfxBus.play("sfx_thief_dash_out")
 			log_line.emit("衝刺撞飛小偷 — 算抓住，贓物散落")
 			if _fighting:
@@ -2863,6 +2961,12 @@ func _tick_sku_pick(delta: float) -> void:
 	_restock_hold += delta
 	if _restock_picking or _restock_hold < Tuning.SKU_PICK_HOLD:
 		return
+	## A3 L — restock point pick menu.
+	if not is_instance_valid(target) or not _interact_try(target):
+		log_line.emit("補貨點使用中")
+		_j_held = false
+		_restock_hold = 0.0
+		return
 	_restock_picking = true
 	target.call("begin_pick")
 	SfxBus.play("sfx_box_sku_open")
@@ -2873,6 +2977,7 @@ func _abort_restock_pick() -> void:
 	if target != null and String(target.get("kind")) == "restock":
 		target.call("abort_pick")
 		SfxBus.play("sfx_box_sku_cancel")
+		_interact_release(target)
 	_restock_picking = false
 	_restock_hold = 0.0
 
@@ -2903,6 +3008,14 @@ func _tick_restock(delta: float) -> void:
 		return
 	var run: Dictionary = inventory.trailing_run()
 	var sku := String(run["id"])
+	if not is_instance_valid(target) or not target.has_method("can_accept"):
+		hold_progress = 0.0
+		return
+	## A2 L — shelf stocking Circle.
+	if not _interact_try(target):
+		log_line.emit("貨架使用中")
+		hold_progress = 0.0
+		return
 	if not bool(target.call("can_accept", sku)):
 		if int(target.get("count")) >= int(target.get("capacity")):
 			SfxBus.play("sfx_shelf_stock_blocked")
@@ -2915,7 +3028,30 @@ func _tick_restock(delta: float) -> void:
 		blocked_mismatch = true
 		hold_progress = 0.0
 		return
-	var dur := restock_seconds_now()
+	## Duration: AGI baseline only. Instant ONLY while 瞬間補貨 buff is active.
+	## Equipped loadout always includes instant_restock with restock_circle_mult=0 —
+	## never multiply that in when the buff is off.
+	var dur := float(Tuning.restock_seconds(_agi_now()))
+	if buff_left("instant_restock") > 0.05:
+		var lv := 3
+		for sk in _loadout():
+			if str(sk.get("id", "")) == "instant_restock":
+				lv = int(sk.get("lv", 3))
+				break
+		var mult := float(Skills.restock_circle_mult(lv))
+		if mult <= 0.0:
+			dur = 0.0
+		else:
+			dur *= mult
+	else:
+		var restock_pct := 0.0
+		for sk in _loadout():
+			## Godot 4.7: String(null) throws — empty slots have no "kind".
+			if str(sk.get("kind", "")) == "passive":
+				restock_pct += float(sk.get("restock_pct", 0.0))
+		if restock_pct > 0.0:
+			dur /= 1.0 + restock_pct
+		dur = maxf(dur, 0.05)
 	if dur <= 0.001:
 		hold_progress = 1.0
 	else:
@@ -2932,6 +3068,7 @@ func _tick_restock(delta: float) -> void:
 			SfxBus.play("sfx_shelf_stock_done")
 		log_line.emit("上架 %s ×%d" % [Tuning.sku_name(sku), placed])
 		hold_progress = 0.0
+		_interact_release(target)
 
 
 func _abort_manual_clean_for_monk() -> void:
@@ -3011,6 +3148,11 @@ func _tick_clean(_delta: float) -> void:
 	if buff_left("sweeping_monk") > 0.05:
 		_abort_manual_clean_for_monk()
 		return
+	if not is_instance_valid(target) or String(target.get("kind")) != "dirt":
+		return
+	## Another seat already owns this dirt's clean cycle — do not wipe / steal it.
+	if target.has_method("is_clean_locked_by_other") and bool(target.call("is_clean_locked_by_other", seat_id)):
+		return
 	## Carry allowed; goods stay in hand while scrubbing.
 	var axis := _wiggle_axis()
 	if not _clean_hint:
@@ -3029,7 +3171,11 @@ func _tick_clean(_delta: float) -> void:
 		_clean_hint = true
 		SfxBus.play("sfx_clean_start")
 		log_line.emit("清潔 %s — 按住行動並持續轉搖桿／方向" % String(target.call("type_name")))
-	target.call("set_cleaning", true, axis, hold_progress * 100.0)
+	if not bool(target.call("set_cleaning", true, axis, hold_progress * 100.0, seat_id)):
+		## Lost the race to another seat this frame.
+		_clean_hint = false
+		_last_wiggle = Vector2.ZERO
+		return
 	if hold_progress >= 1.0:
 		var name := String(target.call("type_name"))
 		var spark_at := target.global_position
@@ -3042,7 +3188,7 @@ func _tick_clean(_delta: float) -> void:
 		SfxBus.play("sfx_clean_done")
 		var game := _game()
 		if game and game.has_method("note_clean"):
-			game.note_clean()
+			game.note_clean(seat_id)
 		log_line.emit("清潔完成 — %s 已清除" % name)
 
 
@@ -3050,33 +3196,49 @@ func _tick_drop() -> void:
 	if _pickup_used:
 		return
 	_pickup_used = true
+	if not is_instance_valid(target):
+		return
+	## A8 L — floor drop pile.
+	if not _interact_try(target):
+		log_line.emit("地上貨堆使用中")
+		return
 	var n := int(target.get("count"))
 	var sku := String(target.get("sku"))
 	if n <= 0:
+		_interact_release(target)
 		return
 	if inventory.count() + n > carry_cap():
 		log_line.emit("負重不足，撿不回掉落箱")
+		_interact_release(target)
 		return
 	var taken := int(target.call("take_all"))
 	for i in taken:
 		inventory.add_one(sku)
 	SfxBus.play("sfx_box_pickup_floor")
 	log_line.emit("撿起 %s ×%d" % [Tuning.sku_name(sku), taken])
+	_interact_release(target)
 
 
 func _clear_clean_hint() -> void:
-	if _clean_hint:
+	## Only release dirt THIS seat was cleaning. Never blanket-clear contacts —
+	## in coop that wiped the other player's loading cycle when they walked on.
+	var was := _clean_hint
+	if was:
 		SfxBus.play("sfx_clean_cancel")
 	_clean_hint = false
 	_last_wiggle = Vector2.ZERO
-	if is_instance_valid(target) and String(target.get("kind")) == "dirt":
-		target.call("set_cleaning", false, Vector2.ZERO, hold_progress * 100.0)
-	for a in _dirt_areas:
-		if is_instance_valid(a) and a.has_method("set_cleaning"):
-			a.call("set_cleaning", false, Vector2.ZERO, 0.0)
+	if was and is_instance_valid(target) and String(target.get("kind")) == "dirt":
+		target.call("set_cleaning", false, Vector2.ZERO, hold_progress * 100.0, seat_id)
 
 
 func _tick_cashier(delta: float) -> void:
+	if not is_instance_valid(target):
+		return
+	## A4 L — register through whole payment / cancel.
+	if not _interact_try(target):
+		log_line.emit("收銀機使用中")
+		hold_progress = 0.0
+		return
 	var cust = target.call("ready_customer")
 	if cust == null:
 		_prompt.active = false
@@ -3093,7 +3255,8 @@ func _tick_cashier(delta: float) -> void:
 	_prompt.index = seq_index
 	if not seq_done:
 		return
-	hold_progress = minf(1.0, hold_progress + delta / checkout_seconds_now())
+	var csec := checkout_seconds_now()
+	hold_progress = minf(1.0, hold_progress + delta / csec)
 	if hold_progress >= 1.0:
 		_finish_checkout(cust)
 
@@ -3188,7 +3351,7 @@ func _finish_checkout(cust) -> void:
 	## paid signal → demo._on_paid; pass elite via game helper when connected.
 	var game := _game()
 	if game != null and game.has_method("_on_paid"):
-		game.call("_on_paid", amount, from_elite)
+		game.call("_on_paid", amount, from_elite, seat_id)
 	else:
 		paid.emit(amount)
 	SfxBus.play("sfx_checkout_circle_done")
@@ -3200,6 +3363,7 @@ func _finish_checkout(cust) -> void:
 	cust.finish_paid()
 	if target:
 		target.dequeue(cust)
+		_interact_release(target)
 	seq_index = 0
 	seq_done = false
 	hold_progress = 0.0
@@ -3293,7 +3457,7 @@ func _sync_hold_aim() -> void:
 
 
 func _skill_aim_slot() -> int:
-	var v := Controls.move_vector() + stick_axis
+	var v := Controls.move_vector_for(seat_id) + stick_axis
 	if v.length() < 0.42:
 		return 0
 	var dir := Skills.DIR_DOWN if v.y > 0.0 else Skills.DIR_UP
@@ -3342,7 +3506,7 @@ func cast_skill_hotkey(slot: int) -> void:
 
 
 func _tick_triggers(delta: float) -> void:
-	var tr := Controls.trigger_values()
+	var tr := Controls.trigger_values_for(seat_id)
 	var lt := tr.x >= Controls.TRIGGER_DEADZONE
 	var rt := tr.y >= Controls.TRIGGER_DEADZONE
 	if lt and not _lt_held:
@@ -3710,13 +3874,27 @@ func _spawn_fx(fx_id: String, at: Vector2) -> void:
 	FxBurst.spawn(host, fx_id, at)
 
 
+func _shared_camera() -> Camera2D:
+	if camera != null and is_instance_valid(camera):
+		return camera
+	var game := _game()
+	if game != null:
+		var host = game.get("_player")
+		if host != null and host.get("camera") != null:
+			return host.camera as Camera2D
+	return null
+
+
 func _play_zoom(ult: bool) -> void:
-	if camera == null:
+	var cam := _shared_camera()
+	if cam == null:
 		return
+	## Keep local ref so restore_base_camera / shake also work for seat1+.
+	camera = cam
 	var base := base_camera_zoom()
 	var z := base * (1.28 if ult else 1.12)
 	var tw := create_tween()
-	tw.tween_property(camera, "zoom", Vector2(z, z), 0.18)
+	tw.tween_property(cam, "zoom", Vector2(z, z), 0.18)
 	tw.tween_interval(0.22 if ult else 0.12)
 	tw.tween_callback(restore_base_camera)
 
@@ -3737,6 +3915,58 @@ func _reset_hold() -> void:
 		var cust = target.call("front_customer")
 		if cust:
 			cust.cancel_pay()
+		_interact_release(target)
+	elif target != null and String(target.get("kind")) == "shelf":
+		_interact_release(target)
+	_interact_release_held()
+
+
+func _interact_try(node: Object) -> bool:
+	var il := get_node_or_null("/root/InteractLock")
+	if il == null:
+		_lock_node = node as Node
+		return true
+	if not bool(il.try_acquire(node, seat_id)):
+		return false
+	_lock_node = node as Node
+	return true
+
+
+func _interact_release(node: Object) -> void:
+	var il := get_node_or_null("/root/InteractLock")
+	if il:
+		il.release(node, seat_id)
+	if _lock_node == node:
+		_lock_node = null
+
+
+func _interact_release_held() -> void:
+	if _lock_node != null and is_instance_valid(_lock_node):
+		_interact_release(_lock_node)
+	_lock_node = null
+
+
+func _note_delivery_combo(guests: Array, _pieces: int) -> void:
+	## Qualifying COMBO: cleared remaining list with ≥3 pieces on a guest this burst.
+	var game := _game()
+	if game == null or not game.has_method("combo_note_qualify"):
+		return
+	var qualified := false
+	for guest in guests:
+		if guest == null or not is_instance_valid(guest):
+			continue
+		if not guest.has_meta("combo_cleared_n"):
+			continue
+		var n := int(guest.get_meta("combo_cleared_n"))
+		guest.remove_meta("combo_cleared_n")
+		if n >= 3:
+			qualified = true
+			if guest.has_method("apply_combo_bonus"):
+				guest.call("apply_combo_bonus")
+	if qualified:
+		game.call("combo_note_qualify", seat_id)
+	elif game.has_method("combo_break_personal"):
+		game.call("combo_break_personal", seat_id)
 
 
 func _handle_hotkey_actions(event: InputEvent) -> void:
@@ -3809,23 +4039,36 @@ func _update_visuals() -> void:
 			Vox.play_anim(_body as AnimatedSprite2D, "player", anim, facing, spd)
 	elif _body is Sprite2D:
 		Vox.apply(_body as Sprite2D, "player", Vox.k_from_facing(facing))
-	var tint := Color.WHITE
+	var status := Color.WHITE
 	if ult_prep:
-		tint = Color(1.0, 0.45, 0.4)
+		status = Color(1.0, 0.45, 0.4)
 	elif skill_menu_open:
-		tint = Color(0.65, 0.9, 1.0)
+		status = Color(0.65, 0.9, 1.0)
 	elif command_lock:
-		tint = Color(1.0, 0.9, 0.55)
+		status = Color(1.0, 0.9, 0.55)
 	elif _dashing:
-		tint = Color(1.0, 0.92, 0.45)
+		status = Color(1.0, 0.92, 0.45)
 	elif _running:
-		tint = Color(0.7, 1.0, 0.85)
+		status = Color(0.7, 1.0, 0.85)
 	elif _fighting:
-		tint = Color(1.0, 0.45, 0.4)
+		status = Color(1.0, 0.45, 0.4)
 	elif _stun_left > 0.0:
-		tint = Color(0.85, 0.7, 1.0)
+		status = Color(0.85, 0.7, 1.0)
 	elif on_dirt():
-		tint = Color(0.75, 0.62, 0.45)
+		status = Color(0.75, 0.62, 0.45)
+	var appear := _appearance_tint()
+	var tint := Color(appear.r * status.r, appear.g * status.g, appear.b * status.b, 1.0)
 	if tint != _shown_tint:
 		_shown_tint = tint
 		_body.modulate = tint
+
+
+func _appearance_tint() -> Color:
+	if stats == null:
+		return Color.WHITE
+	if stats.has_method("appearance_tint"):
+		return stats.appearance_tint()
+	if "tint" in stats:
+		const CharacterSheet = preload("res://scripts/session/character_sheet.gd")
+		return CharacterSheet.tint_color(int(stats.tint))
+	return Color.WHITE

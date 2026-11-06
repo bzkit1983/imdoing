@@ -38,6 +38,9 @@ hud.cat_dry,乾貨,Dry
 hud.cat_frozen,凍櫃,Frozen
 hud.cat_ice,冰櫃,Ice
 hud.closeout_title,關店結算,Day settled
+hud.combo,COMBO  %d  ·  TEAM  %d,COMBO  %d  ·  TEAM  %d
+hud.combo_coop,COMBO P1 %d  ·  P2 %d  ·  TEAM %d,COMBO P1 %d  ·  P2 %d  ·  TEAM %d
+hud.seat,P%d,P%d
 prep.back,返回,Back
 prep.scenario.title,選擇劇本,Choose scenario
 prep.scenario.info,劇本1 從空店開始，資金 $10000。劇本2、3 帶現成店面和店員。劇本4 用來試技能。,"Scenario 1 starts empty with $10000. 2 and 3 include a shop and clerks. 4 is for trying skills."
@@ -141,6 +144,23 @@ prep.layout.sku_pick,預設貨品：%s　↑↓ 改選　確定　取消,"Defaul
 prep.layout.sku_set,已設預設 %s,Default set: %s
 prep.clerks.title,員工管理,Staff
 prep.confirm.title,開始營運,Open shop
+prep.confirm.players,玩家人數,Players
+prep.confirm.players_1,1 人（單人）,1 player (solo)
+prep.confirm.players_2,2 人（本機雙人）,2 players (local coop)
+prep.confirm.players_web,Web 僅支援 1 人,Web supports 1 player only
+prep.confirm.players_note,2 人時請選訪客槽（既有／複製／空白）,With 2 players pick a guest slot (existing / clone / blank)
+prep.confirm.host_tint,店主色調：%d,Host tint: %d
+prep.confirm.cycle_host_tint,切換店主色調,Cycle host tint
+prep.confirm.guest_none,P2：尚未選訪客槽（開始時會自動複製店主到空槽）,P2: no guest slot yet (open will clone host into an empty slot)
+prep.confirm.guest_selected,P2 槽%d：%s,P2 slot %d: %s
+prep.confirm.guest_slot,選用槽%d　%s,Use slot %d  %s
+prep.confirm.guest_clone,複製店主 → 槽%d,Clone host → slot %d
+prep.confirm.guest_blank_btn,新建空白 → 槽%d,New blank → slot %d
+prep.confirm.cycle_guest_tint,切換訪客色調,Cycle guest tint
+prep.confirm.guest_cloned,已複製店主到訪客槽 %d,Cloned host into guest slot %d
+prep.confirm.guest_blank,已在訪客槽 %d 新建空白角色,Created blank character in guest slot %d
+prep.confirm.guest_need_title,需要訪客槽,Guest slot required
+prep.confirm.guest_need_body,請先選既有槽、複製店主到空槽、或新建空白。,Pick an existing slot, clone the host into an empty slot, or create a blank.
 prep.kind.active,主動,Active
 prep.kind.passive,被動,Passive
 prep.kind.ult,奧義,Ult

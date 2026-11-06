@@ -342,7 +342,7 @@ InputRouter
 | 里程碑 | 內容 | 驗收 |
 | --- | --- | --- |
 | **M0** | 本文件與 Seat 協定對齊 | 企劃／工程讀過；§10 已拍板 |
-| **M1** | 本機 2 seat + SeatTable（`transport=local`） | 見 **§11 驗收**；規格已定稿（2026-11-05） |
+| **M1** | 本機 2 seat + SeatTable（`transport=local`） | **已交**（§11.9）；規格定稿 2026-11-05 |
 | **M2** | LAN／ENet 第 3、第 4 seat | **本機二的 host 接受線上補位至 4**；開日後斷線移除角色、座位不可再佔 |
 | **M3** | Steam lobby／peer | 同一 Session；好友邀請進混合房 |
 | **M4** | Web `web_ws` | Web↔Web 房間；**每機 1 seat** |
@@ -369,10 +369,10 @@ InputRouter
 
 ## 11. M1 本機雙人規格（定稿）
 
-- **狀態：** 設計定稿；**尚未實作**
+- **狀態：** 設計定稿；**M1 已交**（第一刀＋第二刀，見 §11.9）
 - **拍板：** 2026-11-05（本機身分／鏡頭／結算／輸入／鎖表／COMBO 等）
 - **目標：** 同機 **2 seat** + **SeatTable**（`transport=local`），可打完一日營運；協定預留 seat_id 0–3 供 M2+。
-- **非目標：** 網路、中途加入、觀戰、Web 本機二、準備回合雙人操作、實作程式（另里程碑）。
+- **非目標（仍排除）：** 網路、中途加入、觀戰、Web 本機二、準備回合雙人操作、完整 Look 外觀頁。
 
 ### 11.1 流程
 
@@ -451,15 +451,24 @@ InputRouter
 
 ### 11.9 M1 驗收清單
 
-- [ ] 準備單人；開日前可選 1｜2 人並指定 P2 槽（含複製／新建）
-- [ ] SeatTable local 兩 seat；兩 device（或鍵盤＋一把手把）可同時操作
-- [ ] 雙手把已綁時鍵盤無效；拔掉後鍵盤可佔空 seat
-- [ ] 鏡頭跟中點；軟碰撞可擠過
-- [ ] L 類互動互斥；A1／飛箱等 N 類可並行
-- [ ] HUD 個人＋全隊 COMBO；全隊可接棒
-- [ ] 打完一日：P1 店資金更新；兩角色經驗按平分公式寫入；P2 檔無店舖欄被寫髒
-- [ ] 任一 seat 可暫停／繼續／結束本日
-- [ ] Web 包不提供本機二人（每機 1 seat 政策維持）
+**實作切分（2026-11-05）：**
+
+| 刀 | 範圍 | 狀態 |
+|---|---|---|
+| **第一刀（垂直切片）** | prep 選本機 1｜2；`SeatTable` local；雙 `player`＋device／鍵盤分流；鏡頭中點；軟碰撞；P2＝記憶體內從店主複製的 `CharacterSheet`（不持久）；Web 鎖 1；暫停任一 Start／Esc | **已交** |
+| **第二刀** | 訪客槽檔案／上限 3／新建空白／外觀；互動物件鎖表（§11.6）；個人＋全隊 COMBO HUD；日結經驗平分寫雙檔 | **已交** |
+
+完整清單（第一刀只勾可玩切片；其餘屬第二刀）：
+
+- [x] 準備單人；開日前可選 1｜2 人（第二刀：選 2＝訪客槽既有／複製店主／新建空白＋ tint）
+- [x] SeatTable local 兩 seat；兩 device（或鍵盤＋一把手把）可同時操作
+- [x] 雙手把已綁時鍵盤無效；拔掉後鍵盤可佔空 seat
+- [x] 鏡頭跟中點；軟碰撞可擠過
+- [x] L 類互動互斥；A1／飛箱等 N 類可並行（`InteractLock`）
+- [x] HUD 個人＋全隊 COMBO；全隊可接棒（達標規則見 `fetchcombo.md`）
+- [x] 打完一日：P1 店資金更新；兩角色經驗按平分公式寫入；P2 僅角色欄寫 `user://guest_slots.json`
+- [x] 任一 seat 可暫停／繼續／結束本日（既有 pause 吃任何手把 Start／Esc；無需 seat 過濾）
+- [x] Web 包不提供本機二人（每機 1 seat 政策維持）
 
 ---
 
@@ -474,6 +483,8 @@ InputRouter
 - `docs/systemdesign/control.md`、`docs/systemdesign/inputmodes-vj.md` — 輸入  
 - `docs/systemdesign/savesystem.md`、`docs/systemdesign/pausemenu.md` — 存檔與暫停  
 - `docs/systemdesign/customerdelivery.md` — 交付；多人 COMBO 見 §11.7  
+- `docs/systemdesign/fetchcombo.md` — COMBO 達標與 HUD  
+
 - `godot/game/scripts/platform_services.gd` — 平台 facade  
 - Godot 文件：High-level multiplayer、`MultiplayerPeer`、WebRTC 說明  
 
@@ -484,4 +495,4 @@ InputRouter
 - **產品：** 本機最多二人，可線上補位至同房四人；純本機／純線上是同一模型的特例。  
 - **工程：** SeatTable + listen-server + 可換 Transport；Intent 帶 `seat_id`。  
 - **平台：** Steam／Web／LAN 各換 backend；v1 不承諾跨商店互通。  
-- **下一步：** **§11 M1 規格已定稿** → 實作 M1（另開工程任務）→ 再 M2；線上結算與 `ecosystem` 長線對齊按需補 PR。
+- **下一步：** **M1 已交** → M2（連線 seat／Transport）；線上結算與 `ecosystem` 長線對齊按需補 PR。
