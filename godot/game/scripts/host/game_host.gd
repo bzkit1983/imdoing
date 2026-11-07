@@ -86,7 +86,7 @@ func note_clean(_seat: int = 0) -> void:
 	pass
 
 
-func _on_paid(_amount: int, _from_elite: bool = false, _seat: int = 0) -> void:
+func _on_paid(_amount: int, _from_elite: bool = false, _seat: int = 0, _actor: Node2D = null) -> void:
 	pass
 
 

@@ -320,6 +320,10 @@ func _spawn_clerks() -> void:
 func note_clean(seat: int = 0) -> void:
 	cleaned += 1
 	_seat_bump(seat_cleaned, seat, 1)
+	var FloatText = preload("res://scripts/ui/float_text.gd")
+	var actor := _seat_actor(seat)
+	if actor != null:
+		FloatText.spawn_xp(actor, StateScript.XP_CLEAN)
 
 
 func _seat_bump(arr: Array, seat: int, n: int) -> void:
@@ -1722,9 +1726,13 @@ func record_caught(seat: int = 0) -> void:
 	thieves_caught += 1
 	_seat_bump(seat_caught, seat, 1)
 	bump_hud()
+	var FloatText = preload("res://scripts/ui/float_text.gd")
+	var actor := _seat_actor(seat)
+	if actor != null:
+		FloatText.spawn_xp(actor, StateScript.XP_CATCH)
 
 
-func _on_paid(amount: int, from_elite: bool = false, seat: int = 0) -> void:
+func _on_paid(amount: int, from_elite: bool = false, seat: int = 0, actor: Node2D = null) -> void:
 	revenue += amount
 	served += 1
 	_seat_bump(seat_served, seat, 1)
@@ -1732,12 +1740,37 @@ func _on_paid(amount: int, from_elite: bool = false, seat: int = 0) -> void:
 		elite_served += 1
 		_seat_bump(seat_elite, seat, 1)
 	bump_hud()
+	var body: Node2D = actor if actor != null and is_instance_valid(actor) else _seat_actor(seat)
+	if body == null:
+		body = _player
+	var FloatText = preload("res://scripts/ui/float_text.gd")
+	if body != null and is_instance_valid(body):
+		var stagger := 0
+		if amount > 0:
+			FloatText.spawn_money(body, amount, stagger)
+			stagger += 1
+		FloatText.spawn_xp(body, StateScript.XP_SERVE, stagger)
+		stagger += 1
+		if from_elite:
+			FloatText.spawn_xp(body, StateScript.XP_ELITE_SERVE, stagger)
 	if _player != null:
 		var FxBurst = preload("res://scripts/fx_burst.gd")
 		var at: Vector2 = _player.global_position + Vector2(0, -28)
 		if _player.get("target") != null and is_instance_valid(_player.target):
 			at = _player.target.global_position + Vector2(0, -24)
+		elif body != null and is_instance_valid(body):
+			at = body.global_position + Vector2(0, -24)
 		FxBurst.spawn(self, "coin", at)
+
+
+func _seat_actor(seat: int) -> Node2D:
+	if seat >= 0 and seat < _players.size():
+		var p: CharacterBody2D = _players[seat]
+		if p != null and is_instance_valid(p):
+			return p
+	if _player != null and is_instance_valid(_player):
+		return _player
+	return null
 
 
 func skip_operate() -> void:

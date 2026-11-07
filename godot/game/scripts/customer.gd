@@ -52,6 +52,8 @@ var _temp_box_sku: String = ""
 var _temp_box_n: int = 0
 var _temp_job_cd: float = 0.0
 var _dissat_track: ColorRect
+## Throttle for dirt-step float text (ops float popups).
+var _dirt_float_cd: float = 0.0
 var _path: PackedVector2Array = PackedVector2Array()
 var _path_i: int = 0
 var _goal: Vector2 = Vector2.ZERO
@@ -209,11 +211,17 @@ func on_dirt() -> bool:
 
 
 ## Positive dissatisfaction. Easy difficulty scales the gain; reductions stay full.
-func gain_dissat(amount: float) -> void:
+## `reason` gates ops float popups: miss / dash / toss_wrong / drive_off (dirt uses throttle).
+func gain_dissat(amount: float, reason: String = "") -> void:
 	if amount <= 0.0 or temp_clerk:
 		return
 	var easy := _game != null and _game.has_method("play_is_easy") and bool(_game.call("play_is_easy"))
+	var before := dissatisfaction
 	dissatisfaction = minf(Tuning.DISSAT_MAX, dissatisfaction + Tuning.dissat_gain(amount, easy))
+	var applied := dissatisfaction - before
+	if applied > 0.05 and reason in ["miss", "dash", "toss_wrong", "drive_off"]:
+		var FloatText = preload("res://scripts/ui/float_text.gd")
+		FloatText.spawn_dissat(self, applied)
 
 
 func _dirt_dissat_rate() -> float:
@@ -376,8 +384,15 @@ func _physics_process(delta: float) -> void:
 		else:
 			_leave(true)
 	if on_dirt() and state != State.LEAVE and state != State.FIGHT and state != State.FLEE and not is_thief:
-		gain_dissat(_dirt_dissat_rate() * td)
+		var dirt_rate := _dirt_dissat_rate()
+		gain_dissat(dirt_rate * td)
 		mood = _dirt_mood()
+		_dirt_float_cd = maxf(0.0, _dirt_float_cd - td)
+		if dirt_rate > 0.01 and _dirt_float_cd <= 0.0:
+			_dirt_float_cd = 1.0
+			var easy := _game != null and _game.has_method("play_is_easy") and bool(_game.call("play_is_easy"))
+			var FloatText = preload("res://scripts/ui/float_text.gd")
+			FloatText.spawn_dissat(self, Tuning.dissat_gain(dirt_rate, easy))
 	if is_elite and state != State.LEAVE and state != State.FLEE and state != State.FIGHT:
 		_tick_elite_affixes(delta, td)
 	if _lord_pull():
@@ -449,7 +464,7 @@ func _tick_seek(delta: float) -> void:
 		_timer = Tuning.THINK_SEC
 		SfxBus.play("sfx_guest_think")
 		if not is_thief:
-			gain_dissat(Tuning.DISSAT_MISS)
+			gain_dissat(Tuning.DISSAT_MISS, "miss")
 		mood = "找不到%s" % Tuning.sku_name(want)
 		_sku_popup(want, SkuIcons.KIND_MISS)
 		return
@@ -480,7 +495,7 @@ func _take_current() -> void:
 		_timer = Tuning.THINK_SEC
 		SfxBus.play("sfx_guest_think")
 		if not is_thief:
-			gain_dissat(Tuning.DISSAT_MISS)
+			gain_dissat(Tuning.DISSAT_MISS, "miss")
 		mood = "找不到%s" % Tuning.sku_name(want)
 		_sku_popup(want, SkuIcons.KIND_MISS)
 		_target_shelf = null
@@ -504,7 +519,7 @@ func _after_think() -> void:
 			return
 		state = State.THINK
 		_timer = Tuning.THINK_SEC
-		gain_dissat(Tuning.DISSAT_MISS)
+		gain_dissat(Tuning.DISSAT_MISS, "miss")
 		mood = "還是找不到…"
 		if not shopping.is_empty():
 			_sku_popup(String(shopping[0]), SkuIcons.KIND_MISS)
@@ -819,7 +834,10 @@ func dash_knock_guest(add_dissat: float) -> void:
 	for s in shopping:
 		rebuy.append(s)
 	_drop_cart_inplace()
-	gain_dissat(add_dissat)
+	if add_dissat > 0.0:
+		gain_dissat(add_dissat, "dash")
+	else:
+		gain_dissat(add_dissat)
 	shopping = rebuy
 	cart.clear()
 	raided = false
@@ -956,7 +974,7 @@ func apply_toss_reject(sku: String = "") -> void:
 			_sku_popup(sku, SkuIcons.KIND_BAD)
 		_sync_labels()
 		return
-	gain_dissat(Tuning.TOSS_GUEST_WRONG_DISSAT)
+	gain_dissat(Tuning.TOSS_GUEST_WRONG_DISSAT, "toss_wrong")
 	mood = "不想要這貨品！"
 	if sku != "":
 		_sku_popup(sku, SkuIcons.KIND_BAD)
@@ -1111,7 +1129,7 @@ func _tick_temp_cashier(delta: float) -> void:
 	var from_elite := bool(cust.get("is_elite"))
 	SfxBus.play("sfx_checkout_clerk")
 	if _game.has_method("_on_paid"):
-		_game.call("_on_paid", amount, from_elite)
+		_game.call("_on_paid", amount, from_elite, 0, self)
 	if cust.has_method("finish_paid"):
 		cust.finish_paid()
 	if reg.has_method("dequeue"):
@@ -1504,7 +1522,7 @@ func elite_drive_off(add: float) -> void:
 		return
 	if state == State.LEAVE or state == State.FLEE or state == State.FIGHT:
 		return
-	gain_dissat(add)
+	gain_dissat(add, "drive_off")
 	mood = "被趕走…？"
 	if dissatisfaction >= Tuning.DISSAT_MAX:
 		_drop_cart_inplace()

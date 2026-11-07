@@ -120,6 +120,9 @@ var _restock_hold: float = 0.0
 var _restock_aborted: bool = false
 var _fighting: bool = false
 var _fight_release: bool = false
+## After fight ends, ignore Interact until the physical key/button goes up
+## so a held mash press cannot long-commit dirt/shelf/cashier.
+var _interact_ignore_until_up: bool = false
 ## True while KO banner / knockaway plays after a fight mash win.
 var _fight_ko: bool = false
 ## EliteCustomer intro ZOOM — locks player actions (~1s).
@@ -597,13 +600,27 @@ func role_status_text() -> String:
 func set_hold(action: String, pressed: bool) -> void:
 	match action:
 		"interact":
+			if _interact_ignore_until_up:
+				if pressed:
+					return
+				_interact_ignore_until_up = false
+				_j_held = false
+				_j_time = 0.0
+				_long_committed = false
+				_deliver_done = false
+				## Do not short-interact on the release that ends the latch.
+				return
 			if _fighting:
+				## Keep `_j_held` truthful during mash so fight-end knows if the
+				## physical Interact is still down (vs already released).
 				if pressed:
 					if not _fight_release:
 						_fight_tap()
 					_fight_release = true
+					_j_held = true
 				else:
 					_fight_release = false
+					_j_held = false
 				return
 			if pressed:
 				_j_held = true
@@ -2717,6 +2734,15 @@ func _end_fight(_won: bool) -> void:
 	_fight_ko = false
 	_shake_left = 0.0
 	hold_progress = 0.0
+	## Mash updates `_j_held` above; if still down through KO, latch until up
+	## so `_tick_action` cannot long-commit nearby dirt/shelf/cashier.
+	var still_held := _j_held
+	_j_held = false
+	_j_time = 0.0
+	_long_committed = false
+	_deliver_done = false
+	_interact_ignore_until_up = still_held
+	_clear_clean_hint()
 	restore_base_camera()
 	var game := _game()
 	if game != null and game.has_method("notify_camera_priority_idle"):
@@ -3310,7 +3336,7 @@ func _finish_checkout(cust) -> void:
 	## paid signal → demo._on_paid; pass elite via game helper when connected.
 	var game := _game()
 	if game != null and game.has_method("_on_paid"):
-		game.call("_on_paid", amount, from_elite, seat_id)
+		game.call("_on_paid", amount, from_elite, seat_id, self)
 	else:
 		paid.emit(amount)
 	SfxBus.play("sfx_checkout_circle_done")
