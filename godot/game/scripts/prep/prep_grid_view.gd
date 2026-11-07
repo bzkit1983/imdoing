@@ -45,18 +45,18 @@ func _draw() -> void:
 		var col := Color("5c4033")
 		var t := String(it["type"])
 		if t.begins_with("shelf"):
-			## Distinct fills so dry / frozen / ice are not mistaken for each other.
+			## Distinct fills: dry green · frozen deep cyan · ice pale lavender.
 			if t.contains("frozen"):
-				col = Color("3a6e9e")
+				col = Color("1a7a8c")
 			elif t.contains("ice"):
-				col = Color("5a7a9e")
+				col = Color("c8d4f0")
 			else:
 				col = Color("2f5d50")
 		elif t.begins_with("restock"):
 			if t.ends_with("frozen"):
-				col = Color("d4783a")
+				col = Color("148a9e")
 			elif t.ends_with("ice"):
-				col = Color("8aa4c8")
+				col = Color("dde4f7")
 			else:
 				col = Color("c45c26")
 		var rect := Rect2(Vector2(int(it["x"]), int(it["y"])) * cell, Vector2(int(it["w"]), int(it["h"])) * cell - Vector2(2, 2))

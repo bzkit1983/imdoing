@@ -46,6 +46,10 @@ var _hold_default_sku: String = ""
 var _layout_act_held: bool = false
 var _layout_act_time: float = 0.0
 var _layout_act_long: bool = false
+## Layout cancel hold while lifting from map: short = restore; long = recall to stock.
+var _layout_cancel_held: bool = false
+var _layout_cancel_time: float = 0.0
+var _layout_cancel_long: bool = false
 ## ≥0 while choosing default_sku for placed[index].
 var _sku_pick_i: int = -1
 var _sku_pick_cursor: int = 0
@@ -1255,7 +1259,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		else:
 			_activate()
 	elif event.is_action_pressed(Controls.CANCEL):
-		_back()
+		## Map-lifted hold: defer short/long — short restores, long recalls to stock.
+		if _page == "layout" and _hold_type != "" and _hold_from_map:
+			_layout_cancel_held = true
+			_layout_cancel_time = 0.0
+			_layout_cancel_long = false
+		else:
+			_back()
 	elif event.is_action_pressed(Controls.ROTATE):
 		if _sku_pick_i < 0:
 			_rotate()
@@ -1293,6 +1303,22 @@ func _process(_delta: float) -> void:
 			_layout_act_held = false
 			_layout_act_time = 0.0
 			_layout_act_long = false
+	if _layout_cancel_held and _page == "layout":
+		if _hold_type == "" or not _hold_from_map:
+			_layout_cancel_held = false
+			_layout_cancel_time = 0.0
+			_layout_cancel_long = false
+		elif Input.is_action_pressed(Controls.CANCEL):
+			_layout_cancel_time += _delta
+			if not _layout_cancel_long and _layout_cancel_time >= Tuning.SKU_PICK_HOLD:
+				_layout_cancel_long = true
+				_discard_hold()
+		else:
+			if not _layout_cancel_long:
+				_back()
+			_layout_cancel_held = false
+			_layout_cancel_time = 0.0
+			_layout_cancel_long = false
 	if _swallow_click and not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
 		_swallow_click = false
 	if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
@@ -1722,8 +1748,14 @@ func _cell_of(local: Vector2) -> Vector2i:
 
 
 func _row_at(local: Vector2) -> int:
+	## get_item_rect is in content space; mouse local is viewport space — add scroll.
+	var scroll_y := 0.0
+	var bar := _list.get_v_scroll_bar()
+	if bar != null:
+		scroll_y = bar.value
+	var content_pt := Vector2(local.x, local.y + scroll_y)
 	for i in _list.item_count:
-		if _list.get_item_rect(i).has_point(local):
+		if _list.get_item_rect(i).has_point(content_pt):
 			return i
 	return -1
 
@@ -1797,12 +1829,26 @@ func _cancel_hold() -> void:
 	_refresh()
 
 
+## Drop a map-lifted hold back into unplaced stock (pad long-cancel; mouse tap/drag-off).
+func _discard_hold() -> void:
+	if _hold_type == "":
+		return
+	_msg = "已收回"
+	SfxBus.play("sfx_ui_pickup_item")
+	_clear_hold()
+	_layout_focus = "map"
+	_refresh()
+
+
 func _clear_hold() -> void:
 	_hold_type = ""
 	_hold_rot = 0
 	_hold_from_map = false
 	_hold_origin = Vector2i.ZERO
 	_hold_default_sku = ""
+	_layout_cancel_held = false
+	_layout_cancel_time = 0.0
+	_layout_cancel_long = false
 
 
 func _set_host_skin(skin_id: String) -> void:
