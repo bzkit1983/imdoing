@@ -2,6 +2,7 @@ extends Node2D
 ## Short rising float number above a world actor (ops feedback).
 ## Color follows player-facing sign: positive = green, negative = red.
 ## Dissat callers pass display_value = -internal_delta (patience polarity).
+## Concurrent floats near the same head stack upward so they stay readable.
 
 const UiFont = preload("res://scripts/ui_font.gd")
 
@@ -9,7 +10,12 @@ const COLOR_GOOD := Color("5dce7a")
 const COLOR_BAD := Color("e85d5d")
 const RISE_PX := 42.0
 const DURATION := 0.85
-const STAGGER_Y := 16.0
+## Line gap ≥ world font so stacked +$ / +XP / dissat do not cover each other.
+const STAGGER_Y := 30.0
+const STACK_GROUP := "ops_float"
+## Match new spawns to in-flight floats over the same actor head.
+const STACK_X := 52.0
+const STACK_Y := 80.0
 
 
 static func spawn(parent: Node, world_pos: Vector2, display_value: float, kind: String = "", stagger: int = 0) -> void:
@@ -22,9 +28,11 @@ static func spawn(parent: Node, world_pos: Vector2, display_value: float, kind: 
 	var n: Node2D = script.new() as Node2D
 	n.name = "FloatText"
 	n.z_index = 40
-	n.global_position = world_pos + Vector2(0, -stagger * STAGGER_Y)
+	var slot := maxi(stagger, _stack_index(parent, world_pos))
+	n.global_position = world_pos + Vector2(0, -slot * STAGGER_Y)
+	n.add_to_group(STACK_GROUP)
 	parent.add_child(n)
-	n.call("_begin", shown, kind)
+	n.call("_begin", shown, kind, slot)
 
 
 static func spawn_on(actor: Node2D, display_value: float, kind: String = "", stagger: int = 0) -> void:
@@ -56,7 +64,19 @@ static func spawn_dissat(actor: Node2D, internal_delta: float, stagger: int = 0)
 	spawn_on(actor, -internal_delta, "dissat", stagger)
 
 
-func _begin(shown: int, kind: String) -> void:
+## How many live floats already sit near this head (same-frame stack + overlap).
+static func _stack_index(parent: Node, at: Vector2) -> int:
+	var count := 0
+	for c in parent.get_children():
+		if not (c is Node2D) or not (c as Node2D).is_in_group(STACK_GROUP):
+			continue
+		var p: Vector2 = (c as Node2D).global_position
+		if absf(p.x - at.x) <= STACK_X and absf(p.y - at.y) <= STACK_Y:
+			count += 1
+	return count
+
+
+func _begin(shown: int, kind: String, slot: int = 0) -> void:
 	var lab := Label.new()
 	lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lab.text = _format(shown, kind)
@@ -66,10 +86,11 @@ func _begin(shown: int, kind: String) -> void:
 	lab.position = Vector2(-40, -8)
 	lab.size = Vector2(80, 28)
 	add_child(lab)
+	var delay := mini(0.12, 0.04 * float(slot))
 	var tw := create_tween()
 	tw.set_parallel(true)
-	tw.tween_property(self, "position:y", position.y - RISE_PX, DURATION)
-	tw.tween_property(lab, "modulate:a", 0.0, DURATION).set_delay(DURATION * 0.25)
+	tw.tween_property(self, "position:y", position.y - RISE_PX, DURATION).set_delay(delay)
+	tw.tween_property(lab, "modulate:a", 0.0, DURATION).set_delay(delay + DURATION * 0.25)
 	tw.chain().tween_callback(queue_free)
 
 
