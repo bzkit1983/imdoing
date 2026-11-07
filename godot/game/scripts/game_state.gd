@@ -53,6 +53,10 @@ var agi_stat: int = 10
 var int_stat: int = 10
 ## Appearance palette 0..3 (CharacterSheet.TINT_COUNT).
 var tint: int = 0
+## Appearance model id (see session/skin_catalog.gd).
+var skin_id: String = "player"
+## Unlocked skin ids. Empty ⇒ all catalog skins unlocked (BETA).
+var unlocked_skins: Array = []
 var developed: Dictionary = {}
 var stock: Dictionary = {}
 var owned: Dictionary = {}
@@ -981,6 +985,8 @@ func to_dict() -> Dictionary:
 		"agi_stat": agi_stat,
 		"int_stat": int_stat,
 		"tint": clampi(tint, 0, 3),
+		"skin_id": _normalized_skin_id(),
+		"unlocked_skins": _parsed_unlocked_skins(),
 		"developed": developed.duplicate(true),
 		"stock": stock.duplicate(true),
 		"owned": owned.duplicate(true),
@@ -1022,6 +1028,8 @@ func from_dict(data: Dictionary) -> String:
 	agi_stat = int(data.get("agi_stat", base_agi))
 	int_stat = int(data.get("int_stat", base_int))
 	tint = clampi(int(data.get("tint", 0)), 0, 3)
+	skin_id = _normalize_skin_id(String(data.get("skin_id", "player")))
+	unlocked_skins = _parse_unlocked_skins(data.get("unlocked_skins", []))
 	developed = _string_bool_dict(data.get("developed", {}))
 	stock = _string_int_dict(data.get("stock", {}))
 	if ver < 2:
@@ -1268,6 +1276,58 @@ func has_save() -> bool:
 func delete_save() -> void:
 	PlatformServices.delete_save()
 	PlatformServices.delete_guest_slots()
+
+
+func appearance_skin_id() -> String:
+	return _normalized_skin_id()
+
+
+func appearance_tint() -> Color:
+	const CharacterSheet = preload("res://scripts/session/character_sheet.gd")
+	return CharacterSheet.tint_color(tint)
+
+
+func is_skin_unlocked(skin_id: String) -> bool:
+	var SkinCatalog = load("res://scripts/session/skin_catalog.gd")
+	if SkinCatalog != null and SkinCatalog.has_method("is_unlocked"):
+		return bool(SkinCatalog.is_unlocked(skin_id, unlocked_skins))
+	return true
+
+
+func unlock_skin(skin_id: String) -> void:
+	var SkinCatalog = load("res://scripts/session/skin_catalog.gd")
+	var sid := _normalize_skin_id(skin_id)
+	if SkinCatalog != null and SkinCatalog.has_method("entry") and SkinCatalog.entry(sid).is_empty():
+		return
+	var list := _parsed_unlocked_skins()
+	## Empty list = all unlocked (BETA). Keep empty; only extend an explicit allow-list.
+	if list.is_empty():
+		return
+	if sid not in list:
+		list.append(sid)
+		unlocked_skins = list
+
+
+func _normalized_skin_id() -> String:
+	return _normalize_skin_id(skin_id)
+
+
+func _normalize_skin_id(raw: String) -> String:
+	var SkinCatalog = load("res://scripts/session/skin_catalog.gd")
+	if SkinCatalog != null and SkinCatalog.has_method("normalize"):
+		return String(SkinCatalog.normalize(raw))
+	return raw if raw.strip_edges() != "" else "player"
+
+
+func _parsed_unlocked_skins() -> Array:
+	return _parse_unlocked_skins(unlocked_skins)
+
+
+func _parse_unlocked_skins(raw) -> Array:
+	var SkinCatalog = load("res://scripts/session/skin_catalog.gd")
+	if SkinCatalog != null and SkinCatalog.has_method("parse_unlocked"):
+		return SkinCatalog.parse_unlocked(raw)
+	return []
 
 
 func _string_bool_dict(raw) -> Dictionary:

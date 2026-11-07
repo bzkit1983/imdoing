@@ -15,8 +15,8 @@
 
 - 用途：本機 coop 的 P2 **只含角色進度**（無店舖／資金／倉庫／擺放）。規則見 `multiplayer.md` §11.2。
 - 路徑：`user://guest_slots.json`（經 `PlatformServices` `read`／`write`／`has`／`delete_guest_slots`；與店主 `SAVE_VERSION=2` 分開，不升主存檔版號）。
-- 上限 **3** 槽。可從店主**複製**等級／能力／技能／`tint`，或新建空白；準備頁可選 tint `0..3`。
-- JSON：`{ "version": 1, "slots": [ dict|{}, … ] }`；角色 dict 含 `xp`／`level`／`unspent`／`base_*`／`*_stat`／`slots`／`ult_id`／`skill_sets`／`flags`／`tint`／`display_name`（**無** money／stock／layout）。
+- 上限 **3** 槽。可從店主**複製**等級／能力／技能／`tint`／`skin_id`／`unlocked_skins`，或新建空白；外觀細節見 [`appearance.md`](appearance.md)。
+- JSON：`{ "version": 1, "slots": [ dict|{}, … ] }`；角色 dict 含 `xp`／`level`／`unspent`／`base_*`／`*_stat`／`slots`／`ult_id`／`skill_sets`／`flags`／`tint`／`skin_id`／`unlocked_skins`／`display_name`（**無** money／stock／layout）。
 - 日結：店主檔寫資金＋平分後 XP；選中槽寫入訪客 XP（平分公式見 multiplayer §11.7）。清除主存檔時一併 `delete_guest_slots`。
 
 # 寫入時機
@@ -46,6 +46,7 @@
 - STR／AGI／INT 與劇本基底  
 - 已開發貨、倉庫**件數**、已購傢俬、店舖擺放、店規模與格線  
 - 店員崗位、技能裝備格、奧義。另有五組 `skill_sets` 和選中編號 `skill_set_index`（`SAVE_VERSION` 仍是 1）。`slots`／`ult_id` 是目前選中那一組的副本。每組可另存 `levels`（Dark Side、多重影分身準備頁選等；沒選預設 LV3）。見 `customizedskillset.md`、`darkside.md`、`shadowclone.md`  
+- 外觀：`tint`、`skin_id`、`unlocked_skins`（空＝全開）。見 [`appearance.md`](appearance.md)  
 - 當日進貨支出累計、上一局是否虧損、升級備註  
 
 不存：當日營運中的客人、污物、時鐘進度、玩家手上貨、地上散落貨、分身（營運中狀態）。關店時貨架／地上／手上／店員持貨／分身持貨／Dark Side 臨時補貨持貨／已完成清單未付款購物車的未售件數會先**原數**退回倉庫再寫檔（見 `storeoperationphase.md`）。`SAVE_VERSION` ≥2 起 `stock` 語意為件；載入 v1 存檔時各 SKU 箱數 ×4。

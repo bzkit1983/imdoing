@@ -2710,7 +2710,7 @@ func _place_dropped_box(dest: Vector2, sku: String, n: int) -> void:
 	drop.tree_exiting.connect(func() -> void: _remove_interactable(drop))
 
 
-func _make_player() -> CharacterBody2D:
+func _make_player(skin_id: String = "player") -> CharacterBody2D:
 	var p: CharacterBody2D = PlayerScript.new()
 	p.set("game", self)
 	p.name = "Clerk"
@@ -2721,7 +2721,9 @@ func _make_player() -> CharacterBody2D:
 	rect.size = Vector2(26, 26)
 	shape.shape = rect
 	p.add_child(shape)
-	var body := Vox.animated("player")
+	const SkinCatalog = preload("res://scripts/session/skin_catalog.gd")
+	var mid := SkinCatalog.normalize(skin_id)
+	var body := Vox.animated(mid)
 	body.name = "Body"
 	p.add_child(body)
 	var arrow := Polygon2D.new()
@@ -2734,7 +2736,13 @@ func _make_player() -> CharacterBody2D:
 
 
 func _spawn_seated_player(seat: int, stats_src, nodes: Array[Node2D], spawn: Vector2) -> CharacterBody2D:
-	var p := _make_player()
+	const SkinCatalog = preload("res://scripts/session/skin_catalog.gd")
+	var skin := "player"
+	if stats_src != null and stats_src.has_method("appearance_skin_id"):
+		skin = String(stats_src.appearance_skin_id())
+	elif stats_src != null and "skin_id" in stats_src:
+		skin = String(stats_src.skin_id)
+	var p := _make_player(SkinCatalog.normalize(skin))
 	p.name = "Clerk" if seat == 0 else "Clerk%d" % (seat + 1)
 	p.set("seat_id", seat)
 	p.stats = stats_src

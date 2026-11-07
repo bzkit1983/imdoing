@@ -10,6 +10,9 @@ const PrepWidgets = preload("res://scripts/prep/prep_widgets.gd")
 const PrepPages = preload("res://scripts/prep/prep_pages.gd")
 const PrepGridView = preload("res://scripts/prep/prep_grid_view.gd")
 const ProductVersion = preload("res://scripts/product_version.gd")
+const SkinCatalog = preload("res://scripts/session/skin_catalog.gd")
+const CharacterSheet = preload("res://scripts/session/character_sheet.gd")
+const Vox = preload("res://scripts/voxel_sprite.gd")
 
 const PREP_TITLE := PrepWidgets.PREP_TITLE
 const PREP_INFO := PrepWidgets.PREP_INFO
@@ -104,6 +107,10 @@ var _guest_slot_index: int = -1
 var _guest_store = null
 var _building: bool = false
 var _suppress_select: bool = false
+## Look-page idle preview (freed when leaving the page).
+var _look_preview_root: Node2D = null
+var _look_preview_spr: AnimatedSprite2D = null
+var _look_preview_id: String = ""
 
 
 func setup(host: Node) -> void:
@@ -212,6 +219,8 @@ func _show_page(page: String) -> void:
 	_close_dialog()
 	if page == "stock":
 		page = "hub_goods"
+	if page != "look":
+		_clear_look_preview()
 	_page = page
 	_index = 0
 	_open_focus = -1
@@ -258,6 +267,8 @@ func _refresh() -> void:
 		_index = clampi(_index, 0, _rows.size() - 1)
 		_paint_hub_selection()
 	_building = false
+	if _page == "look":
+		_refresh_look_preview_from_index()
 	_grid.queue_redraw()
 
 
@@ -614,6 +625,8 @@ func _on_click(index: int) -> void:
 		return
 	_index = index
 	_on_size_btns = false
+	if _page == "look":
+		_refresh_look_preview_from_index()
 	# Wait until the finger lifts, so a scroll does not also open the row.
 	_click_arm = index
 
@@ -799,6 +812,10 @@ func _activate() -> void:
 			_popup_info(Loc.t("prep.locked_title"), Loc.t("prep.buy.need_develop", [Tuning.sku_name(String(arg))]))
 		"locked_look":
 			_popup_info(Loc.t("prep.locked_title"), Loc.t("prep.look.locked_body"))
+		"set_skin":
+			_set_host_skin(String(arg))
+		"cycle_look_tint":
+			_cycle_look_tint()
 		"qty":
 			_qty_sku = String(arg)
 			_qty_boxes = 1
@@ -886,8 +903,8 @@ func _activate() -> void:
 			_guest_store.save_to_disk()
 			_refresh()
 		"cycle_host_tint":
-			state.tint = (int(state.tint) + 1) % 4
-			_refresh()
+			## Host tint lives on Look page; keep action as no-op fallback.
+			_cycle_look_tint()
 		"open":
 			var open_msg := state.begin_day()
 			if open_msg != "":
@@ -1389,6 +1406,8 @@ func _move(x: int, y: int) -> void:
 		_index = posmod(_index + 1, _rows.size())
 		SfxBus.play("sfx_ui_move")
 	_select_row(_index)
+	if _page == "look":
+		_refresh_look_preview_from_index()
 
 
 func _move_hub(x: int, y: int) -> void:
@@ -1772,6 +1791,87 @@ func _clear_hold() -> void:
 	_hold_from_map = false
 	_hold_origin = Vector2i.ZERO
 	_hold_default_sku = ""
+
+
+func _set_host_skin(skin_id: String) -> void:
+	var sid := SkinCatalog.normalize(skin_id)
+	var unlocked := SkinCatalog.is_unlocked(sid, state.unlocked_skins)
+	if state.has_method("is_skin_unlocked"):
+		unlocked = bool(state.is_skin_unlocked(sid))
+	if not unlocked:
+		_popup_info(Loc.t("prep.locked_title"), Loc.t("prep.look.locked_skin"))
+		return
+	state.skin_id = sid
+	var save_err := state.save_to_disk()
+	if save_err != "":
+		push_warning("look skin save failed: %s" % save_err)
+	_msg = Loc.t("prep.look.equipped", [SkinCatalog.display_name(sid)])
+	_refresh()
+
+
+func _cycle_look_tint() -> void:
+	state.tint = (int(state.tint) + 1) % CharacterSheet.TINT_COUNT
+	var save_err := state.save_to_disk()
+	if save_err != "":
+		push_warning("look tint save failed: %s" % save_err)
+	_msg = Loc.t("prep.look.tint_set", [int(state.tint)])
+	_refresh()
+
+
+func _ensure_look_preview() -> void:
+	if _look_preview_root != null and is_instance_valid(_look_preview_root):
+		return
+	_look_preview_root = Node2D.new()
+	_look_preview_root.name = "LookPreview"
+	_look_preview_root.position = Vector2(980, 220)
+	_look_preview_root.z_index = 5
+	add_child(_look_preview_root)
+	_look_preview_spr = null
+	_look_preview_id = ""
+
+
+func _clear_look_preview() -> void:
+	if _look_preview_root != null and is_instance_valid(_look_preview_root):
+		_look_preview_root.queue_free()
+	_look_preview_root = null
+	_look_preview_spr = null
+	_look_preview_id = ""
+
+
+func _refresh_look_preview_from_index() -> void:
+	if _page != "look":
+		return
+	var focus_id := String(state.appearance_skin_id()) if state.has_method("appearance_skin_id") else String(state.skin_id)
+	if _index >= 0 and _index < _rows.size():
+		var row: Dictionary = _rows[_index]
+		if String(row.get("action", "")) == "set_skin":
+			focus_id = String(row.get("arg", focus_id))
+	_refresh_look_preview(focus_id)
+
+
+func _refresh_look_preview(skin_id: String) -> void:
+	_ensure_look_preview()
+	var sid := SkinCatalog.normalize(skin_id)
+	if not SkinCatalog.is_unlocked(sid, state.unlocked_skins):
+		sid = SkinCatalog.DEFAULT_SKIN
+	var tint_col := CharacterSheet.tint_color(int(state.tint))
+	if _look_preview_spr != null and is_instance_valid(_look_preview_spr) and _look_preview_id == sid:
+		_look_preview_spr.modulate = tint_col
+		return
+	if _look_preview_spr != null and is_instance_valid(_look_preview_spr):
+		_look_preview_spr.queue_free()
+	_look_preview_spr = null
+	_look_preview_id = sid
+	if not Vox.has_anim(sid, "idle"):
+		sid = SkinCatalog.DEFAULT_SKIN
+		_look_preview_id = sid
+	if not Vox.has_anim(sid, "idle"):
+		return
+	_look_preview_spr = Vox.animated(sid)
+	_look_preview_spr.scale = Vector2(2.0, 2.0)
+	_look_preview_spr.modulate = tint_col
+	Vox.play_anim(_look_preview_spr, sid, "idle", Vector2(0, 1))
+	_look_preview_root.add_child(_look_preview_spr)
 
 
 func _try_begin_restock_sku_pick() -> bool:

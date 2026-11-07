@@ -12,11 +12,14 @@ SPRITES = ROOT / "godot" / "game" / "art" / "sprites"
 MANIFEST = SPRITES / "anim_manifest.json"
 PROPS = SPRITES / "props_manifest.json"
 
+_PLAYER_ANIMS = [
+    "idle", "walk", "walk_carry", "run", "dash", "clean", "fight",
+    "checkout", "slip", "down", "restock", "cast", "deliver",
+]
 REQUIRED = {
-    "player": [
-        "idle", "walk", "walk_carry", "run", "dash", "clean", "fight",
-        "checkout", "slip", "down", "restock", "cast", "deliver",
-    ],
+    "player": _PLAYER_ANIMS,
+    "player_alt1": _PLAYER_ANIMS,
+    "player_alt2": _PLAYER_ANIMS,
     "customer": ["idle", "walk", "angry", "leave"],
     "customer_hurry": ["idle", "walk", "angry", "leave"],
     "customer_slow": ["idle", "walk", "angry", "leave"],

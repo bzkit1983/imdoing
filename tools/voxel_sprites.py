@@ -26,6 +26,8 @@ PX = 4
 # Characters: 16 yaw steps. Furniture / props: still 4 cardinals.
 CHAR_WAY = {
     "player",
+    "player_alt1",
+    "player_alt2",
     "customer",
     "thief",
     "clerk_cashier",

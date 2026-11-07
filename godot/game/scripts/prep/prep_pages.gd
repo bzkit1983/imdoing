@@ -17,7 +17,7 @@ static func parent_page(page: String) -> String:
 	match page:
 		"hub_char", "hub_goods", "hub_shop", "hub_sys", "clerks", "confirm", "elite_test":
 			return "home"
-		"stats", "skills":
+		"stats", "skills", "look":
 			return "hub_char"
 		"skill_set", "skill_rename":
 			return "skills"
@@ -78,6 +78,11 @@ static func apply_panel_layout(menu: CanvasLayer) -> void:
 			menu._info.clip_contents = true
 			menu._list.position = Vector2(24, 300)
 			menu._list.size = Vector2(1232, 350)
+		elif menu._page == "look":
+			menu._info.position = Vector2(24, 72)
+			menu._info.size = Vector2(760, 76)
+			menu._list.position = Vector2(24, 168)
+			menu._list.size = Vector2(760, 430)
 		else:
 			menu._info.position = Vector2(24, 72)
 			menu._info.size = Vector2(976, 76)
@@ -101,6 +106,8 @@ static func fill(menu: CanvasLayer, page: String) -> void:
 			_hub_sys(menu)
 		"stats":
 			_stats(menu)
+		"look":
+			_look(menu)
 		"skills":
 			_skills(menu)
 		"skill_set":
@@ -195,7 +202,7 @@ static func _hub_char(menu: CanvasLayer) -> void:
 	menu._info.text = menu._pair(menu._header(), Loc.t("prep.hub.char_info"))
 	menu._add_hub(Loc.t("prep.home.stats"), "go", "stats", "stats")
 	menu._add_hub(Loc.t("prep.home.skills_short"), "go", "skills", "skills")
-	menu._add_hub(Loc.t("prep.home.look"), "locked_look", null, "look", true, Loc.t("prep.locked"))
+	menu._add_hub(Loc.t("prep.home.look"), "go", "look", "look")
 	menu._rebuild_hub_tiles()
 
 
@@ -258,6 +265,26 @@ static func _add_stat_row(menu: CanvasLayer, title: String, stat: String, value:
 	line.add_child(PrepWidgets.step_button("+", menu._stat_row == row and menu._stat_side == 1, menu._on_stat_pressed.bind(stat, 1, row)))
 	line.add_child(PrepWidgets.step_button("-", menu._stat_row == row and menu._stat_side == -1, menu._on_stat_pressed.bind(stat, -1, row)))
 	menu._stats_panel.add_child(line)
+
+
+static func _look(menu: CanvasLayer) -> void:
+	const SkinCatalog = preload("res://scripts/session/skin_catalog.gd")
+	menu._title.text = Loc.t("prep.look.title")
+	var cur_id := String(menu.state.appearance_skin_id()) if menu.state.has_method("appearance_skin_id") else String(menu.state.skin_id)
+	var cur_name := SkinCatalog.display_name(cur_id)
+	var info := Loc.t("prep.look.info", [cur_name, int(menu.state.tint)])
+	if menu._msg != "":
+		info = menu._pair(info, menu._msg)
+	menu._info.text = info
+	var unlocks = menu.state.unlocked_skins if "unlocked_skins" in menu.state else []
+	for e in SkinCatalog.unlocked_entries(unlocks):
+		var sid := String(e.get("id", ""))
+		var mark := "▶ " if sid == cur_id else "　"
+		menu._add(mark + SkinCatalog.display_name(sid), "set_skin", sid)
+	menu._add(Loc.t("prep.look.cycle_tint", [int(menu.state.tint)]), "cycle_look_tint", null)
+	menu._add(Loc.t("prep.back"), "go", "hub_char")
+	menu._ensure_look_preview()
+	menu._refresh_look_preview_from_index()
 
 
 static func _skills(menu: CanvasLayer) -> void:
@@ -571,20 +598,20 @@ static func _confirm(menu: CanvasLayer) -> void:
 		info += "\n" + Loc.t("prep.confirm.players") + "：" + (
 			Loc.t("prep.confirm.players_2") if menu._local_seats >= 2 else Loc.t("prep.confirm.players_1")
 		)
-		info += "\n" + Loc.t("prep.confirm.host_tint", [int(menu.state.tint)])
+		info += "\n" + _confirm_host_look_line(menu)
 		if menu._local_seats >= 2:
 			menu._ensure_guest_store()
 			menu._auto_pick_guest_slot()
 			var gi: int = int(menu._guest_slot_index)
 			if gi >= 0 and not menu._guest_store.is_empty(gi):
 				info += "\n" + Loc.t("prep.confirm.guest_selected", [gi + 1, menu._guest_store.label_for(gi)])
+				info += "\n" + _confirm_guest_look_line(menu, gi)
 			else:
 				info += "\n" + Loc.t("prep.confirm.guest_none")
 	menu._info.text = info
 	if not web_solo:
 		menu._add(Loc.t("prep.confirm.players_1"), "set_seats", 1)
 		menu._add(Loc.t("prep.confirm.players_2"), "set_seats", 2)
-		menu._add(Loc.t("prep.confirm.cycle_host_tint"), "cycle_host_tint", null)
 		if menu._local_seats >= 2:
 			menu._ensure_guest_store()
 			for i in 3:
@@ -598,6 +625,21 @@ static func _confirm(menu: CanvasLayer) -> void:
 				menu._add(Loc.t("prep.confirm.cycle_guest_tint"), "cycle_guest_tint", null)
 	menu._add("開始　工資後資金約 $%d" % (menu.state.money - wage), "open", null)
 	menu._add(Loc.t("prep.back"), "go", "home")
+
+
+static func _confirm_host_look_line(menu: CanvasLayer) -> String:
+	const SkinCatalog = preload("res://scripts/session/skin_catalog.gd")
+	var sid := String(menu.state.appearance_skin_id()) if menu.state.has_method("appearance_skin_id") else String(menu.state.skin_id)
+	return Loc.t("prep.confirm.host_look", [SkinCatalog.display_name(sid), int(menu.state.tint)])
+
+
+static func _confirm_guest_look_line(menu: CanvasLayer, slot_i: int) -> String:
+	const SkinCatalog = preload("res://scripts/session/skin_catalog.gd")
+	var sheet = menu._guest_store.get_sheet(slot_i)
+	if sheet == null:
+		return ""
+	var sid := String(sheet.appearance_skin_id()) if sheet.has_method("appearance_skin_id") else String(sheet.skin_id)
+	return Loc.t("prep.confirm.guest_look", [SkinCatalog.display_name(sid), int(sheet.tint)])
 
 
 static func _elite_test(menu: CanvasLayer) -> void:

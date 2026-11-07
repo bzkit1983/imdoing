@@ -446,6 +446,30 @@
           "note": "綠衣、深色頭髮。店長。"
         },
         {
+          "id": "player_alt1",
+          "name": "玩家·外星人",
+          "file": "player_alt1.vox",
+          "size": [
+            12,
+            10,
+            20
+          ],
+          "voxels": 0,
+          "note": "外觀造型測試：外星人。"
+        },
+        {
+          "id": "player_alt2",
+          "name": "玩家·維京人",
+          "file": "player_alt2.vox",
+          "size": [
+            12,
+            10,
+            20
+          ],
+          "voxels": 0,
+          "note": "外觀造型測試：維京人。"
+        },
+        {
           "id": "customer",
           "name": "客人",
           "file": "customer.vox",

@@ -93,6 +93,17 @@ prep.home.wipe,清除存檔並重新選擇劇本,Wipe save & re-pick scenario
 prep.locked,未開放,Locked
 prep.locked_title,尚未開放,Not available
 prep.look.locked_body,角色外觀調整尚未開放，之後版本會再補上。,Character appearance is not available yet.
+prep.look.title,外觀調整,Appearance
+prep.look.info,目前：%s　色調 %d。游標預覽；確定裝備造型。,Current: %s · tint %d. Focus previews; confirm equips.
+prep.look.cycle_tint,切換色調（現在 %d）,Cycle tint (now %d)
+prep.look.equipped,已裝備「%s」,Equipped "%s"
+prep.look.tint_set,色調改為 %d,Tint set to %d
+prep.look.locked_skin,此造型尚未解放。,This skin is locked.
+skin.player,標準,Standard
+skin.player_alt1,外星人,Alien
+skin.player_alt2,維京人,Viking
+prep.confirm.host_look,店主外觀：%s　色調 %d,Host look: %s · tint %d
+prep.confirm.guest_look,訪客外觀：%s　色調 %d,Guest look: %s · tint %d
 prep.stats.title,角色能力,Stats
 prep.stats.info,按 + 加一點，按 - 減一點。向下可到重置和返回。,"Press + / − to adjust. Down for reset and back."
 prep.stats.reset,重置能力值,Reset stats

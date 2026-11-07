@@ -28,6 +28,10 @@ var skill_set_index: int = 0
 var flags: Dictionary = {}
 ## Appearance palette index 0..TINT_COUNT-1.
 var tint: int = 0
+## Appearance model id (SkinCatalog). Default standard player.
+var skin_id: String = "player"
+## Unlocked skin ids. Empty ⇒ all catalog skins unlocked (BETA).
+var unlocked_skins: Array = []
 var display_name: String = ""
 
 
@@ -58,6 +62,8 @@ static func blank() -> RefCounted:
 	sheet.skill_set_index = 0
 	sheet.flags = {}
 	sheet.tint = 0
+	sheet.skin_id = "player"
+	sheet.unlocked_skins = []
 	sheet.display_name = ""
 	return sheet
 
@@ -85,6 +91,15 @@ static func from_game_state(src) -> RefCounted:
 	if "tint" in src:
 		t = int(src.tint)
 	sheet.tint = clampi(t, 0, TINT_COUNT - 1)
+	var SkinCatalog = load("res://scripts/session/skin_catalog.gd")
+	var sid := "player"
+	if "skin_id" in src:
+		sid = String(src.skin_id)
+	sheet.skin_id = SkinCatalog.normalize(sid) if SkinCatalog else sid
+	if "unlocked_skins" in src:
+		sheet.unlocked_skins = SkinCatalog.parse_unlocked(src.unlocked_skins) if SkinCatalog else []
+	else:
+		sheet.unlocked_skins = []
 	return sheet
 
 
@@ -121,6 +136,9 @@ static func from_dict(data: Dictionary) -> RefCounted:
 	if data.get("flags") is Dictionary:
 		sheet.flags = (data["flags"] as Dictionary).duplicate()
 	sheet.tint = clampi(int(data.get("tint", 0)), 0, TINT_COUNT - 1)
+	var SkinCatalog = load("res://scripts/session/skin_catalog.gd")
+	sheet.skin_id = SkinCatalog.normalize(String(data.get("skin_id", "player"))) if SkinCatalog else "player"
+	sheet.unlocked_skins = SkinCatalog.parse_unlocked(data.get("unlocked_skins", [])) if SkinCatalog else []
 	sheet.display_name = String(data.get("display_name", ""))
 	return sheet
 
@@ -129,6 +147,9 @@ func to_dict() -> Dictionary:
 	var slot_list: Array = []
 	for s in slots:
 		slot_list.append(String(s))
+	var SkinCatalog = load("res://scripts/session/skin_catalog.gd")
+	var sid: String = String(SkinCatalog.normalize(skin_id)) if SkinCatalog else String(skin_id)
+	var unlocks: Array = SkinCatalog.parse_unlocked(unlocked_skins) if SkinCatalog else unlocked_skins.duplicate()
 	return {
 		"xp": xp,
 		"level": level,
@@ -145,6 +166,8 @@ func to_dict() -> Dictionary:
 		"skill_set_index": skill_set_index,
 		"flags": flags.duplicate(),
 		"tint": clampi(tint, 0, TINT_COUNT - 1),
+		"skin_id": sid,
+		"unlocked_skins": unlocks,
 		"display_name": display_name,
 	}
 
@@ -201,7 +224,37 @@ func apply_xp_gain(gain: int) -> Dictionary:
 
 func summary_line() -> String:
 	var name := display_name if display_name.strip_edges() != "" else "訪客"
-	return "%s  LV%d  XP%d  色%d" % [name, level, xp, tint]
+	return "%s  LV%d  XP%d  色%d  %s" % [name, level, xp, tint, skin_id]
+
+
+func appearance_skin_id() -> String:
+	var SkinCatalog = load("res://scripts/session/skin_catalog.gd")
+	return SkinCatalog.normalize(skin_id) if SkinCatalog else (skin_id if skin_id != "" else "player")
+
+
+func is_skin_unlocked(id: String) -> bool:
+	var SkinCatalog = load("res://scripts/session/skin_catalog.gd")
+	if SkinCatalog != null and SkinCatalog.has_method("is_unlocked"):
+		return bool(SkinCatalog.is_unlocked(id, unlocked_skins))
+	return true
+
+
+func unlock_skin(id: String) -> void:
+	var SkinCatalog = load("res://scripts/session/skin_catalog.gd")
+	var sid := String(id).strip_edges()
+	if SkinCatalog != null and SkinCatalog.has_method("normalize"):
+		sid = String(SkinCatalog.normalize(id))
+	elif sid == "":
+		sid = "player"
+	if SkinCatalog != null and SkinCatalog.has_method("entry") and SkinCatalog.entry(sid).is_empty():
+		return
+	var list: Array = SkinCatalog.parse_unlocked(unlocked_skins) if SkinCatalog else unlocked_skins.duplicate()
+	## Empty = all unlocked; only extend an explicit allow-list.
+	if list.is_empty():
+		return
+	if sid not in list:
+		list.append(sid)
+		unlocked_skins = list
 
 
 func _xp_need(target_lv: int) -> int:

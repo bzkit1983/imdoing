@@ -74,6 +74,114 @@
         "fps": 6
       }
     },
+    "player_alt1": {
+      "idle": {
+        "frames": 2,
+        "fps": 2
+      },
+      "walk": {
+        "frames": 4,
+        "fps": 8
+      },
+      "run": {
+        "frames": 6,
+        "fps": 12
+      },
+      "dash": {
+        "frames": 3,
+        "fps": 14
+      },
+      "clean": {
+        "frames": 4,
+        "fps": 8
+      },
+      "fight": {
+        "frames": 4,
+        "fps": 12
+      },
+      "checkout": {
+        "frames": 3,
+        "fps": 6
+      },
+      "slip": {
+        "frames": 2,
+        "fps": 6
+      },
+      "down": {
+        "frames": 1,
+        "fps": 1
+      },
+      "restock": {
+        "frames": 3,
+        "fps": 6
+      },
+      "walk_carry": {
+        "frames": 4,
+        "fps": 8
+      },
+      "cast": {
+        "frames": 3,
+        "fps": 8
+      },
+      "deliver": {
+        "frames": 2,
+        "fps": 6
+      }
+    },
+    "player_alt2": {
+      "idle": {
+        "frames": 2,
+        "fps": 2
+      },
+      "walk": {
+        "frames": 4,
+        "fps": 8
+      },
+      "run": {
+        "frames": 6,
+        "fps": 12
+      },
+      "dash": {
+        "frames": 3,
+        "fps": 14
+      },
+      "clean": {
+        "frames": 4,
+        "fps": 8
+      },
+      "fight": {
+        "frames": 4,
+        "fps": 12
+      },
+      "checkout": {
+        "frames": 3,
+        "fps": 6
+      },
+      "slip": {
+        "frames": 2,
+        "fps": 6
+      },
+      "down": {
+        "frames": 1,
+        "fps": 1
+      },
+      "restock": {
+        "frames": 3,
+        "fps": 6
+      },
+      "walk_carry": {
+        "frames": 4,
+        "fps": 8
+      },
+      "cast": {
+        "frames": 3,
+        "fps": 8
+      },
+      "deliver": {
+        "frames": 2,
+        "fps": 6
+      }
+    },
     "customer": {
       "idle": {
         "frames": 2,
@@ -189,6 +297,8 @@
   },
   "sources": {
     "player": "designer_vox",
+    "player_alt1": "designer_vox",
+    "player_alt2": "designer_vox",
     "customer": "designer_vox",
     "customer_hurry": "procedural",
     "customer_slow": "procedural",

@@ -38,6 +38,7 @@ var _dash_stun_left: float = 0.0
 var _dash_ko_tween: Tween
 var _vanishing: bool = false
 var _facing: Vector2 = Vector2.DOWN
+var _model_id: String = "player"
 
 
 func setup(game: Node, at: Vector2, snap: Dictionary) -> void:
@@ -59,7 +60,9 @@ func setup(game: Node, at: Vector2, snap: Dictionary) -> void:
 	rect.size = Vector2(22, 22)
 	shape.shape = rect
 	add_child(shape)
-	_sprite = Vox.animated("player")
+	const SkinCatalog = preload("res://scripts/session/skin_catalog.gd")
+	_model_id = SkinCatalog.normalize(String(snap.get("skin_id", "player")))
+	_sprite = Vox.animated(_model_id)
 	_sprite.name = "Body"
 	_sprite.modulate = Color(1, 1, 1, ShadowCloneCast.ALPHA)
 	add_child(_sprite)
@@ -427,9 +430,9 @@ func _sync_visual(anim: String, face: Vector2) -> void:
 		return
 	_shown_anim = key
 	if _sprite is AnimatedSprite2D:
-		Vox.play_anim(_sprite as AnimatedSprite2D, "player", anim, _facing)
+		Vox.play_anim(_sprite as AnimatedSprite2D, _model_id, anim, _facing)
 	elif _sprite is Sprite2D:
-		Vox.apply(_sprite as Sprite2D, "player", k)
+		Vox.apply(_sprite as Sprite2D, _model_id, k)
 
 
 func _clear_path() -> void:

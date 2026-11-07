@@ -59,8 +59,13 @@ FACING_NAMES = [
 
 # Character kits: shirt, shirt_dark, hair, extras
 # customer_hurry / customer_slow = Alpha pace variants (not full recolors of one mesh).
+## Player skins share the same anim kit; appearance comes from art/src/{id}.vox.
+PLAYER_IDS = ["player", "player_alt1", "player_alt2"]
+
 CHARS = {
     "player": dict(shirt="player", shirt_dark="player_dark", hair="hair"),
+    "player_alt1": dict(shirt="player", shirt_dark="player_dark", hair="hair"),
+    "player_alt2": dict(shirt="player", shirt_dark="player_dark", hair="hair"),
     "customer": dict(shirt="customer", shirt_dark="customer_dark", hair="hair_brown", bag=True),
     "customer_hurry": dict(shirt="soda", shirt_dark="thief", hair="hair", bag=True),
     "customer_slow": dict(shirt="clerk", shirt_dark="clerk_dark", hair="hair_brown", bag=True),
@@ -108,7 +113,7 @@ ANIMS: dict[str, dict] = {
             {"leg_l_y": -2, "leg_r_y": 2, "arm_l_y": 2, "arm_r_y": -2, "lean": 1, "bob": 1},
         ],
         "fps": 12,
-        "chars": ["player"],
+        "chars": list(PLAYER_IDS),
     },
     "dash": {
         "frames": [
@@ -117,7 +122,7 @@ ANIMS: dict[str, dict] = {
             {"lean": 2, "leg_l_y": 0, "leg_r_y": -2, "arm_l_y": 0, "arm_r_y": 2, "bob": 0},
         ],
         "fps": 14,
-        "chars": ["player"],
+        "chars": list(PLAYER_IDS),
     },
     # mop / sweep cycle
     "clean": {
@@ -128,7 +133,7 @@ ANIMS: dict[str, dict] = {
             {"arm_r_z": -4, "arm_r_y": 2, "lean": 1, "bob": 0},
         ],
         "fps": 8,
-        "chars": ["player"],
+        "chars": list(PLAYER_IDS),
     },
     # grab → punch rhythm
     "fight": {
@@ -139,7 +144,7 @@ ANIMS: dict[str, dict] = {
             {"arm_l_y": 2, "arm_r_y": 2, "arm_l_z": 1, "arm_r_z": 1, "lean": 1},
         ],
         "fps": 12,
-        "chars": ["player", "thief"],
+        "chars": list(PLAYER_IDS) + ["thief"],
     },
     # button / card tap
     "checkout": {
@@ -149,7 +154,7 @@ ANIMS: dict[str, dict] = {
             {"arm_r_y": 2, "arm_r_z": 0, "lean": 0},
         ],
         "fps": 6,
-        "chars": ["player", "clerk_cashier"],
+        "chars": list(PLAYER_IDS) + ["clerk_cashier"],
     },
     "slip": {
         "frames": [
@@ -157,12 +162,12 @@ ANIMS: dict[str, dict] = {
             {"leg_l_y": 2, "leg_r_y": -2, "lean": -2, "arm_l_y": -2, "arm_r_y": 2, "bob": -1},
         ],
         "fps": 6,
-        "chars": ["player"],
+        "chars": list(PLAYER_IDS),
     },
     "down": {
         "frames": [{"leg_l_y": 1, "leg_r_y": 1, "lean": -2, "arm_l_z": -2, "arm_r_z": -2, "bob": -1}],
         "fps": 1,
-        "chars": ["player"],
+        "chars": list(PLAYER_IDS),
     },
     "restock": {
         "frames": [
@@ -171,12 +176,12 @@ ANIMS: dict[str, dict] = {
             {"arm_l_y": 2, "arm_r_y": 2, "arm_l_z": 1, "arm_r_z": 1, "lean": 1},
         ],
         "fps": 6,
-        "chars": ["clerk_restock", "player"],
+        "chars": ["clerk_restock"] + list(PLAYER_IDS),
     },
     "walk_carry": {
         "frames": _walk_carry_frames(),
         "fps": 8,
-        "chars": ["clerk_restock", "clerk_cashier", "player"],
+        "chars": ["clerk_restock", "clerk_cashier"] + list(PLAYER_IDS),
     },
     "angry": {
         "frames": [
@@ -206,7 +211,7 @@ ANIMS: dict[str, dict] = {
             {"arm_l_z": 2, "arm_r_z": 2, "arm_l_y": 0, "arm_r_y": 0, "lean": 0},
         ],
         "fps": 8,
-        "chars": ["player"],
+        "chars": list(PLAYER_IDS),
     },
     # help / combo hand-off
     "deliver": {
@@ -215,7 +220,7 @@ ANIMS: dict[str, dict] = {
             {"arm_r_y": 3, "arm_r_z": 0, "lean": 1},
         ],
         "fps": 6,
-        "chars": ["player"],
+        "chars": list(PLAYER_IDS),
     },
 }
 

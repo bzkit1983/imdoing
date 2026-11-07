@@ -77,6 +77,8 @@ var _circle: Node2D
 var _prompt: Node2D
 var _menu: Node2D
 var _body: CanvasItem
+## Vox character id (SkinCatalog / stats.skin_id). Default standard player.
+var _model_id: String = "player"
 var _arrow: Polygon2D
 var _no_queue_logged: bool = false
 var _l_held: bool = false
@@ -359,6 +361,7 @@ func clone_snapshot() -> Dictionary:
 		"restock_pct": restock_pct,
 		"checkout_pct": checkout_pct,
 		"wave_step": wave,
+		"skin_id": appearance_skin_id(),
 	}
 
 
@@ -373,6 +376,16 @@ func _refresh_passive_checkout() -> void:
 func bind_visuals(body: CanvasItem, arrow: Polygon2D) -> void:
 	_body = body
 	_arrow = arrow
+	_model_id = appearance_skin_id()
+
+
+func appearance_skin_id() -> String:
+	const SkinCatalog = preload("res://scripts/session/skin_catalog.gd")
+	if stats != null and stats.has_method("appearance_skin_id"):
+		return SkinCatalog.normalize(String(stats.appearance_skin_id()))
+	if stats != null and "skin_id" in stats:
+		return SkinCatalog.normalize(String(stats.skin_id))
+	return SkinCatalog.DEFAULT_SKIN
 
 
 func add_dirt(delta_count: int) -> void:
@@ -3949,13 +3962,14 @@ func _handle_hotkey_actions(event: InputEvent) -> void:
 
 
 func _visual_anim() -> String:
+	var mid := _model_id if _model_id != "" else appearance_skin_id()
 	if _stun_left > 0.0:
 		return "down"
 	if _slip_left > 0.0:
 		return "slip"
-	if _cast_pose_left > 0.0 and Vox.has_anim("player", "cast"):
+	if _cast_pose_left > 0.0 and Vox.has_anim(mid, "cast"):
 		return "cast"
-	if _deliver_pose_left > 0.0 and Vox.has_anim("player", "deliver"):
+	if _deliver_pose_left > 0.0 and Vox.has_anim(mid, "deliver"):
 		return "deliver"
 	if _fighting:
 		return "fight"
@@ -3970,7 +3984,7 @@ func _visual_anim() -> String:
 	if _running and velocity.length() > 8.0:
 		return "run"
 	if velocity.length() > 8.0:
-		if not inventory.is_empty() and Vox.has_anim("player", "walk_carry"):
+		if not inventory.is_empty() and Vox.has_anim(mid, "walk_carry"):
 			return "walk_carry"
 		return "walk"
 	return "idle"
@@ -3982,17 +3996,18 @@ func _update_visuals() -> void:
 		_arrow.rotation = facing.angle() - PI / 2.0
 	if _body == null:
 		return
+	_model_id = appearance_skin_id()
 	var anim := _visual_anim()
 	var prev_face := int(_body.get_meta("vox_anim_facing", -1)) if _body is AnimatedSprite2D else -1
 	var face_k := Vox.k_from_facing_stable(facing, prev_face) if _body is AnimatedSprite2D else Vox.k_from_facing(facing)
-	var anim_key := "%s_%d_%.2f" % [anim, face_k, 1.25 if _running else 1.0]
+	var anim_key := "%s_%s_%d_%.2f" % [_model_id, anim, face_k, 1.25 if _running else 1.0]
 	if _body is AnimatedSprite2D:
 		if anim_key != _shown_anim:
 			_shown_anim = anim_key
 			var spd := 1.25 if _running else 1.0
-			Vox.play_anim(_body as AnimatedSprite2D, "player", anim, facing, spd)
+			Vox.play_anim(_body as AnimatedSprite2D, _model_id, anim, facing, spd)
 	elif _body is Sprite2D:
-		Vox.apply(_body as Sprite2D, "player", face_k)
+		Vox.apply(_body as Sprite2D, _model_id, face_k)
 	var status := Color.WHITE
 	if ult_prep:
 		status = Color(1.0, 0.45, 0.4)
