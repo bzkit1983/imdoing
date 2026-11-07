@@ -1650,7 +1650,7 @@ func _release_layout(screen: Vector2) -> void:
 		_click_arm = -1
 	_cancel_drag()
 	if not moved:
-		if from >= 0:
+		if from >= 0 and _drag_index_still(from, typ):
 			state.remove_at(from)
 			_msg = "已收回"
 			_clear_hold()
@@ -1661,7 +1661,7 @@ func _release_layout(screen: Vector2) -> void:
 	var grid_local := _to_local(_grid, screen)
 	var inside := Rect2(Vector2.ZERO, _grid.size).has_point(grid_local)
 	if not inside:
-		if from >= 0:
+		if from >= 0 and _drag_index_still(from, typ):
 			state.remove_at(from)
 			_msg = "已收回"
 		_clear_hold()
@@ -1669,6 +1669,11 @@ func _release_layout(screen: Vector2) -> void:
 		return
 	var cell := _cell_of(grid_local) - grab
 	if from >= 0:
+		if not _drag_index_still(from, typ):
+			_msg = "放不下"
+			_clear_hold()
+			_refresh()
+			return
 		_msg = state.move_item(from, cell.x, cell.y, rot)
 		if _msg == "":
 			_msg = "已移動"
@@ -1698,6 +1703,13 @@ func _cancel_drag() -> void:
 	_drag_type = ""
 	_drag_from = -1
 	_drag_grab = Vector2i.ZERO
+
+
+## True if placed[from] is still the piece we started dragging (guards stale index).
+func _drag_index_still(from: int, typ: String) -> bool:
+	if state == null or from < 0 or from >= state.placed.size():
+		return false
+	return String(state.placed[from].get("type", "")) == typ
 
 
 func _to_local(ctrl: Control, screen: Vector2) -> Vector2:

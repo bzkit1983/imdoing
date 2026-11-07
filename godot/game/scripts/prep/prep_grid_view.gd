@@ -15,7 +15,12 @@ func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var cell: float = host._cell_px()
 		host._cursor = Vector2i(int(event.position.x / cell), int(event.position.y / cell))
-		host.try_place()
+		## Mouse place/pickup/drag is owned by prep_menu._input (_press_layout /
+		## _release_layout). Calling try_place here double-fired: pickup removed the
+		## item then release remove_at(stale index) hit a different piece — e.g. ice
+		## shelf click could surface as dry. Only place when already holding.
+		if String(host.get("_hold_type")) != "":
+			host.try_place()
 
 
 func _draw() -> void:
@@ -40,9 +45,20 @@ func _draw() -> void:
 		var col := Color("5c4033")
 		var t := String(it["type"])
 		if t.begins_with("shelf"):
-			col = Color("2f5d50")
+			## Distinct fills so dry / frozen / ice are not mistaken for each other.
+			if t.contains("frozen"):
+				col = Color("3a6e9e")
+			elif t.contains("ice"):
+				col = Color("5a7a9e")
+			else:
+				col = Color("2f5d50")
 		elif t.begins_with("restock"):
-			col = Color("c45c26")
+			if t.ends_with("frozen"):
+				col = Color("d4783a")
+			elif t.ends_with("ice"):
+				col = Color("8aa4c8")
+			else:
+				col = Color("c45c26")
 		var rect := Rect2(Vector2(int(it["x"]), int(it["y"])) * cell, Vector2(int(it["w"]), int(it["h"])) * cell - Vector2(2, 2))
 		draw_rect(rect, col)
 		if t.begins_with("restock"):
