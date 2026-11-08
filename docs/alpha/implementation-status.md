@@ -37,7 +37,7 @@
 | 客人離店不卡門 | **`docs/systemdesign/customer.md`** | leave `collision_mask=0`；`exit_pos` 在 pathfinder 內；門檻／逾時 despawn |
 | 技術審查與跟進清單 | `docs/alpha/tech-review-v0.1.md` | 非玩法規格；§6 項目已全部勾完 |
 | Runtime P1＋P2 熱路徑優化 | **`docs/alpha/runtime-perf-audit.md`**（文末 P1／P2 DONE） | `player`/`customer`/`demo`/`pathfinder`/`inventory`/`box_stack`/`floor_tiles`／`cashier`／`clerk`／`hud`／`drop_flight`；A* 預算、髒 HUD、地板單節點、佇列索引、dirt 網格 |
-| 客人貨品交付（v1.2.0） | **`docs/systemdesign/customerdelivery.md`** | **已實作**。貨架短按 1 件、長按親手交付（近的先、每件 −15）、方向＋短按丟一件、整箱改每件 −15、主動技衝刺交付（COST 2、5 秒） |
+| 客人貨品交付（v1.2.0） | **`docs/systemdesign/customerdelivery.md`** | **已實作**。貨架短按 1 件、長按親手交付（近的先、每件 −15）、方向＋短按丟一件、整箱改每件 −15、主動技衝刺交付（COST 1、5 秒） |
 | 自訂技能組合 | **`docs/systemdesign/customizedskillset.md`**、`playersetup.md` | **已實作**。五組預存、準備時可改未選用組、改完立刻寫檔、營運中鎖定。自訂名稱只准 10 個英文字母。角色整備入口「裝備技能」不顯示 COST；各組列表仍顯示 |
 | 營運回合可互動發光 | **`docs/systemdesign/playeraction.md`**、`storeoperationphase.md` | **已實作**。對準且行動鍵現在會作用的對象暖色光暈（貼近目標）；準備回合與不能真的互動時不亮 |
 | 技能選單先開再放 | **`docs/systemdesign/playerskills.md`**、`control.md` | **已實作**。短按／長按技能鍵都先開選單；選單開著時方向不走路 |

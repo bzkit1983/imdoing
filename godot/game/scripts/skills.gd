@@ -116,7 +116,7 @@ const ACTIVES: Array[Dictionary] = [
 	{"id": "soothe", "name": "安撫", "kind": "active", "lv": 3, "cost": 1, "soothe_keep": 0.0, "duration": 0.0, "cd": ACTIVE_CD, "blurb": "全店不滿歸零（已離開不拉回）"},
 	{"id": "metal_rush", "name": "金屬狂潮", "kind": "active", "lv": 3, "cost": 1, "customer_move_pct": 1.50, "duration": ACTIVE_DURATION, "cd": ACTIVE_CD, "blurb": "客人移速 +150%，20 秒"},
 	{"id": "hoop_ace", "name": "投籃高手", "kind": "active", "lv": 3, "cost": 1, "hoop_ace": true, "duration": 30.0, "cd": 15.0, "blurb": "短按方向一次投最上 2 件；LV3＝30 秒。準備頁選 LV1／2／3，沒選預設 LV3"},
-	{"id": "dash_deliver", "name": "衝刺交付", "kind": "active", "lv": 1, "cost": 2, "dash_deliver": true, "duration": 5.0, "cd": 5.0, "blurb": "5 秒內每記衝刺把對的貨交給客人且不 KO。沒對上則照常撞飛。技能不扣氣"},
+	{"id": "dash_deliver", "name": "衝刺交付", "kind": "active", "lv": 1, "cost": 1, "dash_deliver": true, "duration": 5.0, "cd": 5.0, "blurb": "5 秒內每記衝刺把對的貨交給客人且不 KO。沒對上則照常撞飛。技能不扣氣"},
 	{"id": "dasher", "name": "Dasher", "kind": "active", "lv": 3, "cost": 2, "dasher": true, "duration": 15.0, "cd": 15.0, "blurb": "衝刺與奔跑不扣氣（氣 0 也能）；LV3＝15 秒。準備頁選 LV1／2／3，沒選預設 LV3"},
 	{"id": "force_sell", "name": "我都賺夠啦比啲你賺", "kind": "active", "lv": 3, "cost": 2, "force_sell": true, "duration": 0.0, "cd": 15.0, "blurb": "瞬發強塞手上貨進最近可交付客人 cart；LV3＝最多 20 件。準備頁選 LV1／2／3，沒選預設 LV3"},
 	{"id": "must_deliver", "name": "使命必達", "kind": "active", "lv": 3, "cost": 2, "must_deliver": true, "duration": 0.0, "cd": 15.0, "blurb": "兩段施放：範圍內完成優先交清單貨；LV3＝15 身位／最多 4 人。準備頁選 LV1／2／3，沒選預設 LV3"},
