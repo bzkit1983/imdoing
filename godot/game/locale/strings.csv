@@ -187,3 +187,10 @@ demo.close_gate,落閘放狗　排隊 %d　離店 %d　小偷 %d,Close gate · q
 demo.closeout_early,提早關店結算,Early closeout
 demo.closeout_test,營業結束,Shop closed
 demo.closeout_head,關店結算,Day settled
+
+self_checkout.no_register,5身位內沒有收銀機,No register within 5 body lengths
+self_checkout.active,Self Checkout,Self Checkout
+self_checkout.standby,自助待命,Self checkout standby
+self_checkout.tail,完成本客後結束,Finishing final customer
+self_checkout.loading,自助付款 %.0f%%,Self checkout %.0f%%
+self_checkout.blurb,啟動5身位內機台15秒；每客5／4／3秒自助；真人／NPC優先；尾單收完；CD30秒受INT縮短,Enable nearby registers for 15s within 5 body lengths; 5/4/3s per guest; operators take priority; finish final guest; 30s CD scales with INT

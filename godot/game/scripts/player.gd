@@ -2252,6 +2252,22 @@ func _play_magneto_vfx(flights: Array) -> void:
 
 
 ## Instant harvest_chives on aimed cashier queue. False = fail (no CD).
+func _cast_self_checkout(level: int) -> bool:
+	var host := _game()
+	var count := 0
+	if host != null:
+		for reg in host.get("cashiers"):
+			if is_instance_valid(reg) and global_position.distance_squared_to(reg.global_position) <= pow(5.0 * Tuning.BODY_LENGTH, 2):
+				reg.activate_self_checkout(host, level, seat_id)
+				count += 1
+	if count == 0:
+		log_line.emit(Loc.t("self_checkout.no_register"))
+	else:
+		var ring_script = preload("res://scripts/self_checkout_ring.gd")
+		ring_script.spawn(host, global_position)
+	return count > 0
+
+
 func _cast_harvest_chives(lv: int) -> bool:
 	var reg: Node2D = null
 	if is_instance_valid(target) and String(target.get("kind")) == "cashier":
@@ -3234,6 +3250,7 @@ func _tick_cashier(delta: float) -> void:
 				log_line.emit("收銀機前沒有客人")
 			_no_queue_logged = true
 		return
+	target.operator_checkout()
 	_ensure_seq(cust)
 	_prompt.active = true
 	_prompt.sequence = cust.checkout_seq
@@ -3631,6 +3648,17 @@ func _cast_slot(i: int) -> void:
 	if cd_left(sid) > 0.05:
 		SfxBus.play("sfx_skill_cd_deny")
 		log_line.emit("%s 冷卻中 %.0fs" % [String(sk.get("name")), cd_left(sid)])
+		return
+	if bool(sk.get("self_checkout", false)):
+		if not _cast_self_checkout(int(sk.get("lv", 3))):
+			return
+		_cancel_must_deliver_aim()
+		_cancel_magneto_aim()
+		_cd[sid] = Tuning.cd_seconds(30.0, _int_now())
+		SfxBus.play("sfx_skill_cast")
+		_begin_cast_pose(false)
+		skill_cast.emit("Self Checkout", false)
+		_play_zoom(false)
 		return
 	## Instant force_sell: empty hands / no target must not start CD.
 	if bool(sk.get("force_sell", false)):

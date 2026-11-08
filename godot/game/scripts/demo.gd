@@ -1756,7 +1756,9 @@ func _on_paid(amount: int, from_elite: bool = false, seat: int = 0, actor: Node2
 	if _player != null:
 		var FxBurst = preload("res://scripts/fx_burst.gd")
 		var at: Vector2 = _player.global_position + Vector2(0, -28)
-		if _player.get("target") != null and is_instance_valid(_player.target):
+		if body != null and str(body.get("kind")) == "cashier":
+			at = body.global_position + Vector2(0, -24)
+		elif _player.get("target") != null and is_instance_valid(_player.target):
 			at = _player.target.global_position + Vector2(0, -24)
 		elif body != null and is_instance_valid(body):
 			at = body.global_position + Vector2(0, -24)

@@ -1,4 +1,6 @@
 extends CharacterBody2D
+
+var _checkout_customer: Node
 ## Hired NPC. Restock fills shelves that already have a SKU. Cashier skips direction commands.
 
 const Tuning = preload("res://scripts/tuning.gd")
@@ -82,6 +84,10 @@ func _tick_cashier(delta: float) -> void:
 	if cust == null:
 		_timer = 0.0
 		return
+	if _checkout_customer != cust:
+		_timer = 0.0
+		_checkout_customer = cust
+	register.operator_checkout()
 	_timer += delta
 	if _timer < Tuning.checkout_seconds(10):
 		return

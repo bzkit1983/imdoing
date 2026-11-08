@@ -1,5 +1,7 @@
 extends CharacterBody2D
 
+var _checkout_customer: Node
+
 const Tuning = preload("res://scripts/tuning.gd")
 const UiFont = preload("res://scripts/ui_font.gd")
 const Vox = preload("res://scripts/voxel_sprite.gd")
@@ -1121,6 +1123,10 @@ func _tick_temp_cashier(delta: float) -> void:
 	if cust == null:
 		_temp_work = 0.0
 		return
+	if _checkout_customer != cust:
+		_temp_work = 0.0
+		_checkout_customer = cust
+	reg.operator_checkout()
 	_temp_work += delta
 	if _temp_work < Tuning.checkout_seconds(10):
 		return
