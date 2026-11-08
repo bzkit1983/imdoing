@@ -37,7 +37,7 @@
 | 已處理 | 缺檔／缺系統 | 清潔只有行動列 | `cleaningsystem.md` 已有：三類污物、移速 ×0.5、長按＋轉搖桿清潔計、AGI 決定全力轉滿秒數、持貨亦可、放手重置。 | cleaningsystem.md, playeraction.md, playerstats.md |
 | 已處理 | 缺檔／缺系統 | 打擊只有行動列 | `thiefsystem.md` 已對齊活線：近距 KO 散落／衝刺遠距散落（≤5 身位）／方向丟掉砸中（Screen KO、贓物原地掉落、算抓住）、離店途中仍可抓／砸／撞、得手出口才計被偷＋橫幅、Screen KO／連打晃動。 | thiefsystem.md, playeraction.md, playermovement.md, playerstats.md, replenishmentsystem.md |
 | 已處理 | 未定數值 | 移動沒有基值 | AGI 10＝每秒 3 身位、上限 5×、跑 −20 氣力/秒、衝刺 −50、氣力 0 不能跑、污物 ×0.5 已寫進長線。擁擠減速與輕放／長按門檻仍缺。 | playermovement.md, playerstats.md |
-| 已處理 | 缺檔／缺系統 | 沒有資金／採購／經營值文件 | 已有 `ecosystem.md`、`procurement.md`、`stockpricesystem.md`、`shopitem.md`、`shopprogress.md`。虧損＝當日營業額低於當日買入倉庫的貨；開發費、傢俬、工資不算；被偷不入帳。關店把當日營業額加入資金。「經營值」這個詞仍無定義，見下方未處理項。 | ecosystem.md, procurement.md, stockpricesystem.md, cashiersystem.md |
+| 已處理 | 缺檔／缺系統 | 沒有資金／採購／經營值文件 | 已有 `ecosystem.md`、`procurement.md`、`stockpricesystem.md`、`shopitem.md`、`shopprogress.md`。虧損＝當日營業額低於當日買入倉庫的貨；開發費、傢俬、工資不算；被偷不入帳。關店把當日營業額加入資金。可花「經營值」已廢；改為 `ratingsystem.md` 雙評價（非貨幣）。 | ecosystem.md, procurement.md, stockpricesystem.md, cashiersystem.md, ratingsystem.md |
 | 已處理 | 缺檔／缺系統 | 店鋪準備回合只有口號 | `storepreparationphase.md` 有準備選單與開始營業條件（已放置收銀機，以及至少一組同類型補貨架和貨架）。配點、技能、採購、擴張、店舖設計、店員各有檔。外觀仍只有一句。 | storepreparationphase.md, playersetup.md, shopsetup.md, clerksystem.md |
 | 已處理 | 缺檔／缺系統 | 店員是誰 | `clerksystem.md`：可雇 NPC，日薪 $100，崗位為補貨或收銀，人數不大於收銀機數。補貨會補空貨架上的新貨，沒有空架才補已有貨；有計劃時每幀跟隨，閒置才用 0.35s 掃描冷卻。 | clerksystem.md, gameconcept.md, playerexport.md |
 | 已處理 | 互相矛盾 | 雇員上限寫到規模 LV4，店舖規模只到 LV3 | 暫時把雇員上限跟到現有規模：LV1＝0、LV2＝1、LV3＝2。規模 LV4 的人數先不寫，等有第四級面積再定。角色 LV4 升規模到 LV2，角色 LV7 升規模到 LV3。 | clerksystem.md, shopsetup.md, shopprogress.md |
@@ -51,7 +51,7 @@
 | 已處理 | 規則含糊 | 全體集資「一半客人」沒有選法 | LV1 只處理排隊。LV2、LV3 都不含離開中客人和小偷。略過指令與 Circle，馬上收錢。已拿走的貨按售價全額入帳；未買完的貨不入帳、不白送，客人當已付款離開。 | playerultimateskills.md, cashiersystem.md |
 | 已處理 | 規則含糊 | 全體集資 LV2 一半怎樣取 | 單數向上取整。已拿走件數最多的客人優先。件數相同時，銷售金額最高者優先。件數和金額都相同時，不滿度較高者優先。不滿度也相同時，隨意選一位。 | playerultimateskills.md |
 | 已處理 | 規則含糊 | 衝刺撞飛客人與尋路互相打架 | 衝刺撞客人：Screen KO 飛起再**原地落地**（不離店）；停止 2 秒；+50 不滿（基值；禮貌衝撞則 +0）；購物車貨品原地掉落；**購物清單不變**（不重抽），已取貨放回清單後從頭尋貨。路人擁擠：玩家 3 身位內有客人／小偷 → 移速 ×0.5＋頭頂「唔該借借⋯」。小偷被衝刺撞飛或貨箱砸中都**算抓住**。 | playermovement.md, customer.md, playerpassiveskills.md, thiefsystem.md, ecosystem.md |
-| P1 | 缺檔／缺系統 | 劇情／事件層沒有設計檔 | 已標明留待 Beta，現階段經驗不從這裡增減。三層循環的第一層仍無事件表、觸發、失敗條件。`gameconcept.md` 的「經營值」沒有定義。 | gameconcept.md, playerlevel.md, ecosystem.md |
+| P1 | 缺檔／缺系統 | 劇情／事件層沒有設計檔 | 已標明留待 Beta，現階段經驗不從這裡增減。三層循環的第一層仍無事件表、觸發、失敗條件。評價條件語意已有（`ratingsystem.md`），事件／劇情表本身仍缺。 | gameconcept.md, playerlevel.md, ecosystem.md, ratingsystem.md |
 | Alpha | 缺檔／缺系統 | 幫忙取貨與 COMBO 交貨沒有規則 | 留待 Alpha 設計，見 `docs/alpha/design.md`。核心節奏有兩句，沒有互動對象、指令、計分、與收銀／不滿的關係。 | gameconcept.md, customer.md, playeraction.md |
 | Beta | 未定數值 | 客人流量幾乎沒有長線數值 | 留待 Beta 設計，見 `docs/beta/design.md`。有清單上限 15、逗留 1 秒、思考 3 秒。抽出件數交給各 Demo。沒有生成間隔、在店人數上限、客人類別移速表。找不到貨長線點數未定（Demo v0.3 為 +18）。麻煩客人行為已寫進 `elitecustomer.md` 並落地；仍欠劇情 LV 解鎖／事件表。 | customer.md, elitecustomer.md, gameconcept.md |
 | Beta | 未定數值 | 污物／小偷的長線流量未定 | 留待 Beta 設計，見 `docs/beta/design.md`。清潔檔的生成頻率、同時上限、垃圾氣力、三類不滿長線未定。小偷清單件數、同時人數、出現間隔長線未定。霸王色「減少 50%」沒有基礎出現率可乘。 | cleaningsystem.md, thiefsystem.md, playerpassiveskills.md |
@@ -75,7 +75,7 @@
 
 經營回合與準備回合的主循環已有拆檔（含清潔、小偷、採購、店舖設計、店員）。下列主題被點名，但沒有對應設計，或檔案仍是一句。
 
-- **循環與進度：** 劇情／事件表、過關與失敗、經營值、技能解鎖表。~~存檔~~ 見 `savesystem.md`。~~暫停／掛起~~ 見 `pausemenu.md`
+- **循環與進度：** 劇情／事件表、過關與失敗、技能解鎖表。~~評價／經營值~~ 見 `ratingsystem.md`（難度 stub 見 `difficulty.md`）。~~存檔~~ 見 `savesystem.md`。~~暫停／掛起~~ 見 `pausemenu.md`
 - **店內系統：** 冰櫃與凍櫃的操作差異。幫忙取貨與 COMBO 留待 Alpha
 - **幾乎是空檔：** 角色導出的連線與檔案留待 Alpha。Voxel 初模和給設計師加細節的規矩在 `docs/alpha/voxel-v0.1.md`。外觀配置只有一句
 - **多人連線：** 設計見 [`docs/systemdesign/multiplayer.md`](systemdesign/multiplayer.md)（§10 企劃已拍板；**§11 M1 本機雙人規格已定稿**；**尚未實作**）。`ecosystem.md`／`savesystem.md`／`control.md` 已加 M1 交叉註記
