@@ -24,7 +24,8 @@ class ListOverlay extends Node2D:
 	func _process(_delta: float) -> void:
 		if host == null:
 			return
-		visible = bool(host.get("picking"))
+		## Truthiness: Object.get missing → null; bool(null) crashes in Godot 4.
+		visible = host.get("picking") == true
 		## Anchor on the clerk. A high shelf used to draw the panel off the top of the view.
 		if host.has_method("_list_anchor"):
 			position = host.call("_list_anchor")
@@ -33,7 +34,7 @@ class ListOverlay extends Node2D:
 		queue_redraw()
 
 	func _draw() -> void:
-		if host == null or not bool(host.get("picking")):
+		if host == null or host.get("picking") != true:
 			return
 		host.call("_draw_sku_list", self)
 

@@ -142,7 +142,7 @@ class StickHint extends Node2D:
 		queue_redraw()
 
 	func _draw() -> void:
-		if host == null or not bool(host.get("cleaning")):
+		if host == null or host.get("cleaning") != true:
 			return
 		## Ring + stick only (no solid disc) so the player sprite stays visible underneath.
 		draw_arc(Vector2.ZERO, 20.0, 0.0, TAU, 36, Color("f4f1ea", 0.75), 2.2)

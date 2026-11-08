@@ -381,7 +381,7 @@ func release_player_checkout(guest = null) -> void:
 		if not p.has_method("release_checkout"):
 			continue
 		if guest != null:
-			if not bool(p.get("command_lock")):
+			if not p.get("command_lock"):
 				continue
 			var reg = p.get("target")
 			if reg == null or not reg.has_method("ready_customer"):
@@ -401,7 +401,7 @@ func seat_locks_register(reg: Node) -> bool:
 	for p in seats:
 		if p == null or not is_instance_valid(p):
 			continue
-		if bool(p.get("command_lock")) and p.get("target") == reg:
+		if p.get("command_lock") and p.get("target") == reg:
 			return true
 	return false
 
@@ -429,7 +429,7 @@ func cast_fundraise(level: int) -> void:
 	for c in picked:
 		var amount := int(c.call("payout_total")) if c.has_method("payout_total") else int(c.call("cart_total"))
 		total += amount
-		_on_paid(amount, bool(c.get("is_elite")), 0, null, false)
+		_on_paid(amount, c.get("is_elite") == true, 0, null, false)
 		c.finish_paid()
 	release_player_checkout()
 	if _player:
@@ -452,7 +452,7 @@ func cast_harvest_chives(reg: Node, max_n: int) -> int:
 			continue
 		var amount := int(c.call("payout_total")) if c.has_method("payout_total") else int(c.call("cart_total"))
 		total += amount
-		_on_paid(amount, bool(c.get("is_elite")), 0, null, false)
+		_on_paid(amount, c.get("is_elite") == true, 0, null, false)
 		c.finish_paid()
 	release_player_checkout()
 	var n := picked.size()
@@ -519,8 +519,13 @@ func cast_close_gate() -> void:
 	var left := 0
 	var thieves := 0
 	for c in _customers.get_children():
-		if bool(c.get("is_thief")):
-			var st := int(c.get("state"))
+		if c == null or not is_instance_valid(c):
+			continue
+		## FloatText / other non-customer siblings: Object.get → null → bool()/int() crash.
+		if not c.has_method("occupies_store"):
+			continue
+		if c.is_thief:
+			var st: int = c.state
 			if st == CustomerScript.State.FLEE:
 				continue
 			if c.has_method("drop_loot_and_leave"):
@@ -675,7 +680,8 @@ func shadow_clones() -> Array:
 			continue
 		if not c.has_method("is_shadow_clone_unit") or not bool(c.call("is_shadow_clone_unit")):
 			continue
-		if bool(c.get("_vanishing")):
+		## Truthiness: Object.get missing → null; bool(null) crashes in Godot 4.
+		if c.get("_vanishing"):
 			continue
 		out.append(c)
 	return out
@@ -773,7 +779,7 @@ func _player_lock_register():
 	for p in _players:
 		if p == null or not is_instance_valid(p):
 			continue
-		if not bool(p.get("command_lock")):
+		if not p.get("command_lock"):
 			continue
 		var target = p.get("target")
 		if target != null and String(target.get("kind")) == "cashier":
@@ -847,6 +853,9 @@ func customers_in_radius(origin: Vector2, radius_sq: float) -> Array:
 		return out
 	for c in _customers.get_children():
 		if c == null or not is_instance_valid(c):
+			continue
+		## Ops FloatText siblings live under Customers; skip non-guests.
+		if not c.has_method("occupies_store"):
 			continue
 		if origin.distance_squared_to(c.global_position) <= radius_sq:
 			out.append(c)
@@ -1676,7 +1685,7 @@ func thieves() -> Array[Node2D]:
 func register_customer(c: Node) -> void:
 	if c == null:
 		return
-	if bool(c.get("is_thief")):
+	if c.get("is_thief"):
 		if not _thieves.has(c):
 			_thieves.append(c)
 		_recount_active_thieves()
@@ -1688,7 +1697,7 @@ func register_customer(c: Node) -> void:
 
 
 func note_customer_occupy_changed(c: Node, occupies: bool) -> void:
-	if c == null or bool(c.get("is_thief")):
+	if c == null or c.get("is_thief"):
 		return
 	## Guests: occupy flips leave/flee; keep counter non-negative.
 	if occupies:
@@ -1705,7 +1714,7 @@ func note_thief_active_changed() -> void:
 func _on_customer_exiting(c: Node) -> void:
 	if c == null:
 		return
-	if bool(c.get("is_thief")):
+	if c.get("is_thief"):
 		_thieves.erase(c)
 		_recount_active_thieves()
 	else:
@@ -2438,7 +2447,7 @@ func _clone_for_toss(from: Vector2, dest: Vector2) -> Node2D:
 	for c in shadow_clones():
 		if c == null or not is_instance_valid(c):
 			continue
-		if bool(c.get("_vanishing")):
+		if c.get("_vanishing"):
 			continue
 		var p: Vector2 = c.global_position
 		var d := minf(_dist_point_to_segment(p, from, dest), dest.distance_to(p))
@@ -2466,9 +2475,12 @@ func _guest_for_toss(from: Vector2, dest: Vector2) -> Node2D:
 	for c in _customers.get_children():
 		if c == null or not is_instance_valid(c):
 			continue
-		if bool(c.get("is_thief")):
+		## Ops FloatText siblings under Customers lack guest props → bool(null) crash.
+		if not c.has_method("occupies_store"):
 			continue
-		var st := int(c.get("state"))
+		if c.is_thief:
+			continue
+		var st: int = c.state
 		if st == 7 or st == 9 or st == 8:
 			continue
 		var p: Vector2 = c.global_position
@@ -2584,9 +2596,12 @@ func _sniper_guest_for(sku: String, from: Vector2) -> Node2D:
 	for c in _customers.get_children():
 		if c == null or not is_instance_valid(c):
 			continue
-		if bool(c.get("is_thief")):
+		## Skip FloatText / non-guest children before any Object.get coercions.
+		if not c.has_method("can_receive_delivery"):
 			continue
-		if not c.has_method("can_receive_delivery") or not bool(c.call("can_receive_delivery")):
+		if c.is_thief:
+			continue
+		if not bool(c.call("can_receive_delivery")):
 			continue
 		if _guest_wants_sku(c, sku) <= 0:
 			continue

@@ -1136,7 +1136,7 @@ func _tick_temp_cashier(delta: float) -> void:
 		return
 	_temp_work = 0.0
 	var amount: int = int(cust.call("payout_total")) if cust.has_method("payout_total") else int(cust.call("cart_total"))
-	var from_elite := bool(cust.get("is_elite"))
+	var from_elite: bool = cust.get("is_elite") == true
 	SfxBus.play("sfx_checkout_clerk")
 	if _game.has_method("_on_paid"):
 		_game.call("_on_paid", amount, from_elite, 0, self)
@@ -1362,9 +1362,12 @@ func _elite_incite(td: float) -> void:
 	for c in near:
 		if c == null or c == self or not is_instance_valid(c):
 			continue
-		if bool(c.get("is_thief")) or bool(c.get("is_elite")):
+		if c.get("is_thief") or c.get("is_elite"):
 			continue
-		var st := int(c.get("state"))
+		var st_v = c.get("state")
+		if st_v == null:
+			continue
+		var st := int(st_v)
 		## Affect queue; ignore leaving / fleeing.
 		if st == State.LEAVE or st == State.FLEE:
 			continue
@@ -1418,9 +1421,12 @@ func _elite_nearby_normal_guest() -> Node:
 	for c in near:
 		if c == null or c == self or not is_instance_valid(c):
 			continue
-		if bool(c.get("is_thief")) or bool(c.get("is_elite")):
+		if c.get("is_thief") or c.get("is_elite"):
 			continue
-		var st := int(c.get("state"))
+		var st_v = c.get("state")
+		if st_v == null:
+			continue
+		var st := int(st_v)
 		if st == State.LEAVE or st == State.FLEE or st == State.FIGHT:
 			continue
 		var d: float = global_position.distance_squared_to((c as Node2D).global_position)

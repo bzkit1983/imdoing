@@ -28,7 +28,8 @@ class Overlay extends Control:
 		## Keep a real rect — layout can clear size and cull draws.
 		custom_minimum_size = RING_SIZE
 		size = RING_SIZE
-		var show := float(host.get("progress")) > 0.0 or bool(host.get("blocked"))
+		var prog = host.get("progress")
+		var show: bool = (prog != null and float(prog) > 0.0) or host.get("blocked") == true
 		visible = show
 		if not show:
 			return

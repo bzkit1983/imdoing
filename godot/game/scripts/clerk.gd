@@ -93,7 +93,7 @@ func _tick_cashier(delta: float) -> void:
 		return
 	_timer = 0.0
 	var amount: int = int(cust.call("payout_total")) if cust.has_method("payout_total") else int(cust.call("cart_total"))
-	var from_elite := bool(cust.get("is_elite"))
+	var from_elite: bool = cust.get("is_elite") == true
 	SfxBus.play("sfx_checkout_clerk")
 	_game.call("_on_paid", amount, from_elite, 0, self)
 	cust.finish_paid()

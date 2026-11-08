@@ -2635,9 +2635,10 @@ func _tick_action(delta: float) -> void:
 
 func _begin_fight() -> void:
 	## Carry allowed; goods stay in hand for the mash window.
-	if not is_instance_valid(target) or not bool(target.get("is_thief")):
+	## Restock/shelf targets have no is_thief — bool(Object.get null) crashes Godot 4.
+	if not is_instance_valid(target) or not target.get("is_thief"):
 		return
-	if not bool(target.call("is_active_thief")):
+	if not target.has_method("is_active_thief") or not bool(target.call("is_active_thief")):
 		return
 	## A6 L — another seat already fighting this thief.
 	if not _interact_try(target):
@@ -3389,7 +3390,7 @@ func _try_command(dir: int) -> void:
 
 func _finish_checkout(cust) -> void:
 	var amount: int = int(cust.call("payout_total")) if cust.has_method("payout_total") else int(cust.call("cart_total"))
-	var from_elite := bool(cust.get("is_elite"))
+	var from_elite: bool = cust.get("is_elite") == true
 	var perfect := not _checkout_had_miss
 	## paid signal → demo._on_paid; pass elite via game helper when connected.
 	var game := _game()

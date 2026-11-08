@@ -158,7 +158,7 @@ func _tick_self_checkout(delta: float) -> void:
 		var paying := _self_customer
 		_clear_self_customer()
 		var amount: int = int(paying.payout_total())
-		_self_host._on_paid(amount, bool(paying.get("is_elite")), _self_seat, self, false)
+		_self_host._on_paid(amount, paying.get("is_elite") == true, _self_seat, self, false)
 		SfxBus.play("sfx_checkout_circle_done")
 		paying.finish_paid()
 		dequeue(paying)
