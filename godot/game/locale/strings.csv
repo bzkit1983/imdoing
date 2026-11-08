@@ -32,6 +32,7 @@ hud.target_cashier,目標  收銀機 · 長按行動再輸方向,Target  registe
 hud.target_dirt,目標  %s · 空手長按行動並轉搖桿清潔,Target  %s · empty-handed hold + stick to clean
 hud.target_drop,目標  掉落 %s ×%d · 輕放撿起,Target  drop %s ×%d · tap to pick up
 hud.target_thief,目標  小偷 · 空手長按抓住後連按行動打擊,Target  thief · hold to grab then mash act
+hud.target_guest,目標  客人 · 長按行動交付手上貨,Target  guest · hold act to deliver
 hud.target_shelf,目標  貨架 · %s,Target  shelf · %s
 hud.shelf_empty,空架 %d件,Empty %d slots
 hud.cat_dry,乾貨,Dry

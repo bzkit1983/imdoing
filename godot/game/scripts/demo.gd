@@ -709,7 +709,7 @@ func restock_holds(except: Node) -> Dictionary:
 		for c in _customers.get_children():
 			if c == null or c == except or not is_instance_valid(c):
 				continue
-			if not bool(c.get("temp_clerk")) or str(c.get("temp_role")) != "restock":
+			if not c.get("temp_clerk") or str(c.get("temp_role")) != "restock":
 				continue
 			_note_restock_hold(sku, shelf, c.get("_temp_plan_sku"), c.get("_temp_box_sku"), c.get("_temp_shelf"))
 	return {"sku": sku, "shelf": shelf}
@@ -748,7 +748,7 @@ func _temp_cashier_registers() -> Array:
 	for c in _customers.get_children():
 		if c == null or not is_instance_valid(c):
 			continue
-		if not bool(c.get("temp_clerk")) or str(c.get("temp_role")) != "cashier":
+		if not c.get("temp_clerk") or str(c.get("temp_role")) != "cashier":
 			continue
 		var reg = c.get("temp_register")
 		if reg != null:
@@ -819,10 +819,13 @@ func customers_near(origin: Vector2, radius_sq: float) -> bool:
 	for c in _customers.get_children():
 		if c == null or not is_instance_valid(c):
 			continue
-		if bool(c.get("temp_clerk")):
+		## Non-customer children: Object.get returns null → int()/bool() constructors explode.
+		if not c.has_method("occupies_store"):
+			continue
+		if c.temp_clerk:
 			continue
 		## Leave / flee / temp job are not blocking the aisle.
-		var st := int(c.get("state"))
+		var st: int = c.state
 		if st == CustomerScript.State.LEAVE or st == CustomerScript.State.FLEE or st == CustomerScript.State.TEMP:
 			continue
 		if origin.distance_squared_to(c.global_position) <= radius_sq:
@@ -982,7 +985,7 @@ func _collect_clerk_held_pieces() -> Dictionary:
 	for c in _customers.get_children():
 		if c == null or not is_instance_valid(c):
 			continue
-		if not bool(c.get("temp_clerk")) or str(c.get("temp_role")) != "restock":
+		if not c.get("temp_clerk") or str(c.get("temp_role")) != "restock":
 			continue
 		var held := str(c.get("_temp_box_sku"))
 		var pieces := int(c.get("_temp_box_n"))

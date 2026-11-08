@@ -539,36 +539,64 @@ func _refresh_pane(pane: Dictionary) -> void:
 		int(p.call("carry_cap")),
 	])
 	_sync_carry_icons(pane, inv)
-	var t: Node = p.get("target")
-	if t == null:
+	## Freed interact targets still sit on player.target until cleared; typed assign crashes.
+	var t = p.get("target")
+	if t == null or not is_instance_valid(t):
 		target_l.text = Loc.t("hud.target_none")
-	elif String(t.get("kind")) == "restock":
-		var cat_name := Loc.t("hud.cat_dry")
-		if String(t.get("category")) == Tuning.CAT_FROZEN:
-			cat_name = Loc.t("hud.cat_frozen")
-		elif String(t.get("category")) == Tuning.CAT_ICE:
-			cat_name = Loc.t("hud.cat_ice")
-		target_l.text = Loc.t("hud.target_restock", [
-			cat_name,
-			Tuning.sku_name(String(t.call("selected_sku")))
-		])
-	elif String(t.get("kind")) == "cashier":
-		target_l.text = Loc.t("hud.target_cashier")
-	elif String(t.get("kind")) == "dirt":
-		target_l.text = Loc.t("hud.target_dirt", [String(t.call("type_name"))])
-	elif String(t.get("kind")) == "drop":
-		target_l.text = Loc.t("hud.target_drop", [Tuning.sku_name(String(t.get("sku"))), int(t.get("count"))])
-	elif String(t.get("kind")) == "thief":
-		target_l.text = Loc.t("hud.target_thief")
 	else:
-		var sku := String(t.get("sku"))
-		var cap := int(t.get("capacity"))
-		if cap <= 0:
-			cap = Tuning.SHELF_CAP
-		var shelf_bit := Loc.t("hud.shelf_empty", [cap]) if sku == "" else "%s %d/%d" % [Tuning.sku_name(sku), int(t.get("count")), cap]
-		target_l.text = Loc.t("hud.target_shelf", [shelf_bit])
-	prog.value = float(p.get("hold_progress")) * 100.0
-	prog.modulate = Color("e07a5f") if bool(p.get("blocked_mismatch")) else Color("f4d35e")
+		## Object.get can return null — Godot 4 String()/int()/bool() reject null.
+		var kind_v = t.get("kind")
+		var kind := str(kind_v) if kind_v != null else ""
+		match kind:
+			"restock":
+				var cat_name := Loc.t("hud.cat_dry")
+				var cat_v = t.get("category")
+				var cat := str(cat_v) if cat_v != null else ""
+				if cat == Tuning.CAT_FROZEN:
+					cat_name = Loc.t("hud.cat_frozen")
+				elif cat == Tuning.CAT_ICE:
+					cat_name = Loc.t("hud.cat_ice")
+				var pick = t.call("selected_sku") if t.has_method("selected_sku") else ""
+				target_l.text = Loc.t("hud.target_restock", [
+					cat_name,
+					Tuning.sku_name(str(pick) if pick != null else ""),
+				])
+			"cashier":
+				target_l.text = Loc.t("hud.target_cashier")
+			"dirt":
+				var dname = t.call("type_name") if t.has_method("type_name") else ""
+				target_l.text = Loc.t("hud.target_dirt", [str(dname) if dname != null else ""])
+			"drop":
+				target_l.text = Loc.t("hud.target_drop", [
+					Tuning.sku_name(_obj_str(t, "sku")),
+					_obj_int(t, "count"),
+				])
+			"thief":
+				target_l.text = Loc.t("hud.target_thief")
+			"shelf":
+				var sku := _obj_str(t, "sku")
+				var cap := _obj_int(t, "capacity")
+				if cap <= 0:
+					cap = Tuning.SHELF_CAP
+				var shelf_bit := Loc.t("hud.shelf_empty", [cap]) if sku == "" else "%s %d/%d" % [Tuning.sku_name(sku), _obj_int(t, "count"), cap]
+				target_l.text = Loc.t("hud.target_shelf", [shelf_bit])
+			"", "elite":
+				target_l.text = Loc.t("hud.target_guest")
+			_:
+				target_l.text = Loc.t("hud.target_none")
+	prog.value = float(p.get("hold_progress")) * 100.0 if p.get("hold_progress") != null else 0.0
+	prog.modulate = Color("e07a5f") if p.get("blocked_mismatch") else Color("f4d35e")
+
+
+## Object.get has no default; typed ctors explode on null.
+func _obj_str(node: Object, prop: String) -> String:
+	var v = node.get(prop)
+	return str(v) if v != null else ""
+
+
+func _obj_int(node: Object, prop: String) -> int:
+	var v = node.get(prop)
+	return int(v) if v != null else 0
 
 
 ## Hand-carry sequence: left→right, last slot = next drop (trailing).

@@ -1359,7 +1359,7 @@ func _elite_incite(td: float) -> void:
 		if st == State.LEAVE or st == State.FLEE:
 			continue
 		## Aura still reaches a temp clerk; the locked number does not move.
-		if bool(c.get("temp_clerk")):
+		if c.get("temp_clerk"):
 			continue
 		if c.has_method("gain_dissat"):
 			c.gain_dissat(rate * td)

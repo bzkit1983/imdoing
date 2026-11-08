@@ -13,6 +13,7 @@ const FxBurst = preload("res://scripts/fx_burst.gd")
 const GlowScript = preload("res://scripts/interact_glow.gd")
 const SkuIcons = preload("res://scripts/sku_icons.gd")
 const InteractScan = preload("res://scripts/player/interact_scan.gd")
+const CustomerScript = preload("res://scripts/customer.gd")
 
 signal stats_changed
 
@@ -726,7 +727,7 @@ func _crowd_near() -> bool:
 	if g == null or not g.has_method("customers_near"):
 		## Fallback: scan game customers group / thieves list.
 		return _crowd_near_fallback()
-	return bool(g.call("customers_near", global_position, Tuning.CROWD_RADIUS_SQ))
+	return g.call("customers_near", global_position, Tuning.CROWD_RADIUS_SQ) == true
 
 
 func _crowd_near_fallback() -> bool:
@@ -738,7 +739,13 @@ func _crowd_near_fallback() -> bool:
 	for c in g._customers.get_children():
 		if c == null or not is_instance_valid(c):
 			continue
-		if bool(c.get("temp_clerk")):
+		if not c.has_method("occupies_store"):
+			continue
+		if c.temp_clerk:
+			continue
+		## Match demo.customers_near: leave / flee / temp job do not block the aisle.
+		var st: int = c.state
+		if st == CustomerScript.State.LEAVE or st == CustomerScript.State.FLEE or st == CustomerScript.State.TEMP:
 			continue
 		if global_position.distance_squared_to(c.global_position) <= rsq:
 			n += 1
@@ -768,10 +775,12 @@ func _cleaning() -> bool:
 func _in_dir_mode() -> bool:
 	if ult_prep or skill_menu_open or _restock_picking or _l_held or _u_held:
 		return true
-	if _j_held and target != null:
+	if _j_held and is_instance_valid(target):
 		var kind := String(target.get("kind"))
 		if kind == "cashier" or kind == "restock":
 			return true
+	elif _j_held and target != null:
+		target = null
 	return command_lock
 
 
@@ -1163,25 +1172,44 @@ func _physics_process(delta: float) -> void:
 	_emit_stats_if_changed()
 
 
+func _obj_str(node: Object, prop: String) -> String:
+	var v = node.get(prop)
+	return str(v) if v != null else ""
+
+
+func _obj_int(node: Object, prop: String) -> int:
+	var v = node.get(prop)
+	return int(v) if v != null else 0
+
+
+func _obj_float(node: Object, prop: String) -> float:
+	var v = node.get(prop)
+	return float(v) if v != null else 0.0
+
+
 func _target_detail_fp(node: Node2D) -> String:
 	if node == null or not is_instance_valid(node):
 		return "-"
-	var k := String(node.get("kind"))
+	var k := _obj_str(node, "kind")
 	var tinfo := "%s:%d" % [k, node.get_instance_id()]
 	match k:
 		"restock":
-			tinfo += ":%s" % String(node.call("selected_sku"))
+			var pick = node.call("selected_sku") if node.has_method("selected_sku") else ""
+			tinfo += ":%s" % (str(pick) if pick != null else "")
 		"dirt":
-			tinfo += ":%s" % String(node.call("type_name"))
+			var dname = node.call("type_name") if node.has_method("type_name") else ""
+			tinfo += ":%s" % (str(dname) if dname != null else "")
 		"drop":
-			tinfo += ":%s:%d" % [String(node.get("sku")), int(node.get("count"))]
+			tinfo += ":%s:%d" % [_obj_str(node, "sku"), _obj_int(node, "count")]
 		"shelf":
-			var cap := int(node.get("capacity"))
+			var cap := _obj_int(node, "capacity")
 			if cap <= 0:
 				cap = Tuning.SHELF_CAP
-			tinfo += ":%s:%d:%d" % [String(node.get("sku")), int(node.get("count")), cap]
+			tinfo += ":%s:%d:%d" % [_obj_str(node, "sku"), _obj_int(node, "count"), cap]
 		"thief":
-			tinfo += ":%.0f:%.1f" % [float(node.get("fight_hp")), float(node.get("fight_left"))]
+			tinfo += ":%.0f:%.1f" % [_obj_float(node, "fight_hp"), _obj_float(node, "fight_left")]
+		"", "elite":
+			tinfo += ":guest"
 	return tinfo
 
 
@@ -1787,7 +1815,7 @@ func _take_shelf_piece(shelf: Node2D) -> void:
 		SfxBus.play("sfx_box_pull_fail")
 		log_line.emit("負重不足：%d/%d 件" % [inventory.count(), carry_cap()])
 		return
-	var sku := String(shelf.get("sku"))
+	var sku := _obj_str(shelf, "sku")
 	if sku == "" or not shelf.has_method("take_n"):
 		return
 	var taken := int(shelf.call("take_n", 1))
@@ -1980,7 +2008,7 @@ func _must_deliver_guests(radius: float) -> Array:
 	for c in custs.get_children():
 		if c == null or not is_instance_valid(c):
 			continue
-		if bool(c.get("temp_clerk")):
+		if c.get("temp_clerk"):
 			continue
 		if not c.has_method("can_receive_delivery") or not bool(c.call("can_receive_delivery")):
 			continue
@@ -2169,9 +2197,9 @@ func _cast_magneto(lv: int) -> void:
 	for node in interactables:
 		if node == null or not is_instance_valid(node):
 			continue
-		if String(node.get("kind")) != "drop":
+		if _obj_str(node, "kind") != "drop":
 			continue
-		if int(node.get("count")) <= 0:
+		if _obj_int(node, "count") <= 0:
 			continue
 		if global_position.distance_squared_to(node.global_position) > range_sq:
 			continue
@@ -2193,7 +2221,7 @@ func _cast_magneto(lv: int) -> void:
 		if not _interact_try(pile):
 			continue
 		locked_piles.append(pile)
-		var sku := String(pile.get("sku"))
+		var sku := _obj_str(pile, "sku")
 		var at: Vector2 = pile.global_position
 		var got := int(pile.call("take_count", room))
 		if got <= 0:
@@ -2288,7 +2316,7 @@ func _cast_force_sell(lv: int) -> bool:
 	for g in _faced_guests():
 		if g == null or not is_instance_valid(g):
 			continue
-		if bool(g.get("temp_clerk")):
+		if g.get("temp_clerk"):
 			continue
 		guest = g
 		break
@@ -2350,7 +2378,7 @@ func _hand_deliver(guests: Array, penalize_miss: bool) -> int:
 	if penalize_miss and nearest != null and nearest.has_method("apply_toss_reject"):
 		nearest.call("apply_toss_reject", "")
 		SfxBus.play("sfx_box_hit_guest_reject")
-		if bool(nearest.get("temp_clerk")):
+		if nearest.get("temp_clerk"):
 			log_line.emit("沒有對的貨 — 臨時員工不滿不變")
 		else:
 			log_line.emit("沒有對的貨 — 不滿 +15")
@@ -2453,7 +2481,7 @@ func _glow_host_now() -> Node2D:
 
 ## True when pressing interact would start a real action on this node.
 func _interact_available(node: Node2D) -> bool:
-	var kind := String(node.get("kind"))
+	var kind := _obj_str(node, "kind")
 	if kind == "thief":
 		## Carry allowed; goods stay in hand during the fight.
 		return node.has_method("is_active_thief") and bool(node.call("is_active_thief"))
@@ -2462,7 +2490,7 @@ func _interact_available(node: Node2D) -> bool:
 	if kind == "restock":
 		return _restock_interactable(node)
 	if kind == "drop":
-		var n := int(node.get("count"))
+		var n := _obj_int(node, "count")
 		return n > 0 and inventory.count() + n <= carry_cap()
 	if kind == "dirt":
 		## Carry allowed; goods stay in hand while cleaning.
@@ -2479,7 +2507,7 @@ func _interact_available(node: Node2D) -> bool:
 
 
 func _shelf_interactable(node: Node2D) -> bool:
-	if int(node.get("count")) > 0 and inventory.count() < carry_cap():
+	if _obj_int(node, "count") > 0 and inventory.count() < carry_cap():
 		return true
 	if inventory.is_empty() or not node.has_method("can_accept"):
 		return false
@@ -3002,7 +3030,7 @@ func _tick_restock(delta: float) -> void:
 		hold_progress = 0.0
 		return
 	if not bool(target.call("can_accept", sku)):
-		if int(target.get("count")) >= int(target.get("capacity")):
+		if _obj_int(target, "count") >= _obj_int(target, "capacity"):
 			SfxBus.play("sfx_shelf_stock_blocked")
 			log_line.emit("貨架已滿")
 			_j_held = false
@@ -3187,8 +3215,8 @@ func _tick_drop() -> void:
 	if not _interact_try(target):
 		log_line.emit("地上貨堆使用中")
 		return
-	var n := int(target.get("count"))
-	var sku := String(target.get("sku"))
+	var n := _obj_int(target, "count")
+	var sku := _obj_str(target, "sku")
 	if n <= 0:
 		_interact_release(target)
 		return
@@ -3901,12 +3929,14 @@ func _reset_hold() -> void:
 	if _prompt and not ult_prep:
 		_prompt.active = false
 		_prompt.fail_at = -1
-	if target != null and String(target.get("kind")) == "cashier":
+	if not is_instance_valid(target):
+		target = null
+	elif String(target.get("kind")) == "cashier":
 		var cust = target.call("front_customer")
 		if cust:
 			cust.cancel_pay()
 		_interact_release(target)
-	elif target != null and String(target.get("kind")) == "shelf":
+	elif String(target.get("kind")) == "shelf":
 		_interact_release(target)
 	_interact_release_held()
 
