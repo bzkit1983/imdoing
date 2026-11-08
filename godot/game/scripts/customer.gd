@@ -706,6 +706,8 @@ func _leave(angry: bool) -> void:
 	if angry and _game:
 		_game.angry_left += 1
 		SfxBus.play("sfx_guest_angry_leave")
+		if _game.has_method("note_angry_leave"):
+			_game.call("note_angry_leave", self)
 
 
 func _tick_leave(delta: float, td: float) -> void:
@@ -979,6 +981,8 @@ func apply_toss_reject(sku: String = "") -> void:
 	if sku != "":
 		_sku_popup(sku, SkuIcons.KIND_BAD)
 	_sync_labels()
+	if _game != null and _game.has_method("note_wrong_deliver"):
+		_game.call("note_wrong_deliver", self)
 
 
 func _scatter_cart(min_r: float, max_r: float) -> void:

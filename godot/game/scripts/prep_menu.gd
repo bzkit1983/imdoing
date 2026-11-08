@@ -13,6 +13,7 @@ const ProductVersion = preload("res://scripts/product_version.gd")
 const SkinCatalog = preload("res://scripts/session/skin_catalog.gd")
 const CharacterSheet = preload("res://scripts/session/character_sheet.gd")
 const Vox = preload("res://scripts/voxel_sprite.gd")
+const RatingRules = preload("res://scripts/session/rating_rules.gd")
 
 const PREP_TITLE := PrepWidgets.PREP_TITLE
 const PREP_INFO := PrepWidgets.PREP_INFO
@@ -285,15 +286,21 @@ func _pair(top: String, bottom: String) -> String:
 func _header() -> String:
 	var nxt := state.xp_to_next()
 	var xp_txt := "已滿 LV10" if nxt <= 0 else "XP %d/%d" % [state.xp, nxt]
-	return "資金 $%d　LV%d　%s　STR%d AGI%d INT%d　點數 %d" % [
-		state.money, state.level, xp_txt, state.str_stat, state.agi_stat, state.int_stat, state.unspent
-	]
+	var shop_r := int(state.shop_rating) if state != null and "shop_rating" in state else 0
+	return Loc.t("prep.header", [
+		state.money, state.level, xp_txt,
+		state.str_stat, state.agi_stat, state.int_stat, state.unspent, shop_r,
+	])
 
 
 func _home_info() -> String:
 	if state.level_note != "":
 		return state.level_note
-	return "開店前配置角色、進貨、店面和店員。關店後回到這裡，營業額入帳。"
+	var shop_r := int(state.shop_rating) if state != null and "shop_rating" in state else 0
+	var hist_n := 0
+	if state != null and state.get("rating_history") is Array:
+		hist_n = (state.rating_history as Array).size()
+	return Loc.t("prep.home.info_rating", [shop_r, hist_n])
 
 
 func _add(label: String, action: String, arg = null) -> void:
@@ -1140,6 +1147,8 @@ func _run_pending(pending: Dictionary) -> void:
 				SfxBus.play("sfx_ui_purchase")
 				_msg = "已擴張到規模 LV%d" % state.shop_scale
 				_refresh()
+		"difficulty":
+			_apply_difficulty_prompt(pending, true)
 
 
 func _popup_info(title: String, body: String) -> void:
@@ -1149,6 +1158,65 @@ func _popup_info(title: String, body: String) -> void:
 
 func _popup_confirm(title: String, body: String, pending: Dictionary) -> void:
 	_open_dialog(title, body, false, pending)
+
+
+## After closeout → home: suggest difficulty change on 3-day grade streak.
+func maybe_offer_difficulty_prompt() -> void:
+	if state == null or _dlg_open:
+		return
+	var sug := RatingRules.difficulty_suggestion(state.rating_history)
+	if sug == "":
+		return
+	var key := RatingRules.streak_key(state.rating_history)
+	if key == "" or key == String(state.difficulty_prompt_acked):
+		return
+	var toward_harder := sug == "up"
+	var cur := RatingRules.normalize_difficulty(state.difficulty)
+	var nxt := RatingRules.nudge_difficulty(cur, toward_harder)
+	if nxt == cur:
+		## Already at bound — ack so we do not re-prompt the same streak.
+		state.difficulty_prompt_acked = key
+		state.save_to_disk()
+		return
+	var body_key := "rating.diff.body_up" if toward_harder else "rating.diff.body_down"
+	var body := Loc.t(body_key, [_diff_label(cur), _diff_label(nxt)])
+	_popup_confirm(Loc.t("rating.diff.title"), body, {
+		"action": "difficulty",
+		"toward_harder": toward_harder,
+		"streak_key": key,
+		"next": nxt,
+	})
+	_dlg_yes.text = Loc.t("rating.diff.accept")
+	_dlg_no.text = Loc.t("rating.diff.dismiss")
+	_paint_dialog()
+
+
+func _diff_label(id: String) -> String:
+	match RatingRules.normalize_difficulty(id):
+		RatingRules.DIFF_EASY:
+			return Loc.t("rating.diff.name.easy")
+		RatingRules.DIFF_HARD:
+			return Loc.t("rating.diff.name.hard")
+		_:
+			return Loc.t("rating.diff.name.normal")
+
+
+func _apply_difficulty_prompt(pending: Dictionary, accepted: bool) -> void:
+	if state == null:
+		return
+	var key := String(pending.get("streak_key", ""))
+	if key != "":
+		state.difficulty_prompt_acked = key
+	if accepted:
+		var nxt := String(pending.get("next", ""))
+		if nxt == "":
+			nxt = RatingRules.nudge_difficulty(
+				state.difficulty, bool(pending.get("toward_harder", false))
+			)
+		state.difficulty = RatingRules.normalize_difficulty(nxt)
+		_msg = Loc.t("rating.diff.title") + " → " + _diff_label(state.difficulty)
+	state.save_to_disk()
+	_refresh()
 
 
 func _open_dialog(title: String, body: String, info: bool, pending: Dictionary) -> void:
@@ -1206,7 +1274,10 @@ func _on_dlg_yes() -> void:
 func _on_dlg_no() -> void:
 	if _dlg_gate != 2:
 		return
+	var pending := _pending.duplicate()
 	_close_dialog()
+	if String(pending.get("action", "")) == "difficulty":
+		_apply_difficulty_prompt(pending, false)
 
 
 func _dialog_accept() -> void:

@@ -40,6 +40,8 @@ var _clean_hint: bool = false
 var command_lock: bool = false
 var seq_index: int = 0
 var seq_done: bool = false
+## Sticky miss for this checkout attempt (ops rating P1a vs P1b).
+var _checkout_had_miss: bool = false
 ## Cast level while `senior_cashier` buff is up (0 = inactive).
 var _senior_cashier_lv: int = 0
 var skill_menu_open: bool = false
@@ -2755,6 +2757,9 @@ func _fight_fail() -> void:
 	_running = false
 	_slip_left = Tuning.SLIP_TIME
 	_stun_pending = Tuning.FIGHT_DOWN_SEC
+	var g := _game()
+	if g != null and g.has_method("note_fight_fail"):
+		g.call("note_fight_fail", self)
 
 
 func _end_fight(_won: bool) -> void:
@@ -2937,6 +2942,8 @@ func _try_dash_hits() -> void:
 				g.call("play_ko_banner")
 			if nearest.has_method("dash_knock_guest"):
 				nearest.call("dash_knock_guest", add)
+			if add > 0.0 and g.has_method("note_dash_guest"):
+				g.call("note_dash_guest", self)
 			SfxBus.play("sfx_ko_guest_dash")
 			log_line.emit("衝刺撞到客人 — 暈眩 2 秒，貨品掉落" if add > 0.0 else "衝刺撞到客人 — 禮貌衝撞，不滿不增加")
 			return
@@ -3294,6 +3301,7 @@ func _ensure_seq(cust) -> void:
 		n = Skills.senior_cashier_command_count(n, _senior_cashier_lv_now())
 		cust.set_meta("checkout_seq_init", true)
 		seq_index = 0
+		_checkout_had_miss = false
 		if n <= 0:
 			cust.checkout_seq = []
 			seq_done = true
@@ -3355,6 +3363,7 @@ func _try_command(dir: int) -> void:
 			SfxBus.play("sfx_checkout_seq_done")
 			log_line.emit("指令完成 — 維持長按出現 Loading Circle")
 	else:
+		_checkout_had_miss = true
 		_prompt.fail_at = seq_index
 		seq_index = 0
 		SfxBus.play("sfx_checkout_dir_fail")
@@ -3364,12 +3373,14 @@ func _try_command(dir: int) -> void:
 func _finish_checkout(cust) -> void:
 	var amount: int = int(cust.call("payout_total")) if cust.has_method("payout_total") else int(cust.call("cart_total"))
 	var from_elite := bool(cust.get("is_elite"))
+	var perfect := not _checkout_had_miss
 	## paid signal → demo._on_paid; pass elite via game helper when connected.
 	var game := _game()
 	if game != null and game.has_method("_on_paid"):
-		game.call("_on_paid", amount, from_elite, seat_id, self)
+		game.call("_on_paid", amount, from_elite, seat_id, self, perfect)
 	else:
 		paid.emit(amount)
+	_checkout_had_miss = false
 	SfxBus.play("sfx_checkout_circle_done")
 	if from_elite:
 		log_line.emit("麻煩客人收銀  +$%d（雙倍）" % amount)
@@ -3786,6 +3797,7 @@ func _cast_slot(i: int) -> void:
 func release_checkout() -> void:
 	seq_index = 0
 	seq_done = false
+	_checkout_had_miss = false
 	hold_progress = 0.0
 	_j_held = false
 	_long_committed = false
@@ -3929,6 +3941,7 @@ func _reset_hold() -> void:
 	blocked_mismatch = false
 	seq_index = 0
 	seq_done = false
+	_checkout_had_miss = false
 	if _prompt and not ult_prep:
 		_prompt.active = false
 		_prompt.fail_at = -1

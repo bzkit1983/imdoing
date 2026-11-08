@@ -8,7 +8,7 @@
 # 路徑與格式
 
 - 本機檔：`user://save.json`（**店主＋店舖**完整進度）
-- JSON 物件。頂層必有整數欄 **`version`**（與產品 SemVer tag 分開；目前實作 `SAVE_VERSION = 2`）
+- JSON 物件。頂層必有整數欄 **`version`**（與產品 SemVer tag 分開；目前實作 `SAVE_VERSION = 3`：商店評價／評級歷史／難度／last_*）
 - `version` 過新：拒絕載入並提示更新遊戲。之後升版時在此檔補 migration 規則
 
 ## 訪客角色槽（本機雙人 M1）
@@ -48,7 +48,7 @@
 - 店員崗位、技能裝備格、奧義。另有五組 `skill_sets` 和選中編號 `skill_set_index`（`SAVE_VERSION` 仍是 1）。`slots`／`ult_id` 是目前選中那一組的副本。每組可另存 `levels`（Dark Side、多重影分身準備頁選等；沒選預設 LV3）。見 `customizedskillset.md`、`darkside.md`、`shadowclone.md`  
 - 外觀：`tint`、`skin_id`、`unlocked_skins`（空＝全開）。見 [`appearance.md`](appearance.md)  
 - 當日進貨支出累計、上一局是否虧損、升級備註  
-- **評價／難度（設計已拍板，欄位待實作升版）：** `shop_rating`（商店評價，下限 0）、`rating_history`（最近最多 30 筆日結評級）、`difficulty`（easy／normal／hard，見 `difficulty.md`）；可選 `last_ops_rating`／`last_grade` 供 UI。規則見 `ratingsystem.md`  
+- **評價／難度（`SAVE_VERSION` ≥3）：** `shop_rating`（商店評價，下限 0）、`rating_history`（最近最多 30 筆日結評級）、`difficulty`（easy／normal／hard，見 `difficulty.md`）、`last_ops_rating`／`last_grade`、`difficulty_prompt_acked`。規則見 `ratingsystem.md`  
 
 訪客槽另可含 **`support_rating`**（支援別店評價；見 `ratingsystem.md`／`multiplayer.md`）。
 

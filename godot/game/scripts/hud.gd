@@ -31,6 +31,7 @@ var _panes: Array = []
 @onready var _role: Label = $Root/Left/Role
 @onready var _skills: Label = $Root/Left/Skills
 var _combo: Label
+var _ops_rating: Label
 @onready var _right_vbox: VBoxContainer = $Root/Right/Margin/VBox
 @onready var _state: Label = $Root/Right/Margin/VBox/State
 @onready var _stamina: ProgressBar = $Root/Right/Margin/VBox/Stamina
@@ -55,6 +56,7 @@ func setup(g: Node, p: CharacterBody2D) -> void:
 	## Icon strip replaces text HudList (P0 ops SKU UI).
 	_hud_list.visible = false
 	_build_combo_label()
+	_build_ops_rating_label()
 	## No round-start demo banner; hide legacy scope copy on the right panel.
 	_banner.visible = false
 	var title := $Root/Right/Margin/VBox/Title
@@ -216,6 +218,17 @@ func _build_combo_label() -> void:
 	var skills_i := _skills.get_index()
 	left.add_child(_combo)
 	left.move_child(_combo, skills_i + 1)
+
+
+func _build_ops_rating_label() -> void:
+	_ops_rating = Label.new()
+	_ops_rating.name = "OpsRating"
+	_ops_rating.text = Loc.t("hud.ops_rating", [50])
+	var left: VBoxContainer = $Root/Left
+	var rev_i := _rev.get_index()
+	left.add_child(_ops_rating)
+	left.move_child(_ops_rating, rev_i + 1)
+	_apply_cjk_fonts(_ops_rating)
 
 
 func _mark_right_dirty() -> void:
@@ -386,9 +399,10 @@ func _sync_left() -> void:
 	var p1 := int(game.call("combo_personal", 0)) if game.has_method("combo_personal") else 0
 	var p2 := int(game.call("combo_personal", 1)) if game.has_method("combo_personal") else 0
 	var team := int(game.call("combo_team")) if game.has_method("combo_team") else 0
-	var fp := "%s|%s|%d|%d|%d|%d|%s|%s|%s|%d|%d|%d|%d|%d" % [
+	var ops_n := int(game.get("ops_rating")) if game.get("ops_rating") != null else 50
+	var fp := "%s|%s|%d|%d|%d|%d|%s|%s|%s|%d|%d|%d|%d|%d|%d" % [
 		time_txt, phase_txt, rev_n, stolen_n, guests_n, thieves_n,
-		store_txt, role_txt, skills_txt, p1, p2, team, rev, hour_bucket,
+		store_txt, role_txt, skills_txt, p1, p2, team, rev, hour_bucket, ops_n,
 	]
 	if fp == _left_fp:
 		return
@@ -397,6 +411,8 @@ func _sync_left() -> void:
 	_time.text = time_txt
 	_phase.text = phase_txt
 	_rev.text = Loc.t("hud.revenue", [rev_n, stolen_n])
+	if _ops_rating:
+		_ops_rating.text = Loc.t("hud.ops_rating", [ops_n])
 	_guests.text = Loc.t("hud.guests", [guests_n, thieves_n])
 	_store.text = store_txt
 	_role.text = role_txt

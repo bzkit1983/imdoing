@@ -88,6 +88,9 @@ static func _draw(id: String) -> ImageTexture:
 			_disk(img, 48, 52, 28, Color("5a655e"))
 			_disk(img, 48, 52, 22, Color("24302a"))
 			_disk(img, 48, 44, 10, Color("f4d35e"))
+		"rating":
+			_star(img, 48, 48, 30, Color("f4d35e"))
+			_disk(img, 48, 48, 10, Color("1c241f"))
 		_:
 			_disk(img, 48, 48, 20, Color("f4d35e"))
 	img.resize(DISPLAY, DISPLAY, Image.INTERPOLATE_LANCZOS)

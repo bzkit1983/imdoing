@@ -40,8 +40,8 @@ static func _seat_get(arr: Array, seat: int) -> int:
 	return int(arr[seat])
 
 
-static func persist_guest_xp(shared_xp: int) -> Dictionary:
-	## Applies shared XP to SeatTable guest and saves selected slot.
+static func persist_guest_xp(shared_xp: int, host_grade: int = 0) -> Dictionary:
+	## Applies shared XP + support_rating to SeatTable guest and saves selected slot.
 	## Returns {guest_xp_line, guest_ups}.
 	var guest_xp_line := ""
 	var guest_ups := 0
@@ -50,7 +50,14 @@ static func persist_guest_xp(shared_xp: int) -> Dictionary:
 	var guest_res: Dictionary = SeatTable.guest_stats.apply_xp_gain(shared_xp)
 	guest_ups = int(guest_res.get("ups", 0))
 	var gnote := String(guest_res.get("note", ""))
+	if "support_rating" in SeatTable.guest_stats:
+		SeatTable.guest_stats.support_rating = int(SeatTable.guest_stats.support_rating) + host_grade
 	guest_xp_line = "\n訪客經驗 +%d　%s" % [shared_xp, gnote]
+	if host_grade != 0:
+		guest_xp_line += "\n支援別店評價 %+d　現 %d" % [
+			host_grade,
+			int(SeatTable.guest_stats.support_rating) if "support_rating" in SeatTable.guest_stats else 0,
+		]
 	if SeatTable.guest_slot_index >= 0:
 		var GuestSlots = preload("res://scripts/session/guest_slots.gd")
 		var store = GuestSlots.create()
@@ -75,9 +82,14 @@ static func closeout_body(
 	thieves_escaped: int,
 	xp_line: String,
 	save_line: String,
+	grade_line: String = "",
 ) -> String:
-	return "%s　%s\n營業額 $%d　入帳後資金 $%d\n進貨成本 $%d\n成功收銀 %d　生氣離開 %d\n被偷 %d 件 $%d　抓住 %d／逃走 %d\n%s\n%s\n按 J／A 返回準備" % [
+	var body := "%s　%s\n營業額 $%d　入帳後資金 $%d\n進貨成本 $%d\n成功收銀 %d　生氣離開 %d\n被偷 %d 件 $%d　抓住 %d／逃走 %d\n%s\n%s" % [
 		head, loss_label, revenue, money, spent, served, angry_left,
 		stolen_count, stolen_value, thieves_caught, thieves_escaped,
 		xp_line, save_line,
 	]
+	if grade_line != "":
+		body += "\n" + grade_line
+	body += "\n按 J／A 返回準備"
+	return body

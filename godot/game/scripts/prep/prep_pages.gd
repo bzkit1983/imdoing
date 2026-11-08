@@ -15,7 +15,7 @@ static func is_hub_page(page: String) -> bool:
 
 static func parent_page(page: String) -> String:
 	match page:
-		"hub_char", "hub_goods", "hub_shop", "hub_sys", "clerks", "confirm", "elite_test":
+		"hub_char", "hub_goods", "hub_shop", "hub_sys", "clerks", "confirm", "elite_test", "rating_history":
 			return "home"
 		"stats", "skills", "look":
 			return "hub_char"
@@ -132,6 +132,8 @@ static func fill(menu: CanvasLayer, page: String) -> void:
 			_sfx(menu)
 		"elite_test":
 			_elite_test(menu)
+		"rating_history":
+			_rating_history(menu)
 		"skill_pick":
 			pass
 		_:
@@ -191,9 +193,50 @@ static func _home(menu: CanvasLayer) -> void:
 	menu._add_hub(Loc.t("prep.hub.goods"), "go", "hub_goods", "goods")
 	menu._add_hub(Loc.t("prep.hub.shop"), "go", "hub_shop", "shop")
 	menu._add_hub(Loc.t("prep.hub.staff", [menu.state.clerks.size()]), "go", "clerks", "staff")
+	menu._add_hub(Loc.t("prep.hub.rating"), "go", "rating_history", "rating")
 	menu._add_hub(Loc.t("prep.hub.sys"), "go", "hub_sys", "sys")
 	menu._rebuild_hub_tiles()
 	menu._setup_open_bar()
+
+
+static func _rating_history(menu: CanvasLayer) -> void:
+	const RatingRules = preload("res://scripts/session/rating_rules.gd")
+	menu._title.text = Loc.t("prep.rating.title")
+	var shop_r := int(menu.state.shop_rating) if "shop_rating" in menu.state else 0
+	var hist: Array = menu.state.rating_history if menu.state.get("rating_history") is Array else []
+	var last_ops := int(menu.state.last_ops_rating) if "last_ops_rating" in menu.state else RatingRules.OPS_START
+	var last_g := int(menu.state.last_grade) if "last_grade" in menu.state else 0
+	var info := Loc.t("prep.rating.info", [
+		shop_r,
+		hist.size(),
+		RatingRules.HISTORY_MAX,
+		last_ops,
+		Loc.t(RatingRules.grade_label_key(last_g)),
+		last_g,
+	])
+	if menu._msg != "":
+		info = menu._pair(info, menu._msg)
+	menu._info.text = info
+	if hist.is_empty():
+		menu._add(Loc.t("prep.rating.empty"), "noop", null)
+	else:
+		## Newest first; day index = hist.size() (most recent = Day N).
+		for i in range(hist.size() - 1, -1, -1):
+			var grade := clampi(int(hist[i]), -3, 3)
+			var day_n := i + 1
+			var ago := hist.size() - 1 - i
+			var when := Loc.t("prep.rating.day_latest") if ago == 0 else Loc.t("prep.rating.day_ago", [ago])
+			menu._add(
+				Loc.t("prep.rating.row", [
+					when,
+					day_n,
+					Loc.t(RatingRules.grade_label_key(grade)),
+					grade,
+				]),
+				"noop",
+				null
+			)
+	menu._add(Loc.t("prep.back"), "go", "home")
 
 
 static func _hub_char(menu: CanvasLayer) -> void:

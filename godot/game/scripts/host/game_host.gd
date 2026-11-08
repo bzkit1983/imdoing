@@ -86,7 +86,29 @@ func note_clean(_seat: int = 0) -> void:
 	pass
 
 
-func _on_paid(_amount: int, _from_elite: bool = false, _seat: int = 0, _actor: Node2D = null) -> void:
+func _on_paid(
+	_amount: int,
+	_from_elite: bool = false,
+	_seat: int = 0,
+	_actor: Node2D = null,
+	_perfect: bool = true,
+) -> void:
+	pass
+
+
+func note_angry_leave(_actor: Node2D = null) -> void:
+	pass
+
+
+func note_wrong_deliver(_actor: Node2D = null) -> void:
+	pass
+
+
+func note_dash_guest(_actor: Node2D = null) -> void:
+	pass
+
+
+func note_fight_fail(_actor: Node2D = null) -> void:
 	pass
 
 

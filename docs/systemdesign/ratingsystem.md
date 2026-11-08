@@ -2,7 +2,8 @@
 
 - 此檔是長線評價規則（營運回合評價＋商店評價）
 - 拍板：2026-11-08
-- 工程活線：尚未實作（設計先於 code）
+- 工程活線：**已接**（`SAVE_VERSION` 3）
+- 實作：`scripts/session/rating_rules.gd`、`game_state.gd`（`shop_rating`／歷史／`difficulty`）、`demo.gd`（`ops_rating`／行為鉤子）、`hud.gd`、`float_text.gd`、`day_settle.gd`、`prep_menu.gd`（難度建議彈窗；暫不改玩法數值）、`character_sheet.gd`（`support_rating`）
 - 交叉：`ecosystem.md`、`storeoperationphase.md`、`savesystem.md`、`multiplayer.md`、`difficulty.md`、`cashiersystem.md`、`float_text`（營運飄字）
 
 # 總覽
