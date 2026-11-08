@@ -24,7 +24,7 @@ static func eligible(c, locked) -> bool:
 		return false
 	if locked != null and c == locked:
 		return false
-	if bool(c.get("is_thief")) or bool(c.get("is_elite")) or bool(c.get("temp_clerk")):
+	if c.get("is_thief") or c.get("is_elite") or c.get("temp_clerk"):
 		return false
 	var st := int(c.get("state"))
 	return (

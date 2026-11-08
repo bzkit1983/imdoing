@@ -23,6 +23,7 @@ const PrepScene = preload("res://scenes/prep_menu.tscn")
 const PauseScene = preload("res://scenes/pause_menu.tscn")
 const UiFont = preload("res://scripts/ui_font.gd")
 const Vox = preload("res://scripts/voxel_sprite.gd")
+const RatingRules = preload("res://scripts/session/rating_rules.gd")
 const FloorTilesScript = preload("res://scripts/floor_tiles.gd")
 const ProductVersion = preload("res://scripts/product_version.gd")
 const DaySettle = preload("res://scripts/host/day_settle.gd")
@@ -54,6 +55,8 @@ var revenue: int = 0
 var served: int = 0
 var elite_served: int = 0
 var angry_left: int = 0
+## Day-session ops rating (reset to 50 each open). Host shop only.
+var ops_rating: int = RatingRules.OPS_START
 ## EliteCustomer zoom queue (fight/dash camera has priority).
 var _elite_zoom_queue: Array = []
 var _elite_zoom_busy: bool = false
@@ -136,6 +139,7 @@ func _begin_day() -> void:
 	_elite_zoom_queue.clear()
 	_elite_zoom_busy = false
 	angry_left = 0
+	ops_rating = RatingRules.OPS_START
 	stolen_count = 0
 	stolen_value = 0
 	thieves_caught = 0
@@ -324,6 +328,7 @@ func note_clean(seat: int = 0) -> void:
 	var actor := _seat_actor(seat)
 	if actor != null:
 		FloatText.spawn_xp(actor, StateScript.XP_CLEAN)
+	apply_ops_rating(RatingRules.P4_CLEAN, actor)
 
 
 func _seat_bump(arr: Array, seat: int, n: int) -> void:
@@ -337,6 +342,7 @@ func combo_note_qualify(seat: int) -> void:
 		return
 	_combo.note_qualify(seat)
 	bump_hud()
+	apply_ops_rating(RatingRules.P5_COMBO, _seat_actor(seat))
 
 
 func combo_break_personal(seat: int) -> void:
@@ -423,7 +429,7 @@ func cast_fundraise(level: int) -> void:
 	for c in picked:
 		var amount := int(c.call("payout_total")) if c.has_method("payout_total") else int(c.call("cart_total"))
 		total += amount
-		_on_paid(amount, bool(c.get("is_elite")))
+		_on_paid(amount, bool(c.get("is_elite")), 0, null, false)
 		c.finish_paid()
 	release_player_checkout()
 	if _player:
@@ -446,7 +452,7 @@ func cast_harvest_chives(reg: Node, max_n: int) -> int:
 			continue
 		var amount := int(c.call("payout_total")) if c.has_method("payout_total") else int(c.call("cart_total"))
 		total += amount
-		_on_paid(amount, bool(c.get("is_elite")))
+		_on_paid(amount, bool(c.get("is_elite")), 0, null, false)
 		c.finish_paid()
 	release_player_checkout()
 	var n := picked.size()
@@ -709,7 +715,7 @@ func restock_holds(except: Node) -> Dictionary:
 		for c in _customers.get_children():
 			if c == null or c == except or not is_instance_valid(c):
 				continue
-			if not bool(c.get("temp_clerk")) or str(c.get("temp_role")) != "restock":
+			if not c.get("temp_clerk") or str(c.get("temp_role")) != "restock":
 				continue
 			_note_restock_hold(sku, shelf, c.get("_temp_plan_sku"), c.get("_temp_box_sku"), c.get("_temp_shelf"))
 	return {"sku": sku, "shelf": shelf}
@@ -748,7 +754,7 @@ func _temp_cashier_registers() -> Array:
 	for c in _customers.get_children():
 		if c == null or not is_instance_valid(c):
 			continue
-		if not bool(c.get("temp_clerk")) or str(c.get("temp_role")) != "cashier":
+		if not c.get("temp_clerk") or str(c.get("temp_role")) != "cashier":
 			continue
 		var reg = c.get("temp_register")
 		if reg != null:
@@ -819,10 +825,13 @@ func customers_near(origin: Vector2, radius_sq: float) -> bool:
 	for c in _customers.get_children():
 		if c == null or not is_instance_valid(c):
 			continue
-		if bool(c.get("temp_clerk")):
+		## Non-customer children: Object.get returns null → int()/bool() constructors explode.
+		if not c.has_method("occupies_store"):
+			continue
+		if c.temp_clerk:
 			continue
 		## Leave / flee / temp job are not blocking the aisle.
-		var st := int(c.get("state"))
+		var st: int = c.state
 		if st == CustomerScript.State.LEAVE or st == CustomerScript.State.FLEE or st == CustomerScript.State.TEMP:
 			continue
 		if origin.distance_squared_to(c.global_position) <= radius_sq:
@@ -982,7 +991,7 @@ func _collect_clerk_held_pieces() -> Dictionary:
 	for c in _customers.get_children():
 		if c == null or not is_instance_valid(c):
 			continue
-		if not bool(c.get("temp_clerk")) or str(c.get("temp_role")) != "restock":
+		if not c.get("temp_clerk") or str(c.get("temp_role")) != "restock":
 			continue
 		var held := str(c.get("_temp_box_sku"))
 		var pieces := int(c.get("_temp_box_n"))
@@ -1085,6 +1094,8 @@ func _return_to_prep() -> void:
 	_prep.visible = true
 	_prep.set_process_unhandled_input(true)
 	_prep._show_page("home")
+	if _prep.has_method("maybe_offer_difficulty_prompt"):
+		_prep.call("maybe_offer_difficulty_prompt")
 
 
 func configure_elite_test(lv: int) -> void:
@@ -1715,11 +1726,15 @@ func _recount_active_thieves() -> void:
 
 
 func record_stolen(items: Array) -> void:
+	var pieces := 0
 	for sku in items:
 		stolen_count += 1
 		stolen_value += Tuning.sku_price(String(sku))
+		pieces += 1
 	thieves_escaped += 1
 	bump_hud()
+	var delta := pieces * RatingRules.N2_STOLEN_PIECE + RatingRules.N3_THIEF_ESCAPE
+	apply_ops_rating(delta, _player)
 
 
 func record_caught(seat: int = 0) -> void:
@@ -1730,9 +1745,43 @@ func record_caught(seat: int = 0) -> void:
 	var actor := _seat_actor(seat)
 	if actor != null:
 		FloatText.spawn_xp(actor, StateScript.XP_CATCH)
+	apply_ops_rating(RatingRules.P3_CATCH, actor)
 
 
-func _on_paid(amount: int, from_elite: bool = false, seat: int = 0, actor: Node2D = null) -> void:
+func apply_ops_rating(delta: int, actor: Node2D = null) -> void:
+	if delta == 0:
+		return
+	ops_rating += delta
+	bump_hud()
+	var body: Node2D = actor if actor != null and is_instance_valid(actor) else _player
+	if body != null and is_instance_valid(body):
+		var FloatText = preload("res://scripts/ui/float_text.gd")
+		FloatText.spawn_rating(body, delta)
+
+
+func note_angry_leave(actor: Node2D = null) -> void:
+	apply_ops_rating(RatingRules.N1_ANGRY, actor)
+
+
+func note_wrong_deliver(actor: Node2D = null) -> void:
+	apply_ops_rating(RatingRules.N4_WRONG_DELIVER, actor)
+
+
+func note_dash_guest(actor: Node2D = null) -> void:
+	apply_ops_rating(RatingRules.N5_DASH_GUEST, actor)
+
+
+func note_fight_fail(actor: Node2D = null) -> void:
+	apply_ops_rating(RatingRules.N6_FIGHT_FAIL, actor)
+
+
+func _on_paid(
+	amount: int,
+	from_elite: bool = false,
+	seat: int = 0,
+	actor: Node2D = null,
+	perfect: bool = true,
+) -> void:
 	revenue += amount
 	served += 1
 	_seat_bump(seat_served, seat, 1)
@@ -1753,6 +1802,7 @@ func _on_paid(amount: int, from_elite: bool = false, seat: int = 0, actor: Node2
 		stagger += 1
 		if from_elite:
 			FloatText.spawn_xp(body, StateScript.XP_ELITE_SERVE, stagger)
+	apply_ops_rating(RatingRules.checkout_delta(from_elite, perfect), body)
 	if _player != null:
 		var FxBurst = preload("res://scripts/fx_burst.gd")
 		var at: Vector2 = _player.global_position + Vector2(0, -28)
@@ -1802,9 +1852,10 @@ func _finish_day() -> void:
 	)
 	var shared_xp: int = int(xp_pack["shared_xp"])
 	var result: Dictionary = state.settle(
-		revenue, served, thieves_caught, cleaned, _skip_xp, elite_served, shared_xp
+		revenue, served, thieves_caught, cleaned, _skip_xp, elite_served, shared_xp, ops_rating
 	)
-	var guest_pack: Dictionary = DaySettle.persist_guest_xp(shared_xp)
+	var grade: int = int(result.get("grade", 0))
+	var guest_pack: Dictionary = DaySettle.persist_guest_xp(shared_xp, grade)
 	var guest_xp_line: String = String(guest_pack["guest_xp_line"])
 	var guest_ups: int = int(guest_pack["guest_ups"])
 	if int(result.get("ups", 0)) > 0 or guest_ups > 0:
@@ -1825,11 +1876,22 @@ func _finish_day() -> void:
 			xp_line = "平分經驗 +%d%s　店主 %s%s" % [
 				shared_xp, bonus, state.level_note, guest_xp_line
 			]
+		var grade_line := Loc.t(
+			"rating.closeout_line",
+			[
+				int(result.get("ops_rating", ops_rating)),
+				Loc.t(RatingRules.grade_label_key(grade)),
+				grade,
+				int(result.get("shop_before", 0)),
+				int(result.get("shop_rating", 0)),
+			]
+		)
 		_hud._close_text.text = DaySettle.closeout_body(
 			head, loss, revenue, state.money, int(result["spent"]), served, angry_left,
 			stolen_count, stolen_value, thieves_caught, thieves_escaped,
-			xp_line, save_line
+			xp_line, save_line, grade_line
 		)
+	## Prep will check difficulty suggestion after closeout returns.
 
 
 func _seat_get(arr: Array, seat: int) -> int:

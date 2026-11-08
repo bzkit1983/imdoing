@@ -6,7 +6,9 @@ const Skills = preload("res://scripts/skills.gd")
 
 ## Bump when the save schema changes; from_dict must migrate or reject.
 ## 2+: stock is pieces. v1 saves store boxes and are multiplied by BOX_SIZE on load.
-const SAVE_VERSION := 2
+## 3+: shop_rating / rating_history / difficulty / last_* rating fields.
+const SAVE_VERSION := 3
+const RatingRules = preload("res://scripts/session/rating_rules.gd")
 
 const CELL := 64.0
 const WAGE := 100
@@ -76,6 +78,16 @@ var skill_set_index: int = 0
 var day_procurement: int = 0
 var last_loss: bool = false
 var level_note: String = ""
+## Host shop rating (floor 0). See ratingsystem.md.
+var shop_rating: int = 0
+## Recent day grades (−3…+3), newest last; max RatingRules.HISTORY_MAX.
+var rating_history: Array = []
+## Persist difficulty enum: easy / normal / hard (gameplay tables still stub).
+var difficulty: String = RatingRules.DIFF_NORMAL
+var last_ops_rating: int = RatingRules.OPS_START
+var last_grade: int = 0
+## Last difficulty-suggestion streak key that was accepted or dismissed.
+var difficulty_prompt_acked: String = ""
 
 
 func _init() -> void:
@@ -92,6 +104,12 @@ func apply_scenario(id: int) -> void:
 	day_procurement = 0
 	last_loss = false
 	level_note = ""
+	shop_rating = 0
+	rating_history.clear()
+	difficulty = RatingRules.DIFF_NORMAL
+	last_ops_rating = RatingRules.OPS_START
+	last_grade = 0
+	difficulty_prompt_acked = ""
 	_install_new_game_sets()
 	match id:
 		2:
@@ -848,6 +866,7 @@ func settle(
 	bonus_xp: int = 0,
 	elite_served: int = 0,
 	xp_override: int = -1,
+	ops_rating: int = RatingRules.OPS_START,
 ) -> Dictionary:
 	var gain_xp := (
 		XP_CLOSE
@@ -880,7 +899,25 @@ func settle(
 	var loss := last_loss
 	var spent := day_procurement
 	day_procurement = 0
-	return {"xp": gain_xp, "ups": ups, "loss": loss, "spent": spent, "wage_note": note}
+	var shop_before := shop_rating
+	var grade := RatingRules.grade_for_ops(ops_rating)
+	last_ops_rating = ops_rating
+	last_grade = grade
+	shop_rating = maxi(0, shop_rating + grade)
+	rating_history.append(grade)
+	while rating_history.size() > RatingRules.HISTORY_MAX:
+		rating_history.remove_at(0)
+	return {
+		"xp": gain_xp,
+		"ups": ups,
+		"loss": loss,
+		"spent": spent,
+		"wage_note": note,
+		"ops_rating": ops_rating,
+		"grade": grade,
+		"shop_before": shop_before,
+		"shop_rating": shop_rating,
+	}
 
 
 ## Per-seat raw XP (includes XP_CLOSE). Coop averages these.
@@ -1002,6 +1039,12 @@ func to_dict() -> Dictionary:
 		"day_procurement": day_procurement,
 		"last_loss": last_loss,
 		"level_note": level_note,
+		"shop_rating": shop_rating,
+		"rating_history": rating_history.duplicate(),
+		"difficulty": RatingRules.normalize_difficulty(difficulty),
+		"last_ops_rating": last_ops_rating,
+		"last_grade": last_grade,
+		"difficulty_prompt_acked": difficulty_prompt_acked,
 	}
 
 
@@ -1089,6 +1132,18 @@ func from_dict(data: Dictionary) -> String:
 	day_procurement = maxi(0, int(data.get("day_procurement", 0)))
 	last_loss = bool(data.get("last_loss", false))
 	level_note = String(data.get("level_note", ""))
+	shop_rating = maxi(0, int(data.get("shop_rating", 0)))
+	rating_history.clear()
+	var raw_hist = data.get("rating_history", [])
+	if raw_hist is Array:
+		for g in raw_hist:
+			rating_history.append(clampi(int(g), -3, 3))
+		while rating_history.size() > RatingRules.HISTORY_MAX:
+			rating_history.remove_at(0)
+	difficulty = RatingRules.normalize_difficulty(String(data.get("difficulty", RatingRules.DIFF_NORMAL)))
+	last_ops_rating = int(data.get("last_ops_rating", RatingRules.OPS_START))
+	last_grade = clampi(int(data.get("last_grade", 0)), -3, 3)
+	difficulty_prompt_acked = String(data.get("difficulty_prompt_acked", ""))
 	_grant_initial_goods()
 	return ""
 

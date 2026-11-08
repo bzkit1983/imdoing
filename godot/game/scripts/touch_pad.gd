@@ -62,6 +62,8 @@ func _rebuild() -> void:
 		return
 	_last_fit = f
 	_last_vp = vp
+	## Drop stale stick so demo does not keep coasting after rotate/resize rebuild.
+	stick_changed.emit(Vector2.ZERO)
 	for c in get_children():
 		c.queue_free()
 	_stick_touch = -1

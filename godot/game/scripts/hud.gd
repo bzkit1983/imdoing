@@ -31,6 +31,7 @@ var _panes: Array = []
 @onready var _role: Label = $Root/Left/Role
 @onready var _skills: Label = $Root/Left/Skills
 var _combo: Label
+var _ops_rating: Label
 @onready var _right_vbox: VBoxContainer = $Root/Right/Margin/VBox
 @onready var _state: Label = $Root/Right/Margin/VBox/State
 @onready var _stamina: ProgressBar = $Root/Right/Margin/VBox/Stamina
@@ -55,6 +56,7 @@ func setup(g: Node, p: CharacterBody2D) -> void:
 	## Icon strip replaces text HudList (P0 ops SKU UI).
 	_hud_list.visible = false
 	_build_combo_label()
+	_build_ops_rating_label()
 	## No round-start demo banner; hide legacy scope copy on the right panel.
 	_banner.visible = false
 	var title := $Root/Right/Margin/VBox/Title
@@ -216,6 +218,17 @@ func _build_combo_label() -> void:
 	var skills_i := _skills.get_index()
 	left.add_child(_combo)
 	left.move_child(_combo, skills_i + 1)
+
+
+func _build_ops_rating_label() -> void:
+	_ops_rating = Label.new()
+	_ops_rating.name = "OpsRating"
+	_ops_rating.text = Loc.t("hud.ops_rating", [50])
+	var left: VBoxContainer = $Root/Left
+	var rev_i := _rev.get_index()
+	left.add_child(_ops_rating)
+	left.move_child(_ops_rating, rev_i + 1)
+	_apply_cjk_fonts(_ops_rating)
 
 
 func _mark_right_dirty() -> void:
@@ -386,9 +399,10 @@ func _sync_left() -> void:
 	var p1 := int(game.call("combo_personal", 0)) if game.has_method("combo_personal") else 0
 	var p2 := int(game.call("combo_personal", 1)) if game.has_method("combo_personal") else 0
 	var team := int(game.call("combo_team")) if game.has_method("combo_team") else 0
-	var fp := "%s|%s|%d|%d|%d|%d|%s|%s|%s|%d|%d|%d|%d|%d" % [
+	var ops_n := int(game.get("ops_rating")) if game.get("ops_rating") != null else 50
+	var fp := "%s|%s|%d|%d|%d|%d|%s|%s|%s|%d|%d|%d|%d|%d|%d" % [
 		time_txt, phase_txt, rev_n, stolen_n, guests_n, thieves_n,
-		store_txt, role_txt, skills_txt, p1, p2, team, rev, hour_bucket,
+		store_txt, role_txt, skills_txt, p1, p2, team, rev, hour_bucket, ops_n,
 	]
 	if fp == _left_fp:
 		return
@@ -397,6 +411,8 @@ func _sync_left() -> void:
 	_time.text = time_txt
 	_phase.text = phase_txt
 	_rev.text = Loc.t("hud.revenue", [rev_n, stolen_n])
+	if _ops_rating:
+		_ops_rating.text = Loc.t("hud.ops_rating", [ops_n])
 	_guests.text = Loc.t("hud.guests", [guests_n, thieves_n])
 	_store.text = store_txt
 	_role.text = role_txt
@@ -539,36 +555,64 @@ func _refresh_pane(pane: Dictionary) -> void:
 		int(p.call("carry_cap")),
 	])
 	_sync_carry_icons(pane, inv)
-	var t: Node = p.get("target")
-	if t == null:
+	## Freed interact targets still sit on player.target until cleared; typed assign crashes.
+	var t = p.get("target")
+	if t == null or not is_instance_valid(t):
 		target_l.text = Loc.t("hud.target_none")
-	elif String(t.get("kind")) == "restock":
-		var cat_name := Loc.t("hud.cat_dry")
-		if String(t.get("category")) == Tuning.CAT_FROZEN:
-			cat_name = Loc.t("hud.cat_frozen")
-		elif String(t.get("category")) == Tuning.CAT_ICE:
-			cat_name = Loc.t("hud.cat_ice")
-		target_l.text = Loc.t("hud.target_restock", [
-			cat_name,
-			Tuning.sku_name(String(t.call("selected_sku")))
-		])
-	elif String(t.get("kind")) == "cashier":
-		target_l.text = Loc.t("hud.target_cashier")
-	elif String(t.get("kind")) == "dirt":
-		target_l.text = Loc.t("hud.target_dirt", [String(t.call("type_name"))])
-	elif String(t.get("kind")) == "drop":
-		target_l.text = Loc.t("hud.target_drop", [Tuning.sku_name(String(t.get("sku"))), int(t.get("count"))])
-	elif String(t.get("kind")) == "thief":
-		target_l.text = Loc.t("hud.target_thief")
 	else:
-		var sku := String(t.get("sku"))
-		var cap := int(t.get("capacity"))
-		if cap <= 0:
-			cap = Tuning.SHELF_CAP
-		var shelf_bit := Loc.t("hud.shelf_empty", [cap]) if sku == "" else "%s %d/%d" % [Tuning.sku_name(sku), int(t.get("count")), cap]
-		target_l.text = Loc.t("hud.target_shelf", [shelf_bit])
-	prog.value = float(p.get("hold_progress")) * 100.0
-	prog.modulate = Color("e07a5f") if bool(p.get("blocked_mismatch")) else Color("f4d35e")
+		## Object.get can return null — Godot 4 String()/int()/bool() reject null.
+		var kind_v = t.get("kind")
+		var kind := str(kind_v) if kind_v != null else ""
+		match kind:
+			"restock":
+				var cat_name := Loc.t("hud.cat_dry")
+				var cat_v = t.get("category")
+				var cat := str(cat_v) if cat_v != null else ""
+				if cat == Tuning.CAT_FROZEN:
+					cat_name = Loc.t("hud.cat_frozen")
+				elif cat == Tuning.CAT_ICE:
+					cat_name = Loc.t("hud.cat_ice")
+				var pick = t.call("selected_sku") if t.has_method("selected_sku") else ""
+				target_l.text = Loc.t("hud.target_restock", [
+					cat_name,
+					Tuning.sku_name(str(pick) if pick != null else ""),
+				])
+			"cashier":
+				target_l.text = Loc.t("hud.target_cashier")
+			"dirt":
+				var dname = t.call("type_name") if t.has_method("type_name") else ""
+				target_l.text = Loc.t("hud.target_dirt", [str(dname) if dname != null else ""])
+			"drop":
+				target_l.text = Loc.t("hud.target_drop", [
+					Tuning.sku_name(_obj_str(t, "sku")),
+					_obj_int(t, "count"),
+				])
+			"thief":
+				target_l.text = Loc.t("hud.target_thief")
+			"shelf":
+				var sku := _obj_str(t, "sku")
+				var cap := _obj_int(t, "capacity")
+				if cap <= 0:
+					cap = Tuning.SHELF_CAP
+				var shelf_bit := Loc.t("hud.shelf_empty", [cap]) if sku == "" else "%s %d/%d" % [Tuning.sku_name(sku), _obj_int(t, "count"), cap]
+				target_l.text = Loc.t("hud.target_shelf", [shelf_bit])
+			"", "elite":
+				target_l.text = Loc.t("hud.target_guest")
+			_:
+				target_l.text = Loc.t("hud.target_none")
+	prog.value = float(p.get("hold_progress")) * 100.0 if p.get("hold_progress") != null else 0.0
+	prog.modulate = Color("e07a5f") if p.get("blocked_mismatch") else Color("f4d35e")
+
+
+## Object.get has no default; typed ctors explode on null.
+func _obj_str(node: Object, prop: String) -> String:
+	var v = node.get(prop)
+	return str(v) if v != null else ""
+
+
+func _obj_int(node: Object, prop: String) -> int:
+	var v = node.get(prop)
+	return int(v) if v != null else 0
 
 
 ## Hand-carry sequence: left→right, last slot = next drop (trailing).

@@ -33,6 +33,8 @@ var skin_id: String = "player"
 ## Unlocked skin ids. Empty ⇒ all catalog skins unlocked (BETA).
 var unlocked_skins: Array = []
 var display_name: String = ""
+## Support-other-shop rating (multiplayer guest). Can go negative.
+var support_rating: int = 0
 
 
 static func tint_color(index: int) -> Color:
@@ -65,6 +67,7 @@ static func blank() -> RefCounted:
 	sheet.skin_id = "player"
 	sheet.unlocked_skins = []
 	sheet.display_name = ""
+	sheet.support_rating = 0
 	return sheet
 
 
@@ -140,6 +143,7 @@ static func from_dict(data: Dictionary) -> RefCounted:
 	sheet.skin_id = SkinCatalog.normalize(String(data.get("skin_id", "player"))) if SkinCatalog else "player"
 	sheet.unlocked_skins = SkinCatalog.parse_unlocked(data.get("unlocked_skins", [])) if SkinCatalog else []
 	sheet.display_name = String(data.get("display_name", ""))
+	sheet.support_rating = int(data.get("support_rating", 0))
 	return sheet
 
 
@@ -169,6 +173,7 @@ func to_dict() -> Dictionary:
 		"skin_id": sid,
 		"unlocked_skins": unlocks,
 		"display_name": display_name,
+		"support_rating": support_rating,
 	}
 
 

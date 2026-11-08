@@ -5,6 +5,7 @@ const Skills = preload("res://scripts/skills.gd")
 const Tuning = preload("res://scripts/tuning.gd")
 const Player = preload("res://scripts/player.gd")
 const Customer = preload("res://scripts/customer.gd")
+const RatingRules = preload("res://scripts/session/rating_rules.gd")
 
 class Host extends Node:
 	var phase := "open"
@@ -13,8 +14,14 @@ class Host extends Node:
 	var locked := false
 	func seat_locks_register(_reg) -> bool:
 		return locked
-	func _on_paid(amount, elite, seat, actor) -> void:
-		payments.append([amount, elite, seat, actor])
+	func _on_paid(amount, elite, seat, actor, perfect: bool = true) -> void:
+		payments.append([amount, elite, seat, actor, perfect])
+
+class LiveHost extends "res://scripts/demo.gd":
+	func _ready() -> void:
+		pass
+	func _process(_delta: float) -> void:
+		pass
 
 class Guest extends Node:
 	var arrived := true
@@ -62,6 +69,19 @@ func run() -> void:
 		reg._tick_self_checkout(0.1)
 		need(c.paid, "correct duration LV%d" % lv)
 		need(host.payments.back()[2] == 1 and host.payments.back()[3] == reg, "seat and popup actor")
+	for payment in host.payments:
+		need(payment[4] == false, "self checkout explicitly excludes perfect bonus")
+		need(RatingRules.checkout_delta(payment[1], payment[4]) == 1, "normal automated payment grants one rating point")
+	var elite = guest(reg)
+	elite.is_elite = true
+	reg.activate_self_checkout(host, 3, 1)
+	reg._tick_self_checkout(3.0)
+	var payment: Array = host.payments.back()
+	need(payment[0] == 120 and payment[1] and payment[2] == 1, "elite revenue and caster attribution preserved")
+	need(RatingRules.checkout_delta(payment[1], payment[4]) == 10, "elite automated payment grants ten rating points")
+	var count_before := host.payments.size()
+	reg._tick_self_checkout(3.0)
+	need(host.payments.size() == count_before, "completed payment never repeats")
 	var a = guest(reg)
 	var b = guest(reg)
 	reg.activate_self_checkout(host, 3, 0)
@@ -188,6 +208,26 @@ func run() -> void:
 	need(ring.is_queued_for_deletion() and not ring.visible, "closing removes ring immediately")
 	reg.set_physics_process(false)
 
+	# Integration: exercise the production payment/rating/XP counters, not just the stub.
+	var live := LiveHost.new()
+	add_child(live)
+	live.phase = "open"
+	var live_reg = Cashier.new()
+	live.add_child(live_reg)
+	live_reg.set_physics_process(false)
+	var ordinary = guest(live_reg)
+	live_reg.activate_self_checkout(live, 3, 1)
+	live_reg._tick_self_checkout(3.0)
+	need(ordinary.paid and live.revenue == 100 and live.ops_rating == 51, "production normal revenue and +1 rating")
+	need(live.seat_served[1] == 1 and live.served == 1, "production per-seat service XP input")
+	var special = guest(live_reg)
+	special.is_elite = true
+	live_reg._tick_self_checkout(3.0)
+	need(special.paid and live.revenue == 220 and live.ops_rating == 61, "production elite revenue and +10 rating")
+	need(live.seat_served[1] == 2 and live.seat_elite[1] == 1, "production elite XP input attribution")
+	live_reg._tick_self_checkout(3.0)
+	need(live.revenue == 220 and live.served == 2, "production settlement cannot repeat")
+	live.free()
 	if errors.is_empty():
 		print("OK self checkout")
 	else:

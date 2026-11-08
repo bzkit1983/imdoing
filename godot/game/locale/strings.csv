@@ -23,6 +23,7 @@ hud.banner,,
 hud.skip_operate,馬上完成營運,Finish day now
 hud.pause,暫停,Pause
 hud.revenue,營業額  $%d  ·  被偷 $%d,Sales  $%d  ·  Stolen $%d
+hud.ops_rating,營運評價  %d,Ops rating  %d
 hud.guests,在店客人  %d  ·  小偷 %d,Guests  %d  ·  Thieves %d
 hud.state,狀態  %s,State  %s
 hud.carry,負重  %d / %d 件,Carry  %d / %d pcs
@@ -32,6 +33,7 @@ hud.target_cashier,目標  收銀機 · 長按行動再輸方向,Target  registe
 hud.target_dirt,目標  %s · 空手長按行動並轉搖桿清潔,Target  %s · empty-handed hold + stick to clean
 hud.target_drop,目標  掉落 %s ×%d · 輕放撿起,Target  drop %s ×%d · tap to pick up
 hud.target_thief,目標  小偷 · 空手長按抓住後連按行動打擊,Target  thief · hold to grab then mash act
+hud.target_guest,目標  客人 · 長按行動交付手上貨,Target  guest · hold act to deliver
 hud.target_shelf,目標  貨架 · %s,Target  shelf · %s
 hud.shelf_empty,空架 %d件,Empty %d slots
 hud.cat_dry,乾貨,Dry
@@ -49,15 +51,24 @@ prep.scenario.s2,劇本2　LV5　資金 $10000　店規模 2　1 名店員,Scena
 prep.scenario.s3,劇本3　LV10　資金 $99999　三圍 30　店規模 3　2 名店員,Scenario 3 · LV10 · $99999 · stats 30 · scale 3 · 2 clerks
 prep.scenario.s4,劇本4　技能測試　LV10　三圍20　$99999　規模3　18×10,Scenario 4 · Skill test · LV10 · stats 20 · $99999 · scale 3 · 18×10
 prep.home.title,營運準備,Prep
+prep.header,資金 $%d　LV%d　%s　STR%d AGI%d INT%d　點數 %d　商店評價 %d,Cash $%d · LV%d · %s · STR%d AGI%d INT%d · Pts %d · Shop rating %d
+prep.home.info_rating,商店評價 %d　已記錄 %d 日。選「評價記錄」可連續查看近況。,Shop rating %d · %d days logged. Open Rating history to browse.
 prep.hub.char,角色整備,Character
-prep.hub.char_info,能力、技能與外觀,Stats, skills, and look
+prep.hub.char_info,能力、技能與外觀,Stats · skills · look
 prep.hub.goods,貨品管理,Goods
 prep.hub.goods_info,開發與採購分開,Develop and buy separately
 prep.hub.shop,店舖管理,Shop
-prep.hub.shop_info,規模 LV%d　地圖 %d×%d　購入、擴張、設計,Scale LV%d · map %d×%d · buy, expand, layout
+prep.hub.shop_info,規模 LV%d　地圖 %d×%d　購入、擴張、設計,Scale LV%d · map %d×%d · buy · expand · layout
 prep.hub.staff,員工管理　%d 人,Staff · %d
+prep.hub.rating,評價記錄,Rating history
 prep.hub.sys,系統工具,System tools
 prep.hub.sys_info,畫面／測試與存檔（觸控搖桿預設關；開後僅觸控模式顯示，手掣／鍵盤會自動隱藏）,Display / testing / save (touch stick default off; shows in touch mode only — auto-hides for pad/keyboard)
+prep.rating.title,評價記錄,Rating history
+prep.rating.info,商店評價 %d　紀錄 %d／%d 日　上次營運點 %d　%s（評級 %+d）,Shop rating %d · log %d/%d days · last ops %d · %s (grade %+d)
+prep.rating.empty,尚無日結評級。完成一局營運後會出現在這裡。,No day grades yet. Finish a day of ops to fill this list.
+prep.rating.day_latest,最近一日,Latest day
+prep.rating.day_ago,%d 日前,%d day(s) ago
+prep.rating.row,%s　第 %d 日　%s（評級 %+d）,%s · Day %d · %s (grade %+d)
 prep.sys.virtual_stick_on,觸控搖桿：開,Touch stick: On
 prep.sys.virtual_stick_off,觸控搖桿：關,Touch stick: Off
 prep.home.stats,角色能力,Stats
@@ -194,3 +205,19 @@ self_checkout.standby,自助待命,Self checkout standby
 self_checkout.tail,完成本客後結束,Finishing final customer
 self_checkout.loading,自助付款 %.0f%%,Self checkout %.0f%%
 self_checkout.blurb,啟動5身位內機台15秒；每客5／4／3秒自助；真人／NPC優先；尾單收完；CD30秒受INT縮短,Enable nearby registers for 15s within 5 body lengths; 5/4/3s per guest; operators take priority; finish final guest; 30s CD scales with INT
+rating.grade.m3,你還在嗎？,Still there?
+rating.grade.m2,超負評,Terrible
+rating.grade.m1,負評,Poor
+rating.grade.0,普通,Average
+rating.grade.p1,好評,Good
+rating.grade.p2,大獲好評,Great
+rating.grade.p3,超好評,Outstanding
+rating.closeout_line,營運點 %d　%s（評級 %+d）　商店評價 %d→%d,Ops %d · %s (grade %+d) · Shop rating %d→%d
+rating.diff.title,難度建議,Difficulty tip
+rating.diff.body_down,連續三日評級偏低。要把整體難度調低一檔嗎？（目前不影響測試簡易鈕；正式難度數值仍開發中）\n現在：%s → %s,Three low grades in a row. Lower overall difficulty one step? (Does not change the test Easy toggle; formal tuning still stub.)\nNow: %s → %s
+rating.diff.body_up,連續三日評級偏高。要把整體難度調高一檔嗎？（目前不影響測試簡易鈕；正式難度數值仍開發中）\n現在：%s → %s,Three high grades in a row. Raise overall difficulty one step? (Does not change the test Easy toggle; formal tuning still stub.)\nNow: %s → %s
+rating.diff.name.easy,簡易,Easy
+rating.diff.name.normal,普通,Normal
+rating.diff.name.hard,困難,Hard
+rating.diff.accept,接受,Accept
+rating.diff.dismiss,否決,Dismiss

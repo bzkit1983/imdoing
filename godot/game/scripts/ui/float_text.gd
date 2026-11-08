@@ -8,14 +8,20 @@ const UiFont = preload("res://scripts/ui_font.gd")
 
 const COLOR_GOOD := Color("5dce7a")
 const COLOR_BAD := Color("e85d5d")
-const RISE_PX := 42.0
-const DURATION := 0.85
-## Line gap ≥ world font so stacked +$ / +XP / dissat do not cover each other.
-const STAGGER_Y := 30.0
+const COLOR_OUTLINE := Color(0.06, 0.08, 0.07, 0.92)
+## Larger than UiFont.WORLD so head pops read clearly over sprites.
+const FONT_SIZE := 30
+const RISE_PX := 52.0
+## Total life; opaque hold then fade so the number stays readable longer.
+const DURATION := 1.25
+const HOLD_FRAC := 0.45
+const POP_SCALE := 1.18
+## Line gap ≥ float font so stacked +$ / +XP / dissat do not cover each other.
+const STAGGER_Y := 34.0
 const STACK_GROUP := "ops_float"
 ## Match new spawns to in-flight floats over the same actor head.
-const STACK_X := 52.0
-const STACK_Y := 80.0
+const STACK_X := 56.0
+const STACK_Y := 96.0
 
 
 static func spawn(parent: Node, world_pos: Vector2, display_value: float, kind: String = "", stagger: int = 0) -> void:
@@ -64,6 +70,12 @@ static func spawn_dissat(actor: Node2D, internal_delta: float, stagger: int = 0)
 	spawn_on(actor, -internal_delta, "dissat", stagger)
 
 
+static func spawn_rating(actor: Node2D, delta: int, stagger: int = 0) -> void:
+	if delta == 0:
+		return
+	spawn_on(actor, float(delta), "rating", stagger)
+
+
 ## How many live floats already sit near this head (same-frame stack + overlap).
 static func _stack_index(parent: Node, at: Vector2) -> int:
 	var count := 0
@@ -80,17 +92,23 @@ func _begin(shown: int, kind: String, slot: int = 0) -> void:
 	var lab := Label.new()
 	lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lab.text = _format(shown, kind)
-	UiFont.apply_label(lab, UiFont.WORLD)
+	UiFont.apply_label(lab, FONT_SIZE)
 	var col := COLOR_GOOD if shown > 0 else COLOR_BAD
 	lab.add_theme_color_override("font_color", col)
-	lab.position = Vector2(-40, -8)
-	lab.size = Vector2(80, 28)
+	lab.add_theme_color_override("font_outline_color", COLOR_OUTLINE)
+	lab.add_theme_constant_override("outline_size", 6)
+	lab.position = Vector2(-56, -12)
+	lab.size = Vector2(112, 36)
+	scale = Vector2(POP_SCALE, POP_SCALE)
 	add_child(lab)
 	var delay := mini(0.12, 0.04 * float(slot))
+	var hold := DURATION * HOLD_FRAC
+	var fade := DURATION - hold
 	var tw := create_tween()
 	tw.set_parallel(true)
-	tw.tween_property(self, "position:y", position.y - RISE_PX, DURATION).set_delay(delay)
-	tw.tween_property(lab, "modulate:a", 0.0, DURATION).set_delay(delay + DURATION * 0.25)
+	tw.tween_property(self, "scale", Vector2.ONE, 0.14).set_delay(delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(self, "position:y", position.y - RISE_PX, DURATION).set_delay(delay).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tw.tween_property(lab, "modulate:a", 0.0, fade).set_delay(delay + hold)
 	tw.chain().tween_callback(queue_free)
 
 
@@ -101,5 +119,7 @@ func _format(shown: int, kind: String) -> String:
 			return "$%s%d" % [sign, shown]
 		"xp":
 			return "%s%d XP" % [sign, shown]
+		"rating":
+			return "%s%d" % [sign, shown]
 		_:
 			return "%s%d" % [sign, shown]

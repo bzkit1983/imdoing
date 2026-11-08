@@ -708,6 +708,8 @@ func _leave(angry: bool) -> void:
 	if angry and _game:
 		_game.angry_left += 1
 		SfxBus.play("sfx_guest_angry_leave")
+		if _game.has_method("note_angry_leave"):
+			_game.call("note_angry_leave", self)
 
 
 func _tick_leave(delta: float, td: float) -> void:
@@ -981,6 +983,8 @@ func apply_toss_reject(sku: String = "") -> void:
 	if sku != "":
 		_sku_popup(sku, SkuIcons.KIND_BAD)
 	_sync_labels()
+	if _game != null and _game.has_method("note_wrong_deliver"):
+		_game.call("note_wrong_deliver", self)
 
 
 func _scatter_cart(min_r: float, max_r: float) -> void:
@@ -1365,7 +1369,7 @@ func _elite_incite(td: float) -> void:
 		if st == State.LEAVE or st == State.FLEE:
 			continue
 		## Aura still reaches a temp clerk; the locked number does not move.
-		if bool(c.get("temp_clerk")):
+		if c.get("temp_clerk"):
 			continue
 		if c.has_method("gain_dissat"):
 			c.gain_dissat(rate * td)
