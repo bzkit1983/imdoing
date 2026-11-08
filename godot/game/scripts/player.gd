@@ -2401,12 +2401,15 @@ func _dash_guests() -> Array:
 	for c in custs.get_children():
 		if c == null or not is_instance_valid(c):
 			continue
-		if bool(c.get("is_thief")):
+		## Non-customer children: Object.get null → bool()/int()/float() constructors explode.
+		if not c.has_method("occupies_store"):
 			continue
-		var st := int(c.get("state"))
-		if st == 7 or st == 9:
+		if c.is_thief:
 			continue
-		if float(c.get("_dash_stun_left")) > 0.0:
+		var st: int = c.state
+		if st == CustomerScript.State.LEAVE or st == CustomerScript.State.FLEE:
+			continue
+		if _obj_float(c, "_dash_stun_left") > 0.0:
 			continue
 		if not _dash_segment_hits(c.global_position):
 			continue
@@ -2426,9 +2429,9 @@ func _dash_clone() -> Node:
 	for c in g.call("shadow_clones"):
 		if c == null or not is_instance_valid(c):
 			continue
-		if bool(c.get("_vanishing")):
+		if c.get("_vanishing"):
 			continue
-		if float(c.get("_dash_stun_left")) > 0.0:
+		if _obj_float(c, "_dash_stun_left") > 0.0:
 			continue
 		if not _dash_segment_hits(c.global_position):
 			continue
