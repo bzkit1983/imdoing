@@ -951,9 +951,13 @@ func _collect_shelf_floor_pieces() -> Dictionary:
 	if _world == null:
 		return out
 	for c in _world.get_children():
-		if c == null or not is_instance_valid(c):
+		if c == null or not is_instance_valid(c) or c.is_queued_for_deletion():
 			continue
-		var kind := String(c.get("kind"))
+		var kind := str(c.get("kind"))
+		if kind == "universal_cannon":
+			for item in c.ammo:
+				out[item] = int(out.get(item, 0)) + 1
+			continue
 		if kind != "drop" and kind != "drop_flight":
 			continue
 		var sku := String(c.get("sku"))
@@ -966,21 +970,17 @@ func _collect_shelf_floor_pieces() -> Dictionary:
 
 func _collect_player_carry_pieces() -> Dictionary:
 	var out: Dictionary = {}
-	if _player == null or not is_instance_valid(_player):
-		return out
-	var inv = _player.get("inventory")
-	if inv == null:
-		return out
-	var items = inv.get("items")
-	if typeof(items) != TYPE_ARRAY:
-		return out
-	for sku_v in items:
-		var sku := String(sku_v)
-		if sku == "":
+	var seats: Array = _players.duplicate()
+	if seats.is_empty() and is_instance_valid(_player):
+		seats.append(_player)
+	for player in seats:
+		if not is_instance_valid(player):
 			continue
-		out[sku] = int(out.get(sku, 0)) + 1
+		for sku_v in player.inventory.items:
+			var sku := str(sku_v)
+			if sku != "":
+				out[sku] = int(out.get(sku, 0)) + 1
 	return out
-
 
 func _collect_clerk_held_pieces() -> Dictionary:
 	var out: Dictionary = {}
@@ -1045,10 +1045,12 @@ func _clear_credited_unsold() -> void:
 			continue
 		if s.has_method("take_all"):
 			s.call("take_all")
-	if _player != null and is_instance_valid(_player):
-		var inv = _player.get("inventory")
-		if inv != null and inv.has_method("clear"):
-			inv.call("clear")
+	var seats: Array = _players.duplicate()
+	if seats.is_empty() and is_instance_valid(_player):
+		seats.append(_player)
+	for player in seats:
+		if is_instance_valid(player):
+			player.inventory.clear()
 	if _customers != null:
 		for c in _customers.get_children():
 			if c != null and is_instance_valid(c) and c.has_method("clear_unsold_checkout_cart"):
@@ -1059,7 +1061,11 @@ func _clear_credited_unsold() -> void:
 	for c in _world.get_children():
 		if c == null or not is_instance_valid(c):
 			continue
-		var kind := String(c.get("kind"))
+		var kind := str(c.get("kind"))
+		if kind == "universal_cannon":
+			c.ammo.clear()
+			c.dismiss()
+			continue
 		if kind == "drop" or kind == "drop_flight":
 			kill.append(c)
 			continue
@@ -1853,6 +1859,7 @@ func _finish_day() -> void:
 	SfxBus.play("sfx_phase_close")
 	## Clones drop held boxes onto the floor before unsold collect, then vanish.
 	dismiss_shadow_clones()
+	dismiss_universal_cannons()
 	## Unsold shelf + floor (+ in-flight) pieces → warehouse boxes before save.
 	_return_unsold_to_warehouse()
 	var seat_n := maxi(1, SeatTable.seat_count)
@@ -2908,3 +2915,56 @@ func _caption(pos: Vector2, text: String) -> Label:
 	l.add_theme_constant_override("outline_size", 5)
 	_world.add_child(l)
 	return l
+
+
+func deploy_universal_cannon(at: Vector2, level: int, seat: int) -> Node2D:
+	if _world == null or phase not in ["open", "restock"]:
+		return null
+	# Defensive ownership gate in addition to the player's runtime reference.
+	for child in _world.get_children():
+		if str(child.get("kind")) == "universal_cannon" and child.owner_seat == seat and not child.dismissed:
+			return child
+	var cannon: Node2D = preload("res://scripts/universal_cannon.gd").new()
+	cannon.host = self
+	cannon.level = clampi(level, 1, 3)
+	cannon.owner_seat = seat
+	_world.add_child(cannon)
+	cannon.global_position = at
+	for player in _players:
+		if not player.interactables.has(cannon):
+			player.interactables.append(cannon)
+	return cannon
+
+
+func _remove_cannon_interactable(cannon: Node2D) -> void:
+	var lock = get_node_or_null("/root/InteractLock")
+	if lock != null:
+		var seat: int = lock.holder_of(cannon)
+		if seat >= 0:
+			lock.release(cannon, seat)
+	for player in _players:
+		player.interactables.erase(cannon)
+		if player.target == cannon:
+			player._reset_hold()
+			player.target = null
+
+
+func dismiss_universal_cannons() -> void:
+	if _world == null:
+		return
+	for child in _world.get_children():
+		if str(child.get("kind")) == "universal_cannon":
+			child.dismiss()
+
+
+func cannon_hit_thief(thief: Node2D, seat: int, direction: Vector2) -> void:
+	if not is_instance_valid(thief) or not thief.is_active_thief():
+		return
+	# Resolve state immediately so concurrent projectiles cannot count the KO twice.
+	thief.ko_box_hit_and_flee(direction)
+	record_caught(seat)
+	SfxBus.play("sfx_box_hit_thief")
+	play_ko_banner()
+	for player in _players:
+		if player.target == thief and player._fighting:
+			player._end_fight(true)

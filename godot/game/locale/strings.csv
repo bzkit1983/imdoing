@@ -221,3 +221,12 @@ rating.diff.name.normal,普通,Normal
 rating.diff.name.hard,困難,Hard
 rating.diff.accept,接受,Accept
 rating.diff.dismiss,否決,Dismiss
+
+cannon.name,萬用炮,Universal Cannon
+cannon.blurb,腳下布置可穿行炮台；容量12／16／20件；每5／4／3秒射1件；再按取消後CD60秒,Deploy a pass-through turret; FIFO capacity 12/16/20; fires one item every 5/4/3s; cancel to start a 60s INT-scaled cooldown
+cannon.empty,無彈藥,Empty
+cannon.status,P%d 萬用炮 %d／%d\n下一發：%s,P%d Cannon %d/%d\nNext: %s
+cannon.cancelled,萬用炮已取消，剩貨落地，開始冷卻,Cannon removed; remaining ammo dropped; cooldown started
+cannon.deployed,萬用炮已布置；短按取下一發，長按裝貨,Cannon deployed; tap to retrieve next round; hold to load
+cannon.take_failed,無法取貨：炮台空或負重已滿,Cannot retrieve: cannon empty or hands full
+cannon.loaded,萬用炮裝入 %d 件,Loaded %d items into cannon

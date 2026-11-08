@@ -24,6 +24,7 @@ signal paid(amount: int)
 signal skill_cast(skill_name: String, is_ult: bool)
 
 var inventory = InventoryScript.new()
+var _cannon: Node2D
 var stamina: float = Tuning.stamina_max()
 var facing: Vector2 = Vector2.RIGHT
 var hold_progress: float = 0.0
@@ -1201,6 +1202,8 @@ func _target_detail_fp(node: Node2D) -> String:
 		"dirt":
 			var dname = node.call("type_name") if node.has_method("type_name") else ""
 			tinfo += ":%s" % (str(dname) if dname != null else "")
+		"universal_cannon":
+			tinfo += ":%s" % str(node.ammo)
 		"drop":
 			tinfo += ":%s:%d" % [_obj_str(node, "sku"), _obj_int(node, "count")]
 		"shelf":
@@ -1716,6 +1719,8 @@ func _faced_guests() -> Array:
 ## Long-press target when no thief is in range. Restock ticks from the first frame; the others wait out the tap.
 ## Order (after thief): dirt → guest → stockable shelf → other shelf / cashier / …
 func _long_kind() -> String:
+	if _usable_cannon() != null:
+		return "universal_cannon"
 	## 掃地僧 aura blocks manual clean (skill clears dirt instead).
 	if _nearest_kind("dirt") != null and buff_left("sweeping_monk") <= 0.05:
 		return "dirt"
@@ -1744,6 +1749,9 @@ func _shelf_can_take_carried(shelf: Node2D) -> bool:
 
 
 func _preview_target() -> Node2D:
+	var cannon := _usable_cannon()
+	if cannon != null:
+		return cannon
 	var thief := _nearest_active_thief()
 	if thief != null:
 		return thief
@@ -1790,6 +1798,13 @@ func _release_interact() -> void:
 
 ## Tap: thief (already grabbed), else one piece off a stocked shelf, else a restock box, else a floor box.
 func _do_short_interact() -> void:
+	var cannon := _usable_cannon()
+	if cannon != null:
+		if _interact_try(cannon):
+			if not cannon.retrieve_to(self):
+				log_line.emit(Loc.t("cannon.take_failed"))
+			_interact_release(cannon)
+		return
 	if _nearest_active_thief() != null:
 		return
 	var shelf := _nearest_stocked_shelf()
@@ -2503,6 +2518,8 @@ func _glow_host_now() -> Node2D:
 ## True when pressing interact would start a real action on this node.
 func _interact_available(node: Node2D) -> bool:
 	var kind := _obj_str(node, "kind")
+	if kind == "universal_cannon":
+		return node.available_for(self)
 	if kind == "thief":
 		## Carry allowed; goods stay in hand during the fight.
 		return node.has_method("is_active_thief") and bool(node.call("is_active_thief"))
@@ -2598,6 +2615,20 @@ func _tick_action(delta: float) -> void:
 		_clear_clean_hint()
 		return
 	_j_time += delta
+	var cannon := _usable_cannon()
+	if is_instance_valid(_lock_node) and _obj_str(_lock_node, "kind") == "universal_cannon" and _lock_node != cannon:
+		_interact_release_held()
+		hold_progress = 0.0
+		_pickup_used = false
+	if cannon != null:
+		target = cannon
+		if not _interact_try(cannon):
+			hold_progress = 0.0
+			return
+		if _j_time >= Tuning.SKU_PICK_HOLD:
+			_long_committed = true
+			_tick_cannon(delta)
+		return
 	var thief := _nearest_active_thief()
 	if thief != null:
 		target = thief
@@ -3692,6 +3723,28 @@ func _cast_slot(i: int) -> void:
 		SfxBus.play("sfx_skill_cd_deny")
 		log_line.emit("%s 冷卻中 %.0fs" % [String(sk.get("name")), cd_left(sid)])
 		return
+	if bool(sk.get("universal_cannon", false)):
+		if not _round_active():
+			return
+		_cancel_must_deliver_aim()
+		_cancel_magneto_aim()
+		if is_instance_valid(_cannon) and not _cannon.dismissed:
+			_cannon.dismiss()
+			_cannon = null
+			_cd[sid] = Tuning.cd_seconds(60.0, _int_now())
+			log_line.emit(Loc.t("cannon.cancelled"))
+		else:
+			var host := _game()
+			if host == null or not host.has_method("deploy_universal_cannon"):
+				return
+			_cannon = host.deploy_universal_cannon(global_position, int(sk.get("lv", 3)), seat_id)
+			if _cannon == null:
+				return
+			log_line.emit(Loc.t("cannon.deployed"))
+		SfxBus.play("sfx_skill_cast")
+		_begin_cast_pose(false)
+		skill_cast.emit(Loc.t("cannon.name"), false)
+		return
 	if bool(sk.get("self_checkout", false)):
 		if not _cast_self_checkout(int(sk.get("lv", 3))):
 			return
@@ -4142,3 +4195,34 @@ func _appearance_tint() -> Color:
 		const CharacterSheet = preload("res://scripts/session/character_sheet.gd")
 		return CharacterSheet.tint_color(int(stats.tint))
 	return Color.WHITE
+
+
+func _usable_cannon() -> Node2D:
+	var best: Node2D
+	var best_d := INF
+	for node in interactables:
+		if not is_instance_valid(node) or _obj_str(node, "kind") != "universal_cannon":
+			continue
+		if not node.available_for(self):
+			continue
+		var d := _interact_dist(node)
+		if d >= 0.0 and d < best_d:
+			best = node
+			best_d = d
+	return best
+
+
+func _tick_cannon(delta: float) -> void:
+	if _pickup_used or not is_instance_valid(target):
+		return
+	if inventory.is_empty() or target.ammo.size() >= target.capacity():
+		hold_progress = 0.0
+		return
+	var seconds := maxf(0.05, Tuning.restock_seconds(_agi_now()))
+	hold_progress = minf(1.0, hold_progress + delta / seconds)
+	if hold_progress >= 1.0:
+		var loaded: int = target.load_from(self)
+		_pickup_used = true
+		hold_progress = 0.0
+		log_line.emit(Loc.t("cannon.loaded", [loaded]))
+		SfxBus.play("sfx_shelf_stock_done")

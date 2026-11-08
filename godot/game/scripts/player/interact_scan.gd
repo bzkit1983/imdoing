@@ -26,6 +26,8 @@ static func interact_dist(
 		return -1.0
 	var to_obj: Vector2 = node.global_position - host.global_position
 	var dist_sq := to_obj.length_squared()
+	if kind_of(node) == &"universal_cannon" and dist_sq < 0.000001:
+		return 0.0
 	if dist_sq > Tuning.INTERACT_RANGE_SQ or dist_sq < 0.000001:
 		return -1.0
 	var dist := sqrt(dist_sq)
