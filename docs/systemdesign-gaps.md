@@ -1,6 +1,6 @@
 # 長線設計文件缺口
 
-- 對照日：2026-10-30（含 v1.1.0 拍板＋v1.2.0 客人交付／技能組／三招狙擊手／Dark Side／多重影分身設計 #63–#117；對齊至 main tip）
+- 對照日：2026-11-09（含 v1.1.0 拍板＋v1.2.0 客人交付／技能組／三招狙擊手／Dark Side／多重影分身設計 #63–#117；多人 **M1 本機雙人已落地**，M2 連線尚未實作；對齊至 main tip）
 - 範圍：只讀 `docs/systemdesign/`（含 `savesystem.md`、`pausemenu.md`），**不含** Demo scope
 - 工程落地對照：`docs/alpha/implementation-status.md`
 - 執行期優化分析（非玩法缺口）：`docs/alpha/runtime-perf-audit.md`
@@ -78,7 +78,7 @@
 - **循環與進度：** 劇情／事件表、過關與失敗、技能解鎖表。~~評價／經營值~~ 見 `ratingsystem.md`（難度 stub 見 `difficulty.md`）。~~存檔~~ 見 `savesystem.md`。~~暫停／掛起~~ 見 `pausemenu.md`
 - **店內系統：** 冰櫃與凍櫃的操作差異。幫忙取貨與 COMBO 留待 Alpha
 - **幾乎是空檔：** 角色導出的連線與檔案留待 Alpha。Voxel 初模和給設計師加細節的規矩在 `docs/alpha/voxel-v0.1.md`。外觀配置只有一句
-- **多人連線：** 設計見 [`docs/systemdesign/multiplayer.md`](systemdesign/multiplayer.md)（§10 企劃已拍板；**§11 M1 本機雙人規格已定稿**；**尚未實作**）。`ecosystem.md`／`savesystem.md`／`control.md` 已加 M1 交叉註記
+- **多人連線：** 設計見 [`docs/systemdesign/multiplayer.md`](systemdesign/multiplayer.md)（§10 企劃已拍板；**§11 M1 本機雙人已落地**——`SeatTable`／`InteractLock`／`SessionService`，`transport=local`）。**缺口在 M2+：** LAN／ENet／RPC／NetTransport、第 3–4 seat 線上補位、斷線凍結座位；程式尚無 `@rpc`／`MultiplayerPeer`。`ecosystem.md`／`savesystem.md`／`control.md` 已有 M1 交叉註記
 - **工程路徑：** Demo／Alpha 專案目錄已凍結；v1 只改 `godot/game`（`docs/versioning.md`）。平台商務／Godot 釘版見 `docs/alpha/console-business.md`、`docs/alpha/godot-middleware-pin.md`（非玩法規則）
 
 # 已有檔但仍寫不進程式的數值
