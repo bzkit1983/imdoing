@@ -105,3 +105,236 @@ skill.close_gate.name,落閘放狗,Drop the Gate
 skill.close_gate.blurb,有貨趕去排隊（只付已取）；空車離店；小偷掉贓離店。單階 CD120。指令上下上下左右左右,Stocked guests queue (pay taken only); empty carts leave; thieves drop loot and leave. Single-tier CD120. Input: up down up down left right left right
 skill.guest_dusk.name,諸客的黃昏,Twilight of Guests
 skill.guest_dusk.blurb,30 現實秒內成功進店 15 人（可超 cap、無小偷）。單階 CD120。指令上左右下下左右上,"15 successful entries in 30 real seconds (may exceed cap, no thieves). Single-tier CD120. Input: up left right down down left right up"
+world.cashier.status,收銀機 %d\n排隊 %d 人,Register %d\nQueue %d
+world.clerk.cashier,店員收銀,Clerk checkout
+world.clerk.restock,店員補貨,Clerk restock
+world.clone.cashier,分身收銀,Clone checkout
+world.clone.restock,分身補貨,Clone restock
+world.clone.label,分身,Clone
+world.door,大門,Door
+world.restock.pick,選貨  ↑↓,Pick SKU  ↑↓
+world.restock.stock_line,%s  %d件,%s  %d pcs
+world.restock.dry,乾貨補貨點,Dry restock point
+world.restock.frozen,凍櫃補貨點,Chiller restock point
+world.restock.ice,冰櫃補貨點,Freezer restock point
+world.restock.undeveloped,%s\n尚未開發,%s\nNot developed
+world.restock.count,%s\n%d件,%s\n%d pcs
+world.shelf.dry,乾貨架,Dry shelf
+world.shelf.frozen,凍櫃貨架,Chiller shelf
+world.shelf.ice,冰櫃貨架,Freezer shelf
+world.shelf.empty,%s %d\n空　%d,%s %d\nEmpty  %d
+world.sheet.default,預設,Default
+world.sheet.guest,訪客,Guest
+world.sheet.line,%s  LV%d  XP%d  色%d  %s,%s  LV%d  XP%d  tint%d  %s
+world.guest_slot.n,訪客%d,Guest %d
+world.guest_slot.empty,（空）,(empty)
+world.toss_range.farther,稍遠,Farther
+mood.shop,購物,Shopping
+mood.elite,麻煩客人,Problem guest
+mood.stepped_on,踩到%s！,Stepped in %s!
+mood.stepped_dirt,踩到污物！,Stepped in a mess!
+mood.paying,付款中,Paying
+mood.queue,排隊中,Queuing
+mood.thanks,謝謝,Thanks
+mood.driven_off,被趕離,Driven off
+mood.to_pay,去付款,Going to pay
+mood.rush,搶購！,Rush buy!
+mood.cant_find,找不到%s,Can't find %s
+mood.picking,取貨,Picking up
+mood.got,拿到%s,Got %s
+mood.next_item,先找下一件,Looking for next item
+mood.still_missing,還是找不到…,Still can't find it…
+mood.no_register,沒有收銀機,No register
+mood.rushed_n,搶到%d件,Grabbed %d
+mood.leave_loot,得手離開,Leaving with loot
+mood.leave,離開,Leaving
+mood.leave_angry,生氣離開,Leaving angry
+mood.temp_cashier,臨時收銀,Temp cashier
+mood.temp_restock,臨時補貨,Temp restocker
+mood.affix.smash,弄跌貨架！,Knocked a shelf!
+mood.affix.basket,搗亂購物籃！,Ransacked a basket!
+mood.affix.drive,趕客！,Chasing guests!
+mood.affix.dirt,丟污物！,Dropped a mess!
+mood.affix.idle,不主動購物…,Not shopping…
+mood.basket_hit,購物籃被搗亂！,Basket ransacked!
+mood.chased,被趕走…？,Chased off…?
+mood.thief,小偷  ,Thief  
+mood.looted,得手 ,Looted 
+mood.empty_handed,空手,Empty-handed
+mood.list_done,（清單完成）,(list done)
+mood.elite_lv,麻煩LV%d　,Elite LV%d  
+mood.taken_n,　已取%d,  took %d
+phase.restock,補貨時段  06:00–08:00  無客人,Restock  06:00–08:00  no guests
+phase.ops,營運時段  08:00–22:00,Open  08:00–22:00
+settle.guest_xp,\n訪客經驗 +%d　%s,\nGuest XP +%d  %s
+settle.support_rating,\n支援別店評價 %+d　現 %d,\nSupport rating %+d  now %d
+settle.guest_save_fail_prefix,（訪客存檔失敗：,(Guest save failed: 
+settle.body,%s　%s\n營業額 $%d　入帳後資金 $%d\n進貨成本 $%d\n成功收銀 %d　生氣離開 %d\n被偷 %d 件 $%d　抓住 %d／逃走 %d\n%s\n%s,%s  %s\nRevenue $%d  funds after $%d\nStock cost $%d\nChecked out %d  left angry %d\nStolen %d pcs $%d  caught %d / fled %d\n%s\n%s
+settle.back_hint,\n按 J／A 返回準備,\nPress J/A to return to prep
+settle.hud_legacy,關店結算\n營業額 $%d\n成功收銀 %d 人\n生氣離開 %d 人\n被偷 %d 件  $%d\n抓住小偷 %d ／ 逃走 %d\n（資金於結算後才入帳，v0.5 先顯示營業額）,Day settle\nRevenue $%d\nChecked out %d\nLeft angry %d\nStolen %d pcs  $%d\nCaught %d / fled %d\n(Funds post after settle; v0.5 shows revenue)
+settle.loss,虧損（營業額低於進貨）,Loss (revenue below stock cost)
+settle.no_loss,未虧損,No loss
+settle.test_bonus,（含測試 +%d）,(incl. test +%d)
+settle.saved,已寫入存檔,Saved
+settle.save_fail_prefix,存檔失敗：,Save failed: 
+settle.host_xp,店主經驗 +%d%s　%s,Host XP +%d%s  %s
+settle.split_xp,平分經驗 +%d%s　店主 %s%s,Split XP +%d%s  host %s%s
+log.demo.chives,割韭菜 ×%d,Harvest chives ×%d
+log.demo.chives_cash,割韭菜 ×%d — $%d,Harvest chives ×%d — $%d
+log.demo.dark_side,Dark Side — 臨時員工 %d 名,Dark Side — %d temp staff
+log.demo.shadow_clone,多重影分身 — 分身 %d 名,Shadow clones — %d clones
+log.demo.toss_shelved,丟掉上架 %s ×%d — 貨箱已補上貨架,Toss restock %s ×%d — shelved
+log.demo.toss_shelved_drop,丟掉上架 %s ×%d — 剩 %d 掉在地上,Toss restock %s ×%d — %d dropped
+log.demo.toss_clone,丟掉砸到分身 %s ×%d — 打斷，貨品掉在該處,"Toss hit clone %s ×%d — interrupted, dropped there"
+log.demo.toss_guest_ok,丟掉給客人 %s ×%d — 謝謝！%s,Toss to guest %s ×%d — thanks! %s
+log.demo.toss_remain,剩 %d 掉地,%d left on floor
+log.demo.toss_guest_reject,丟掉砸到客人 — 不想要這貨品！掉在地上,Toss hit guest — wrong item! Dropped
+log.demo.sniper_thief_gone,狙擊手 %s ×%d — 小偷已逃走，掉在地上,"Sniper %s ×%d — thief gone, dropped"
+log.demo.sniper_thief_hit,狙擊手擊中小偷 %s ×%d — 貨品掉落,Sniper hit thief %s ×%d — item dropped
+log.demo.sniper_guest_gone,狙擊手 %s ×%d — 客人已不要這貨，掉在身旁,"Sniper %s ×%d — guest no longer wants it, dropped"
+log.demo.sniper_guest_ok,狙擊手交付 %s ×%d — 已交給客人,Sniper deliver %s ×%d — given to guest
+log.demo.sniper_guest_partial,狙擊手交付 %s ×%d — 剩 %d 掉在身旁,Sniper deliver %s ×%d — %d dropped beside
+log.demo.sniper_shelf_ok,狙擊手補架 %s ×%d — 已飛上貨架,Sniper shelf %s ×%d — shelved
+log.demo.sniper_shelf_partial,狙擊手補架 %s ×%d — 剩 %d 掉在架旁,Sniper shelf %s ×%d — %d beside shelf
+log.demo.sniper_shelf_full,狙擊手 %s ×%d — 同款貨架已滿，掉在架旁,"Sniper %s ×%d — matching shelves full, dropped beside"
+err.no_unspent,沒有未分配點數,No unspent points
+err.below_base,不能低於本劇本基底,Cannot go below scenario base
+err.reset_cost,重置能力值要 $%d，現有 $%d,"Stat reset costs $%d, have $%d"
+err.can_free,罐頭是初始貨物，不用開發,Cans are starter stock; no develop fee
+err.already_developed,已開發,Already developed
+err.locked_level,未到開放等級,Level not unlocked
+err.funds,資金不足,Not enough funds
+err.not_developed,尚未開發,Not developed
+err.no_such_item,沒有這件,Unknown item
+err.no_fit,放不下,Doesn't fit
+err.grid_min,闊度和長度最少是 8。,Width and height must be at least 8.
+err.area_cap,總面積超過規模上限,Total area exceeds scale cap
+err.furniture_oob,有傢俬在新邊界外，先收回,Furniture outside new bounds; pick up first
+err.max_scale,已是最大規模,Already max scale
+err.need_level,角色要到 LV%d,Need character LV%d
+err.need_cashier,店舖內要放置至少一台收銀機。,Place at least one register in the shop.
+err.need_restock_pair,店舖內要放置至少一組同類型的補貨架和貨架。乾貨、凍櫃、冰櫃都可以，但補貨架和貨架要同一類。,"Place at least one matching restock rack + shelf pair (dry, chiller, or freezer)."
+err.hire_full,店舖規模雇員已滿,Hire cap for this shop scale
+err.clerks_gt_registers,店員不能多過收銀機,Clerks cannot exceed registers
+err.no_skill,沒有這招,Unknown skill
+err.ult_slot_only,奧義格只能放奧義,Ultimate slot accepts ultimates only
+err.ult_needs_slot,奧義要放奧義格,Ultimates go in the ultimate slot
+err.already_equipped,已經裝備在別格,Already equipped in another slot
+err.cost_over,COST 超過 5,COST exceeds 5
+err.name_letters,名稱只用英文字母，最多 10 個,"Name: English letters only, max 10"
+err.name_taken,名稱已被使用,Name already used
+err.level_up,升級 %d 級，未分配點數 +%d,"Leveled +%d, unspent +%d"
+err.level_cap_note,  LV10 之後經驗表未定，不再升級,  XP table TBD after LV10; no further levels
+err.save_empty,存檔是空的,Save is empty
+err.save_no_version,存檔缺少 version,Save missing version
+err.save_bad_version,存檔 version 無效,Save version invalid
+err.save_too_new,存檔版本過新（%d > %d），請更新遊戲,Save too new (%d > %d); update the game
+err.save_missing,沒有存檔,No save
+err.save_bad_json,存檔不是有效 JSON,Save is not valid JSON
+log.player.magneto_full,負重已滿 — 攝石人 失敗,Carry full — Magneto failed
+log.player.cast,施放 %s LV%d,Cast %s LV%d
+log.player.magneto_n,攝石人 ×%d 件,Magneto ×%d pcs
+log.player.chives_aim,要對準收銀機 — 割韭菜 失敗,Aim at a register — Harvest Chives failed
+log.player.chives_busy,收銀機使用中 — 割韭菜 失敗,Register busy — Harvest Chives failed
+log.player.chives_fail,割韭菜 失敗,Harvest Chives failed
+log.player.chives_empty,這台沒人可收 — 割韭菜 失敗,No one to clear — Harvest Chives failed
+log.player.force_empty,手上沒貨 — 我都賺夠啦比啲你賺 失敗,Hands empty — Force Sell failed
+log.player.force_no_guest,附近沒有可交付客人 — 我都賺夠啦比啲你賺 失敗,No deliverable guest nearby — Force Sell failed
+log.player.force_busy,客人互動中 — 我都賺夠啦比啲你賺 失敗,Guest busy — Force Sell failed
+log.player.force_n,強塞 ×%d,Force-sell ×%d
+log.player.deliver_n,交給客人 ×%d,Delivered ×%d
+log.player.wrong_temp,沒有對的貨 — 臨時員工不滿不變,No matching stock — temp staff dissat unchanged
+log.player.wrong_dissat,沒有對的貨 — 不滿 +15,No matching stock — dissat +15
+log.player.thief_claimed,對方正在抓這名小偷,Someone else is fighting this thief
+log.player.thief_grab,抓住小偷 — 連按行動鍵扣血，剩 5 秒,Grabbed thief — mash Action; 5s left
+log.player.thief_ko,打倒小偷 — KO！贓物散落地上,Thief down — KO! Loot scattered
+log.player.thief_box_ko,貨箱砸中小偷 — KO！贓物原地掉落,Box hit thief — KO! Loot dropped here
+log.player.thief_fail,打擊失敗 — 被撞開，倒地 5 秒,Fight failed — knocked down 5s
+log.player.thief_dash,衝刺撞飛小偷 — 算抓住，贓物散落,Dash KO thief — counts as catch; loot scattered
+log.player.dash_deliver,衝刺交付 ×%d — 不撞飛,Dash deliver ×%d — no KO
+log.player.dash_guest,衝刺撞到客人 — 暈眩 2 秒，貨品掉落,"Dash hit guest — stun 2s, drop stock"
+log.player.dash_polite,衝刺撞到客人 — 禮貌衝撞，不滿不增加,"Dash hit guest — polite dash, no dissat"
+log.player.dash_clone,衝刺撞到分身 — 暈眩 2 秒，箱子掉落,"Dash hit clone — stun 2s, drop boxes"
+log.player.restock_busy,補貨點使用中,Restock point busy
+log.player.sku_list_hint,貨品清單 — 上下選擇，放手確定，B／; 取消,"SKU list — up/down, release confirm, B/; cancel"
+log.player.carry_need,負重不足：%d/%d 件,Carry short: %d/%d pcs
+log.player.restock_empty,%s 補貨點已空,%s restock point empty
+log.player.pull_instant,執貨（即時）%s 1件,Pull (instant) %s ×1
+log.player.empty_hands_shelf,空手 — 不能上架,Empty hands — cannot restock
+log.player.shelf_busy,貨架使用中,Shelf busy
+log.player.shelf_full,貨架已滿,Shelf full
+log.player.shelve,上架 %s ×%d,Shelve %s ×%d
+log.player.monk_no_manual,掃地僧期間不能手動清潔,Cannot clean manually during Sweeping Monk
+log.player.monk_clear,掃地僧清除 — %s,Sweeping Monk cleared — %s
+log.player.register_busy,收銀機使用中,Register busy
+log.player.guest_en_route,客人還在前往收銀機，請等到隊伍前端,Guest still walking to register; wait for queue head
+log.player.no_guest_at_register,收銀機前沒有客人,No guest at register
+log.player.senior_skip,資深收銀員 — 略過指令，直接 Loading Circle（購物 %d 件）,"Senior Cashier — skip commands, Loading Circle (%d items)"
+log.player.checkout_cmds,收銀指令 %d 次（購物 %d 件）,Checkout commands ×%d (%d items)
+log.player.cmds_done,指令完成 — 維持長按出現 Loading Circle,Commands done — hold for Loading Circle
+log.player.cmds_fail,指令錯誤 × 同一串重來,Wrong input × restart sequence
+log.player.elite_pay,麻煩客人收銀  +$%d（雙倍）,Elite checkout  +$%d (double)
+log.player.pay_done,收銀完成  +$%d,Checkout done  +$%d
+log.player.cant_skill,現在不能發動技能,Cannot cast skills now
+log.player.skill_menu_tap,技能選單 — 按方向即發動，再按技能鍵發動中間,Skill menu — tap direction to cast; skill again for center
+log.player.skill_menu_hold,技能選單 — 拉方向預覽，放開發動；回中則中間,"Skill menu — hold direction to preview, release to cast; center = middle"
+log.player.cant_ult,現在不能發動奧義,Cannot cast ultimate now
+log.player.no_ult,沒有裝備奧義,No ultimate equipped
+log.player.demo_no_cd,%s 本 Demo 未實作，不會進入冷卻,%s not in this demo — no cooldown
+log.player.ult_cd,奧義冷卻中 %.0fs,Ultimate CD %.0fs
+log.player.ult_prep,奧義準備 — %s,Ultimate ready — %s
+log.player.ult_cancel,放手 — 奧義取消,Release — ultimate cancelled
+log.player.ult_cmds_fail,奧義指令錯誤 × 同一串重來,Ultimate input wrong × restart sequence
+log.player.passive,%s 是被動技能，無法主動施放,%s is passive — cannot cast
+log.player.skill_cd,%s 冷卻中 %.0fs,%s CD %.0fs
+log.player.demo_missing,%s 本 Demo 未實作,%s not in this demo
+log.player.ult_fundraise,奧義 全體集資 LV%d,Ultimate Fundraise LV%d
+log.player.ult_close_gate,奧義 落閘放狗,Ultimate Drop the Gate
+log.player.ult_dusk,奧義 諸客的黃昏 — 30 秒吸引 %d 人,Ultimate Twilight of Guests — %d entries in 30s
+log.player.ult_dusk_closed,奧義 諸客的黃昏 — 非營業時段無效,Ultimate Twilight of Guests — invalid off-hours
+log.player.ult_lord,奧義 Yes! My Lord! LV%d — 客人搶購 %.0f 秒,Ultimate Yes! My Lord! LV%d — rush %.0fs
+log.player.ult_world,奧義 %s LV%d — 時停,Ultimate %s LV%d — time stop
+log.player.cmd_reset,放手 — 指令與 Circle 重置,Release — commands and Circle reset
+log.player.crowd_say,唔該借借⋯,Excuse me…
+log.player.hands_empty,手上沒有貨,Hands empty
+log.player.toss_fly,丟掉 %s ×%d — 往%s飛出（可砸小偷／同款貨架上架）,Toss %s ×%d — flying %s (thief/shelf)
+log.player.toss_feet,丟掉 %s ×%d — 掉在腳邊，可以再撿,"Toss %s ×%d — at feet, can pick up"
+log.player.hoop_toss,投籃高手 %s — 往%s飛出,Hoop Ace %s — flying %s
+log.player.toss_one,丟掉 %s 1件 — 往%s飛出,Toss %s ×1 — flying %s
+log.player.unit_run,一段,a stack
+log.player.unit_one,1件,1 pc
+log.player.sniper_toss_thief,丟掉 %s %s — 狙擊手飛向小偷,Toss %s %s — sniper to thief
+log.player.sniper_toss_guest,丟掉 %s %s — 狙擊手飛向清單客人,Toss %s %s — sniper to guest
+log.player.sniper_toss_shelf,丟掉 %s %s — 狙擊手飛向同款貨架,Toss %s %s — sniper to shelf
+log.player.cancel_pick,取消選貨,Cancel SKU pick
+log.player.cancel_skill_menu,取消技能選單,Cancel skill menu
+log.player.slip,水漬滑倒 — 滑出 3 身位，暈眩 3 秒,"Puddle slip — slide 3 lengths, stun 3s"
+log.player.vomit,踩到嘔吐物 — 技能禁止、能力 −30% 10 秒,"Stepped in vomit — skills blocked, stats −30% 10s"
+log.player.restock_set,補貨點改為 %s,Restock point set to %s
+log.player.hold_deliver_hint,長按行動鍵把貨交給客人,Hold Action to deliver to guest
+log.player.take_shelf,從貨架取 %s 1件,Take %s ×1 from shelf
+log.player.aim_preview,%s — 範圍預覽，再按技能確認，取消取消,"%s — range preview; skill confirm, cancel cancels"
+log.player.cancel_named,取消 %s,Cancel %s
+log.player.must_fail_empty,手上沒貨 — 使命必達 失敗,Hands empty — Must Deliver failed
+log.player.must_fail_guest,附近沒有可交付客人 — 使命必達 失敗,No deliverable guest nearby — Must Deliver failed
+log.player.must_fail_match,沒有對得上的貨 — 使命必達 失敗,No matching stock — Must Deliver failed
+log.player.must_n,使命必達 ×%d,Must Deliver ×%d
+log.player.summon_fail,召喚客人 失敗,Summon Guests failed
+log.player.summon_fail_phase,召喚客人 失敗 — 非營業或無可售貨,Summon Guests failed — closed or no stock
+log.player.summon_n,召喚客人 ×%d,Summon Guests ×%d
+log.player.monk_banner,掃地僧,Sweeping Monk
+log.player.clean_hint,清潔 %s — 按住行動並持續轉搖桿／方向,Clean %s — hold Action and wiggle stick/dirs
+log.player.clean_done,清潔完成 — %s 已清除,Cleaned — %s gone
+log.player.drop_busy,地上貨堆使用中,Floor pile busy
+log.player.drop_carry,負重不足，撿不回掉落箱,Carry full — cannot pick up drop
+log.player.pickup,撿起 %s ×%d,Picked up %s ×%d
+mood.caught,被抓住！,Caught!
+mood.drop_loot_run,丟下贓物跑了,Dropped loot and fled
+mood.ko_fly,被打飛！,KO'd away!
+mood.box_fly,被貨箱打飛！,Boxed away!
+mood.dash_fly,被撞飛！,Dashed away!
+mood.oof,唔！,Oof!
+mood.dazed,暈眩…,Dazed…
+mood.thanks_pay,謝謝！去付款,Thanks! Going to pay
+mood.thanks_bang,謝謝！,Thanks!
+mood.reject_item,不想要這貨品！,Don't want this!

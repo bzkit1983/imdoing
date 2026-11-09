@@ -56,7 +56,7 @@ static func blank() -> RefCounted:
 	sheet.slots = ["carry_boost", "move_boost", "metal_rush", "checkout_speed", "instant_restock"]
 	sheet.ult_id = "the_world"
 	sheet.skill_sets = [{
-		"name": "預設",
+		"name": Loc.t("world.sheet.default"),
 		"slots": sheet.slots.duplicate(),
 		"ult_id": "the_world",
 		"levels": {},
@@ -131,7 +131,7 @@ static func from_dict(data: Dictionary) -> RefCounted:
 		sheet.skill_sets = raw_sets.duplicate(true)
 	else:
 		sheet.skill_sets = [{
-			"name": "預設",
+			"name": Loc.t("world.sheet.default"),
 			"slots": sheet.slots.duplicate(),
 			"ult_id": sheet.ult_id,
 			"levels": {},
@@ -221,15 +221,15 @@ func apply_xp_gain(gain: int) -> Dictionary:
 		ups += 1
 	var note := ""
 	if ups > 0:
-		note = "升級 %d 級，未分配點數 +%d" % [ups, ups * 5]
+		note = Loc.t("err.level_up", [ups, ups * 5])
 	if level >= 10:
-		note += "  LV10 之後經驗表未定，不再升級"
+		note += Loc.t("err.level_cap_note")
 	return {"xp": g, "ups": ups, "note": note}
 
 
 func summary_line() -> String:
-	var name := display_name if display_name.strip_edges() != "" else "訪客"
-	return "%s  LV%d  XP%d  色%d  %s" % [name, level, xp, tint, skin_id]
+	var name := display_name if display_name.strip_edges() != "" else Loc.t("world.sheet.guest")
+	return Loc.t("world.sheet.line", [name, level, xp, tint, skin_id])
 
 
 func appearance_skin_id() -> String:

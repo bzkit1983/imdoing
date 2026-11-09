@@ -71,30 +71,30 @@ text = "06:00"
 [node name="Phase" type="Label" parent="Root/Left"]
 layout_mode = 2
 autowrap_mode = 3
-text = "補貨時段"
+text = "Restock phase"
 
 [node name="Revenue" type="Label" parent="Root/Left"]
 layout_mode = 2
-text = "營業額  $0"
+text = "Revenue  $0"
 
 [node name="Guests" type="Label" parent="Root/Left"]
 layout_mode = 2
-text = "在店客人  0"
+text = "Guests in shop  0"
 
 [node name="Store" type="Label" parent="Root/Left"]
 layout_mode = 2
 autowrap_mode = 3
-text = "商店狀態  無技能效果"
+text = "Shop status  no skill effects"
 
 [node name="Role" type="Label" parent="Root/Left"]
 layout_mode = 2
 autowrap_mode = 3
-text = "角色狀態  STR20 AGI20 INT20"
+text = "Stats  STR20 AGI20 INT20"
 
 [node name="Skills" type="Label" parent="Root/Left"]
 layout_mode = 2
 autowrap_mode = 3
-text = "技能"
+text = "Skills"
 
 [node name="Right" type="PanelContainer" parent="Root"]
 layout_mode = 1
@@ -134,7 +134,7 @@ text = ""
 
 [node name="State" type="Label" parent="Root/Right/Margin/VBox"]
 layout_mode = 2
-text = "狀態"
+text = "Status"
 
 [node name="Stamina" type="ProgressBar" parent="Root/Right/Margin/VBox"]
 custom_minimum_size = Vector2(0, 22)
@@ -143,7 +143,7 @@ show_percentage = false
 
 [node name="Carry" type="Label" parent="Root/Right/Margin/VBox"]
 layout_mode = 2
-text = "負重"
+text = "Carry"
 
 [node name="HudList" type="ItemList" parent="Root/Right/Margin/VBox"]
 custom_minimum_size = Vector2(0, 80)
@@ -152,7 +152,7 @@ layout_mode = 2
 [node name="Target" type="Label" parent="Root/Right/Margin/VBox"]
 layout_mode = 2
 autowrap_mode = 3
-text = "目標"
+text = "Target"
 
 [node name="Progress" type="ProgressBar" parent="Root/Right/Margin/VBox"]
 custom_minimum_size = Vector2(0, 20)
@@ -193,4 +193,4 @@ theme_override_constants/margin_bottom = 16
 [node name="CloseText" type="Label" parent="Root/Closeout/Margin"]
 layout_mode = 2
 horizontal_alignment = 1
-text = "關店結算"
+text = "Day settled"

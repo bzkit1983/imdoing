@@ -120,19 +120,19 @@ func _build() -> void:
 func _build_right_cluster(root: Control) -> void:
 	var core_c := LAYOUT_INTERACT * _core
 	var items: Array = [
-		{"c": core_c, "s": Vector2(_core, _core), "kind": "face", "action": "interact", "cap": "行動", "tint": Color("2a9d8f")},
-		{"c": core_c + LAYOUT_DASH * _core, "s": Vector2(_sat, _sat), "kind": "face", "action": "dash", "cap": "衝刺", "tint": Color("3d7ea6")},
-		{"c": core_c + LAYOUT_CANCEL * _core, "s": Vector2(_sat, _sat), "kind": "face", "action": "cancel", "cap": "取消", "tint": Color("c45c26")},
+		{"c": core_c, "s": Vector2(_core, _core), "kind": "face", "action": "interact", "cap": Loc.t("touch.action"), "tint": Color("2a9d8f")},
+		{"c": core_c + LAYOUT_DASH * _core, "s": Vector2(_sat, _sat), "kind": "face", "action": "dash", "cap": Loc.t("touch.dash"), "tint": Color("3d7ea6")},
+		{"c": core_c + LAYOUT_CANCEL * _core, "s": Vector2(_sat, _sat), "kind": "face", "action": "cancel", "cap": Loc.t("prep.chrome.dialog_no"), "tint": Color("c45c26")},
 		{
 			"c": core_c + Vector2(cos(LAYOUT_ULT_ANG), sin(LAYOUT_ULT_ANG)) * (LAYOUT_ULT_R * _core),
 			"s": Vector2(_ult, _ult),
 			"kind": "face",
 			"action": "ult",
-			"cap": "奧義",
+			"cap": Loc.t("prep.kind.ult"),
 			"tint": Color("c0392b"),
 		},
 	]
-	var caps: Array[String] = ["技1", "技2", "技3", "技4", "技5"]
+	var caps: Array[String] = [Loc.t("touch.skill1"), Loc.t("touch.skill2"), Loc.t("touch.skill3"), Loc.t("touch.skill4"), Loc.t("touch.skill5")]
 	for i in LAYOUT_FAN_ANG.size():
 		var ang: float = LAYOUT_FAN_ANG[i]
 		items.append({

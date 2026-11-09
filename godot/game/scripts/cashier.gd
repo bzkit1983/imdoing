@@ -76,7 +76,7 @@ func _refresh_label() -> void:
 	if n == _label_n and _self_left <= 0.0 and _self_customer == null and not _self_visible:
 		return
 	_label_n = n
-	label.text = "收銀機 %d\n排隊 %d 人" % [register_index + 1, n]
+	label.text = Loc.t("world.cashier.status", [register_index + 1, n])
 	_self_visible = _self_left > 0.0 or is_instance_valid(_self_customer)
 	if _self_visible:
 		var status := Loc.t("self_checkout.active")

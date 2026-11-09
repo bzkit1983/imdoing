@@ -125,7 +125,7 @@ func setup(host: Node) -> void:
 	_bind_nodes()
 	var load_err := state.load_from_disk()
 	if load_err == "":
-		_msg = "已讀取存檔（劇本 %d　LV%d　$%d）" % [state.scenario, state.level, state.money]
+		_msg = Loc.t("prep.msg.loaded", [state.scenario, state.level, state.money])
 		_show_page("home")
 	else:
 		_show_page("scenario")
@@ -285,7 +285,7 @@ func _pair(top: String, bottom: String) -> String:
 
 func _header() -> String:
 	var nxt := state.xp_to_next()
-	var xp_txt := "已滿 LV10" if nxt <= 0 else "XP %d/%d" % [state.xp, nxt]
+	var xp_txt := Loc.t("prep.msg.max_lv") if nxt <= 0 else "XP %d/%d" % [state.xp, nxt]
 	var shop_r := int(state.shop_rating) if state != null and "shop_rating" in state else 0
 	return Loc.t("prep.header", [
 		state.money, state.level, xp_txt,
@@ -468,7 +468,7 @@ func _on_open_main_pressed() -> void:
 	if blocks.is_empty():
 		_show_page("confirm")
 	else:
-		_popup_info("不能開店", "\n".join(blocks))
+		_popup_info(Loc.t("prep.msg.cant_open"), "\n".join(blocks))
 
 
 func _diff_on() -> bool:
@@ -551,9 +551,9 @@ func _on_stat_reset() -> void:
 	var fee := state.reset_stats_cost()
 	var err := state.reset_stats()
 	if err != "":
-		_popup_info("不能重置", err)
+		_popup_info(Loc.t("prep.msg.cant_reset"), err)
 		return
-	_msg = "已重置能力值（−$%d）" % fee
+	_msg = Loc.t("prep.msg.reset_ok", [fee])
 	_refresh()
 
 
@@ -602,10 +602,10 @@ func _nudge_grid(axis: String, delta: int) -> void:
 	var w := state.grid_w
 	var h := state.grid_h
 	var cur := w if axis == "w" else h
-	var label := "闊度" if axis == "w" else "長度"
+	var label := Loc.t("prep.layout.width") if axis == "w" else Loc.t("prep.layout.height")
 	var nxt := cur + delta
 	if nxt < 8:
-		_popup_info("不能調整", "%s最少是 8。" % label)
+		_popup_info(Loc.t("prep.msg.cant_adjust"), Loc.t("prep.msg.dim_min", [label)])
 		_refresh()
 		return
 	if axis == "w":
@@ -613,12 +613,12 @@ func _nudge_grid(axis: String, delta: int) -> void:
 	else:
 		h = nxt
 	if w * h > state.area_cap():
-		_popup_info("不能調整", "加了%s之後總面積是 %d，超過規模 LV%d 的上限 %d。先縮小另一邊，或擴張店面。" % [label, w * h, state.shop_scale, state.area_cap()])
+		_popup_info(Loc.t("prep.msg.cant_adjust"), Loc.t("prep.msg.area_over", [label, w * h, state.shop_scale, state.area_cap()]))
 		_refresh()
 		return
 	var msg := state.set_grid(w, h)
 	if msg != "":
-		_popup_info("不能調整", "有傢俬超出新的邊界，先在圖上收回再縮小。")
+		_popup_info(Loc.t("prep.msg.cant_adjust"), Loc.t("prep.msg.furniture_oob"))
 	else:
 		_msg = ""
 	_refresh()
@@ -703,9 +703,9 @@ func _activate() -> void:
 			var fee := state.reset_stats_cost()
 			var err := state.reset_stats()
 			if err != "":
-				_popup_info("不能重置", err)
+				_popup_info(Loc.t("prep.msg.cant_reset"), err)
 			else:
-				_msg = "已重置能力值（−$%d）" % fee
+				_msg = Loc.t("prep.msg.reset_ok", [fee])
 			_refresh()
 		else:
 			_show_page("hub_char")
@@ -745,7 +745,7 @@ func _activate() -> void:
 			state.delete_save()
 			_guest_store = null
 			_guest_slot_index = -1
-			_msg = "已清除存檔"
+			_msg = Loc.t("prep.msg.save_cleared")
 			_show_page("scenario")
 		"go":
 			var dest := String(arg)
@@ -757,9 +757,9 @@ func _activate() -> void:
 			var fee := state.reset_stats_cost()
 			var err := state.reset_stats()
 			if err != "":
-				_popup_info("不能重置", err)
+				_popup_info(Loc.t("prep.msg.cant_reset"), err)
 			else:
-				_msg = "已重置能力值（−$%d）" % fee
+				_msg = Loc.t("prep.msg.reset_ok", [fee])
 			_refresh()
 		"edit_set":
 			_skill_set = int(arg)
@@ -806,7 +806,7 @@ func _activate() -> void:
 			var equip_msg := state.equip_set(_skill_set, int(arg[0]), String(arg[1]))
 			_show_page("skill_set")
 			if equip_msg != "":
-				_popup_info("不能裝備", equip_msg)
+				_popup_info(Loc.t("prep.msg.cant_equip"), equip_msg)
 		"unequip":
 			state.unequip_set(_skill_set, int(arg))
 			_show_page("skill_set")
@@ -818,7 +818,7 @@ func _activate() -> void:
 		"dev":
 			_ask_develop(String(arg))
 		"locked_sku":
-			_popup_info("尚未開放", _locked_sku_body(String(arg)))
+			_popup_info(Loc.t("prep.msg.locked_title"), _locked_sku_body(String(arg)))
 		"need_develop":
 			_popup_info(Loc.t("prep.locked_title"), Loc.t("prep.buy.need_develop", [Tuning.sku_name(String(arg))]))
 		"locked_look":
@@ -839,7 +839,7 @@ func _activate() -> void:
 		"expand":
 			_ask_expand()
 		"expand_max":
-			_popup_info("尚未開放", "店舖已是最大規模 LV3，不能再擴張。")
+			_popup_info(Loc.t("prep.msg.locked_title"), Loc.t("prep.msg.max_scale_detail"))
 		"hold":
 			_begin_hold_from_list(String(arg))
 		"map_focus":
@@ -865,7 +865,7 @@ func _activate() -> void:
 			if blocks.is_empty():
 				_show_page("confirm")
 			else:
-				_popup_info("不能開店", "\n".join(blocks))
+				_popup_info(Loc.t("prep.msg.cant_open"), "\n".join(blocks))
 		"elite_open":
 			_try_elite_open(int(arg))
 		"set_seats":
@@ -919,7 +919,7 @@ func _activate() -> void:
 		"open":
 			var open_msg := state.begin_day()
 			if open_msg != "":
-				_popup_info("不能開店", open_msg)
+				_popup_info(Loc.t("prep.msg.cant_open"), open_msg)
 				return
 			var save_err := state.save_to_disk()
 			if save_err != "":
@@ -1010,7 +1010,7 @@ func _try_elite_open(lv: int) -> void:
 		return
 	var blocks := state.open_blockers()
 	if not blocks.is_empty():
-		_popup_info("不能開店", "\n".join(blocks))
+		_popup_info(Loc.t("prep.msg.cant_open"), "\n".join(blocks))
 		return
 	if demo != null and demo.has_method("configure_elite_test"):
 		demo.call("configure_elite_test", lv)
@@ -1018,44 +1018,44 @@ func _try_elite_open(lv: int) -> void:
 
 
 func _locked_sku_body(sku: String) -> String:
-	return "%s要角色 LV%d 才開放，現在是 LV%d。" % [Tuning.sku_name(sku), int(Tuning.SKU_UNLOCK_LV.get(sku, 99)), state.level]
+	return Loc.t("prep.msg.locked_sku", [Tuning.sku_name(sku), int(Tuning.SKU_UNLOCK_LV.get(sku, 99)), state.level])
 
 
 func _popup_locked_furn(type: String) -> void:
 	var spec: Dictionary = state.FURNITURE[type]
-	_popup_info("尚未開放", "%s要角色 LV%d 才開放購入，現在是 LV%d。" % [state.furniture_name(type), int(spec["unlock"]), state.level])
+	_popup_info(Loc.t("prep.msg.locked_title"), Loc.t("prep.msg.locked_furn", [state.furniture_name(type), int(spec["unlock"])), state.level])
 
 
 func _funds_line(what: String, price: int) -> String:
-	return "%s要 $%d，現有 $%d。" % [what, price, state.money]
+	return Loc.t("prep.msg.need_funds", [what, price, state.money])
 
 
 func _ask_develop(sku: String) -> void:
 	var name := Tuning.sku_name(sku)
 	if not state.sku_unlocked(sku):
-		_popup_info("尚未開放", _locked_sku_body(sku))
+		_popup_info(Loc.t("prep.msg.locked_title"), _locked_sku_body(sku))
 		return
 	if state.developed.has(sku):
-		_popup_info("不能開發", "%s已經開發，可以直接採購。" % name)
+		_popup_info(Loc.t("prep.msg.cant_develop"), Loc.t("prep.msg.already_dev_buy", [name)])
 		return
 	var fee := int(Tuning.SKU_DEVELOP.get(sku, 0))
 	if state.money < fee:
-		_popup_info("資金不足", _funds_line("開發%s" % name, fee))
+		_popup_info(Loc.t("err.funds"), _funds_line(Loc.t("prep.msg.develop_what", [name]), fee))
 		return
-	_popup_confirm("確認購入", "開發%s，支付 $%d？" % [name, fee], {"action": "dev", "sku": sku})
+	_popup_confirm(Loc.t("prep.msg.confirm_title"), Loc.t("prep.msg.develop_ask", [name, fee]), {"action": "dev", "sku": sku})
 
 
 func _ask_buy() -> void:
 	var name := Tuning.sku_name(_qty_sku)
 	var pieces := _qty_boxes
 	if not state.developed.has(_qty_sku):
-		_popup_info("尚未開放", "%s尚未開發，不能採購。" % name)
+		_popup_info(Loc.t("prep.msg.locked_title"), Loc.t("prep.msg.need_dev_buy", [name)])
 		return
 	var cost := Tuning.cost_for_pieces(_qty_sku, pieces)
 	if state.money < cost:
-		_popup_info("資金不足", _funds_line("採購%s %d 件" % [name, pieces], cost))
+		_popup_info(Loc.t("err.funds"), _funds_line(Loc.t("prep.msg.buy_what", [name, pieces]), cost))
 		return
-	_popup_confirm("確認購入", "採購%s %d 件，支付 $%d？" % [name, pieces, cost], {"action": "buy", "sku": _qty_sku, "boxes": pieces})
+	_popup_confirm(Loc.t("prep.msg.confirm_title"), Loc.t("prep.msg.buy_ask", [name, pieces, cost]), {"action": "buy", "sku": _qty_sku, "boxes": pieces})
 
 
 func _ask_furniture(type: String) -> void:
@@ -1066,26 +1066,26 @@ func _ask_furniture(type: String) -> void:
 		return
 	var price := int(spec["price"])
 	if state.money < price:
-		_popup_info("資金不足", _funds_line("購入%s" % name, price))
+		_popup_info(Loc.t("err.funds"), _funds_line(Loc.t("prep.msg.furn_what", [name]), price))
 		return
-	_popup_confirm("確認購入", "購入%s，支付 $%d？" % [name, price], {"action": "furn", "type": type})
+	_popup_confirm(Loc.t("prep.msg.confirm_title"), Loc.t("prep.msg.furn_ask", [name, price]), {"action": "furn", "type": type})
 
 
 func _ask_expand() -> void:
 	if state.shop_scale >= 3:
-		_popup_info("尚未開放", "店舖已是最大規模 LV3，不能再擴張。")
+		_popup_info(Loc.t("prep.msg.locked_title"), Loc.t("prep.msg.max_scale_detail"))
 		return
 	var nxt := state.shop_scale + 1
 	var need := int(state.SCALE_NEED_LV[nxt])
 	if state.level < need:
-		_popup_info("尚未開放", "擴張到規模 LV%d 要角色 LV%d，現在是 LV%d。" % [nxt, need, state.level])
+		_popup_info(Loc.t("prep.msg.locked_title"), Loc.t("prep.msg.expand_locked", [nxt, need, state.level]))
 		return
 	var price := int(state.SCALE_COST[nxt])
 	if state.money < price:
-		_popup_info("資金不足", _funds_line("擴張到規模 LV%d" % nxt, price))
+		_popup_info(Loc.t("err.funds"), _funds_line(Loc.t("prep.msg.expand_what", [nxt]), price))
 		return
 	var cap := int(state.SCALE_MAX[nxt])
-	_popup_confirm("確認購入", "擴張到規模 LV%d，總面積上限變為 %d（現成 %d×%d），支付 $%d？" % [nxt, cap * cap, cap, cap, price], {"action": "expand"})
+	_popup_confirm(Loc.t("prep.msg.confirm_title"), Loc.t("prep.msg.expand_ask", [nxt, cap * cap, cap, cap, price]), {"action": "expand"})
 
 
 func _try_hire() -> void:
@@ -1093,19 +1093,19 @@ func _try_hire() -> void:
 	var msg := state.hire()
 	if msg == "" and state.clerks.size() > before:
 		SfxBus.play("sfx_ui_purchase")
-		_msg = "已召募"
+		_msg = Loc.t("prep.msg.hired")
 		_refresh()
 		return
-	if msg == "店舖規模雇員已滿":
+	if msg == Loc.t("err.hire_full"):
 		var cap := int(state.HIRE_CAP.get(state.shop_scale, 0))
-		var body := "規模 LV%d 最多召募 %d 人。" % [state.shop_scale, cap]
+		var body := Loc.t("prep.msg.hire_cap", [state.shop_scale, cap])
 		if state.shop_scale < 3:
-			body += "擴張店面後上限才會提高。"
-		_popup_info("尚未開放", body)
-	elif msg == "店員不能多過收銀機":
-		_popup_info("不能召募", "店員不能多過已放置的收銀機。請先在店舖設計放一台收銀機。")
+			body += Loc.t("prep.msg.hire_expand_hint")
+		_popup_info(Loc.t("prep.msg.locked_title"), body)
+	elif msg == Loc.t("err.clerks_gt_registers"):
+		_popup_info(Loc.t("prep.msg.cant_hire"), Loc.t("prep.msg.hire_need_register"))
 	else:
-		_popup_info("不能召募", msg if msg != "" else "現在不能召募。")
+		_popup_info(Loc.t("prep.msg.cant_hire"), msg if msg != "" else Loc.t("prep.msg.hire_now"))
 
 
 func _run_pending(pending: Dictionary) -> void:
@@ -1114,38 +1114,38 @@ func _run_pending(pending: Dictionary) -> void:
 			var sku := String(pending["sku"])
 			var msg := state.develop(sku)
 			if msg != "":
-				_popup_info("不能開發", msg)
+				_popup_info(Loc.t("prep.msg.cant_develop"), msg)
 			else:
 				SfxBus.play("sfx_ui_purchase")
-				_msg = "已開發 %s" % Tuning.sku_name(sku)
+				_msg = Loc.t("prep.msg.developed", [Tuning.sku_name(sku)])
 				_refresh()
 		"buy":
 			var sku2 := String(pending["sku"])
 			var boxes := int(pending["boxes"])
 			var msg2 := state.buy_stock(sku2, boxes)
 			if msg2 != "":
-				_popup_info("不能採購", msg2)
+				_popup_info(Loc.t("prep.msg.cant_buy"), msg2)
 			else:
 				SfxBus.play("sfx_ui_purchase")
 				_qty_sku = ""
-				_msg = "已採購 %s ×%d 件" % [Tuning.sku_name(sku2), boxes]
+				_msg = Loc.t("prep.msg.bought_sku", [Tuning.sku_name(sku2), boxes])
 				_refresh()
 		"furn":
 			var type := String(pending["type"])
 			var msg3 := state.buy_furniture(type)
 			if msg3 != "":
-				_popup_info("不能購入", msg3)
+				_popup_info(Loc.t("prep.msg.cant_buy_furn"), msg3)
 			else:
 				SfxBus.play("sfx_ui_purchase")
-				_msg = "已購入 %s" % state.furniture_name(type)
+				_msg = Loc.t("prep.msg.bought_furn", [state.furniture_name(type)])
 				_refresh()
 		"expand":
 			var msg4 := state.expand()
 			if msg4 != "":
-				_popup_info("不能擴張", msg4)
+				_popup_info(Loc.t("prep.msg.cant_expand"), msg4)
 			else:
 				SfxBus.play("sfx_ui_purchase")
-				_msg = "已擴張到規模 LV%d" % state.shop_scale
+				_msg = Loc.t("prep.msg.expanded", [state.shop_scale])
 				_refresh()
 		"difficulty":
 			_apply_difficulty_prompt(pending, true)
@@ -1227,7 +1227,7 @@ func _open_dialog(title: String, body: String, info: bool, pending: Dictionary) 
 	_pending = pending
 	_dlg_title.text = title
 	_dlg_body.text = body
-	_dlg_yes.text = "知道了" if info else "確定"
+	_dlg_yes.text = Loc.t("prep.msg.ok") if info else Loc.t("prep.msg.confirm_btn")
 	_dlg_no.visible = not info
 	if info:
 		_dlg_yes.position = Vector2(310, 280)
@@ -1749,7 +1749,7 @@ func _release_layout(screen: Vector2) -> void:
 	if not moved:
 		if from >= 0 and _drag_index_still(from, typ):
 			state.remove_at(from)
-			_msg = "已收回"
+			_msg = Loc.t("prep.msg.picked_up")
 			_clear_hold()
 			_refresh()
 			get_viewport().set_input_as_handled()
@@ -1760,24 +1760,24 @@ func _release_layout(screen: Vector2) -> void:
 	if not inside:
 		if from >= 0 and _drag_index_still(from, typ):
 			state.remove_at(from)
-			_msg = "已收回"
+			_msg = Loc.t("prep.msg.picked_up")
 		_clear_hold()
 		_refresh()
 		return
 	var cell := _cell_of(grid_local) - grab
 	if from >= 0:
 		if not _drag_index_still(from, typ):
-			_msg = "放不下"
+			_msg = Loc.t("err.no_fit")
 			_clear_hold()
 			_refresh()
 			return
 		_msg = state.move_item(from, cell.x, cell.y, rot)
 		if _msg == "":
-			_msg = "已移動"
+			_msg = Loc.t("prep.msg.moved")
 	else:
 		_msg = state.place_item(typ, cell.x, cell.y, rot)
 		if _msg == "":
-			_msg = "已放置"
+			_msg = Loc.t("prep.msg.placed")
 	_clear_hold()
 	_cursor = cell
 	_refresh()
@@ -1844,7 +1844,7 @@ func try_place() -> void:
 		SfxBus.play("sfx_ui_place")
 		_clear_hold()
 		_layout_focus = "map"
-		_msg = "已移動" if from_map else "已放置"
+		_msg = Loc.t("prep.msg.moved") if from_map else Loc.t("prep.msg.placed")
 	_refresh()
 
 
@@ -1863,7 +1863,7 @@ func _begin_hold_from_list(type: String) -> void:
 func _pickup_at_cursor() -> void:
 	var hit := state.item_at(_cursor.x, _cursor.y)
 	if hit < 0:
-		_msg = "游標上沒有物品"
+		_msg = Loc.t("prep.msg.cursor_empty")
 		_refresh()
 		return
 	var it: Dictionary = state.placed[hit]
@@ -1889,7 +1889,7 @@ func _cancel_hold() -> void:
 			## Origin should be free; if not, still drop the hold so the item is not lost from stock counts.
 			_msg = err
 		else:
-			_msg = "已放回"
+			_msg = Loc.t("prep.msg.put_back")
 			SfxBus.play("sfx_ui_place")
 		_clear_hold()
 		_layout_focus = "map"
@@ -1904,7 +1904,7 @@ func _cancel_hold() -> void:
 func _discard_hold() -> void:
 	if _hold_type == "":
 		return
-	_msg = "已收回"
+	_msg = Loc.t("prep.msg.picked_up")
 	SfxBus.play("sfx_ui_pickup_item")
 	_clear_hold()
 	_layout_focus = "map"
@@ -2016,7 +2016,7 @@ func _try_begin_restock_sku_pick() -> bool:
 	var cat := state.restock_category_of_type(typ)
 	var list: Array[String] = state.developed_of(cat)
 	if list.is_empty():
-		_msg = "尚未開發此類貨品"
+		_msg = Loc.t("prep.msg.cat_locked")
 		_refresh()
 		return true
 	_sku_pick_i = hit

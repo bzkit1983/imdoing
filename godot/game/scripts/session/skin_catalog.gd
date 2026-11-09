@@ -39,11 +39,11 @@ static func display_name(skin_id: String) -> String:
 static func id_fallback_label(skin_id: String) -> String:
 	match String(skin_id):
 		"player_alt1":
-			return "外星人"
+			return Loc.t("skin.player_alt1")
 		"player_alt2":
-			return "維京人"
+			return Loc.t("skin.player_alt2")
 		"player", "":
-			return "標準"
+			return Loc.t("skin.player")
 		_:
 			return String(skin_id)
 

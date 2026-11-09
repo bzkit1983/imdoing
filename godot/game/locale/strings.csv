@@ -230,3 +230,139 @@ cannon.cancelled,萬用炮已取消，剩貨落地，開始冷卻,Cannon removed
 cannon.deployed,萬用炮已布置；短按取下一發，長按裝貨,Cannon deployed; tap to retrieve next round; hold to load
 cannon.take_failed,無法取貨：炮台空或負重已滿,Cannot retrieve: cannon empty or hands full
 cannon.loaded,萬用炮裝入 %d 件,Loaded %d items into cannon
+err.platform.save,無法寫入存檔（錯誤 %d）,Cannot write save (error %d)
+err.platform.guest_slot,無法寫入訪客槽（錯誤 %d）,Cannot write guest slot (error %d)
+hud.skill.ready,就緒,Ready
+hud.skill.empty,%d 空,%d empty
+hud.skill.passive,%d %s 被動,%d %s passive
+hud.ult.empty,奧義 空,Ult empty
+hud.ult.line,奧義 %s  %s,Ult %s  %s
+touch.center,中,Mid
+touch.action,行動,Act
+touch.dash,衝刺,Dash
+touch.skill1,技1,Sk1
+touch.skill2,技2,Sk2
+touch.skill3,技3,Sk3
+touch.skill4,技4,Sk4
+touch.skill5,技5,Sk5
+hud.scene.phase,補貨時段,Restock phase
+hud.scene.revenue,營業額  $0,Revenue  $0
+hud.scene.guests,在店客人  0,Guests in shop  0
+hud.scene.shop_status,商店狀態  無技能效果,Shop status  no skill effects
+hud.scene.stats,角色狀態  STR20 AGI20 INT20,Stats  STR20 AGI20 INT20
+hud.scene.skills,技能,Skills
+hud.scene.status,狀態,Status
+hud.scene.carry,負重,Carry
+hud.scene.target,目標,Target
+pause.scene.body,遊戲已暫停。,Game paused.
+pause.scene.hint,Esc／Start 開關　　W／S 選擇　　A／D 調音量　　J 確定,Esc/Start toggle  W/S select  A/D volume  J confirm
+pause.scene.vol,音效聲量：100%,SFX volume: 100%
+pause.scene.stick,虛擬搖桿：關,Virtual stick: Off
+prep.scene.hint,WASD／搖桿移動　J／A 確定　;／B 返回　店舖設計時 X／K 轉向,WASD/stick move  J/A confirm  ;/B back  layout: X/K rotate
+prep.skill.level_row,%s 等級　LV%d,%s level  LV%d
+prep.sku.locked,%s　LV%d 開放,%s  unlocks LV%d
+prep.sku.developed,%s　已開發,%s  developed
+prep.sku.develop_row,開發 %s　$%d,Develop %s  $%d
+prep.sku.need_dev,%s　尚未開發,%s  not developed
+prep.sku.buy_row,採購 %s　庫存 %d 件　約$%d/件（4件$%d）,Buy %s  stock %d  ~$%d/pc (4pcs $%d)
+prep.sku.total,合計 $%d,Total $%d
+prep.sku.confirm_buy,確定購買,Confirm purchase
+prep.sku.qty,%02d 件,%02d pcs
+prep.furn.locked_row,%s　LV%d 開放　$%d,%s  LV%d  $%d
+prep.furn.buy_row,購入 %s　$%d　擁有 %d　未放置 %d,Buy %s  $%d  owned %d  unplaced %d
+prep.expand.row,擴張到規模 LV%d　$%d,Expand to scale LV%d  $%d
+prep.layout.width,闊度,Width
+prep.layout.height,長度,Depth
+prep.layout.area,總面積  %d／%d,Area  %d/%d
+prep.layout.drag,拖放 %s　×%d,Place %s  ×%d
+prep.hire.info,現有 %d／上限 %d　每日開工每人扣 $%d\n人數不能多過已放置的收銀機，也不能超過店舖規模。,Staff %d/%d  wage $%d each day start\nCannot exceed placed registers or shop scale.
+prep.hire.recruit,召募,Hire
+prep.role.cashier,收銀,Checkout
+prep.role.restock,補貨,Restock
+prep.hire.clerk_row,店員%d　%s　收銀機 %d　（確定切崗位）,Clerk %d  %s  reg %d  (confirm swap)
+prep.hire.reassign,　改派收銀機,  Reassign register
+prep.hire.fire,　解僱店員%d,  Fire clerk %d
+prep.open.wage_info,開工扣工資 $%d。結算時營業額入帳；若營業額低於本輪進貨成本會標虧損，遊戲繼續。,Wages $%d at open. Revenue posts at settle; loss flag if below stock cost — run continues.
+prep.open.start_funds,開始　工資後資金約 $%d,Start  ~$%d after wages
+prep.msg.loaded,已讀取存檔（劇本 %d　LV%d　$%d）,Loaded save (scenario %d  LV%d  $%d)
+prep.msg.max_lv,已滿 LV10,Already LV10
+prep.msg.cant_open,不能開店,Cannot open
+prep.msg.cant_reset,不能重置,Cannot reset
+prep.msg.reset_ok,已重置能力值（−$%d）,Stats reset (−$%d)
+prep.msg.cant_adjust,不能調整,Cannot adjust
+prep.msg.dim_min,%s最少是 8。,%s must be at least 8.
+prep.msg.area_over,加了%s之後總面積是 %d，超過規模 LV%d 的上限 %d。先縮小另一邊，或擴張店面。,"With %s area is %d, over scale LV%d cap %d. Shrink the other side or expand."
+prep.msg.furniture_oob,有傢俬超出新的邊界，先在圖上收回再縮小。,Furniture outside new bounds; pick up before shrinking.
+prep.msg.save_cleared,已清除存檔,Save cleared
+prep.msg.cant_equip,不能裝備,Cannot equip
+prep.msg.max_scale_detail,店舖已是最大規模 LV3，不能再擴張。,Shop already max scale LV3.
+prep.msg.locked_sku,%s要角色 LV%d 才開放，現在是 LV%d。,%s unlocks at LV%d (now LV%d).
+prep.msg.locked_furn,%s要角色 LV%d 才開放購入，現在是 LV%d。,%s buy unlocks at LV%d (now LV%d).
+prep.msg.need_funds,%s要 $%d，現有 $%d。,"%s needs $%d, have $%d."
+prep.msg.cant_develop,不能開發,Cannot develop
+prep.msg.already_dev_buy,%s已經開發，可以直接採購。,%s already developed — buy stock.
+prep.msg.develop_what,開發%s,Develop %s
+prep.msg.confirm_title,確認購入,Confirm purchase
+prep.msg.develop_ask,開發%s，支付 $%d？,Develop %s for $%d?
+prep.msg.need_dev_buy,%s尚未開發，不能採購。,%s not developed — cannot buy.
+prep.msg.buy_what,採購%s %d 件,Buy %s ×%d
+prep.msg.buy_ask,採購%s %d 件，支付 $%d？,Buy %s ×%d for $%d?
+prep.msg.furn_what,購入%s,Buy %s
+prep.msg.furn_ask,購入%s，支付 $%d？,Buy %s for $%d?
+prep.msg.expand_locked,擴張到規模 LV%d 要角色 LV%d，現在是 LV%d。,Scale LV%d needs character LV%d (now LV%d).
+prep.msg.expand_what,擴張到規模 LV%d,Expand to scale LV%d
+prep.msg.expand_ask,擴張到規模 LV%d，總面積上限變為 %d（現成 %d×%d），支付 $%d？,"Expand to scale LV%d, area cap %d (%d×%d), pay $%d?"
+prep.msg.hired,已召募,Hired
+prep.msg.hire_cap,規模 LV%d 最多召募 %d 人。,Scale LV%d hire cap is %d.
+prep.msg.hire_expand_hint,擴張店面後上限才會提高。,Expand the shop to raise the cap.
+prep.msg.cant_hire,不能召募,Cannot hire
+prep.msg.hire_need_register,店員不能多過已放置的收銀機。請先在店舖設計放一台收銀機。,Clerks cannot exceed placed registers. Place a register first.
+prep.msg.hire_now,現在不能召募。,Cannot hire now.
+prep.msg.developed,已開發 %s,Developed %s
+prep.msg.cant_buy,不能採購,Cannot buy
+prep.msg.bought_sku,已採購 %s ×%d 件,Bought %s ×%d
+prep.msg.cant_buy_furn,不能購入,Cannot buy furniture
+prep.msg.bought_furn,已購入 %s,Bought %s
+prep.msg.cant_expand,不能擴張,Cannot expand
+prep.msg.expanded,已擴張到規模 LV%d,Expanded to scale LV%d
+prep.msg.ok,知道了,OK
+prep.msg.picked_up,已收回,Picked up
+prep.msg.moved,已移動,Moved
+prep.msg.placed,已放置,Placed
+prep.msg.cursor_empty,游標上沒有物品,Nothing on cursor
+prep.msg.put_back,已放回,Put back
+prep.msg.cat_locked,尚未開發此類貨品,This category not developed
+hud.status.prefix_shop,商店狀態  ,Shop status  
+hud.status.prefix_role,角色狀態  ,Role status  
+hud.status.world_stop,The World! 時停 %.0fs,The World! stop %.0fs
+hud.status.dusk,諸客的黃昏 %.0fs,Twilight of Guests %.0fs
+hud.status.metal,金屬狂潮 +150%% %.0fs,Metal Rush +150%% %.0fs
+hud.status.carry,負重+240件 %.0fs,Carry+240 %.0fs
+hud.status.move,移速+60%% %.0fs,Move+60%% %.0fs
+hud.status.instant,瞬間上架 %.0fs,Instant restock %.0fs
+hud.status.sniper_shelf,狙擊手（貨架） %.0fs,Sniper (shelves) %.0fs
+hud.status.sniper_guest,狙擊手（客人） %.0fs,Sniper (guests) %.0fs
+hud.status.sniper_thief,狙擊手（小偷） %.0fs,Sniper (thieves) %.0fs
+hud.status.dash_deliver,衝刺交付 %.0fs,Dash Deliver %.0fs
+hud.status.senior,資深收銀員 %.0fs,Senior Cashier %.0fs
+hud.status.hoop,投籃高手 %.0fs,Hoop Ace %.0fs
+hud.status.monk,掃地僧 %.0fs,Sweeping Monk %.0fs
+hud.status.sick,嘔吐物 −30%% %.0fs,Vomit −30%% %.0fs
+hud.status.fighting,打擊中,Fighting
+hud.status.down,倒地 %.0fs,Down %.0fs
+hud.status.checkout_pct,收銀+%.0f%%,Checkout+%.0f%%
+hud.move.stun,暈眩,Stunned
+hud.move.slip,滑倒,Slipping
+hud.move.toss,丟貨,Tossing
+hud.move.drop_aim,掉貨瞄準,Drop aim
+hud.move.ult_cmd,奧義指令,Ult inputs
+hud.move.skill_menu,技能選單,Skill menu
+hud.move.pick_sku,選貨,Picking SKU
+hud.move.clean,清潔,Cleaning
+hud.move.fight,打擊,Fight
+hud.move.checkout_cmd,收銀指令,Checkout inputs
+hud.move.must_deliver,使命必達,Must Deliver
+hud.move.magneto,攝石人,Magneto
+prep.msg.locked_title,尚未開放,Locked
+prep.msg.confirm_btn,確定,OK
+prep.ult.empty,空,Empty
