@@ -556,13 +556,13 @@ func sniper_thief_active() -> bool:
 func store_status_text() -> String:
 	var bits: PackedStringArray = []
 	if _buffs.has("the_world"):
-		bits.append(Loc.t("hud.status.world_stop", [_buffs])["the_world"])
+		bits.append(Loc.t("hud.status.world_stop", [_buffs["the_world"]]))
 	if _buffs.has("yes_my_lord"):
 		bits.append("Yes! My Lord! %.0fs" % _buffs["yes_my_lord"])
 	if _buffs.has("guest_dusk"):
-		bits.append(Loc.t("hud.status.dusk", [_buffs])["guest_dusk"])
+		bits.append(Loc.t("hud.status.dusk", [_buffs["guest_dusk"]]))
 	if _buffs.has("metal_rush"):
-		bits.append(Loc.t("hud.status.metal", [_buffs])["metal_rush"])
+		bits.append(Loc.t("hud.status.metal", [_buffs["metal_rush"]]))
 	if bits.is_empty():
 		return Loc.t("hud.scene.shop_status")
 	return Loc.t("hud.status.prefix_shop") + " · ".join(bits)
@@ -572,33 +572,33 @@ func role_status_text() -> String:
 	var bits: PackedStringArray = []
 	bits.append("STR%d AGI%d INT%d" % [_stat_base("str"), _stat_base("agi"), _stat_base("int")])
 	if _buffs.has("carry_boost"):
-		bits.append(Loc.t("hud.status.carry", [_buffs])["carry_boost"])
+		bits.append(Loc.t("hud.status.carry", [_buffs["carry_boost"]]))
 	if _buffs.has("move_boost"):
-		bits.append(Loc.t("hud.status.move", [_buffs])["move_boost"])
+		bits.append(Loc.t("hud.status.move", [_buffs["move_boost"]]))
 	if _buffs.has("instant_restock"):
-		bits.append(Loc.t("hud.status.instant", [_buffs])["instant_restock"])
+		bits.append(Loc.t("hud.status.instant", [_buffs["instant_restock"]]))
 	if _buffs.has("shelf_sniper"):
-		bits.append(Loc.t("hud.status.sniper_shelf", [_buffs])["shelf_sniper"])
+		bits.append(Loc.t("hud.status.sniper_shelf", [_buffs["shelf_sniper"]]))
 	if _buffs.has("guest_sniper"):
-		bits.append(Loc.t("hud.status.sniper_guest", [_buffs])["guest_sniper"])
+		bits.append(Loc.t("hud.status.sniper_guest", [_buffs["guest_sniper"]]))
 	if _buffs.has("thief_sniper"):
-		bits.append(Loc.t("hud.status.sniper_thief", [_buffs])["thief_sniper"])
+		bits.append(Loc.t("hud.status.sniper_thief", [_buffs["thief_sniper"]]))
 	if _buffs.has("dash_deliver"):
-		bits.append(Loc.t("hud.status.dash_deliver", [_buffs])["dash_deliver"])
+		bits.append(Loc.t("hud.status.dash_deliver", [_buffs["dash_deliver"]]))
 	if _buffs.has("dasher"):
 		bits.append("Dasher %.0fs" % _buffs["dasher"])
 	if _buffs.has("senior_cashier"):
-		bits.append(Loc.t("hud.status.senior", [_buffs])["senior_cashier"])
+		bits.append(Loc.t("hud.status.senior", [_buffs["senior_cashier"]]))
 	if _buffs.has("hoop_ace"):
-		bits.append(Loc.t("hud.status.hoop", [_buffs])["hoop_ace"])
+		bits.append(Loc.t("hud.status.hoop", [_buffs["hoop_ace"]]))
 	if _buffs.has("sweeping_monk"):
-		bits.append(Loc.t("hud.status.monk", [_buffs])["sweeping_monk"])
+		bits.append(Loc.t("hud.status.monk", [_buffs["sweeping_monk"]]))
 	if _sick_left > 0.0:
-		bits.append(Loc.t("hud.status.sick", [_sick_left)])
+		bits.append(Loc.t("hud.status.sick", [_sick_left]))
 	if _fighting:
 		bits.append(Loc.t("hud.status.fighting"))
 	if _stun_left > 0.0:
-		bits.append(Loc.t("hud.status.down", [_stun_left)])
+		bits.append(Loc.t("hud.status.down", [_stun_left]))
 	if _passive_checkout_pct > 0.0:
 		bits.append(Loc.t("hud.status.checkout_pct", [(_passive_checkout_pct * 100.0)]))
 	return Loc.t("hud.status.prefix_role") + " ".join(bits)
@@ -1790,7 +1790,7 @@ func _release_interact() -> void:
 		if _restock_picking and target != null and String(target.get("kind")) == "restock":
 			var sku := String(target.call("commit_pick"))
 			SfxBus.play("sfx_box_sku_confirm")
-			log_line.emit(Loc.t("log.player.restock_set", [Tuning.sku_name(sku))])
+			log_line.emit(Loc.t("log.player.restock_set", [Tuning.sku_name(sku)]))
 		_restock_picking = false
 		_restock_hold = 0.0
 		return
@@ -1844,7 +1844,7 @@ func _take_shelf_piece(shelf: Node2D) -> void:
 	inventory.add_one(sku)
 	_spawn_fx("suck", shelf.global_position)
 	SfxBus.play("sfx_box_pull")
-	log_line.emit(Loc.t("log.player.take_shelf", [Tuning.sku_name(sku))])
+	log_line.emit(Loc.t("log.player.take_shelf", [Tuning.sku_name(sku)]))
 
 
 func _guest_wants_carried(guest: Node) -> bool:
@@ -1901,7 +1901,7 @@ func _begin_must_deliver_aim(sk: Dictionary) -> void:
 	if _must_deliver_ring:
 		_must_deliver_ring.visible = true
 	SfxBus.play("sfx_skill_cast")
-	log_line.emit(Loc.t("log.player.aim_preview", [_must_deliver_name)])
+	log_line.emit(Loc.t("log.player.aim_preview", [_must_deliver_name]))
 
 
 func _cancel_must_deliver_aim() -> void:
@@ -1911,7 +1911,7 @@ func _cancel_must_deliver_aim() -> void:
 	if _must_deliver_ring:
 		_must_deliver_ring.visible = false
 	SfxBus.play("sfx_skill_menu_cancel")
-	log_line.emit(Loc.t("log.player.cancel_named", [_must_deliver_name)])
+	log_line.emit(Loc.t("log.player.cancel_named", [_must_deliver_name]))
 
 
 func _rebuild_must_deliver_ring(radius: float) -> void:
@@ -2010,7 +2010,7 @@ func _cast_must_deliver(lv: int) -> bool:
 		log_line.emit(Loc.t("log.player.must_fail_match"))
 		return false
 	_play_must_deliver_vfx(vfx)
-	log_line.emit(Loc.t("log.player.must_n", [total)])
+	log_line.emit(Loc.t("log.player.must_n", [total]))
 	_deliver_pose_left = 0.4
 	_note_delivery_combo(touched, total)
 	return true
@@ -2137,7 +2137,7 @@ func _cast_summon_guest(lv: int) -> bool:
 	if n <= 0:
 		log_line.emit(Loc.t("log.player.summon_fail_phase"))
 		return false
-	log_line.emit(Loc.t("log.player.summon_n", [n)])
+	log_line.emit(Loc.t("log.player.summon_n", [n]))
 	return true
 
 
@@ -2156,7 +2156,7 @@ func _begin_magneto_aim(sk: Dictionary) -> void:
 	if _magneto_ring:
 		_magneto_ring.visible = true
 	SfxBus.play("sfx_skill_cast")
-	log_line.emit(Loc.t("log.player.aim_preview", [_magneto_name)])
+	log_line.emit(Loc.t("log.player.aim_preview", [_magneto_name]))
 
 
 func _cancel_magneto_aim() -> void:
@@ -2166,7 +2166,7 @@ func _cancel_magneto_aim() -> void:
 	if _magneto_ring:
 		_magneto_ring.visible = false
 	SfxBus.play("sfx_skill_menu_cancel")
-	log_line.emit(Loc.t("log.player.cancel_named", [_magneto_name)])
+	log_line.emit(Loc.t("log.player.cancel_named", [_magneto_name]))
 
 
 func _rebuild_magneto_ring(radius: float) -> void:
@@ -2257,8 +2257,8 @@ func _cast_magneto(lv: int) -> void:
 	var taken_total := flights.size()
 	var game := _game()
 	if game != null and game.has_method("play_skill_banner"):
-		game.call("play_skill_banner", Loc.t("log.player.magneto_n", [taken_total)])
-	log_line.emit(Loc.t("log.player.magneto_n", [taken_total)])
+		game.call("play_skill_banner", Loc.t("log.player.magneto_n", [taken_total]))
+	log_line.emit(Loc.t("log.player.magneto_n", [taken_total]))
 
 
 ## One-by-one fly from pile toward player (visual only; inventory already updated).
@@ -2380,7 +2380,7 @@ func _cast_force_sell(lv: int) -> bool:
 	if before >= 3 and guest.shopping.is_empty():
 		guest.set_meta("combo_cleared_n", before)
 	_interact_release(guest)
-	log_line.emit(Loc.t("log.player.force_n", [taken)])
+	log_line.emit(Loc.t("log.player.force_n", [taken]))
 	_deliver_pose_left = 0.4
 	_note_delivery_combo([guest], taken)
 	return true
@@ -2405,7 +2405,7 @@ func _hand_deliver(guests: Array, penalize_miss: bool) -> int:
 		total += _give_guest(guest)
 	if total > 0:
 		SfxBus.play("sfx_box_hit_guest_ok")
-		log_line.emit(Loc.t("log.player.deliver_n", [total)])
+		log_line.emit(Loc.t("log.player.deliver_n", [total]))
 		_deliver_pose_left = 0.4
 		_note_delivery_combo(guests, total)
 		for g in locked:
@@ -2984,7 +2984,7 @@ func _try_dash_hits() -> void:
 					var gave := _hand_deliver(deliver_targets, false)
 					if gave > 0:
 						_dash_guest_done = true
-						log_line.emit(Loc.t("log.player.dash_deliver", [gave)])
+						log_line.emit(Loc.t("log.player.dash_deliver", [gave]))
 						return
 			var nearest: Node = guests[0]
 			_dash_guest_done = true
@@ -3066,13 +3066,13 @@ func _try_pickup() -> void:
 		return
 	if not bool(target.call("take_box")):
 		SfxBus.play("sfx_box_pull_fail")
-		log_line.emit(Loc.t("log.player.restock_empty", [Tuning.sku_name(String(target.call(])"selected_sku"))))
+		log_line.emit(Loc.t("log.player.restock_empty", [Tuning.sku_name(String(target.call("selected_sku")))]))
 		return
 	var sku := String(target.call("selected_sku"))
 	inventory.take_pieces(sku, 1)
 	_spawn_fx("suck", target.global_position)
 	SfxBus.play("sfx_box_pull")
-	log_line.emit(Loc.t("log.player.pull_instant", [Tuning.sku_name(sku))])
+	log_line.emit(Loc.t("log.player.pull_instant", [Tuning.sku_name(sku)]))
 
 
 func _tick_restock(delta: float) -> void:
@@ -3215,7 +3215,7 @@ func _clear_dirt_in_monk_range() -> void:
 		SfxBus.play("sfx_clean_done")
 		if g.has_method("note_clean"):
 			g.note_clean()
-		log_line.emit(Loc.t("log.player.monk_clear", [name)])
+		log_line.emit(Loc.t("log.player.monk_clear", [name]))
 
 
 func _tick_clean(_delta: float) -> void:
@@ -3244,7 +3244,7 @@ func _tick_clean(_delta: float) -> void:
 	if not _clean_hint:
 		_clean_hint = true
 		SfxBus.play("sfx_clean_start")
-		log_line.emit(Loc.t("log.player.clean_hint", [String(target.call(])"type_name")))
+		log_line.emit(Loc.t("log.player.clean_hint", [String(target.call("type_name"))]))
 	if not bool(target.call("set_cleaning", true, axis, hold_progress * 100.0, seat_id)):
 		## Lost the race to another seat this frame.
 		_clean_hint = false
@@ -3263,7 +3263,7 @@ func _tick_clean(_delta: float) -> void:
 		var game := _game()
 		if game and game.has_method("note_clean"):
 			game.note_clean(seat_id)
-		log_line.emit(Loc.t("log.player.clean_done", [name)])
+		log_line.emit(Loc.t("log.player.clean_done", [name]))
 
 
 func _tick_drop() -> void:
@@ -3435,9 +3435,9 @@ func _finish_checkout(cust) -> void:
 	_checkout_had_miss = false
 	SfxBus.play("sfx_checkout_circle_done")
 	if from_elite:
-		log_line.emit(Loc.t("log.player.elite_pay", [amount)])
+		log_line.emit(Loc.t("log.player.elite_pay", [amount]))
 	else:
-		log_line.emit(Loc.t("log.player.pay_done", [amount)])
+		log_line.emit(Loc.t("log.player.pay_done", [amount]))
 	_spawn_dollar()
 	cust.finish_paid()
 	if target:
@@ -3656,12 +3656,12 @@ func _on_ult_hold(pressed: bool) -> void:
 			log_line.emit(Loc.t("log.player.no_ult"))
 			return
 		if bool(ult.get("unimplemented", false)):
-			log_line.emit(Loc.t("log.player.demo_no_cd", [String(ult.get(])"name")))
+			log_line.emit(Loc.t("log.player.demo_no_cd", [String(ult.get("name"))]))
 			return
 		var ult_id := String(ult.get("id"))
 		if cd_left(ult_id) > 0.05:
 			SfxBus.play("sfx_skill_cd_deny")
-			log_line.emit(Loc.t("log.player.ult_cd", [cd_left(ult_id))])
+			log_line.emit(Loc.t("log.player.ult_cd", [cd_left(ult_id)]))
 			return
 		_u_held = true
 		ult_prep = true
@@ -3674,7 +3674,7 @@ func _on_ult_hold(pressed: bool) -> void:
 		_prompt.sequence = seq
 		_prompt.index = 0
 		_prompt.fail_at = -1
-		log_line.emit(Loc.t("log.player.ult_prep", [String(_ult_sk().get(])"name")))
+		log_line.emit(Loc.t("log.player.ult_prep", [String(_ult_sk().get("name"))]))
 		return
 	if ult_prep:
 		SfxBus.play("sfx_ult_cancel")
@@ -3716,10 +3716,10 @@ func _cast_slot(i: int) -> void:
 	if sk.is_empty():
 		return
 	if bool(sk.get("unimplemented", false)):
-		log_line.emit(Loc.t("log.player.demo_no_cd", [String(sk.get(])"name")))
+		log_line.emit(Loc.t("log.player.demo_no_cd", [String(sk.get("name"))]))
 		return
 	if String(sk.get("kind")) != "active":
-		log_line.emit(Loc.t("log.player.passive", [String(sk.get(])"name")))
+		log_line.emit(Loc.t("log.player.passive", [String(sk.get("name"))]))
 		return
 	var sid := String(sk.get("id"))
 	if cd_left(sid) > 0.05:
@@ -3912,7 +3912,7 @@ func _cast_ultimate() -> void:
 		_prompt.active = false
 		return
 	if bool(sk.get("unimplemented", false)):
-		log_line.emit(Loc.t("log.player.demo_missing", [String(sk.get(])"name")))
+		log_line.emit(Loc.t("log.player.demo_missing", [String(sk.get("name"))]))
 		_prompt.active = false
 		return
 	var sid := String(sk.get("id"))
@@ -3924,7 +3924,7 @@ func _cast_ultimate() -> void:
 		if game and game.has_method("cast_fundraise"):
 			game.call("cast_fundraise", lv)
 		SfxBus.play("sfx_ult_fundraise")
-		log_line.emit(Loc.t("log.player.ult_fundraise", [lv)])
+		log_line.emit(Loc.t("log.player.ult_fundraise", [lv]))
 		_begin_cast_pose(true)
 		skill_cast.emit(String(sk.get("name")), true)
 		_play_zoom(true)
@@ -3946,7 +3946,7 @@ func _cast_ultimate() -> void:
 			dusk_ok = bool(game.call("cast_guest_dusk"))
 		if dusk_ok:
 			_buffs[sid] = Skills.GUEST_DUSK_DURATION
-			log_line.emit(Loc.t("log.player.ult_dusk", [Skills.GUEST_DUSK_COUNT)])
+			log_line.emit(Loc.t("log.player.ult_dusk", [Skills.GUEST_DUSK_COUNT]))
 		else:
 			_buffs.erase(sid)
 			log_line.emit(Loc.t("log.player.ult_dusk_closed"))

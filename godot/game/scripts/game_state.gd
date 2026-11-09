@@ -553,7 +553,7 @@ func expand() -> String:
 		return Loc.t("err.max_scale")
 	var nxt := shop_scale + 1
 	if level < int(SCALE_NEED_LV[nxt]):
-		return Loc.t("err.need_level", [int(SCALE_NEED_LV])[nxt])
+		return Loc.t("err.need_level", [int(SCALE_NEED_LV[nxt])])
 	var price := int(SCALE_COST[nxt])
 	if money < price:
 		return Loc.t("err.funds")

@@ -1887,7 +1887,7 @@ func _finish_day() -> void:
 			head = Loc.t("demo.closeout_test")
 		var bonus := Loc.t("settle.test_bonus", [_skip_xp]) if _skip_xp > 0 else ""
 		var save_line := Loc.t("settle.saved") if save_err == "" else (Loc.t("settle.save_fail_prefix") + save_err)
-		var xp_line := Loc.t("settle.host_xp", [int(result["xp"])), bonus, state.level_note]
+		var xp_line := Loc.t("settle.host_xp", [int(result["xp"]), bonus, state.level_note])
 		if SeatTable.is_coop():
 			xp_line = Loc.t("settle.split_xp", [
 				shared_xp, bonus, state.level_note, guest_xp_line
@@ -2509,7 +2509,7 @@ func _resolve_toss_guest(guest: Node2D, dest: Vector2, sku: String, n: int) -> v
 			_player.log_line.emit(
 				Loc.t("log.demo.toss_guest_ok", [
 					Tuning.sku_name(sku), taken,
-					(Loc.t("log.demo.toss_remain", [left)]) if left > 0 else "",
+					(Loc.t("log.demo.toss_remain", [left]) if left > 0 else ""),
 				])
 			)
 		if left > 0:
