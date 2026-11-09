@@ -14,6 +14,11 @@ pause.virtual_stick_off,觸控搖桿：關,Touch stick: Off,触控摇杆：关,�
 pause.camera_normal,鏡頭：正常,Camera: Normal,镜头：正常,カメラ：標準
 pause.camera_far,鏡頭：稍遠,Camera: Farther,镜头：稍远,カメラ：少し遠い
 pause.camera_overview,鏡頭：全地圖,Camera: Full map,镜头：全地图,カメラ：全体図
+pause.language,語言：%s,Language: %s,语言：%s,言語：%s
+locale.name.zh_TW,繁體中文,繁體中文,繁體中文,繁體中文
+locale.name.en,English,English,English,English
+locale.name.zh_CN,简体中文,简体中文,简体中文,简体中文
+locale.name.ja,日本語,日本語,日本語,日本語
 early.title,提早關店,Close early,提早关店,早めに閉店
 early.body,所有補貨架都沒有貨了，收銀機也沒有人排隊。\n要提早關店，並結算今天嗎？,All restock points are empty and no one is queued.\nClose early and settle today?,所有补货架都没有货了，收银机也没有人排队。\n要提早关店，并结算今天吗？,すべての補充ポイントが空で、誰も並んでいません。\n早めに閉店して今日を精算しますか？
 early.hint,A／D 選擇　　J 確定　　; 取消,A/D select · J confirm · ; cancel,A／D 选择　　J 确定　　; 取消,A／D 選択　　J 決定　　; キャンセル
@@ -71,6 +76,7 @@ prep.rating.day_ago,%d 日前,%d day(s) ago,%d 日前,%d 日前
 prep.rating.row,%s　第 %d 日　%s（評級 %+d）,%s · Day %d · %s (grade %+d),%s　第 %d 日　%s（评级 %+d）,%s　第 %d 日　%s（評級 %+d）
 prep.sys.virtual_stick_on,觸控搖桿：開,Touch stick: On,触控摇杆：开,タッチスティック：オン
 prep.sys.virtual_stick_off,觸控搖桿：關,Touch stick: Off,触控摇杆：关,タッチスティック：オフ
+prep.sys.language,語言：%s,Language: %s,语言：%s,言語：%s
 prep.home.stats,角色能力,Stats,角色能力,キャラ能力
 prep.home.skills,裝備技能,Skills,装备技能,スキル装備
 prep.home.skills_short,裝備技能,Skills,装备技能,スキル装備

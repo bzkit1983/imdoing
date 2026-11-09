@@ -20,6 +20,8 @@ Keys must be unique across **both** files. Runtime merges them in `Loc`.
 | `zh_CN` | Simplified Chinese (glyphs + retained flavor) |
 | `ja` | Japanese UI / game copy |
 
+In-game: Pause / Prep System tools → `PlatformServices.cycle_locale()` (`[ui] locale`).
+Endonyms (same text in every column): `locale.name.zh_TW` / `.en` / `.zh_CN` / `.ja`.
 Smoke: `Loc.set_locale("zh_CN")` / `"ja"` / `"en"` / `"zh_TW"`.
 
 ## Prefixes

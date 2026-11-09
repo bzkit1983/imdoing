@@ -20,7 +20,12 @@ var _key_sources: Dictionary = {} ## key -> table path (duplicate detection)
 
 func _ready() -> void:
 	reload()
-	set_locale(DEFAULT_LOCALE)
+	# Prefer persisted [ui] locale from PlatformServices (autoload before Loc).
+	var pref := DEFAULT_LOCALE
+	var ps := get_node_or_null("/root/PlatformServices")
+	if ps != null and ps.has_method("get_locale"):
+		pref = String(ps.call("get_locale"))
+	set_locale(pref)
 
 
 func reload() -> void:

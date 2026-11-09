@@ -14,6 +14,7 @@ const SETTINGS_PATH := "user://settings.cfg"
 const SETTINGS_SECTION := "ui"
 const SETTINGS_VIRTUAL_STICK := "virtual_stick"
 const SETTINGS_CAMERA_VIEW := "camera_view"
+const SETTINGS_LOCALE := "locale"
 
 const CAMERA_VIEW_NORMAL := "normal"
 const CAMERA_VIEW_FAR := "far"
@@ -23,6 +24,9 @@ const CAMERA_VIEW_CYCLE: Array[String] = [
 	CAMERA_VIEW_FAR,
 	CAMERA_VIEW_OVERVIEW,
 ]
+## Fallback allow-list before Loc finishes loading CSV headers.
+const LOCALE_FALLBACK_CYCLE: Array[String] = ["zh_TW", "en", "zh_CN", "ja"]
+const DEFAULT_LOCALE := "zh_TW"
 
 signal suspended
 signal resumed
@@ -38,6 +42,8 @@ var _backend = DesktopPlatform.new()
 var _virtual_stick: bool = false
 ## Shop camera framing: normal | far | overview. Persists across days.
 var _camera_view: String = CAMERA_VIEW_NORMAL
+## UI language code (CSV locale). Persists across sessions; Loc applies at boot.
+var _locale: String = DEFAULT_LOCALE
 
 
 func _ready() -> void:
@@ -145,6 +151,30 @@ func cycle_camera_view() -> String:
 	return _camera_view
 
 
+func get_locale() -> String:
+	return _locale
+
+
+func set_locale(code: String) -> void:
+	var next := _normalize_locale(code)
+	if next == _locale:
+		_apply_loc_locale(next)
+		return
+	_locale = next
+	_save_ui_settings()
+	_apply_loc_locale(_locale)
+
+
+func cycle_locale() -> String:
+	var cycle := _locale_cycle()
+	var i := cycle.find(_locale)
+	if i < 0:
+		i = 0
+	var next := cycle[(i + 1) % cycle.size()]
+	set_locale(next)
+	return _locale
+
+
 func wants_focus_ui() -> bool:
 	var profile := get_ui_profile()
 	return profile == "gamepad" or profile == "tv"
@@ -157,6 +187,37 @@ func _normalize_camera_view(mode: String) -> String:
 	return CAMERA_VIEW_NORMAL
 
 
+func _locale_cycle() -> Array[String]:
+	var out: Array[String] = []
+	var loc_node := get_node_or_null("/root/Loc")
+	if loc_node != null and loc_node.has_method("locales"):
+		var packed: PackedStringArray = loc_node.call("locales")
+		for code in packed:
+			var c := String(code).strip_edges()
+			if c != "" and c not in out:
+				out.append(c)
+	if out.is_empty():
+		for code in LOCALE_FALLBACK_CYCLE:
+			out.append(code)
+	return out
+
+
+func _normalize_locale(code: String) -> String:
+	var m := String(code).strip_edges()
+	var cycle := _locale_cycle()
+	if m in cycle:
+		return m
+	return DEFAULT_LOCALE
+
+
+func _apply_loc_locale(code: String) -> void:
+	var loc_node := get_node_or_null("/root/Loc")
+	if loc_node != null and loc_node.has_method("set_locale"):
+		if String(loc_node.call("get_locale")) == code:
+			return
+		loc_node.call("set_locale", code)
+
+
 func _load_ui_settings() -> void:
 	var cf := ConfigFile.new()
 	if cf.load(SETTINGS_PATH) != OK:
@@ -165,6 +226,7 @@ func _load_ui_settings() -> void:
 	_camera_view = _normalize_camera_view(
 		String(cf.get_value(SETTINGS_SECTION, SETTINGS_CAMERA_VIEW, CAMERA_VIEW_NORMAL))
 	)
+	_locale = _normalize_locale(String(cf.get_value(SETTINGS_SECTION, SETTINGS_LOCALE, DEFAULT_LOCALE)))
 
 
 func _save_ui_settings() -> void:
@@ -172,6 +234,7 @@ func _save_ui_settings() -> void:
 	cf.load(SETTINGS_PATH)
 	cf.set_value(SETTINGS_SECTION, SETTINGS_VIRTUAL_STICK, _virtual_stick)
 	cf.set_value(SETTINGS_SECTION, SETTINGS_CAMERA_VIEW, _camera_view)
+	cf.set_value(SETTINGS_SECTION, SETTINGS_LOCALE, _locale)
 	cf.save(SETTINGS_PATH)
 
 
