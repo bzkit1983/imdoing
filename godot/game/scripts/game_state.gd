@@ -23,23 +23,24 @@ const SCALE_COST := {2: 3000, 3: 6000}
 const SCALE_NEED_LV := {2: 4, 3: 7}
 const HIRE_CAP := {1: 0, 2: 1, 3: 2}
 
+## Display names live in locale/data.csv (`furniture.<id>`).
 const FURNITURE := {
-	"cashier": {"name": "收銀機", "price": 1000, "w": 2, "h": 1, "unlock": 1},
-	"restock_dry": {"name": "乾貨補貨架", "price": 500, "w": 2, "h": 2, "unlock": 1},
-	"restock_frozen": {"name": "凍櫃補貨架", "price": 700, "w": 2, "h": 2, "unlock": 4},
-	"restock_ice": {"name": "冰櫃補貨架", "price": 800, "w": 2, "h": 2, "unlock": 7},
-	"shelf_dry_4": {"name": "乾貨類貨架（4件）", "price": 40, "w": 2, "h": 1, "unlock": 1, "cap": 4},
-	"shelf_dry_8": {"name": "乾貨類貨架（8件）", "price": 70, "w": 2, "h": 1, "unlock": 1, "cap": 8},
-	"shelf_dry_12": {"name": "乾貨類貨架（12件）", "price": 100, "w": 2, "h": 1, "unlock": 1, "cap": 12},
-	"shelf_dry_24": {"name": "乾貨類貨架（24件）", "price": 200, "w": 2, "h": 1, "unlock": 1, "cap": 24},
-	"shelf_frozen_4": {"name": "凍櫃類貨架（4件）", "price": 70, "w": 2, "h": 1, "unlock": 4, "cap": 4},
-	"shelf_frozen_8": {"name": "凍櫃類貨架（8件）", "price": 130, "w": 2, "h": 1, "unlock": 4, "cap": 8},
-	"shelf_frozen_12": {"name": "凍櫃類貨架（12件）", "price": 200, "w": 2, "h": 1, "unlock": 4, "cap": 12},
-	"shelf_frozen_24": {"name": "凍櫃類貨架（24件）", "price": 400, "w": 2, "h": 1, "unlock": 4, "cap": 24},
-	"shelf_ice_4": {"name": "冰櫃類貨架（4件）", "price": 100, "w": 2, "h": 1, "unlock": 7, "cap": 4},
-	"shelf_ice_8": {"name": "冰櫃類貨架（8件）", "price": 200, "w": 2, "h": 1, "unlock": 7, "cap": 8},
-	"shelf_ice_12": {"name": "冰櫃類貨架（12件）", "price": 300, "w": 2, "h": 1, "unlock": 7, "cap": 12},
-	"shelf_ice_24": {"name": "冰櫃類貨架（24件）", "price": 600, "w": 2, "h": 1, "unlock": 7, "cap": 24},
+	"cashier": {"price": 1000, "w": 2, "h": 1, "unlock": 1},
+	"restock_dry": {"price": 500, "w": 2, "h": 2, "unlock": 1},
+	"restock_frozen": {"price": 700, "w": 2, "h": 2, "unlock": 4},
+	"restock_ice": {"price": 800, "w": 2, "h": 2, "unlock": 7},
+	"shelf_dry_4": {"price": 40, "w": 2, "h": 1, "unlock": 1, "cap": 4},
+	"shelf_dry_8": {"price": 70, "w": 2, "h": 1, "unlock": 1, "cap": 8},
+	"shelf_dry_12": {"price": 100, "w": 2, "h": 1, "unlock": 1, "cap": 12},
+	"shelf_dry_24": {"price": 200, "w": 2, "h": 1, "unlock": 1, "cap": 24},
+	"shelf_frozen_4": {"price": 70, "w": 2, "h": 1, "unlock": 4, "cap": 4},
+	"shelf_frozen_8": {"price": 130, "w": 2, "h": 1, "unlock": 4, "cap": 8},
+	"shelf_frozen_12": {"price": 200, "w": 2, "h": 1, "unlock": 4, "cap": 12},
+	"shelf_frozen_24": {"price": 400, "w": 2, "h": 1, "unlock": 4, "cap": 24},
+	"shelf_ice_4": {"price": 100, "w": 2, "h": 1, "unlock": 7, "cap": 4},
+	"shelf_ice_8": {"price": 200, "w": 2, "h": 1, "unlock": 7, "cap": 8},
+	"shelf_ice_12": {"price": 300, "w": 2, "h": 1, "unlock": 7, "cap": 12},
+	"shelf_ice_24": {"price": 600, "w": 2, "h": 1, "unlock": 7, "cap": 24},
 }
 
 var scenario: int = 1
@@ -644,7 +645,13 @@ func cycle_register(index: int) -> void:
 
 
 func default_skill_set_name(i: int) -> String:
-	return "自訂技能組合%d" % [i + 1]
+	return Loc.t("skill_set.default", [i + 1])
+
+
+func furniture_name(type: String) -> String:
+	if type == "" or not FURNITURE.has(type):
+		return type
+	return Loc.t("furniture.%s" % type)
 
 
 func skill_set_name(i: int) -> String:
@@ -831,7 +838,7 @@ func ult_of(set_i: int) -> Dictionary:
 		return {}
 	var sk := Skills.by_id(id)
 	if sk.is_empty() or String(sk.get("kind")) != "ultimate":
-		return Skills.ULTIMATE
+		return Skills.localize(Skills.ULTIMATE)
 	return sk
 
 

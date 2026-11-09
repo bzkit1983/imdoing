@@ -480,7 +480,12 @@ func _skill_cd_text_all() -> String:
 func _skill_cd_text_for(p: CharacterBody2D, prefix: String) -> String:
 	if p == null:
 		return ""
-	var equipped: Array = p.call("_loadout") if p.has_method("_loadout") else Skills.EQUIPPED
+	var equipped: Array = []
+	if p.has_method("_loadout"):
+		equipped = p.call("_loadout")
+	else:
+		for raw in Skills.EQUIPPED:
+			equipped.append(Skills.localize(raw))
 	var bits: PackedStringArray = []
 	for i in equipped.size():
 		var sk: Dictionary = equipped[i]
@@ -492,7 +497,9 @@ func _skill_cd_text_for(p: CharacterBody2D, prefix: String) -> String:
 			bits.append("%d:P" % i)
 		else:
 			bits.append("%d:%s" % [i, _skill_cd_fp_bit(float(p.call("cd_left", sid)))])
-	var ult: Dictionary = p.call("_ult_sk") if p.has_method("_ult_sk") else Skills.ULTIMATE
+	var ult: Dictionary = (
+		p.call("_ult_sk") if p.has_method("_ult_sk") else Skills.localize(Skills.ULTIMATE)
+	)
 	var ult_id := String(ult.get("id", ""))
 	if ult_id == "":
 		bits.append("U:-")

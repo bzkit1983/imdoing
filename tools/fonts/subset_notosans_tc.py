@@ -72,25 +72,26 @@ def _unescape_gd(s: str) -> str:
 
 
 def _harvest_locale_csv(chars: set[str]) -> None:
-	"""Include zh_TW (and key) columns from the runtime Loc table."""
-	csv_path = GAME / "locale" / "strings.csv"
-	if not csv_path.is_file():
+	"""Include zh_TW columns from Loc tables (UI strings.csv + content data.csv)."""
+	locale_dir = GAME / "locale"
+	if not locale_dir.is_dir():
 		return
-	try:
-		text = csv_path.read_text(encoding="utf-8")
-	except UnicodeDecodeError:
-		return
-	# CSV: key,zh_TW,en — take first two fields so Loc.t() CJK is never skipped.
-	for i, line in enumerate(text.splitlines()):
-		if i == 0 and line.startswith("key"):
+	for csv_path in sorted(locale_dir.glob("*.csv")):
+		try:
+			text = csv_path.read_text(encoding="utf-8")
+		except UnicodeDecodeError:
 			continue
-		# Naive split is wrong for quoted commas; pull CJK from the whole line
-		# plus the unquoted zh_TW field when simple.
-		chars.update(line)
-		parts = line.split(",", 2)
-		if len(parts) >= 2:
-			chars.update(parts[0])
-			chars.update(parts[1].strip('"'))
+		# CSV: key,zh_TW,en — take first two fields so Loc.t() CJK is never skipped.
+		for i, line in enumerate(text.splitlines()):
+			if i == 0 and line.startswith("key"):
+				continue
+			# Naive split is wrong for quoted commas; pull CJK from the whole line
+			# plus the unquoted zh_TW field when simple.
+			chars.update(line)
+			parts = line.split(",", 2)
+			if len(parts) >= 2:
+				chars.update(parts[0])
+				chars.update(parts[1].strip('"'))
 
 
 def harvest_chars() -> str:

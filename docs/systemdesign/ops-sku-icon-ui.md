@@ -27,7 +27,7 @@
 
 ## 2. SKU 圖示一覽（現行 9 種）
 
-來源：`tuning.gd` `SELLABLE_SKUS`／`SKU_NAME`／`SKU_COLOR`。
+來源：`tuning.gd` `SELLABLE_SKUS`／`SKU_IDS`／`SKU_COLOR`；顯示名見 `locale/data.csv`（`sku.*`）。
 
 | id | 中文名 | 類別 | 現行調色（參考） | 剪影建議（臨時／示意） | 辨識要點 |
 | --- | --- | --- | --- | --- | --- |

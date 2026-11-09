@@ -520,10 +520,11 @@ static func _furn(menu: CanvasLayer) -> void:
 	menu._info.text = menu._pair(menu._header(), menu._msg if menu._msg != "" else Loc.t("prep.furn.info"))
 	for type in menu.state.FURNITURE.keys():
 		var spec: Dictionary = menu.state.FURNITURE[type]
+		var fname := menu.state.furniture_name(type)
 		if not menu.state.furniture_unlocked(type):
-			menu._add("%s　LV%d 開放　$%d" % [spec["name"], int(spec["unlock"]), int(spec["price"])], "locked_furn", type)
+			menu._add("%s　LV%d 開放　$%d" % [fname, int(spec["unlock"]), int(spec["price"])], "locked_furn", type)
 		else:
-			menu._add("購入 %s　$%d　擁有 %d　未放置 %d" % [spec["name"], int(spec["price"]), int(menu.state.owned.get(type, 0)), menu.state.unplaced(type)], "buy_f", type)
+			menu._add("購入 %s　$%d　擁有 %d　未放置 %d" % [fname, int(spec["price"]), int(menu.state.owned.get(type, 0)), menu.state.unplaced(type)], "buy_f", type)
 	menu._add(Loc.t("prep.back"), "go", "hub_shop")
 
 
@@ -552,7 +553,7 @@ static func _layout(menu: CanvasLayer) -> void:
 			cur = Tuning.sku_name(String(list[cidx]))
 		menu._info.text = Loc.t("prep.layout.sku_pick", [cur])
 	elif menu._hold_type != "":
-		menu._info.text = Loc.t("prep.layout.holding", [menu.state.FURNITURE[menu._hold_type]["name"]])
+		menu._info.text = Loc.t("prep.layout.holding", [menu.state.furniture_name(menu._hold_type)])
 	elif menu._msg != "":
 		menu._info.text = menu._msg
 	else:
@@ -573,7 +574,7 @@ static func _layout(menu: CanvasLayer) -> void:
 	for type in menu.state.FURNITURE.keys():
 		var n: int = int(menu.state.unplaced(type))
 		if n > 0:
-			menu._add("拖放 %s　×%d" % [menu.state.FURNITURE[type]["name"], n], "hold", type)
+			menu._add("拖放 %s　×%d" % [menu.state.furniture_name(type), n], "hold", type)
 	menu._add(Loc.t("prep.layout.focus_map"), "map_focus", null)
 	menu._add(Loc.t("prep.back"), "go", "hub_shop")
 	## Re-clamp after children (VBox min-size must not push into the ItemList).

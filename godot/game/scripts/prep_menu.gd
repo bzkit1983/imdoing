@@ -1023,7 +1023,7 @@ func _locked_sku_body(sku: String) -> String:
 
 func _popup_locked_furn(type: String) -> void:
 	var spec: Dictionary = state.FURNITURE[type]
-	_popup_info("尚未開放", "%s要角色 LV%d 才開放購入，現在是 LV%d。" % [spec["name"], int(spec["unlock"]), state.level])
+	_popup_info("尚未開放", "%s要角色 LV%d 才開放購入，現在是 LV%d。" % [state.furniture_name(type), int(spec["unlock"]), state.level])
 
 
 func _funds_line(what: String, price: int) -> String:
@@ -1060,7 +1060,7 @@ func _ask_buy() -> void:
 
 func _ask_furniture(type: String) -> void:
 	var spec: Dictionary = state.FURNITURE[type]
-	var name := String(spec["name"])
+	var name := state.furniture_name(type)
 	if not state.furniture_unlocked(type):
 		_popup_locked_furn(type)
 		return
@@ -1137,7 +1137,7 @@ func _run_pending(pending: Dictionary) -> void:
 				_popup_info("不能購入", msg3)
 			else:
 				SfxBus.play("sfx_ui_purchase")
-				_msg = "已購入 %s" % String(state.FURNITURE[type]["name"])
+				_msg = "已購入 %s" % state.furniture_name(type)
 				_refresh()
 		"expand":
 			var msg4 := state.expand()

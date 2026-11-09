@@ -1,9 +1,13 @@
 extends Node
-## Runtime string table for i18n. Source: res://locale/strings.csv
+## Runtime string table for i18n.
+## Sources: res://locale/strings.csv (UI) + res://locale/data.csv (game content).
 ## Usage: Loc.t("pause.title")  or  Loc.t("hud.revenue", [rev, stolen])
 ## Default locale follows project fallback (zh_TW). Steam / EN later: Loc.set_locale("en").
 
-const TABLE_PATH := "res://locale/strings.csv"
+const TABLE_PATHS: Array[String] = [
+	"res://locale/strings.csv",
+	"res://locale/data.csv",
+]
 const DEFAULT_LOCALE := "zh_TW"
 
 signal locale_changed(code: String)
@@ -11,6 +15,7 @@ signal locale_changed(code: String)
 var _locale: String = DEFAULT_LOCALE
 var _tables: Dictionary = {} ## locale -> Dictionary[String, String]
 var _locales: PackedStringArray = PackedStringArray()
+var _key_sources: Dictionary = {} ## key -> table path (duplicate detection)
 
 
 func _ready() -> void:
@@ -21,23 +26,30 @@ func _ready() -> void:
 func reload() -> void:
 	_tables.clear()
 	_locales = PackedStringArray()
-	if not FileAccess.file_exists(TABLE_PATH):
-		push_warning("Loc: missing %s" % TABLE_PATH)
+	_key_sources.clear()
+	for path in TABLE_PATHS:
+		_load_table(path)
+
+
+func _load_table(path: String) -> void:
+	if not FileAccess.file_exists(path):
+		push_warning("Loc: missing %s" % path)
 		return
-	var f := FileAccess.open(TABLE_PATH, FileAccess.READ)
+	var f := FileAccess.open(path, FileAccess.READ)
 	if f == null:
-		push_warning("Loc: cannot open %s" % TABLE_PATH)
+		push_warning("Loc: cannot open %s" % path)
 		return
 	var header := _parse_csv_line(f.get_line())
 	if header.is_empty() or header[0] != "key":
-		push_warning("Loc: CSV must start with key,<locale>,...")
+		push_warning("Loc: CSV must start with key,<locale>,... (%s)" % path)
 		return
 	for i in range(1, header.size()):
 		var loc := String(header[i]).strip_edges()
 		if loc == "":
 			continue
-		_locales.append(loc)
-		_tables[loc] = {}
+		if not _tables.has(loc):
+			_locales.append(loc)
+			_tables[loc] = {}
 	while not f.eof_reached():
 		var line := f.get_line()
 		if line.strip_edges() == "" or line.begins_with("#"):
@@ -48,6 +60,10 @@ func reload() -> void:
 		var key := String(cols[0]).strip_edges()
 		if key == "":
 			continue
+		if _key_sources.has(key):
+			push_error("Loc: duplicate key '%s' in %s (also in %s)" % [key, path, _key_sources[key]])
+			continue
+		_key_sources[key] = path
 		for i in range(1, mini(cols.size(), header.size())):
 			var loc := String(header[i]).strip_edges()
 			if loc == "" or not _tables.has(loc):
