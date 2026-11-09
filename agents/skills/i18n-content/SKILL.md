@@ -43,5 +43,8 @@ Add a column to **both** CSV headers and fill every row. `Loc` loads locales fro
 
 ## Out of scope
 
-- In-game language picker UI (product task).
 - Translating internal designer notes (e.g. SFX catalog trigger labels) unless they become player-visible.
+
+## Language switching (shipped)
+
+Players cycle locales in **Pause → Language** and **Prep → System tools** via `PlatformServices.cycle_locale()` (`[ui] locale` in `user://settings.cfg`). Endonym labels use `locale.name.<code>` (same text in every CSV column).

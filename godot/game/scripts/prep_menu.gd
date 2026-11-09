@@ -933,6 +933,8 @@ func _activate() -> void:
 			_grant_test_money()
 		"toggle_virtual_stick":
 			_toggle_virtual_stick()
+		"cycle_locale":
+			_cycle_locale()
 		"play_sfx":
 			SfxBus.play(String(arg))
 		"noop":
@@ -946,6 +948,14 @@ func _toggle_virtual_stick() -> void:
 	SfxBus.play("sfx_ui_confirm")
 	_msg = Loc.t("prep.sys.virtual_stick_on" if on else "prep.sys.virtual_stick_off")
 	## Visibility updates via InputMode.show_vj_changed → demo._on_show_vj_changed.
+	_refresh()
+
+
+func _cycle_locale() -> void:
+	PlatformServices.cycle_locale()
+	SfxBus.play("sfx_ui_confirm")
+	var lang_name := Loc.t("locale.name.%s" % Loc.get_locale())
+	_msg = Loc.t("prep.sys.language", [lang_name])
 	_refresh()
 
 

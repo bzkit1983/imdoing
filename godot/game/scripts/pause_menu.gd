@@ -12,8 +12,9 @@ const FOCUS_SFX := 1
 const FOCUS_VOL := 2
 const FOCUS_STICK := 3
 const FOCUS_CAMERA := 4
-const FOCUS_END := 5
-const FOCUS_COUNT := 6
+const FOCUS_LANG := 5
+const FOCUS_END := 6
+const FOCUS_COUNT := 7
 
 var game: Node
 var _open: bool = false
@@ -34,6 +35,7 @@ const STICK_UI_DEAD := 0.55
 @onready var _vol_up: Button = %VolUpBtn
 @onready var _stick_btn: Button = %StickBtn
 @onready var _camera_btn: Button = %CameraBtn
+@onready var _lang_btn: Button = %LangBtn
 @onready var _end_btn: Button = %EndDayBtn
 
 
@@ -49,7 +51,7 @@ func setup(host: Node) -> void:
 	_body.add_theme_color_override("font_color", Color("f4f1ea"))
 	UiFont.apply_label(_hint, 20)
 	_hint.add_theme_color_override("font_color", Color("c8c2b4"))
-	for b in [_resume_btn, _sfx_btn, _vol_btn, _vol_down, _vol_up, _stick_btn, _camera_btn, _end_btn]:
+	for b in [_resume_btn, _sfx_btn, _vol_btn, _vol_down, _vol_up, _stick_btn, _camera_btn, _lang_btn, _end_btn]:
 		UiFont.apply_button(b, 22)
 		b.focus_mode = Control.FOCUS_NONE
 	_resume_btn.pressed.connect(_on_resume)
@@ -59,17 +61,21 @@ func setup(host: Node) -> void:
 	_vol_up.pressed.connect(_on_vol_nudge.bind(1))
 	_stick_btn.pressed.connect(_on_stick_toggle)
 	_camera_btn.pressed.connect(_on_camera_cycle)
+	_lang_btn.pressed.connect(_on_language_cycle)
 	_end_btn.pressed.connect(_on_end_day)
 	_paint_focus()
 	_refresh_audio_labels()
 	_refresh_stick_row()
 	_refresh_camera_row()
+	_refresh_lang_row()
 	if not PlatformServices.pause_menu_requested.is_connected(_on_platform_pause_requested):
 		PlatformServices.pause_menu_requested.connect(_on_platform_pause_requested)
 	if not PlatformServices.suspended.is_connected(_on_platform_suspended):
 		PlatformServices.suspended.connect(_on_platform_suspended)
 	if not PlatformServices.resumed.is_connected(_on_platform_resumed):
 		PlatformServices.resumed.connect(_on_platform_resumed)
+	if not Loc.locale_changed.is_connected(_on_locale_changed):
+		Loc.locale_changed.connect(_on_locale_changed)
 
 
 func is_open() -> bool:
@@ -153,6 +159,7 @@ func _refresh_copy() -> void:
 	_refresh_audio_labels()
 	_refresh_stick_row()
 	_refresh_camera_row()
+	_refresh_lang_row()
 
 
 func _refresh_audio_labels() -> void:
@@ -174,6 +181,12 @@ func _on_platform_resumed() -> void:
 	if _open:
 		_from_suspend = true
 		_refresh_copy()
+
+
+func _on_locale_changed(_code: String) -> void:
+	if _open:
+		_refresh_copy()
+		_paint_focus()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -247,23 +260,36 @@ func _refresh_camera_row() -> void:
 	_layout_option_rows()
 
 
+func _refresh_lang_row() -> void:
+	if _lang_btn == null:
+		return
+	var code := Loc.get_locale()
+	var endonym := Loc.t("locale.name.%s" % code)
+	_lang_btn.text = Loc.t("pause.language", [endonym])
+	_layout_option_rows()
+
+
 func _layout_option_rows() -> void:
-	if _end_btn == null or _camera_btn == null:
+	if _end_btn == null or _camera_btn == null or _lang_btn == null:
 		return
 	var stick_on := _stick_btn != null and _stick_btn.visible
-	## Rows: stick (optional) → camera → end day.
+	## Rows: stick (optional) → camera → language → end day.
 	if stick_on:
 		_stick_btn.offset_top = 472.0
 		_stick_btn.offset_bottom = 544.0
 		_camera_btn.offset_top = 558.0
 		_camera_btn.offset_bottom = 630.0
-		_end_btn.offset_top = 644.0
-		_end_btn.offset_bottom = 716.0
+		_lang_btn.offset_top = 644.0
+		_lang_btn.offset_bottom = 716.0
+		_end_btn.offset_top = 730.0
+		_end_btn.offset_bottom = 802.0
 	else:
 		_camera_btn.offset_top = 472.0
 		_camera_btn.offset_bottom = 544.0
-		_end_btn.offset_top = 558.0
-		_end_btn.offset_bottom = 630.0
+		_lang_btn.offset_top = 558.0
+		_lang_btn.offset_bottom = 630.0
+		_end_btn.offset_top = 644.0
+		_end_btn.offset_bottom = 716.0
 
 
 func _move_focus(delta: int) -> void:
@@ -293,6 +319,8 @@ func _activate_focus() -> void:
 			_on_stick_toggle()
 		FOCUS_CAMERA:
 			_on_camera_cycle()
+		FOCUS_LANG:
+			_on_language_cycle()
 		FOCUS_END:
 			SfxBus.play("sfx_ui_confirm")
 			_on_end_day()
@@ -347,6 +375,14 @@ func _on_camera_cycle() -> void:
 	_paint_focus()
 
 
+func _on_language_cycle() -> void:
+	PlatformServices.cycle_locale()
+	SfxBus.play("sfx_ui_confirm")
+	_refresh_copy()
+	_focus = FOCUS_LANG
+	_paint_focus()
+
+
 func _on_end_day() -> void:
 	close_menu()
 	end_day_requested.emit()
@@ -363,6 +399,8 @@ func _paint_focus() -> void:
 		_style_btn(_stick_btn, _focus == FOCUS_STICK)
 	if _camera_btn:
 		_style_btn(_camera_btn, _focus == FOCUS_CAMERA)
+	if _lang_btn:
+		_style_btn(_lang_btn, _focus == FOCUS_LANG)
 	_style_btn(_end_btn, _focus == FOCUS_END)
 
 

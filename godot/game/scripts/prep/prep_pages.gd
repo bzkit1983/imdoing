@@ -281,6 +281,8 @@ static func _hub_sys(menu: CanvasLayer) -> void:
 		null,
 		"stick"
 	)
+	var lang_name := Loc.t("locale.name.%s" % Loc.get_locale())
+	menu._add_hub(Loc.t("prep.sys.language", [lang_name]), "cycle_locale", null, "lang")
 	if ProductVersion.test_tools_enabled():
 		menu._add_hub(Loc.t("prep.home.test_money"), "test_money", null, "money")
 		menu._add_hub(Loc.t("prep.home.sfx_test"), "go", "sfx", "sfx")
