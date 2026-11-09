@@ -3359,7 +3359,7 @@ func _ensure_seq(cust) -> void:
 			seq_done = true
 			SfxBus.play("sfx_checkout_enter")
 			SfxBus.play("sfx_checkout_seq_done")
-			log_line.emit(Loc.t("log.player.senior_skip", [cust.cart.size())])
+			log_line.emit(Loc.t("log.player.senior_skip", [cust.cart.size()]))
 		else:
 			var seq: Array[int] = []
 			for i in n:
