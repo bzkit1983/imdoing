@@ -605,7 +605,7 @@ func _nudge_grid(axis: String, delta: int) -> void:
 	var label := Loc.t("prep.layout.width") if axis == "w" else Loc.t("prep.layout.height")
 	var nxt := cur + delta
 	if nxt < 8:
-		_popup_info(Loc.t("prep.msg.cant_adjust"), Loc.t("prep.msg.dim_min", [label)])
+		_popup_info(Loc.t("prep.msg.cant_adjust"), Loc.t("prep.msg.dim_min", [label]))
 		_refresh()
 		return
 	if axis == "w":
@@ -1033,7 +1033,7 @@ func _locked_sku_body(sku: String) -> String:
 
 func _popup_locked_furn(type: String) -> void:
 	var spec: Dictionary = state.FURNITURE[type]
-	_popup_info(Loc.t("prep.msg.locked_title"), Loc.t("prep.msg.locked_furn", [state.furniture_name(type), int(spec["unlock"])), state.level])
+	_popup_info(Loc.t("prep.msg.locked_title"), Loc.t("prep.msg.locked_furn", [state.furniture_name(type), int(spec["unlock"]), state.level]))
 
 
 func _funds_line(what: String, price: int) -> String:
@@ -1046,7 +1046,7 @@ func _ask_develop(sku: String) -> void:
 		_popup_info(Loc.t("prep.msg.locked_title"), _locked_sku_body(sku))
 		return
 	if state.developed.has(sku):
-		_popup_info(Loc.t("prep.msg.cant_develop"), Loc.t("prep.msg.already_dev_buy", [name)])
+		_popup_info(Loc.t("prep.msg.cant_develop"), Loc.t("prep.msg.already_dev_buy", [name]))
 		return
 	var fee := int(Tuning.SKU_DEVELOP.get(sku, 0))
 	if state.money < fee:
@@ -1059,7 +1059,7 @@ func _ask_buy() -> void:
 	var name := Tuning.sku_name(_qty_sku)
 	var pieces := _qty_boxes
 	if not state.developed.has(_qty_sku):
-		_popup_info(Loc.t("prep.msg.locked_title"), Loc.t("prep.msg.need_dev_buy", [name)])
+		_popup_info(Loc.t("prep.msg.locked_title"), Loc.t("prep.msg.need_dev_buy", [name]))
 		return
 	var cost := Tuning.cost_for_pieces(_qty_sku, pieces)
 	if state.money < cost:

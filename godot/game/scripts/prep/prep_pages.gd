@@ -419,11 +419,11 @@ static func _develop(menu: CanvasLayer) -> void:
 	menu._info.text = menu._pair(menu._header(), menu._msg if menu._msg != "" else Loc.t("prep.develop.info"))
 	for sku in Tuning.SELLABLE_SKUS:
 		if not menu.state.sku_unlocked(sku):
-			menu._add(Loc.t("prep.sku.locked", [Tuning.sku_name(sku), int(Tuning.SKU_UNLOCK_LV[sku]))], "locked_sku", sku)
+			menu._add(Loc.t("prep.sku.locked", [Tuning.sku_name(sku), int(Tuning.SKU_UNLOCK_LV[sku])]), "locked_sku", sku)
 		elif menu.state.developed.has(sku):
 			menu._add(Loc.t("prep.sku.developed", [Tuning.sku_name(sku)]), "noop", sku)
 		else:
-			menu._add(Loc.t("prep.sku.develop_row", [Tuning.sku_name(sku), int(Tuning.SKU_DEVELOP[sku]))], "dev", sku)
+			menu._add(Loc.t("prep.sku.develop_row", [Tuning.sku_name(sku), int(Tuning.SKU_DEVELOP[sku])]), "dev", sku)
 	menu._add(Loc.t("prep.back"), "go", "hub_goods")
 
 
@@ -439,7 +439,7 @@ static func _buy(menu: CanvasLayer) -> void:
 	menu._info.text = menu._pair(menu._header(), menu._msg if menu._msg != "" else Loc.t("prep.buy.info"))
 	for sku in Tuning.SELLABLE_SKUS:
 		if not menu.state.sku_unlocked(sku):
-			menu._add(Loc.t("prep.sku.locked", [Tuning.sku_name(sku), int(Tuning.SKU_UNLOCK_LV[sku]))], "locked_sku", sku)
+			menu._add(Loc.t("prep.sku.locked", [Tuning.sku_name(sku), int(Tuning.SKU_UNLOCK_LV[sku])]), "locked_sku", sku)
 		elif not menu.state.developed.has(sku):
 			menu._add(Loc.t("prep.sku.need_dev", [Tuning.sku_name(sku)]), "need_develop", sku)
 		else:
@@ -448,8 +448,8 @@ static func _buy(menu: CanvasLayer) -> void:
 					Tuning.sku_name(sku),
 					int(menu.state.stock.get(sku, 0)),
 					Tuning.sku_piece_price_label(sku),
-					int(Tuning.SKU_COST[sku])),
-				],
+					int(Tuning.SKU_COST[sku]),
+				]),
 				"qty",
 				sku,
 			)
@@ -521,11 +521,11 @@ static func _furn(menu: CanvasLayer) -> void:
 	menu._info.text = menu._pair(menu._header(), menu._msg if menu._msg != "" else Loc.t("prep.furn.info"))
 	for type in menu.state.FURNITURE.keys():
 		var spec: Dictionary = menu.state.FURNITURE[type]
-		var fname := menu.state.furniture_name(type)
+		var fname := String(menu.state.furniture_name(type))
 		if not menu.state.furniture_unlocked(type):
-			menu._add(Loc.t("prep.furn.locked_row", [fname, int(spec["unlock"])), int(spec["price"])], "locked_furn", type)
+			menu._add(Loc.t("prep.furn.locked_row", [fname, int(spec["unlock"]), int(spec["price"])]), "locked_furn", type)
 		else:
-			menu._add(Loc.t("prep.furn.buy_row", [fname, int(spec["price"])), int(menu.state.owned.get(type, 0)), menu.state.unplaced(type)], "buy_f", type)
+			menu._add(Loc.t("prep.furn.buy_row", [fname, int(spec["price"]), int(menu.state.owned.get(type, 0)), menu.state.unplaced(type)]), "buy_f", type)
 	menu._add(Loc.t("prep.back"), "go", "hub_shop")
 
 
@@ -537,7 +537,7 @@ static func _expand(menu: CanvasLayer) -> void:
 	])
 	if menu.state.shop_scale < 3:
 		var nxt: int = int(menu.state.shop_scale) + 1
-		menu._add(Loc.t("prep.expand.row", [nxt, int(menu.state.SCALE_COST[nxt]))], "expand", null)
+		menu._add(Loc.t("prep.expand.row", [nxt, int(menu.state.SCALE_COST[nxt])]), "expand", null)
 	else:
 		menu._add(Loc.t("err.max_scale"), "expand_max", null)
 	menu._add(Loc.t("prep.back"), "go", "hub_shop")
@@ -618,7 +618,7 @@ static func _clerks(menu: CanvasLayer) -> void:
 	for i in menu.state.clerks.size():
 		var c: Dictionary = menu.state.clerks[i]
 		var role := Loc.t("prep.role.cashier") if String(c["role"]) == "cashier" else Loc.t("prep.role.restock")
-		menu._add(Loc.t("prep.hire.clerk_row", [i + 1, role, int(c["register"])) + 1], "role", i)
+		menu._add(Loc.t("prep.hire.clerk_row", [i + 1, role, int(c["register"]) + 1]), "role", i)
 		if String(c["role"]) == "cashier":
 			menu._add(Loc.t("prep.hire.reassign"), "reg", i)
 		menu._add(Loc.t("prep.hire.fire", [(i + 1)]), "fire", i)
