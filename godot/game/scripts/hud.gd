@@ -260,11 +260,11 @@ func _apply_cjk_fonts(node: Node) -> void:
 
 func show_closeout() -> void:
 	_close.visible = true
-	_close_text.text = "關店結算\n營業額 $%d\n成功收銀 %d 人\n生氣離開 %d 人\n被偷 %d 件  $%d\n抓住小偷 %d ／ 逃走 %d\n（資金於結算後才入帳，v0.5 先顯示營業額）" % [
+	_close_text.text = Loc.t("settle.hud_legacy", [
 		game.revenue, game.served, game.angry_left,
 		int(game.stolen_count), int(game.stolen_value),
 		int(game.thieves_caught), int(game.thieves_escaped)
-	]
+	])
 
 
 func _process(delta: float) -> void:
@@ -447,7 +447,7 @@ func _sync_right() -> void:
 func _skill_cd_label(cd: float) -> String:
 	## Match cast gate (cd > 0.05). Never show "CD 0" while not ready — ceil whole seconds.
 	if cd <= 0.05:
-		return "就緒"
+		return Loc.t("hud.skill.ready")
 	return "CD %d" % maxi(1, int(ceil(cd)))
 
 
@@ -480,7 +480,12 @@ func _skill_cd_text_all() -> String:
 func _skill_cd_text_for(p: CharacterBody2D, prefix: String) -> String:
 	if p == null:
 		return ""
-	var equipped: Array = p.call("_loadout") if p.has_method("_loadout") else Skills.EQUIPPED
+	var equipped: Array = []
+	if p.has_method("_loadout"):
+		equipped = p.call("_loadout")
+	else:
+		for raw in Skills.EQUIPPED:
+			equipped.append(Skills.localize(raw))
 	var bits: PackedStringArray = []
 	for i in equipped.size():
 		var sk: Dictionary = equipped[i]
@@ -492,7 +497,9 @@ func _skill_cd_text_for(p: CharacterBody2D, prefix: String) -> String:
 			bits.append("%d:P" % i)
 		else:
 			bits.append("%d:%s" % [i, _skill_cd_fp_bit(float(p.call("cd_left", sid)))])
-	var ult: Dictionary = p.call("_ult_sk") if p.has_method("_ult_sk") else Skills.ULTIMATE
+	var ult: Dictionary = (
+		p.call("_ult_sk") if p.has_method("_ult_sk") else Skills.localize(Skills.ULTIMATE)
+	)
 	var ult_id := String(ult.get("id", ""))
 	if ult_id == "":
 		bits.append("U:-")
@@ -510,19 +517,19 @@ func _skill_cd_text_for(p: CharacterBody2D, prefix: String) -> String:
 	for i in equipped.size():
 		var sk2: Dictionary = equipped[i]
 		if sk2.is_empty():
-			lines.append("%d 空" % [i + 1])
+			lines.append(Loc.t("hud.skill.empty", [i + 1]))
 			continue
 		var name := String(sk2.get("name"))
 		if String(sk2.get("kind")) == "passive":
-			lines.append("%d %s 被動" % [i + 1, name])
+			lines.append(Loc.t("hud.skill.passive", [i + 1, name]))
 		else:
 			var cd := float(p.call("cd_left", String(sk2.get("id"))))
 			lines.append("%d %s  %s" % [i + 1, name, _skill_cd_label(cd)])
 	if ult_id == "":
-		lines.append("奧義 空")
+		lines.append(Loc.t("hud.ult.empty"))
 	else:
 		var ucd := float(p.call("cd_left", ult_id))
-		lines.append("奧義 %s  %s" % [String(ult.get("name")), _skill_cd_label(ucd)])
+		lines.append(Loc.t("hud.ult.line", [String(ult.get("name")), _skill_cd_label(ucd)]))
 	var txt := "\n".join(lines)
 	if prefix == "":
 		_skills_cd_txt = txt

@@ -1,223 +1,372 @@
-key,zh_TW,en
-pause.title,暫停,Paused
-pause.body,遊戲已暫停。營運中進度不會另外存檔；掛起前會做安全 checkpoint。,"Game paused. Mid-day progress is not auto-saved; a safe checkpoint runs before suspend."
-pause.body_suspend,系統掛起 — 已安全暫停。恢復後按「繼續遊戲」回到店舖。,"App suspended — safely paused. Press Continue to return to the shop."
-pause.hint,Esc／Start 開關　　W／S 選擇　　A／D 調音量　　J 確定　　; 返回,"Esc/Start · W/S select · A/D volume · J confirm · ; back"
-pause.hint_touch,右上「暫停」　　−／＋ 調音量　　點選選項,"Top-right Pause · −/+ volume · tap options"
-pause.resume,繼續遊戲,Continue
-pause.sfx_on,音效：開,SFX: On
-pause.sfx_off,音效：關,SFX: Off
-pause.sfx_volume,音效聲量：%d%%,SFX volume: %d%%
-pause.end_day,結束本日並結算,End day & settle
-pause.virtual_stick_on,觸控搖桿：開,Touch stick: On
-pause.virtual_stick_off,觸控搖桿：關,Touch stick: Off
-pause.camera_normal,鏡頭：正常,Camera: Normal
-pause.camera_far,鏡頭：稍遠,Camera: Farther
-pause.camera_overview,鏡頭：全地圖,Camera: Full map
-early.title,提早關店,Close early
-early.body,所有補貨架都沒有貨了，收銀機也沒有人排隊。\n要提早關店，並結算今天嗎？,"All restock points are empty and no one is queued.\nClose early and settle today?"
-early.hint,A／D 選擇　　J 確定　　; 取消,"A/D select · J confirm · ; cancel"
-early.yes,提早關店,Close early
-early.no,繼續營業,Keep open
-hud.banner,,
-hud.skip_operate,馬上完成營運,Finish day now
-hud.pause,暫停,Pause
-hud.revenue,營業額  $%d  ·  被偷 $%d,Sales  $%d  ·  Stolen $%d
-hud.ops_rating,營運評價  %d,Ops rating  %d
-hud.guests,在店客人  %d  ·  小偷 %d,Guests  %d  ·  Thieves %d
-hud.state,狀態  %s,State  %s
-hud.carry,負重  %d / %d 件,Carry  %d / %d pcs
-hud.target_none,目標  補貨 / 貨架 / 污物 / 小偷 / 收銀機後方,Target  restock / shelf / dirt / thief / register
-hud.target_restock,目標  %s補貨 · 輕放執貨 · 長按選貨 [%s],Target  %s restock · tap take · hold pick [%s]
-hud.target_cashier,目標  收銀機 · 長按行動再輸方向,Target  register · hold act then move
-hud.target_dirt,目標  %s · 空手長按行動並轉搖桿清潔,Target  %s · empty-handed hold + stick to clean
-hud.target_drop,目標  掉落 %s ×%d · 輕放撿起,Target  drop %s ×%d · tap to pick up
-hud.target_thief,目標  小偷 · 空手長按抓住後連按行動打擊,Target  thief · hold to grab then mash act
-hud.target_guest,目標  客人 · 長按行動交付手上貨,Target  guest · hold act to deliver
-hud.target_shelf,目標  貨架 · %s,Target  shelf · %s
-hud.shelf_empty,空架 %d件,Empty %d slots
-hud.cat_dry,乾貨,Dry
-hud.cat_frozen,凍櫃,Frozen
-hud.cat_ice,冰櫃,Ice
-hud.closeout_title,關店結算,Day settled
-hud.combo,COMBO  %d  ·  TEAM  %d,COMBO  %d  ·  TEAM  %d
-hud.combo_coop,COMBO P1 %d  ·  P2 %d  ·  TEAM %d,COMBO P1 %d  ·  P2 %d  ·  TEAM %d
-hud.seat,P%d,P%d
-prep.back,返回,Back
-prep.scenario.title,選擇劇本,Choose scenario
-prep.scenario.info,劇本1 從空店開始，資金 $10000。劇本2、3 帶現成店面和店員。劇本4 用來試技能。,"Scenario 1 starts empty with $10000. 2 and 3 include a shop and clerks. 4 is for trying skills."
-prep.scenario.s1,劇本1　從新開始　資金 $10000　LV1　空店,Scenario 1 · Fresh start · $10000 · LV1 · empty
-prep.scenario.s2,劇本2　LV5　資金 $10000　店規模 2　1 名店員,Scenario 2 · LV5 · $10000 · scale 2 · 1 clerk
-prep.scenario.s3,劇本3　LV10　資金 $99999　三圍 30　店規模 3　2 名店員,Scenario 3 · LV10 · $99999 · stats 30 · scale 3 · 2 clerks
-prep.scenario.s4,劇本4　技能測試　LV10　三圍20　$99999　規模3　18×10,Scenario 4 · Skill test · LV10 · stats 20 · $99999 · scale 3 · 18×10
-prep.home.title,營運準備,Prep
-prep.header,資金 $%d　LV%d　%s　STR%d AGI%d INT%d　點數 %d　商店評價 %d,Cash $%d · LV%d · %s · STR%d AGI%d INT%d · Pts %d · Shop rating %d
-prep.home.info_rating,商店評價 %d　已記錄 %d 日。選「評價記錄」可連續查看近況。,Shop rating %d · %d days logged. Open Rating history to browse.
-prep.hub.char,角色整備,Character
-prep.hub.char_info,能力、技能與外觀,Stats · skills · look
-prep.hub.goods,貨品管理,Goods
-prep.hub.goods_info,開發與採購分開,Develop and buy separately
-prep.hub.shop,店舖管理,Shop
-prep.hub.shop_info,規模 LV%d　地圖 %d×%d　購入、擴張、設計,Scale LV%d · map %d×%d · buy · expand · layout
-prep.hub.staff,員工管理　%d 人,Staff · %d
-prep.hub.rating,評價記錄,Rating history
-prep.hub.sys,系統工具,System tools
-prep.hub.sys_info,畫面／測試與存檔（觸控搖桿預設關；開後僅觸控模式顯示，手掣／鍵盤會自動隱藏）,Display / testing / save (touch stick default off; shows in touch mode only — auto-hides for pad/keyboard)
-prep.rating.title,評價記錄,Rating history
-prep.rating.info,商店評價 %d　紀錄 %d／%d 日　上次營運點 %d　%s（評級 %+d）,Shop rating %d · log %d/%d days · last ops %d · %s (grade %+d)
-prep.rating.empty,尚無日結評級。完成一局營運後會出現在這裡。,No day grades yet. Finish a day of ops to fill this list.
-prep.rating.day_latest,最近一日,Latest day
-prep.rating.day_ago,%d 日前,%d day(s) ago
-prep.rating.row,%s　第 %d 日　%s（評級 %+d）,%s · Day %d · %s (grade %+d)
-prep.sys.virtual_stick_on,觸控搖桿：開,Touch stick: On
-prep.sys.virtual_stick_off,觸控搖桿：關,Touch stick: Off
-prep.home.stats,角色能力,Stats
-prep.home.skills,裝備技能,Skills
-prep.home.skills_short,裝備技能,Skills
-prep.home.look,外觀調整,Appearance
-prep.home.stock,開發／採購貨品,Develop / buy goods
-prep.home.develop,開發商品,Develop goods
-prep.home.buy,採購貨品,Buy goods
-prep.home.furn,購入商店物品,Buy furniture
-prep.home.expand,擴張店面　現時 LV%d　%d×%d,Expand · LV%d · %d×%d
-prep.home.expand_short,擴張店舖,Expand shop
-prep.home.layout,店舖設計,Layout
-prep.home.clerks,店員　%d 人,Clerks · %d
-prep.home.open,開始營運,Open shop
-prep.home.elite_test,開始營運（麻煩客人模式）,Open shop (elite guest test)
-prep.home.test_money,增加資金,Add funds
-prep.elite_test.title,麻煩客人模式（測試）,Elite guest test
-prep.elite_test.info,選等級後進入確認開店。此模式保證至少出現一名麻煩客人；其後進店約 40% 再出。混合 LV 每次抽 1–6。,Pick a level then confirm. Guarantees ≥1 elite; ~40% chance after. Mixed rolls LV1–6 each time.
-prep.elite_test.lv,麻煩客人 LV%d,Elite guest LV%d
-prep.elite_test.mixed,混合 LV（不同等級）,Mixed levels
-prep.elite_test.confirm_note,【測試】麻煩客人模式：%s　（必出≥1；其後約40%）,【Test】Elite mode: %s (≥1 guaranteed; ~40% after)
-prep.difficulty.label,難度,Difficulty
-prep.difficulty.easy,簡易,Easy
-prep.difficulty.normal,普通,Normal
-prep.difficulty.confirm_easy,【測試】簡易：一般客人清單最多 5 件（劇本更少則維持）。污物間隔加倍、開場 1 團。小偷出現率減半。不滿增加減半。,"[Test] Easy. Guest lists at most 5 (or the lower scenario cap). Dirt spawns half as often and starts with 1. Thief chance is halved. Dissatisfaction gains are halved."
-prep.difficulty.confirm_normal,【測試】難度：普通（按現有設計）,[Test] Normal (current rules)
-prep.home.test_money_ok,已增加資金 $1000　現有 $%d,Added $1000 · now $%d
-prep.home.sfx_test,音效測試,SFX test
-prep.sfx.title,音效測試,SFX Test
-prep.sfx.info,P0／P1／P2 Alpha 佔位音效。每列 ▶ 後為映射的遊戲動作／效果。J 播放　; 返回。之後由音效設計師替換素材。,P0/P1/P2 Alpha placeholder SFX. Text after ▶ is the mapped gameplay action/effect. J play · ; back. Designers replace assets later.
-prep.home.wipe,清除存檔並重新選擇劇本,Wipe save & re-pick scenario
-prep.locked,未開放,Locked
-prep.locked_title,尚未開放,Not available
-prep.look.locked_body,角色外觀調整尚未開放，之後版本會再補上。,Character appearance is not available yet.
-prep.look.title,外觀調整,Appearance
-prep.look.info,目前：%s　色調 %d。游標預覽；確定裝備造型。,Current: %s · tint %d. Focus previews; confirm equips.
-prep.look.cycle_tint,切換色調（現在 %d）,Cycle tint (now %d)
-prep.look.equipped,已裝備「%s」,Equipped "%s"
-prep.look.tint_set,色調改為 %d,Tint set to %d
-prep.look.locked_skin,此造型尚未解放。,This skin is locked.
-skin.player,標準,Standard
-skin.player_alt1,外星人,Alien
-skin.player_alt2,維京人,Viking
-prep.confirm.host_look,店主外觀：%s　色調 %d,Host look: %s · tint %d
-prep.confirm.guest_look,訪客外觀：%s　色調 %d,Guest look: %s · tint %d
-prep.stats.title,角色能力,Stats
-prep.stats.info,按 + 加一點，按 - 減一點。向下可到重置和返回。,"Press + / − to adjust. Down for reset and back."
-prep.stats.reset,重置能力值,Reset stats
-prep.skills.title,技能組合,Skill sets
-prep.skills.info,這一局：%s　COST %d/5　奧義 %s\n選一組修改。▶ 是這一局要用的。補貨、開店和暫停都不能換。,"This day: %s · COST %d/5 · Ult %s\nPick a set to edit. ▶ is used this day. Restock, open, and pause cannot switch."
-prep.skills.set_row,%s%s　COST %d/5　奧義 %s,%s%s · COST %d/5 · Ult %s
-prep.skill_set.info,COST %d/5。%s\n改五格和奧義。同一組不能放兩次。被動也佔格、也算 COST。奧義可以空。,"COST %d/5. %s\nEdit the five slots and the ult. One skill once per set. Passives take a slot and COST. Ult may be empty."
-prep.skill_set.using,這一局使用中,In use this day
-prep.skill_set.not_using,還沒選為這一局,Not selected this day
-prep.skill_set.use,選為這一局,Use this day
-prep.skill_set.already,已經是這一局的組合,Already the set for this day
-prep.skill_set.selected_msg,這一局改用「%s」,This day now uses "%s"
-prep.skill_set.rename,改名,Rename
-prep.skill_set.empty,空,Empty
-prep.skill_set.slot,技能%d　%s%s,Skill %d · %s%s
-prep.skill_set.ult,奧義　%s,Ult · %s
-prep.skill_rename.title,改名,Rename
-prep.skill_rename.info,現在：%s\n只限 1–10 個英文字母。清空後儲存會回到「%s」。不能跟別組同名。,"Now: %s\n1–10 English letters. Save empty to restore ""%s"". Names must be unique."
-prep.skill_rename.draft_empty,（空白）,(blank)
-prep.skill_rename.save,儲存,Save
-prep.skill_rename.backspace,刪除最後一個字母,Delete last letter
-prep.skill_rename.clear,清空回到預設名,Clear to default name
-prep.skill_rename.lower,改成小寫,Lower case
-prep.skill_rename.upper,改成大寫,Upper case
-prep.skill_rename.too_long,名稱最多 10 個字母,At most 10 letters
-prep.skill_rename.saved,已改名為「%s」,Renamed to "%s"
-prep.skill_pick.title,選擇技能,Pick skill
-prep.skill_pick.info,組合「%s」的格 %s。名字前面是性質：主動、被動或奧義。COST 合計不能超過 5。,"Set ""%s"" slot %s. Prefix is active / passive / ult. Total COST ≤ 5."
-prep.skill_pick.ult_slot,奧義,Ult
-prep.skill_pick.unequip,卸下,Unequip
-prep.stock.title,開發／採購,Develop / buy
-prep.stock.info,罐頭是初始貨物，不用開發就能採購。其他未開發的先付開發費。,"Cans start unlocked. Other goods need a develop fee first."
-prep.develop.title,開發商品,Develop goods
-prep.develop.info,罐頭是初始貨物，不用開發。其他貨品先付開發費，開發後才能採購。,"Cans start unlocked. Other goods need a develop fee before buying."
-prep.buy.title,採購貨品,Buy goods
-prep.buy.info,只列出已開發的貨品。未開發的請先到「開發商品」。,"Only developed goods. Undeveloped items need Develop first."
-prep.buy.need_develop,%s尚未開發，請先到開發商品。,%s is not developed yet — open Develop first.
-prep.stock.qty_title,採購 %s,Buy %s
-prep.stock.qty_info,庫存 %d 件　標示 $%d／件（4 件價÷4）。中間是件數，按按鈕加減。,"Stock %d pcs · ~$%d/pc. Middle is qty in pieces."
-prep.furn.title,購入商店物品,Buy furniture
-prep.furn.info,買入後到店舖設計才放進店裡。展示貨架有 4、8、12、24 件，越大越貴。凍櫃 LV4、冰櫃 LV7 才開放。,"Place bought items in Layout. Shelf sizes 4/8/12/24. Frozen LV4 · Ice LV7."
-prep.expand.title,擴張店舖,Expand shop
-prep.expand.info,現時規模 LV%d　地圖 %d×%d　總面積 %d／%d。闊度和長度在店舖設計裡調，一邊減少就能加另一邊。\nLV2＝$3000、總面積 225，要角色 LV4。LV3＝$6000、總面積 400，要角色 LV7。,"Scale LV%d · map %d×%d · area %d/%d. Adjust width/height in Layout.\nLV2=$3000 area 225 (need LV4). LV3=$6000 area 400 (need LV7)."
-prep.layout.title,店舖設計,Layout
-prep.layout.info,拖：左列放到圖上；圖上拖移，拖出或輕點收回。手制：短按拿起／放下；補貨架長按設預設貨；地圖持物短取消還原、長取消收回；無持物取消回尺寸／清單。,"Drag from the list onto the grid; drag to move, off or tap to recall. Pad: tap pick/place; long-press restock for default SKU; while holding from map short-cancel restores, long-cancel recalls; cancel with empty hands to size/list."
-prep.layout.holding,正在放 %s。確定放下；轉向。地圖拿起：短取消還原、長取消收回；清單拿起：取消退回庫。,"Placing %s. Confirm to place; rotate to turn. From map: short-cancel restores, long-cancel recalls. From list: cancel returns to stock."
-prep.layout.focus_map,設計圖游標,Layout cursor
-prep.layout.sku_pick,預設貨品：%s　↑↓ 改選　確定　取消,"Default SKU: %s · ↑↓ change · confirm · cancel"
-prep.layout.sku_set,已設預設 %s,Default set: %s
-prep.clerks.title,員工管理,Staff
-prep.confirm.title,開始營運,Open shop
-prep.confirm.players,玩家人數,Players
-prep.confirm.players_1,1 人（單人）,1 player (solo)
-prep.confirm.players_2,2 人（本機雙人）,2 players (local coop)
-prep.confirm.players_web,Web 僅支援 1 人,Web supports 1 player only
-prep.confirm.players_note,2 人時請選訪客槽（既有／複製／空白）,With 2 players pick a guest slot (existing / clone / blank)
-prep.confirm.host_tint,店主色調：%d,Host tint: %d
-prep.confirm.cycle_host_tint,切換店主色調,Cycle host tint
-prep.confirm.guest_none,P2：尚未選訪客槽（開始時會自動複製店主到空槽）,P2: no guest slot yet (open will clone host into an empty slot)
-prep.confirm.guest_selected,P2 槽%d：%s,P2 slot %d: %s
-prep.confirm.guest_slot,選用槽%d　%s,Use slot %d  %s
-prep.confirm.guest_clone,複製店主 → 槽%d,Clone host → slot %d
-prep.confirm.guest_blank_btn,新建空白 → 槽%d,New blank → slot %d
-prep.confirm.cycle_guest_tint,切換訪客色調,Cycle guest tint
-prep.confirm.guest_cloned,已複製店主到訪客槽 %d,Cloned host into guest slot %d
-prep.confirm.guest_blank,已在訪客槽 %d 新建空白角色,Created blank character in guest slot %d
-prep.confirm.guest_need_title,需要訪客槽,Guest slot required
-prep.confirm.guest_need_body,請先選既有槽、複製店主到空槽、或新建空白。,Pick an existing slot, clone the host into an empty slot, or create a blank.
-prep.kind.active,主動,Active
-prep.kind.passive,被動,Passive
-prep.kind.ult,奧義,Ult
-prep.chrome.hint,方向移動　行動確定　取消返回　店舖設計：短按拿起　取消調尺寸　補貨架長按預設貨　轉向（K／X）,"Move · confirm · cancel · layout: tap pick · cancel for size · restock hold default SKU · rotate (K/X)"
-prep.chrome.back,返回,Back
-prep.chrome.dialog_yes,確定,OK
-prep.chrome.dialog_no,取消,Cancel
-demo.thief_enter,小偷進店！,A thief entered!
-demo.elite_banner,麻煩客人注意！,Troublesome customer!
-demo.stolen_banner,你已經被偷了！,You've been robbed!
-demo.fundraise,全體集資　%d 人　+$%d,Fundraise · %d guests · +$%d
-demo.close_gate,落閘放狗　排隊 %d　離店 %d　小偷 %d,Close gate · queue %d · leave %d · thieves %d
-demo.closeout_early,提早關店結算,Early closeout
-demo.closeout_test,營業結束,Shop closed
-demo.closeout_head,關店結算,Day settled
-
-self_checkout.no_register,5身位內沒有收銀機,No register within 5 body lengths
-self_checkout.active,Self Checkout,Self Checkout
-self_checkout.standby,自助待命,Self checkout standby
-self_checkout.tail,完成本客後結束,Finishing final customer
-self_checkout.loading,自助付款 %.0f%%,Self checkout %.0f%%
-self_checkout.blurb,啟動5身位內機台15秒；每客5／4／3秒自助；真人／NPC優先；尾單收完；CD30秒受INT縮短,Enable nearby registers for 15s within 5 body lengths; 5/4/3s per guest; operators take priority; finish final guest; 30s CD scales with INT
-rating.grade.m3,你還在嗎？,Still there?
-rating.grade.m2,超負評,Terrible
-rating.grade.m1,負評,Poor
-rating.grade.0,普通,Average
-rating.grade.p1,好評,Good
-rating.grade.p2,大獲好評,Great
-rating.grade.p3,超好評,Outstanding
-rating.closeout_line,營運點 %d　%s（評級 %+d）　商店評價 %d→%d,Ops %d · %s (grade %+d) · Shop rating %d→%d
-rating.diff.title,難度建議,Difficulty tip
-rating.diff.body_down,連續三日評級偏低。要把整體難度調低一檔嗎？（目前不影響測試簡易鈕；正式難度數值仍開發中）\n現在：%s → %s,Three low grades in a row. Lower overall difficulty one step? (Does not change the test Easy toggle; formal tuning still stub.)\nNow: %s → %s
-rating.diff.body_up,連續三日評級偏高。要把整體難度調高一檔嗎？（目前不影響測試簡易鈕；正式難度數值仍開發中）\n現在：%s → %s,Three high grades in a row. Raise overall difficulty one step? (Does not change the test Easy toggle; formal tuning still stub.)\nNow: %s → %s
-rating.diff.name.easy,簡易,Easy
-rating.diff.name.normal,普通,Normal
-rating.diff.name.hard,困難,Hard
-rating.diff.accept,接受,Accept
-rating.diff.dismiss,否決,Dismiss
+key,zh_TW,en,zh_CN,ja
+pause.title,暫停,Paused,暂停,一時停止
+pause.body,遊戲已暫停。營運中進度不會另外存檔；掛起前會做安全 checkpoint。,Game paused. Mid-day progress is not auto-saved; a safe checkpoint runs before suspend.,游戏已暂停。营运中进度不会另外存档；挂起前会做安全 checkpoint。,ゲームを一時停止しました。営業中の進行は自動保存されません。サスペンド前に安全なチェックポイントを作成します。
+pause.body_suspend,系統掛起 — 已安全暫停。恢復後按「繼續遊戲」回到店舖。,App suspended — safely paused. Press Continue to return to the shop.,系统挂起 — 已安全暂停。恢复后按“继续游戏”回到店铺。,アプリがサスペンドされました — 安全に一時停止しています。「続ける」で店に戻れます。
+pause.hint,Esc／Start 開關　　W／S 選擇　　A／D 調音量　　J 確定　　; 返回,Esc/Start · W/S select · A/D volume · J confirm · ; back,Esc／Start 开关　　W／S 选择　　A／D 调音量　　J 确定　　; 返回,Esc／Start 切替　　W／S 選択　　A／D 音量　　J 決定　　; 戻る
+pause.hint_touch,右上「暫停」　　−／＋ 調音量　　點選選項,Top-right Pause · −/+ volume · tap options,右上“暂停”　　−／＋ 调音量　　点选选项,右上「一時停止」　　−／＋ 音量　　オプションをタップ
+pause.resume,繼續遊戲,Continue,继续游戏,続ける
+pause.sfx_on,音效：開,SFX: On,音效：开,効果音：オン
+pause.sfx_off,音效：關,SFX: Off,音效：关,効果音：オフ
+pause.sfx_volume,音效聲量：%d%%,SFX volume: %d%%,音效声量：%d%%,効果音ボリューム：%d%%
+pause.end_day,結束本日並結算,End day & settle,结束本日并结算,本日を終了して精算
+pause.virtual_stick_on,觸控搖桿：開,Touch stick: On,触控摇杆：开,タッチスティック：オン
+pause.virtual_stick_off,觸控搖桿：關,Touch stick: Off,触控摇杆：关,タッチスティック：オフ
+pause.camera_normal,鏡頭：正常,Camera: Normal,镜头：正常,カメラ：標準
+pause.camera_far,鏡頭：稍遠,Camera: Farther,镜头：稍远,カメラ：少し遠い
+pause.camera_overview,鏡頭：全地圖,Camera: Full map,镜头：全地图,カメラ：全体図
+pause.language,語言：%s,Language: %s,语言：%s,言語：%s
+locale.name.zh_TW,繁體中文,繁體中文,繁體中文,繁體中文
+locale.name.en,English,English,English,English
+locale.name.zh_CN,简体中文,简体中文,简体中文,简体中文
+locale.name.ja,日本語,日本語,日本語,日本語
+early.title,提早關店,Close early,提早关店,早めに閉店
+early.body,所有補貨架都沒有貨了，收銀機也沒有人排隊。\n要提早關店，並結算今天嗎？,All restock points are empty and no one is queued.\nClose early and settle today?,所有补货架都没有货了，收银机也没有人排队。\n要提早关店，并结算今天吗？,すべての補充ポイントが空で、誰も並んでいません。\n早めに閉店して今日を精算しますか？
+early.hint,A／D 選擇　　J 確定　　; 取消,A/D select · J confirm · ; cancel,A／D 选择　　J 确定　　; 取消,A／D 選択　　J 決定　　; キャンセル
+early.yes,提早關店,Close early,提早关店,早めに閉店
+early.no,繼續營業,Keep open,继续营业,営業を続ける
+hud.banner,,,,
+hud.skip_operate,馬上完成營運,Finish day now,马上完成营运,すぐに営業を完了
+hud.pause,暫停,Pause,暂停,一時停止
+hud.revenue,營業額  $%d  ·  被偷 $%d,Sales  $%d  ·  Stolen $%d,营业额  $%d  ·  被偷 $%d,売上  $%d  ·  盗難 $%d
+hud.ops_rating,營運評價  %d,Ops rating  %d,营运评价  %d,運営評価  %d
+hud.guests,在店客人  %d  ·  小偷 %d,Guests  %d  ·  Thieves %d,在店客人  %d  ·  小偷 %d,来客  %d  ·  泥棒 %d
+hud.state,狀態  %s,State  %s,状态  %s,状態  %s
+hud.carry,負重  %d / %d 件,Carry  %d / %d pcs,负重  %d / %d 件,所持  %d / %d 個
+hud.target_none,目標  補貨 / 貨架 / 污物 / 小偷 / 收銀機後方,Target  restock / shelf / dirt / thief / register,目标  补货 / 货架 / 污物 / 小偷 / 收银机后方,対象  補充 / 棚 / 汚れ / 泥棒 / レジ後方
+hud.target_restock,目標  %s補貨 · 輕放執貨 · 長按選貨 [%s],Target  %s restock · tap take · hold pick [%s],目标  %s补货 · 轻放执货 · 长按选货 [%s],対象  %s補充 · タップで取る · 長押しで選ぶ [%s]
+hud.target_cashier,目標  收銀機 · 長按行動再輸方向,Target  register · hold act then move,目标  收银机 · 长按行动再输方向,対象  レジ · 長押し行動のあと方向入力
+hud.target_dirt,目標  %s · 空手長按行動並轉搖桿清潔,Target  %s · empty-handed hold + stick to clean,目标  %s · 空手长按行动并转摇杆清洁,対象  %s · 素手で長押し＋スティックで掃除
+hud.target_drop,目標  掉落 %s ×%d · 輕放撿起,Target  drop %s ×%d · tap to pick up,目标  掉落 %s ×%d · 轻放捡起,対象  落下 %s ×%d · タップで拾う
+hud.target_thief,目標  小偷 · 空手長按抓住後連按行動打擊,Target  thief · hold to grab then mash act,目标  小偷 · 空手长按抓住后连按行动打击,対象  泥棒 · 素手で長押し掴み、行動連打で打撃
+hud.target_guest,目標  客人 · 長按行動交付手上貨,Target  guest · hold act to deliver,目标  客人 · 长按行动交付手上货,対象  客 · 長押し行動で手持ちを渡す
+hud.target_shelf,目標  貨架 · %s,Target  shelf · %s,目标  货架 · %s,対象  棚 · %s
+hud.shelf_empty,空架 %d件,Empty %d slots,空架 %d件,空き %d枠
+hud.cat_dry,乾貨,Dry,干货,乾物
+hud.cat_frozen,凍櫃,Frozen,冻柜,冷凍
+hud.cat_ice,冰櫃,Ice,冰柜,冷蔵
+hud.closeout_title,關店結算,Day settled,关店结算,閉店精算
+hud.combo,COMBO  %d  ·  TEAM  %d,COMBO  %d  ·  TEAM  %d,COMBO  %d  ·  TEAM  %d,COMBO  %d  ·  TEAM  %d
+hud.combo_coop,COMBO P1 %d  ·  P2 %d  ·  TEAM %d,COMBO P1 %d  ·  P2 %d  ·  TEAM %d,COMBO P1 %d  ·  P2 %d  ·  TEAM %d,COMBO P1 %d  ·  P2 %d  ·  TEAM %d
+hud.seat,P%d,P%d,P%d,P%d
+prep.back,返回,Back,返回,戻る
+prep.scenario.title,選擇劇本,Choose scenario,选择剧本,シナリオ選択
+prep.scenario.info,劇本1 從空店開始，資金 $10000。劇本2、3 帶現成店面和店員。劇本4 用來試技能。,Scenario 1 starts empty with $10000. 2 and 3 include a shop and clerks. 4 is for trying skills.,剧本1 从空店开始，资金 $10000。剧本2、3 带现成店面和店员。剧本4 用来试技能。,シナリオ1は空の店から開始、資金 $10000。シナリオ2・3は店舗と店員付き。シナリオ4はスキル試し用。
+prep.scenario.s1,劇本1　從新開始　資金 $10000　LV1　空店,Scenario 1 · Fresh start · $10000 · LV1 · empty,剧本1　从新开始　资金 $10000　LV1　空店,シナリオ1　新規スタート　資金 $10000　LV1　空き店
+prep.scenario.s2,劇本2　LV5　資金 $10000　店規模 2　1 名店員,Scenario 2 · LV5 · $10000 · scale 2 · 1 clerk,剧本2　LV5　资金 $10000　店规模 2　1 名店员,シナリオ2　LV5　資金 $10000　店規模 2　店員 1名
+prep.scenario.s3,劇本3　LV10　資金 $99999　三圍 30　店規模 3　2 名店員,Scenario 3 · LV10 · $99999 · stats 30 · scale 3 · 2 clerks,剧本3　LV10　资金 $99999　三围 30　店规模 3　2 名店员,シナリオ3　LV10　資金 $99999　三能力 30　店規模 3　店員 2名
+prep.scenario.s4,劇本4　技能測試　LV10　三圍20　$99999　規模3　18×10,Scenario 4 · Skill test · LV10 · stats 20 · $99999 · scale 3 · 18×10,剧本4　技能测试　LV10　三围20　$99999　规模3　18×10,シナリオ4　スキルテスト　LV10　三能力20　$99999　規模3　18×10
+prep.home.title,營運準備,Prep,营运准备,営業準備
+prep.header,資金 $%d　LV%d　%s　STR%d AGI%d INT%d　點數 %d　商店評價 %d,Cash $%d · LV%d · %s · STR%d AGI%d INT%d · Pts %d · Shop rating %d,资金 $%d　LV%d　%s　STR%d AGI%d INT%d　点数 %d　商店评价 %d,資金 $%d　LV%d　%s　STR%d AGI%d INT%d　ポイント %d　店舗評価 %d
+prep.home.info_rating,商店評價 %d　已記錄 %d 日。選「評價記錄」可連續查看近況。,Shop rating %d · %d days logged. Open Rating history to browse.,商店评价 %d　已记录 %d 日。选“评价记录”可连续查看近况。,店舗評価 %d　記録 %d 日。「評価記録」で近況を連続閲覧できます。
+prep.hub.char,角色整備,Character,角色整备,キャラ整備
+prep.hub.char_info,能力、技能與外觀,Stats · skills · look,能力、技能与外观,能力・スキル・外見
+prep.hub.goods,貨品管理,Goods,货品管理,商品管理
+prep.hub.goods_info,開發與採購分開,Develop and buy separately,开发与采购分开,開発と仕入れは別メニュー
+prep.hub.shop,店舖管理,Shop,店铺管理,店舗管理
+prep.hub.shop_info,規模 LV%d　地圖 %d×%d　購入、擴張、設計,Scale LV%d · map %d×%d · buy · expand · layout,规模 LV%d　地图 %d×%d　购入、扩张、设计,規模 LV%d　マップ %d×%d　購入・拡張・設計
+prep.hub.staff,員工管理　%d 人,Staff · %d,员工管理　%d 人,従業員管理　%d 人
+prep.hub.rating,評價記錄,Rating history,评价记录,評価記録
+prep.hub.sys,系統工具,System tools,系统工具,システムツール
+prep.hub.sys_info,畫面／測試與存檔（觸控搖桿預設關；開後僅觸控模式顯示，手掣／鍵盤會自動隱藏）,Display / testing / save (touch stick default off; shows in touch mode only — auto-hides for pad/keyboard),画面／测试与存档（触控摇杆预设关；开后仅触控模式显示，手掣／键盘会自动隐藏）,画面／テストとセーブ（タッチスティックは既定オフ。オン時はタッチモードのみ表示。パッド／キーボードでは自動非表示）
+prep.rating.title,評價記錄,Rating history,评价记录,評価記録
+prep.rating.info,商店評價 %d　紀錄 %d／%d 日　上次營運點 %d　%s（評級 %+d）,Shop rating %d · log %d/%d days · last ops %d · %s (grade %+d),商店评价 %d　纪录 %d／%d 日　上次营运点 %d　%s（评级 %+d）,店舗評価 %d　記録 %d／%d 日　前回運営点 %d　%s（評級 %+d）
+prep.rating.empty,尚無日結評級。完成一局營運後會出現在這裡。,No day grades yet. Finish a day of ops to fill this list.,尚无日结评级。完成一局营运后会出现在这里。,日次評価はまだありません。営業を1日完了するとここに表示されます。
+prep.rating.day_latest,最近一日,Latest day,最近一日,直近の日
+prep.rating.day_ago,%d 日前,%d day(s) ago,%d 日前,%d 日前
+prep.rating.row,%s　第 %d 日　%s（評級 %+d）,%s · Day %d · %s (grade %+d),%s　第 %d 日　%s（评级 %+d）,%s　第 %d 日　%s（評級 %+d）
+prep.sys.virtual_stick_on,觸控搖桿：開,Touch stick: On,触控摇杆：开,タッチスティック：オン
+prep.sys.virtual_stick_off,觸控搖桿：關,Touch stick: Off,触控摇杆：关,タッチスティック：オフ
+prep.sys.language,語言：%s,Language: %s,语言：%s,言語：%s
+prep.home.stats,角色能力,Stats,角色能力,キャラ能力
+prep.home.skills,裝備技能,Skills,装备技能,スキル装備
+prep.home.skills_short,裝備技能,Skills,装备技能,スキル装備
+prep.home.look,外觀調整,Appearance,外观调整,外見調整
+prep.home.stock,開發／採購貨品,Develop / buy goods,开发／采购货品,開発／仕入れ
+prep.home.develop,開發商品,Develop goods,开发商品,商品開発
+prep.home.buy,採購貨品,Buy goods,采购货品,商品仕入れ
+prep.home.furn,購入商店物品,Buy furniture,购入商店物品,店舗アイテム購入
+prep.home.expand,擴張店面　現時 LV%d　%d×%d,Expand · LV%d · %d×%d,扩张店面　现时 LV%d　%d×%d,店舗拡張　現在 LV%d　%d×%d
+prep.home.expand_short,擴張店舖,Expand shop,扩张店铺,店舗拡張
+prep.home.layout,店舖設計,Layout,店铺设计,店舗設計
+prep.home.clerks,店員　%d 人,Clerks · %d,店员　%d 人,店員　%d 人
+prep.home.open,開始營運,Open shop,开始营运,営業開始
+prep.home.elite_test,開始營運（麻煩客人模式）,Open shop (elite guest test),开始营运（麻烦客人模式）,営業開始（面倒な客モード）
+prep.home.test_money,增加資金,Add funds,增加资金,資金を増やす
+prep.elite_test.title,麻煩客人模式（測試）,Elite guest test,麻烦客人模式（测试）,面倒な客モード（テスト）
+prep.elite_test.info,選等級後進入確認開店。此模式保證至少出現一名麻煩客人；其後進店約 40% 再出。混合 LV 每次抽 1–6。,Pick a level then confirm. Guarantees ≥1 elite; ~40% chance after. Mixed rolls LV1–6 each time.,选等级后进入确认开店。此模式保证至少出现一名麻烦客人；其后进店约 40% 再出。混合 LV 每次抽 1–6。,レベルを選んで開店確認へ。このモードでは必ず1人以上の面倒な客が出現。以降の入店は約40%。混合LVは毎回1–6を抽選。
+prep.elite_test.lv,麻煩客人 LV%d,Elite guest LV%d,麻烦客人 LV%d,面倒な客 LV%d
+prep.elite_test.mixed,混合 LV（不同等級）,Mixed levels,混合 LV（不同等级）,混合 LV（異なるレベル）
+prep.elite_test.confirm_note,【測試】麻煩客人模式：%s　（必出≥1；其後約40%）,【Test】Elite mode: %s (≥1 guaranteed; ~40% after),【测试】麻烦客人模式：%s　（必出≥1；其后约40%）,【テスト】面倒な客モード：%s　（必ず≥1；以降約40%）
+prep.difficulty.label,難度,Difficulty,难度,難易度
+prep.difficulty.easy,簡易,Easy,简易,かんたん
+prep.difficulty.normal,普通,Normal,普通,ふつう
+prep.difficulty.confirm_easy,【測試】簡易：一般客人清單最多 5 件（劇本更少則維持）。污物間隔加倍、開場 1 團。小偷出現率減半。不滿增加減半。,[Test] Easy. Guest lists at most 5 (or the lower scenario cap). Dirt spawns half as often and starts with 1. Thief chance is halved. Dissatisfaction gains are halved.,【测试】简易：一般客人清单最多 5 件（剧本更少则维持）。污物间隔加倍、开场 1 团。小偷出现率减半。不满增加减半。,【テスト】かんたん：一般客のリストは最大5件（シナリオ上限が低い場合はそちら）。汚れ発生間隔は2倍・開場は1団。泥棒出現率は半減。不満増加は半減。
+prep.difficulty.confirm_normal,【測試】難度：普通（按現有設計）,[Test] Normal (current rules),【测试】难度：普通（按现有设计）,【テスト】難易度：ふつう（現行ルール）
+prep.home.test_money_ok,已增加資金 $1000　現有 $%d,Added $1000 · now $%d,已增加资金 $1000　现有 $%d,資金を $1000 追加　現在 $%d
+prep.home.sfx_test,音效測試,SFX test,音效测试,効果音テスト
+prep.sfx.title,音效測試,SFX Test,音效测试,効果音テスト
+prep.sfx.info,P0／P1／P2 Alpha 佔位音效。每列 ▶ 後為映射的遊戲動作／效果。J 播放　; 返回。之後由音效設計師替換素材。,P0/P1/P2 Alpha placeholder SFX. Text after ▶ is the mapped gameplay action/effect. J play · ; back. Designers replace assets later.,P0／P1／P2 Alpha 占位音效。每列 ▶ 后为映射的游戏动作／效果。J 播放　; 返回。之后由音效设计师替换素材。,P0／P1／P2 Alpha の仮効果音。各行の ▶ 後は対応するゲーム動作／効果。J 再生　; 戻る。後で効果音デザイナーが差し替えます。
+prep.home.wipe,清除存檔並重新選擇劇本,Wipe save & re-pick scenario,清除存档并重新选择剧本,セーブを消してシナリオを選び直す
+prep.locked,未開放,Locked,未开放,未開放
+prep.locked_title,尚未開放,Not available,尚未开放,まだ開放されていません
+prep.look.locked_body,角色外觀調整尚未開放，之後版本會再補上。,Character appearance is not available yet.,角色外观调整尚未开放，之后版本会再补上。,キャラの外見調整はまだ開放されていません。今後のバージョンで追加予定です。
+prep.look.title,外觀調整,Appearance,外观调整,外見調整
+prep.look.info,目前：%s　色調 %d。游標預覽；確定裝備造型。,Current: %s · tint %d. Focus previews; confirm equips.,目前：%s　色调 %d。游标预览；确定装备造型。,現在：%s　色調 %d。フォーカスでプレビュー、決定で装備。
+prep.look.cycle_tint,切換色調（現在 %d）,Cycle tint (now %d),切换色调（现在 %d）,色調を切替（現在 %d）
+prep.look.equipped,已裝備「%s」,"Equipped ""%s""",已装备“%s”,「%s」を装備しました
+prep.look.tint_set,色調改為 %d,Tint set to %d,色调改为 %d,色調を %d に変更
+prep.look.locked_skin,此造型尚未解放。,This skin is locked.,此造型尚未解放。,このスキンはまだ解放されていません。
+skin.player,標準,Standard,标准,スタンダード
+skin.player_alt1,外星人,Alien,外星人,エイリアン
+skin.player_alt2,維京人,Viking,维京人,バイキング
+prep.confirm.host_look,店主外觀：%s　色調 %d,Host look: %s · tint %d,店主外观：%s　色调 %d,店主の外見：%s　色調 %d
+prep.confirm.guest_look,訪客外觀：%s　色調 %d,Guest look: %s · tint %d,访客外观：%s　色调 %d,ゲストの外見：%s　色調 %d
+prep.stats.title,角色能力,Stats,角色能力,キャラ能力
+prep.stats.info,按 + 加一點，按 - 減一點。向下可到重置和返回。,Press + / − to adjust. Down for reset and back.,按 + 加一点，按 - 减一点。向下可到重置和返回。,+ で1点加算、- で1点減算。下へでリセットと戻る。
+prep.stats.reset,重置能力值,Reset stats,重置能力值,能力値をリセット
+prep.skills.title,技能組合,Skill sets,技能组合,スキルセット
+prep.skills.info,這一局：%s　COST %d/5　奧義 %s\n選一組修改。▶ 是這一局要用的。補貨、開店和暫停都不能換。,"This day: %s · COST %d/5 · Ult %s\nPick a set to edit. ▶ is used this day. Restock, open, and pause cannot switch.",这一局：%s　COST %d/5　奥义 %s\n选一组修改。▶ 是这一局要用的。补货、开店和暂停都不能换。,本日：%s　COST %d/5　奥義 %s\n編集するセットを選んでください。▶ が本日使用分。補充・開店・一時停止中は切り替え不可。
+prep.skills.set_row,%s%s　COST %d/5　奧義 %s,%s%s · COST %d/5 · Ult %s,%s%s　COST %d/5　奥义 %s,%s%s　COST %d/5　奥義 %s
+prep.skill_set.info,COST %d/5。%s\n改五格和奧義。同一組不能放兩次。被動也佔格、也算 COST。奧義可以空。,COST %d/5. %s\nEdit the five slots and the ult. One skill once per set. Passives take a slot and COST. Ult may be empty.,COST %d/5。%s\n改五格和奥义。同一组不能放两次。被动也占格、也算 COST。奥义可以空。,COST %d/5。%s\n5枠と奥義を編集。同じセットに同一スキルは1回まで。パッシブも枠とCOSTを消費。奥義は空でも可。
+prep.skill_set.using,這一局使用中,In use this day,这一局使用中,本日使用中
+prep.skill_set.not_using,還沒選為這一局,Not selected this day,还没选为这一局,本日の選択まだ
+prep.skill_set.use,選為這一局,Use this day,选为这一局,本日に選ぶ
+prep.skill_set.already,已經是這一局的組合,Already the set for this day,已经是这一局的组合,すでに本日のセットです
+prep.skill_set.selected_msg,這一局改用「%s」,"This day now uses ""%s""",这一局改用“%s”,本日は「%s」を使用
+prep.skill_set.rename,改名,Rename,改名,名前変更
+prep.skill_set.empty,空,Empty,空,空
+prep.skill_set.slot,技能%d　%s%s,Skill %d · %s%s,技能%d　%s%s,スキル%d　%s%s
+prep.skill_set.ult,奧義　%s,Ult · %s,奥义　%s,奥義　%s
+prep.skill_rename.title,改名,Rename,改名,名前変更
+prep.skill_rename.info,現在：%s\n只限 1–10 個英文字母。清空後儲存會回到「%s」。不能跟別組同名。,"Now: %s\n1–10 English letters. Save empty to restore ""%s"". Names must be unique.",现在：%s\n只限 1–10 个英文字母。清空后储存会回到“%s”。不能跟别组同名。,現在：%s\n英字1–10文字のみ。空で保存すると「%s」に戻ります。他セットと同名は不可。
+prep.skill_rename.draft_empty,（空白）,(blank),（空白）,（空白）
+prep.skill_rename.save,儲存,Save,储存,保存
+prep.skill_rename.backspace,刪除最後一個字母,Delete last letter,删除最后一个字母,最後の文字を削除
+prep.skill_rename.clear,清空回到預設名,Clear to default name,清空回到预设名,クリアして既定名に戻す
+prep.skill_rename.lower,改成小寫,Lower case,改成小写,小文字にする
+prep.skill_rename.upper,改成大寫,Upper case,改成大写,大文字にする
+prep.skill_rename.too_long,名稱最多 10 個字母,At most 10 letters,名称最多 10 个字母,名前は最大10文字
+prep.skill_rename.saved,已改名為「%s」,"Renamed to ""%s""",已改名为“%s”,「%s」に改名しました
+prep.skill_pick.title,選擇技能,Pick skill,选择技能,スキル選択
+prep.skill_pick.info,組合「%s」的格 %s。名字前面是性質：主動、被動或奧義。COST 合計不能超過 5。,"Set ""%s"" slot %s. Prefix is active / passive / ult. Total COST ≤ 5.",组合“%s”的格 %s。名字前面是性质：主动、被动或奥义。COST 合计不能超过 5。,セット「%s」の枠 %s。名前前は性質：アクティブ／パッシブ／奥義。COST合計は5以下。
+prep.skill_pick.ult_slot,奧義,Ult,奥义,奥義
+prep.skill_pick.unequip,卸下,Unequip,卸下,外す
+prep.stock.title,開發／採購,Develop / buy,开发／采购,開発／仕入れ
+prep.stock.info,罐頭是初始貨物，不用開發就能採購。其他未開發的先付開發費。,Cans start unlocked. Other goods need a develop fee first.,罐头是初始货物，不用开发就能采购。其他未开发的先付开发费。,缶詰は初期商品で、開発なしで仕入れできます。他の未開発品は先に開発費が必要です。
+prep.develop.title,開發商品,Develop goods,开发商品,商品開発
+prep.develop.info,罐頭是初始貨物，不用開發。其他貨品先付開發費，開發後才能採購。,Cans start unlocked. Other goods need a develop fee before buying.,罐头是初始货物，不用开发。其他货品先付开发费，开发后才能采购。,缶詰は初期商品で開発不要。他の商品は先に開発費を払い、開発後に仕入れ可能になります。
+prep.buy.title,採購貨品,Buy goods,采购货品,商品仕入れ
+prep.buy.info,只列出已開發的貨品。未開發的請先到「開發商品」。,Only developed goods. Undeveloped items need Develop first.,只列出已开发的货品。未开发的请先到“开发商品”。,開発済みの商品のみ表示。未開発は先に「商品開発」へ。
+prep.buy.need_develop,%s尚未開發，請先到開發商品。,%s is not developed yet — open Develop first.,%s尚未开发，请先到开发商品。,%sは未開発です。先に商品開発へ。
+prep.stock.qty_title,採購 %s,Buy %s,采购 %s,%sを仕入れ
+prep.stock.qty_info,庫存 %d 件　標示 $%d／件（4 件價÷4）。中間是件數，按按鈕加減。,Stock %d pcs · ~$%d/pc. Middle is qty in pieces.,库存 %d 件　标示 $%d／件（4 件价÷4）。中间是件数，按按钮加减。,在庫 %d 個　表示 $%d／個（4個価格÷4）。中央は個数、ボタンで加減。
+prep.furn.title,購入商店物品,Buy furniture,购入商店物品,店舗アイテム購入
+prep.furn.info,買入後到店舖設計才放進店裡。展示貨架有 4、8、12、24 件，越大越貴。凍櫃 LV4、冰櫃 LV7 才開放。,Place bought items in Layout. Shelf sizes 4/8/12/24. Frozen LV4 · Ice LV7.,买入后到店铺设计才放进店里。展示货架有 4、8、12、24 件，越大越贵。冻柜 LV4、冰柜 LV7 才开放。,購入後は店舗設計で店内に配置。陳列棚は4／8／12／24枠、大きいほど高額。冷凍はLV4、冷蔵はLV7で開放。
+prep.expand.title,擴張店舖,Expand shop,扩张店铺,店舗拡張
+prep.expand.info,現時規模 LV%d　地圖 %d×%d　總面積 %d／%d。闊度和長度在店舖設計裡調，一邊減少就能加另一邊。\nLV2＝$3000、總面積 225，要角色 LV4。LV3＝$6000、總面積 400，要角色 LV7。,Scale LV%d · map %d×%d · area %d/%d. Adjust width/height in Layout.\nLV2=$3000 area 225 (need LV4). LV3=$6000 area 400 (need LV7).,现时规模 LV%d　地图 %d×%d　总面积 %d／%d。阔度和长度在店铺设计里调，一边减少就能加另一边。\nLV2＝$3000、总面积 225，要角色 LV4。LV3＝$6000、总面积 400，要角色 LV7。,現在規模 LV%d　マップ %d×%d　総面積 %d／%d。幅と長さは店舗設計で調整。一方を減らせば他方を増やせます。\nLV2＝$3000、総面積225、キャラLV4が必要。LV3＝$6000、総面積400、キャラLV7が必要。
+prep.layout.title,店舖設計,Layout,店铺设计,店舗設計
+prep.layout.info,拖：左列放到圖上；圖上拖移，拖出或輕點收回。手制：短按拿起／放下；補貨架長按設預設貨；地圖持物短取消還原、長取消收回；無持物取消回尺寸／清單。,"Drag from the list onto the grid; drag to move, off or tap to recall. Pad: tap pick/place; long-press restock for default SKU; while holding from map short-cancel restores, long-cancel recalls; cancel with empty hands to size/list.",拖：左列放到图上；图上拖移，拖出或轻点收回。手制：短按拿起／放下；补货架长按设预设货；地图持物短取消还原、长取消收回；无持物取消回尺寸／清单。,ドラッグ：左リストから図へ配置。図上で移動、外へドラッグまたはタップで回収。パッド：短押しで取る／置く。補充棚は長押しで既定商品を設定。マップからの持ち中は短キャンセルで復元・長キャンセルで回収。非所持時のキャンセルはサイズ／リストへ。
+prep.layout.holding,正在放 %s。確定放下；轉向。地圖拿起：短取消還原、長取消收回；清單拿起：取消退回庫。,"Placing %s. Confirm to place; rotate to turn. From map: short-cancel restores, long-cancel recalls. From list: cancel returns to stock.",正在放 %s。确定放下；转向。地图拿起：短取消还原、长取消收回；清单拿起：取消退回库。,%sを配置中。決定で置く。回転で向き変更。マップから：短キャンセルで復元、長キャンセルで回収。リストから：キャンセルで在庫へ戻す。
+prep.layout.focus_map,設計圖游標,Layout cursor,设计图游标,設計図カーソル
+prep.layout.sku_pick,預設貨品：%s　↑↓ 改選　確定　取消,Default SKU: %s · ↑↓ change · confirm · cancel,预设货品：%s　↑↓ 改选　确定　取消,既定商品：%s　↑↓ 変更　決定　キャンセル
+prep.layout.sku_set,已設預設 %s,Default set: %s,已设预设 %s,既定を設定：%s
+prep.clerks.title,員工管理,Staff,员工管理,従業員管理
+prep.confirm.title,開始營運,Open shop,开始营运,営業開始
+prep.confirm.players,玩家人數,Players,玩家人数,プレイ人数
+prep.confirm.players_1,1 人（單人）,1 player (solo),1 人（单人）,1人（ソロ）
+prep.confirm.players_2,2 人（本機雙人）,2 players (local coop),2 人（本机双人）,2人（ローカル協力）
+prep.confirm.players_web,Web 僅支援 1 人,Web supports 1 player only,Web 仅支援 1 人,Webは1人のみ対応
+prep.confirm.players_note,2 人時請選訪客槽（既有／複製／空白）,With 2 players pick a guest slot (existing / clone / blank),2 人时请选访客槽（既有／复制／空白）,2人時はゲスト枠を選択（既存／複製／空白）
+prep.confirm.host_tint,店主色調：%d,Host tint: %d,店主色调：%d,店主の色調：%d
+prep.confirm.cycle_host_tint,切換店主色調,Cycle host tint,切换店主色调,店主の色調を切替
+prep.confirm.guest_none,P2：尚未選訪客槽（開始時會自動複製店主到空槽）,P2: no guest slot yet (open will clone host into an empty slot),P2：尚未选访客槽（开始时会自动复制店主到空槽）,P2：ゲスト枠未選択（開始時に空枠へ店主を自動複製）
+prep.confirm.guest_selected,P2 槽%d：%s,P2 slot %d: %s,P2 槽%d：%s,P2 枠%d：%s
+prep.confirm.guest_slot,選用槽%d　%s,Use slot %d  %s,选用槽%d　%s,スロット%dを使用　%s
+prep.confirm.guest_clone,複製店主 → 槽%d,Clone host → slot %d,复制店主 → 槽%d,店主を複製 → スロット%d
+prep.confirm.guest_blank_btn,新建空白 → 槽%d,New blank → slot %d,新建空白 → 槽%d,空白を新規作成 → スロット%d
+prep.confirm.cycle_guest_tint,切換訪客色調,Cycle guest tint,切换访客色调,ゲスト色調を切替
+prep.confirm.guest_cloned,已複製店主到訪客槽 %d,Cloned host into guest slot %d,已复制店主到访客槽 %d,店主をゲストスロット%dに複製しました
+prep.confirm.guest_blank,已在訪客槽 %d 新建空白角色,Created blank character in guest slot %d,已在访客槽 %d 新建空白角色,ゲストスロット%dに空白キャラを作成しました
+prep.confirm.guest_need_title,需要訪客槽,Guest slot required,需要访客槽,ゲストスロットが必要です
+prep.confirm.guest_need_body,請先選既有槽、複製店主到空槽、或新建空白。,Pick an existing slot,请先选既有槽、复制店主到空槽、或新建空白。,既存スロットを選ぶか、店主を空きスロットに複製するか、空白を新規作成してください。
+prep.kind.active,主動,Active,主动,アクティブ
+prep.kind.passive,被動,Passive,被动,パッシブ
+prep.kind.ult,奧義,Ult,奥义,奥義
+prep.chrome.hint,方向移動　行動確定　取消返回　店舖設計：短按拿起　取消調尺寸　補貨架長按預設貨　轉向（K／X）,Move · confirm · cancel · layout: tap pick · cancel for size · restock hold default SKU · rotate (K/X),方向移动　行动确定　取消返回　店铺设计：短按拿起　取消调尺寸　补货架长按预设货　转向（K／X）,方向で移動　行動で確定　取消で戻る　店舗設計：短押しで拾う　取消でサイズ調整　補充棚は長押しで既定商品　回転（K／X）
+prep.chrome.back,返回,Back,返回,戻る
+prep.chrome.dialog_yes,確定,OK,确定,確定
+prep.chrome.dialog_no,取消,Cancel,取消,キャンセル
+demo.thief_enter,小偷進店！,A thief entered!,小偷进店！,泥棒が入店！
+demo.elite_banner,麻煩客人注意！,Troublesome customer!,麻烦客人注意！,厄介な客に注意！
+demo.stolen_banner,你已經被偷了！,You've been robbed!,你已经被偷了！,盗難被害を受けた！
+demo.fundraise,全體集資　%d 人　+$%d,Fundraise · %d guests · +$%d,全体集资　%d 人　+$%d,全体出資　%d人　+$%d
+demo.close_gate,落閘放狗　排隊 %d　離店 %d　小偷 %d,Close gate · queue %d · leave %d · thieves %d,落闸放狗　排队 %d　离店 %d　小偷 %d,シャッター閉鎖　列%d　退店%d　泥棒%d
+demo.closeout_early,提早關店結算,Early closeout,提早关店结算,早期閉店精算
+demo.closeout_test,營業結束,Shop closed,营业结束,営業終了
+demo.closeout_head,關店結算,Day settled,关店结算,閉店精算
+self_checkout.no_register,5身位內沒有收銀機,No register within 5 body lengths,5身位内没有收银机,5身位以内にレジがありません
+self_checkout.active,Self Checkout,Self Checkout,Self Checkout,セルフレジ
+self_checkout.standby,自助待命,Self checkout standby,自助待命,セルフ待機
+self_checkout.tail,完成本客後結束,Finishing final customer,完成本客后结束,最終客完了後に終了
+self_checkout.loading,自助付款 %.0f%%,Self checkout %.0f%%,自助付款 %.0f%%,セルフ会計 %.0f%%
+self_checkout.blurb,啟動5身位內機台15秒；每客5／4／3秒自助；真人／NPC優先；尾單收完；CD30秒受INT縮短,Enable nearby registers for 15s within 5 body lengths; 5/4/3s per guest; operators take priority; finish final guest; 30s CD scales with INT,启动5身位内机台15秒；每客5／4／3秒自助；真人／NPC优先；尾单收完；CD30秒受INT缩短,5身位以内のレジを15秒起動；客ごとに5／4／3秒でセルフ；本人／NPC優先；最後の客まで完了；CD30秒はINTで短縮
+rating.grade.m3,你還在嗎？,Still there?,你还在吗？,まだいる？
+rating.grade.m2,超負評,Terrible,超负评,超低評価
+rating.grade.m1,負評,Poor,负评,低評価
+rating.grade.0,普通,Average,普通,普通
+rating.grade.p1,好評,Good,好评,好評
+rating.grade.p2,大獲好評,Great,大获好评,大好評
+rating.grade.p3,超好評,Outstanding,超好评,超好評
+rating.closeout_line,營運點 %d　%s（評級 %+d）　商店評價 %d→%d,Ops %d · %s (grade %+d) · Shop rating %d→%d,营运点 %d　%s（评级 %+d）　商店评价 %d→%d,運営点 %d　%s（評価 %+d）　店舗評価 %d→%d
+rating.diff.title,難度建議,Difficulty tip,难度建议,難易度の提案
+rating.diff.body_down,連續三日評級偏低。要把整體難度調低一檔嗎？（目前不影響測試簡易鈕；正式難度數值仍開發中）\n現在：%s → %s,Three low grades in a row. Lower overall difficulty one step? (Does not change the test Easy toggle; formal tuning still stub.)\nNow: %s → %s,连续三日评级偏低。要把整体难度调低一档吗？（目前不影响测试简易钮；正式难度数值仍开发中）\n现在：%s → %s,三日連続で評価が低いです。全体難易度を一段階下げますか？（テスト用イージー切替には影響しません；正式な難易度数値は開発中）\n現在：%s → %s
+rating.diff.body_up,連續三日評級偏高。要把整體難度調高一檔嗎？（目前不影響測試簡易鈕；正式難度數值仍開發中）\n現在：%s → %s,Three high grades in a row. Raise overall difficulty one step? (Does not change the test Easy toggle; formal tuning still stub.)\nNow: %s → %s,连续三日评级偏高。要把整体难度调高一档吗？（目前不影响测试简易钮；正式难度数值仍开发中）\n现在：%s → %s,三日連続で評価が高いです。全体難易度を一段階上げますか？（テスト用イージー切替には影響しません；正式な難易度数値は開発中）\n現在：%s → %s
+rating.diff.name.easy,簡易,Easy,简易,イージー
+rating.diff.name.normal,普通,Normal,普通,ノーマル
+rating.diff.name.hard,困難,Hard,困难,ハード
+rating.diff.accept,接受,Accept,接受,受け入れる
+rating.diff.dismiss,否決,Dismiss,否决,却下
+cannon.name,萬用炮,Universal Cannon,万用炮,万能砲
+cannon.blurb,腳下布置可穿行炮台；容量12／16／20件；每5／4／3秒射1件；再按取消後CD60秒,Deploy a pass-through turret; FIFO capacity 12/16/20; fires one item every 5/4/3s; cancel to start a 60s INT-scaled cooldown,脚下布置可穿行炮台；容量12／16／20件；每5／4／3秒射1件；再按取消后CD60秒,足元に通行可能な砲台を設置；容量12／16／20個；5／4／3秒ごとに1個発射；再押しで解除後CD60秒
+cannon.empty,無彈藥,Empty,无弹药,弾薬なし
+cannon.status,P%d 萬用炮 %d／%d\n下一發：%s,P%d Cannon %d/%d\nNext: %s,P%d 万用炮 %d／%d\n下一发：%s,P%d 万能砲 %d／%d\n次弾：%s
+cannon.cancelled,萬用炮已取消，剩貨落地，開始冷卻,Cannon removed; remaining ammo dropped; cooldown started,万用炮已取消，剩货落地，开始冷却,万能砲を解除、残り弾薬は落下、クールダウン開始
+cannon.deployed,萬用炮已布置；短按取下一發，長按裝貨,Cannon deployed; tap to retrieve next round; hold to load,万用炮已布置；短按取下一发，长按装货,万能砲を設置；短押しで次弾取得、長押しで装填
+cannon.take_failed,無法取貨：炮台空或負重已滿,Cannot retrieve: cannon empty or hands full,无法取货：炮台空或负重已满,取得不可：砲台が空、または所持上限
+cannon.loaded,萬用炮裝入 %d 件,Loaded %d items into cannon,万用炮装入 %d 件,万能砲に %d 個装填
+err.platform.save,無法寫入存檔（錯誤 %d）,Cannot write save (error %d),无法写入存档（错误 %d）,セーブを書き込めません（エラー %d）
+err.platform.guest_slot,無法寫入訪客槽（錯誤 %d）,Cannot write guest slot (error %d),无法写入访客槽（错误 %d）,ゲストスロットを書き込めません（エラー %d）
+hud.skill.ready,就緒,Ready,就绪,準備完了
+hud.skill.empty,%d 空,%d empty,%d 空,%d 空
+hud.skill.passive,%d %s 被動,%d %s passive,%d %s 被动,%d %s パッシブ
+hud.ult.empty,奧義 空,Ult empty,奥义 空,奥義 空
+hud.ult.line,奧義 %s  %s,Ult %s  %s,奥义 %s  %s,奥義 %s  %s
+touch.center,中,Mid,中,中
+touch.action,行動,Act,行动,行動
+touch.dash,衝刺,Dash,冲刺,ダッシュ
+touch.skill1,技1,Sk1,技1,技1
+touch.skill2,技2,Sk2,技2,技2
+touch.skill3,技3,Sk3,技3,技3
+touch.skill4,技4,Sk4,技4,技4
+touch.skill5,技5,Sk5,技5,技5
+hud.scene.phase,補貨時段,Restock phase,补货时段,補充時間帯
+hud.scene.revenue,營業額  $0,Revenue  $0,营业额  $0,売上  $0
+hud.scene.guests,在店客人  0,Guests in shop  0,在店客人  0,店内客  0
+hud.scene.shop_status,商店狀態  無技能效果,Shop status  no skill effects,商店状态  无技能效果,店舗状態  スキル効果なし
+hud.scene.stats,角色狀態  STR20 AGI20 INT20,Stats  STR20 AGI20 INT20,角色状态  STR20 AGI20 INT20,キャラ状態  STR20 AGI20 INT20
+hud.scene.skills,技能,Skills,技能,スキル
+hud.scene.status,狀態,Status,状态,状態
+hud.scene.carry,負重,Carry,负重,所持
+hud.scene.target,目標,Target,目标,目標
+pause.scene.body,遊戲已暫停。,Game paused.,游戏已暂停。,ゲームを一時停止中。
+pause.scene.hint,Esc／Start 開關　　W／S 選擇　　A／D 調音量　　J 確定,Esc/Start toggle  W/S select  A/D volume  J confirm,Esc／Start 开关　　W／S 选择　　A／D 调音量　　J 确定,Esc／Start で切替　　W／S で選択　　A／D で音量　　J で確定
+pause.scene.vol,音效聲量：100%,SFX volume: 100%,音效声量：100%,効果音量：100%
+pause.scene.stick,虛擬搖桿：關,Virtual stick: Off,虚拟摇杆：关,仮想スティック：オフ
+prep.scene.hint,WASD／搖桿移動　J／A 確定　;／B 返回　店舖設計時 X／K 轉向,WASD/stick move  J/A confirm  ;/B back  layout: X/K rotate,WASD／摇杆移动　J／A 确定　;／B 返回　店铺设计时 X／K 转向,WASD／スティックで移動　J／A で確定　;／B で戻る　店舗設計時 X／K で回転
+prep.skill.level_row,%s 等級　LV%d,%s level  LV%d,%s 等级　LV%d,%s レベル　LV%d
+prep.sku.locked,%s　LV%d 開放,%s  unlocks LV%d,%s　LV%d 开放,%s　LV%d で開放
+prep.sku.developed,%s　已開發,%s  developed,%s　已开发,%s　開発済み
+prep.sku.develop_row,開發 %s　$%d,Develop %s  $%d,开发 %s　$%d,開発 %s　$%d
+prep.sku.need_dev,%s　尚未開發,%s  not developed,%s　尚未开发,%s　未開発
+prep.sku.buy_row,採購 %s　庫存 %d 件　約$%d/件（4件$%d）,Buy %s  stock %d  ~$%d/pc (4pcs $%d),采购 %s　库存 %d 件　约$%d/件（4件$%d）,仕入 %s　在庫 %d 個　約$%d/個（4個$%d）
+prep.sku.total,合計 $%d,Total $%d,合计 $%d,合計 $%d
+prep.sku.confirm_buy,確定購買,Confirm purchase,确定购买,購入を確定
+prep.sku.qty,%02d 件,%02d pcs,%02d 件,%02d 個
+prep.furn.locked_row,%s　LV%d 開放　$%d,%s  LV%d  $%d,%s　LV%d 开放　$%d,%s　LV%d で開放　$%d
+prep.furn.buy_row,購入 %s　$%d　擁有 %d　未放置 %d,Buy %s  $%d  owned %d  unplaced %d,购入 %s　$%d　拥有 %d　未放置 %d,購入 %s　$%d　所持 %d　未配置 %d
+prep.expand.row,擴張到規模 LV%d　$%d,Expand to scale LV%d  $%d,扩张到规模 LV%d　$%d,規模 LV%d へ拡張　$%d
+prep.layout.width,闊度,Width,阔度,幅
+prep.layout.height,長度,Depth,长度,奥行き
+prep.layout.area,總面積  %d／%d,Area  %d/%d,总面积  %d／%d,総面積  %d／%d
+prep.layout.drag,拖放 %s　×%d,Place %s  ×%d,拖放 %s　×%d,配置 %s　×%d
+prep.hire.info,現有 %d／上限 %d　每日開工每人扣 $%d\n人數不能多過已放置的收銀機，也不能超過店舖規模。,Staff %d/%d  wage $%d each day start\nCannot exceed placed registers or shop scale.,现有 %d／上限 %d　每日开工每人扣 $%d\n人数不能多过已放置的收银机，也不能超过店铺规模。,現在 %d／上限 %d　開店ごとに一人あたり $%d\n人数は配置済みレジ台数および店舗規模を超えられません。
+prep.hire.recruit,召募,Hire,召募,募集
+prep.role.cashier,收銀,Checkout,收银,レジ
+prep.role.restock,補貨,Restock,补货,補充
+prep.hire.clerk_row,店員%d　%s　收銀機 %d　（確定切崗位）,Clerk %d  %s  reg %d  (confirm swap),店员%d　%s　收银机 %d　（确定切岗位）,店員%d　%s　レジ %d　（確定で役割切替）
+prep.hire.reassign,　改派收銀機,  Reassign register,　改派收银机,　レジを再割当
+prep.hire.fire,　解僱店員%d,  Fire clerk %d,　解雇店员%d,　店員%dを解雇
+prep.open.wage_info,開工扣工資 $%d。結算時營業額入帳；若營業額低於本輪進貨成本會標虧損，遊戲繼續。,Wages $%d at open. Revenue posts at settle; loss flag if below stock cost — run continues.,开工扣工资 $%d。结算时营业额入账；若营业额低于本轮进货成本会标亏损，游戏继续。,開店時に賃金 $%d を差し引きます。精算時に売上が入金；売上が今回の仕入コスト未満なら赤字表示、ゲームは続行。
+prep.open.start_funds,開始　工資後資金約 $%d,Start  ~$%d after wages,开始　工资后资金约 $%d,開始　賃金後の資金 約 $%d
+prep.msg.loaded,已讀取存檔（劇本 %d　LV%d　$%d）,Loaded save (scenario %d  LV%d  $%d),已读取存档（剧本 %d　LV%d　$%d）,セーブを読込（シナリオ %d　LV%d　$%d）
+prep.msg.max_lv,已滿 LV10,Already LV10,已满 LV10,すでに LV10
+prep.msg.cant_open,不能開店,Cannot open,不能开店,開店できません
+prep.msg.cant_reset,不能重置,Cannot reset,不能重置,リセットできません
+prep.msg.reset_ok,已重置能力值（−$%d）,Stats reset (−$%d),已重置能力值（−$%d）,能力値をリセットしました（−$%d）
+prep.msg.cant_adjust,不能調整,Cannot adjust,不能调整,調整できません
+prep.msg.dim_min,%s最少是 8。,%s must be at least 8.,%s最少是 8。,%sは最低 8 です。
+prep.msg.area_over,加了%s之後總面積是 %d，超過規模 LV%d 的上限 %d。先縮小另一邊，或擴張店面。,"With %s area is %d, over scale LV%d cap %d. Shrink the other side or expand.",加了%s之后总面积是 %d，超过规模 LV%d 的上限 %d。先缩小另一边，或扩张店面。,%sを足すと総面積は %d、規模 LV%d の上限 %d を超えます。もう一方を縮小するか、店舗を拡張してください。
+prep.msg.furniture_oob,有傢俬超出新的邊界，先在圖上收回再縮小。,Furniture outside new bounds; pick up before shrinking.,有家私超出新的边界，先在图上收回再缩小。,家具が新しい境界の外に出ます。先に配置を片付けてから縮小してください。
+prep.msg.save_cleared,已清除存檔,Save cleared,已清除存档,セーブを消去しました
+prep.msg.cant_equip,不能裝備,Cannot equip,不能装备,装備できません
+prep.msg.max_scale_detail,店舖已是最大規模 LV3，不能再擴張。,Shop already max scale LV3.,店铺已是最大规模 LV3，不能再扩张。,店舗はすでに最大規模 LV3 です。これ以上拡張できません。
+prep.msg.locked_sku,%s要角色 LV%d 才開放，現在是 LV%d。,%s unlocks at LV%d (now LV%d).,%s要角色 LV%d 才开放，现在是 LV%d。,%sはキャラ LV%d で開放、現在は LV%d。
+prep.msg.locked_furn,%s要角色 LV%d 才開放購入，現在是 LV%d。,%s buy unlocks at LV%d (now LV%d).,%s要角色 LV%d 才开放购入，现在是 LV%d。,%sの購入はキャラ LV%d で開放、現在は LV%d。
+prep.msg.need_funds,%s要 $%d，現有 $%d。,"%s needs $%d, have $%d.",%s要 $%d，现有 $%d。,%sには $%d 必要、所持 $%d。
+prep.msg.cant_develop,不能開發,Cannot develop,不能开发,開発できません
+prep.msg.already_dev_buy,%s已經開發，可以直接採購。,%s already developed — buy stock.,%s已经开发，可以直接采购。,%sはすでに開発済み、そのまま仕入できます。
+prep.msg.develop_what,開發%s,Develop %s,开发%s,%sを開発
+prep.msg.confirm_title,確認購入,Confirm purchase,确认购入,購入の確認
+prep.msg.develop_ask,開發%s，支付 $%d？,Develop %s for $%d?,开发%s，支付 $%d？,%sを開発し、$%d 支払いますか？
+prep.msg.need_dev_buy,%s尚未開發，不能採購。,%s not developed — cannot buy.,%s尚未开发，不能采购。,%sは未開発のため仕入できません。
+prep.msg.buy_what,採購%s %d 件,Buy %s ×%d,采购%s %d 件,%sを %d 個仕入
+prep.msg.buy_ask,採購%s %d 件，支付 $%d？,Buy %s ×%d for $%d?,采购%s %d 件，支付 $%d？,%sを %d 個仕入し、$%d 支払いますか？
+prep.msg.furn_what,購入%s,Buy %s,购入%s,%sを購入
+prep.msg.furn_ask,購入%s，支付 $%d？,Buy %s for $%d?,购入%s，支付 $%d？,%sを購入し、$%d 支払いますか？
+prep.msg.expand_locked,擴張到規模 LV%d 要角色 LV%d，現在是 LV%d。,Scale LV%d needs character LV%d (now LV%d).,扩张到规模 LV%d 要角色 LV%d，现在是 LV%d。,規模 LV%d への拡張にはキャラ LV%d が必要、現在は LV%d。
+prep.msg.expand_what,擴張到規模 LV%d,Expand to scale LV%d,扩张到规模 LV%d,規模 LV%d へ拡張
+prep.msg.expand_ask,擴張到規模 LV%d，總面積上限變為 %d（現成 %d×%d），支付 $%d？,"Expand to scale LV%d, area cap %d (%d×%d), pay $%d?",扩张到规模 LV%d，总面积上限变为 %d（现成 %d×%d），支付 $%d？,規模 LV%d へ拡張し、総面積上限を %d（現状 %d×%d）にします。$%d 支払いますか？
+prep.msg.hired,已召募,Hired,已召募,採用しました
+prep.msg.hire_cap,規模 LV%d 最多召募 %d 人。,Scale LV%d hire cap is %d.,规模 LV%d 最多召募 %d 人。,規模 LV%d の募集上限は %d 人です。
+prep.msg.hire_expand_hint,擴張店面後上限才會提高。,Expand the shop to raise the cap.,扩张店面后上限才会提高。,店舗を拡張すると上限が上がります。
+prep.msg.cant_hire,不能召募,Cannot hire,不能召募,募集できません
+prep.msg.hire_need_register,店員不能多過已放置的收銀機。請先在店舖設計放一台收銀機。,Clerks cannot exceed placed registers. Place a register first.,店员不能多过已放置的收银机。请先在店铺设计放一台收银机。,店員は配置済みレジの台数を超えられません。先に店舗設計でレジを置いてください。
+prep.msg.hire_now,現在不能召募。,Cannot hire now.,现在不能召募。,いまは募集できません。
+prep.msg.developed,已開發 %s,Developed %s,已开发 %s,%sを開発しました
+prep.msg.cant_buy,不能採購,Cannot buy,不能采购,仕入できません
+prep.msg.bought_sku,已採購 %s ×%d 件,Bought %s ×%d,已采购 %s ×%d 件,%s ×%d 個を仕入ました
+prep.msg.cant_buy_furn,不能購入,Cannot buy furniture,不能购入,購入できません
+prep.msg.bought_furn,已購入 %s,Bought %s,已购入 %s,%sを購入しました
+prep.msg.cant_expand,不能擴張,Cannot expand,不能扩张,拡張できません
+prep.msg.expanded,已擴張到規模 LV%d,Expanded to scale LV%d,已扩张到规模 LV%d,規模 LV%d へ拡張しました
+prep.msg.ok,知道了,OK,知道了,了解
+prep.msg.picked_up,已收回,Picked up,已收回,回収しました
+prep.msg.moved,已移動,Moved,已移动,移動しました
+prep.msg.placed,已放置,Placed,已放置,配置しました
+prep.msg.cursor_empty,游標上沒有物品,Nothing on cursor,游标上没有物品,カーソルにアイテムがありません
+prep.msg.put_back,已放回,Put back,已放回,戻しました
+prep.msg.cat_locked,尚未開發此類貨品,This category not developed,尚未开发此类货品,この商品カテゴリは未開発です
+hud.status.prefix_shop,商店狀態  ,Shop status  ,商店状态  ,店舗状態  
+hud.status.prefix_role,角色狀態  ,Role status  ,角色状态  ,キャラ状態  
+hud.status.world_stop,The World! 時停 %.0fs,The World! stop %.0fs,The World! 时停 %.0fs,The World! 時止め %.0fs
+hud.status.dusk,諸客的黃昏 %.0fs,Twilight of Guests %.0fs,诸客的黄昏 %.0fs,諸客の黄昏 %.0fs
+hud.status.metal,金屬狂潮 +150%% %.0fs,Metal Rush +150%% %.0fs,金属狂潮 +150%% %.0fs,メタルラッシュ +150%% %.0fs
+hud.status.carry,負重+240件 %.0fs,Carry+240 %.0fs,负重+240件 %.0fs,所持+240個 %.0fs
+hud.status.move,移速+60%% %.0fs,Move+60%% %.0fs,移速+60%% %.0fs,移動速度+60%% %.0fs
+hud.status.instant,瞬間上架 %.0fs,Instant restock %.0fs,瞬间上架 %.0fs,瞬間陳列 %.0fs
+hud.status.sniper_shelf,狙擊手（貨架） %.0fs,Sniper (shelves) %.0fs,狙击手（货架） %.0fs,スナイパー（棚） %.0fs
+hud.status.sniper_guest,狙擊手（客人） %.0fs,Sniper (guests) %.0fs,狙击手（客人） %.0fs,スナイパー（客） %.0fs
+hud.status.sniper_thief,狙擊手（小偷） %.0fs,Sniper (thieves) %.0fs,狙击手（小偷） %.0fs,スナイパー（泥棒） %.0fs
+hud.status.dash_deliver,衝刺交付 %.0fs,Dash Deliver %.0fs,冲刺交付 %.0fs,ダッシュ配達 %.0fs
+hud.status.senior,資深收銀員 %.0fs,Senior Cashier %.0fs,资深收银员 %.0fs,シニアキャッシャー %.0fs
+hud.status.hoop,投籃高手 %.0fs,Hoop Ace %.0fs,投篮高手 %.0fs,フープエース %.0fs
+hud.status.monk,掃地僧 %.0fs,Sweeping Monk %.0fs,扫地僧 %.0fs,掃除僧 %.0fs
+hud.status.sick,嘔吐物 −30%% %.0fs,Vomit −30%% %.0fs,呕吐物 −30%% %.0fs,嘔吐物 −30%% %.0fs
+hud.status.fighting,打擊中,Fighting,打击中,戦闘中
+hud.status.down,倒地 %.0fs,Down %.0fs,倒地 %.0fs,ダウン %.0fs
+hud.status.checkout_pct,收銀+%.0f%%,Checkout+%.0f%%,收银+%.0f%%,レジ+%.0f%%
+hud.move.stun,暈眩,Stunned,晕眩,気絶
+hud.move.slip,滑倒,Slipping,滑倒,滑倒
+hud.move.toss,丟貨,Tossing,丢货,投げる
+hud.move.drop_aim,掉貨瞄準,Drop aim,掉货瞄准,投下照準
+hud.move.ult_cmd,奧義指令,Ult inputs,奥义指令,奥義コマンド
+hud.move.skill_menu,技能選單,Skill menu,技能选单,スキルメニュー
+hud.move.pick_sku,選貨,Picking SKU,选货,商品選択
+hud.move.clean,清潔,Cleaning,清洁,清掃
+hud.move.fight,打擊,Fight,打击,攻撃
+hud.move.checkout_cmd,收銀指令,Checkout inputs,收银指令,レジコマンド
+hud.move.must_deliver,使命必達,Must Deliver,使命必达,使命必達
+hud.move.magneto,攝石人,Magneto,摄石人,マグニートー
+prep.msg.locked_title,尚未開放,Locked,尚未开放,未開放
+prep.msg.confirm_btn,確定,OK,确定,OK
+prep.ult.empty,空,Empty,空,空

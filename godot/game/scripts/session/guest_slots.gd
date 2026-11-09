@@ -77,7 +77,7 @@ func clone_host_into(index: int, host_state) -> void:
 	if index < 0 or index >= MAX_SLOTS:
 		return
 	var sheet = CharacterSheet.from_game_state(host_state)
-	sheet.display_name = "訪客%d" % (index + 1)
+	sheet.display_name = Loc.t("world.guest_slot.n", [(index + 1)])
 	slots[index] = sheet.to_dict()
 
 
@@ -85,14 +85,14 @@ func create_blank_at(index: int) -> void:
 	if index < 0 or index >= MAX_SLOTS:
 		return
 	var sheet = CharacterSheet.blank()
-	sheet.display_name = "訪客%d" % (index + 1)
+	sheet.display_name = Loc.t("world.guest_slot.n", [(index + 1)])
 	slots[index] = sheet.to_dict()
 
 
 func label_for(index: int) -> String:
 	if is_empty(index):
-		return "（空）"
+		return Loc.t("world.guest_slot.empty")
 	var sheet = get_sheet(index)
 	if sheet == null:
-		return "（空）"
+		return Loc.t("world.guest_slot.empty")
 	return sheet.summary_line()

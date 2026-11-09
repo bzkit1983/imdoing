@@ -281,6 +281,8 @@ static func _hub_sys(menu: CanvasLayer) -> void:
 		null,
 		"stick"
 	)
+	var lang_name := Loc.t("locale.name.%s" % Loc.get_locale())
+	menu._add_hub(Loc.t("prep.sys.language", [lang_name]), "cycle_locale", null, "lang")
 	if ProductVersion.test_tools_enabled():
 		menu._add_hub(Loc.t("prep.home.test_money"), "test_money", null, "money")
 		menu._add_hub(Loc.t("prep.home.sfx_test"), "go", "sfx", "sfx")
@@ -380,7 +382,7 @@ static func _skill_set(menu: CanvasLayer) -> void:
 		var level_sk: Dictionary = Skills.by_id(level_id)
 		if not Skills.prep_picks_level(level_sk):
 			continue
-		menu._add("%s 等級　LV%d" % [String(level_sk.get("name")), menu.state.skill_level_of(i, level_id)], "cycle_skill_lv", level_id)
+		menu._add(Loc.t("prep.skill.level_row", [String(level_sk.get("name")), menu.state.skill_level_of(i, level_id)]), "cycle_skill_lv", level_id)
 	menu._add(Loc.t("prep.skill_set.ult", [_ult_label(menu.state.ult_of(i))]), "pick_slot", 5)
 	menu._add(Loc.t("prep.back"), "go", "skills")
 
@@ -407,9 +409,9 @@ static func _skill_rename(menu: CanvasLayer) -> void:
 
 static func _ult_label(sk: Dictionary) -> String:
 	if sk.is_empty():
-		return "空"
+		return Loc.t("prep.ult.empty")
 	var n := String(sk.get("name", ""))
-	return n if n != "" else "空"
+	return n if n != "" else Loc.t("prep.ult.empty")
 
 
 static func _develop(menu: CanvasLayer) -> void:
@@ -417,11 +419,11 @@ static func _develop(menu: CanvasLayer) -> void:
 	menu._info.text = menu._pair(menu._header(), menu._msg if menu._msg != "" else Loc.t("prep.develop.info"))
 	for sku in Tuning.SELLABLE_SKUS:
 		if not menu.state.sku_unlocked(sku):
-			menu._add("%s　LV%d 開放" % [Tuning.sku_name(sku), int(Tuning.SKU_UNLOCK_LV[sku])], "locked_sku", sku)
+			menu._add(Loc.t("prep.sku.locked", [Tuning.sku_name(sku), int(Tuning.SKU_UNLOCK_LV[sku])]), "locked_sku", sku)
 		elif menu.state.developed.has(sku):
-			menu._add("%s　已開發" % Tuning.sku_name(sku), "noop", sku)
+			menu._add(Loc.t("prep.sku.developed", [Tuning.sku_name(sku)]), "noop", sku)
 		else:
-			menu._add("開發 %s　$%d" % [Tuning.sku_name(sku), int(Tuning.SKU_DEVELOP[sku])], "dev", sku)
+			menu._add(Loc.t("prep.sku.develop_row", [Tuning.sku_name(sku), int(Tuning.SKU_DEVELOP[sku])]), "dev", sku)
 	menu._add(Loc.t("prep.back"), "go", "hub_goods")
 
 
@@ -437,18 +439,17 @@ static func _buy(menu: CanvasLayer) -> void:
 	menu._info.text = menu._pair(menu._header(), menu._msg if menu._msg != "" else Loc.t("prep.buy.info"))
 	for sku in Tuning.SELLABLE_SKUS:
 		if not menu.state.sku_unlocked(sku):
-			menu._add("%s　LV%d 開放" % [Tuning.sku_name(sku), int(Tuning.SKU_UNLOCK_LV[sku])], "locked_sku", sku)
+			menu._add(Loc.t("prep.sku.locked", [Tuning.sku_name(sku), int(Tuning.SKU_UNLOCK_LV[sku])]), "locked_sku", sku)
 		elif not menu.state.developed.has(sku):
-			menu._add("%s　尚未開發" % Tuning.sku_name(sku), "need_develop", sku)
+			menu._add(Loc.t("prep.sku.need_dev", [Tuning.sku_name(sku)]), "need_develop", sku)
 		else:
 			menu._add(
-				"採購 %s　庫存 %d 件　約$%d/件（4件$%d）"
-				% [
+				Loc.t("prep.sku.buy_row", [
 					Tuning.sku_name(sku),
 					int(menu.state.stock.get(sku, 0)),
 					Tuning.sku_piece_price_label(sku),
 					int(Tuning.SKU_COST[sku]),
-				],
+				]),
 				"qty",
 				sku,
 			)
@@ -466,7 +467,7 @@ static func _build_qty(menu: CanvasLayer, total: int) -> void:
 	steps.add_child(_qty_button(menu, "+10", 3))
 	menu._qty_panel.add_child(steps)
 	var sum := Label.new()
-	sum.text = "合計 $%d" % total
+	sum.text = Loc.t("prep.sku.total", [total])
 	sum.custom_minimum_size = Vector2(400, 48)
 	UiFont.apply_label(sum, PrepWidgets.PREP_TITLE)
 	sum.add_theme_color_override("font_color", Color("e07a5f") if total > menu.state.money else Color("f4d35e"))
@@ -474,7 +475,7 @@ static func _build_qty(menu: CanvasLayer, total: int) -> void:
 	var acts := HBoxContainer.new()
 	acts.add_theme_constant_override("separation", 24)
 	acts.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var ok := PrepWidgets.bare_button("確定購買", 300, 88)
+	var ok := PrepWidgets.bare_button(Loc.t("prep.sku.confirm_buy"), 300, 88)
 	PrepWidgets.paint_btn(ok, menu._qty_focus == 4)
 	ok.pressed.connect(menu._on_qty_pressed.bind(4))
 	acts.add_child(ok)
@@ -496,7 +497,7 @@ static func _qty_figure(menu: CanvasLayer) -> Control:
 	sb.set_corner_radius_all(10)
 	holder.add_theme_stylebox_override("panel", sb)
 	var num := Label.new()
-	num.text = "%02d 件" % menu._qty_boxes
+	num.text = Loc.t("prep.sku.qty", [menu._qty_boxes])
 	num.position = Vector2(0, 0)
 	num.size = Vector2(210, 84)
 	num.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -520,10 +521,11 @@ static func _furn(menu: CanvasLayer) -> void:
 	menu._info.text = menu._pair(menu._header(), menu._msg if menu._msg != "" else Loc.t("prep.furn.info"))
 	for type in menu.state.FURNITURE.keys():
 		var spec: Dictionary = menu.state.FURNITURE[type]
+		var fname := String(menu.state.furniture_name(type))
 		if not menu.state.furniture_unlocked(type):
-			menu._add("%s　LV%d 開放　$%d" % [spec["name"], int(spec["unlock"]), int(spec["price"])], "locked_furn", type)
+			menu._add(Loc.t("prep.furn.locked_row", [fname, int(spec["unlock"]), int(spec["price"])]), "locked_furn", type)
 		else:
-			menu._add("購入 %s　$%d　擁有 %d　未放置 %d" % [spec["name"], int(spec["price"]), int(menu.state.owned.get(type, 0)), menu.state.unplaced(type)], "buy_f", type)
+			menu._add(Loc.t("prep.furn.buy_row", [fname, int(spec["price"]), int(menu.state.owned.get(type, 0)), menu.state.unplaced(type)]), "buy_f", type)
 	menu._add(Loc.t("prep.back"), "go", "hub_shop")
 
 
@@ -535,9 +537,9 @@ static func _expand(menu: CanvasLayer) -> void:
 	])
 	if menu.state.shop_scale < 3:
 		var nxt: int = int(menu.state.shop_scale) + 1
-		menu._add("擴張到規模 LV%d　$%d" % [nxt, int(menu.state.SCALE_COST[nxt])], "expand", null)
+		menu._add(Loc.t("prep.expand.row", [nxt, int(menu.state.SCALE_COST[nxt])]), "expand", null)
 	else:
-		menu._add("已是最大規模", "expand_max", null)
+		menu._add(Loc.t("err.max_scale"), "expand_max", null)
 	menu._add(Loc.t("prep.back"), "go", "hub_shop")
 
 
@@ -552,18 +554,18 @@ static func _layout(menu: CanvasLayer) -> void:
 			cur = Tuning.sku_name(String(list[cidx]))
 		menu._info.text = Loc.t("prep.layout.sku_pick", [cur])
 	elif menu._hold_type != "":
-		menu._info.text = Loc.t("prep.layout.holding", [menu.state.FURNITURE[menu._hold_type]["name"]])
+		menu._info.text = Loc.t("prep.layout.holding", [menu.state.furniture_name(menu._hold_type)])
 	elif menu._msg != "":
 		menu._info.text = menu._msg
 	else:
 		menu._info.text = Loc.t("prep.layout.info")
 	PrepWidgets.clear(menu._size_panel)
 	menu._size_panel.add_theme_constant_override("separation", 6)
-	_add_size_row(menu, "闊度", "w", menu.state.grid_w, 0)
-	_add_size_row(menu, "長度", "h", menu.state.grid_h, 1)
+	_add_size_row(menu, Loc.t("prep.layout.width"), "w", menu.state.grid_w, 0)
+	_add_size_row(menu, Loc.t("prep.layout.height"), "h", menu.state.grid_h, 1)
 	## Compact area line — default text_label tall=84 was expanding SizePanel over the list.
 	var area := PrepWidgets.name_label(
-		"總面積  %d／%d" % [menu.state.grid_w * menu.state.grid_h, menu.state.area_cap()],
+		Loc.t("prep.layout.area", [menu.state.grid_w * menu.state.grid_h, menu.state.area_cap()]),
 		500,
 		36
 	)
@@ -573,7 +575,7 @@ static func _layout(menu: CanvasLayer) -> void:
 	for type in menu.state.FURNITURE.keys():
 		var n: int = int(menu.state.unplaced(type))
 		if n > 0:
-			menu._add("拖放 %s　×%d" % [menu.state.FURNITURE[type]["name"], n], "hold", type)
+			menu._add(Loc.t("prep.layout.drag", [menu.state.furniture_name(type), n]), "hold", type)
 	menu._add(Loc.t("prep.layout.focus_map"), "map_focus", null)
 	menu._add(Loc.t("prep.back"), "go", "hub_shop")
 	## Re-clamp after children (VBox min-size must not push into the ItemList).
@@ -611,22 +613,22 @@ static func _add_size_row(menu: CanvasLayer, title: String, axis: String, value:
 
 static func _clerks(menu: CanvasLayer) -> void:
 	menu._title.text = Loc.t("prep.clerks.title")
-	menu._info.text = "現有 %d／上限 %d　每日開工每人扣 $%d\n人數不能多過已放置的收銀機，也不能超過店舖規模。" % [menu.state.clerks.size(), menu.state.hire_limit(), menu.state.WAGE]
-	menu._add("召募", "hire", null)
+	menu._info.text = Loc.t("prep.hire.info", [menu.state.clerks.size(), menu.state.hire_limit(), menu.state.WAGE])
+	menu._add(Loc.t("prep.hire.recruit"), "hire", null)
 	for i in menu.state.clerks.size():
 		var c: Dictionary = menu.state.clerks[i]
-		var role := "收銀" if String(c["role"]) == "cashier" else "補貨"
-		menu._add("店員%d　%s　收銀機 %d　（確定切崗位）" % [i + 1, role, int(c["register"]) + 1], "role", i)
+		var role := Loc.t("prep.role.cashier") if String(c["role"]) == "cashier" else Loc.t("prep.role.restock")
+		menu._add(Loc.t("prep.hire.clerk_row", [i + 1, role, int(c["register"]) + 1]), "role", i)
 		if String(c["role"]) == "cashier":
-			menu._add("　改派收銀機", "reg", i)
-		menu._add("　解僱店員%d" % (i + 1), "fire", i)
+			menu._add(Loc.t("prep.hire.reassign"), "reg", i)
+		menu._add(Loc.t("prep.hire.fire", [(i + 1)]), "fire", i)
 	menu._add(Loc.t("prep.back"), "go", "home")
 
 
 static func _confirm(menu: CanvasLayer) -> void:
 	menu._title.text = Loc.t("prep.confirm.title") + "？"
 	var wage: int = int(menu.state.WAGE) * menu.state.clerks.size()
-	var info := "開工扣工資 $%d。結算時營業額入帳；若營業額低於本輪進貨成本會標虧損，遊戲繼續。" % wage
+	var info := Loc.t("prep.open.wage_info", [wage])
 	if menu.demo != null and bool(menu.demo.get("elite_test_active")):
 		var mode := String(menu.demo.call("elite_test_label"))
 		info += "\n" + Loc.t("prep.elite_test.confirm_note", [mode])
@@ -666,7 +668,7 @@ static func _confirm(menu: CanvasLayer) -> void:
 					menu._add(lab, "pick_guest_slot", i)
 			if menu._guest_slot_index >= 0 and not menu._guest_store.is_empty(menu._guest_slot_index):
 				menu._add(Loc.t("prep.confirm.cycle_guest_tint"), "cycle_guest_tint", null)
-	menu._add("開始　工資後資金約 $%d" % (menu.state.money - wage), "open", null)
+	menu._add(Loc.t("prep.open.start_funds", [(menu.state.money - wage)]), "open", null)
 	menu._add(Loc.t("prep.back"), "go", "home")
 
 

@@ -457,14 +457,14 @@ func cast_harvest_chives(reg: Node, max_n: int) -> int:
 	release_player_checkout()
 	var n := picked.size()
 	_play_banner_flash(
-		"割韭菜 ×%d" % n,
+		Loc.t("log.demo.chives", [n]),
 		Color(0.95, 0.92, 0.35, 1.0),
 		56,
 		Color(0.08, 0.12, 0.04, 0.55),
 		0.85,
 	)
 	if _player:
-		_player.log_line.emit("割韭菜 ×%d — $%d" % [n, total])
+		_player.log_line.emit(Loc.t("log.demo.chives_cash", [n, total]))
 	return n
 
 
@@ -620,7 +620,7 @@ func cast_dark_side(level: int) -> void:
 		var reg = row.get("register", null)
 		c.call("begin_temp_clerk", String(row.get("role", "restock")), reg)
 	if _player and _player.has_signal("log_line"):
-		_player.log_line.emit("Dark Side — 臨時員工 %d 名" % drafted.size())
+		_player.log_line.emit(Loc.t("log.demo.dark_side", [drafted.size()]))
 
 
 func cast_shadow_clone(level: int) -> void:
@@ -662,7 +662,7 @@ func cast_shadow_clone(level: int) -> void:
 		var row: Dictionary = jobs[c]
 		c.call("begin_job", String(row.get("role", "restock")), row.get("register", null))
 	if _player and _player.has_signal("log_line"):
-		_player.log_line.emit("多重影分身 — 分身 %d 名" % drafted.size())
+		_player.log_line.emit(Loc.t("log.demo.shadow_clone", [drafted.size()]))
 
 
 func dismiss_shadow_clones() -> void:
@@ -953,10 +953,14 @@ func _collect_shelf_floor_pieces() -> Dictionary:
 	if _world == null:
 		return out
 	for c in _world.get_children():
-		if c == null or not is_instance_valid(c):
+		if c == null or not is_instance_valid(c) or c.is_queued_for_deletion():
 			continue
-		## Floor / Labels / Customers / FloatText lack kind — String(null) crashes.
 		var kind := str(c.get("kind"))
+		if kind == "universal_cannon":
+			for item in c.ammo:
+				out[item] = int(out.get(item, 0)) + 1
+			continue
+		## Floor / Labels / Customers / FloatText lack kind — already using str() above.
 		if kind != "drop" and kind != "drop_flight":
 			continue
 		var sku := str(c.get("sku"))
@@ -970,21 +974,17 @@ func _collect_shelf_floor_pieces() -> Dictionary:
 
 func _collect_player_carry_pieces() -> Dictionary:
 	var out: Dictionary = {}
-	if _player == null or not is_instance_valid(_player):
-		return out
-	var inv = _player.get("inventory")
-	if inv == null:
-		return out
-	var items = inv.get("items")
-	if typeof(items) != TYPE_ARRAY:
-		return out
-	for sku_v in items:
-		var sku := String(sku_v)
-		if sku == "":
+	var seats: Array = _players.duplicate()
+	if seats.is_empty() and is_instance_valid(_player):
+		seats.append(_player)
+	for player in seats:
+		if not is_instance_valid(player):
 			continue
-		out[sku] = int(out.get(sku, 0)) + 1
+		for sku_v in player.inventory.items:
+			var sku := str(sku_v)
+			if sku != "":
+				out[sku] = int(out.get(sku, 0)) + 1
 	return out
-
 
 func _collect_clerk_held_pieces() -> Dictionary:
 	var out: Dictionary = {}
@@ -1049,10 +1049,12 @@ func _clear_credited_unsold() -> void:
 			continue
 		if s.has_method("take_all"):
 			s.call("take_all")
-	if _player != null and is_instance_valid(_player):
-		var inv = _player.get("inventory")
-		if inv != null and inv.has_method("clear"):
-			inv.call("clear")
+	var seats: Array = _players.duplicate()
+	if seats.is_empty() and is_instance_valid(_player):
+		seats.append(_player)
+	for player in seats:
+		if is_instance_valid(player):
+			player.inventory.clear()
 	if _customers != null:
 		for c in _customers.get_children():
 			if c != null and is_instance_valid(c) and c.has_method("clear_unsold_checkout_cart"):
@@ -1065,6 +1067,10 @@ func _clear_credited_unsold() -> void:
 			continue
 		## Mixed world children: String(null) on missing kind aborts the sweep.
 		var kind := str(c.get("kind"))
+		if kind == "universal_cannon":
+			c.ammo.clear()
+			c.dismiss()
+			continue
 		if kind == "drop" or kind == "drop_flight":
 			kill.append(c)
 			continue
@@ -1858,6 +1864,7 @@ func _finish_day() -> void:
 	SfxBus.play("sfx_phase_close")
 	## Clones drop held boxes onto the floor before unsold collect, then vanish.
 	dismiss_shadow_clones()
+	dismiss_universal_cannons()
 	## Unsold shelf + floor (+ in-flight) pieces → warehouse boxes before save.
 	_return_unsold_to_warehouse()
 	var seat_n := maxi(1, SeatTable.seat_count)
@@ -1877,19 +1884,19 @@ func _finish_day() -> void:
 	var save_err := state.save_to_disk()
 	if _hud:
 		_hud.show_closeout()
-		var loss := "虧損（營業額低於進貨）" if bool(result["loss"]) else "未虧損"
+		var loss := Loc.t("settle.loss") if bool(result["loss"]) else Loc.t("settle.no_loss")
 		var head := Loc.t("demo.closeout_head")
 		if _early_closed:
 			head = Loc.t("demo.closeout_early")
 		elif _skip_xp > 0:
 			head = Loc.t("demo.closeout_test")
-		var bonus := "（含測試 +%d）" % _skip_xp if _skip_xp > 0 else ""
-		var save_line := "已寫入存檔" if save_err == "" else ("存檔失敗：" + save_err)
-		var xp_line := "店主經驗 +%d%s　%s" % [int(result["xp"]), bonus, state.level_note]
+		var bonus := Loc.t("settle.test_bonus", [_skip_xp]) if _skip_xp > 0 else ""
+		var save_line := Loc.t("settle.saved") if save_err == "" else (Loc.t("settle.save_fail_prefix") + save_err)
+		var xp_line := Loc.t("settle.host_xp", [int(result["xp"]), bonus, state.level_note])
 		if SeatTable.is_coop():
-			xp_line = "平分經驗 +%d%s　店主 %s%s" % [
+			xp_line = Loc.t("settle.split_xp", [
 				shared_xp, bonus, state.level_note, guest_xp_line
-			]
+			])
 		var grade_line := Loc.t(
 			"rating.closeout_line",
 			[
@@ -2074,7 +2081,7 @@ func _walls_and_door() -> void:
 	door.z_index = -4
 	door.position = Vector2(mid, north_y)
 	_world.add_child(door)
-	_caption(Vector2(mid - 28, o.y + 6), "大門")
+	_caption(Vector2(mid - 28, o.y + 6), Loc.t("world.door"))
 
 
 func _run_wall(a: Vector2, b: Vector2, k: int) -> void:
@@ -2435,11 +2442,11 @@ func _resolve_toss_landing(
 	if _player:
 		if left <= 0:
 			_player.log_line.emit(
-				"丟掉上架 %s ×%d — 貨箱已補上貨架" % [Tuning.sku_name(sku), placed]
+				Loc.t("log.demo.toss_shelved", [Tuning.sku_name(sku), placed])
 			)
 		else:
 			_player.log_line.emit(
-				"丟掉上架 %s ×%d — 剩 %d 掉在地上" % [Tuning.sku_name(sku), placed, left]
+				Loc.t("log.demo.toss_shelved_drop", [Tuning.sku_name(sku), placed, left])
 			)
 	if left > 0:
 		_place_dropped_box(dest, sku, left)
@@ -2468,7 +2475,7 @@ func _resolve_toss_clone(clone: Node2D, sku: String, n: int) -> void:
 	_place_dropped_box(clone.global_position + Tuning.DROP_FEET_OFFSET, sku, n)
 	if _player:
 		_player.log_line.emit(
-			"丟掉砸到分身 %s ×%d — 打斷，貨品掉在該處" % [Tuning.sku_name(sku), n]
+			Loc.t("log.demo.toss_clone", [Tuning.sku_name(sku), n])
 		)
 
 
@@ -2505,10 +2512,10 @@ func _resolve_toss_guest(guest: Node2D, dest: Vector2, sku: String, n: int) -> v
 		SfxBus.play("sfx_box_hit_guest_ok")
 		if _player:
 			_player.log_line.emit(
-				"丟掉給客人 %s ×%d — 謝謝！%s" % [
+				Loc.t("log.demo.toss_guest_ok", [
 					Tuning.sku_name(sku), taken,
-					("剩 %d 掉地" % left) if left > 0 else "",
-				]
+					(Loc.t("log.demo.toss_remain", [left]) if left > 0 else ""),
+				])
 			)
 		if left > 0:
 			_place_dropped_box(dest, sku, left)
@@ -2518,7 +2525,7 @@ func _resolve_toss_guest(guest: Node2D, dest: Vector2, sku: String, n: int) -> v
 	SfxBus.play("sfx_box_hit_guest_reject")
 	_place_dropped_box(dest, sku, n)
 	if _player:
-		_player.log_line.emit("丟掉砸到客人 — 不想要這貨品！掉在地上")
+		_player.log_line.emit(Loc.t("log.demo.toss_guest_reject"))
 
 
 ## Active thief nearest the flight segment / landing within hit radius.
@@ -2577,7 +2584,7 @@ func _resolve_sniper_thief_landing(
 		_place_dropped_box(dest, sku, n)
 		if _player:
 			_player.log_line.emit(
-				"狙擊手 %s ×%d — 小偷已逃走，掉在地上" % [Tuning.sku_name(sku), n]
+				Loc.t("log.demo.sniper_thief_gone", [Tuning.sku_name(sku), n])
 			)
 		return
 	## Hit lands at the thief; whole throw drops (thief does not take shopping).
@@ -2586,7 +2593,7 @@ func _resolve_sniper_thief_landing(
 		_player.call("apply_toss_ko", thief, toss_dir)
 	elif _player:
 		_player.log_line.emit(
-			"狙擊手擊中小偷 %s ×%d — 貨品掉落" % [Tuning.sku_name(sku), n]
+			Loc.t("log.demo.sniper_thief_hit", [Tuning.sku_name(sku), n])
 		)
 
 
@@ -2640,7 +2647,7 @@ func _resolve_sniper_guest_landing(guest: Node2D, dest: Vector2, sku: String, n:
 		_place_dropped_box(dest, sku, n)
 		if _player:
 			_player.log_line.emit(
-				"狙擊手 %s ×%d — 客人已不要這貨，掉在身旁" % [Tuning.sku_name(sku), n]
+				Loc.t("log.demo.sniper_guest_gone", [Tuning.sku_name(sku), n])
 			)
 		return
 	var taken := 0
@@ -2652,15 +2659,15 @@ func _resolve_sniper_guest_landing(guest: Node2D, dest: Vector2, sku: String, n:
 		if _player:
 			if left <= 0:
 				_player.log_line.emit(
-					"狙擊手交付 %s ×%d — 已交給客人" % [Tuning.sku_name(sku), taken]
+					Loc.t("log.demo.sniper_guest_ok", [Tuning.sku_name(sku), taken])
 				)
 			else:
 				_player.log_line.emit(
-					"狙擊手交付 %s ×%d — 剩 %d 掉在身旁" % [Tuning.sku_name(sku), taken, left]
+					Loc.t("log.demo.sniper_guest_partial", [Tuning.sku_name(sku), taken, left])
 				)
 	elif _player:
 		_player.log_line.emit(
-			"狙擊手 %s ×%d — 客人已不要這貨，掉在身旁" % [Tuning.sku_name(sku), n]
+			Loc.t("log.demo.sniper_guest_gone", [Tuning.sku_name(sku), n])
 		)
 	if left > 0:
 		_place_dropped_box(dest, sku, left)
@@ -2708,15 +2715,15 @@ func _resolve_sniper_landing(shelf: Node2D, dest: Vector2, sku: String, n: int) 
 		if _player:
 			if left <= 0:
 				_player.log_line.emit(
-					"狙擊手補架 %s ×%d — 已飛上貨架" % [Tuning.sku_name(sku), placed]
+					Loc.t("log.demo.sniper_shelf_ok", [Tuning.sku_name(sku), placed])
 				)
 			else:
 				_player.log_line.emit(
-					"狙擊手補架 %s ×%d — 剩 %d 掉在架旁" % [Tuning.sku_name(sku), placed, left]
+					Loc.t("log.demo.sniper_shelf_partial", [Tuning.sku_name(sku), placed, left])
 				)
 	elif _player:
 		_player.log_line.emit(
-			"狙擊手 %s ×%d — 同款貨架已滿，掉在架旁" % [Tuning.sku_name(sku), n]
+			Loc.t("log.demo.sniper_shelf_full", [Tuning.sku_name(sku), n])
 		)
 	if left > 0:
 		_place_dropped_box(dest, sku, left)
@@ -2913,3 +2920,56 @@ func _caption(pos: Vector2, text: String) -> Label:
 	l.add_theme_constant_override("outline_size", 5)
 	_world.add_child(l)
 	return l
+
+
+func deploy_universal_cannon(at: Vector2, level: int, seat: int) -> Node2D:
+	if _world == null or phase not in ["open", "restock"]:
+		return null
+	# Defensive ownership gate in addition to the player's runtime reference.
+	for child in _world.get_children():
+		if str(child.get("kind")) == "universal_cannon" and child.owner_seat == seat and not child.dismissed:
+			return child
+	var cannon: Node2D = preload("res://scripts/universal_cannon.gd").new()
+	cannon.host = self
+	cannon.level = clampi(level, 1, 3)
+	cannon.owner_seat = seat
+	_world.add_child(cannon)
+	cannon.global_position = at
+	for player in _players:
+		if not player.interactables.has(cannon):
+			player.interactables.append(cannon)
+	return cannon
+
+
+func _remove_cannon_interactable(cannon: Node2D) -> void:
+	var lock = get_node_or_null("/root/InteractLock")
+	if lock != null:
+		var seat: int = lock.holder_of(cannon)
+		if seat >= 0:
+			lock.release(cannon, seat)
+	for player in _players:
+		player.interactables.erase(cannon)
+		if player.target == cannon:
+			player._reset_hold()
+			player.target = null
+
+
+func dismiss_universal_cannons() -> void:
+	if _world == null:
+		return
+	for child in _world.get_children():
+		if str(child.get("kind")) == "universal_cannon":
+			child.dismiss()
+
+
+func cannon_hit_thief(thief: Node2D, seat: int, direction: Vector2) -> void:
+	if not is_instance_valid(thief) or not thief.is_active_thief():
+		return
+	# Resolve state immediately so concurrent projectiles cannot count the KO twice.
+	thief.ko_box_hit_and_flee(direction)
+	record_caught(seat)
+	SfxBus.play("sfx_box_hit_thief")
+	play_ko_banner()
+	for player in _players:
+		if player.target == thief and player._fighting:
+			player._end_fight(true)

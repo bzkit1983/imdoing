@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Build a game-scoped Noto Sans TC subset for godot/game.
+"""Build a game-scoped CJK subset font for godot/game (zh_TW / zh_CN / ja / en).
 
-Harvests unique characters from living-line sources, writes charset_game.txt,
-then runs pyftsubset. Full source font is downloaded on demand (not shipped).
+Harvests unique characters from living-line sources + all locale CSV columns,
+writes charset_game.txt, then runs pyftsubset. Full source font is downloaded
+on demand (not shipped). Prefers Noto Sans CJK JP so Japanese kana are covered.
 
 Usage (from repo root):
   python3 tools/fonts/subset_notosans_tc.py
@@ -12,6 +13,7 @@ Usage (from repo root):
 from __future__ import annotations
 
 import argparse
+import csv
 import re
 import sys
 import urllib.request
@@ -22,21 +24,26 @@ GAME = ROOT / "godot" / "game"
 FONTS = GAME / "fonts"
 CHARSET_PATH = FONTS / "charset_game.txt"
 # TrueType (glyf) — CFF/OTF subsets often garbble CJK on iOS Safari Web (no system fallback).
+# Keep filename for existing theme / ui_font paths; glyphs now cover TW+CN+JA.
 OUT_FONT = FONTS / "NotoSansTC-Game.ttf"
 OUT_FONT_LEGACY_OTF = FONTS / "NotoSansTC-Game.otf"
 SOURCE_DIR = FONTS / "source"
-SOURCE_FONT = SOURCE_DIR / "NotoSansTC-Regular.otf"
 
-# Preferred local full fonts (dev machine / frozen demos in this monorepo).
+# Preferred local full fonts (JP first for kana; TC still OK for Chinese-only rebuilds).
 LOCAL_FULL_CANDIDATES = (
-	FONTS / "NotoSansTC-Regular.otf",
-	SOURCE_DIR / "NotoSansTC-Regular.otf",
+	SOURCE_DIR / "NotoSansCJKjp-Regular.otf",
 	SOURCE_DIR / "NotoSansCJKtc-Regular.otf",
+	SOURCE_DIR / "NotoSansTC-Regular.otf",
+	FONTS / "NotoSansTC-Regular.otf",
 	ROOT / "godot" / "alpha_v0_1" / "fonts" / "NotoSansTC-Regular.otf",
 	ROOT / "godot" / "demo_v0_6" / "fonts" / "NotoSansTC-Regular.otf",
 )
-# Upstream OFL source (path renamed to NotoSansCJKtc-* in noto-cjk).
-SOURCE_URL = (
+# Upstream OFL — Japanese CJK (includes kana + large CJK unified set).
+SOURCE_URL_JP = (
+	"https://raw.githubusercontent.com/notofonts/noto-cjk/"
+	"main/Sans/OTF/Japanese/NotoSansCJKjp-Regular.otf"
+)
+SOURCE_URL_TC = (
 	"https://raw.githubusercontent.com/notofonts/noto-cjk/"
 	"main/Sans/OTF/TraditionalChinese/NotoSansCJKtc-Regular.otf"
 )
@@ -52,6 +59,9 @@ FORCE_CHARS = (
 	"▶→←↑↓−＋＝※"
 	# Pause / HUD extras that land via Loc before the next harvest cycle.
 	"閉項調音量聲點選右上"
+	# Hiragana + katakana (full) so ja UI never tofu even if a string is missed.
+	"ぁあぃいぅうぇえぉおかがきぎくぐけげこごさざしじすずせぜそぞただちぢっつづてでとどなにぬねのはばぱひびぴふぶぷへべぺほぼぽまみむめもゃやゅゆょよらりるれろゎわゐゑをんゔゕゖ゛゜ゝゞ"
+	"ァアィイゥウェエォオカガキギクグケゲコゴサザシジスズセゼソゾタダチヂッツヅテデトドナニヌネノハバパヒビピフブプヘベペホボポマミムメモャヤュユョヨラリルレロヮワヰヱヲンヴヵヶヷヸヹヺ・ーヽヾ"
 	"\n\t "
 )
 
@@ -72,25 +82,25 @@ def _unescape_gd(s: str) -> str:
 
 
 def _harvest_locale_csv(chars: set[str]) -> None:
-	"""Include zh_TW (and key) columns from the runtime Loc table."""
-	csv_path = GAME / "locale" / "strings.csv"
-	if not csv_path.is_file():
+	"""Include every locale column from Loc tables (zh_TW, en, zh_CN, ja, …)."""
+	locale_dir = GAME / "locale"
+	if not locale_dir.is_dir():
 		return
-	try:
-		text = csv_path.read_text(encoding="utf-8")
-	except UnicodeDecodeError:
-		return
-	# CSV: key,zh_TW,en — take first two fields so Loc.t() CJK is never skipped.
-	for i, line in enumerate(text.splitlines()):
-		if i == 0 and line.startswith("key"):
-			continue
-		# Naive split is wrong for quoted commas; pull CJK from the whole line
-		# plus the unquoted zh_TW field when simple.
-		chars.update(line)
-		parts = line.split(",", 2)
-		if len(parts) >= 2:
-			chars.update(parts[0])
-			chars.update(parts[1].strip('"'))
+	for csv_path in sorted(locale_dir.glob("*.csv")):
+		try:
+			with csv_path.open(encoding="utf-8", newline="") as f:
+				reader = csv.DictReader(f)
+				for row in reader:
+					for _col, cell in row.items():
+						if not cell:
+							continue
+						chars.update(cell.replace("\\n", "\n"))
+		except (UnicodeDecodeError, csv.Error):
+			# Fallback: whole-file scan
+			try:
+				chars.update(csv_path.read_text(encoding="utf-8"))
+			except UnicodeDecodeError:
+				continue
 
 
 def harvest_chars() -> str:
@@ -144,16 +154,20 @@ def ensure_source_font() -> Path:
 		if candidate.exists() and candidate.stat().st_size > 1_000_000:
 			return candidate
 	SOURCE_DIR.mkdir(parents=True, exist_ok=True)
-	dest = SOURCE_DIR / "NotoSansCJKtc-Regular.otf"
-	print(f"Downloading full Noto Sans TC → {dest}", file=sys.stderr)
+	dest = SOURCE_DIR / "NotoSansCJKjp-Regular.otf"
+	print(f"Downloading Noto Sans CJK JP → {dest}", file=sys.stderr)
 	try:
-		urllib.request.urlretrieve(SOURCE_URL, dest)
-	except Exception as exc:  # noqa: BLE001 — surface download hints
-		raise SystemExit(
-			f"Could not download source font ({exc}).\n"
-			f"Place a full NotoSansTC/NotoSansCJKtc Regular OTF under {SOURCE_DIR} "
-			f"or pass --source."
-		) from exc
+		urllib.request.urlretrieve(SOURCE_URL_JP, dest)
+	except Exception as exc:  # noqa: BLE001 — try TC fallback
+		print(f"JP download failed ({exc}); trying TC…", file=sys.stderr)
+		dest = SOURCE_DIR / "NotoSansCJKtc-Regular.otf"
+		try:
+			urllib.request.urlretrieve(SOURCE_URL_TC, dest)
+		except Exception as exc2:  # noqa: BLE001
+			raise SystemExit(
+				f"Could not download source font ({exc2}).\n"
+				f"Place NotoSansCJKjp-Regular.otf (preferred) or NotoSansCJKtc under {SOURCE_DIR}."
+			) from exc2
 	return dest
 
 
@@ -276,7 +290,7 @@ def run_subset(source: Path) -> None:
 def main() -> int:
 	parser = argparse.ArgumentParser(description=__doc__)
 	parser.add_argument("--harvest-only", action="store_true")
-	parser.add_argument("--source", type=Path, default=None, help="Full NotoSansTC OTF path")
+	parser.add_argument("--source", type=Path, default=None, help="Full Noto Sans CJK OTF path")
 	args = parser.parse_args()
 	charset = harvest_chars()
 	write_charset(charset)

@@ -23,23 +23,24 @@ const SCALE_COST := {2: 3000, 3: 6000}
 const SCALE_NEED_LV := {2: 4, 3: 7}
 const HIRE_CAP := {1: 0, 2: 1, 3: 2}
 
+## Display names live in locale/data.csv (`furniture.<id>`).
 const FURNITURE := {
-	"cashier": {"name": "收銀機", "price": 1000, "w": 2, "h": 1, "unlock": 1},
-	"restock_dry": {"name": "乾貨補貨架", "price": 500, "w": 2, "h": 2, "unlock": 1},
-	"restock_frozen": {"name": "凍櫃補貨架", "price": 700, "w": 2, "h": 2, "unlock": 4},
-	"restock_ice": {"name": "冰櫃補貨架", "price": 800, "w": 2, "h": 2, "unlock": 7},
-	"shelf_dry_4": {"name": "乾貨類貨架（4件）", "price": 40, "w": 2, "h": 1, "unlock": 1, "cap": 4},
-	"shelf_dry_8": {"name": "乾貨類貨架（8件）", "price": 70, "w": 2, "h": 1, "unlock": 1, "cap": 8},
-	"shelf_dry_12": {"name": "乾貨類貨架（12件）", "price": 100, "w": 2, "h": 1, "unlock": 1, "cap": 12},
-	"shelf_dry_24": {"name": "乾貨類貨架（24件）", "price": 200, "w": 2, "h": 1, "unlock": 1, "cap": 24},
-	"shelf_frozen_4": {"name": "凍櫃類貨架（4件）", "price": 70, "w": 2, "h": 1, "unlock": 4, "cap": 4},
-	"shelf_frozen_8": {"name": "凍櫃類貨架（8件）", "price": 130, "w": 2, "h": 1, "unlock": 4, "cap": 8},
-	"shelf_frozen_12": {"name": "凍櫃類貨架（12件）", "price": 200, "w": 2, "h": 1, "unlock": 4, "cap": 12},
-	"shelf_frozen_24": {"name": "凍櫃類貨架（24件）", "price": 400, "w": 2, "h": 1, "unlock": 4, "cap": 24},
-	"shelf_ice_4": {"name": "冰櫃類貨架（4件）", "price": 100, "w": 2, "h": 1, "unlock": 7, "cap": 4},
-	"shelf_ice_8": {"name": "冰櫃類貨架（8件）", "price": 200, "w": 2, "h": 1, "unlock": 7, "cap": 8},
-	"shelf_ice_12": {"name": "冰櫃類貨架（12件）", "price": 300, "w": 2, "h": 1, "unlock": 7, "cap": 12},
-	"shelf_ice_24": {"name": "冰櫃類貨架（24件）", "price": 600, "w": 2, "h": 1, "unlock": 7, "cap": 24},
+	"cashier": {"price": 1000, "w": 2, "h": 1, "unlock": 1},
+	"restock_dry": {"price": 500, "w": 2, "h": 2, "unlock": 1},
+	"restock_frozen": {"price": 700, "w": 2, "h": 2, "unlock": 4},
+	"restock_ice": {"price": 800, "w": 2, "h": 2, "unlock": 7},
+	"shelf_dry_4": {"price": 40, "w": 2, "h": 1, "unlock": 1, "cap": 4},
+	"shelf_dry_8": {"price": 70, "w": 2, "h": 1, "unlock": 1, "cap": 8},
+	"shelf_dry_12": {"price": 100, "w": 2, "h": 1, "unlock": 1, "cap": 12},
+	"shelf_dry_24": {"price": 200, "w": 2, "h": 1, "unlock": 1, "cap": 24},
+	"shelf_frozen_4": {"price": 70, "w": 2, "h": 1, "unlock": 4, "cap": 4},
+	"shelf_frozen_8": {"price": 130, "w": 2, "h": 1, "unlock": 4, "cap": 8},
+	"shelf_frozen_12": {"price": 200, "w": 2, "h": 1, "unlock": 4, "cap": 12},
+	"shelf_frozen_24": {"price": 400, "w": 2, "h": 1, "unlock": 4, "cap": 24},
+	"shelf_ice_4": {"price": 100, "w": 2, "h": 1, "unlock": 7, "cap": 4},
+	"shelf_ice_8": {"price": 200, "w": 2, "h": 1, "unlock": 7, "cap": 8},
+	"shelf_ice_12": {"price": 300, "w": 2, "h": 1, "unlock": 7, "cap": 12},
+	"shelf_ice_24": {"price": 600, "w": 2, "h": 1, "unlock": 7, "cap": 24},
 }
 
 var scenario: int = 1
@@ -302,12 +303,12 @@ func _xp_need(target_lv: int) -> int:
 func spend_point(stat: String, delta: int) -> String:
 	if delta > 0:
 		if unspent <= 0:
-			return "沒有未分配點數"
+			return Loc.t("err.no_unspent")
 		unspent -= 1
 		_add_stat(stat, 1)
 		return ""
 	if _stat_value(stat) <= _base_value(stat):
-		return "不能低於本劇本基底"
+		return Loc.t("err.below_base")
 	unspent += 1
 	_add_stat(stat, -1)
 	return ""
@@ -321,7 +322,7 @@ func reset_stats_cost() -> int:
 func reset_stats() -> String:
 	var fee := reset_stats_cost()
 	if money < fee:
-		return "重置能力值要 $%d，現有 $%d" % [fee, money]
+		return Loc.t("err.reset_cost", [fee, money])
 	money -= fee
 	var spent := (str_stat - base_str) + (agi_stat - base_agi) + (int_stat - base_int)
 	unspent += spent
@@ -364,14 +365,14 @@ func develop(sku: String) -> String:
 		developed["can"] = true
 		if not stock.has("can"):
 			stock["can"] = 0
-		return "罐頭是初始貨物，不用開發"
+		return Loc.t("err.can_free")
 	if developed.has(sku):
-		return "已開發"
+		return Loc.t("err.already_developed")
 	if not sku_unlocked(sku):
-		return "未到開放等級"
+		return Loc.t("err.locked_level")
 	var fee := int(Tuning.SKU_DEVELOP.get(sku, 0))
 	if money < fee:
-		return "資金不足"
+		return Loc.t("err.funds")
 	money -= fee
 	developed[sku] = true
 	if not stock.has(sku):
@@ -381,11 +382,11 @@ func develop(sku: String) -> String:
 
 func buy_stock(sku: String, pieces: int) -> String:
 	if not developed.has(sku):
-		return "尚未開發"
+		return Loc.t("err.not_developed")
 	pieces = clampi(pieces, 1, Tuning.RESTOCK_PIECES)
 	var cost := Tuning.cost_for_pieces(sku, pieces)
 	if money < cost:
-		return "資金不足"
+		return Loc.t("err.funds")
 	money -= cost
 	stock[sku] = int(stock.get(sku, 0)) + pieces
 	day_procurement += cost
@@ -427,12 +428,12 @@ func furniture_unlocked(type: String) -> bool:
 
 func buy_furniture(type: String) -> String:
 	if not FURNITURE.has(type):
-		return "沒有這件"
+		return Loc.t("err.no_such_item")
 	if not furniture_unlocked(type):
-		return "未到開放等級"
+		return Loc.t("err.locked_level")
 	var price := int(FURNITURE[type]["price"])
 	if money < price:
-		return "資金不足"
+		return Loc.t("err.funds")
 	money -= price
 	owned[type] = int(owned.get(type, 0)) + 1
 	return ""
@@ -491,7 +492,7 @@ func can_place(type: String, x: int, y: int, rot: int, ignore: int = -1) -> bool
 
 func place_item(type: String, x: int, y: int, rot: int, default_sku: String = "") -> String:
 	if not can_place(type, x, y, rot):
-		return "放不下"
+		return Loc.t("err.no_fit")
 	var fp := footprint(type, rot)
 	var row := {"type": type, "x": x, "y": y, "rot": rot, "w": fp.x, "h": fp.y}
 	if is_restock_type(type):
@@ -502,10 +503,10 @@ func place_item(type: String, x: int, y: int, rot: int, default_sku: String = ""
 
 func move_item(index: int, x: int, y: int, rot: int) -> String:
 	if index < 0 or index >= placed.size():
-		return "放不下"
+		return Loc.t("err.no_fit")
 	var type := String(placed[index]["type"])
 	if not can_place(type, x, y, rot, index):
-		return "放不下"
+		return Loc.t("err.no_fit")
 	var fp := footprint(type, rot)
 	placed[index]["x"] = x
 	placed[index]["y"] = y
@@ -536,12 +537,12 @@ func area_cap() -> int:
 
 func set_grid(w: int, h: int) -> String:
 	if w < 8 or h < 8:
-		return "闊度和長度最少是 8。"
+		return Loc.t("err.grid_min")
 	if w * h > area_cap():
-		return "總面積超過規模上限"
+		return Loc.t("err.area_cap")
 	for it in placed:
 		if int(it["x"]) + int(it["w"]) > w or int(it["y"]) + int(it["h"]) > h:
-			return "有傢俬在新邊界外，先收回"
+			return Loc.t("err.furniture_oob")
 	grid_w = w
 	grid_h = h
 	return ""
@@ -549,13 +550,13 @@ func set_grid(w: int, h: int) -> String:
 
 func expand() -> String:
 	if shop_scale >= 3:
-		return "已是最大規模"
+		return Loc.t("err.max_scale")
 	var nxt := shop_scale + 1
 	if level < int(SCALE_NEED_LV[nxt]):
-		return "角色要到 LV%d" % int(SCALE_NEED_LV[nxt])
+		return Loc.t("err.need_level", [int(SCALE_NEED_LV[nxt])])
 	var price := int(SCALE_COST[nxt])
 	if money < price:
-		return "資金不足"
+		return Loc.t("err.funds")
 	money -= price
 	shop_scale = nxt
 	grid_w = int(SCALE_MAX[nxt])
@@ -572,9 +573,9 @@ func cashier_count() -> int:
 func open_blockers() -> PackedStringArray:
 	var out: PackedStringArray = []
 	if cashier_count() < 1:
-		out.append("店舖內要放置至少一台收銀機。")
+		out.append(Loc.t("err.need_cashier"))
 	if not _has_matching_pair():
-		out.append("店舖內要放置至少一組同類型的補貨架和貨架。乾貨、凍櫃、冰櫃都可以，但補貨架和貨架要同一類。")
+		out.append(Loc.t("err.need_restock_pair"))
 	return out
 
 
@@ -618,9 +619,9 @@ func hire_limit() -> int:
 
 func hire() -> String:
 	if clerks.size() >= int(HIRE_CAP.get(shop_scale, 0)):
-		return "店舖規模雇員已滿"
+		return Loc.t("err.hire_full")
 	if clerks.size() >= cashier_count():
-		return "店員不能多過收銀機"
+		return Loc.t("err.clerks_gt_registers")
 	clerks.append({"role": "restock", "register": 0})
 	return ""
 
@@ -644,7 +645,13 @@ func cycle_register(index: int) -> void:
 
 
 func default_skill_set_name(i: int) -> String:
-	return "自訂技能組合%d" % [i + 1]
+	return Loc.t("skill_set.default", [i + 1])
+
+
+func furniture_name(type: String) -> String:
+	if type == "" or not FURNITURE.has(type):
+		return type
+	return Loc.t("furniture.%s" % type)
 
 
 func skill_set_name(i: int) -> String:
@@ -666,31 +673,31 @@ func equip_set(set_i: int, slot_i: int, skill_id: String) -> String:
 		return ""
 	var sk := Skills.by_id(skill_id)
 	if sk.is_empty():
-		return "沒有這招"
+		return Loc.t("err.no_skill")
 	var pack: Dictionary = skill_sets[set_i]
 	if slot_i == 5:
 		if String(sk.get("kind")) != "ultimate":
-			return "奧義格只能放奧義"
+			return Loc.t("err.ult_slot_only")
 		if String(pack.get("ult_id", "")) == skill_id:
 			return ""
 		pack["ult_id"] = skill_id
 		_after_set_edit(set_i)
 		return ""
 	if String(sk.get("kind")) == "ultimate":
-		return "奧義要放奧義格"
+		return Loc.t("err.ult_needs_slot")
 	if slot_i < 0 or slot_i > 4:
 		return ""
 	var set_slots: Array = pack["slots"]
 	for i in set_slots.size():
 		if i != slot_i and String(set_slots[i]) == skill_id:
-			return "已經裝備在別格"
+			return Loc.t("err.already_equipped")
 	if String(set_slots[slot_i]) == skill_id:
 		return ""
 	var prev := String(set_slots[slot_i])
 	set_slots[slot_i] = skill_id
 	if _cost_of_ids(set_slots) > 5:
 		set_slots[slot_i] = prev
-		return "COST 超過 5"
+		return Loc.t("err.cost_over")
 	_after_set_edit(set_i)
 	return ""
 
@@ -737,13 +744,13 @@ func rename_skill_set(set_i: int, raw: String) -> String:
 		set_name = default_skill_set_name(set_i)
 	else:
 		if not _is_english_letters(set_name) or set_name.length() > SKILL_NAME_MAX:
-			return "名稱只用英文字母，最多 10 個"
+			return Loc.t("err.name_letters")
 		var folded := set_name.to_lower()
 		for i in skill_sets.size():
 			if i == set_i:
 				continue
 			if String(skill_sets[i].get("name", "")).to_lower() == folded:
-				return "名稱已被使用"
+				return Loc.t("err.name_taken")
 	if String(skill_sets[set_i].get("name", "")) == set_name:
 		return ""
 	skill_sets[set_i]["name"] = set_name
@@ -831,7 +838,7 @@ func ult_of(set_i: int) -> Dictionary:
 		return {}
 	var sk := Skills.by_id(id)
 	if sk.is_empty() or String(sk.get("kind")) != "ultimate":
-		return Skills.ULTIMATE
+		return Skills.localize(Skills.ULTIMATE)
 	return sk
 
 
@@ -892,9 +899,9 @@ func settle(
 	last_loss = revenue < day_procurement
 	var note := ""
 	if ups > 0:
-		note = "升級 %d 級，未分配點數 +%d" % [ups, ups * 5]
+		note = Loc.t("err.level_up", [ups, ups * 5])
 	if level >= 10:
-		note += "  LV10 之後經驗表未定，不再升級"
+		note += Loc.t("err.level_cap_note")
 	level_note = note
 	var loss := last_loss
 	var spent := day_procurement
@@ -1051,14 +1058,14 @@ func to_dict() -> Dictionary:
 ## Empty string means ok; otherwise a human-readable error.
 func from_dict(data: Dictionary) -> String:
 	if data.is_empty():
-		return "存檔是空的"
+		return Loc.t("err.save_empty")
 	if not data.has("version"):
-		return "存檔缺少 version"
+		return Loc.t("err.save_no_version")
 	var ver := int(data["version"])
 	if ver < 1:
-		return "存檔 version 無效"
+		return Loc.t("err.save_bad_version")
 	if ver > SAVE_VERSION:
-		return "存檔版本過新（%d > %d），請更新遊戲" % [ver, SAVE_VERSION]
+		return Loc.t("err.save_too_new", [ver, SAVE_VERSION])
 	scenario = int(data.get("scenario", 1))
 	money = int(data.get("money", 0))
 	xp = int(data.get("xp", 0))
@@ -1314,13 +1321,13 @@ func save_to_disk() -> String:
 
 func load_from_disk() -> String:
 	if not PlatformServices.has_save():
-		return "沒有存檔"
+		return Loc.t("err.save_missing")
 	var text := PlatformServices.read_save()
 	if text.strip_edges() == "":
-		return "存檔是空的"
+		return Loc.t("err.save_empty")
 	var parsed = JSON.parse_string(text)
 	if typeof(parsed) != TYPE_DICTIONARY:
-		return "存檔不是有效 JSON"
+		return Loc.t("err.save_bad_json")
 	return from_dict(parsed as Dictionary)
 
 

@@ -19,7 +19,7 @@
 | 準備選單測試資金 $1000 | **`docs/systemdesign/storepreparationphase.md`** | `ProductVersion.TEST_TOOLS`；prep home 按鈕 |
 | 測試版難度（簡易／普通） | **`docs/systemdesign/storepreparationphase.md`**；`customer.md`、`cleaningsystem.md`、`thiefsystem.md` | prep 主畫面；`Tuning` 簡易係數；`demo` 在開始營運後套用 |
 | Win／Linux 匯出（Steam 候選） | **`docs/alpha/export-presets.md`** | `export_presets.cfg`；輸出 `build/windows`／`build/linux`；feature `steam_candidate` |
-| 字串表 i18n | **`docs/alpha/i18n.md`** | `locale/strings.csv`；Autoload `Loc`；準備／暫停／HUD 已遷 |
+| 字串表 i18n | **`docs/alpha/i18n.md`**；[`AGENTS.md`](../../AGENTS.md)／[`agents/skills/i18n-content`](../../agents/skills/i18n-content/SKILL.md) | `strings.csv`+`data.csv`；技能／SKU／傢俬＋log／mood／prep／驗證／場上標籤／HUD 觸控已遷；SFX 註解除外 |
 | 主機商務評估（帳號／W4／埠接） | **`docs/alpha/console-business.md`** | 文件結論：帳號可早開；W4 自埠預設；買工具前過釘版閘門 |
 | Godot ↔ middleware 釘版 | **`docs/alpha/godot-middleware-pin.md`** | 桌面維持 4.7；主機衝刺對齊 W4 表（2026-10-21 最高 4.6）；禁止專案複本 |
 | Alpha／v1 Web → Pages | `docs/versioning.md`；`docs/play/README.md` | `godot/game` Web 匯出到 `docs/play/`；試玩 https://bzkit1983.github.io/imdoing/play/ |

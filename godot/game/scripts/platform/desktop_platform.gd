@@ -10,7 +10,7 @@ const GUEST_FILE := "guest_slots.json"
 func write_save(text: String) -> String:
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if f == null:
-		return "無法寫入存檔（錯誤 %d）" % FileAccess.get_open_error()
+		return Loc.t("err.platform.save", [FileAccess.get_open_error()])
 	f.store_string(text)
 	return ""
 
@@ -36,7 +36,7 @@ func delete_save() -> void:
 func write_guest_slots(text: String) -> String:
 	var f := FileAccess.open(GUEST_PATH, FileAccess.WRITE)
 	if f == null:
-		return "無法寫入訪客槽（錯誤 %d）" % FileAccess.get_open_error()
+		return Loc.t("err.platform.guest_slot", [FileAccess.get_open_error()])
 	f.store_string(text)
 	return ""
 

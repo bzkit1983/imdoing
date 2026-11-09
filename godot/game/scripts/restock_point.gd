@@ -210,7 +210,7 @@ func _draw_sku_list(canvas: CanvasItem) -> void:
 	canvas.draw_rect(Rect2(origin, Vector2(w, h)), Color(0.07, 0.08, 0.07, 0.94))
 	canvas.draw_rect(Rect2(origin, Vector2(w, h)), Color("f4d35e"), false, 2.0)
 	var font := UiFont.font()
-	canvas.draw_string(font, origin + Vector2(12, fs + 4), "選貨  ↑↓", HORIZONTAL_ALIGNMENT_LEFT, w - 24, fs, Color("f4d35e"))
+	canvas.draw_string(font, origin + Vector2(12, fs + 4), Loc.t("world.restock.pick"), HORIZONTAL_ALIGNMENT_LEFT, w - 24, fs, Color("f4d35e"))
 	for i in list.size():
 		var sku := list[i]
 		var row_y := float(fs + 8) + row * float(i)
@@ -220,7 +220,7 @@ func _draw_sku_list(canvas: CanvasItem) -> void:
 		var tex: Texture2D = SkuIcons.texture(sku)
 		var icon_pos := origin + Vector2(10, row_y + (row - icon_px) * 0.5)
 		canvas.draw_texture_rect(tex, Rect2(icon_pos, Vector2(icon_px, icon_px)), false)
-		var line := "%s  %d件" % [Tuning.sku_name(sku), remaining(sku)]
+		var line := Loc.t("world.restock.stock_line", [Tuning.sku_name(sku), remaining(sku)])
 		var text_x := 10.0 + icon_px + 8.0
 		canvas.draw_string(
 			font,
@@ -235,11 +235,11 @@ func _draw_sku_list(canvas: CanvasItem) -> void:
 
 func _refresh() -> void:
 	var sku := selected_sku()
-	var title := "乾貨補貨點"
+	var title := Loc.t("world.restock.dry")
 	if category == Tuning.CAT_FROZEN:
-		title = "凍櫃補貨點"
+		title = Loc.t("world.restock.frozen")
 	elif category == Tuning.CAT_ICE:
-		title = "冰櫃補貨點"
+		title = Loc.t("world.restock.ice")
 	if _sku_icon == null:
 		_sku_icon = Sprite2D.new()
 		_sku_icon.name = "SkuIcon"
@@ -257,7 +257,7 @@ func _refresh() -> void:
 		_sku_icon.position = Vector2(0, -40)
 	if label:
 		if sku == "":
-			label.text = "%s\n尚未開發" % title
+			label.text = Loc.t("world.restock.undeveloped", [title])
 		else:
 			## Icon shows SKU; world label is title + stock only (no control hints).
-			label.text = "%s\n%d件" % [title, remaining(sku)]
+			label.text = Loc.t("world.restock.count", [title, remaining(sku)])

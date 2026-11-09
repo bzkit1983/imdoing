@@ -14,11 +14,10 @@ const FROZEN_SKUS: Array[String] = ["drink", "milk", "soda"]
 const ICE_SKUS: Array[String] = ["icecream", "meat", "rice"]
 const SELLABLE_SKUS: Array[String] = ["can", "snack", "cup", "drink", "milk", "soda", "icecream", "meat", "rice"]
 
-const SKU_NAME := {
-	"can": "罐頭", "snack": "零食", "cup": "杯麵",
-	"drink": "支裝凍飲", "milk": "牛奶", "soda": "汽水",
-	"icecream": "雪糕", "meat": "凍肉", "rice": "叮叮飯",
-}
+## Display names live in locale/data.csv (`sku.<id>`).
+const SKU_IDS: Array[String] = [
+	"can", "snack", "cup", "drink", "milk", "soda", "icecream", "meat", "rice",
+]
 const SKU_COLOR := {
 	"can": Color("c45c26"),
 	"snack": Color("e8c36a"),
@@ -166,7 +165,7 @@ const SPEED_MAX_MULT := 5.0
 const SPEED_FLOOR := 48.0
 
 const CAMERA_ZOOM := 1.22
-## Pause / View-button "稍遠" — slightly more shop in frame than CAMERA_ZOOM.
+## Pause / View-button Loc.t("world.toss_range.farther") — slightly more shop in frame than CAMERA_ZOOM.
 const CAMERA_ZOOM_FAR := 0.95
 const INTERACT_RANGE := 100.0
 const INTERACT_RANGE_SQ := INTERACT_RANGE * INTERACT_RANGE
@@ -310,7 +309,9 @@ static func cd_seconds(listed: float, int_stat: int = INT) -> float:
 
 
 static func sku_name(id: String) -> String:
-	return String(SKU_NAME.get(id, id))
+	if id == "":
+		return id
+	return Loc.t("sku.%s" % id)
 
 
 static func sku_price(id: String) -> int:
@@ -355,12 +356,12 @@ static func hit_damage(str_stat: int = STR) -> float:
 static func dirt_type_name(dtype: String) -> String:
 	match dtype:
 		DIRT_TRASH:
-			return "垃圾"
+			return Loc.t("dirt.trash")
 		DIRT_PUDDLE:
-			return "水漬"
+			return Loc.t("dirt.puddle")
 		DIRT_VOMIT:
-			return "嘔吐物"
-	return "污物"
+			return Loc.t("dirt.vomit")
+	return Loc.t("dirt.generic")
 
 
 ## Offset from player origin to drop destination.
@@ -557,11 +558,11 @@ static func elite_roll_level(max_unlocked: int = ELITE_MAX_UNLOCKED_LV) -> int:
 static func dir_name(code: int) -> String:
 	match code:
 		0:
-			return "上"
+			return Loc.t("dir.up")
 		1:
-			return "下"
+			return Loc.t("dir.down")
 		2:
-			return "左"
+			return Loc.t("dir.left")
 		3:
-			return "右"
+			return Loc.t("dir.right")
 	return "?"

@@ -5,6 +5,7 @@
 - 文案：`Loc`（`pause.*` keys；見 `docs/alpha/i18n.md`）
 - 營運回合交叉：`storeoperationphase.md`
 - 音效設定：`SfxBus`（`user://settings.cfg` → `[audio] sfx_muted`、`sfx_volume`）
+- UI 偏好：`PlatformServices`（同檔 `[ui] virtual_stick`、`camera_view`、`locale`）
 
 ## 何時可開
 
@@ -28,7 +29,8 @@
 3. **音效聲量：N%** — 0–100%、每檔 10%；−／＋ 或 A／D；J／點中間可試聽  
 4. **虛擬搖桿：開／關** — 與準備「系統工具」共用 `[ui] virtual_stick`（預設關）。開後只在觸控活躍時顯示；手掣／鍵盤自動隱藏（見 `inputmodes-vj.md`）。Desktop 編輯器亦顯示此列方便預覽  
 5. **鏡頭：正常／稍遠／全地圖** — 循環三種視野（見 `control.md`）。寫入 `user://settings.cfg` → `[ui] camera_view`（`normal`｜`far`｜`overview`，預設 `normal`）。改完繼續即套用，之後營運日沿用。營運中亦可用 Xbox 視圖鍵／鍵盤 `V` 循環（暫停開著時改由本列操作）  
-6. **結束本日並結算** — 等同 HUD「馬上完成營運」（`skip_operate`）
+6. **語言** — 循環 `zh_TW` → `en` → `zh_CN` → `ja`（與 `Loc.locales()`／CSV 欄一致）。寫入 `[ui] locale`（預設 `zh_TW`）。按鈕文案為「語言：%s」，語系名用各語 **endonym**（繁體中文／English／简体中文／日本語，不隨 UI 語系翻譯）。與準備「系統工具」共用；切換後當頁文案即刷。見 `docs/alpha/i18n.md`  
+7. **結束本日並結算** — 等同 HUD「馬上完成營運」（`skip_operate`）
 
 > 手機 Web 沒有 Esc／Start：用右上「暫停」。系統掛起（切 App／鎖屏）仍會經 `PlatformServices` 自動開暫停選單。
 

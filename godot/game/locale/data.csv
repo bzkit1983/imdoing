@@ -1,0 +1,340 @@
+key,zh_TW,en,zh_CN,ja
+sku.can,罐頭,Canned goods,罐头,缶詰
+sku.snack,零食,Snacks,零食,スナック
+sku.cup,杯麵,Cup noodles,杯面,カップ麺
+sku.drink,支裝凍飲,Bottled cold drink,支装冻饮,ボトル冷飲料
+sku.milk,牛奶,Milk,牛奶,牛乳
+sku.soda,汽水,Soda,汽水,ソーダ
+sku.icecream,雪糕,Ice cream,雪糕,アイスクリーム
+sku.meat,凍肉,Frozen meat,冻肉,冷凍肉
+sku.rice,叮叮飯,Microwave rice,叮叮饭,レンジご飯
+dirt.trash,垃圾,Trash,垃圾,ゴミ
+dirt.puddle,水漬,Puddle,水渍,水たまり
+dirt.vomit,嘔吐物,Vomit,呕吐物,嘔吐物
+dirt.generic,污物,Mess,污物,汚れ
+dir.up,上,Up,上,上
+dir.down,下,Down,下,下
+dir.left,左,Left,左,左
+dir.right,右,Right,右,右
+furniture.cashier,收銀機,Cash register,收银机,レジ
+furniture.restock_dry,乾貨補貨架,Dry restock rack,干货补货架,常温補充棚
+furniture.restock_frozen,凍櫃補貨架,Chiller restock rack,冻柜补货架,冷蔵補充棚
+furniture.restock_ice,冰櫃補貨架,Freezer restock rack,冰柜补货架,冷凍補充棚
+furniture.shelf_dry_4,乾貨類貨架（4件）,Dry shelf (4),干货类货架（4件）,常温棚（4個）
+furniture.shelf_dry_8,乾貨類貨架（8件）,Dry shelf (8),干货类货架（8件）,常温棚（8個）
+furniture.shelf_dry_12,乾貨類貨架（12件）,Dry shelf (12),干货类货架（12件）,常温棚（12個）
+furniture.shelf_dry_24,乾貨類貨架（24件）,Dry shelf (24),干货类货架（24件）,常温棚（24個）
+furniture.shelf_frozen_4,凍櫃類貨架（4件）,Chiller shelf (4),冻柜类货架（4件）,冷蔵棚（4個）
+furniture.shelf_frozen_8,凍櫃類貨架（8件）,Chiller shelf (8),冻柜类货架（8件）,冷蔵棚（8個）
+furniture.shelf_frozen_12,凍櫃類貨架（12件）,Chiller shelf (12),冻柜类货架（12件）,冷蔵棚（12個）
+furniture.shelf_frozen_24,凍櫃類貨架（24件）,Chiller shelf (24),冻柜类货架（24件）,冷蔵棚（24個）
+furniture.shelf_ice_4,冰櫃類貨架（4件）,Freezer shelf (4),冰柜类货架（4件）,冷凍棚（4個）
+furniture.shelf_ice_8,冰櫃類貨架（8件）,Freezer shelf (8),冰柜类货架（8件）,冷凍棚（8個）
+furniture.shelf_ice_12,冰櫃類貨架（12件）,Freezer shelf (12),冰柜类货架（12件）,冷凍棚（12個）
+furniture.shelf_ice_24,冰櫃類貨架（24件）,Freezer shelf (24),冰柜类货架（24件）,冷凍棚（24個）
+skill_set.default,自訂技能組合%d,Custom Skill Set %d,自订技能组合%d,カスタムスキルセット%d
+skill.carry_boost.name,頂硬上,Shoulder Through,顶硬上,無理押し
+skill.carry_boost.blurb,負重 +240 件，20 秒,Carry +240 pieces for 20s,负重 +240 件，20 秒,所持 +240 個、20 秒
+skill.move_boost.name,無人可以喺我前面,Nobody Gets Ahead,无人可以喺我前面,誰も前には出させない
+skill.move_boost.blurb,移速 +60%，20 秒,Move speed +60% for 20s,移速 +60%，20 秒,移動速度 +60%、20 秒
+skill.checkout_rush.name,人肉數錢機,Human Cash Machine,人肉数钱机,人間レジスター
+skill.checkout_rush.blurb,收銀 +60%，20 秒,Checkout +60% for 20s,收银 +60%，20 秒,レジ速度 +60%、20 秒
+skill.universal_cannon.name,萬用炮,Universal Cannon,万用炮,万能砲
+skill.universal_cannon.blurb,腳下布置可穿行炮台，FIFO容量12／16／20件、每5／4／3秒射1件；再按取消後CD60秒,Deploy a pass-through turret; FIFO capacity 12/16/20; fires one item every 5/4/3s; cancel to start a 60s INT-scaled cooldown,脚下布置可穿行炮台，FIFO容量12／16／20件、每5／4／3秒射1件；再按取消后CD60秒,足元に通行可能な砲台を設置。FIFO容量12／16／20個、5／4／3秒ごとに1個発射；再押下で解除後CD60秒
+skill.self_checkout.name,Self Checkout,Self Checkout,Self Checkout,Self Checkout
+skill.self_checkout.blurb,啟動5身位內機台15秒；每客5／4／3秒自助，真人／NPC優先，尾單收完,Enable nearby registers for 15s within 5 body lengths; 5/4/3s per guest; operators take priority; finish final guest,启动5身位内机台15秒；每客5／4／3秒自助，真人／NPC优先，尾单收完,5体長内のレジを15秒稼働；客1人あたり5／4／3秒でセルフ精算、プレイヤー／NPC優先、最後の客は完了まで
+skill.senior_cashier.name,資深收銀員,Senior Cashier,资深收银员,ベテランレジ係
+skill.senior_cashier.blurb,減指令次數／LV3免指令且Circle×0.5。準備頁選 LV1／2／3，沒選預設 LV3,Fewer command inputs; LV3 skips commands and Circle×0.5. Prep picks LV1/2/3 (default LV3),减指令次数／LV3免指令且Circle×0.5。准备页选 LV1／2／3，没选预设 LV3,コマンド回数減少／LV3はコマンド不要かつCircle×0.5。準備画面で LV1／2／3 を選択、未選択時は LV3
+skill.instant_restock.name,瞬間補貨,Instant Restock,瞬间补货,瞬間補充
+skill.instant_restock.blurb,上架瞬間完成，20 秒,Restock completes instantly for 20s,上架瞬间完成，20 秒,陳列が瞬時に完了、20 秒
+skill.soothe.name,安撫,Soothe,安抚,なだめる
+skill.soothe.blurb,全店不滿歸零（已離開不拉回）,Clear all guest dissatisfaction (gone guests stay gone),全店不满归零（已离开不拉回）,店内の不満を全消去（退出済みは戻さない）
+skill.metal_rush.name,金屬狂潮,Metal Rush,金属狂潮,メタルラッシュ
+skill.metal_rush.blurb,客人移速 +150%，20 秒,Guest move speed +150% for 20s,客人移速 +150%，20 秒,客の移動速度 +150%、20 秒
+skill.hoop_ace.name,投籃高手,Hoop Ace,投篮高手,シュートの達人
+skill.hoop_ace.blurb,短按方向一次投最上 2 件；LV3＝30 秒。準備頁選 LV1／2／3，沒選預設 LV3,Tap a direction to toss the top 2 pieces; LV3=30s. Prep picks LV1/2/3 (default LV3),短按方向一次投最上 2 件；LV3＝30 秒。准备页选 LV1／2／3，没选预设 LV3,方向を短押しで最上段2個を投げる；LV3＝30 秒。準備画面で LV1／2／3 を選択、未選択時は LV3
+skill.dash_deliver.name,衝刺交付,Dash Deliver,冲刺交付,ダッシュ配達
+skill.dash_deliver.blurb,5 秒內每記衝刺把對的貨交給客人且不 KO。沒對上則照常撞飛。技能不扣氣,For 5s each dash delivers matching stock without KO; misses still knock. Skill costs no stamina,5 秒内每记冲刺把对的货交给客人且不 KO。没对上则照常撞飞。技能不扣气,5 秒間、各ダッシュで一致する商品をKOせず客に渡す。不一致なら通常どおり弾き飛ばす。スキルはスタミナ消費なし
+skill.dasher.name,Dasher,Dasher,Dasher,Dasher
+skill.dasher.blurb,衝刺與奔跑不扣氣（氣 0 也能）；LV3＝15 秒。準備頁選 LV1／2／3，沒選預設 LV3,Dash and run cost no stamina (even at 0); LV3=15s. Prep picks LV1/2/3 (default LV3),冲刺与奔跑不扣气（气 0 也能）；LV3＝15 秒。准备页选 LV1／2／3，没选预设 LV3,ダッシュと走行のスタミナ消費なし（0でも可）；LV3＝15 秒。準備画面で LV1／2／3 を選択、未選択時は LV3
+skill.force_sell.name,我都賺夠啦比啲你賺,I've Made Enough—You Take It,我都赚够啦比啲你赚,もう稼いだからお前らにやる
+skill.force_sell.blurb,瞬發強塞手上貨進最近可交付客人 cart；LV3＝最多 20 件。準備頁選 LV1／2／3，沒選預設 LV3,Instant: force held stock into nearest deliverable guest cart; LV3 up to 20. Prep picks LV1/2/3 (default LV3),瞬发强塞手上货进最近可交付客人 cart；LV3＝最多 20 件。准备页选 LV1／2／3，没选预设 LV3,即時：所持品を最寄りの配達可能客のカートへ押し込む；LV3＝最大 20 個。準備画面で LV1／2／3 を選択、未選択時は LV3
+skill.must_deliver.name,使命必達,Must Deliver,使命必达,使命必達
+skill.must_deliver.blurb,兩段施放：範圍內完成優先交清單貨；LV3＝15 身位／最多 4 人。準備頁選 LV1／2／3，沒選預設 LV3,Two-stage: finish priority list deliveries in range; LV3=15 body lengths / up to 4 guests. Prep picks LV1/2/3 (default LV3),两段施放：范围内完成优先交清单货；LV3＝15 身位／最多 4 人。准备页选 LV1／2／3，没选预设 LV3,二段発動：範囲内で優先リスト商品を配達完了；LV3＝15 体長／最大 4 人。準備画面で LV1／2／3 を選択、未選択時は LV3
+skill.summon_guest.name,召喚客人,Summon Guests,召唤客人,客召喚
+skill.summon_guest.blurb,瞬發門口召喚客人（可超 cap）；LV3＝3 人。準備頁選 LV1／2／3，沒選預設 LV3,Instant: spawn guests at the door (may exceed cap); LV3=3. Prep picks LV1/2/3 (default LV3),瞬发门口召唤客人（可超 cap）；LV3＝3 人。准备页选 LV1／2／3，没选预设 LV3,即時：入口に客を召喚（上限超過可）；LV3＝3 人。準備画面で LV1／2／3 を選択、未選択時は LV3
+skill.harvest_chives.name,割韭菜,Harvest Chives,割韭菜,ネギ刈り
+skill.harvest_chives.blurb,對準一台收銀機瞬發清隊 QUEUE／PAYING；LV3＝最多 10 人。準備頁選 LV1／2／3，沒選預設 LV3,Instant: clear QUEUE/PAYING at one register; LV3 up to 10. Prep picks LV1/2/3 (default LV3),对准一台收银机瞬发清队 QUEUE／PAYING；LV3＝最多 10 人。准备页选 LV1／2／3，没选预设 LV3,レジ1台を狙って即時 QUEUE／PAYING をクリア；LV3＝最大 10 人。準備画面で LV1／2／3 を選択、未選択時は LV3
+skill.magneto.name,攝石人,Magneto,摄石人,マグニートー
+skill.magneto.blurb,兩段：預覽範圍後吸地上貨飛入手（可拆堆）；LV3＝15 身位。準備頁選 LV1／2／3，沒選預設 LV3,Two-stage: preview then pull floor stock into hands (can split piles); LV3=15 body lengths. Prep picks LV1/2/3 (default LV3),两段：预览范围后吸地上货飞入手（可拆堆）；LV3＝15 身位。准备页选 LV1／2／3，没选预设 LV3,二段：範囲プレビュー後、床の商品を手元へ吸引（山分け可）；LV3＝15 体長。準備画面で LV1／2／3 を選択、未選択時は LV3
+skill.sweeping_monk.name,掃地僧,Sweeping Monk,扫地僧,掃除僧
+skill.sweeping_monk.blurb,跟身龍捲清污（3 身位）並免疫污物；LV3＝15 秒。準備頁選 LV1／2／3，沒選預設 LV3,Follow-tornado clears mess (3 body lengths) and grants dirt immunity; LV3=15s. Prep picks LV1/2/3 (default LV3),跟身龙卷清污（3 身位）并免疫污物；LV3＝15 秒。准备页选 LV1／2／3，没选预设 LV3,追従竜巻で汚れ除去（3 体長）かつ汚れ無効；LV3＝15 秒。準備画面で LV1／2／3 を選択、未選択時は LV3
+skill.shelf_sniper.name,狙擊手（貨架）,Sniper (Shelves),狙击手（货架）,スナイパー（棚）
+skill.shelf_sniper.blurb,30 秒內投出的貨自動飛向最近同 SKU 貨架補貨；已滿則改飛下一格，全滿則飛最近架旁掉落,"For 30s tossed stock auto-flies to the nearest matching shelf; if full, next tile; if all full, drops beside nearest shelf",30 秒内投出的货自动飞向最近同 SKU 货架补货；已满则改飞下一格，全满则飞最近架旁掉落,30 秒間、投げた商品が最寄りの同SKU棚へ自動飛行して補充；満杯なら次マス、全て満杯なら最寄り棚のそばに落下
+skill.guest_sniper.name,狙擊手（客人）,Sniper (Guests),狙击手（客人）,スナイパー（客）
+skill.guest_sniper.blurb,30 秒內投出的貨自動飛向最近清單需要該貨的客人；該客不要了就改飛下一位，全店沒目標則普通丟掉,For 30s tossed stock auto-flies to the nearest guest who needs it; retargets if they don't; normal toss if none,30 秒内投出的货自动飞向最近清单需要该货的客人；该客不要了就改飞下一位，全店没目标则普通丢掉,30 秒間、投げた商品がリストで必要としている最寄りの客へ自動飛行；その客が不要なら次の客へ、店内に対象なしなら通常の投棄
+skill.thief_sniper.name,狙擊手（小偷）,Sniper (Thieves),狙击手（小偷）,スナイパー（泥棒）
+skill.thief_sniper.blurb,30 秒內投出的貨自動飛向最近小偷擊中並趕走；投 1 件／一段都算一擊，擊中後貨品掉落；全店沒小偷則普通丟掉,For 30s tossed stock auto-hits the nearest thief and drives them off; 1 piece/segment counts; drops after hit; normal toss if none,30 秒内投出的货自动飞向最近小偷击中并赶走；投 1 件／一段都算一击，击中后货品掉落；全店没小偷则普通丢掉,30 秒間、投げた商品が最寄りの泥棒に命中して追い払う；1個／1セグメントで1撃、命中後は商品落下；店内に泥棒なしなら通常の投棄
+skill.dark_side.name,Dark Side,Dark Side,Dark Side,Dark Side
+skill.dark_side.blurb,You don't know the power of the dark side。抽客人當臨時員工 30 秒（準備頁選 LV1／2／3，沒選預設 LV3）,"You don't know the power of the dark side. Recruit a guest as temp staff for 30s (prep LV1/2/3, default LV3)",You don't know the power of the dark side。抽客人当临时员工 30 秒（准备页选 LV1／2／3，没选预设 LV3）,You don't know the power of the dark side。客を臨時スタッフとして30秒間徴用（準備画面で LV1／2／3 を選択、未選択時は LV3）
+skill.shadow_clone.name,多重影分身,Shadow Clone Multitude,多重影分身,多重影分身
+skill.shadow_clone.blurb,身旁生出玩家分身當收銀／補貨 30 秒（準備頁選 LV1／2／3，沒選預設 LV3）,"Spawn a player clone beside you for checkout/restock for 30s (prep LV1/2/3, default LV3)",身旁生出玩家分身当收银／补货 30 秒（准备页选 LV1／2／3，没选预设 LV3）,傍らにプレイヤー分身を生み、レジ／補充を30秒担当（準備画面で LV1／2／3 を選択、未選択時は LV3）
+skill.carry_passive.name,負重增加,Carry Boost,负重增加,所持量増加
+skill.carry_passive.blurb,負重 +80 件,Carry +80 pieces,负重 +80 件,所持 +80 個
+skill.move_passive.name,移動速度增加,Move Speed Up,移动速度增加,移動速度増加
+skill.move_passive.blurb,移速 +20%,Move speed +20%,移速 +20%,移動速度 +20%
+skill.checkout_speed.name,收銀速度增加,Checkout Speed Up,收银速度增加,レジ速度増加
+skill.checkout_speed.blurb,收銀 +20%,Checkout +20%,收银 +20%,レジ速度 +20%
+skill.restock_speed.name,上架速度增加,Restock Speed Up,上架速度增加,陳列速度増加
+skill.restock_speed.blurb,上架 +20%,Restock +20%,上架 +20%,陳列 +20%
+skill.polite_dash.name,禮貌衝撞,Polite Dash,礼貌冲撞,丁寧ダッシュ
+skill.polite_dash.blurb,衝刺撞客人不滿不增加,Dashing into guests does not raise dissatisfaction,冲刺撞客人不满不增加,ダッシュで客にぶつかっても不満が増えない
+skill.wave_step.name,凌波微步,Wave Step,凌波微步,凌波微歩
+skill.wave_step.blurb,污物不減速；垃圾不扣氣；水漬不滑；嘔吐不禁技能,No dirt slow; trash costs no stamina; puddles don't slip; vomit doesn't block skills,污物不减速；垃圾不扣气；水渍不滑；呕吐不禁技能,汚れで減速しない；ゴミでスタミナ消費なし；水たまりで滑らない；嘔吐でスキル封じなし
+skill.cold_smile.name,笑到你心寒,Chilling Smile,笑到你心寒,凍てつく笑顔
+skill.cold_smile.blurb,排隊不增加不滿,Queuing does not raise dissatisfaction,排队不增加不满,列待ちで不満が増えない
+skill.haki.name,霸王色,Conqueror's Haki,霸王色,覇王色
+skill.haki.blurb,小偷出現率 ×0.5,Thief spawn rate ×0.5,小偷出现率 ×0.5,泥棒出現率 ×0.5
+skill.the_world.name,The World!,The World!,The World!,The World!
+skill.the_world.blurb,時停 10 秒。指令上上下下左右左右,Time stop 10s. Input: up up down down left right left right,时停 10 秒。指令上上下下左右左右,時止め 10 秒。コマンド：上上下下左右左右
+skill.yes_my_lord.name,Yes! My Lord!,Yes! My Lord!,Yes! My Lord!,Yes! My Lord!
+skill.yes_my_lord.blurb,LV3：客人搶空最近貨架 10 秒，然後去排隊。指令上左下右上左下右,LV3: guests empty nearest shelves for 10s then queue. Input: up left down right up left down right,LV3：客人抢空最近货架 10 秒，然后去排队。指令上左下右上左下右,LV3：客が最寄り棚を10秒間空にし、その後列へ並ぶ。コマンド：上左下右上左下右
+skill.fundraise.name,全體集資,Group Fundraiser,全体集资,全員集資
+skill.fundraise.blurb,LV3：在店客人立刻按已取貨全額付款，不含離開與小偷。指令上下上下左右左右,LV3: in-store guests instantly pay for taken goods; excludes leavers and thieves. Input: up down up down left right left right,LV3：在店客人立刻按已取货全额付款，不含离开与小偷。指令上下上下左右左右,LV3：店内の客が取得済み商品を即時全額支払い。退出中と泥棒は除外。コマンド：上下上下左右左右
+skill.close_gate.name,落閘放狗,Drop the Gate,落闸放狗,シャッター下ろし
+skill.close_gate.blurb,有貨趕去排隊（只付已取）；空車離店；小偷掉贓離店。單階 CD120。指令上下上下左右左右,Stocked guests queue (pay taken only); empty carts leave; thieves drop loot and leave. Single-tier CD120. Input: up down up down left right left right,有货赶去排队（只付已取）；空车离店；小偷掉赃离店。单阶 CD120。指令上下上下左右左右,商品持ちは列へ（取得分のみ支払い）；空カートは退店；泥棒は盗品を落として退店。単段階 CD120。コマンド：上下上下左右左右
+skill.guest_dusk.name,諸客的黃昏,Twilight of Guests,诸客的黄昏,諸客の黄昏
+skill.guest_dusk.blurb,30 現實秒內成功進店 15 人（可超 cap、無小偷）。單階 CD120。指令上左右下下左右上,"15 successful entries in 30 real seconds (may exceed cap, no thieves). Single-tier CD120. Input: up left right down down left right up",30 现实秒内成功进店 15 人（可超 cap、无小偷）。单阶 CD120。指令上左右下下左右上,現実時間30秒以内に15人が入店成功（上限超過可、泥棒なし）。単段階 CD120。コマンド：上左右下下左右上
+world.cashier.status,收銀機 %d\n排隊 %d 人,Register %d\nQueue %d,收银机 %d\n排队 %d 人,レジ %d\n列 %d 人
+world.clerk.cashier,店員收銀,Clerk checkout,店员收银,店員レジ
+world.clerk.restock,店員補貨,Clerk restock,店员补货,店員補充
+world.clone.cashier,分身收銀,Clone checkout,分身收银,分身レジ
+world.clone.restock,分身補貨,Clone restock,分身补货,分身補充
+world.clone.label,分身,Clone,分身,分身
+world.door,大門,Door,大门,入口
+world.restock.pick,選貨  ↑↓,Pick SKU  ↑↓,选货  ↑↓,商品選択  ↑↓
+world.restock.stock_line,%s  %d件,%s  %d pcs,%s  %d件,%s  %d個
+world.restock.dry,乾貨補貨點,Dry restock point,干货补货点,常温補充ポイント
+world.restock.frozen,凍櫃補貨點,Chiller restock point,冻柜补货点,冷蔵補充ポイント
+world.restock.ice,冰櫃補貨點,Freezer restock point,冰柜补货点,冷凍補充ポイント
+world.restock.undeveloped,%s\n尚未開發,%s\nNot developed,%s\n尚未开发,%s\n未開発
+world.restock.count,%s\n%d件,%s\n%d pcs,%s\n%d件,%s\n%d個
+world.shelf.dry,乾貨架,Dry shelf,干货架,常温棚
+world.shelf.frozen,凍櫃貨架,Chiller shelf,冻柜货架,冷蔵棚
+world.shelf.ice,冰櫃貨架,Freezer shelf,冰柜货架,冷凍棚
+world.shelf.empty,%s %d\n空　%d,%s %d\nEmpty  %d,%s %d\n空　%d,%s %d\n空　%d
+world.sheet.default,預設,Default,预设,デフォルト
+world.sheet.guest,訪客,Guest,访客,ゲスト
+world.sheet.line,%s  LV%d  XP%d  色%d  %s,%s  LV%d  XP%d  tint%d  %s,%s  LV%d  XP%d  色%d  %s,%s  LV%d  XP%d  色%d  %s
+world.guest_slot.n,訪客%d,Guest %d,访客%d,ゲスト%d
+world.guest_slot.empty,（空）,(empty),（空）,（空）
+world.toss_range.farther,稍遠,Farther,稍远,やや遠く
+mood.shop,購物,Shopping,购物,買い物
+mood.elite,麻煩客人,Problem guest,麻烦客人,厄介な客
+mood.stepped_on,踩到%s！,Stepped in %s!,踩到%s！,%sを踏んだ！
+mood.stepped_dirt,踩到污物！,Stepped in a mess!,踩到污物！,汚れを踏んだ！
+mood.paying,付款中,Paying,付款中,支払い中
+mood.queue,排隊中,Queuing,排队中,列待ち中
+mood.thanks,謝謝,Thanks,谢谢,ありがとう
+mood.driven_off,被趕離,Driven off,被赶离,追い払い
+mood.to_pay,去付款,Going to pay,去付款,支払いに向かう
+mood.rush,搶購！,Rush buy!,抢购！,買い占め！
+mood.cant_find,找不到%s,Can't find %s,找不到%s,%sが見つからない
+mood.picking,取貨,Picking up,取货,取っている
+mood.got,拿到%s,Got %s,拿到%s,%sを手に入れた
+mood.next_item,先找下一件,Looking for next item,先找下一件,次の品を探す
+mood.still_missing,還是找不到…,Still can't find it…,还是找不到…,まだ見つからない…
+mood.no_register,沒有收銀機,No register,没有收银机,レジがない
+mood.rushed_n,搶到%d件,Grabbed %d,抢到%d件,%d個ゲット
+mood.leave_loot,得手離開,Leaving with loot,得手离开,戦利品持ちで退店
+mood.leave,離開,Leaving,离开,退店
+mood.leave_angry,生氣離開,Leaving angry,生气离开,怒って退店
+mood.temp_cashier,臨時收銀,Temp cashier,临时收银,臨時レジ
+mood.temp_restock,臨時補貨,Temp restocker,临时补货,臨時補充
+mood.affix.smash,弄跌貨架！,Knocked a shelf!,弄跌货架！,棚を倒した！
+mood.affix.basket,搗亂購物籃！,Ransacked a basket!,捣乱购物篮！,カゴを荒らした！
+mood.affix.drive,趕客！,Chasing guests!,赶客！,客追い！
+mood.affix.dirt,丟污物！,Dropped a mess!,丢污物！,汚れを落とした！
+mood.affix.idle,不主動購物…,Not shopping…,不主动购物…,買い物しない…
+mood.basket_hit,購物籃被搗亂！,Basket ransacked!,购物篮被捣乱！,カゴを荒らされた！
+mood.chased,被趕走…？,Chased off…?,被赶走…？,追い払われた…？
+mood.thief,小偷  ,Thief  ,小偷  ,泥棒  
+mood.looted,得手 ,Looted ,得手 ,ゲット 
+mood.empty_handed,空手,Empty-handed,空手,空手
+mood.list_done,（清單完成）,(list done),（清单完成）,（リスト完了）
+mood.elite_lv,麻煩LV%d　,Elite LV%d  ,麻烦LV%d　,エリートLV%d　
+mood.taken_n,　已取%d,  took %d,　已取%d,　取得%d
+phase.restock,補貨時段  06:00–08:00  無客人,Restock  06:00–08:00  no guests,补货时段  06:00–08:00  无客人,補充タイム  06:00–08:00  客なし
+phase.ops,營運時段  08:00–22:00,Open  08:00–22:00,营运时段  08:00–22:00,営業タイム  08:00–22:00
+settle.guest_xp,\n訪客經驗 +%d　%s,\nGuest XP +%d  %s,\n访客经验 +%d　%s,\nゲスト経験値 +%d　%s
+settle.support_rating,\n支援別店評價 %+d　現 %d,\nSupport rating %+d  now %d,\n支援别店评价 %+d　现 %d,\n支援先評価 %+d　現在 %d
+settle.guest_save_fail_prefix,（訪客存檔失敗：,(Guest save failed: ,（访客存档失败：,（ゲストセーブ失敗：
+settle.body,%s　%s\n營業額 $%d　入帳後資金 $%d\n進貨成本 $%d\n成功收銀 %d　生氣離開 %d\n被偷 %d 件 $%d　抓住 %d／逃走 %d\n%s\n%s,%s  %s\nRevenue $%d  funds after $%d\nStock cost $%d\nChecked out %d  left angry %d\nStolen %d pcs $%d  caught %d / fled %d\n%s\n%s,%s　%s\n营业额 $%d　入账后资金 $%d\n进货成本 $%d\n成功收银 %d　生气离开 %d\n被偷 %d 件 $%d　抓住 %d／逃走 %d\n%s\n%s,%s　%s\n売上 $%d　入金後資金 $%d\n仕入れコスト $%d\n会計成功 %d　怒って退店 %d\n盗難 %d 個 $%d　捕まえた %d／逃走 %d\n%s\n%s
+settle.back_hint,\n按 J／A 返回準備,\nPress J/A to return to prep,\n按 J／A 返回准备,\nJ／A で準備に戻る
+settle.hud_legacy,關店結算\n營業額 $%d\n成功收銀 %d 人\n生氣離開 %d 人\n被偷 %d 件  $%d\n抓住小偷 %d ／ 逃走 %d\n（資金於結算後才入帳，v0.5 先顯示營業額）,Day settle\nRevenue $%d\nChecked out %d\nLeft angry %d\nStolen %d pcs  $%d\nCaught %d / fled %d\n(Funds post after settle; v0.5 shows revenue),关店结算\n营业额 $%d\n成功收银 %d 人\n生气离开 %d 人\n被偷 %d 件  $%d\n抓住小偷 %d ／ 逃走 %d\n（资金于结算后才入账，v0.5 先显示营业额）,閉店精算\n売上 $%d\n会計成功 %d 人\n怒って退店 %d 人\n盗難 %d 個  $%d\n泥棒確保 %d ／ 逃走 %d\n（資金は精算後に入金、v0.5 は売上を表示）
+settle.loss,虧損（營業額低於進貨）,Loss (revenue below stock cost),亏损（营业额低于进货）,赤字（売上が仕入れ未満）
+settle.no_loss,未虧損,No loss,未亏损,赤字なし
+settle.test_bonus,（含測試 +%d）,(incl. test +%d),（含测试 +%d）,（テスト分 +%d 含む）
+settle.saved,已寫入存檔,Saved,已写入存档,セーブ書き込み済み
+settle.save_fail_prefix,存檔失敗：,Save failed: ,存档失败：,セーブ失敗：
+settle.host_xp,店主經驗 +%d%s　%s,Host XP +%d%s  %s,店主经验 +%d%s　%s,店主経験値 +%d%s　%s
+settle.split_xp,平分經驗 +%d%s　店主 %s%s,Split XP +%d%s  host %s%s,平分经验 +%d%s　店主 %s%s,経験値分配 +%d%s　店主 %s%s
+log.demo.chives,割韭菜 ×%d,Harvest chives ×%d,割韭菜 ×%d,ネギ刈り ×%d
+log.demo.chives_cash,割韭菜 ×%d — $%d,Harvest chives ×%d — $%d,割韭菜 ×%d — $%d,ネギ刈り ×%d — $%d
+log.demo.dark_side,Dark Side — 臨時員工 %d 名,Dark Side — %d temp staff,Dark Side — 临时员工 %d 名,Dark Side — 臨時スタッフ %d 名
+log.demo.shadow_clone,多重影分身 — 分身 %d 名,Shadow clones — %d clones,多重影分身 — 分身 %d 名,多重影分身 — 分身 %d 名
+log.demo.toss_shelved,丟掉上架 %s ×%d — 貨箱已補上貨架,Toss restock %s ×%d — shelved,丢掉上架 %s ×%d — 货箱已补上货架,投げて陳列 %s ×%d — 箱を棚に補充済み
+log.demo.toss_shelved_drop,丟掉上架 %s ×%d — 剩 %d 掉在地上,Toss restock %s ×%d — %d dropped,丢掉上架 %s ×%d — 剩 %d 掉在地上,投げて陳列 %s ×%d — 残り %d が床に落ちた
+log.demo.toss_clone,丟掉砸到分身 %s ×%d — 打斷，貨品掉在該處,"Toss hit clone %s ×%d — interrupted, dropped there",丢掉砸到分身 %s ×%d — 打断，货品掉在该处,投げて分身に命中 %s ×%d — 中断、その場に落下
+log.demo.toss_guest_ok,丟掉給客人 %s ×%d — 謝謝！%s,Toss to guest %s ×%d — thanks! %s,丢掉给客人 %s ×%d — 谢谢！%s,客に投げ渡し %s ×%d — ありがとう！%s
+log.demo.toss_remain,剩 %d 掉地,%d left on floor,剩 %d 掉地,残り %d が床に落ちた
+log.demo.toss_guest_reject,丟掉砸到客人 — 不想要這貨品！掉在地上,Toss hit guest — wrong item! Dropped,丢掉砸到客人 — 不想要这货品！掉在地上,投げが客に命中 — この商品はいらない！床に落下
+log.demo.sniper_thief_gone,狙擊手 %s ×%d — 小偷已逃走，掉在地上,"Sniper %s ×%d — thief gone, dropped",狙击手 %s ×%d — 小偷已逃走，掉在地上,スナイパー %s ×%d — 泥棒は逃走済み、床に落下
+log.demo.sniper_thief_hit,狙擊手擊中小偷 %s ×%d — 貨品掉落,Sniper hit thief %s ×%d — item dropped,狙击手击中小偷 %s ×%d — 货品掉落,スナイパーが泥棒に命中 %s ×%d — 商品が落下
+log.demo.sniper_guest_gone,狙擊手 %s ×%d — 客人已不要這貨，掉在身旁,"Sniper %s ×%d — guest no longer wants it, dropped",狙击手 %s ×%d — 客人已不要这货，掉在身旁,スナイパー %s ×%d — 客はもう不要、そばに落下
+log.demo.sniper_guest_ok,狙擊手交付 %s ×%d — 已交給客人,Sniper deliver %s ×%d — given to guest,狙击手交付 %s ×%d — 已交给客人,スナイパー納品 %s ×%d — 客に渡した
+log.demo.sniper_guest_partial,狙擊手交付 %s ×%d — 剩 %d 掉在身旁,Sniper deliver %s ×%d — %d dropped beside,狙击手交付 %s ×%d — 剩 %d 掉在身旁,スナイパー納品 %s ×%d — 残り %d がそばに落下
+log.demo.sniper_shelf_ok,狙擊手補架 %s ×%d — 已飛上貨架,Sniper shelf %s ×%d — shelved,狙击手补架 %s ×%d — 已飞上货架,スナイパー補充 %s ×%d — 棚に飛んで陳列
+log.demo.sniper_shelf_partial,狙擊手補架 %s ×%d — 剩 %d 掉在架旁,Sniper shelf %s ×%d — %d beside shelf,狙击手补架 %s ×%d — 剩 %d 掉在架旁,スナイパー補充 %s ×%d — 残り %d が棚のそばに落下
+log.demo.sniper_shelf_full,狙擊手 %s ×%d — 同款貨架已滿，掉在架旁,"Sniper %s ×%d — matching shelves full, dropped beside",狙击手 %s ×%d — 同款货架已满，掉在架旁,スナイパー %s ×%d — 同種の棚は満杯、棚のそばに落下
+err.no_unspent,沒有未分配點數,No unspent points,没有未分配点数,未割り振りポイントがない
+err.below_base,不能低於本劇本基底,Cannot go below scenario base,不能低于本剧本基底,シナリオの基礎値より下げられない
+err.reset_cost,重置能力值要 $%d，現有 $%d,"Stat reset costs $%d, have $%d",重置能力值要 $%d，现有 $%d,能力リセットには $%d 必要、所持 $%d
+err.can_free,罐頭是初始貨物，不用開發,Cans are starter stock; no develop fee,罐头是初始货物，不用开发,缶詰は初期在庫のため開発不要
+err.already_developed,已開發,Already developed,已开发,開発済み
+err.locked_level,未到開放等級,Level not unlocked,未到开放等级,開放レベルに未到達
+err.funds,資金不足,Not enough funds,资金不足,資金不足
+err.not_developed,尚未開發,Not developed,尚未开发,未開発
+err.no_such_item,沒有這件,Unknown item,没有这件,該当なし
+err.no_fit,放不下,Doesn't fit,放不下,入らない
+err.grid_min,闊度和長度最少是 8。,Width and height must be at least 8.,阔度和长度最少是 8。,幅と長さは最低 8 必要。
+err.area_cap,總面積超過規模上限,Total area exceeds scale cap,总面积超过规模上限,総面積が規模上限を超えている
+err.furniture_oob,有傢俬在新邊界外，先收回,Furniture outside new bounds; pick up first,有家私在新边界外，先收回,新しい境界の外に家具がある。先に片付ける
+err.max_scale,已是最大規模,Already max scale,已是最大规模,すでに最大規模
+err.need_level,角色要到 LV%d,Need character LV%d,角色要到 LV%d,キャラクターが LV%d 必要
+err.need_cashier,店舖內要放置至少一台收銀機。,Place at least one register in the shop.,店铺内要放置至少一台收银机。,店内にレジを少なくとも1台置いてください。
+err.need_restock_pair,店舖內要放置至少一組同類型的補貨架和貨架。乾貨、凍櫃、冰櫃都可以，但補貨架和貨架要同一類。,"Place at least one matching restock rack + shelf pair (dry, chiller, or freezer).",店铺内要放置至少一组同类型的补货架和货架。干货、冻柜、冰柜都可以，但补货架和货架要同一类。,店内に同じ種類の補充棚と陳列棚を少なくとも1組置いてください。ドライ・チルド・冷凍いずれでも可ですが、補充棚と陳列棚は同種である必要があります。
+err.hire_full,店舖規模雇員已滿,Hire cap for this shop scale,店铺规模雇员已满,店舗規模の雇用上限に達している
+err.clerks_gt_registers,店員不能多過收銀機,Clerks cannot exceed registers,店员不能多过收银机,店員はレジ台数より多くできない
+err.no_skill,沒有這招,Unknown skill,没有这招,その技はない
+err.ult_slot_only,奧義格只能放奧義,Ultimate slot accepts ultimates only,奥义格只能放奥义,奥義枠には奥義のみ
+err.ult_needs_slot,奧義要放奧義格,Ultimates go in the ultimate slot,奥义要放奥义格,奥義は奥義枠に装備
+err.already_equipped,已經裝備在別格,Already equipped in another slot,已经装备在别格,別の枠にすでに装備中
+err.cost_over,COST 超過 5,COST exceeds 5,COST 超过 5,COST が 5 を超えている
+err.name_letters,名稱只用英文字母，最多 10 個,"Name: English letters only, max 10",名称只用英文字母，最多 10 个,名前は英字のみ、最大 10 文字
+err.name_taken,名稱已被使用,Name already used,名称已被使用,その名前は使用中
+err.level_up,升級 %d 級，未分配點數 +%d,"Leveled +%d, unspent +%d",升级 %d 级，未分配点数 +%d,%d レベルアップ、未割り振り +%d
+err.level_cap_note,  LV10 之後經驗表未定，不再升級,  XP table TBD after LV10; no further levels,  LV10 之后经验表未定，不再升级,  LV10 以降の経験値表は未定、これ以上レベルアップしない
+err.save_empty,存檔是空的,Save is empty,存档是空的,セーブが空です
+err.save_no_version,存檔缺少 version,Save missing version,存档缺少 version,セーブに version がない
+err.save_bad_version,存檔 version 無效,Save version invalid,存档 version 无效,セーブの version が無効
+err.save_too_new,存檔版本過新（%d > %d），請更新遊戲,Save too new (%d > %d); update the game,存档版本过新（%d > %d），请更新游戏,セーブが新しすぎる（%d > %d）。ゲームを更新してください
+err.save_missing,沒有存檔,No save,没有存档,セーブがない
+err.save_bad_json,存檔不是有效 JSON,Save is not valid JSON,存档不是有效 JSON,セーブが有効な JSON ではない
+log.player.magneto_full,負重已滿 — 攝石人 失敗,Carry full — Magneto failed,负重已满 — 摄石人 失败,所持上限 — マグニートー 失敗
+log.player.cast,施放 %s LV%d,Cast %s LV%d,施放 %s LV%d,%s LV%d を発動
+log.player.magneto_n,攝石人 ×%d 件,Magneto ×%d pcs,摄石人 ×%d 件,マグニートー ×%d 個
+log.player.chives_aim,要對準收銀機 — 割韭菜 失敗,Aim at a register — Harvest Chives failed,要对准收银机 — 割韭菜 失败,レジを狙う必要 — ネギ刈り 失敗
+log.player.chives_busy,收銀機使用中 — 割韭菜 失敗,Register busy — Harvest Chives failed,收银机使用中 — 割韭菜 失败,レジ使用中 — ネギ刈り 失敗
+log.player.chives_fail,割韭菜 失敗,Harvest Chives failed,割韭菜 失败,ネギ刈り 失敗
+log.player.chives_empty,這台沒人可收 — 割韭菜 失敗,No one to clear — Harvest Chives failed,这台没人可收 — 割韭菜 失败,この台に会計できる客がいない — ネギ刈り 失敗
+log.player.force_empty,手上沒貨 — 我都賺夠啦比啲你賺 失敗,Hands empty — Force Sell failed,手上没货 — 我都赚够啦比啲你赚 失败,手持ちなし — もう十分稼いだからお前にやれ 失敗
+log.player.force_no_guest,附近沒有可交付客人 — 我都賺夠啦比啲你賺 失敗,No deliverable guest nearby — Force Sell failed,附近没有可交付客人 — 我都赚够啦比啲你赚 失败,近くに渡せる客がいない — もう十分稼いだからお前にやれ 失敗
+log.player.force_busy,客人互動中 — 我都賺夠啦比啲你賺 失敗,Guest busy — Force Sell failed,客人互动中 — 我都赚够啦比啲你赚 失败,客が対応中 — もう十分稼いだからお前にやれ 失敗
+log.player.force_n,強塞 ×%d,Force-sell ×%d,强塞 ×%d,押し売り ×%d
+log.player.deliver_n,交給客人 ×%d,Delivered ×%d,交给客人 ×%d,客に渡した ×%d
+log.player.wrong_temp,沒有對的貨 — 臨時員工不滿不變,No matching stock — temp staff dissat unchanged,没有对的货 — 临时员工不满不变,合う商品がない — 臨時スタッフの不満は変わらず
+log.player.wrong_dissat,沒有對的貨 — 不滿 +15,No matching stock — dissat +15,没有对的货 — 不满 +15,合う商品がない — 不満 +15
+log.player.thief_claimed,對方正在抓這名小偷,Someone else is fighting this thief,对方正在抓这名小偷,他の人がこの泥棒と交戦中
+log.player.thief_grab,抓住小偷 — 連按行動鍵扣血，剩 5 秒,Grabbed thief — mash Action; 5s left,抓住小偷 — 连按行动键扣血，剩 5 秒,泥棒を捕まえた — アクション連打で削る、残り 5 秒
+log.player.thief_ko,打倒小偷 — KO！贓物散落地上,Thief down — KO! Loot scattered,打倒小偷 — KO！赃物散落地上,泥棒撃破 — KO！盗品が散らばった
+log.player.thief_box_ko,貨箱砸中小偷 — KO！贓物原地掉落,Box hit thief — KO! Loot dropped here,货箱砸中小偷 — KO！赃物原地掉落,箱が泥棒に命中 — KO！盗品がその場に落下
+log.player.thief_fail,打擊失敗 — 被撞開，倒地 5 秒,Fight failed — knocked down 5s,打击失败 — 被撞开，倒地 5 秒,撃退失敗 — はじき飛ばされ、5 秒ダウン
+log.player.thief_dash,衝刺撞飛小偷 — 算抓住，贓物散落,Dash KO thief — counts as catch; loot scattered,冲刺撞飞小偷 — 算抓住，赃物散落,ダッシュで泥棒を弾き飛ばした — 確保扱い、盗品が散らばった
+log.player.dash_deliver,衝刺交付 ×%d — 不撞飛,Dash deliver ×%d — no KO,冲刺交付 ×%d — 不撞飞,ダッシュ納品 ×%d — KOなし
+log.player.dash_guest,衝刺撞到客人 — 暈眩 2 秒，貨品掉落,"Dash hit guest — stun 2s, drop stock",冲刺撞到客人 — 晕眩 2 秒，货品掉落,ダッシュが客に当たった — 2 秒スタン、商品落下
+log.player.dash_polite,衝刺撞到客人 — 禮貌衝撞，不滿不增加,"Dash hit guest — polite dash, no dissat",冲刺撞到客人 — 礼貌冲撞，不满不增加,ダッシュが客に当たった — 丁寧ダッシュ、不満は増えない
+log.player.dash_clone,衝刺撞到分身 — 暈眩 2 秒，箱子掉落,"Dash hit clone — stun 2s, drop boxes",冲刺撞到分身 — 晕眩 2 秒，箱子掉落,ダッシュが分身に当たった — 2 秒スタン、箱が落下
+log.player.restock_busy,補貨點使用中,Restock point busy,补货点使用中,補充ポイント使用中
+log.player.sku_list_hint,貨品清單 — 上下選擇，放手確定，B／; 取消,"SKU list — up/down, release confirm, B/; cancel",货品清单 — 上下选择，放手确定，B／; 取消,商品リスト — 上下で選択、放して確定、B／; でキャンセル
+log.player.carry_need,負重不足：%d/%d 件,Carry short: %d/%d pcs,负重不足：%d/%d 件,所持不足：%d/%d 個
+log.player.restock_empty,%s 補貨點已空,%s restock point empty,%s 补货点已空,%s の補充ポイントは空
+log.player.pull_instant,執貨（即時）%s 1件,Pull (instant) %s ×1,执货（即时）%s 1件,取荷（即時）%s 1個
+log.player.empty_hands_shelf,空手 — 不能上架,Empty hands — cannot restock,空手 — 不能上架,素手 — 陳列できない
+log.player.shelf_busy,貨架使用中,Shelf busy,货架使用中,棚使用中
+log.player.shelf_full,貨架已滿,Shelf full,货架已满,棚が満杯
+log.player.shelve,上架 %s ×%d,Shelve %s ×%d,上架 %s ×%d,陳列 %s ×%d
+log.player.monk_no_manual,掃地僧期間不能手動清潔,Cannot clean manually during Sweeping Monk,扫地僧期间不能手动清洁,掃除僧中は手動清掃できない
+log.player.monk_clear,掃地僧清除 — %s,Sweeping Monk cleared — %s,扫地僧清除 — %s,掃除僧クリア — %s
+log.player.register_busy,收銀機使用中,Register busy,收银机使用中,レジ使用中
+log.player.guest_en_route,客人還在前往收銀機，請等到隊伍前端,Guest still walking to register; wait for queue head,客人还在前往收银机，请等到队伍前端,客はまだレジへ移動中。列の先頭まで待って
+log.player.no_guest_at_register,收銀機前沒有客人,No guest at register,收银机前没有客人,レジ前に客がいない
+log.player.senior_skip,資深收銀員 — 略過指令，直接 Loading Circle（購物 %d 件）,"Senior Cashier — skip commands, Loading Circle (%d items)",资深收银员 — 略过指令，直接 Loading Circle（购物 %d 件）,シニアキャッシャー — 指令スキップ、Loading Circle へ（買い物 %d 点）
+log.player.checkout_cmds,收銀指令 %d 次（購物 %d 件）,Checkout commands ×%d (%d items),收银指令 %d 次（购物 %d 件）,会計指令 %d 回（買い物 %d 点）
+log.player.cmds_done,指令完成 — 維持長按出現 Loading Circle,Commands done — hold for Loading Circle,指令完成 — 维持长按出现 Loading Circle,指令完了 — 長押しで Loading Circle
+log.player.cmds_fail,指令錯誤 × 同一串重來,Wrong input × restart sequence,指令错误 × 同一串重来,指令ミス × 同じ並びからやり直し
+log.player.elite_pay,麻煩客人收銀  +$%d（雙倍）,Elite checkout  +$%d (double),麻烦客人收银  +$%d（双倍）,エリート会計  +$%d（倍額）
+log.player.pay_done,收銀完成  +$%d,Checkout done  +$%d,收银完成  +$%d,会計完了  +$%d
+log.player.cant_skill,現在不能發動技能,Cannot cast skills now,现在不能发动技能,今はスキルを発動できない
+log.player.skill_menu_tap,技能選單 — 按方向即發動，再按技能鍵發動中間,Skill menu — tap direction to cast; skill again for center,技能选单 — 按方向即发动，再按技能键发动中间,スキルメニュー — 方向を押すと発動、スキル再押しで中央
+log.player.skill_menu_hold,技能選單 — 拉方向預覽，放開發動；回中則中間,"Skill menu — hold direction to preview, release to cast; center = middle",技能选单 — 拉方向预览，放开发动；回中则中间,スキルメニュー — 方向を引いてプレビュー、離して発動；中央に戻すと中央枠
+log.player.cant_ult,現在不能發動奧義,Cannot cast ultimate now,现在不能发动奥义,今は奥義を発動できない
+log.player.no_ult,沒有裝備奧義,No ultimate equipped,没有装备奥义,奥義を装備していない
+log.player.demo_no_cd,%s 本 Demo 未實作，不會進入冷卻,%s not in this demo — no cooldown,%s 本 Demo 未实作，不会进入冷却,%s はこの Demo 未実装、クールダウンに入らない
+log.player.ult_cd,奧義冷卻中 %.0fs,Ultimate CD %.0fs,奥义冷却中 %.0fs,奥義クールダウン中 %.0fs
+log.player.ult_prep,奧義準備 — %s,Ultimate ready — %s,奥义准备 — %s,奥義準備 — %s
+log.player.ult_cancel,放手 — 奧義取消,Release — ultimate cancelled,放手 — 奥义取消,離した — 奥義キャンセル
+log.player.ult_cmds_fail,奧義指令錯誤 × 同一串重來,Ultimate input wrong × restart sequence,奥义指令错误 × 同一串重来,奥義指令ミス × 同じ並びからやり直し
+log.player.passive,%s 是被動技能，無法主動施放,%s is passive — cannot cast,%s 是被动技能，无法主动施放,%s はパッシブスキル、能動発動できない
+log.player.skill_cd,%s 冷卻中 %.0fs,%s CD %.0fs,%s 冷却中 %.0fs,%s クールダウン中 %.0fs
+log.player.demo_missing,%s 本 Demo 未實作,%s not in this demo,%s 本 Demo 未实作,%s はこの Demo 未実装
+log.player.ult_fundraise,奧義 全體集資 LV%d,Ultimate Fundraise LV%d,奥义 全体集资 LV%d,奥義 全員集金 LV%d
+log.player.ult_close_gate,奧義 落閘放狗,Ultimate Drop the Gate,奥义 落闸放狗,奥義 シャッター下ろして犬放ち
+log.player.ult_dusk,奧義 諸客的黃昏 — 30 秒吸引 %d 人,Ultimate Twilight of Guests — %d entries in 30s,奥义 诸客的黄昏 — 30 秒吸引 %d 人,奥義 諸客の黄昏 — 30 秒で %d 人誘引
+log.player.ult_dusk_closed,奧義 諸客的黃昏 — 非營業時段無效,Ultimate Twilight of Guests — invalid off-hours,奥义 诸客的黄昏 — 非营业时段无效,奥義 諸客の黄昏 — 非営業時は無効
+log.player.ult_lord,奧義 Yes! My Lord! LV%d — 客人搶購 %.0f 秒,Ultimate Yes! My Lord! LV%d — rush %.0fs,奥义 Yes! My Lord! LV%d — 客人抢购 %.0f 秒,奥義 Yes! My Lord! LV%d — 客の買い急ぎ %.0f 秒
+log.player.ult_world,奧義 %s LV%d — 時停,Ultimate %s LV%d — time stop,奥义 %s LV%d — 时停,奥義 %s LV%d — 時止め
+log.player.cmd_reset,放手 — 指令與 Circle 重置,Release — commands and Circle reset,放手 — 指令与 Circle 重置,離した — 指令と Circle をリセット
+log.player.crowd_say,唔該借借⋯,Excuse me…,唔该借借⋯,すみません、通してください…
+log.player.hands_empty,手上沒有貨,Hands empty,手上没有货,手に商品がない
+log.player.toss_fly,丟掉 %s ×%d — 往%s飛出（可砸小偷／同款貨架上架）,Toss %s ×%d — flying %s (thief/shelf),丢掉 %s ×%d — 往%s飞出（可砸小偷／同款货架上架）,投げる %s ×%d — %sへ飛んだ（泥棒／同種棚に陳列可）
+log.player.toss_feet,丟掉 %s ×%d — 掉在腳邊，可以再撿,"Toss %s ×%d — at feet, can pick up",丢掉 %s ×%d — 掉在脚边，可以再捡,投げる %s ×%d — 足元に落下、再拾い可
+log.player.hoop_toss,投籃高手 %s — 往%s飛出,Hoop Ace %s — flying %s,投篮高手 %s — 往%s飞出,シュート名人 %s — %sへ飛んだ
+log.player.toss_one,丟掉 %s 1件 — 往%s飛出,Toss %s ×1 — flying %s,丢掉 %s 1件 — 往%s飞出,投げる %s 1個 — %sへ飛んだ
+log.player.unit_run,一段,a stack,一段,ひと山
+log.player.unit_one,1件,1 pc,1件,1個
+log.player.sniper_toss_thief,丟掉 %s %s — 狙擊手飛向小偷,Toss %s %s — sniper to thief,丢掉 %s %s — 狙击手飞向小偷,投げる %s %s — スナイパーが泥棒へ
+log.player.sniper_toss_guest,丟掉 %s %s — 狙擊手飛向清單客人,Toss %s %s — sniper to guest,丢掉 %s %s — 狙击手飞向清单客人,投げる %s %s — スナイパーがリスト客へ
+log.player.sniper_toss_shelf,丟掉 %s %s — 狙擊手飛向同款貨架,Toss %s %s — sniper to shelf,丢掉 %s %s — 狙击手飞向同款货架,投げる %s %s — スナイパーが同種棚へ
+log.player.cancel_pick,取消選貨,Cancel SKU pick,取消选货,商品選択をキャンセル
+log.player.cancel_skill_menu,取消技能選單,Cancel skill menu,取消技能选单,スキルメニューをキャンセル
+log.player.slip,水漬滑倒 — 滑出 3 身位，暈眩 3 秒,"Puddle slip — slide 3 lengths, stun 3s",水渍滑倒 — 滑出 3 身位，晕眩 3 秒,水たまりで転倒 — 3 身位すべり、3 秒スタン
+log.player.vomit,踩到嘔吐物 — 技能禁止、能力 −30% 10 秒,"Stepped in vomit — skills blocked, stats −30% 10s",踩到呕吐物 — 技能禁止、能力 −30% 10 秒,嘔吐物を踏んだ — スキル禁止、能力 −30% が 10 秒
+log.player.restock_set,補貨點改為 %s,Restock point set to %s,补货点改为 %s,補充ポイントを %s に変更
+log.player.hold_deliver_hint,長按行動鍵把貨交給客人,Hold Action to deliver to guest,长按行动键把货交给客人,アクション長押しで客に商品を渡す
+log.player.take_shelf,從貨架取 %s 1件,Take %s ×1 from shelf,从货架取 %s 1件,棚から %s を 1個取る
+log.player.aim_preview,%s — 範圍預覽，再按技能確認，取消取消,"%s — range preview; skill confirm, cancel cancels",%s — 范围预览，再按技能确认，取消取消,%s — 範囲プレビュー、スキル再押しで確定、キャンセルで中止
+log.player.cancel_named,取消 %s,Cancel %s,取消 %s,%s をキャンセル
+log.player.must_fail_empty,手上沒貨 — 使命必達 失敗,Hands empty — Must Deliver failed,手上没货 — 使命必达 失败,手持ちなし — 使命必達 失敗
+log.player.must_fail_guest,附近沒有可交付客人 — 使命必達 失敗,No deliverable guest nearby — Must Deliver failed,附近没有可交付客人 — 使命必达 失败,近くに渡せる客がいない — 使命必達 失敗
+log.player.must_fail_match,沒有對得上的貨 — 使命必達 失敗,No matching stock — Must Deliver failed,没有对得上的货 — 使命必达 失败,合う商品がない — 使命必達 失敗
+log.player.must_n,使命必達 ×%d,Must Deliver ×%d,使命必达 ×%d,使命必達 ×%d
+log.player.summon_fail,召喚客人 失敗,Summon Guests failed,召唤客人 失败,客召喚 失敗
+log.player.summon_fail_phase,召喚客人 失敗 — 非營業或無可售貨,Summon Guests failed — closed or no stock,召唤客人 失败 — 非营业或无可售货,客召喚 失敗 — 非営業または販売可能な在庫なし
+log.player.summon_n,召喚客人 ×%d,Summon Guests ×%d,召唤客人 ×%d,客召喚 ×%d
+log.player.monk_banner,掃地僧,Sweeping Monk,扫地僧,掃除僧
+log.player.clean_hint,清潔 %s — 按住行動並持續轉搖桿／方向,Clean %s — hold Action and wiggle stick/dirs,清洁 %s — 按住行动并持续转摇杆／方向,清掃 %s — アクションを押し続けてスティック／方向を振る
+log.player.clean_done,清潔完成 — %s 已清除,Cleaned — %s gone,清洁完成 — %s 已清除,清掃完了 — %s を除去
+log.player.drop_busy,地上貨堆使用中,Floor pile busy,地上货堆使用中,床の山を使用中
+log.player.drop_carry,負重不足，撿不回掉落箱,Carry full — cannot pick up drop,负重不足，捡不回掉落箱,所持がいっぱいで落下箱を拾えない
+log.player.pickup,撿起 %s ×%d,Picked up %s ×%d,捡起 %s ×%d,拾った %s ×%d
+mood.caught,被抓住！,Caught!,被抓住！,捕まった！
+mood.drop_loot_run,丟下贓物跑了,Dropped loot and fled,丢下赃物跑了,盗品を捨てて逃げた
+mood.ko_fly,被打飛！,KO'd away!,被打飞！,ぶっ飛ばされた！
+mood.box_fly,被貨箱打飛！,Boxed away!,被货箱打飞！,箱でぶっ飛ばされた！
+mood.dash_fly,被撞飛！,Dashed away!,被撞飞！,ぶつけ飛ばされた！
+mood.oof,唔！,Oof!,唔！,うっ！
+mood.dazed,暈眩…,Dazed…,晕眩…,くらくら…
+mood.thanks_pay,謝謝！去付款,Thanks! Going to pay,谢谢！去付款,ありがとう！会計へ
+mood.thanks_bang,謝謝！,Thanks!,谢谢！,ありがとう！
+mood.reject_item,不想要這貨品！,Don't want this!,不想要这货品！,この商品はいらない！

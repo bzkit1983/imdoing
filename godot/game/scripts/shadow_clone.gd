@@ -92,11 +92,11 @@ func _sync_label() -> void:
 	if _label == null:
 		return
 	if role == "cashier":
-		_label.text = "分身收銀"
+		_label.text = Loc.t("world.clone.cashier")
 	elif role == "restock":
-		_label.text = "分身補貨"
+		_label.text = Loc.t("world.clone.restock")
 	else:
-		_label.text = "分身"
+		_label.text = Loc.t("world.clone.label")
 
 
 func enter_dirt(area: Node) -> void:

@@ -19,9 +19,9 @@ color = Color(0, 0, 0, 0.62)
 
 [node name="Card" type="ColorRect" parent="."]
 offset_left = 240.0
-offset_top = 24.0
+offset_top = 12.0
 offset_right = 1040.0
-offset_bottom = 760.0
+offset_bottom = 840.0
 mouse_filter = 0
 color = Color(0.109804, 0.141176, 0.121569, 1)
 
@@ -33,7 +33,7 @@ offset_right = 764.0
 offset_bottom = 68.0
 theme_override_colors/font_color = Color(0.956863, 0.827451, 0.368627, 1)
 theme_override_font_sizes/font_size = 40
-text = "暫停"
+text = "Pause"
 
 [node name="Body" type="Label" parent="Card"]
 unique_name_in_owner = true
@@ -43,7 +43,7 @@ offset_right = 764.0
 offset_bottom = 150.0
 theme_override_colors/font_color = Color(0.956863, 0.945098, 0.917647, 1)
 theme_override_font_sizes/font_size = 24
-text = "遊戲已暫停。"
+text = "Game paused."
 autowrap_mode = 3
 
 [node name="Hint" type="Label" parent="Card"]
@@ -54,7 +54,7 @@ offset_right = 764.0
 offset_bottom = 196.0
 theme_override_colors/font_color = Color(0.784314, 0.760784, 0.705882, 1)
 theme_override_font_sizes/font_size = 20
-text = "Esc／Start 開關　　W／S 選擇　　A／D 調音量　　J 確定"
+text = "Esc/Start toggle  W/S select  A/D volume  J confirm"
 
 [node name="ResumeBtn" type="Button" parent="Card"]
 unique_name_in_owner = true
@@ -63,7 +63,7 @@ offset_top = 214.0
 offset_right = 764.0
 offset_bottom = 286.0
 focus_mode = 0
-text = "繼續遊戲"
+text = "Continue"
 
 [node name="SfxBtn" type="Button" parent="Card"]
 unique_name_in_owner = true
@@ -72,7 +72,7 @@ offset_top = 300.0
 offset_right = 764.0
 offset_bottom = 372.0
 focus_mode = 0
-text = "音效：開"
+text = "SFX: On"
 
 [node name="VolRow" type="Control" parent="Card"]
 unique_name_in_owner = true
@@ -98,7 +98,7 @@ offset_top = 0.0
 offset_right = 628.0
 offset_bottom = 72.0
 focus_mode = 0
-text = "音效聲量：100%"
+text = "SFX volume: 100%"
 
 [node name="VolUpBtn" type="Button" parent="Card/VolRow"]
 unique_name_in_owner = true
@@ -116,7 +116,7 @@ offset_top = 472.0
 offset_right = 764.0
 offset_bottom = 544.0
 focus_mode = 0
-text = "虛擬搖桿：關"
+text = "Virtual stick: Off"
 
 [node name="CameraBtn" type="Button" parent="Card"]
 unique_name_in_owner = true
@@ -125,13 +125,22 @@ offset_top = 558.0
 offset_right = 764.0
 offset_bottom = 630.0
 focus_mode = 0
-text = "鏡頭：正常"
+text = "Camera: Normal"
 
-[node name="EndDayBtn" type="Button" parent="Card"]
+[node name="LangBtn" type="Button" parent="Card"]
 unique_name_in_owner = true
 offset_left = 36.0
 offset_top = 644.0
 offset_right = 764.0
 offset_bottom = 716.0
 focus_mode = 0
-text = "結束本日並結算"
+text = "Language: 繁體中文"
+
+[node name="EndDayBtn" type="Button" parent="Card"]
+unique_name_in_owner = true
+offset_left = 36.0
+offset_top = 730.0
+offset_right = 764.0
+offset_bottom = 802.0
+focus_mode = 0
+text = "End day & settle"
