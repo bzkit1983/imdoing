@@ -767,18 +767,18 @@ func _sync_crowd_say() -> void:
 
 
 func _shelving() -> bool:
-	return _long_committed and _j_held and is_instance_valid(target) and String(target.get("kind")) == "shelf"
+	return _long_committed and _j_held and is_instance_valid(target) and _obj_str(target, "kind") == "shelf"
 
 
 func _cleaning() -> bool:
-	return _long_committed and _j_held and is_instance_valid(target) and String(target.get("kind")) == "dirt"
+	return _long_committed and _j_held and is_instance_valid(target) and _obj_str(target, "kind") == "dirt"
 
 
 func _in_dir_mode() -> bool:
 	if ult_prep or skill_menu_open or _restock_picking or _l_held or _u_held:
 		return true
 	if _j_held and is_instance_valid(target):
-		var kind := String(target.get("kind"))
+		var kind := _obj_str(target, "kind")
 		if kind == "cashier" or kind == "restock":
 			return true
 	elif _j_held and target != null:
@@ -1113,7 +1113,7 @@ func _physics_process(delta: float) -> void:
 		_cast_pose_left = maxf(0.0, _cast_pose_left - delta)
 	if _deliver_pose_left > 0.0:
 		_deliver_pose_left = maxf(0.0, _deliver_pose_left - delta)
-	command_lock = _long_committed and _j_held and is_instance_valid(target) and String(target.get("kind")) == "cashier" and not skill_menu_open and not ult_prep
+	command_lock = _long_committed and _j_held and is_instance_valid(target) and _obj_str(target, "kind") == "cashier" and not skill_menu_open and not ult_prep
 	if not command_lock and not ult_prep:
 		_prompt.active = false
 	if _k_held and not _cancel_held and not _drop_flight_lock and not _piece_drop_lock and not command_lock and not skill_menu_open and not ult_prep and not _fighting and _stun_left <= 0.0 and _slip_left <= 0.0:
@@ -1776,7 +1776,7 @@ func _release_interact() -> void:
 		_restock_hold = 0.0
 		return
 	if _fighting or _long_committed or _deliver_done or _restock_picking:
-		if _restock_picking and target != null and String(target.get("kind")) == "restock":
+		if _restock_picking and target != null and _obj_str(target, "kind") == "restock":
 			var sku := String(target.call("commit_pick"))
 			SfxBus.play("sfx_box_sku_confirm")
 			log_line.emit("補貨點改為 %s" % Tuning.sku_name(sku))
@@ -2300,7 +2300,7 @@ func _cast_self_checkout(level: int) -> bool:
 
 func _cast_harvest_chives(lv: int) -> bool:
 	var reg: Node2D = null
-	if is_instance_valid(target) and String(target.get("kind")) == "cashier":
+	if is_instance_valid(target) and _obj_str(target, "kind") == "cashier":
 		reg = target
 	else:
 		reg = _nearest_kind("cashier")
@@ -2550,7 +2550,7 @@ const GLOW_SPAN_SCALE := 0.85
 
 
 func _glow_span(node: Node2D) -> Vector2:
-	var kind := String(node.get("kind"))
+	var kind := _obj_str(node, "kind")
 	var span := Vector2(150.0, 150.0)
 	if kind == "shelf" or kind == "cashier" or kind == "restock":
 		span = Vector2(240.0, 150.0)
@@ -2574,7 +2574,7 @@ func _update_target() -> void:
 		return
 	var best := _preview_target()
 	if target != best:
-		if _restock_picking and target != null and String(target.get("kind")) == "restock":
+		if _restock_picking and target != null and _obj_str(target, "kind") == "restock":
 			target.call("abort_pick")
 		_restock_picking = false
 		_restock_hold = 0.0
@@ -2590,7 +2590,7 @@ func _tick_action(delta: float) -> void:
 		_tick_fight(delta)
 		return
 	if _stun_left > 0.0 or _slip_left > 0.0:
-		if is_instance_valid(target) and String(target.get("kind")) == "dirt":
+		if is_instance_valid(target) and _obj_str(target, "kind") == "dirt":
 			target.call("set_cleaning", false, Vector2.ZERO, 0.0, seat_id)
 		return
 	if not _j_held:
@@ -3014,7 +3014,7 @@ func _tick_sku_pick(delta: float) -> void:
 
 
 func _abort_restock_pick() -> void:
-	if target != null and String(target.get("kind")) == "restock":
+	if target != null and _obj_str(target, "kind") == "restock":
 		target.call("abort_pick")
 		SfxBus.play("sfx_box_sku_cancel")
 		_interact_release(target)
@@ -3188,7 +3188,7 @@ func _tick_clean(_delta: float) -> void:
 	if buff_left("sweeping_monk") > 0.05:
 		_abort_manual_clean_for_monk()
 		return
-	if not is_instance_valid(target) or String(target.get("kind")) != "dirt":
+	if not is_instance_valid(target) or _obj_str(target, "kind") != "dirt":
 		return
 	## Another seat already owns this dirt's clean cycle — do not wipe / steal it.
 	if target.has_method("is_clean_locked_by_other") and bool(target.call("is_clean_locked_by_other", seat_id)):
@@ -3267,7 +3267,7 @@ func _clear_clean_hint() -> void:
 		SfxBus.play("sfx_clean_cancel")
 	_clean_hint = false
 	_last_wiggle = Vector2.ZERO
-	if was and is_instance_valid(target) and String(target.get("kind")) == "dirt":
+	if was and is_instance_valid(target) and _obj_str(target, "kind") == "dirt":
 		target.call("set_cleaning", false, Vector2.ZERO, hold_progress * 100.0, seat_id)
 
 
@@ -3339,7 +3339,7 @@ func _ensure_seq(cust) -> void:
 
 func _try_dir(dir: int) -> void:
 	if _restock_picking:
-		if target != null and String(target.get("kind")) == "restock":
+		if target != null and _obj_str(target, "kind") == "restock":
 			if dir == 0:
 				target.call("move_pick", -1)
 				SfxBus.play("sfx_box_sku_move")
@@ -3684,7 +3684,7 @@ func _cast_slot(i: int) -> void:
 	if bool(sk.get("unimplemented", false)):
 		log_line.emit("%s 本 Demo 未實作，不會進入冷卻" % String(sk.get("name")))
 		return
-	if String(sk.get("kind")) != "active":
+	if str(sk.get("kind", "")) != "active":
 		log_line.emit("%s 是被動技能，無法主動施放" % String(sk.get("name")))
 		return
 	var sid := String(sk.get("id"))
@@ -3834,7 +3834,7 @@ func release_checkout() -> void:
 		_prompt.active = false
 		_prompt.fail_at = -1
 	## Drop InteractLock so a forced KO interrupt cannot leave the register stuck.
-	if target != null and String(target.get("kind")) == "cashier":
+	if target != null and _obj_str(target, "kind") == "cashier":
 		_interact_release(target)
 	_interact_release_held()
 
@@ -3976,12 +3976,12 @@ func _reset_hold() -> void:
 		_prompt.fail_at = -1
 	if not is_instance_valid(target):
 		target = null
-	elif String(target.get("kind")) == "cashier":
+	elif _obj_str(target, "kind") == "cashier":
 		var cust = target.call("front_customer")
 		if cust:
 			cust.cancel_pay()
 		_interact_release(target)
-	elif String(target.get("kind")) == "shelf":
+	elif _obj_str(target, "kind") == "shelf":
 		_interact_release(target)
 	_interact_release_held()
 
@@ -4043,7 +4043,7 @@ func _handle_hotkey_actions(event: InputEvent) -> void:
 		_try_skill_hotkey(2)
 		get_viewport().set_input_as_handled()
 		return
-	if target == null or String(target.get("kind")) != "restock":
+	if target == null or _obj_str(target, "kind") != "restock":
 		return
 	if event.is_action_pressed(Controls.RESTOCK_PREV):
 		target.call("cycle", -1)

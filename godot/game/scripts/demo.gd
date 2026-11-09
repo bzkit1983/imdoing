@@ -440,7 +440,7 @@ func cast_fundraise(level: int) -> void:
 func cast_harvest_chives(reg: Node, max_n: int) -> int:
 	if reg == null or not is_instance_valid(reg) or max_n <= 0:
 		return 0
-	if String(reg.get("kind")) != "cashier":
+	if str(reg.get("kind")) != "cashier":
 		return 0
 	var q: Array = reg.get("queue") if reg.get("queue") != null else []
 	var picked: Array = Fundraise.choose_from_register_queue(q, max_n)
@@ -782,7 +782,7 @@ func _player_lock_register():
 		if not p.get("command_lock"):
 			continue
 		var target = p.get("target")
-		if target != null and String(target.get("kind")) == "cashier":
+		if target != null and str(target.get("kind")) == "cashier":
 			return target
 	return null
 
@@ -905,7 +905,7 @@ func spawn_dirt_at(at: Vector2, dtype: String) -> bool:
 
 func restock_for(cat: String) -> Node2D:
 	for n in _player.interactables if _player else []:
-		if n != null and String(n.get("kind")) == "restock" and String(n.get("category")) == cat:
+		if n != null and str(n.get("kind")) == "restock" and str(n.get("category")) == cat:
 			return n
 	return null
 
@@ -914,7 +914,7 @@ func sync_stock() -> void:
 	if _player == null:
 		return
 	for n in _player.interactables:
-		if n != null and String(n.get("kind")) == "restock" and n.has_method("pull_stock"):
+		if n != null and str(n.get("kind")) == "restock" and n.has_method("pull_stock"):
 			n.call("pull_stock")
 
 
@@ -943,8 +943,10 @@ func _collect_shelf_floor_pieces() -> Dictionary:
 	for s in shelves:
 		if s == null or not is_instance_valid(s):
 			continue
-		var sku := String(s.get("sku"))
-		var n := int(s.get("count"))
+		## str() — String(null) throws in Godot 4 when Object.get misses.
+		var sku := str(s.get("sku"))
+		var n_v = s.get("count")
+		var n := int(n_v) if n_v != null else 0
 		if sku == "" or n <= 0:
 			continue
 		out[sku] = int(out.get(sku, 0)) + n
@@ -953,11 +955,13 @@ func _collect_shelf_floor_pieces() -> Dictionary:
 	for c in _world.get_children():
 		if c == null or not is_instance_valid(c):
 			continue
-		var kind := String(c.get("kind"))
+		## Floor / Labels / Customers / FloatText lack kind — String(null) crashes.
+		var kind := str(c.get("kind"))
 		if kind != "drop" and kind != "drop_flight":
 			continue
-		var sku := String(c.get("sku"))
-		var n := int(c.get("count"))
+		var sku := str(c.get("sku"))
+		var n_v = c.get("count")
+		var n := int(n_v) if n_v != null else 0
 		if sku == "" or n <= 0:
 			continue
 		out[sku] = int(out.get(sku, 0)) + n
@@ -1059,7 +1063,8 @@ func _clear_credited_unsold() -> void:
 	for c in _world.get_children():
 		if c == null or not is_instance_valid(c):
 			continue
-		var kind := String(c.get("kind"))
+		## Mixed world children: String(null) on missing kind aborts the sweep.
+		var kind := str(c.get("kind"))
 		if kind == "drop" or kind == "drop_flight":
 			kill.append(c)
 			continue
@@ -1308,7 +1313,7 @@ func _restocks_cleared() -> bool:
 	for n in _player.interactables:
 		if n == null or not is_instance_valid(n):
 			continue
-		if String(n.get("kind")) != "restock":
+		if str(n.get("kind")) != "restock":
 			continue
 		saw = true
 		if not n.has_method("skus"):
