@@ -167,8 +167,19 @@ static func fill_skill_pick(menu: CanvasLayer, slot_i: int) -> void:
 	else:
 		pool.append_array(Skills.ACTIVES)
 		pool.append_array(Skills.PASSIVES)
-	for sk in pool:
-		menu._add("%s　%s　COST%d　%s" % [_kind_label(String(sk["kind"])), sk["name"], int(sk["cost"]), sk["blurb"]], "equip", [slot_i, sk["id"]])
+	## ACTIVES/PASSIVES/ULTS are mechanical-only; name/blurb live in locale via localize().
+	for raw in pool:
+		var sk: Dictionary = Skills.localize(raw)
+		menu._add(
+			"%s　%s　COST%d　%s" % [
+				_kind_label(String(sk.get("kind", ""))),
+				String(sk.get("name", "")),
+				int(sk.get("cost", 1)),
+				String(sk.get("blurb", "")),
+			],
+			"equip",
+			[slot_i, String(sk.get("id", ""))],
+		)
 	menu._add(Loc.t("prep.skill_pick.unequip"), "unequip", slot_i)
 	menu._add(Loc.t("prep.back"), "go", "skill_set")
 	menu._index = 0

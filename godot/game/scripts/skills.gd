@@ -100,19 +100,26 @@ static func localize(skill: Dictionary) -> Dictionary:
 
 
 static func by_id(id: String) -> Dictionary:
-	for sk in catalog():
+	for sk in ACTIVES:
 		if String(sk.get("id")) == id:
-			return sk.duplicate(true)
+			return localize(sk)
+	for sk in PASSIVES:
+		if String(sk.get("id")) == id:
+			return localize(sk)
+	for sk in ULTS:
+		if String(sk.get("id")) == id:
+			return localize(sk)
 	return {}
 
 
 static func catalog() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	out.append_array(ACTIVES)
-	out.append_array(PASSIVES)
-	out.append_array(ULTS)
-	for i in out.size():
-		out[i] = localize(out[i])
+	for sk in ACTIVES:
+		out.append(localize(sk))
+	for sk in PASSIVES:
+		out.append(localize(sk))
+	for sk in ULTS:
+		out.append(localize(sk))
 	return out
 
 
