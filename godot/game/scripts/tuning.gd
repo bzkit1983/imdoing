@@ -165,7 +165,7 @@ const SPEED_MAX_MULT := 5.0
 const SPEED_FLOOR := 48.0
 
 const CAMERA_ZOOM := 1.22
-## Pause / View-button "稍遠" — slightly more shop in frame than CAMERA_ZOOM.
+## Pause / View-button Loc.t("world.toss_range.farther") — slightly more shop in frame than CAMERA_ZOOM.
 const CAMERA_ZOOM_FAR := 0.95
 const INTERACT_RANGE := 100.0
 const INTERACT_RANGE_SQ := INTERACT_RANGE * INTERACT_RANGE

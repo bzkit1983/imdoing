@@ -155,13 +155,13 @@ var _must_deliver_aim: bool = false
 var _must_deliver_lv: int = 3
 var _must_deliver_sid: String = ""
 var _must_deliver_cd: float = 15.0
-var _must_deliver_name: String = "使命必達"
+var _must_deliver_name: String = ""
 var _must_deliver_ring: Line2D
 var _magneto_aim: bool = false
 var _magneto_lv: int = 3
 var _magneto_sid: String = ""
 var _magneto_cd: float = 15.0
-var _magneto_name: String = "攝石人"
+var _magneto_name: String = ""
 var _magneto_ring: Line2D
 ## 掃地僧 follow tornado VFX (visible while buff active).
 var _monk_tornado: Node2D
@@ -221,7 +221,7 @@ func _setup_crowd_say() -> void:
 	_crowd_say = Label.new()
 	_crowd_say.name = "CrowdSay"
 	_crowd_say.visible = false
-	_crowd_say.text = "唔該借借⋯"
+	_crowd_say.text = Loc.t("log.player.crowd_say")
 	_crowd_say.position = Vector2(-70, -92)
 	_crowd_say.z_index = 10
 	UiFont.apply_label(_crowd_say, UiFont.WORLD)
@@ -556,52 +556,52 @@ func sniper_thief_active() -> bool:
 func store_status_text() -> String:
 	var bits: PackedStringArray = []
 	if _buffs.has("the_world"):
-		bits.append("The World! 時停 %.0fs" % _buffs["the_world"])
+		bits.append(Loc.t("hud.status.world_stop", [_buffs])["the_world"])
 	if _buffs.has("yes_my_lord"):
 		bits.append("Yes! My Lord! %.0fs" % _buffs["yes_my_lord"])
 	if _buffs.has("guest_dusk"):
-		bits.append("諸客的黃昏 %.0fs" % _buffs["guest_dusk"])
+		bits.append(Loc.t("hud.status.dusk", [_buffs])["guest_dusk"])
 	if _buffs.has("metal_rush"):
-		bits.append("金屬狂潮 +150%% %.0fs" % _buffs["metal_rush"])
+		bits.append(Loc.t("hud.status.metal", [_buffs])["metal_rush"])
 	if bits.is_empty():
-		return "商店狀態  無技能效果"
-	return "商店狀態  " + " · ".join(bits)
+		return Loc.t("hud.scene.shop_status")
+	return Loc.t("hud.status.prefix_shop") + " · ".join(bits)
 
 
 func role_status_text() -> String:
 	var bits: PackedStringArray = []
 	bits.append("STR%d AGI%d INT%d" % [_stat_base("str"), _stat_base("agi"), _stat_base("int")])
 	if _buffs.has("carry_boost"):
-		bits.append("負重+240件 %.0fs" % _buffs["carry_boost"])
+		bits.append(Loc.t("hud.status.carry", [_buffs])["carry_boost"])
 	if _buffs.has("move_boost"):
-		bits.append("移速+60%% %.0fs" % _buffs["move_boost"])
+		bits.append(Loc.t("hud.status.move", [_buffs])["move_boost"])
 	if _buffs.has("instant_restock"):
-		bits.append("瞬間上架 %.0fs" % _buffs["instant_restock"])
+		bits.append(Loc.t("hud.status.instant", [_buffs])["instant_restock"])
 	if _buffs.has("shelf_sniper"):
-		bits.append("狙擊手（貨架） %.0fs" % _buffs["shelf_sniper"])
+		bits.append(Loc.t("hud.status.sniper_shelf", [_buffs])["shelf_sniper"])
 	if _buffs.has("guest_sniper"):
-		bits.append("狙擊手（客人） %.0fs" % _buffs["guest_sniper"])
+		bits.append(Loc.t("hud.status.sniper_guest", [_buffs])["guest_sniper"])
 	if _buffs.has("thief_sniper"):
-		bits.append("狙擊手（小偷） %.0fs" % _buffs["thief_sniper"])
+		bits.append(Loc.t("hud.status.sniper_thief", [_buffs])["thief_sniper"])
 	if _buffs.has("dash_deliver"):
-		bits.append("衝刺交付 %.0fs" % _buffs["dash_deliver"])
+		bits.append(Loc.t("hud.status.dash_deliver", [_buffs])["dash_deliver"])
 	if _buffs.has("dasher"):
 		bits.append("Dasher %.0fs" % _buffs["dasher"])
 	if _buffs.has("senior_cashier"):
-		bits.append("資深收銀員 %.0fs" % _buffs["senior_cashier"])
+		bits.append(Loc.t("hud.status.senior", [_buffs])["senior_cashier"])
 	if _buffs.has("hoop_ace"):
-		bits.append("投籃高手 %.0fs" % _buffs["hoop_ace"])
+		bits.append(Loc.t("hud.status.hoop", [_buffs])["hoop_ace"])
 	if _buffs.has("sweeping_monk"):
-		bits.append("掃地僧 %.0fs" % _buffs["sweeping_monk"])
+		bits.append(Loc.t("hud.status.monk", [_buffs])["sweeping_monk"])
 	if _sick_left > 0.0:
-		bits.append("嘔吐物 −30%% %.0fs" % _sick_left)
+		bits.append(Loc.t("hud.status.sick", [_sick_left)])
 	if _fighting:
-		bits.append("打擊中")
+		bits.append(Loc.t("hud.status.fighting"))
 	if _stun_left > 0.0:
-		bits.append("倒地 %.0fs" % _stun_left)
+		bits.append(Loc.t("hud.status.down", [_stun_left)])
 	if _passive_checkout_pct > 0.0:
-		bits.append("收銀+%.0f%%" % (_passive_checkout_pct * 100.0))
-	return "角色狀態  " + " ".join(bits)
+		bits.append(Loc.t("hud.status.checkout_pct", [(_passive_checkout_pct * 100.0)]))
+	return Loc.t("hud.status.prefix_role") + " ".join(bits)
 
 
 func set_hold(action: String, pressed: bool) -> void:
@@ -682,29 +682,29 @@ func set_hold(action: String, pressed: bool) -> void:
 
 func move_state() -> String:
 	if _stun_left > 0.0:
-		return "暈眩"
+		return Loc.t("hud.move.stun")
 	if _slip_left > 0.0:
-		return "滑倒"
+		return Loc.t("hud.move.slip")
 	if _drop_flight_lock or _piece_drop_lock:
-		return "丟貨"
+		return Loc.t("hud.move.toss")
 	if _cancel_held and not _cancel_dropped:
-		return "掉貨瞄準"
+		return Loc.t("hud.move.drop_aim")
 	if ult_prep:
-		return "奧義指令"
+		return Loc.t("hud.move.ult_cmd")
 	if _must_deliver_aim:
-		return "使命必達"
+		return Loc.t("hud.move.must_deliver")
 	if _magneto_aim:
-		return "攝石人"
+		return Loc.t("hud.move.magneto")
 	if skill_menu_open:
-		return "技能選單"
+		return Loc.t("hud.move.skill_menu")
 	if _restock_picking:
-		return "選貨"
+		return Loc.t("hud.move.pick_sku")
 	if _cleaning():
-		return "清潔"
+		return Loc.t("hud.move.clean")
 	if _fighting:
-		return "打擊"
+		return Loc.t("hud.move.fight")
 	if command_lock:
-		return "收銀指令"
+		return Loc.t("hud.move.checkout_cmd")
 	if _dashing:
 		return "DASH"
 	if _running and velocity.length() > 8.0:
@@ -921,7 +921,7 @@ func _discard_top_box() -> void:
 	if _stun_left > 0.0 or _slip_left > 0.0 or _fighting:
 		return
 	if inventory.is_empty():
-		log_line.emit("手上沒有貨")
+		log_line.emit(Loc.t("log.player.hands_empty"))
 		_hide_drop_aim()
 		return
 	var run: Dictionary = inventory.trailing_run()
@@ -936,11 +936,11 @@ func _discard_top_box() -> void:
 			log_line.emit(hint)
 		else:
 			log_line.emit(
-				"丟掉 %s ×%d — 往%s飛出（可砸小偷／同款貨架上架）" % [name, n, _drop_dir_label(toss)]
+				Loc.t("log.player.toss_fly", [name, n, _drop_dir_label(toss)])
 			)
 	else:
 		SfxBus.play("sfx_box_drop_feet")
-		log_line.emit("丟掉 %s ×%d — 掉在腳邊，可以再撿" % [name, n])
+		log_line.emit(Loc.t("log.player.toss_feet", [name, n]))
 
 
 ## Direction + short cancel: throw the top piece. No aim circle.
@@ -954,7 +954,7 @@ func _toss_top_piece() -> bool:
 	if _cancel_drop_dir.length_squared() < 0.01:
 		return false
 	if inventory.is_empty():
-		log_line.emit("手上沒有貨")
+		log_line.emit(Loc.t("log.player.hands_empty"))
 		return false
 	## 投籃高手：短按方向一次飛出最上 2 件（可不同 SKU）；只有 1 件則 1。
 	var want := 2 if buff_left("hoop_ace") > 0.05 else 1
@@ -997,9 +997,9 @@ func _toss_top_piece() -> bool:
 	if hint != "":
 		log_line.emit(hint)
 	elif tossed.size() >= 2:
-		log_line.emit("投籃高手 %s — 往%s飛出" % [label, _drop_dir_label(dir)])
+		log_line.emit(Loc.t("log.player.hoop_toss", [label, _drop_dir_label(dir)]))
 	else:
-		log_line.emit("丟掉 %s 1件 — 往%s飛出" % [label, _drop_dir_label(dir)])
+		log_line.emit(Loc.t("log.player.toss_one", [label, _drop_dir_label(dir)]))
 	return true
 
 
@@ -1043,13 +1043,13 @@ func _launch_piece_toss(
 
 
 func _sniper_toss_log(sku_name: String, whole_run: bool) -> String:
-	var unit := "一段" if whole_run else "1件"
+	var unit := Loc.t("log.player.unit_run") if whole_run else Loc.t("log.player.unit_one")
 	if sniper_thief_active():
-		return "丟掉 %s %s — 狙擊手飛向小偷" % [sku_name, unit]
+		return Loc.t("log.player.sniper_toss_thief", [sku_name, unit])
 	if sniper_guest_active():
-		return "丟掉 %s %s — 狙擊手飛向清單客人" % [sku_name, unit]
+		return Loc.t("log.player.sniper_toss_guest", [sku_name, unit])
 	if sniper_shelf_active():
-		return "丟掉 %s %s — 狙擊手飛向同款貨架" % [sku_name, unit]
+		return Loc.t("log.player.sniper_toss_shelf", [sku_name, unit])
 	return ""
 
 
@@ -1065,8 +1065,8 @@ func _on_piece_drop_landed() -> void:
 
 func _drop_dir_label(dir: Vector2) -> String:
 	if absf(dir.x) > absf(dir.y):
-		return "右" if dir.x > 0.0 else "左"
-	return "下" if dir.y > 0.0 else "上"
+		return Loc.t("dir.right") if dir.x > 0.0 else Loc.t("dir.left")
+	return Loc.t("dir.down") if dir.y > 0.0 else Loc.t("dir.up")
 
 
 func _cancel_input() -> void:
@@ -1075,7 +1075,7 @@ func _cancel_input() -> void:
 		_abort_restock_pick()
 		_restock_aborted = true
 		_j_held = false
-		log_line.emit("取消選貨")
+		log_line.emit(Loc.t("log.player.cancel_pick"))
 		used = true
 	if _must_deliver_aim:
 		_cancel_must_deliver_aim()
@@ -1086,7 +1086,7 @@ func _cancel_input() -> void:
 	if skill_menu_open or _l_held or _skill_latch:
 		_close_skill_menu()
 		SfxBus.play("sfx_skill_menu_cancel")
-		log_line.emit("取消技能選單")
+		log_line.emit(Loc.t("log.player.cancel_skill_menu"))
 		used = true
 	if ult_prep:
 		_on_ult_hold(false)
@@ -1596,7 +1596,7 @@ func _begin_slip() -> void:
 	_drop_top_box(Vector2.ZERO, false)
 	_spawn_fx("skid", global_position + Vector2(0, 8))
 	SfxBus.play("sfx_move_slip")
-	log_line.emit("水漬滑倒 — 滑出 3 身位，暈眩 3 秒")
+	log_line.emit(Loc.t("log.player.slip"))
 
 
 func _tick_slip(delta: float) -> void:
@@ -1653,7 +1653,7 @@ func _tick_status(delta: float) -> void:
 		_sick_left = maxf(0.0, _sick_left - delta)
 	if _has_dirt_type(Tuning.DIRT_VOMIT) and not _has_flag("ignore_vomit_sick"):
 		if _sick_left <= 0.0:
-			log_line.emit("踩到嘔吐物 — 技能禁止、能力 −30% 10 秒")
+			log_line.emit(Loc.t("log.player.vomit"))
 		_sick_left = Tuning.SICK_SEC
 	if _has_dirt_type(Tuning.DIRT_TRASH) and not _has_flag("ignore_trash_stamina"):
 		stamina = maxf(0.0, stamina - Tuning.TRASH_STAMINA_PER_SEC * delta)
@@ -1790,7 +1790,7 @@ func _release_interact() -> void:
 		if _restock_picking and target != null and String(target.get("kind")) == "restock":
 			var sku := String(target.call("commit_pick"))
 			SfxBus.play("sfx_box_sku_confirm")
-			log_line.emit("補貨點改為 %s" % Tuning.sku_name(sku))
+			log_line.emit(Loc.t("log.player.restock_set", [Tuning.sku_name(sku))])
 		_restock_picking = false
 		_restock_hold = 0.0
 		return
@@ -1827,13 +1827,13 @@ func _do_short_interact() -> void:
 		_tick_drop()
 		return
 	if _store_open() and not inventory.is_empty() and not _faced_guests().is_empty():
-		log_line.emit("長按行動鍵把貨交給客人")
+		log_line.emit(Loc.t("log.player.hold_deliver_hint"))
 
 
 func _take_shelf_piece(shelf: Node2D) -> void:
 	if inventory.count() >= carry_cap():
 		SfxBus.play("sfx_box_pull_fail")
-		log_line.emit("負重不足：%d/%d 件" % [inventory.count(), carry_cap()])
+		log_line.emit(Loc.t("log.player.carry_need", [inventory.count(), carry_cap()]))
 		return
 	var sku := _obj_str(shelf, "sku")
 	if sku == "" or not shelf.has_method("take_n"):
@@ -1844,7 +1844,7 @@ func _take_shelf_piece(shelf: Node2D) -> void:
 	inventory.add_one(sku)
 	_spawn_fx("suck", shelf.global_position)
 	SfxBus.play("sfx_box_pull")
-	log_line.emit("從貨架取 %s 1件" % Tuning.sku_name(sku))
+	log_line.emit(Loc.t("log.player.take_shelf", [Tuning.sku_name(sku))])
 
 
 func _guest_wants_carried(guest: Node) -> bool:
@@ -1901,7 +1901,7 @@ func _begin_must_deliver_aim(sk: Dictionary) -> void:
 	if _must_deliver_ring:
 		_must_deliver_ring.visible = true
 	SfxBus.play("sfx_skill_cast")
-	log_line.emit("%s — 範圍預覽，再按技能確認，取消取消" % _must_deliver_name)
+	log_line.emit(Loc.t("log.player.aim_preview", [_must_deliver_name)])
 
 
 func _cancel_must_deliver_aim() -> void:
@@ -1911,7 +1911,7 @@ func _cancel_must_deliver_aim() -> void:
 	if _must_deliver_ring:
 		_must_deliver_ring.visible = false
 	SfxBus.play("sfx_skill_menu_cancel")
-	log_line.emit("取消 %s" % _must_deliver_name)
+	log_line.emit(Loc.t("log.player.cancel_named", [_must_deliver_name)])
 
 
 func _rebuild_must_deliver_ring(radius: float) -> void:
@@ -1944,7 +1944,7 @@ func _finish_must_deliver_aim() -> void:
 	_buffs.erase(sid)
 	_buff_cache_valid = false
 	SfxBus.play("sfx_skill_cast")
-	log_line.emit("施放 %s LV%d" % [name, lv])
+	log_line.emit(Loc.t("log.player.cast", [name, lv]))
 	_begin_cast_pose(false)
 	skill_cast.emit(name, false)
 	_play_zoom(false)
@@ -1953,16 +1953,16 @@ func _finish_must_deliver_aim() -> void:
 ## Complete-first fill for guests in range. False = fail (no CD).
 func _cast_must_deliver(lv: int) -> bool:
 	if inventory.is_empty():
-		log_line.emit("手上沒貨 — 使命必達 失敗")
+		log_line.emit(Loc.t("log.player.must_fail_empty"))
 		return false
 	if not _store_open():
-		log_line.emit("附近沒有可交付客人 — 使命必達 失敗")
+		log_line.emit(Loc.t("log.player.must_fail_guest"))
 		return false
 	var radius := Skills.must_deliver_range(lv)
 	var max_n := Skills.must_deliver_max_guests(lv)
 	var guests := _must_deliver_guests(radius)
 	if guests.is_empty():
-		log_line.emit("附近沒有可交付客人 — 使命必達 失敗")
+		log_line.emit(Loc.t("log.player.must_fail_guest"))
 		return false
 	var ordered := _must_deliver_order_guests(guests, inventory.items)
 	var counts := _must_deliver_count_map(inventory.items)
@@ -1975,7 +1975,7 @@ func _cast_must_deliver(lv: int) -> bool:
 			continue
 		plan.append({"guest": g, "pieces": pieces})
 	if plan.is_empty():
-		log_line.emit("沒有對得上的貨 — 使命必達 失敗")
+		log_line.emit(Loc.t("log.player.must_fail_match"))
 		return false
 	var total := 0
 	var vfx: Array = []
@@ -2007,10 +2007,10 @@ func _cast_must_deliver(lv: int) -> bool:
 	for g in touched:
 		_interact_release(g)
 	if total <= 0:
-		log_line.emit("沒有對得上的貨 — 使命必達 失敗")
+		log_line.emit(Loc.t("log.player.must_fail_match"))
 		return false
 	_play_must_deliver_vfx(vfx)
-	log_line.emit("使命必達 ×%d" % total)
+	log_line.emit(Loc.t("log.player.must_n", [total)])
 	_deliver_pose_left = 0.4
 	_note_delivery_combo(touched, total)
 	return true
@@ -2131,19 +2131,19 @@ func _cast_summon_guest(lv: int) -> bool:
 	var want := Skills.summon_guest_count(lv)
 	var game := _game()
 	if game == null or not game.has_method("cast_summon_guest"):
-		log_line.emit("召喚客人 失敗")
+		log_line.emit(Loc.t("log.player.summon_fail"))
 		return false
 	var n := int(game.call("cast_summon_guest", want))
 	if n <= 0:
-		log_line.emit("召喚客人 失敗 — 非營業或無可售貨")
+		log_line.emit(Loc.t("log.player.summon_fail_phase"))
 		return false
-	log_line.emit("召喚客人 ×%d" % n)
+	log_line.emit(Loc.t("log.player.summon_n", [n)])
 	return true
 
 
 func _begin_magneto_aim(sk: Dictionary) -> void:
 	if inventory.count() >= carry_cap():
-		log_line.emit("負重已滿 — 攝石人 失敗")
+		log_line.emit(Loc.t("log.player.magneto_full"))
 		return
 	if _must_deliver_aim:
 		_cancel_must_deliver_aim()
@@ -2156,7 +2156,7 @@ func _begin_magneto_aim(sk: Dictionary) -> void:
 	if _magneto_ring:
 		_magneto_ring.visible = true
 	SfxBus.play("sfx_skill_cast")
-	log_line.emit("%s — 範圍預覽，再按技能確認，取消取消" % _magneto_name)
+	log_line.emit(Loc.t("log.player.aim_preview", [_magneto_name)])
 
 
 func _cancel_magneto_aim() -> void:
@@ -2166,7 +2166,7 @@ func _cancel_magneto_aim() -> void:
 	if _magneto_ring:
 		_magneto_ring.visible = false
 	SfxBus.play("sfx_skill_menu_cancel")
-	log_line.emit("取消 %s" % _magneto_name)
+	log_line.emit(Loc.t("log.player.cancel_named", [_magneto_name)])
 
 
 func _rebuild_magneto_ring(radius: float) -> void:
@@ -2192,7 +2192,7 @@ func _finish_magneto_aim() -> void:
 		_magneto_aim = false
 		if _magneto_ring:
 			_magneto_ring.visible = false
-		log_line.emit("負重已滿 — 攝石人 失敗")
+		log_line.emit(Loc.t("log.player.magneto_full"))
 		return
 	_cast_magneto(lv)
 	_magneto_aim = false
@@ -2203,7 +2203,7 @@ func _finish_magneto_aim() -> void:
 	_buffs.erase(sid)
 	_buff_cache_valid = false
 	SfxBus.play("sfx_skill_cast")
-	log_line.emit("施放 %s LV%d" % [name, lv])
+	log_line.emit(Loc.t("log.player.cast", [name, lv]))
 	_begin_cast_pose(false)
 	skill_cast.emit(name, false)
 	_play_zoom(false)
@@ -2257,8 +2257,8 @@ func _cast_magneto(lv: int) -> void:
 	var taken_total := flights.size()
 	var game := _game()
 	if game != null and game.has_method("play_skill_banner"):
-		game.call("play_skill_banner", "攝石人 ×%d 件" % taken_total)
-	log_line.emit("攝石人 ×%d 件" % taken_total)
+		game.call("play_skill_banner", Loc.t("log.player.magneto_n", [taken_total)])
+	log_line.emit(Loc.t("log.player.magneto_n", [taken_total)])
 
 
 ## One-by-one fly from pile toward player (visual only; inventory already updated).
@@ -2323,22 +2323,22 @@ func _cast_harvest_chives(lv: int) -> bool:
 	else:
 		reg = _nearest_kind("cashier")
 	if reg == null or _interact_dist(reg) < 0.0:
-		log_line.emit("要對準收銀機 — 割韭菜 失敗")
+		log_line.emit(Loc.t("log.player.chives_aim"))
 		return false
 	## D4 L — harvest register.
 	if not _interact_try(reg):
-		log_line.emit("收銀機使用中 — 割韭菜 失敗")
+		log_line.emit(Loc.t("log.player.chives_busy"))
 		return false
 	var want := Skills.harvest_chives_count(lv)
 	var game := _game()
 	if game == null or not game.has_method("cast_harvest_chives"):
 		_interact_release(reg)
-		log_line.emit("割韭菜 失敗")
+		log_line.emit(Loc.t("log.player.chives_fail"))
 		return false
 	var n := int(game.call("cast_harvest_chives", reg, want))
 	_interact_release(reg)
 	if n <= 0:
-		log_line.emit("這台沒人可收 — 割韭菜 失敗")
+		log_line.emit(Loc.t("log.player.chives_empty"))
 		return false
 	return true
 
@@ -2346,7 +2346,7 @@ func _cast_harvest_chives(lv: int) -> bool:
 ## Instant force_sell into nearest hand-deliverable guest cart. False = fail (no CD).
 func _cast_force_sell(lv: int) -> bool:
 	if inventory.is_empty():
-		log_line.emit("手上沒貨 — 我都賺夠啦比啲你賺 失敗")
+		log_line.emit(Loc.t("log.player.force_empty"))
 		return false
 	var guest: Node = null
 	for g in _faced_guests():
@@ -2357,30 +2357,30 @@ func _cast_force_sell(lv: int) -> bool:
 		guest = g
 		break
 	if guest == null or not guest.has_method("accept_force_sell"):
-		log_line.emit("附近沒有可交付客人 — 我都賺夠啦比啲你賺 失敗")
+		log_line.emit(Loc.t("log.player.force_no_guest"))
 		return false
 	## D3 L — force_sell guest.
 	if not _interact_try(guest):
-		log_line.emit("客人互動中 — 我都賺夠啦比啲你賺 失敗")
+		log_line.emit(Loc.t("log.player.force_busy"))
 		return false
 	var before := int((guest.shopping as Array).size()) if guest.get("shopping") != null else 0
 	var n := mini(Skills.force_sell_count(lv), inventory.count())
 	var pieces: Array[String] = inventory.pop_trailing(n)
 	if pieces.is_empty():
 		_interact_release(guest)
-		log_line.emit("手上沒貨 — 我都賺夠啦比啲你賺 失敗")
+		log_line.emit(Loc.t("log.player.force_empty"))
 		return false
 	var taken := int(guest.call("accept_force_sell", pieces))
 	if taken <= 0:
 		for sku in pieces:
 			inventory.add_one(String(sku))
 		_interact_release(guest)
-		log_line.emit("附近沒有可交付客人 — 我都賺夠啦比啲你賺 失敗")
+		log_line.emit(Loc.t("log.player.force_no_guest"))
 		return false
 	if before >= 3 and guest.shopping.is_empty():
 		guest.set_meta("combo_cleared_n", before)
 	_interact_release(guest)
-	log_line.emit("強塞 ×%d" % taken)
+	log_line.emit(Loc.t("log.player.force_n", [taken)])
 	_deliver_pose_left = 0.4
 	_note_delivery_combo([guest], taken)
 	return true
@@ -2405,7 +2405,7 @@ func _hand_deliver(guests: Array, penalize_miss: bool) -> int:
 		total += _give_guest(guest)
 	if total > 0:
 		SfxBus.play("sfx_box_hit_guest_ok")
-		log_line.emit("交給客人 ×%d" % total)
+		log_line.emit(Loc.t("log.player.deliver_n", [total)])
 		_deliver_pose_left = 0.4
 		_note_delivery_combo(guests, total)
 		for g in locked:
@@ -2415,9 +2415,9 @@ func _hand_deliver(guests: Array, penalize_miss: bool) -> int:
 		nearest.call("apply_toss_reject", "")
 		SfxBus.play("sfx_box_hit_guest_reject")
 		if nearest.get("temp_clerk"):
-			log_line.emit("沒有對的貨 — 臨時員工不滿不變")
+			log_line.emit(Loc.t("log.player.wrong_temp"))
 		else:
-			log_line.emit("沒有對的貨 — 不滿 +15")
+			log_line.emit(Loc.t("log.player.wrong_dissat"))
 	var game := _game()
 	if game != null and game.has_method("combo_break_personal"):
 		game.call("combo_break_personal", seat_id)
@@ -2676,14 +2676,14 @@ func _begin_fight() -> void:
 		return
 	## A6 L — another seat already fighting this thief.
 	if not _interact_try(target):
-		log_line.emit("對方正在抓這名小偷")
+		log_line.emit(Loc.t("log.player.thief_claimed"))
 		return
 	_fighting = true
 	_fight_ko = false
 	_fight_release = true
 	target.call("begin_fight")
 	SfxBus.play("sfx_fight_grab")
-	log_line.emit("抓住小偷 — 連按行動鍵扣血，剩 5 秒")
+	log_line.emit(Loc.t("log.player.thief_grab"))
 	if _shared_camera() != null:
 		_focus_camera_toward(target.global_position, 0.35)
 		var tw := create_tween()
@@ -2726,7 +2726,7 @@ func _fight_win() -> void:
 	var game := _game()
 	if game and game.has_method("record_caught"):
 		game.call("record_caught", seat_id)
-	log_line.emit("打倒小偷 — KO！贓物散落地上")
+	log_line.emit(Loc.t("log.player.thief_ko"))
 	_play_ko_sequence(target, "ko_scatter_and_flee")
 
 
@@ -2741,7 +2741,7 @@ func apply_toss_ko(thief: Node, knock_dir: Vector2) -> void:
 	var game := _game()
 	if game and game.has_method("record_caught"):
 		game.call("record_caught", seat_id)
-	log_line.emit("貨箱砸中小偷 — KO！贓物原地掉落")
+	log_line.emit(Loc.t("log.player.thief_box_ko"))
 	SfxBus.play("sfx_box_hit_thief")
 	## If this toss finishes an ongoing grab fight, clear fight state after the KO.
 	var end_fight := _fighting and target == thief
@@ -2800,7 +2800,7 @@ func _fight_fail() -> void:
 			away = -facing
 		facing = away.normalized()
 		target.call("escape_with_loot")
-	log_line.emit("打擊失敗 — 被撞開，倒地 5 秒")
+	log_line.emit(Loc.t("log.player.thief_fail"))
 	SfxBus.play("sfx_fight_fail")
 	SfxBus.play("sfx_move_stun")
 	_end_fight(false)
@@ -2961,7 +2961,7 @@ func _try_dash_hits() -> void:
 			if g.has_method("record_caught"):
 				g.call("record_caught", seat_id)
 			SfxBus.play("sfx_thief_dash_out")
-			log_line.emit("衝刺撞飛小偷 — 算抓住，贓物散落")
+			log_line.emit(Loc.t("log.player.thief_dash"))
 			if _fighting:
 				_end_fight(false)
 			return
@@ -2984,7 +2984,7 @@ func _try_dash_hits() -> void:
 					var gave := _hand_deliver(deliver_targets, false)
 					if gave > 0:
 						_dash_guest_done = true
-						log_line.emit("衝刺交付 ×%d — 不撞飛" % gave)
+						log_line.emit(Loc.t("log.player.dash_deliver", [gave)])
 						return
 			var nearest: Node = guests[0]
 			_dash_guest_done = true
@@ -2996,7 +2996,7 @@ func _try_dash_hits() -> void:
 			if add > 0.0 and g.has_method("note_dash_guest"):
 				g.call("note_dash_guest", self)
 			SfxBus.play("sfx_ko_guest_dash")
-			log_line.emit("衝刺撞到客人 — 暈眩 2 秒，貨品掉落" if add > 0.0 else "衝刺撞到客人 — 禮貌衝撞，不滿不增加")
+			log_line.emit(Loc.t("log.player.dash_guest") if add > 0.0 else Loc.t("log.player.dash_polite"))
 			return
 	if _dash_guest_done:
 		return
@@ -3009,7 +3009,7 @@ func _try_dash_hits() -> void:
 	if clone.has_method("dash_knock"):
 		clone.call("dash_knock")
 	SfxBus.play("sfx_ko_guest_dash")
-	log_line.emit("衝刺撞到分身 — 暈眩 2 秒，箱子掉落")
+	log_line.emit(Loc.t("log.player.dash_clone"))
 
 
 func _try_wave_dirt_vfx() -> void:
@@ -3037,14 +3037,14 @@ func _tick_sku_pick(delta: float) -> void:
 		return
 	## A3 L — restock point pick menu.
 	if not is_instance_valid(target) or not _interact_try(target):
-		log_line.emit("補貨點使用中")
+		log_line.emit(Loc.t("log.player.restock_busy"))
 		_j_held = false
 		_restock_hold = 0.0
 		return
 	_restock_picking = true
 	target.call("begin_pick")
 	SfxBus.play("sfx_box_sku_open")
-	log_line.emit("貨品清單 — 上下選擇，放手確定，B／; 取消")
+	log_line.emit(Loc.t("log.player.sku_list_hint"))
 
 
 func _abort_restock_pick() -> void:
@@ -3062,22 +3062,22 @@ func _try_pickup() -> void:
 	_pickup_used = true
 	if not inventory.can_take_pieces(1, carry_cap()):
 		SfxBus.play("sfx_box_pull_fail")
-		log_line.emit("負重不足：%d/%d 件" % [inventory.count(), carry_cap()])
+		log_line.emit(Loc.t("log.player.carry_need", [inventory.count(), carry_cap()]))
 		return
 	if not bool(target.call("take_box")):
 		SfxBus.play("sfx_box_pull_fail")
-		log_line.emit("%s 補貨點已空" % Tuning.sku_name(String(target.call("selected_sku"))))
+		log_line.emit(Loc.t("log.player.restock_empty", [Tuning.sku_name(String(target.call(])"selected_sku"))))
 		return
 	var sku := String(target.call("selected_sku"))
 	inventory.take_pieces(sku, 1)
 	_spawn_fx("suck", target.global_position)
 	SfxBus.play("sfx_box_pull")
-	log_line.emit("執貨（即時）%s 1件" % Tuning.sku_name(sku))
+	log_line.emit(Loc.t("log.player.pull_instant", [Tuning.sku_name(sku))])
 
 
 func _tick_restock(delta: float) -> void:
 	if inventory.is_empty():
-		log_line.emit("空手 — 不能上架")
+		log_line.emit(Loc.t("log.player.empty_hands_shelf"))
 		_j_held = false
 		return
 	var run: Dictionary = inventory.trailing_run()
@@ -3087,13 +3087,13 @@ func _tick_restock(delta: float) -> void:
 		return
 	## A2 L — shelf stocking Circle.
 	if not _interact_try(target):
-		log_line.emit("貨架使用中")
+		log_line.emit(Loc.t("log.player.shelf_busy"))
 		hold_progress = 0.0
 		return
 	if not bool(target.call("can_accept", sku)):
 		if _obj_int(target, "count") >= _obj_int(target, "capacity"):
 			SfxBus.play("sfx_shelf_stock_blocked")
-			log_line.emit("貨架已滿")
+			log_line.emit(Loc.t("log.player.shelf_full"))
 			_j_held = false
 			_reset_hold()
 			return
@@ -3140,7 +3140,7 @@ func _tick_restock(delta: float) -> void:
 			SfxBus.play("sfx_shelf_stock_instant")
 		else:
 			SfxBus.play("sfx_shelf_stock_done")
-		log_line.emit("上架 %s ×%d" % [Tuning.sku_name(sku), placed])
+		log_line.emit(Loc.t("log.player.shelve", [Tuning.sku_name(sku), placed]))
 		hold_progress = 0.0
 		_interact_release(target)
 
@@ -3150,7 +3150,7 @@ func _abort_manual_clean_for_monk() -> void:
 		_clear_clean_hint()
 		_long_committed = false
 		hold_progress = 0.0
-		log_line.emit("掃地僧期間不能手動清潔")
+		log_line.emit(Loc.t("log.player.monk_no_manual"))
 
 
 func _activate_sweeping_monk() -> void:
@@ -3162,7 +3162,7 @@ func _activate_sweeping_monk() -> void:
 	_clear_dirt_in_monk_range()
 	var game := _game()
 	if game != null and game.has_method("play_skill_banner"):
-		game.call("play_skill_banner", "掃地僧")
+		game.call("play_skill_banner", Loc.t("log.player.monk_banner"))
 
 
 func _sync_monk_tornado(force_on: bool = false) -> void:
@@ -3204,7 +3204,7 @@ func _clear_dirt_in_monk_range() -> void:
 		if d == null or not is_instance_valid(d) or d.is_queued_for_deletion():
 			continue
 		var at: Vector2 = d.global_position
-		var name := String(d.call("type_name")) if d.has_method("type_name") else "污物"
+		var name := String(d.call("type_name")) if d.has_method("type_name") else Loc.t("dirt.generic")
 		if is_instance_valid(target) and target == d:
 			target = null
 			_long_committed = false
@@ -3215,7 +3215,7 @@ func _clear_dirt_in_monk_range() -> void:
 		SfxBus.play("sfx_clean_done")
 		if g.has_method("note_clean"):
 			g.note_clean()
-		log_line.emit("掃地僧清除 — %s" % name)
+		log_line.emit(Loc.t("log.player.monk_clear", [name)])
 
 
 func _tick_clean(_delta: float) -> void:
@@ -3244,7 +3244,7 @@ func _tick_clean(_delta: float) -> void:
 	if not _clean_hint:
 		_clean_hint = true
 		SfxBus.play("sfx_clean_start")
-		log_line.emit("清潔 %s — 按住行動並持續轉搖桿／方向" % String(target.call("type_name")))
+		log_line.emit(Loc.t("log.player.clean_hint", [String(target.call(])"type_name")))
 	if not bool(target.call("set_cleaning", true, axis, hold_progress * 100.0, seat_id)):
 		## Lost the race to another seat this frame.
 		_clean_hint = false
@@ -3263,7 +3263,7 @@ func _tick_clean(_delta: float) -> void:
 		var game := _game()
 		if game and game.has_method("note_clean"):
 			game.note_clean(seat_id)
-		log_line.emit("清潔完成 — %s 已清除" % name)
+		log_line.emit(Loc.t("log.player.clean_done", [name)])
 
 
 func _tick_drop() -> void:
@@ -3274,7 +3274,7 @@ func _tick_drop() -> void:
 		return
 	## A8 L — floor drop pile.
 	if not _interact_try(target):
-		log_line.emit("地上貨堆使用中")
+		log_line.emit(Loc.t("log.player.drop_busy"))
 		return
 	var n := _obj_int(target, "count")
 	var sku := _obj_str(target, "sku")
@@ -3282,14 +3282,14 @@ func _tick_drop() -> void:
 		_interact_release(target)
 		return
 	if inventory.count() + n > carry_cap():
-		log_line.emit("負重不足，撿不回掉落箱")
+		log_line.emit(Loc.t("log.player.drop_carry"))
 		_interact_release(target)
 		return
 	var taken := int(target.call("take_all"))
 	for i in taken:
 		inventory.add_one(sku)
 	SfxBus.play("sfx_box_pickup_floor")
-	log_line.emit("撿起 %s ×%d" % [Tuning.sku_name(sku), taken])
+	log_line.emit(Loc.t("log.player.pickup", [Tuning.sku_name(sku), taken]))
 	_interact_release(target)
 
 
@@ -3310,7 +3310,7 @@ func _tick_cashier(delta: float) -> void:
 		return
 	## A4 L — register through whole payment / cancel.
 	if not _interact_try(target):
-		log_line.emit("收銀機使用中")
+		log_line.emit(Loc.t("log.player.register_busy"))
 		hold_progress = 0.0
 		return
 	var cust = target.call("ready_customer")
@@ -3318,9 +3318,9 @@ func _tick_cashier(delta: float) -> void:
 		_prompt.active = false
 		if not _no_queue_logged:
 			if target.call("front_customer") != null:
-				log_line.emit("客人還在前往收銀機，請等到隊伍前端")
+				log_line.emit(Loc.t("log.player.guest_en_route"))
 			else:
-				log_line.emit("收銀機前沒有客人")
+				log_line.emit(Loc.t("log.player.no_guest_at_register"))
 			_no_queue_logged = true
 		return
 	target.operator_checkout()
@@ -3359,7 +3359,7 @@ func _ensure_seq(cust) -> void:
 			seq_done = true
 			SfxBus.play("sfx_checkout_enter")
 			SfxBus.play("sfx_checkout_seq_done")
-			log_line.emit("資深收銀員 — 略過指令，直接 Loading Circle（購物 %d 件）" % cust.cart.size())
+			log_line.emit(Loc.t("log.player.senior_skip", [cust.cart.size())])
 		else:
 			var seq: Array[int] = []
 			for i in n:
@@ -3367,7 +3367,7 @@ func _ensure_seq(cust) -> void:
 			cust.checkout_seq = seq
 			seq_done = false
 			SfxBus.play("sfx_checkout_enter")
-			log_line.emit("收銀指令 %d 次（購物 %d 件）" % [n, cust.cart.size()])
+			log_line.emit(Loc.t("log.player.checkout_cmds", [n, cust.cart.size()]))
 	cust.begin_paying()
 
 
@@ -3413,13 +3413,13 @@ func _try_command(dir: int) -> void:
 		if seq_index >= seq.size():
 			seq_done = true
 			SfxBus.play("sfx_checkout_seq_done")
-			log_line.emit("指令完成 — 維持長按出現 Loading Circle")
+			log_line.emit(Loc.t("log.player.cmds_done"))
 	else:
 		_checkout_had_miss = true
 		_prompt.fail_at = seq_index
 		seq_index = 0
 		SfxBus.play("sfx_checkout_dir_fail")
-		log_line.emit("指令錯誤 × 同一串重來")
+		log_line.emit(Loc.t("log.player.cmds_fail"))
 
 
 func _finish_checkout(cust) -> void:
@@ -3435,9 +3435,9 @@ func _finish_checkout(cust) -> void:
 	_checkout_had_miss = false
 	SfxBus.play("sfx_checkout_circle_done")
 	if from_elite:
-		log_line.emit("麻煩客人收銀  +$%d（雙倍）" % amount)
+		log_line.emit(Loc.t("log.player.elite_pay", [amount)])
 	else:
-		log_line.emit("收銀完成  +$%d" % amount)
+		log_line.emit(Loc.t("log.player.pay_done", [amount)])
 	_spawn_dollar()
 	cust.finish_paid()
 	if target:
@@ -3466,7 +3466,7 @@ func _spawn_dollar() -> void:
 func _on_skill_hold(pressed: bool) -> void:
 	if pressed:
 		if _sick_left > 0.0 or _stun_left > 0.0 or _fighting:
-			log_line.emit("現在不能發動技能")
+			log_line.emit(Loc.t("log.player.cant_skill"))
 			return
 		## Second skill press confirms range preview skills.
 		if _must_deliver_aim:
@@ -3526,9 +3526,9 @@ func _open_skill_menu(latch: bool) -> void:
 		_cardinal_armed = false
 	SfxBus.play("sfx_skill_menu_open")
 	if latch:
-		log_line.emit("技能選單 — 按方向即發動，再按技能鍵發動中間")
+		log_line.emit(Loc.t("log.player.skill_menu_tap"))
 	else:
-		log_line.emit("技能選單 — 拉方向預覽，放開發動；回中則中間")
+		log_line.emit(Loc.t("log.player.skill_menu_hold"))
 
 
 func _sync_hold_aim() -> void:
@@ -3566,7 +3566,7 @@ func _confirm_skill(slot: int) -> void:
 
 func _try_skill_hotkey(slot: int) -> void:
 	if _sick_left > 0.0 or _stun_left > 0.0 or _fighting:
-		log_line.emit("現在不能發動技能")
+		log_line.emit(Loc.t("log.player.cant_skill"))
 		return
 	if ult_prep or _elite_focus_left > 0.0:
 		return
@@ -3649,19 +3649,19 @@ func _close_skill_menu() -> void:
 func _on_ult_hold(pressed: bool) -> void:
 	if pressed:
 		if _sick_left > 0.0 or _stun_left > 0.0 or _fighting:
-			log_line.emit("現在不能發動奧義")
+			log_line.emit(Loc.t("log.player.cant_ult"))
 			return
 		var ult := _ult_sk()
 		if ult.is_empty() or String(ult.get("id", "")) == "":
-			log_line.emit("沒有裝備奧義")
+			log_line.emit(Loc.t("log.player.no_ult"))
 			return
 		if bool(ult.get("unimplemented", false)):
-			log_line.emit("%s 本 Demo 未實作，不會進入冷卻" % String(ult.get("name")))
+			log_line.emit(Loc.t("log.player.demo_no_cd", [String(ult.get(])"name")))
 			return
 		var ult_id := String(ult.get("id"))
 		if cd_left(ult_id) > 0.05:
 			SfxBus.play("sfx_skill_cd_deny")
-			log_line.emit("奧義冷卻中 %.0fs" % cd_left(ult_id))
+			log_line.emit(Loc.t("log.player.ult_cd", [cd_left(ult_id))])
 			return
 		_u_held = true
 		ult_prep = true
@@ -3674,11 +3674,11 @@ func _on_ult_hold(pressed: bool) -> void:
 		_prompt.sequence = seq
 		_prompt.index = 0
 		_prompt.fail_at = -1
-		log_line.emit("奧義準備 — %s" % String(_ult_sk().get("name")))
+		log_line.emit(Loc.t("log.player.ult_prep", [String(_ult_sk().get(])"name")))
 		return
 	if ult_prep:
 		SfxBus.play("sfx_ult_cancel")
-		log_line.emit("放手 — 奧義取消")
+		log_line.emit(Loc.t("log.player.ult_cancel"))
 	_u_held = false
 	ult_prep = false
 	if not command_lock:
@@ -3705,26 +3705,26 @@ func _try_ult_dir(dir: int) -> void:
 		_ult_index = 0
 		_prompt.index = 0
 		SfxBus.play("sfx_ult_dir_fail")
-		log_line.emit("奧義指令錯誤 × 同一串重來")
+		log_line.emit(Loc.t("log.player.ult_cmds_fail"))
 
 
 func _cast_slot(i: int) -> void:
 	if _sick_left > 0.0 or _stun_left > 0.0 or _fighting:
-		log_line.emit("現在不能發動技能")
+		log_line.emit(Loc.t("log.player.cant_skill"))
 		return
 	var sk: Dictionary = _skill_at(i)
 	if sk.is_empty():
 		return
 	if bool(sk.get("unimplemented", false)):
-		log_line.emit("%s 本 Demo 未實作，不會進入冷卻" % String(sk.get("name")))
+		log_line.emit(Loc.t("log.player.demo_no_cd", [String(sk.get(])"name")))
 		return
 	if String(sk.get("kind")) != "active":
-		log_line.emit("%s 是被動技能，無法主動施放" % String(sk.get("name")))
+		log_line.emit(Loc.t("log.player.passive", [String(sk.get(])"name")))
 		return
 	var sid := String(sk.get("id"))
 	if cd_left(sid) > 0.05:
 		SfxBus.play("sfx_skill_cd_deny")
-		log_line.emit("%s 冷卻中 %.0fs" % [String(sk.get("name")), cd_left(sid)])
+		log_line.emit(Loc.t("log.player.skill_cd", [String(sk.get("name")), cd_left(sid)]))
 		return
 	if bool(sk.get("universal_cannon", false)):
 		if not _round_active():
@@ -3756,7 +3756,7 @@ func _cast_slot(i: int) -> void:
 		_cd[sid] = Tuning.cd_seconds(30.0, _int_now())
 		SfxBus.play("sfx_skill_cast")
 		_begin_cast_pose(false)
-		skill_cast.emit("Self Checkout", false)
+		skill_cast.emit(Loc.t("self_checkout.active"), false)
 		_play_zoom(false)
 		return
 	## Instant force_sell: empty hands / no target must not start CD.
@@ -3771,7 +3771,7 @@ func _cast_slot(i: int) -> void:
 		_buffs.erase(sid)
 		_buff_cache_valid = false
 		SfxBus.play("sfx_skill_cast")
-		log_line.emit("施放 %s LV%d" % [String(sk.get("name")), int(sk.get("lv", 3))])
+		log_line.emit(Loc.t("log.player.cast", [String(sk.get("name")), int(sk.get("lv", 3))]))
 		_begin_cast_pose(false)
 		skill_cast.emit(String(sk.get("name")), false)
 		_play_zoom(false)
@@ -3788,7 +3788,7 @@ func _cast_slot(i: int) -> void:
 		_buffs.erase(sid)
 		_buff_cache_valid = false
 		SfxBus.play("sfx_skill_cast")
-		log_line.emit("施放 %s LV%d" % [String(sk.get("name")), int(sk.get("lv", 3))])
+		log_line.emit(Loc.t("log.player.cast", [String(sk.get("name")), int(sk.get("lv", 3))]))
 		_begin_cast_pose(false)
 		skill_cast.emit(String(sk.get("name")), false)
 		_play_zoom(false)
@@ -3805,7 +3805,7 @@ func _cast_slot(i: int) -> void:
 		_buffs.erase(sid)
 		_buff_cache_valid = false
 		SfxBus.play("sfx_skill_cast")
-		log_line.emit("施放 %s LV%d" % [String(sk.get("name")), int(sk.get("lv", 3))])
+		log_line.emit(Loc.t("log.player.cast", [String(sk.get("name")), int(sk.get("lv", 3))]))
 		_begin_cast_pose(false)
 		skill_cast.emit(String(sk.get("name")), false)
 		_play_zoom(false)
@@ -3873,7 +3873,7 @@ func _cast_slot(i: int) -> void:
 			SfxBus.play("sfx_skill_sweeping_monk")
 		else:
 			SfxBus.play("sfx_skill_cast")
-	log_line.emit("施放 %s LV%d" % [String(sk.get("name")), int(sk.get("lv", 3))])
+	log_line.emit(Loc.t("log.player.cast", [String(sk.get("name")), int(sk.get("lv", 3))]))
 	_begin_cast_pose(false)
 	skill_cast.emit(String(sk.get("name")), false)
 	_play_zoom(false)
@@ -3908,11 +3908,11 @@ func _lord_seconds(lv: int) -> float:
 func _cast_ultimate() -> void:
 	var sk: Dictionary = _ult_sk()
 	if sk.is_empty() or String(sk.get("id", "")) == "":
-		log_line.emit("沒有裝備奧義")
+		log_line.emit(Loc.t("log.player.no_ult"))
 		_prompt.active = false
 		return
 	if bool(sk.get("unimplemented", false)):
-		log_line.emit("%s 本 Demo 未實作" % String(sk.get("name")))
+		log_line.emit(Loc.t("log.player.demo_missing", [String(sk.get(])"name")))
 		_prompt.active = false
 		return
 	var sid := String(sk.get("id"))
@@ -3924,7 +3924,7 @@ func _cast_ultimate() -> void:
 		if game and game.has_method("cast_fundraise"):
 			game.call("cast_fundraise", lv)
 		SfxBus.play("sfx_ult_fundraise")
-		log_line.emit("奧義 全體集資 LV%d" % lv)
+		log_line.emit(Loc.t("log.player.ult_fundraise", [lv)])
 		_begin_cast_pose(true)
 		skill_cast.emit(String(sk.get("name")), true)
 		_play_zoom(true)
@@ -3934,7 +3934,7 @@ func _cast_ultimate() -> void:
 		if game and game.has_method("cast_close_gate"):
 			game.call("cast_close_gate")
 		SfxBus.play("sfx_ult_close_gate")
-		log_line.emit("奧義 落閘放狗")
+		log_line.emit(Loc.t("log.player.ult_close_gate"))
 		_begin_cast_pose(true)
 		skill_cast.emit(String(sk.get("name")), true)
 		_play_zoom(true)
@@ -3946,10 +3946,10 @@ func _cast_ultimate() -> void:
 			dusk_ok = bool(game.call("cast_guest_dusk"))
 		if dusk_ok:
 			_buffs[sid] = Skills.GUEST_DUSK_DURATION
-			log_line.emit("奧義 諸客的黃昏 — 30 秒吸引 %d 人" % Skills.GUEST_DUSK_COUNT)
+			log_line.emit(Loc.t("log.player.ult_dusk", [Skills.GUEST_DUSK_COUNT)])
 		else:
 			_buffs.erase(sid)
-			log_line.emit("奧義 諸客的黃昏 — 非營業時段無效")
+			log_line.emit(Loc.t("log.player.ult_dusk_closed"))
 		_buff_cache_valid = false
 		SfxBus.play("sfx_ult_guest_dusk")
 		_begin_cast_pose(true)
@@ -3962,7 +3962,7 @@ func _cast_ultimate() -> void:
 		_buffs[sid] = _lord_seconds(lv)
 		_buff_cache_valid = false
 		SfxBus.play("sfx_ult_yes_my_lord")
-		log_line.emit("奧義 Yes! My Lord! LV%d — 客人搶購 %.0f 秒" % [lv, _lord_seconds(lv)])
+		log_line.emit(Loc.t("log.player.ult_lord", [lv, _lord_seconds(lv)]))
 		_begin_cast_pose(true)
 		_spawn_fx("combo", global_position + Vector2(0, -36))
 		skill_cast.emit(String(sk.get("name")), true)
@@ -3973,7 +3973,7 @@ func _cast_ultimate() -> void:
 	_buff_cache_valid = false
 	_enqueue_cust_speed(sid)
 	SfxBus.play("sfx_ult_the_world")
-	log_line.emit("奧義 %s LV%d — 時停" % [String(sk.get("name")), lv])
+	log_line.emit(Loc.t("log.player.ult_world", [String(sk.get("name")), lv]))
 	_begin_cast_pose(true)
 	_spawn_fx("timestop", global_position + Vector2(0, -40))
 	skill_cast.emit(String(sk.get("name")), true)
@@ -4020,7 +4020,7 @@ func _play_zoom(ult: bool) -> void:
 func _reset_hold() -> void:
 	if hold_progress > 0.0 or seq_index > 0:
 		SfxBus.play("sfx_checkout_release_reset")
-		log_line.emit("放手 — 指令與 Circle 重置")
+		log_line.emit(Loc.t("log.player.cmd_reset"))
 	_clear_clean_hint()
 	hold_progress = 0.0
 	blocked_mismatch = false

@@ -17,7 +17,7 @@ var dissatisfaction: float = 0.0
 var checkout_seq: Array[int] = []
 var dirt_contacts: int = 0
 var _dirt_areas: Array[Node] = []
-var mood: String = "購物"
+var mood: String = ""
 var is_thief: bool = false
 ## EliteCustomer（麻煩客人）— not a thief; see elitecustomer.md.
 var is_elite: bool = false
@@ -110,6 +110,7 @@ func setup(game: Node, door: Vector2, thief: bool = false) -> void:
 		_roll_pace()
 	global_position = door + Vector2(randf_range(-20, 20), -40)
 	shopping = _roll_list()
+	mood = Loc.t("mood.shop")
 	_bump_list()
 	_occupy_counted = not thief
 	motion_mode = MOTION_MODE_FLOATING
@@ -136,7 +137,7 @@ func become_elite(lv: int) -> void:
 	shopping = _roll_list()
 	cart.clear()
 	_bump_list()
-	mood = "麻煩客人"
+	mood = Loc.t("mood.elite")
 	## Distinct look until dedicated elite art lands.
 	if _body:
 		_body.modulate = Color(1.0, 0.55, 0.95)
@@ -244,7 +245,7 @@ func _dirt_mood() -> String:
 		if r >= rate:
 			rate = r
 			worst = String(a.call("type_name"))
-	return "踩到%s！" % worst if worst != "" else "踩到污物！"
+	return Loc.t("mood.stepped_on", [worst]) if worst != "" else Loc.t("mood.stepped_dirt")
 
 
 func cart_total() -> int:
@@ -256,18 +257,18 @@ func cart_total() -> int:
 
 func begin_paying() -> void:
 	state = State.PAYING
-	mood = "付款中"
+	mood = Loc.t("mood.paying")
 	_sync_labels()
 
 
 func cancel_pay() -> void:
 	if state == State.PAYING:
 		state = State.QUEUE
-		mood = "排隊中"
+		mood = Loc.t("mood.queue")
 
 
 func finish_paid() -> void:
-	mood = "謝謝"
+	mood = Loc.t("mood.thanks")
 	SfxBus.play("sfx_guest_paid_leave")
 	## Sold goods leave the store — clear so closeout does not re-credit them.
 	if not cart.is_empty():
@@ -286,7 +287,7 @@ func apply_close_gate() -> String:
 	raided = false
 	if cart.is_empty():
 		_leave(false)
-		mood = "被趕離"
+		mood = Loc.t("mood.driven_off")
 		_sync_labels()
 		return "leave"
 	if not shopping.is_empty():
@@ -296,10 +297,10 @@ func apply_close_gate() -> String:
 		_sync_labels()
 		return "queue"
 	if state == State.TO_CASHIER:
-		mood = "去付款"
+		mood = Loc.t("mood.to_pay")
 		_sync_labels()
 		return "queue"
-	_begin_checkout("去付款")
+	_begin_checkout(Loc.t("mood.to_pay"))
 	return "queue"
 
 
@@ -404,7 +405,7 @@ func _physics_process(delta: float) -> void:
 			if _reg():
 				_reg().dequeue(self)
 			state = State.RAID
-			mood = "搶購！"
+			mood = Loc.t("mood.rush")
 			_clear_route()
 	elif state == State.RAID:
 		_end_raid()
@@ -450,7 +451,7 @@ func _physics_process(delta: float) -> void:
 
 func _tick_seek(delta: float) -> void:
 	if shopping.is_empty():
-		_begin_checkout("去付款")
+		_begin_checkout(Loc.t("mood.to_pay"))
 		return
 	if has_elite_affix("passive_shop"):
 		_tick_elite_passive_wander(delta)
@@ -467,14 +468,14 @@ func _tick_seek(delta: float) -> void:
 		SfxBus.play("sfx_guest_think")
 		if not is_thief:
 			gain_dissat(Tuning.DISSAT_MISS, "miss")
-		mood = "找不到%s" % Tuning.sku_name(want)
+		mood = Loc.t("mood.cant_find", [Tuning.sku_name(want)])
 		_sku_popup(want, SkuIcons.KIND_MISS)
 		return
 	var stand: Vector2 = _game.call("shelf_stand", shelf)
 	if _follow_to(stand, delta):
 		state = State.LINGER
 		_timer = Tuning.LINGER_SEC
-		mood = "取貨"
+		mood = Loc.t("mood.picking")
 		_clear_route()
 
 
@@ -488,7 +489,7 @@ func _take_current() -> void:
 		cart.append(want)
 		shopping.remove_at(0)
 		_bump_list()
-		mood = "拿到%s" % Tuning.sku_name(want)
+		mood = Loc.t("mood.got", [Tuning.sku_name(want)])
 		SfxBus.play("sfx_guest_take")
 		state = State.SEEK
 		_target_shelf = null
@@ -498,7 +499,7 @@ func _take_current() -> void:
 		SfxBus.play("sfx_guest_think")
 		if not is_thief:
 			gain_dissat(Tuning.DISSAT_MISS, "miss")
-		mood = "找不到%s" % Tuning.sku_name(want)
+		mood = Loc.t("mood.cant_find", [Tuning.sku_name(want)])
 		_sku_popup(want, SkuIcons.KIND_MISS)
 		_target_shelf = null
 
@@ -506,7 +507,7 @@ func _take_current() -> void:
 func _after_think() -> void:
 	## Toss / other paths may empty the list while still in THINK.
 	if shopping.is_empty():
-		_begin_checkout("去付款")
+		_begin_checkout(Loc.t("mood.to_pay"))
 		return
 	if shopping.size() > 1:
 		var first := shopping[0]
@@ -514,7 +515,7 @@ func _after_think() -> void:
 		shopping.append(first)
 		_bump_list()
 		state = State.SEEK
-		mood = "先找下一件"
+		mood = Loc.t("mood.next_item")
 	else:
 		if is_thief:
 			escape_with_loot()
@@ -522,13 +523,13 @@ func _after_think() -> void:
 		state = State.THINK
 		_timer = Tuning.THINK_SEC
 		gain_dissat(Tuning.DISSAT_MISS, "miss")
-		mood = "還是找不到…"
+		mood = Loc.t("mood.still_missing")
 		if not shopping.is_empty():
 			_sku_popup(String(shopping[0]), SkuIcons.KIND_MISS)
 
 
 ## Shopping done → join a register and walk to pay (shared by seek / think / toss / raid).
-func _begin_checkout(pay_mood: String = "去付款") -> void:
+func _begin_checkout(pay_mood: String = Loc.t("mood.to_pay")) -> void:
 	if is_thief:
 		escape_with_loot()
 		return
@@ -537,7 +538,7 @@ func _begin_checkout(pay_mood: String = "去付款") -> void:
 		return
 	_clear_route()
 	if not _join_register():
-		mood = "沒有收銀機"
+		mood = Loc.t("mood.no_register")
 		_leave(false)
 		return
 	state = State.TO_CASHIER
@@ -571,12 +572,12 @@ func _tick_raid(delta: float) -> void:
 		var items: Array = shelf.call("take_all")
 		grab_items(items)
 		if items.size() > 0:
-			mood = "搶到%d件" % items.size()
+			mood = Loc.t("mood.rushed_n", [items.size()])
 		_clear_route()
 
 
 func _end_raid() -> void:
-	_begin_checkout("去付款")
+	_begin_checkout(Loc.t("mood.to_pay"))
 
 
 func _join_register() -> bool:
@@ -605,7 +606,7 @@ func _tick_queue(delta: float, td: float) -> void:
 	var blocked := _game and _game.has_method("queue_dissat_blocked") and bool(_game.queue_dissat_blocked())
 	if not is_thief and not blocked:
 		gain_dissat(Tuning.DISSAT_QUEUE_PER_SEC * td)
-	mood = "排隊中"
+	mood = Loc.t("mood.queue")
 
 
 func _resolve_queue_idx(reg: Node) -> int:
@@ -692,14 +693,14 @@ func _leave(angry: bool) -> void:
 	if is_thief:
 		## Stay targetable, but ghost walls — door solids otherwise wedge bodies
 		## in the gap and leave paths never reach exit_pos.
-		if mood != "得手離開":
-			mood = "離開"
+		if mood != Loc.t("mood.leave_loot"):
+			mood = Loc.t("mood.leave")
 		collision_layer = Tuning.LAYER_CUSTOMERS
 		collision_mask = 0
 		z_index = 0
 		modulate.a = 1.0
 	else:
-		mood = "生氣離開" if angry else "離開"
+		mood = Loc.t("mood.leave_angry") if angry else Loc.t("mood.leave")
 		collision_layer = 0
 		collision_mask = 0
 		z_index = -1
@@ -737,7 +738,7 @@ func begin_fight() -> void:
 	fight_hp = 100.0
 	fight_left = Tuning.FIGHT_SEC
 	velocity = Vector2.ZERO
-	mood = "被抓住！"
+	mood = Loc.t("mood.caught")
 	## Restore full presence if grabbed while walking out.
 	collision_layer = Tuning.LAYER_CUSTOMERS
 	collision_mask = Tuning.LAYER_WALLS
@@ -756,14 +757,14 @@ func take_hit(amount: float) -> bool:
 func drop_loot_and_leave() -> void:
 	## Legacy path: near scatter + walk off (KO fight uses ko_scatter_and_flee).
 	_scatter_cart(Tuning.LOOT_SCATTER_MELEE_MIN, Tuning.LOOT_SCATTER_MELEE_MAX)
-	mood = "丟下贓物跑了"
+	mood = Loc.t("mood.drop_loot_run")
 	_leave(false)
 
 
 func escape_with_loot() -> void:
 	## Defer stolen stats / banner until the thief actually reaches the exit.
 	## Cart stays so grab / dash on the way out can still recover loot.
-	mood = "得手離開"
+	mood = Loc.t("mood.leave_loot")
 	_leave(false)
 
 
@@ -786,7 +787,7 @@ func ko_scatter_and_flee(dir: Vector2) -> void:
 	if _reg():
 		_reg().dequeue(self)
 	_scatter_cart(Tuning.LOOT_SCATTER_MELEE_MIN, Tuning.LOOT_SCATTER_MELEE_MAX)
-	_begin_flee(dir, "被打飛！")
+	_begin_flee(dir, Loc.t("mood.ko_fly"))
 
 
 ## Directional tossed box hit: Screen KO fly-off; loot drops in place (not scattered).
@@ -796,7 +797,7 @@ func ko_box_hit_and_flee(dir: Vector2) -> void:
 	if _reg():
 		_reg().dequeue(self)
 	_drop_cart_inplace()
-	_begin_flee(dir, "被貨箱打飛！")
+	_begin_flee(dir, Loc.t("mood.box_fly"))
 
 
 func dash_knock_away(dir: Vector2) -> void:
@@ -806,7 +807,7 @@ func dash_knock_away(dir: Vector2) -> void:
 		_reg().dequeue(self)
 	## Dash: loot scatters farther (≤ 5 身位); not stolen. Catch counted by player.
 	_scatter_cart(Tuning.LOOT_SCATTER_DASH_MIN, Tuning.LOOT_SCATTER_DASH_MAX)
-	_begin_flee(dir, "被撞飛！")
+	_begin_flee(dir, Loc.t("mood.dash_fly"))
 
 
 
@@ -849,10 +850,10 @@ func dash_knock_guest(add_dissat: float) -> void:
 	_bump_list()
 	_clear_route()
 	state = State.SEEK
-	mood = "唔！"
+	mood = Loc.t("mood.oof")
 	_play_dash_ko_hop()
 	_dash_stun_left = Tuning.DASH_GUEST_STUN_SEC
-	mood = "暈眩…"
+	mood = Loc.t("mood.dazed")
 	_sync_labels()
 
 
@@ -888,9 +889,9 @@ func accept_must_deliver(pieces: Array) -> int:
 	_bump_list()
 	_target_shelf = null
 	if shopping.is_empty():
-		_begin_checkout("謝謝！去付款")
+		_begin_checkout(Loc.t("mood.thanks_pay"))
 	else:
-		mood = "謝謝！"
+		mood = Loc.t("mood.thanks_bang")
 		if state == State.THINK or state == State.LINGER:
 			state = State.SEEK
 			_timer = 0.0
@@ -921,9 +922,9 @@ func accept_force_sell(pieces: Array) -> int:
 	_bump_list()
 	_target_shelf = null
 	if shopping.is_empty():
-		_begin_checkout("謝謝！去付款")
+		_begin_checkout(Loc.t("mood.thanks_pay"))
 	else:
-		mood = "謝謝！"
+		mood = Loc.t("mood.thanks_bang")
 		if state == State.THINK or state == State.LINGER:
 			state = State.SEEK
 			_timer = 0.0
@@ -958,9 +959,9 @@ func accept_toss_box(sku: String, n: int) -> int:
 		return take
 	if shopping.is_empty():
 		## List completed by toss — go pay; do not linger in THINK「找不到」.
-		_begin_checkout("謝謝！去付款")
+		_begin_checkout(Loc.t("mood.thanks_pay"))
 	else:
-		mood = "謝謝！"
+		mood = Loc.t("mood.thanks_bang")
 		if state == State.THINK or state == State.LINGER:
 			state = State.SEEK
 			_timer = 0.0
@@ -979,7 +980,7 @@ func apply_toss_reject(sku: String = "") -> void:
 		_sync_labels()
 		return
 	gain_dissat(Tuning.TOSS_GUEST_WRONG_DISSAT, "toss_wrong")
-	mood = "不想要這貨品！"
+	mood = Loc.t("mood.reject_item")
 	if sku != "":
 		_sku_popup(sku, SkuIcons.KIND_BAD)
 	_sync_labels()
@@ -1051,7 +1052,7 @@ func begin_temp_clerk(job: String, reg: Node2D = null) -> void:
 	_temp_box_n = 0
 	_temp_box_sku = ""
 	state = State.TEMP
-	mood = "臨時收銀" if temp_role == "cashier" else "臨時補貨"
+	mood = Loc.t("mood.temp_cashier") if temp_role == "cashier" else Loc.t("mood.temp_restock")
 	_target_shelf = null
 	_clear_route()
 	_list_icons_fp = "\u0001"
@@ -1074,7 +1075,7 @@ func end_temp_clerk() -> void:
 	temp_left = 0.0
 	_temp_work = 0.0
 	state = State.SEEK
-	mood = "購物"
+	mood = Loc.t("mood.shop")
 	_target_shelf = null
 	_clear_route()
 	_bump_list()
@@ -1407,7 +1408,7 @@ func _elite_try_smash_shelf() -> bool:
 		return false
 	if _game and _game.has_method("spawn_dropped_box"):
 		_game.call("spawn_dropped_box", global_position + Vector2(randf_range(-12, 12), 8), String(pile["sku"]), int(pile["n"]))
-	mood = "弄跌貨架！"
+	mood = Loc.t("mood.affix.smash")
 	return true
 
 
@@ -1442,7 +1443,7 @@ func _elite_try_ruck_cart() -> bool:
 		return false
 	var pct := Tuning.elite_ruck_pct(elite_effect_lv("ruck_cart"))
 	if bool(victim.call("elite_ruck_cart", pct)):
-		mood = "搗亂購物籃！"
+		mood = Loc.t("mood.affix.basket")
 		return true
 	return false
 
@@ -1453,7 +1454,7 @@ func _elite_try_drive_off() -> bool:
 		return false
 	var add := Tuning.elite_drive_dissat(elite_effect_lv("drive_off"))
 	victim.call("elite_drive_off", add)
-	mood = "趕客！"
+	mood = Loc.t("mood.affix.drive")
 	return true
 
 
@@ -1467,7 +1468,7 @@ func _elite_try_litter() -> bool:
 		return false
 	var dtype := pool[randi() % pool.size()]
 	if bool(_game.call("spawn_dirt_at", at, dtype)):
-		mood = "丟污物！"
+		mood = Loc.t("mood.affix.dirt")
 		return true
 	return false
 
@@ -1478,7 +1479,7 @@ func _tick_elite_passive_wander(delta: float) -> void:
 		_elite_wander_goal = _pick_elite_wander_point()
 		_elite_wander_cd = randf_range(2.0, 4.0)
 		_clear_route()
-	mood = "不主動購物…"
+	mood = Loc.t("mood.affix.idle")
 	if _follow_to(_elite_wander_goal, delta):
 		_elite_wander_cd = 0.0
 
@@ -1527,7 +1528,7 @@ func elite_ruck_cart(pct: float) -> bool:
 	_clear_route()
 	if state == State.TO_CASHIER or state == State.QUEUE or state == State.PAYING:
 		state = State.SEEK
-	mood = "購物籃被搗亂！"
+	mood = Loc.t("mood.basket_hit")
 	_sync_labels()
 	return true
 
@@ -1539,7 +1540,7 @@ func elite_drive_off(add: float) -> void:
 	if state == State.LEAVE or state == State.FLEE or state == State.FIGHT:
 		return
 	gain_dissat(add, "drive_off")
-	mood = "被趕走…？"
+	mood = Loc.t("mood.chased")
 	if dissatisfaction >= Tuning.DISSAT_MAX:
 		_drop_cart_inplace()
 	_sync_labels()
@@ -1672,13 +1673,13 @@ func _list_label_text() -> String:
 		var loot: PackedStringArray = []
 		for sku in cart:
 			loot.append(Tuning.sku_name(sku))
-		line = "小偷  " + ("、".join(bits) if bits.size() else "得手 " + ("、".join(loot) if loot.size() else "空手"))
+		line = Loc.t("mood.thief") + ("、".join(bits) if bits.size() else Loc.t("mood.looted") + ("、".join(loot) if loot.size() else Loc.t("mood.empty_handed")))
 	else:
-		line = "、".join(bits) if bits.size() else "（清單完成）"
+		line = "、".join(bits) if bits.size() else Loc.t("mood.list_done")
 		if is_elite:
-			line = "麻煩LV%d　" % elite_lv + line
+			line = Loc.t("mood.elite_lv", [elite_lv]) + line
 		if raided:
-			line += "　已取%d" % cart.size()
+			line += Loc.t("mood.taken_n", [cart.size()])
 	_list_cache = line
 	_list_rev_drawn = _list_rev
 	return line

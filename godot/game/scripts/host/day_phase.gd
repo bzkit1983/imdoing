@@ -13,11 +13,11 @@ static func clock_text(game_hours: float) -> String:
 static func phase_text(phase: String) -> String:
 	match phase:
 		"restock":
-			return "補貨時段  06:00–08:00  無客人"
+			return Loc.t("phase.restock")
 		"open":
-			return "營運時段  08:00–22:00"
+			return Loc.t("phase.ops")
 		_:
-			return "關店結算"
+			return Loc.t("demo.closeout_head")
 
 
 static func advance(

@@ -171,14 +171,14 @@ func _refresh() -> void:
 		var s := 30.0 / float(SkuIcons.SIZE)
 		_goods.scale = Vector2(s, s)
 		_goods.position = facing * -8.0 + Vector2(0, -34)
-	var kind_name := "乾貨架"
+	var kind_name := Loc.t("world.shelf.dry")
 	if category == Tuning.CAT_FROZEN:
-		kind_name = "凍櫃貨架"
+		kind_name = Loc.t("world.shelf.frozen")
 	elif category == Tuning.CAT_ICE:
-		kind_name = "冰櫃貨架"
+		kind_name = Loc.t("world.shelf.ice")
 	if label:
 		## Name dropped — icon carries SKU identity; keep index + fill.
 		if sku == "":
-			label.text = "%s %d\n空　%d" % [kind_name, shelf_index, capacity]
+			label.text = Loc.t("world.shelf.empty", [kind_name, shelf_index, capacity])
 		else:
 			label.text = "%s %d\n%d/%d" % [kind_name, shelf_index, count, capacity]

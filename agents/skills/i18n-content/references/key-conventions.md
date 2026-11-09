@@ -24,9 +24,12 @@ Keys must be unique across **both** files. Runtime merges them in `Loc`.
 | `skill_set.default` | `skill_set.default` | printf template with `%d` |
 | `event.<id>.title` / `.body` | (Beta) | Event cards |
 | `story.<id>.line.<n>` | (Beta) | Narrative lines |
-| `log.<area>.…` | (migrate gradually) | Action log lines |
-| `mood.<id>` | (migrate gradually) | Guest mood / status |
-| `prep.*` `hud.*` `pause.*` | existing | UI — stay in `strings.csv` |
+| `log.player.*` / `log.demo.*` | shipped (wave 2) | Action / toss / skill logs |
+| `mood.*` | shipped (wave 2) | Guest mood / status |
+| `err.*` | shipped (wave 2) | GameState validation errors |
+| `world.*` | shipped (wave 2) | Registers, clerks, shelves, restock points |
+| `settle.*` / `phase.*` | shipped (wave 2) | Day settle / phase labels |
+| `prep.*` `hud.*` `pause.*` `touch.*` | existing + wave 2 | UI — stay in `strings.csv` |
 
 ## Design doc ↔ runtime
 

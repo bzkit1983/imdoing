@@ -10,7 +10,6 @@ var dim: Array[bool] = [false, false, false, false, false]
 var names: Array[String] = ["", "", "", "", ""]
 var cds: Array[float] = [0.0, 0.0, 0.0, 0.0, 0.0]
 
-const _DIRS := ["中", "上", "右", "下", "左"]
 const _POS := [
 	Vector2(0, 8),
 	Vector2(0, -156),
@@ -48,10 +47,25 @@ func _draw() -> void:
 		_draw_slot(_POS[i], i)
 
 
+func _dir_label(slot: int) -> String:
+	match slot:
+		0:
+			return Loc.t("touch.center")
+		1:
+			return Loc.t("dir.up")
+		2:
+			return Loc.t("dir.right")
+		3:
+			return Loc.t("dir.down")
+		4:
+			return Loc.t("dir.left")
+	return ""
+
+
 func _draw_slot(p: Vector2, slot: int) -> void:
 	var passive := dim[slot]
 	var cd := cds[slot]
-	var title := names[slot] if names[slot] != "" else "（空）"
+	var title := names[slot] if names[slot] != "" else Loc.t("world.guest_slot.empty")
 	var col := Color("8a8a8a") if passive or names[slot] == "" else Color("f4d35e")
 	if cd > 0.05 and not passive and names[slot] != "":
 		col = Color("c45c26")
@@ -66,7 +80,7 @@ func _draw_slot(p: Vector2, slot: int) -> void:
 	var name := title
 	if cd > 0.05 and not passive and names[slot] != "":
 		name = "%s  %.0f" % [title, cd]
-	draw_string(font, r.position + Vector2(10, 26), _DIRS[slot], HORIZONTAL_ALIGNMENT_LEFT, 40, UiFont.px(22), col)
+	draw_string(font, r.position + Vector2(10, 26), _dir_label(slot), HORIZONTAL_ALIGNMENT_LEFT, 40, UiFont.px(22), col)
 	draw_string(font, r.position + Vector2(10, 52), name, HORIZONTAL_ALIGNMENT_LEFT, _BOX.x - 20, UiFont.px(22), col)
 	if passive:
-		draw_string(font, r.position + Vector2(48, 26), "被動", HORIZONTAL_ALIGNMENT_LEFT, 80, UiFont.px(22), Color("8a8a8a"))
+		draw_string(font, r.position + Vector2(48, 26), Loc.t("prep.kind.passive"), HORIZONTAL_ALIGNMENT_LEFT, 80, UiFont.px(22), Color("8a8a8a"))
