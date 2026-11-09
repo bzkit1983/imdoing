@@ -620,7 +620,7 @@ func cast_dark_side(level: int) -> void:
 		var reg = row.get("register", null)
 		c.call("begin_temp_clerk", String(row.get("role", "restock")), reg)
 	if _player and _player.has_signal("log_line"):
-		_player.log_line.emit(Loc.t("log.demo.dark_side", [drafted.size())])
+		_player.log_line.emit(Loc.t("log.demo.dark_side", [drafted.size()]))
 
 
 func cast_shadow_clone(level: int) -> void:
@@ -662,7 +662,7 @@ func cast_shadow_clone(level: int) -> void:
 		var row: Dictionary = jobs[c]
 		c.call("begin_job", String(row.get("role", "restock")), row.get("register", null))
 	if _player and _player.has_signal("log_line"):
-		_player.log_line.emit(Loc.t("log.demo.shadow_clone", [drafted.size())])
+		_player.log_line.emit(Loc.t("log.demo.shadow_clone", [drafted.size()]))
 
 
 func dismiss_shadow_clones() -> void:
