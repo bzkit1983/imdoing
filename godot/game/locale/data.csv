@@ -1,0 +1,107 @@
+key,zh_TW,en
+sku.can,罐頭,Canned goods
+sku.snack,零食,Snacks
+sku.cup,杯麵,Cup noodles
+sku.drink,支裝凍飲,Bottled cold drink
+sku.milk,牛奶,Milk
+sku.soda,汽水,Soda
+sku.icecream,雪糕,Ice cream
+sku.meat,凍肉,Frozen meat
+sku.rice,叮叮飯,Microwave rice
+dirt.trash,垃圾,Trash
+dirt.puddle,水漬,Puddle
+dirt.vomit,嘔吐物,Vomit
+dirt.generic,污物,Mess
+dir.up,上,Up
+dir.down,下,Down
+dir.left,左,Left
+dir.right,右,Right
+furniture.cashier,收銀機,Cash register
+furniture.restock_dry,乾貨補貨架,Dry restock rack
+furniture.restock_frozen,凍櫃補貨架,Chiller restock rack
+furniture.restock_ice,冰櫃補貨架,Freezer restock rack
+furniture.shelf_dry_4,乾貨類貨架（4件）,Dry shelf (4)
+furniture.shelf_dry_8,乾貨類貨架（8件）,Dry shelf (8)
+furniture.shelf_dry_12,乾貨類貨架（12件）,Dry shelf (12)
+furniture.shelf_dry_24,乾貨類貨架（24件）,Dry shelf (24)
+furniture.shelf_frozen_4,凍櫃類貨架（4件）,Chiller shelf (4)
+furniture.shelf_frozen_8,凍櫃類貨架（8件）,Chiller shelf (8)
+furniture.shelf_frozen_12,凍櫃類貨架（12件）,Chiller shelf (12)
+furniture.shelf_frozen_24,凍櫃類貨架（24件）,Chiller shelf (24)
+furniture.shelf_ice_4,冰櫃類貨架（4件）,Freezer shelf (4)
+furniture.shelf_ice_8,冰櫃類貨架（8件）,Freezer shelf (8)
+furniture.shelf_ice_12,冰櫃類貨架（12件）,Freezer shelf (12)
+furniture.shelf_ice_24,冰櫃類貨架（24件）,Freezer shelf (24)
+skill_set.default,自訂技能組合%d,Custom Skill Set %d
+skill.carry_boost.name,頂硬上,Shoulder Through
+skill.carry_boost.blurb,負重 +240 件，20 秒,Carry +240 pieces for 20s
+skill.move_boost.name,無人可以喺我前面,Nobody Gets Ahead
+skill.move_boost.blurb,移速 +60%，20 秒,Move speed +60% for 20s
+skill.checkout_rush.name,人肉數錢機,Human Cash Machine
+skill.checkout_rush.blurb,收銀 +60%，20 秒,Checkout +60% for 20s
+skill.universal_cannon.name,萬用炮,Universal Cannon
+skill.universal_cannon.blurb,腳下布置可穿行炮台，FIFO容量12／16／20件、每5／4／3秒射1件；再按取消後CD60秒,Deploy a pass-through turret; FIFO capacity 12/16/20; fires one item every 5/4/3s; cancel to start a 60s INT-scaled cooldown
+skill.self_checkout.name,Self Checkout,Self Checkout
+skill.self_checkout.blurb,啟動5身位內機台15秒；每客5／4／3秒自助，真人／NPC優先，尾單收完,Enable nearby registers for 15s within 5 body lengths; 5/4/3s per guest; operators take priority; finish final guest
+skill.senior_cashier.name,資深收銀員,Senior Cashier
+skill.senior_cashier.blurb,減指令次數／LV3免指令且Circle×0.5。準備頁選 LV1／2／3，沒選預設 LV3,Fewer command inputs; LV3 skips commands and Circle×0.5. Prep picks LV1/2/3 (default LV3)
+skill.instant_restock.name,瞬間補貨,Instant Restock
+skill.instant_restock.blurb,上架瞬間完成，20 秒,Restock completes instantly for 20s
+skill.soothe.name,安撫,Soothe
+skill.soothe.blurb,全店不滿歸零（已離開不拉回）,Clear all guest dissatisfaction (gone guests stay gone)
+skill.metal_rush.name,金屬狂潮,Metal Rush
+skill.metal_rush.blurb,客人移速 +150%，20 秒,Guest move speed +150% for 20s
+skill.hoop_ace.name,投籃高手,Hoop Ace
+skill.hoop_ace.blurb,短按方向一次投最上 2 件；LV3＝30 秒。準備頁選 LV1／2／3，沒選預設 LV3,Tap a direction to toss the top 2 pieces; LV3=30s. Prep picks LV1/2/3 (default LV3)
+skill.dash_deliver.name,衝刺交付,Dash Deliver
+skill.dash_deliver.blurb,5 秒內每記衝刺把對的貨交給客人且不 KO。沒對上則照常撞飛。技能不扣氣,For 5s each dash delivers matching stock without KO; misses still knock. Skill costs no stamina
+skill.dasher.name,Dasher,Dasher
+skill.dasher.blurb,衝刺與奔跑不扣氣（氣 0 也能）；LV3＝15 秒。準備頁選 LV1／2／3，沒選預設 LV3,Dash and run cost no stamina (even at 0); LV3=15s. Prep picks LV1/2/3 (default LV3)
+skill.force_sell.name,我都賺夠啦比啲你賺,I've Made Enough—You Take It
+skill.force_sell.blurb,瞬發強塞手上貨進最近可交付客人 cart；LV3＝最多 20 件。準備頁選 LV1／2／3，沒選預設 LV3,Instant: force held stock into nearest deliverable guest cart; LV3 up to 20. Prep picks LV1/2/3 (default LV3)
+skill.must_deliver.name,使命必達,Must Deliver
+skill.must_deliver.blurb,兩段施放：範圍內完成優先交清單貨；LV3＝15 身位／最多 4 人。準備頁選 LV1／2／3，沒選預設 LV3,Two-stage: finish priority list deliveries in range; LV3=15 body lengths / up to 4 guests. Prep picks LV1/2/3 (default LV3)
+skill.summon_guest.name,召喚客人,Summon Guests
+skill.summon_guest.blurb,瞬發門口召喚客人（可超 cap）；LV3＝3 人。準備頁選 LV1／2／3，沒選預設 LV3,Instant: spawn guests at the door (may exceed cap); LV3=3. Prep picks LV1/2/3 (default LV3)
+skill.harvest_chives.name,割韭菜,Harvest Chives
+skill.harvest_chives.blurb,對準一台收銀機瞬發清隊 QUEUE／PAYING；LV3＝最多 10 人。準備頁選 LV1／2／3，沒選預設 LV3,Instant: clear QUEUE/PAYING at one register; LV3 up to 10. Prep picks LV1/2/3 (default LV3)
+skill.magneto.name,攝石人,Magneto
+skill.magneto.blurb,兩段：預覽範圍後吸地上貨飛入手（可拆堆）；LV3＝15 身位。準備頁選 LV1／2／3，沒選預設 LV3,Two-stage: preview then pull floor stock into hands (can split piles); LV3=15 body lengths. Prep picks LV1/2/3 (default LV3)
+skill.sweeping_monk.name,掃地僧,Sweeping Monk
+skill.sweeping_monk.blurb,跟身龍捲清污（3 身位）並免疫污物；LV3＝15 秒。準備頁選 LV1／2／3，沒選預設 LV3,Follow-tornado clears mess (3 body lengths) and grants dirt immunity; LV3=15s. Prep picks LV1/2/3 (default LV3)
+skill.shelf_sniper.name,狙擊手（貨架）,Sniper (Shelves)
+skill.shelf_sniper.blurb,30 秒內投出的貨自動飛向最近同 SKU 貨架補貨；已滿則改飛下一格，全滿則飛最近架旁掉落,"For 30s tossed stock auto-flies to the nearest matching shelf; if full, next tile; if all full, drops beside nearest shelf"
+skill.guest_sniper.name,狙擊手（客人）,Sniper (Guests)
+skill.guest_sniper.blurb,30 秒內投出的貨自動飛向最近清單需要該貨的客人；該客不要了就改飛下一位，全店沒目標則普通丟掉,For 30s tossed stock auto-flies to the nearest guest who needs it; retargets if they don't; normal toss if none
+skill.thief_sniper.name,狙擊手（小偷）,Sniper (Thieves)
+skill.thief_sniper.blurb,30 秒內投出的貨自動飛向最近小偷擊中並趕走；投 1 件／一段都算一擊，擊中後貨品掉落；全店沒小偷則普通丟掉,For 30s tossed stock auto-hits the nearest thief and drives them off; 1 piece/segment counts; drops after hit; normal toss if none
+skill.dark_side.name,Dark Side,Dark Side
+skill.dark_side.blurb,You don't know the power of the dark side。抽客人當臨時員工 30 秒（準備頁選 LV1／2／3，沒選預設 LV3）,"You don't know the power of the dark side. Recruit a guest as temp staff for 30s (prep LV1/2/3, default LV3)"
+skill.shadow_clone.name,多重影分身,Shadow Clone Multitude
+skill.shadow_clone.blurb,身旁生出玩家分身當收銀／補貨 30 秒（準備頁選 LV1／2／3，沒選預設 LV3）,"Spawn a player clone beside you for checkout/restock for 30s (prep LV1/2/3, default LV3)"
+skill.carry_passive.name,負重增加,Carry Boost
+skill.carry_passive.blurb,負重 +80 件,Carry +80 pieces
+skill.move_passive.name,移動速度增加,Move Speed Up
+skill.move_passive.blurb,移速 +20%,Move speed +20%
+skill.checkout_speed.name,收銀速度增加,Checkout Speed Up
+skill.checkout_speed.blurb,收銀 +20%,Checkout +20%
+skill.restock_speed.name,上架速度增加,Restock Speed Up
+skill.restock_speed.blurb,上架 +20%,Restock +20%
+skill.polite_dash.name,禮貌衝撞,Polite Dash
+skill.polite_dash.blurb,衝刺撞客人不滿不增加,Dashing into guests does not raise dissatisfaction
+skill.wave_step.name,凌波微步,Wave Step
+skill.wave_step.blurb,污物不減速；垃圾不扣氣；水漬不滑；嘔吐不禁技能,No dirt slow; trash costs no stamina; puddles don't slip; vomit doesn't block skills
+skill.cold_smile.name,笑到你心寒,Chilling Smile
+skill.cold_smile.blurb,排隊不增加不滿,Queuing does not raise dissatisfaction
+skill.haki.name,霸王色,Conqueror's Haki
+skill.haki.blurb,小偷出現率 ×0.5,Thief spawn rate ×0.5
+skill.the_world.name,The World!,The World!
+skill.the_world.blurb,時停 10 秒。指令上上下下左右左右,Time stop 10s. Input: up up down down left right left right
+skill.yes_my_lord.name,Yes! My Lord!,Yes! My Lord!
+skill.yes_my_lord.blurb,LV3：客人搶空最近貨架 10 秒，然後去排隊。指令上左下右上左下右,LV3: guests empty nearest shelves for 10s then queue. Input: up left down right up left down right
+skill.fundraise.name,全體集資,Group Fundraiser
+skill.fundraise.blurb,LV3：在店客人立刻按已取貨全額付款，不含離開與小偷。指令上下上下左右左右,LV3: in-store guests instantly pay for taken goods; excludes leavers and thieves. Input: up down up down left right left right
+skill.close_gate.name,落閘放狗,Drop the Gate
+skill.close_gate.blurb,有貨趕去排隊（只付已取）；空車離店；小偷掉贓離店。單階 CD120。指令上下上下左右左右,Stocked guests queue (pay taken only); empty carts leave; thieves drop loot and leave. Single-tier CD120. Input: up down up down left right left right
+skill.guest_dusk.name,諸客的黃昏,Twilight of Guests
+skill.guest_dusk.blurb,30 現實秒內成功進店 15 人（可超 cap、無小偷）。單階 CD120。指令上左右下下左右上,"15 successful entries in 30 real seconds (may exceed cap, no thieves). Single-tier CD120. Input: up left right down down left right up"

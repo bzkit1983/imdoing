@@ -1,5 +1,6 @@
 #奧義技能設定
 - 此檔案包含奧義技能設定
+- 設計以中文為主；玩家可見名稱／簡述的多語見 `locale/data.csv`（`skill.<id>.*`）。新增或改名時遵循 [`AGENTS.md`](../../AGENTS.md) → [`agents/skills/i18n-content/SKILL.md`](../../agents/skills/i18n-content/SKILL.md)。
 
 #奧義技能
 ##名稱: The World!

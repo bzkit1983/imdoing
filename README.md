@@ -6,6 +6,8 @@ Repository for game project
 用 Godot **4.7** 打開 **`godot/game`**。  
 版控策略：[`docs/versioning.md`](docs/versioning.md) · Godot 目錄說明：[`godot/README.md`](godot/README.md)
 
+**Coding agents（任何工具）：** 先讀根目錄 [`AGENTS.md`](AGENTS.md)；多語言內容流程見 [`agents/skills/i18n-content/SKILL.md`](agents/skills/i18n-content/SKILL.md)。
+
 **產品版：** `v1.4.0`（全單位改「件」；見 [`VERSION`](VERSION)、[`docs/versioning.md`](docs/versioning.md)；上一錨點 `v1.3.0`）  
 **網頁試玩：** https://bzkit1983.github.io/imdoing/play/
 

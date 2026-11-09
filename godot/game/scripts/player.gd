@@ -301,7 +301,10 @@ func drop_toss_dist() -> float:
 func _loadout() -> Array[Dictionary]:
 	if stats != null and stats.has_method("loadout"):
 		return stats.loadout()
-	return Skills.EQUIPPED
+	var out: Array[Dictionary] = []
+	for sk in Skills.EQUIPPED:
+		out.append(Skills.localize(sk))
+	return out
 
 
 func _skill_at(i: int) -> Dictionary:
@@ -314,7 +317,7 @@ func _skill_at(i: int) -> Dictionary:
 func _ult_sk() -> Dictionary:
 	if stats != null and stats.has_method("ult_skill"):
 		return stats.ult_skill()
-	return Skills.ULTIMATE
+	return Skills.localize(Skills.ULTIMATE)
 
 
 func _stat_base(which: String) -> int:
