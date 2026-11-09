@@ -120,6 +120,8 @@ func _format(shown: int, kind: String) -> String:
 		"xp":
 			return "%s%d XP" % [sign, shown]
 		"rating":
-			return "%s%d" % [sign, shown]
+			return Loc.t("float.rating", [sign, shown])
+		"dissat":
+			return Loc.t("float.dissat", [sign, shown])
 		_:
 			return "%s%d" % [sign, shown]

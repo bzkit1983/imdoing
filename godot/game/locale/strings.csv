@@ -32,6 +32,8 @@ hud.skip_operate,馬上完成營運,Finish day now,马上完成营运,すぐに�
 hud.pause,暫停,Pause,暂停,一時停止
 hud.revenue,營業額  $%d  ·  被偷 $%d,Sales  $%d  ·  Stolen $%d,营业额  $%d  ·  被偷 $%d,売上  $%d  ·  盗難 $%d
 hud.ops_rating,營運評價  %d,Ops rating  %d,营运评价  %d,運営評価  %d
+float.rating,%s%d 評價,%s%d rating,%s%d 评价,%s%d 評価
+float.dissat,%s%d 不滿,%s%d dissat,%s%d 不满,%s%d 不満
 hud.guests,在店客人  %d  ·  小偷 %d,Guests  %d  ·  Thieves %d,在店客人  %d  ·  小偷 %d,来客  %d  ·  泥棒 %d
 hud.state,狀態  %s,State  %s,状态  %s,状態  %s
 hud.carry,負重  %d / %d 件,Carry  %d / %d pcs,负重  %d / %d 件,所持  %d / %d 個
