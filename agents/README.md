@@ -17,7 +17,7 @@ agents/
 
 | id | Path | Purpose |
 | --- | --- | --- |
-| `i18n-content` | [`skills/i18n-content/SKILL.md`](skills/i18n-content/SKILL.md) | Chinese-first design → locale CSV (`zh_TW` + `en`) for game content |
+| `i18n-content` | [`skills/i18n-content/SKILL.md`](skills/i18n-content/SKILL.md) | Chinese-first design → locale CSV (`zh_TW` + `en` + `zh_CN` + `ja`) for game content |
 
 ## Conventions
 

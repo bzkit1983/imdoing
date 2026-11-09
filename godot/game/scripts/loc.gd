@@ -2,7 +2,7 @@ extends Node
 ## Runtime string table for i18n.
 ## Sources: res://locale/strings.csv (UI) + res://locale/data.csv (game content).
 ## Usage: Loc.t("pause.title")  or  Loc.t("hud.revenue", [rev, stolen])
-## Default locale follows project fallback (zh_TW). Steam / EN later: Loc.set_locale("en").
+## Locales from CSV header (zh_TW, en, zh_CN, ja). Default zh_TW. Smoke: Loc.set_locale("en"|"zh_CN"|"ja").
 
 const TABLE_PATHS: Array[String] = [
 	"res://locale/strings.csv",

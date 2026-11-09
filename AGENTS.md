@@ -21,7 +21,9 @@ Canonical skills live under [`agents/skills/`](agents/skills/). Index: [`agents/
 - Spec: [`docs/alpha/i18n.md`](docs/alpha/i18n.md)
 - UI table: `godot/game/locale/strings.csv`
 - Content table: `godot/game/locale/data.csv`
+- Columns: `key,zh_TW,en,zh_CN,ja` (all four required for new player-facing rows)
 - Runtime: Autoload `Loc` (`godot/game/scripts/loc.gd`) → `Loc.t("key")`
+- Locales: `zh_TW` (default/fallback), `en`, `zh_CN`, `ja` — smoke with `Loc.set_locale("…")`
 - Harvest leftovers: `python3 tools/i18n_harvest.py`
 
 ## Tool adapters (optional)
