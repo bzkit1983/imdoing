@@ -47,4 +47,4 @@ Add a column to **both** CSV headers and fill every row. `Loc` loads locales fro
 
 ## Language switching (shipped)
 
-Players cycle locales in **Pause → Language** and **Prep → System tools** via `PlatformServices.cycle_locale()` (`[ui] locale` in `user://settings.cfg`). Endonym labels use `locale.name.<code>` (same text in every CSV column).
+Players open a language pick list in **Pause → Language** and **Prep → System tools → Language**, then choose a locale via `PlatformServices.set_locale()` (`[ui] locale` in `user://settings.cfg`). Endonym labels use `locale.name.<code>` (same text in every CSV column).

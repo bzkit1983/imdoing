@@ -23,6 +23,13 @@ var _from_suspend: bool = false
 ## Stick UI: one step on deflect, then must recenter (same as prep dialogs).
 var _stick_armed: bool = true
 const STICK_UI_DEAD := 0.55
+## Language list sub-mode (replaces cycle toggle).
+var _lang_pick: bool = false
+var _lang_pick_focus: int = 0
+var _lang_pick_codes: Array[String] = []
+var _lang_pick_btns: Array[Button] = []
+var _lang_pick_back: Button = null
+var _lang_pick_root: Control = null
 
 @onready var _shade: ColorRect = %Shade
 @onready var _title: Label = %Title
@@ -61,7 +68,7 @@ func setup(host: Node) -> void:
 	_vol_up.pressed.connect(_on_vol_nudge.bind(1))
 	_stick_btn.pressed.connect(_on_stick_toggle)
 	_camera_btn.pressed.connect(_on_camera_cycle)
-	_lang_btn.pressed.connect(_on_language_cycle)
+	_lang_btn.pressed.connect(_enter_lang_pick)
 	_end_btn.pressed.connect(_on_end_day)
 	_paint_focus()
 	_refresh_audio_labels()
@@ -103,6 +110,7 @@ func open_menu(from_suspend: bool = false) -> void:
 	_from_suspend = from_suspend
 	_focus = FOCUS_RESUME
 	_stick_armed = true
+	_exit_lang_pick(false)
 	visible = true
 	_refresh_copy()
 	_paint_focus()
@@ -116,6 +124,7 @@ func open_menu(from_suspend: bool = false) -> void:
 func close_menu() -> void:
 	if not _open:
 		return
+	_exit_lang_pick(false)
 	_open = false
 	_from_suspend = false
 	_stick_armed = true
@@ -138,13 +147,25 @@ func _process(_delta: float) -> void:
 		return
 	_stick_armed = false
 	if absf(v.x) > absf(v.y):
-		if _focus == FOCUS_VOL:
+		if not _lang_pick and _focus == FOCUS_VOL:
 			_on_vol_nudge(1 if v.x > 0.0 else -1)
 	else:
-		_move_focus(1 if v.y > 0.0 else -1)
+		if _lang_pick:
+			_move_lang_pick_focus(1 if v.y > 0.0 else -1)
+		else:
+			_move_focus(1 if v.y > 0.0 else -1)
 
 
 func _refresh_copy() -> void:
+	if _lang_pick:
+		_title.text = Loc.t("pause.language_pick.title")
+		_body.text = Loc.t("pause.language", [Loc.t("locale.name.%s" % Loc.get_locale())])
+		if InputMode.show_vj():
+			_hint.text = Loc.t("pause.hint_touch")
+		else:
+			_hint.text = Loc.t("pause.hint")
+		_refresh_lang_pick_labels()
+		return
 	_title.text = Loc.t("pause.title")
 	if _from_suspend:
 		_body.text = Loc.t("pause.body_suspend")
@@ -202,6 +223,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if not event.is_pressed() or event.is_echo():
 		return
+	if _lang_pick:
+		_lang_pick_input(event)
+		return
 	var dir := _dir_of(event)
 	if dir == 0:
 		_move_focus(-1)
@@ -224,6 +248,25 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		SfxBus.play("sfx_ui_cancel")
 		_on_resume()
+
+
+func _lang_pick_input(event: InputEvent) -> void:
+	var dir := _dir_of(event)
+	if dir == 0:
+		_move_lang_pick_focus(-1)
+		get_viewport().set_input_as_handled()
+	elif dir == 1:
+		_move_lang_pick_focus(1)
+		get_viewport().set_input_as_handled()
+	elif dir == 2 or dir == 3:
+		get_viewport().set_input_as_handled()
+	elif _is_confirm(event):
+		get_viewport().set_input_as_handled()
+		_activate_lang_pick()
+	elif _is_cancel(event):
+		get_viewport().set_input_as_handled()
+		SfxBus.play("sfx_ui_cancel")
+		_exit_lang_pick(true)
 
 
 func _stick_row_visible() -> bool:
@@ -320,7 +363,7 @@ func _activate_focus() -> void:
 		FOCUS_CAMERA:
 			_on_camera_cycle()
 		FOCUS_LANG:
-			_on_language_cycle()
+			_enter_lang_pick()
 		FOCUS_END:
 			SfxBus.play("sfx_ui_confirm")
 			_on_end_day()
@@ -375,12 +418,142 @@ func _on_camera_cycle() -> void:
 	_paint_focus()
 
 
-func _on_language_cycle() -> void:
-	PlatformServices.cycle_locale()
+func _enter_lang_pick() -> void:
+	if _lang_pick:
+		return
 	SfxBus.play("sfx_ui_confirm")
+	_lang_pick = true
+	_lang_pick_focus = 0
+	_set_main_options_visible(false)
+	_build_lang_pick()
+	_refresh_copy()
+	_paint_focus()
+
+
+func _exit_lang_pick(play_focus: bool) -> void:
+	if not _lang_pick and _lang_pick_root == null:
+		return
+	_lang_pick = false
+	_clear_lang_pick()
+	_set_main_options_visible(true)
 	_refresh_copy()
 	_focus = FOCUS_LANG
+	if play_focus:
+		_paint_focus()
+
+
+func _set_main_options_visible(on: bool) -> void:
+	_resume_btn.visible = on
+	_sfx_btn.visible = on
+	if _vol_btn.get_parent() is Control:
+		(_vol_btn.get_parent() as Control).visible = on
+	if _stick_btn:
+		_stick_btn.visible = on and _stick_row_visible()
+	if _camera_btn:
+		_camera_btn.visible = on
+	if _lang_btn:
+		_lang_btn.visible = on
+	_end_btn.visible = on
+
+
+func _build_lang_pick() -> void:
+	_clear_lang_pick()
+	var card := _lang_btn.get_parent()
+	if card == null:
+		return
+	_lang_pick_root = Control.new()
+	_lang_pick_root.name = "LangPickRoot"
+	_lang_pick_root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_lang_pick_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card.add_child(_lang_pick_root)
+	_lang_pick_codes.clear()
+	_lang_pick_btns.clear()
+	var current := Loc.get_locale()
+	var y := 214.0
+	var i := 0
+	for code in Loc.locales():
+		var c := String(code)
+		_lang_pick_codes.append(c)
+		var btn := Button.new()
+		btn.focus_mode = Control.FOCUS_NONE
+		btn.offset_left = 36.0
+		btn.offset_right = 764.0
+		btn.offset_top = y
+		btn.offset_bottom = y + 72.0
+		UiFont.apply_button(btn, 22)
+		var endonym := Loc.t("locale.name.%s" % c)
+		btn.text = Loc.t("pause.language_pick.current", [endonym]) if c == current else endonym
+		var idx := i
+		btn.pressed.connect(func() -> void:
+			_lang_pick_focus = idx
+			_activate_lang_pick()
+		)
+		_lang_pick_root.add_child(btn)
+		_lang_pick_btns.append(btn)
+		y += 86.0
+		i += 1
+	_lang_pick_back = Button.new()
+	_lang_pick_back.focus_mode = Control.FOCUS_NONE
+	_lang_pick_back.offset_left = 36.0
+	_lang_pick_back.offset_right = 764.0
+	_lang_pick_back.offset_top = y
+	_lang_pick_back.offset_bottom = y + 72.0
+	UiFont.apply_button(_lang_pick_back, 22)
+	_lang_pick_back.text = Loc.t("pause.language_pick.back")
+	_lang_pick_back.pressed.connect(func() -> void:
+		SfxBus.play("sfx_ui_cancel")
+		_exit_lang_pick(true)
+	)
+	_lang_pick_root.add_child(_lang_pick_back)
+	## Prefer focusing the current locale row.
+	var cur_i := _lang_pick_codes.find(current)
+	_lang_pick_focus = cur_i if cur_i >= 0 else 0
+
+
+func _clear_lang_pick() -> void:
+	_lang_pick_btns.clear()
+	_lang_pick_back = null
+	_lang_pick_codes.clear()
+	if _lang_pick_root != null and is_instance_valid(_lang_pick_root):
+		_lang_pick_root.queue_free()
+	_lang_pick_root = null
+
+
+func _refresh_lang_pick_labels() -> void:
+	if _lang_pick_back:
+		_lang_pick_back.text = Loc.t("pause.language_pick.back")
+	var current := Loc.get_locale()
+	for i in _lang_pick_btns.size():
+		var c := _lang_pick_codes[i] if i < _lang_pick_codes.size() else ""
+		var endonym := Loc.t("locale.name.%s" % c)
+		_lang_pick_btns[i].text = Loc.t("pause.language_pick.current", [endonym]) if c == current else endonym
+
+
+func _lang_pick_count() -> int:
+	## Locale rows + back.
+	return _lang_pick_btns.size() + (1 if _lang_pick_back != null else 0)
+
+
+func _move_lang_pick_focus(delta: int) -> void:
+	var n := _lang_pick_count()
+	if n <= 0:
+		return
+	_lang_pick_focus = posmod(_lang_pick_focus + delta, n)
+	SfxBus.play("sfx_ui_move")
 	_paint_focus()
+
+
+func _activate_lang_pick() -> void:
+	var n_locales := _lang_pick_btns.size()
+	if _lang_pick_focus >= 0 and _lang_pick_focus < n_locales:
+		var code := _lang_pick_codes[_lang_pick_focus]
+		PlatformServices.set_locale(code)
+		SfxBus.play("sfx_ui_confirm")
+		_exit_lang_pick(true)
+		return
+	## Back row.
+	SfxBus.play("sfx_ui_cancel")
+	_exit_lang_pick(true)
 
 
 func _on_end_day() -> void:
@@ -389,6 +562,12 @@ func _on_end_day() -> void:
 
 
 func _paint_focus() -> void:
+	if _lang_pick:
+		for i in _lang_pick_btns.size():
+			_style_btn(_lang_pick_btns[i], _lang_pick_focus == i)
+		if _lang_pick_back:
+			_style_btn(_lang_pick_back, _lang_pick_focus == _lang_pick_btns.size())
+		return
 	_style_btn(_resume_btn, _focus == FOCUS_RESUME)
 	_style_btn(_sfx_btn, _focus == FOCUS_SFX)
 	var vol_on := _focus == FOCUS_VOL

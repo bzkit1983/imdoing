@@ -27,7 +27,7 @@ static func parent_page(page: String) -> String:
 			return "hub_goods"
 		"furn", "expand", "layout":
 			return "hub_shop"
-		"sfx":
+		"sfx", "locale":
 			return "hub_sys"
 		_:
 			return "home"
@@ -104,6 +104,8 @@ static func fill(menu: CanvasLayer, page: String) -> void:
 			_hub_shop(menu)
 		"hub_sys":
 			_hub_sys(menu)
+		"locale":
+			_locale(menu)
 		"stats":
 			_stats(menu)
 		"look":
@@ -293,12 +295,26 @@ static func _hub_sys(menu: CanvasLayer) -> void:
 		"stick"
 	)
 	var lang_name := Loc.t("locale.name.%s" % Loc.get_locale())
-	menu._add_hub(Loc.t("prep.sys.language", [lang_name]), "cycle_locale", null, "lang")
+	menu._add_hub(Loc.t("prep.sys.language", [lang_name]), "go", "locale", "lang")
 	if ProductVersion.test_tools_enabled():
 		menu._add_hub(Loc.t("prep.home.test_money"), "test_money", null, "money")
 		menu._add_hub(Loc.t("prep.home.sfx_test"), "go", "sfx", "sfx")
 	menu._add_hub(Loc.t("prep.home.wipe"), "wipe_save", null, "wipe")
 	menu._rebuild_hub_tiles()
+
+
+static func _locale(menu: CanvasLayer) -> void:
+	var current := Loc.get_locale()
+	var current_name := Loc.t("locale.name.%s" % current)
+	menu._title.text = Loc.t("prep.locale.title")
+	menu._info.text = menu._pair(menu._header(), Loc.t("prep.locale.info", [current_name]))
+	if menu._msg != "":
+		menu._info.text = menu._pair(menu._info.text, menu._msg)
+	for code in Loc.locales():
+		var endonym := Loc.t("locale.name.%s" % code)
+		var row := Loc.t("prep.locale.row_current" if code == current else "prep.locale.row", [endonym])
+		menu._add(row, "set_locale", String(code))
+	menu._add(Loc.t("prep.back"), "go", "hub_sys")
 
 
 static func _stats(menu: CanvasLayer) -> void:

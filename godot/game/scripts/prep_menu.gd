@@ -177,21 +177,14 @@ func _bind_nodes() -> void:
 	_list.add_theme_color_override("font_hovered_color", Color("f4d35e"))
 	var bar := _list.get_v_scroll_bar()
 	bar.custom_minimum_size = Vector2(44, 0)
-	_back_btn.text = Loc.t("prep.chrome.back")
 	PrepWidgets.paint_btn(_back_btn, true)
 	UiFont.apply_button(_back_btn, PrepWidgets.PREP_BTN)
 	_back_btn.custom_minimum_size = Vector2(200, 52)
 	UiFont.apply_label(%Hint, PREP_HINT)
-	%Hint.text = Loc.t("prep.chrome.hint")
 	%Hint.add_theme_color_override("font_color", Color("c8d4c5"))
-	_open_main.text = Loc.t("prep.home.open")
-	_open_elite.text = Loc.t("prep.home.elite_test")
-	%DiffLabel.text = Loc.t("prep.difficulty.label")
 	UiFont.apply_label(%DiffLabel, 26)
 	%DiffLabel.add_theme_color_override("font_color", Color("f4f1ea"))
 	%DiffLabel.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_diff_easy.text = Loc.t("prep.difficulty.easy")
-	_diff_normal.text = Loc.t("prep.difficulty.normal")
 	## Fixed-height chrome: use UiFont.px, not px_btn (×2 blows DiffBar/OpenBar).
 	_apply_chrome_button_font(_diff_easy, 26)
 	_apply_chrome_button_font(_diff_normal, 26)
@@ -210,12 +203,13 @@ func _bind_nodes() -> void:
 	_dlg_title.add_theme_color_override("font_color", Color("f4d35e"))
 	UiFont.apply_label(_dlg_body, PREP_INFO)
 	_dlg_body.add_theme_color_override("font_color", Color("f4f1ea"))
-	_dlg_yes.text = Loc.t("prep.chrome.dialog_yes")
-	_dlg_no.text = Loc.t("prep.chrome.dialog_no")
 	UiFont.apply_button(_dlg_yes, PrepWidgets.PREP_BTN)
 	UiFont.apply_button(_dlg_no, PrepWidgets.PREP_BTN)
 	PrepWidgets.paint_btn(_dlg_yes, true)
 	PrepWidgets.paint_btn(_dlg_no, false)
+	_refresh_chrome_copy()
+	if not Loc.locale_changed.is_connected(_on_locale_changed):
+		Loc.locale_changed.connect(_on_locale_changed)
 
 
 func _show_page(page: String) -> void:
@@ -253,8 +247,38 @@ func _show_page(page: String) -> void:
 	_refresh()
 
 
+func _refresh_chrome_copy() -> void:
+	## Persistent chrome is not rebuilt by page fill — refresh Loc.t after locale change.
+	if _back_btn:
+		_back_btn.text = Loc.t("prep.chrome.back")
+	if %Hint:
+		%Hint.text = Loc.t("prep.chrome.hint")
+	if _open_main:
+		_open_main.text = Loc.t("prep.home.open")
+	if _open_elite:
+		_open_elite.text = Loc.t("prep.home.elite_test")
+	if %DiffLabel:
+		%DiffLabel.text = Loc.t("prep.difficulty.label")
+	if _diff_easy:
+		_diff_easy.text = Loc.t("prep.difficulty.easy")
+	if _diff_normal:
+		_diff_normal.text = Loc.t("prep.difficulty.normal")
+	if _dlg_yes:
+		_dlg_yes.text = Loc.t("prep.chrome.dialog_yes")
+	if _dlg_no:
+		_dlg_no.text = Loc.t("prep.chrome.dialog_no")
+
+
+func _on_locale_changed(_code: String) -> void:
+	if not visible:
+		return
+	_refresh_chrome_copy()
+	_refresh()
+
+
 func _refresh() -> void:
 	_building = true
+	_refresh_chrome_copy()
 	_rows.clear()
 	_list.clear()
 	if _hub_panel:
@@ -357,8 +381,7 @@ func _rebuild_hub_tiles() -> void:
 func _setup_open_bar() -> void:
 	if _open_bar == null:
 		return
-	_open_main.text = Loc.t("prep.home.open")
-	_open_elite.text = Loc.t("prep.home.elite_test")
+	_refresh_chrome_copy()
 	_open_elite.visible = ProductVersion.test_tools_enabled()
 	_sync_diff_from_demo()
 	_open_main.custom_minimum_size = Vector2(0, PrepWidgets.OPEN_MAIN_H)
@@ -933,8 +956,8 @@ func _activate() -> void:
 			_grant_test_money()
 		"toggle_virtual_stick":
 			_toggle_virtual_stick()
-		"cycle_locale":
-			_cycle_locale()
+		"set_locale":
+			_set_locale(String(arg))
 		"play_sfx":
 			SfxBus.play(String(arg))
 		"noop":
@@ -951,11 +974,13 @@ func _toggle_virtual_stick() -> void:
 	_refresh()
 
 
-func _cycle_locale() -> void:
-	PlatformServices.cycle_locale()
+func _set_locale(code: String) -> void:
+	PlatformServices.set_locale(code)
 	SfxBus.play("sfx_ui_confirm")
+	## Keep page; _show_page would clear _msg. locale_changed also refreshes chrome.
 	var lang_name := Loc.t("locale.name.%s" % Loc.get_locale())
-	_msg = Loc.t("prep.sys.language", [lang_name])
+	_msg = Loc.t("prep.locale.changed", [lang_name])
+	_refresh_chrome_copy()
 	_refresh()
 
 

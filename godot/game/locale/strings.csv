@@ -15,6 +15,9 @@ pause.camera_normal,鏡頭：正常,Camera: Normal,镜头：正常,カメラ：�
 pause.camera_far,鏡頭：稍遠,Camera: Farther,镜头：稍远,カメラ：少し遠い
 pause.camera_overview,鏡頭：全地圖,Camera: Full map,镜头：全地图,カメラ：全体図
 pause.language,語言：%s,Language: %s,语言：%s,言語：%s
+pause.language_pick.title,選擇語言,Choose language,选择语言,言語を選ぶ
+pause.language_pick.back,返回,Back,返回,戻る
+pause.language_pick.current,▶ %s,▶ %s,▶ %s,▶ %s
 locale.name.zh_TW,繁體中文,繁體中文,繁體中文,繁體中文
 locale.name.en,English,English,English,English
 locale.name.zh_CN,简体中文,简体中文,简体中文,简体中文
@@ -77,6 +80,11 @@ prep.rating.row,%s　第 %d 日　%s（評級 %+d）,%s · Day %d · %s (grade %
 prep.sys.virtual_stick_on,觸控搖桿：開,Touch stick: On,触控摇杆：开,タッチスティック：オン
 prep.sys.virtual_stick_off,觸控搖桿：關,Touch stick: Off,触控摇杆：关,タッチスティック：オフ
 prep.sys.language,語言：%s,Language: %s,语言：%s,言語：%s
+prep.locale.title,選擇語言,Choose language,选择语言,言語を選ぶ
+prep.locale.info,選取介面語言。目前：%s,Pick the UI language. Current: %s,选取界面语言。目前：%s,UI言語を選びます。現在：%s
+prep.locale.row,　%s,%s,%s,%s
+prep.locale.row_current,▶ %s,▶ %s,▶ %s,▶ %s
+prep.locale.changed,語言已設為 %s,Language set to %s,语言已设为 %s,言語を %s に設定しました
 prep.home.stats,角色能力,Stats,角色能力,キャラ能力
 prep.home.skills,裝備技能,Skills,装备技能,スキル装備
 prep.home.skills_short,裝備技能,Skills,装备技能,スキル装備
