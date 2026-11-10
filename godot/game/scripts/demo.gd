@@ -89,6 +89,25 @@ const COOP_SOFT_MIN_PEN := 2.0
 var _customers: Node2D
 var _hud: CanvasLayer
 var _dirts: Array[Node2D] = []
+var _clerks: Array[Node2D] = []
+## M2.2: Host agent_id → node; client puppets share the same map.
+var _net_agents: Dictionary = {}
+var _next_agent_id: int = 1
+var _agent_xform_tick: int = 0
+const AGENT_XFORM_EVERY := 2
+## Client: spawn RPCs that arrived before `_world` existed.
+var _pending_agent_spawns: Array = []
+var _pending_flights: Array = []
+var _pending_agent_states: Array = []
+## M2.4: net_shelf_id → shelf node; client pending stock RPCs before world ready.
+var _shelves_by_net_id: Dictionary = {}
+var _next_net_shelf_id: int = 0
+var _pending_stock_states: Array = []
+var _warehouse_hooked: bool = false
+## M2.6: client pending carry RPCs before world ready.
+var _pending_carry_states: Array = []
+## M2.9: client pending checkout prompt RPCs before world ready.
+var _pending_prompt_states: Array = []
 var _dirt_spawn_in: float = Tuning.DIRT_SPAWN_SEC
 var _thief_spawn_in: float = Tuning.THIEF_SPAWN_FIRST
 var _early_open: bool = false
@@ -119,6 +138,27 @@ func _ready() -> void:
 	add_child(_prep)
 	_prep.setup(self)
 	_prep.start_day.connect(_begin_day)
+	SessionService.start_day.connect(_begin_day)
+	SessionService.room_paused_changed.connect(_on_room_paused_changed)
+	SessionService.peer_left.connect(_on_session_peer_left)
+	SessionService.seats_changed.connect(_on_session_seats_changed)
+	SessionService.settle_payload_received.connect(_on_settle_payload)
+	SessionService.disconnect_session.connect(_on_session_disconnect)
+	if not SessionService.agent_spawn_received.is_connected(_on_agent_spawn_received):
+		SessionService.agent_spawn_received.connect(_on_agent_spawn_received)
+	if not SessionService.agent_despawn_received.is_connected(_on_agent_despawn_received):
+		SessionService.agent_despawn_received.connect(_on_agent_despawn_received)
+	if not SessionService.agent_state_received.is_connected(_on_agent_state_received):
+		SessionService.agent_state_received.connect(_on_agent_state_received)
+	if not SessionService.flight_received.is_connected(_on_flight_received):
+		SessionService.flight_received.connect(_on_flight_received)
+	if not SessionService.stock_state_received.is_connected(_on_stock_state_received):
+		SessionService.stock_state_received.connect(_on_stock_state_received)
+	if not SessionService.carry_state_received.is_connected(_on_carry_state_received):
+		SessionService.carry_state_received.connect(_on_carry_state_received)
+	if not SessionService.prompt_state_received.is_connected(_on_prompt_state_received):
+		SessionService.prompt_state_received.connect(_on_prompt_state_received)
+	_hook_warehouse_changed()
 	_pause = PauseScene.instantiate()
 	add_child(_pause)
 	_pause.setup(self)
@@ -130,6 +170,14 @@ func _begin_day() -> void:
 		_prep.set_process_unhandled_input(false)
 	if _pause and _pause.has_method("close_menu"):
 		_pause.close_menu()
+	## Client applies host world snapshot before building the floor.
+	if SessionService.is_client():
+		var snap: Dictionary = SessionService.take_pending_day_snapshot()
+		var world = snap.get("world", {})
+		if world is Dictionary and not world.is_empty():
+			var err := state.from_dict(world)
+			if err != "":
+				push_warning("client day snapshot failed: %s" % err)
 	_clear_world()
 	_early_closed = false
 	_skip_xp = 0
@@ -145,10 +193,16 @@ func _begin_day() -> void:
 	thieves_caught = 0
 	thieves_escaped = 0
 	cleaned = 0
-	seat_cleaned = [0]
-	seat_served = [0]
-	seat_caught = [0]
-	seat_elite = [0]
+	var sn := maxi(1, SeatTable.seat_count)
+	seat_cleaned = []
+	seat_served = []
+	seat_caught = []
+	seat_elite = []
+	for _i in sn:
+		seat_cleaned.append(0)
+		seat_served.append(0)
+		seat_caught.append(0)
+		seat_elite.append(0)
 	_settled = false
 	_closeout_ready_msec = 0
 	real_time = 0.0
@@ -185,23 +239,37 @@ func _begin_day() -> void:
 	_world.add_child(_customers)
 	_players.clear()
 	var spawn0 := FLOOR_ORIGIN + Vector2(FLOOR_SIZE.x * 0.5, FLOOR_SIZE.y - 80)
-	_player = _spawn_seated_player(0, state, nodes, spawn0)
-	if SeatTable.is_coop():
-		var guest = SeatTable.guest_stats
-		if guest == null:
-			guest = load("res://scripts/session/character_sheet.gd").from_game_state(state)
-			SeatTable.guest_stats = guest
-		var spawn1 := spawn0 + Vector2(40, 0)
-		var p2 := _spawn_seated_player(1, guest, nodes, spawn1)
-		_player.add_collision_exception_with(p2)
-		p2.add_collision_exception_with(_player)
+	for seat in SeatTable.seat_ids():
+		var stats_src = state if seat == 0 else SeatTable.sheet_of(seat)
+		if stats_src == null:
+			stats_src = load("res://scripts/session/character_sheet.gd").from_game_state(state)
+			SeatTable.set_sheet(seat, stats_src)
+		if seat == 1 and SeatTable.guest_stats == null:
+			SeatTable.guest_stats = stats_src
+		var spawn := spawn0 + Vector2(40.0 * float(seat), 0.0)
+		_spawn_seated_player(seat, stats_src, nodes, spawn)
+	_player = _players[0] if not _players.is_empty() else null
+	## Soft collision exceptions between all seated players.
+	for i in _players.size():
+		for j in range(i + 1, _players.size()):
+			var a: CharacterBody2D = _players[i]
+			var b: CharacterBody2D = _players[j]
+			if a and b:
+				a.add_collision_exception_with(b)
+				b.add_collision_exception_with(a)
+	## Camera follows local owned seats; attach to first local player (fallback seat0).
+	var cam_host: CharacterBody2D = _player
+	for p in _players:
+		if p != null and SeatTable.seat_owned_locally(int(p.seat_id)):
+			cam_host = p
+			break
 	var cam := Camera2D.new()
 	cam.zoom = Vector2(Tuning.CAMERA_ZOOM, Tuning.CAMERA_ZOOM)
 	cam.position_smoothing_enabled = true
 	cam.position_smoothing_speed = 7.5
-	_player.add_child(cam)
-	cam.make_current()
-	## One shared Camera2D; every seat needs the ref for skill/fight zoom.
+	if cam_host:
+		cam_host.add_child(cam)
+		cam.make_current()
 	for p in _players:
 		if p != null:
 			p.camera = cam
@@ -216,7 +284,11 @@ func _begin_day() -> void:
 	pad.name = "TouchPad"
 	add_child(pad)
 	pad.visible = InputMode.show_vj()
-	pad.stick_changed.connect(func(axis: Vector2) -> void: _player.stick_axis = axis)
+	pad.stick_changed.connect(func(axis: Vector2) -> void:
+		var lp := _local_touch_player()
+		if lp:
+			lp.stick_axis = axis
+	)
 	pad.hold_changed.connect(func(action: String, pressed: bool) -> void:
 		if _early_open and pressed:
 			if action == "interact":
@@ -231,20 +303,44 @@ func _begin_day() -> void:
 			if _closeout_input_ready():
 				_return_to_prep()
 			return
-		if _player:
-			_player.set_hold(action, pressed)
+		var lp2 := _local_touch_player()
+		if lp2:
+			lp2.set_hold(action, pressed)
 	)
 	pad.skill_hotkey.connect(func(slot: int) -> void:
-		if _player and _player.has_method("cast_skill_hotkey"):
-			_player.call("cast_skill_hotkey", slot)
+		var lp3 := _local_touch_player()
+		if lp3 and lp3.has_method("cast_skill_hotkey"):
+			lp3.call("cast_skill_hotkey", slot)
 	)
 	if not InputMode.show_vj_changed.is_connected(_on_show_vj_changed):
 		InputMode.show_vj_changed.connect(_on_show_vj_changed)
 	if not InputMode.clear_virtual_holds.is_connected(_clear_virtual_holds):
 		InputMode.clear_virtual_holds.connect(_clear_virtual_holds)
-	_spawn_clerks()
-	for i in Tuning.dirt_start(_play_easy()):
-		_try_spawn_dirt()
+	## Clients skip clerk/dirt AI seeds — host owns world agents (§12 / listen-server).
+	if SessionService.is_server() or SessionService.is_local_transport():
+		_spawn_clerks()
+		for i in Tuning.dirt_start(_play_easy()):
+			_try_spawn_dirt()
+		## Align client shelf／warehouse／carry／prompt presentation after world exists (M2.4／M2.6／M2.9).
+		if SessionService.is_lan() and SessionService.is_server():
+			_dump_all_stock()
+			_dump_all_carry()
+			_dump_all_prompt()
+	else:
+		## Apply spawn／flight／state RPCs that raced ahead of world build (M2.2～M2.9).
+		_flush_pending_agent_spawns()
+		_flush_pending_flights()
+		_flush_pending_agent_states()
+		_flush_pending_stock_states()
+		_flush_pending_carry_states()
+		_flush_pending_prompt_states()
+
+
+func _local_touch_player() -> CharacterBody2D:
+	for p in _players:
+		if p != null and is_instance_valid(p) and SeatTable.seat_owned_locally(int(p.seat_id)):
+			return p
+	return _player
 
 
 func _clear_world() -> void:
@@ -260,12 +356,24 @@ func _clear_world() -> void:
 	shelves.clear()
 	_shelves_by_sku.clear()
 	_empty_by_cat.clear()
+	_shelves_by_net_id.clear()
+	_next_net_shelf_id = 0
 	_dirt_block_cells.clear()
 	_thieves.clear()
 	_guest_n = 0
 	_active_thief_n = 0
 	cashiers.clear()
 	_dirts.clear()
+	_clerks.clear()
+	_net_agents.clear()
+	_next_agent_id = 1
+	_agent_xform_tick = 0
+	_pending_agent_spawns.clear()
+	_pending_flights.clear()
+	_pending_agent_states.clear()
+	_pending_stock_states.clear()
+	_pending_carry_states.clear()
+	_pending_prompt_states.clear()
 	_obstacles.clear()
 	cashier = null
 	_player = null
@@ -318,6 +426,10 @@ func _spawn_clerks() -> void:
 			reg = cashiers[mini(int(c["register"]), cashiers.size() - 1)]
 		_world.add_child(clerk)
 		clerk.setup(self, FLOOR_ORIGIN + Vector2(80 + i * 36, FLOOR_SIZE.y - 120), String(c["role"]), reg)
+		_clerks.append(clerk)
+		_register_net_agent(clerk, "clerk", {
+			"role": String(c["role"]),
+		})
 		i += 1
 
 
@@ -660,7 +772,13 @@ func cast_shadow_clone(level: int) -> void:
 	var jobs: Dictionary = DarkSide.plan(drafted, rolls, empties)
 	for c in drafted:
 		var row: Dictionary = jobs[c]
-		c.call("begin_job", String(row.get("role", "restock")), row.get("register", null))
+		var role := String(row.get("role", "restock"))
+		c.call("begin_job", role, row.get("register", null))
+		var skin := String(c.get("_model_id")) if c.get("_model_id") != null else "player"
+		_register_net_agent(c, "shadow_clone", {
+			"role": role,
+			"skin_id": skin,
+		})
 	if _player and _player.has_signal("log_line"):
 		_player.log_line.emit(Loc.t("log.demo.shadow_clone", [drafted.size()]))
 
@@ -911,11 +1029,17 @@ func restock_for(cat: String) -> Node2D:
 
 
 func sync_stock() -> void:
-	if _player == null:
-		return
-	for n in _player.interactables:
-		if n != null and str(n.get("kind")) == "restock" and n.has_method("pull_stock"):
-			n.call("pull_stock")
+	## Refresh restock-point warehouse mirrors (M2.4 client warehouse apply).
+	var seen: Dictionary = {}
+	for p in _players:
+		if p == null or not is_instance_valid(p):
+			continue
+		for n in p.interactables:
+			if n == null or not is_instance_valid(n) or seen.has(n):
+				continue
+			seen[n] = true
+			if str(n.get("kind")) == "restock" and n.has_method("pull_stock"):
+				n.call("pull_stock")
 
 
 ## Aggregate unsold pieces: shelves, floor, in-flight, player carry,
@@ -1110,12 +1234,22 @@ func _return_to_prep() -> void:
 	phase = "prep"
 	clear_elite_test()
 	SessionService.close()
+	## LAN client still holds Host world snapshot in `state`; reload own save for XP / support / money.
+	_reload_local_save_for_prep()
 	_clear_world()
 	_prep.visible = true
 	_prep.set_process_unhandled_input(true)
 	_prep._show_page("home")
 	if _prep.has_method("maybe_offer_difficulty_prompt"):
 		_prep.call("maybe_offer_difficulty_prompt")
+
+
+func _reload_local_save_for_prep() -> void:
+	if state == null:
+		return
+	var err := state.load_from_disk()
+	if err != "":
+		push_warning("reload save for prep failed: %s" % err)
 
 
 func configure_elite_test(lv: int) -> void:
@@ -1150,11 +1284,125 @@ func can_open_pause() -> bool:
 
 
 func request_pause() -> void:
+	if SessionService.is_lan():
+		var open_now := _pause != null and _pause.has_method("is_open") and bool(_pause.call("is_open"))
+		SessionService.request_pause(not open_now)
+		return
 	if _pause == null or not _pause.has_method("open_menu"):
 		return
 	if _pause.has_method("is_open") and bool(_pause.call("is_open")):
 		return
 	_pause.call("open_menu", false)
+
+
+func _on_room_paused_changed(paused: bool) -> void:
+	if _pause == null:
+		return
+	if _pause.has_method("apply_net_pause"):
+		_pause.call("apply_net_pause", paused)
+		return
+	var open_now := _pause.has_method("is_open") and bool(_pause.call("is_open"))
+	if paused and not open_now and _pause.has_method("open_menu"):
+		_pause.call("open_menu", false)
+	elif not paused and open_now and _pause.has_method("close_menu"):
+		_pause.call("close_menu")
+
+
+func _on_session_peer_left(_peer_id: int) -> void:
+	_prune_frozen_players()
+
+
+func _on_session_seats_changed() -> void:
+	if phase == "restock" or phase == "open":
+		_prune_frozen_players()
+
+
+func _on_session_disconnect(during_day: bool = false) -> void:
+	## Host left mid-run (§12.7): abort day and return to prep — do not keep playing as P1.
+	## If settle already applied, Host closing the lobby is normal — keep closeout UI.
+	if SessionService.settlement_applied:
+		return
+	if not during_day:
+		return
+	if phase == "prep":
+		return
+	_dissolve_room_to_prep()
+
+
+func _dissolve_room_to_prep() -> void:
+	## Immediate room dissolve (no Host settle). Stops input on leftover avatars first.
+	if _pause != null and _pause.has_method("apply_net_pause"):
+		_pause.call("apply_net_pause", false)
+	elif _pause != null and _pause.has_method("close_menu"):
+		_pause.call("close_menu")
+	for p in _players:
+		if p == null or not is_instance_valid(p):
+			continue
+		p.set_process(false)
+		p.set_physics_process(false)
+		p.set_process_input(false)
+		p.set_process_unhandled_input(false)
+	_players.clear()
+	_player = null
+	phase = "closed"
+	_settled = true
+	_closeout_ready_msec = 0
+	_early_open = false
+	clear_elite_test()
+	_clear_world()
+	_reload_local_save_for_prep()
+	phase = "prep"
+	if _prep:
+		_prep.visible = true
+		_prep.set_process_unhandled_input(true)
+		_prep._show_page("home")
+		if _prep.has_method("_popup_info"):
+			_prep.call("_popup_info", Loc.t("lobby.error_title"), Loc.t("lobby.host_left"))
+
+
+func _prune_frozen_players() -> void:
+	var keep: Array[CharacterBody2D] = []
+	for p in _players:
+		if p == null or not is_instance_valid(p):
+			continue
+		if SeatTable.is_frozen(int(p.seat_id)):
+			p.queue_free()
+			continue
+		keep.append(p)
+	_players = keep
+	if not _players.is_empty():
+		_player = _players[0]
+	bump_hud()
+
+
+func _on_settle_payload(payload: Dictionary) -> void:
+	## Client: Host settle RPC applied (or failed) — show closeout, do not treat later room close as abort.
+	_settled = true
+	_closeout_ready_msec = Time.get_ticks_msec() + CLOSEOUT_HOLD_MSEC
+	phase = "closed"
+	if _hud == null:
+		return
+	_hud.show_closeout()
+	var apply: Dictionary = payload.get("_apply", {})
+	var ok := bool(apply.get("ok", false))
+	var shared_xp := int(apply.get("shared_xp", payload.get("shared_xp", 0)))
+	var support := int(apply.get("support_rating", 0))
+	var grade := int(apply.get("grade", payload.get("host_grade", 0)))
+	var revenue_gain := int(apply.get("revenue", payload.get("revenue", 0)))
+	var money_after := int(apply.get("money", 0))
+	var head := Loc.t("demo.closeout_head")
+	var xp_line: String
+	if ok:
+		xp_line = Loc.t("lobby.client_settle_ok", [shared_xp, support, grade])
+		if revenue_gain > 0 or money_after > 0:
+			xp_line += "\n" + Loc.t("lobby.client_settle_revenue", [revenue_gain, money_after])
+	else:
+		xp_line = Loc.t("lobby.client_settle_fail")
+	_hud._close_text.text = "\n".join([
+		head,
+		xp_line,
+		Loc.t("lobby.client_settle_hint"),
+	])
 
 
 func on_pause_opened() -> void:
@@ -1172,8 +1420,18 @@ func shop_camera_center() -> Vector2:
 func coop_camera_midpoint() -> Vector2:
 	var pts: Array[Vector2] = []
 	for p in _players:
-		if p != null and is_instance_valid(p):
-			pts.append(p.global_position)
+		if p == null or not is_instance_valid(p):
+			continue
+		## LAN: follow seats owned on this machine; local coop: all seats.
+		if SessionService.is_lan() and not SeatTable.seat_owned_locally(int(p.seat_id)):
+			continue
+		if SeatTable.is_frozen(int(p.seat_id)):
+			continue
+		pts.append(p.global_position)
+	if pts.is_empty():
+		for p2 in _players:
+			if p2 != null and is_instance_valid(p2) and not SeatTable.is_frozen(int(p2.seat_id)):
+				pts.append(p2.global_position)
 	if pts.is_empty():
 		if _player != null and is_instance_valid(_player):
 			return _player.global_position
@@ -1262,21 +1520,28 @@ func _maintain_coop_camera() -> void:
 func _soft_push_players(delta: float) -> void:
 	if _players.size() < 2:
 		return
-	var a: CharacterBody2D = _players[0]
-	var b: CharacterBody2D = _players[1]
-	if a == null or b == null or not is_instance_valid(a) or not is_instance_valid(b):
+	## Only host / local sim owns physics positions.
+	if SessionService.is_client():
 		return
-	var delta_pos := b.global_position - a.global_position
-	var dist := delta_pos.length()
-	if dist <= 0.001:
-		return
-	var pen := COOP_SOFT_RADIUS - dist
-	if pen < COOP_SOFT_MIN_PEN:
-		return
-	var n := delta_pos / dist
-	var push := pen / COOP_SOFT_RADIUS * COOP_SOFT_PUSH * delta
-	a.global_position -= n * push
-	b.global_position += n * push
+	for i in _players.size():
+		var a: CharacterBody2D = _players[i]
+		if a == null or not is_instance_valid(a) or SeatTable.is_frozen(int(a.seat_id)):
+			continue
+		for j in range(i + 1, _players.size()):
+			var b: CharacterBody2D = _players[j]
+			if b == null or not is_instance_valid(b) or SeatTable.is_frozen(int(b.seat_id)):
+				continue
+			var delta_pos := b.global_position - a.global_position
+			var dist := delta_pos.length()
+			if dist <= 0.001:
+				continue
+			var pen := COOP_SOFT_RADIUS - dist
+			if pen < COOP_SOFT_MIN_PEN:
+				continue
+			var n := delta_pos / dist
+			var push := pen / COOP_SOFT_RADIUS * COOP_SOFT_PUSH * delta
+			a.global_position -= n * push
+			b.global_position += n * push
 
 
 func _on_show_vj_changed(visible_now: bool) -> void:
@@ -1497,6 +1762,7 @@ func _process(delta: float) -> void:
 	_maintain_overview_camera()
 	_maintain_coop_camera()
 	_soft_push_players(delta)
+	_net_tick_intents_and_sync()
 	real_time += world_delta(delta)
 	var prev_phase := phase
 	var tick: Dictionary = DayPhase.advance(real_time)
@@ -1515,22 +1781,538 @@ func _process(delta: float) -> void:
 			SfxBus.play("sfx_phase_open")
 		if _consider_early_close():
 			return
-		_tick_guest_dusk(delta)
-		_spawn_in -= world_delta(delta)
-		if _spawn_in <= 0.0:
-			_spawn_customer()
-			_spawn_in = state.spawn_every()
-		_thief_spawn_in -= world_delta(delta)
-		if _thief_spawn_in <= 0.0:
-			_spawn_thief()
-			_thief_spawn_in = state.thief_spawn_sec()
+		## Listen-server: only host / local spawn agents.
+		if SessionService.is_server() or SessionService.is_local_transport():
+			_tick_guest_dusk(delta)
+			_spawn_in -= world_delta(delta)
+			if _spawn_in <= 0.0:
+				_spawn_customer()
+				_spawn_in = state.spawn_every()
+			_thief_spawn_in -= world_delta(delta)
+			if _thief_spawn_in <= 0.0:
+				_spawn_thief()
+				_thief_spawn_in = state.thief_spawn_sec()
 	if phase != prev_phase:
 		bump_hud()
 		host_phase_changed.emit(phase)
-	_dirt_spawn_in -= world_delta(delta)
-	if _dirt_spawn_in <= 0.0:
-		_try_spawn_dirt()
-		_dirt_spawn_in = dirt_spawn_interval()
+	if SessionService.is_server() or SessionService.is_local_transport():
+		_dirt_spawn_in -= world_delta(delta)
+		if _dirt_spawn_in <= 0.0:
+			_try_spawn_dirt()
+			_dirt_spawn_in = dirt_spawn_interval()
+
+
+func _net_tick_intents_and_sync() -> void:
+	if not SessionService.is_lan() or not SessionService.day_started:
+		return
+	if SessionService.is_client():
+		## Send local seat intents; apply host transforms to puppets.
+		for p in _players:
+			if p == null or not is_instance_valid(p):
+				continue
+			var sid := int(p.seat_id)
+			if SeatTable.seat_owned_locally(sid):
+				var mv := Controls.move_vector_for(sid)
+				## dash = run/dash hold (_k_held); skill = _l_held; ult = _u_held (M2.5).
+				var hotkey := -1
+				if p.has_method("take_pending_skill_hotkey"):
+					hotkey = int(p.call("take_pending_skill_hotkey"))
+				SessionService.send_intent(sid, {
+					"mx": mv.x,
+					"my": mv.y,
+					"interact": p.get("_j_held") == true,
+					"cancel": p.get("_cancel_held") == true,
+					"dash": p.get("_k_held") == true,
+					"skill": p.get("_l_held") == true,
+					"ult": p.get("_u_held") == true,
+					"hotkey": hotkey,
+				})
+		var xforms: Array = SessionService.peek_player_transforms()
+		for row in xforms:
+			if row is Dictionary:
+				var sid2 := int(row.get("seat", -1))
+				var pos := Vector2(float(row.get("px", 0.0)), float(row.get("py", 0.0)))
+				var fac := Vector2(float(row.get("fx", 1.0)), float(row.get("fy", 0.0)))
+				for p2 in _players:
+					if p2 != null and is_instance_valid(p2) and int(p2.seat_id) == sid2:
+						if SeatTable.seat_owned_locally(sid2):
+							## Host is authority. Soft-reconcile local prediction so fight/KO
+							## dual-sim cannot leave CLIENT permanently offset from HOST.
+							if p2.global_position.distance_squared_to(pos) > 64.0:
+								p2.global_position = pos
+								p2.facing = fac
+						else:
+							p2.global_position = pos
+							p2.facing = fac
+						break
+		_apply_agent_transforms(SessionService.peek_agent_transforms())
+		return
+	## Host: apply remote intents + broadcast transforms.
+	for p in _players:
+		if p == null or not is_instance_valid(p):
+			continue
+		var sid3 := int(p.seat_id)
+		if SeatTable.seat_owned_locally(sid3) or SeatTable.is_frozen(sid3):
+			continue
+		var intent: Dictionary = SessionService.take_remote_intent(sid3)
+		if intent.is_empty():
+			continue
+		p.remote_move = Vector2(float(intent.get("mx", 0.0)), float(intent.get("my", 0.0)))
+		## Hold edges: apply pressed state from remote (M2.5: dash/skill/ult correct).
+		if p.has_method("set_hold"):
+			p.set_hold("interact", intent.get("interact", false) == true)
+			p.set_hold("cancel", intent.get("cancel", false) == true)
+			p.set_hold("dash", intent.get("dash", false) == true)
+			p.set_hold("skill", intent.get("skill", false) == true)
+			p.set_hold("ult", intent.get("ult", false) == true)
+		var hotkey := int(intent.get("hotkey", -1))
+		if hotkey >= 0 and p.has_method("_try_skill_hotkey"):
+			p.call("_try_skill_hotkey", hotkey)
+	var out: Array = []
+	for p3 in _players:
+		if p3 == null or not is_instance_valid(p3):
+			continue
+		var fac2: Vector2 = p3.facing if "facing" in p3 else Vector2.RIGHT
+		out.append({
+			"seat": int(p3.seat_id),
+			"px": p3.global_position.x,
+			"py": p3.global_position.y,
+			"fx": fac2.x,
+			"fy": fac2.y,
+		})
+	SessionService.broadcast_player_transforms(out)
+	_agent_xform_tick += 1
+	if _agent_xform_tick >= AGENT_XFORM_EVERY:
+		_agent_xform_tick = 0
+		SessionService.broadcast_agent_transforms(_collect_agent_transforms())
+
+
+func _alloc_agent_id() -> int:
+	var id := _next_agent_id
+	_next_agent_id += 1
+	return id
+
+
+func _register_net_agent(node: Node, kind: String, extra: Dictionary = {}) -> void:
+	## Host-only: assign id, track, broadcast spawn to clients (M2.2).
+	if node == null or not is_instance_valid(node):
+		return
+	if SessionService.is_lan() and SessionService.is_client():
+		return
+	var aid := _alloc_agent_id()
+	node.set("net_agent_id", aid)
+	_net_agents[aid] = node
+	if not node.tree_exiting.is_connected(_on_net_agent_tree_exiting):
+		node.tree_exiting.connect(_on_net_agent_tree_exiting.bind(aid))
+	if not SessionService.is_lan() or not SessionService.is_server():
+		return
+	var payload := {
+		"id": aid,
+		"kind": kind,
+		"px": float(node.global_position.x) if node is Node2D else 0.0,
+		"py": float(node.global_position.y) if node is Node2D else 0.0,
+		"fx": 0.0,
+		"fy": 1.0,
+	}
+	if node is CharacterBody2D:
+		var vel: Vector2 = (node as CharacterBody2D).velocity
+		if vel.length_squared() > 1.0:
+			payload["fx"] = vel.x
+			payload["fy"] = vel.y
+	for k in extra.keys():
+		payload[k] = extra[k]
+	SessionService.broadcast_agent_spawn(payload)
+
+
+func _on_net_agent_tree_exiting(agent_id: int) -> void:
+	_net_agents.erase(agent_id)
+	if SessionService.is_lan() and SessionService.is_server() and SessionService.day_started:
+		SessionService.broadcast_agent_despawn(agent_id, "gone")
+
+
+func _collect_agent_transforms() -> Array:
+	var out: Array = []
+	var stale: Array[int] = []
+	for aid in _net_agents.keys():
+		var n = _net_agents[aid]
+		if n == null or not is_instance_valid(n):
+			stale.append(int(aid))
+			continue
+		if not (n is Node2D):
+			continue
+		## Static presentation agents — pose fixed after spawn (M2.3).
+		var kind := String(n.get("kind")) if n.get("kind") != null else ""
+		if kind in ["drop", "dirt", "universal_cannon"]:
+			continue
+		var fx := 0.0
+		var fy := 1.0
+		if n is CharacterBody2D:
+			var vel: Vector2 = (n as CharacterBody2D).velocity
+			if vel.length_squared() > 16.0:
+				fx = vel.x
+				fy = vel.y
+			elif "facing" in n:
+				var f: Vector2 = n.facing
+				fx = f.x
+				fy = f.y
+		out.append({
+			"id": int(aid),
+			"px": (n as Node2D).global_position.x,
+			"py": (n as Node2D).global_position.y,
+			"fx": fx,
+			"fy": fy,
+		})
+	for sid in stale:
+		_net_agents.erase(sid)
+	return out
+
+
+func _apply_agent_transforms(rows: Array) -> void:
+	for row in rows:
+		if not (row is Dictionary):
+			continue
+		var aid := int(row.get("id", -1))
+		if aid < 0 or not _net_agents.has(aid):
+			continue
+		var n = _net_agents[aid]
+		if n == null or not is_instance_valid(n):
+			_net_agents.erase(aid)
+			continue
+		var pos := Vector2(float(row.get("px", 0.0)), float(row.get("py", 0.0)))
+		var fac := Vector2(float(row.get("fx", 0.0)), float(row.get("fy", 1.0)))
+		if n.has_method("apply_net_pose"):
+			n.call("apply_net_pose", pos, fac)
+		elif n is Node2D:
+			(n as Node2D).global_position = pos
+
+
+func _on_agent_spawn_received(payload: Dictionary) -> void:
+	## Client: instantiate presentation puppet from Host spawn event.
+	if not SessionService.is_client():
+		return
+	if _world == null or not is_instance_valid(_world) or _customers == null:
+		_pending_agent_spawns.append(payload.duplicate(true))
+		return
+	_apply_agent_spawn_payload(payload)
+
+
+func _flush_pending_agent_spawns() -> void:
+	if _pending_agent_spawns.is_empty():
+		return
+	var queued: Array = _pending_agent_spawns.duplicate(true)
+	_pending_agent_spawns.clear()
+	for payload in queued:
+		if payload is Dictionary:
+			_apply_agent_spawn_payload(payload)
+
+
+func _apply_agent_spawn_payload(payload: Dictionary) -> void:
+	var aid := int(payload.get("id", -1))
+	if aid < 0 or _net_agents.has(aid):
+		return
+	var kind := String(payload.get("kind", ""))
+	var pos := Vector2(float(payload.get("px", 0.0)), float(payload.get("py", 0.0)))
+	match kind:
+		"customer", "thief":
+			_spawn_customer_puppet(aid, kind == "thief", pos, payload)
+		"clerk":
+			_spawn_clerk_puppet(aid, pos, payload)
+		"dirt":
+			_spawn_dirt_puppet(aid, pos, payload)
+		"drop":
+			_spawn_drop_puppet(aid, pos, payload)
+		"shadow_clone":
+			_spawn_shadow_clone_puppet(aid, pos, payload)
+		"universal_cannon":
+			_spawn_cannon_puppet(aid, pos, payload)
+		_:
+			pass
+
+
+func _on_agent_state_received(payload: Dictionary) -> void:
+	if not SessionService.is_client():
+		return
+	if _world == null or not is_instance_valid(_world):
+		_pending_agent_states.append(payload.duplicate(true))
+		return
+	_apply_agent_state_payload(payload)
+
+
+func _flush_pending_agent_states() -> void:
+	if _pending_agent_states.is_empty():
+		return
+	var queued: Array = _pending_agent_states.duplicate(true)
+	_pending_agent_states.clear()
+	for payload in queued:
+		if payload is Dictionary:
+			_apply_agent_state_payload(payload)
+
+
+func _apply_agent_state_payload(payload: Dictionary) -> void:
+	var aid := int(payload.get("id", -1))
+	if aid < 0 or not _net_agents.has(aid):
+		return
+	var n = _net_agents[aid]
+	if n == null or not is_instance_valid(n):
+		_net_agents.erase(aid)
+		return
+	## Drop remaining count.
+	if payload.has("n") and n.has_method("apply_net_count"):
+		n.call("apply_net_count", int(payload.get("n", 0)))
+		if int(payload.get("n", 0)) <= 0:
+			_net_agents.erase(aid)
+		return
+	## Guest／thief shopping pictogram chrome (M2.7).
+	if payload.has("shopping") and n.has_method("apply_net_shopping"):
+		n.call("apply_net_shopping", payload.get("shopping", []))
+		return
+	## Guest checkout dir sequence (M2.9).
+	if payload.has("checkout_seq") and n.has_method("apply_net_checkout_seq"):
+		n.call(
+			"apply_net_checkout_seq",
+			payload.get("checkout_seq", []),
+			bool(payload.get("checkout_init", false)),
+		)
+		return
+	## Dirt clean StickHint／meter chrome (M2.8).
+	if payload.has("cleaning") and n.has_method("apply_net_clean"):
+		n.call(
+			"apply_net_clean",
+			bool(payload.get("cleaning", false)),
+			float(payload.get("meter", 0.0)),
+			Vector2(float(payload.get("sx", 0.0)), float(payload.get("sy", 0.0))),
+			int(payload.get("seat", -1)),
+		)
+		return
+	## Dark Side temp morph on customer puppet.
+	if payload.has("temp") and n.has_method("apply_net_temp_state"):
+		n.call("apply_net_temp_state", bool(payload.get("temp", false)), String(payload.get("role", "")))
+		return
+	## Cannon ammo label.
+	if payload.has("ammo_n") and n.has_method("apply_net_ammo"):
+		n.call("apply_net_ammo", int(payload.get("ammo_n", 0)), String(payload.get("sku", "")))
+		return
+	## Host fight outcome for a presentation thief (unlock client mash / pending KO).
+	if payload.has("fight_clear"):
+		_resolve_net_fight_clear(n, bool(payload.get("caught", false)))
+
+
+func _obj_truthy(obj: Object, prop: String) -> bool:
+	## Object.get missing → null; Godot 4 has no bool(null) constructor.
+	if obj == null or not is_instance_valid(obj):
+		return false
+	var v = obj.get(prop)
+	return v != null and v == true
+
+
+func _resolve_net_fight_clear(thief: Node, caught: bool) -> void:
+	if thief == null or not is_instance_valid(thief):
+		return
+	if thief.has_method("apply_net_fight_clear"):
+		thief.call("apply_net_fight_clear", caught)
+	for p in _players:
+		if p == null or not is_instance_valid(p):
+			continue
+		if p.get("target") != thief:
+			continue
+		if not (_obj_truthy(p, "_fighting") or _obj_truthy(p, "_net_ko_pending") or _obj_truthy(p, "_fight_ko")):
+			continue
+		if caught:
+			if not _obj_truthy(p, "_fight_ko"):
+				play_ko_banner()
+			if p.has_method("_end_fight"):
+				p.call("_end_fight", true)
+		elif p.has_method("apply_net_fight_fail"):
+			p.call("apply_net_fight_fail")
+		elif p.has_method("_end_fight"):
+			p.call("_end_fight", false)
+
+
+func _on_flight_received(payload: Dictionary) -> void:
+	if not SessionService.is_client():
+		return
+	if _world == null or not is_instance_valid(_world):
+		_pending_flights.append(payload.duplicate(true))
+		return
+	_play_net_flight(payload)
+
+
+func _flush_pending_flights() -> void:
+	if _pending_flights.is_empty():
+		return
+	var queued: Array = _pending_flights.duplicate(true)
+	_pending_flights.clear()
+	for payload in queued:
+		if payload is Dictionary:
+			_play_net_flight(payload)
+
+
+func _play_net_flight(payload: Dictionary) -> void:
+	## Client VFX only — do NOT place a floor box on land (Host sends drop spawn).
+	if _world == null:
+		return
+	var sku := String(payload.get("sku", ""))
+	var n := int(payload.get("n", 0))
+	if sku == "" or n <= 0:
+		return
+	var from := Vector2(float(payload.get("fx", 0.0)), float(payload.get("fy", 0.0)))
+	var to := Vector2(float(payload.get("tx", 0.0)), float(payload.get("ty", 0.0)))
+	var dur := float(payload.get("dur", Tuning.DROP_FLIGHT_SEC))
+	var flight: Node2D = DropFlightScript.new()
+	flight.setup(sku, from, to, dur, n)
+	_world.add_child(flight)
+
+
+func _on_agent_despawn_received(agent_id: int, _reason: String) -> void:
+	if not SessionService.is_client():
+		return
+	## Drop matching pending spawn if despawn raced ahead.
+	var i := 0
+	while i < _pending_agent_spawns.size():
+		var row = _pending_agent_spawns[i]
+		if row is Dictionary and int(row.get("id", -1)) == agent_id:
+			_pending_agent_spawns.remove_at(i)
+			continue
+		i += 1
+	if not _net_agents.has(agent_id):
+		return
+	var n = _net_agents[agent_id]
+	_net_agents.erase(agent_id)
+	## Free local seats still mashed against this presentation thief.
+	if n != null and is_instance_valid(n):
+		var was_thief := _obj_truthy(n, "is_thief")
+		for p in _players:
+			if p == null or not is_instance_valid(p):
+				continue
+			if p.get("target") != n:
+				continue
+			if _obj_truthy(p, "_fighting") or _obj_truthy(p, "_net_ko_pending") or _obj_truthy(p, "_fight_ko"):
+				if was_thief and not _obj_truthy(p, "_fight_ko"):
+					play_ko_banner()
+				if p.has_method("_end_fight"):
+					p.call("_end_fight", true)
+		_clerks.erase(n)
+		_dirts.erase(n)
+		_remove_interactable(n)
+		n.queue_free()
+
+
+func _spawn_customer_puppet(aid: int, thief: bool, pos: Vector2, payload: Dictionary) -> void:
+	if _customers == null:
+		return
+	var c: CharacterBody2D = CustomerScript.new()
+	_customers.add_child(c)
+	c.setup(self, pos, thief)
+	c.global_position = pos
+	c.net_puppet = true
+	c.net_agent_id = aid
+	## setup marks occupy for guests but we never register_customer — clear the flag only.
+	if not thief:
+		c._occupy_counted = false
+	if bool(payload.get("elite", false)):
+		c.call("become_elite", int(payload.get("elite_lv", 1)))
+	var model := String(payload.get("model", ""))
+	if model != "":
+		c._model_id = model
+	## Host absolute shopping — overwrite local setup/elite re-roll (M2.7).
+	if c.has_method("apply_net_shopping"):
+		c.call("apply_net_shopping", payload.get("shopping", []))
+	## Host checkout seq if already init mid-session (M2.9).
+	if payload.has("checkout_seq") and c.has_method("apply_net_checkout_seq"):
+		c.call(
+			"apply_net_checkout_seq",
+			payload.get("checkout_seq", []),
+			bool(payload.get("checkout_init", false)),
+		)
+	_net_agents[aid] = c
+	if thief:
+		_add_interactable(c)
+		c.tree_exiting.connect(func() -> void: _remove_interactable(c))
+
+
+func _spawn_clerk_puppet(aid: int, pos: Vector2, payload: Dictionary) -> void:
+	var role := String(payload.get("role", "restock"))
+	var reg: Node2D = null
+	if role == "cashier" and not cashiers.is_empty():
+		reg = cashiers[0]
+	var clerk: CharacterBody2D = ClerkScript.new()
+	_world.add_child(clerk)
+	clerk.setup(self, pos, role, reg)
+	clerk.net_puppet = true
+	clerk.net_agent_id = aid
+	_clerks.append(clerk)
+	_net_agents[aid] = clerk
+
+
+func _spawn_dirt_puppet(aid: int, pos: Vector2, payload: Dictionary) -> void:
+	var dtype := String(payload.get("dirt_type", Tuning.DIRT_TRASH))
+	var sz := Vector2(float(payload.get("sx", Tuning.DIRT_SIZE.x)), float(payload.get("sy", Tuning.DIRT_SIZE.y)))
+	var area: Area2D = DirtScript.new()
+	area.setup(dtype, sz)
+	area.global_position = pos
+	area.net_puppet = true
+	area.net_agent_id = aid
+	_world.add_child(area)
+	_dirts.append(area)
+	_add_interactable(area)
+	_net_agents[aid] = area
+	area.tree_exiting.connect(func() -> void:
+		_dirts.erase(area)
+		_remove_interactable(area)
+		_net_agents.erase(aid)
+	)
+
+
+func _spawn_drop_puppet(aid: int, pos: Vector2, payload: Dictionary) -> void:
+	var sku := String(payload.get("sku", ""))
+	var n := int(payload.get("n", 0))
+	if sku == "" or n <= 0:
+		return
+	var drop: Area2D = DroppedBoxScript.new()
+	drop.setup(sku, n)
+	drop.global_position = pos
+	drop.net_puppet = true
+	drop.net_agent_id = aid
+	_world.add_child(drop)
+	_add_interactable(drop)
+	_net_agents[aid] = drop
+	drop.tree_exiting.connect(func() -> void:
+		_remove_interactable(drop)
+		_net_agents.erase(aid)
+	)
+
+
+func _spawn_shadow_clone_puppet(aid: int, pos: Vector2, payload: Dictionary) -> void:
+	var snap := {
+		"skin_id": String(payload.get("skin_id", "player")),
+	}
+	var clone: CharacterBody2D = ShadowCloneScript.new()
+	_world.add_child(clone)
+	clone.setup(self, pos, snap)
+	clone.net_puppet = true
+	clone.net_agent_id = aid
+	var role := String(payload.get("role", "restock"))
+	clone.call("begin_job", role, null)
+	_net_agents[aid] = clone
+
+
+func _spawn_cannon_puppet(aid: int, pos: Vector2, payload: Dictionary) -> void:
+	var cannon: Node2D = preload("res://scripts/universal_cannon.gd").new()
+	cannon.host = self
+	cannon.level = clampi(int(payload.get("level", 3)), 1, 3)
+	cannon.owner_seat = int(payload.get("owner_seat", 0))
+	cannon.net_puppet = true
+	cannon.net_agent_id = aid
+	_world.add_child(cannon)
+	cannon.global_position = pos
+	var ammo_n := int(payload.get("ammo_n", 0))
+	var sku := String(payload.get("sku", ""))
+	if ammo_n > 0 and cannon.has_method("apply_net_ammo"):
+		cannon.call("apply_net_ammo", ammo_n, sku)
+	for player in _players:
+		if player != null and is_instance_valid(player) and not player.interactables.has(cannon):
+			player.interactables.append(cannon)
+	_net_agents[aid] = cannon
 
 
 func find_shelf(sku: String) -> Node2D:
@@ -1630,8 +2412,13 @@ func _unindex_empty_shelf(shelf: Node) -> void:
 
 func _register_shelf(node: Node2D) -> void:
 	shelves.append(node)
+	var nid := int(node.get("net_shelf_id")) if node.get("net_shelf_id") != null else -1
+	if nid >= 0:
+		_shelves_by_net_id[nid] = node
 	if node.has_signal("stock_sku_changed"):
 		node.connect("stock_sku_changed", _on_shelf_stock_sku_changed)
+	if node.has_signal("stock_changed"):
+		node.connect("stock_changed", _on_shelf_stock_changed)
 	var sku := ""
 	if node.has_method("occupied_sku"):
 		sku = String(node.call("occupied_sku"))
@@ -1641,6 +2428,125 @@ func _register_shelf(node: Node2D) -> void:
 		_index_shelf_sku(sku, node)
 	else:
 		_index_empty_shelf(node)
+
+
+func _hook_warehouse_changed() -> void:
+	if state == null or _warehouse_hooked:
+		return
+	if state.has_signal("warehouse_changed") and not state.warehouse_changed.is_connected(_on_warehouse_changed):
+		state.warehouse_changed.connect(_on_warehouse_changed)
+		_warehouse_hooked = true
+
+
+func _on_shelf_stock_changed(shelf: Node) -> void:
+	## Host only — client prediction is overwritten by absolute stock_state.
+	if SessionService.is_lan() and SessionService.is_client():
+		return
+	_broadcast_shelf_stock(shelf)
+
+
+func _on_warehouse_changed() -> void:
+	if SessionService.is_lan() and SessionService.is_client():
+		return
+	_broadcast_warehouse_stock()
+
+
+func _broadcast_shelf_stock(shelf: Node) -> void:
+	if shelf == null or not is_instance_valid(shelf):
+		return
+	if not SessionService.is_lan() or not SessionService.is_server() or not SessionService.day_started:
+		return
+	var nid := int(shelf.get("net_shelf_id")) if shelf.get("net_shelf_id") != null else -1
+	if nid < 0:
+		return
+	SessionService.broadcast_stock_state({
+		"shelves": [{
+			"id": nid,
+			"sku": String(shelf.get("sku")),
+			"count": int(shelf.get("count")),
+		}],
+	})
+
+
+func _broadcast_warehouse_stock() -> void:
+	if state == null:
+		return
+	if not SessionService.is_lan() or not SessionService.is_server() or not SessionService.day_started:
+		return
+	SessionService.broadcast_stock_state({
+		"warehouse": state.stock.duplicate(true),
+	})
+
+
+func _dump_all_stock() -> void:
+	if not SessionService.is_lan() or not SessionService.is_server() or not SessionService.day_started:
+		return
+	var rows: Array = []
+	for shelf in shelves:
+		if shelf == null or not is_instance_valid(shelf):
+			continue
+		var nid := int(shelf.get("net_shelf_id")) if shelf.get("net_shelf_id") != null else -1
+		if nid < 0:
+			continue
+		rows.append({
+			"id": nid,
+			"sku": String(shelf.get("sku")),
+			"count": int(shelf.get("count")),
+		})
+	var payload := {}
+	if not rows.is_empty():
+		payload["shelves"] = rows
+	if state != null:
+		payload["warehouse"] = state.stock.duplicate(true)
+	if not payload.is_empty():
+		SessionService.broadcast_stock_state(payload)
+
+
+func _on_stock_state_received(payload: Dictionary) -> void:
+	if not SessionService.is_client():
+		return
+	if _world == null or not is_instance_valid(_world):
+		_pending_stock_states.append(payload.duplicate(true))
+		return
+	_apply_stock_state_payload(payload)
+
+
+func _flush_pending_stock_states() -> void:
+	if _pending_stock_states.is_empty():
+		return
+	var queued: Array = _pending_stock_states.duplicate(true)
+	_pending_stock_states.clear()
+	for payload in queued:
+		if payload is Dictionary:
+			_apply_stock_state_payload(payload)
+
+
+func _apply_stock_state_payload(payload: Dictionary) -> void:
+	var wh_changed := false
+	if payload.has("warehouse") and state != null:
+		var wh = payload.get("warehouse")
+		if wh is Dictionary:
+			## Absolute warehouse dict from Host — replace presentation stock.
+			state.stock.clear()
+			for k in wh.keys():
+				state.stock[String(k)] = int(wh[k])
+			wh_changed = true
+	var rows = payload.get("shelves", [])
+	if rows is Array:
+		for row in rows:
+			if not (row is Dictionary):
+				continue
+			var nid := int(row.get("id", -1))
+			if nid < 0 or not _shelves_by_net_id.has(nid):
+				continue
+			var shelf = _shelves_by_net_id[nid]
+			if shelf == null or not is_instance_valid(shelf):
+				_shelves_by_net_id.erase(nid)
+				continue
+			if shelf.has_method("apply_net_stock"):
+				shelf.call("apply_net_stock", String(row.get("sku", "")), int(row.get("count", 0)))
+	if wh_changed:
+		sync_stock()
 
 
 func shelf_stand(shelf: Node2D) -> Vector2:
@@ -1846,6 +2752,8 @@ func _seat_actor(seat: int) -> Node2D:
 
 
 func skip_operate() -> void:
+	if SessionService.is_lan() and not SessionService.request_end_day():
+		return
 	if _settled or (phase != "restock" and phase != "open"):
 		return
 	if _early_open:
@@ -1859,6 +2767,14 @@ func skip_operate() -> void:
 func _finish_day() -> void:
 	if _settled:
 		return
+	## Clients wait for Host settle RPC (_on_settle_payload); do not invent a local shop settle.
+	if SessionService.is_client():
+		phase = "closed"
+		if _hud:
+			_hud.show_closeout()
+			_hud._close_text.text = Loc.t("lobby.client_waiting_settle")
+		## Keep _settled false until settle RPC (or Host abort).
+		return
 	_settled = true
 	_closeout_ready_msec = Time.get_ticks_msec() + CLOSEOUT_HOLD_MSEC
 	SfxBus.play("sfx_phase_close")
@@ -1867,7 +2783,7 @@ func _finish_day() -> void:
 	dismiss_universal_cannons()
 	## Unsold shelf + floor (+ in-flight) pieces → warehouse boxes before save.
 	_return_unsold_to_warehouse()
-	var seat_n := maxi(1, SeatTable.seat_count)
+	var seat_n := maxi(1, SessionService.open_day_seat_n if SessionService.is_lan() else SeatTable.seat_count)
 	var xp_pack: Dictionary = DaySettle.shared_xp_for_seats(
 		seat_served, seat_caught, seat_cleaned, seat_elite, seat_n, _skip_xp
 	)
@@ -1882,6 +2798,28 @@ func _finish_day() -> void:
 	if int(result.get("ups", 0)) > 0 or guest_ups > 0:
 		SfxBus.play("sfx_ui_level_up")
 	var save_err := state.save_to_disk()
+	if SessionService.is_lan() and SessionService.is_server():
+		var per_seat := {}
+		for s in range(seat_n):
+			## Offline peers skip writeback (§12.8); still list for connected clients.
+			if SeatTable.is_frozen(s) and SeatTable.owner_peer_of(s) != SessionService.local_peer_id:
+				## Frozen remote: only write if peer still in multiplayer peers list.
+				var owner := SeatTable.owner_peer_of(s)
+				var online := false
+				for pid in multiplayer.get_peers():
+					if int(pid) == owner:
+						online = true
+						break
+				if not online:
+					continue
+			per_seat[s] = {"shared_xp": shared_xp}
+		SessionService.send_settle_to_clients({
+			"host_grade": grade,
+			"per_seat": per_seat,
+			"shared_xp": shared_xp,
+			## M2.1：每位仍連線訪客本店同等加這筆營業額（非平分）。
+			"revenue": revenue,
+		})
 	if _hud:
 		_hud.show_closeout()
 		var loss := Loc.t("settle.loss") if bool(result["loss"]) else Loc.t("settle.no_loss")
@@ -1893,7 +2831,7 @@ func _finish_day() -> void:
 		var bonus := Loc.t("settle.test_bonus", [_skip_xp]) if _skip_xp > 0 else ""
 		var save_line := Loc.t("settle.saved") if save_err == "" else (Loc.t("settle.save_fail_prefix") + save_err)
 		var xp_line := Loc.t("settle.host_xp", [int(result["xp"]), bonus, state.level_note])
-		if SeatTable.is_coop():
+		if SeatTable.is_coop() or (SessionService.is_lan() and seat_n > 1):
 			xp_line = Loc.t("settle.split_xp", [
 				shared_xp, bonus, state.level_note, guest_xp_line
 			])
@@ -1980,6 +2918,20 @@ func _spawn_customer(ignore_cap: bool = false) -> bool:
 		c.call("become_elite", elite_lv)
 		announce_elite_customer(c)
 	register_customer(c)
+	var cust_extra := {
+		"pace": String(c.get("pace")),
+		"elite": bool(c.get("is_elite")),
+		"elite_lv": int(c.get("elite_lv")),
+		"model": String(c.get("_model_id")),
+		"shopping": c.shopping.duplicate() if c.get("shopping") != null else [],
+	}
+	if c.has_meta("checkout_seq_init") and bool(c.get_meta("checkout_seq_init")):
+		var dirs: Array = []
+		for d in c.checkout_seq:
+			dirs.append(int(d))
+		cust_extra["checkout_seq"] = dirs
+		cust_extra["checkout_init"] = true
+	_register_net_agent(c, "customer", cust_extra)
 	SfxBus.play("sfx_guest_enter")
 	return true
 
@@ -2043,6 +2995,13 @@ func _spawn_thief() -> void:
 	_add_interactable(c)
 	c.tree_exiting.connect(func() -> void: _remove_interactable(c))
 	register_customer(c)
+	_register_net_agent(c, "thief", {
+		"pace": "normal",
+		"elite": false,
+		"elite_lv": 0,
+		"model": String(c.get("_model_id")),
+		"shopping": c.shopping.duplicate() if c.get("shopping") != null else [],
+	})
 	SfxBus.play("sfx_thief_spawn")
 	if _player:
 		_player.log_line.emit(Loc.t("demo.thief_enter"))
@@ -2156,6 +3115,8 @@ func _make_shelf(r: Rect2, cat: String, index: int, rot: int, cap: int = Tuning.
 	node.category = cat
 	node.capacity = cap
 	node.shelf_index = index
+	node.net_shelf_id = _next_net_shelf_id
+	_next_net_shelf_id += 1
 	node.facing = _facing(rot)
 	_fit_body(node, r, "shelf_" + cat, rot, 2)
 	node.body = node.get_node("Body")
@@ -2269,6 +3230,11 @@ func _spawn_dirt(r: Rect2, dtype: String) -> void:
 	_add_interactable(area)
 	_mark_dirt_rect_cells(r, true)
 	area.tree_exiting.connect(_on_dirt_gone.bind(area))
+	_register_net_agent(area, "dirt", {
+		"dirt_type": dtype,
+		"sx": r.size.x,
+		"sy": r.size.y,
+	})
 	SfxBus.play("sfx_dirt_spawn")
 
 
@@ -2330,6 +3296,7 @@ func spawn_dropped_box(
 				dest = _sniper_drop_pos(sniper_shelf)
 	## Optional side offset (投籃高手第二件) after sniper dest so piles do not stack.
 	dest += land_nudge
+	_emit_net_flight(sku, n, pos, dest, Tuning.DROP_FLIGHT_SEC)
 	var flight: Node2D = DropFlightScript.new()
 	flight.setup(sku, pos, dest, Tuning.DROP_FLIGHT_SEC, n)
 	_world.add_child(flight)
@@ -2395,6 +3362,7 @@ func _spawn_box_flight(
 	duration: float,
 	on_landed: Callable,
 ) -> void:
+	_emit_net_flight(sku, n, from, to, duration)
 	var flight: Node2D = DropFlightScript.new()
 	flight.setup(sku, from, to, duration, n)
 	_world.add_child(flight)
@@ -2403,6 +3371,20 @@ func _spawn_box_flight(
 		if on_landed.is_valid():
 			on_landed.call()
 	)
+
+
+func _emit_net_flight(sku: String, n: int, from: Vector2, to: Vector2, duration: float) -> void:
+	if not SessionService.is_lan() or not SessionService.is_server():
+		return
+	SessionService.broadcast_flight({
+		"sku": sku,
+		"n": n,
+		"fx": from.x,
+		"fy": from.y,
+		"tx": to.x,
+		"ty": to.y,
+		"dur": duration,
+	})
 
 
 ## Directional toss: thief hit → KO; else matching shelf restock; else floor.
@@ -2832,6 +3814,7 @@ func _place_dropped_box(dest: Vector2, sku: String, n: int) -> void:
 	_world.add_child(drop)
 	_add_interactable(drop)
 	drop.tree_exiting.connect(func() -> void: _remove_interactable(drop))
+	_register_net_agent(drop, "drop", {"sku": sku, "n": n})
 
 
 func _make_player(skin_id: String = "player") -> CharacterBody2D:
@@ -2877,7 +3860,187 @@ func _spawn_seated_player(seat: int, stats_src, nodes: Array[Node2D], spawn: Vec
 	_players.append(p)
 	if seat == 0:
 		_player = p
+	_hook_player_carry(p)
 	return p
+
+
+func _hook_player_carry(p: CharacterBody2D) -> void:
+	if p == null or not is_instance_valid(p):
+		return
+	var inv = p.get("inventory")
+	if inv == null or not inv.has_signal("changed"):
+		return
+	var sid := int(p.seat_id)
+	var cb := _on_player_inventory_changed.bind(sid)
+	if not inv.changed.is_connected(cb):
+		inv.changed.connect(cb)
+
+
+func _on_player_inventory_changed(seat_id: int) -> void:
+	## Host only — client prediction is overwritten by absolute carry_state.
+	if SessionService.is_lan() and SessionService.is_client():
+		return
+	_broadcast_seat_carry(seat_id)
+
+
+func _broadcast_seat_carry(seat_id: int) -> void:
+	if not SessionService.is_lan() or not SessionService.is_server() or not SessionService.day_started:
+		return
+	var p := _player_for_seat(seat_id)
+	if p == null:
+		return
+	var inv = p.get("inventory")
+	if inv == null:
+		return
+	var items: Array = []
+	for sku in inv.items:
+		items.append(String(sku))
+	SessionService.broadcast_carry_state({
+		"seats": [{"seat": seat_id, "items": items}],
+	})
+
+
+func _dump_all_carry() -> void:
+	if not SessionService.is_lan() or not SessionService.is_server() or not SessionService.day_started:
+		return
+	var rows: Array = []
+	for p in _players:
+		if p == null or not is_instance_valid(p):
+			continue
+		var inv = p.get("inventory")
+		if inv == null:
+			continue
+		var items: Array = []
+		for sku in inv.items:
+			items.append(String(sku))
+		rows.append({"seat": int(p.seat_id), "items": items})
+	if rows.is_empty():
+		return
+	SessionService.broadcast_carry_state({"seats": rows})
+
+
+func _broadcast_seat_prompt(seat_id: int) -> void:
+	## Host checkout prompt chrome for one seat (M2.9).
+	if not SessionService.is_lan() or not SessionService.is_server() or not SessionService.day_started:
+		return
+	var p := _player_for_seat(seat_id)
+	if p == null or not p.has_method("prompt_net_row"):
+		return
+	SessionService.broadcast_prompt_state({
+		"seats": [p.call("prompt_net_row")],
+	})
+
+
+func _dump_all_prompt() -> void:
+	if not SessionService.is_lan() or not SessionService.is_server() or not SessionService.day_started:
+		return
+	var rows: Array = []
+	for p in _players:
+		if p == null or not is_instance_valid(p) or not p.has_method("prompt_net_row"):
+			continue
+		rows.append(p.call("prompt_net_row"))
+	if rows.is_empty():
+		return
+	SessionService.broadcast_prompt_state({"seats": rows})
+
+
+func _on_prompt_state_received(payload: Dictionary) -> void:
+	if not SessionService.is_client():
+		return
+	if _world == null or not is_instance_valid(_world):
+		_pending_prompt_states.append(payload.duplicate(true))
+		return
+	_apply_prompt_state_payload(payload)
+
+
+func _flush_pending_prompt_states() -> void:
+	if _pending_prompt_states.is_empty():
+		return
+	var queued: Array = _pending_prompt_states.duplicate(true)
+	_pending_prompt_states.clear()
+	for payload in queued:
+		if payload is Dictionary:
+			_apply_prompt_state_payload(payload)
+
+
+func _apply_prompt_state_payload(payload: Dictionary) -> void:
+	var rows = payload.get("seats", [])
+	if not (rows is Array):
+		return
+	for row in rows:
+		if not (row is Dictionary):
+			continue
+		var sid := int(row.get("seat", -1))
+		if sid < 0:
+			continue
+		var p := _player_for_seat(sid)
+		if p == null or not p.has_method("apply_net_checkout_prompt"):
+			continue
+		var raw = row.get("seq", [])
+		var dirs: Array = []
+		if raw is Array or raw is PackedInt32Array:
+			for v in raw:
+				dirs.append(int(v))
+		p.call(
+			"apply_net_checkout_prompt",
+			bool(row.get("on", false)),
+			dirs,
+			int(row.get("idx", 0)),
+			int(row.get("fail", -1)),
+			bool(row.get("done", false)),
+			float(row.get("hold", 0.0)),
+		)
+
+
+func _player_for_seat(seat_id: int) -> CharacterBody2D:
+	for p in _players:
+		if p != null and is_instance_valid(p) and int(p.seat_id) == seat_id:
+			return p
+	return null
+
+
+func _on_carry_state_received(payload: Dictionary) -> void:
+	if not SessionService.is_client():
+		return
+	if _world == null or not is_instance_valid(_world):
+		_pending_carry_states.append(payload.duplicate(true))
+		return
+	_apply_carry_state_payload(payload)
+
+
+func _flush_pending_carry_states() -> void:
+	if _pending_carry_states.is_empty():
+		return
+	var queued: Array = _pending_carry_states.duplicate(true)
+	_pending_carry_states.clear()
+	for payload in queued:
+		if payload is Dictionary:
+			_apply_carry_state_payload(payload)
+
+
+func _apply_carry_state_payload(payload: Dictionary) -> void:
+	var rows = payload.get("seats", [])
+	if not (rows is Array):
+		return
+	for row in rows:
+		if not (row is Dictionary):
+			continue
+		var sid := int(row.get("seat", -1))
+		if sid < 0:
+			continue
+		var p := _player_for_seat(sid)
+		if p == null:
+			continue
+		var inv = p.get("inventory")
+		if inv == null or not inv.has_method("apply_net_items"):
+			continue
+		var raw = row.get("items", [])
+		var items: Array = []
+		if raw is Array or raw is PackedStringArray:
+			for v in raw:
+				items.append(String(v))
+		## Absolute Host snapshot: puppets always; owned seats soft-reconcile (skip if equal).
+		inv.call("apply_net_items", items)
 
 
 func _solid(r: Rect2) -> void:
@@ -2938,6 +4101,12 @@ func deploy_universal_cannon(at: Vector2, level: int, seat: int) -> Node2D:
 	for player in _players:
 		if not player.interactables.has(cannon):
 			player.interactables.append(cannon)
+	_register_net_agent(cannon, "universal_cannon", {
+		"owner_seat": seat,
+		"level": cannon.level,
+		"ammo_n": 0,
+		"sku": "",
+	})
 	return cannon
 
 

@@ -12,11 +12,24 @@ var cleaning: bool = false
 var stick: Vector2 = Vector2.ZERO
 ## Seat currently driving the clean UI (-1 = free). Blocks other seats from wiping it.
 var clean_seat: int = -1
+## M2.2 LAN presentation puppet (Host owns clean authority).
+var net_agent_id: int = -1
+var net_puppet: bool = false
+
+
+func is_net_puppet() -> bool:
+	return net_puppet
+
+
+func apply_net_pose(pos: Vector2, _facing: Vector2 = Vector2.ZERO) -> void:
+	global_position = pos
 
 var _label: Label
 var _stick_draw: Node2D
 var _spr: Sprite2D
 var _clean_stage: int = -1
+## Last Host clean snapshot fingerprint (M2.8 throttle).
+var _net_clean_fp: String = ""
 
 
 func setup(dtype: String, size: Vector2) -> void:
@@ -61,11 +74,52 @@ func set_cleaning(active: bool, axis: Vector2, meter: float, seat: int = -1) -> 
 	if _stick_draw:
 		_stick_draw.set_process(cleaning)
 		_stick_draw.queue_redraw()
+	_broadcast_clean_state()
 	return true
+
+
+## Client presentation: Host clean chrome snapshot (M2.8).
+func apply_net_clean(active: bool, meter: float, axis: Vector2, seat: int = -1) -> void:
+	## Absolute Host chrome — drop local lock so set_cleaning cannot reject.
+	clean_seat = -1
+	set_cleaning(active, axis, meter, seat)
 
 
 func is_clean_locked_by_other(seat: int) -> bool:
 	return cleaning and clean_seat >= 0 and clean_seat != seat
+
+
+func _clean_state_fp() -> String:
+	## Quantize stick／meter so tiny wiggles do not flood the wire.
+	var sx := int(round(stick.x * 10.0))
+	var sy := int(round(stick.y * 10.0))
+	return "%d|%d|%d|%d|%d" % [
+		1 if cleaning else 0,
+		int(round(clean_meter)),
+		sx,
+		sy,
+		clean_seat,
+	]
+
+
+func _broadcast_clean_state() -> void:
+	## Host absolute clean chrome for client StickHint／fade (M2.8).
+	if net_puppet or net_agent_id < 0:
+		return
+	if not SessionService.is_lan() or not SessionService.is_server():
+		return
+	var fp := _clean_state_fp()
+	if fp == _net_clean_fp:
+		return
+	_net_clean_fp = fp
+	SessionService.broadcast_agent_state({
+		"id": net_agent_id,
+		"cleaning": cleaning,
+		"meter": clean_meter,
+		"sx": stick.x,
+		"sy": stick.y,
+		"seat": clean_seat,
+	})
 
 
 func _dirt_model() -> String:

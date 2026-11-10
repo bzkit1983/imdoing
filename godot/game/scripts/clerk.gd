@@ -22,6 +22,24 @@ var _sprite: CanvasItem
 var _model_id: String = "clerk_restock"
 var _job_search_cd: float = 0.0
 var _shown_anim: String = ""
+## M2.2 LAN presentation puppet.
+var net_agent_id: int = -1
+var net_puppet: bool = false
+var _puppet_facing: Vector2 = Vector2.DOWN
+
+
+func is_net_puppet() -> bool:
+	return net_puppet
+
+
+func apply_net_pose(pos: Vector2, facing: Vector2) -> void:
+	var moved := global_position.distance_squared_to(pos) > 2.25
+	global_position = pos
+	if facing.length_squared() > 0.01:
+		_puppet_facing = facing.normalized()
+	velocity = Vector2.ZERO
+	var anim := "walk" if moved else "idle"
+	_sync_visual(anim, _puppet_facing)
 
 
 func setup(game: Node, at: Vector2, job: String, reg: Node2D) -> void:
@@ -52,6 +70,9 @@ func setup(game: Node, at: Vector2, job: String, reg: Node2D) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if net_puppet:
+		## Presentation only — Host owns clerk AI (§8 / M2.2).
+		return
 	if _game == null or String(_game.get("phase")) == "closed" or String(_game.get("phase")) == "prep":
 		_sync_visual("idle", Vector2.DOWN)
 		return

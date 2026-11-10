@@ -41,6 +41,22 @@ var _dash_ko_tween: Tween
 var _vanishing: bool = false
 var _facing: Vector2 = Vector2.DOWN
 var _model_id: String = "player"
+## M2.3 LAN presentation puppet.
+var net_agent_id: int = -1
+var net_puppet: bool = false
+
+
+func is_net_puppet() -> bool:
+	return net_puppet
+
+
+func apply_net_pose(pos: Vector2, facing: Vector2) -> void:
+	var moved := global_position.distance_squared_to(pos) > 2.25
+	global_position = pos
+	if facing.length_squared() > 0.01:
+		_facing = facing.normalized()
+	velocity = Vector2.ZERO
+	_sync_visual("walk" if moved else "idle", _facing)
 
 
 func setup(game: Node, at: Vector2, snap: Dictionary) -> void:
@@ -122,6 +138,9 @@ func on_dirt() -> bool:
 
 func _physics_process(delta: float) -> void:
 	if _vanishing:
+		return
+	if net_puppet:
+		## Presentation only — Host owns clone AI (M2.3).
 		return
 	if _game == null:
 		return

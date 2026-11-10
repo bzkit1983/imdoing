@@ -43,6 +43,9 @@ const FURNITURE := {
 	"shelf_ice_24": {"price": 600, "w": 2, "h": 1, "unlock": 7, "cap": 24},
 }
 
+## Warehouse `stock` dict changed (restock pull / closeout credit). Demo broadcasts on LAN.
+signal warehouse_changed()
+
 var scenario: int = 1
 var money: int = 10000
 var xp: int = 0
@@ -89,6 +92,8 @@ var last_ops_rating: int = RatingRules.OPS_START
 var last_grade: int = 0
 ## Last difficulty-suggestion streak key that was accepted or dismissed.
 var difficulty_prompt_acked: String = ""
+## Support-other-shop rating when this character visits online (multiplayer.md §12.8).
+var support_rating: int = 0
 
 
 func _init() -> void:
@@ -111,6 +116,7 @@ func apply_scenario(id: int) -> void:
 	last_ops_rating = RatingRules.OPS_START
 	last_grade = 0
 	difficulty_prompt_acked = ""
+	support_rating = 0
 	_install_new_game_sets()
 	match id:
 		2:
@@ -400,6 +406,7 @@ func consume_stock(sku: String, n: int = 1) -> bool:
 	if int(stock.get(sku, 0)) < n:
 		return false
 	stock[sku] = int(stock[sku]) - n
+	warehouse_changed.emit()
 	return true
 
 
@@ -419,6 +426,8 @@ func credit_unsold_pieces(pieces_by_sku: Dictionary) -> int:
 			continue
 		stock[sku] = int(stock.get(sku, 0)) + pieces
 		total += pieces
+	if total > 0:
+		warehouse_changed.emit()
 	return total
 
 
@@ -1052,6 +1061,7 @@ func to_dict() -> Dictionary:
 		"last_ops_rating": last_ops_rating,
 		"last_grade": last_grade,
 		"difficulty_prompt_acked": difficulty_prompt_acked,
+		"support_rating": support_rating,
 	}
 
 
@@ -1151,6 +1161,7 @@ func from_dict(data: Dictionary) -> String:
 	last_ops_rating = int(data.get("last_ops_rating", RatingRules.OPS_START))
 	last_grade = clampi(int(data.get("last_grade", 0)), -3, 3)
 	difficulty_prompt_acked = String(data.get("difficulty_prompt_acked", ""))
+	support_rating = int(data.get("support_rating", 0))
 	_grant_initial_goods()
 	return ""
 

@@ -25,6 +25,10 @@ signal start_day
 var demo: Node
 var state: StateScript
 
+## LAN join address draft (M2).
+var _lan_address: String = "127.0.0.1"
+var _lan_addr_edit: LineEdit = null
+
 var _page: String = "scenario"
 var _index: int = 0
 var _skill_set: int = 0
@@ -123,12 +127,58 @@ func setup(host: Node) -> void:
 	state = host.state
 	layer = 30
 	_bind_nodes()
+	if not SessionService.lobby_changed.is_connected(_on_lobby_changed):
+		SessionService.lobby_changed.connect(_on_lobby_changed)
+	if not SessionService.net_error.is_connected(_on_net_error):
+		SessionService.net_error.connect(_on_net_error)
+	if not SessionService.start_day.is_connected(_on_session_start_day):
+		SessionService.start_day.connect(_on_session_start_day)
 	var load_err := state.load_from_disk()
 	if load_err == "":
 		_msg = Loc.t("prep.msg.loaded", [state.scenario, state.level, state.money])
 		_show_page("home")
 	else:
 		_show_page("scenario")
+
+
+func _on_lobby_changed() -> void:
+	if _page == "lobby" and visible:
+		_refresh()
+
+
+func _on_net_error(message: String) -> void:
+	## Mid-day Host drop is handled by demo._dissolve_room_to_prep (disconnect_session).
+	if not visible and SessionService.day_started:
+		return
+	_popup_info(Loc.t("lobby.error_title"), Loc.t("lobby.error_body", [message]))
+	if _page == "lobby" or _page == "lan_join":
+		_show_page("confirm")
+
+
+func _on_session_start_day() -> void:
+	## Client path: hide prep; demo listens to SessionService.start_day for _begin_day.
+	if SessionService.is_client():
+		visible = false
+		set_process_unhandled_input(false)
+
+
+func _ensure_lan_address_edit(addr: String) -> void:
+	if _lan_addr_edit == null:
+		_lan_addr_edit = LineEdit.new()
+		_lan_addr_edit.name = "LanAddressEdit"
+		_lan_addr_edit.position = Vector2(24, 160)
+		_lan_addr_edit.size = Vector2(480, 40)
+		_lan_addr_edit.placeholder_text = "127.0.0.1"
+		add_child(_lan_addr_edit)
+		_lan_addr_edit.text_changed.connect(func(t: String) -> void: _lan_address = t.strip_edges())
+	_lan_addr_edit.visible = true
+	_lan_addr_edit.text = addr
+	_lan_address = addr
+
+
+func _hide_lan_address_edit() -> void:
+	if _lan_addr_edit != null:
+		_lan_addr_edit.visible = false
 
 
 func _bind_nodes() -> void:
@@ -220,6 +270,8 @@ func _show_page(page: String) -> void:
 		page = "hub_goods"
 	if page != "look":
 		_clear_look_preview()
+	if page != "lan_join":
+		_hide_lan_address_edit()
 	_page = page
 	_index = 0
 	_open_focus = -1
@@ -311,9 +363,10 @@ func _header() -> String:
 	var nxt := state.xp_to_next()
 	var xp_txt := Loc.t("prep.msg.max_lv") if nxt <= 0 else "XP %d/%d" % [state.xp, nxt]
 	var shop_r := int(state.shop_rating) if state != null and "shop_rating" in state else 0
+	var support_r := int(state.support_rating) if state != null and "support_rating" in state else 0
 	return Loc.t("prep.header", [
 		state.money, state.level, xp_txt,
-		state.str_stat, state.agi_stat, state.int_stat, state.unspent, shop_r,
+		state.str_stat, state.agi_stat, state.int_stat, state.unspent, shop_r, support_r,
 	])
 
 
@@ -321,10 +374,11 @@ func _home_info() -> String:
 	if state.level_note != "":
 		return state.level_note
 	var shop_r := int(state.shop_rating) if state != null and "shop_rating" in state else 0
+	var support_r := int(state.support_rating) if state != null and "support_rating" in state else 0
 	var hist_n := 0
 	if state != null and state.get("rating_history") is Array:
 		hist_n = (state.rating_history as Array).size()
-	return Loc.t("prep.home.info_rating", [shop_r, hist_n])
+	return Loc.t("prep.home.info_rating", [shop_r, support_r, hist_n])
 
 
 func _add(label: String, action: String, arg = null) -> void:
@@ -952,6 +1006,21 @@ func _activate() -> void:
 			visible = false
 			set_process_unhandled_input(false)
 			start_day.emit()
+		"lan_host":
+			_start_lan_host()
+		"lan_join_do":
+			_start_lan_join()
+		"lan_addr":
+			_lan_address = String(arg)
+			_refresh()
+		"lobby_ready":
+			SessionService.set_ready(int(arg), not SeatTable.is_seat_ready(int(arg)))
+			_refresh()
+		"lobby_start":
+			_lobby_start_day()
+		"lobby_close":
+			SessionService.close()
+			_show_page("confirm")
 		"test_money":
 			_grant_test_money()
 		"toggle_virtual_stick":
@@ -1037,6 +1106,93 @@ func _configure_local_seats_for_day() -> bool:
 		return false
 	SessionService.create_room(2, guest, _guest_slot_index)
 	return true
+
+
+func _resolve_local_guest_for_lan():
+	## Same guest resolution as local open; returns [ok, guest_or_null, slot_index].
+	var seats := 1 if OS.has_feature("web") else clampi(_local_seats, 1, 2)
+	if seats < 2:
+		return [true, null, -1]
+	_ensure_guest_store()
+	if _guest_slot_index < 0 or _guest_store.is_empty(_guest_slot_index):
+		var empty_i := -1
+		for i in 3:
+			if _guest_store.is_empty(i):
+				empty_i = i
+				break
+		if empty_i < 0:
+			return [false, null, -1]
+		_guest_store.clone_host_into(empty_i, state)
+		_guest_store.save_to_disk()
+		_guest_slot_index = empty_i
+	var guest = _guest_store.get_sheet(_guest_slot_index)
+	if guest == null:
+		return [false, null, -1]
+	return [true, guest, _guest_slot_index]
+
+
+func _start_lan_host() -> void:
+	if not SessionService.lan_available():
+		_popup_info(Loc.t("lobby.error_title"), Loc.t("lobby.error_body", ["web_no_enet"]))
+		return
+	var resolved = _resolve_local_guest_for_lan()
+	if not bool(resolved[0]):
+		_popup_info(Loc.t("prep.confirm.guest_need_title"), Loc.t("prep.confirm.guest_need_body"))
+		return
+	var seats := 1 if OS.has_feature("web") else clampi(_local_seats, 1, 2)
+	var err := SessionService.host_lan(seats, resolved[1], int(resolved[2]))
+	if err != "":
+		_popup_info(Loc.t("lobby.error_title"), Loc.t("lobby.error_body", [err]))
+		return
+	_show_page("lobby")
+
+
+func _start_lan_join() -> void:
+	if _lan_addr_edit != null:
+		_lan_address = _lan_addr_edit.text.strip_edges()
+	if _lan_address.is_empty():
+		_lan_address = "127.0.0.1"
+	## Reuse confirm-page 1｜2 + guest pick as join claim_seats (M2 second slice).
+	var claim := 1 if OS.has_feature("web") else clampi(_local_seats, 1, 2)
+	var guest = null
+	var guest_slot := -1
+	if claim >= 2:
+		var resolved = _resolve_local_guest_for_lan()
+		if not bool(resolved[0]):
+			_popup_info(Loc.t("prep.confirm.guest_need_title"), Loc.t("prep.confirm.guest_need_body"))
+			return
+		guest = resolved[1]
+		guest_slot = int(resolved[2])
+	var err := SessionService.join_room(claim, _lan_address, SessionService.lan_port, guest, guest_slot)
+	if err != "":
+		_popup_info(Loc.t("lobby.error_title"), Loc.t("lobby.error_body", [err]))
+		return
+	_hide_lan_address_edit()
+	_show_page("lobby")
+
+
+func _lobby_start_day() -> void:
+	if not SessionService.is_server():
+		return
+	if not SessionService.all_ready():
+		return
+	var open_msg := state.begin_day()
+	if open_msg != "":
+		_popup_info(Loc.t("prep.msg.cant_open"), open_msg)
+		return
+	var save_err := state.save_to_disk()
+	if save_err != "":
+		push_warning("prep end save failed: %s" % save_err)
+	var snap := {
+		"world": state.to_dict(),
+		"seed": int(Time.get_ticks_msec()),
+	}
+	visible = false
+	set_process_unhandled_input(false)
+	SessionService.start_run(snap)
+	## start_run emits SessionService.start_day → _on_session_start_day may no-op (hidden);
+	## still emit prep signal for demo if demo listens to prep only.
+	start_day.emit()
 
 
 func _try_elite_open(lv: int) -> void:

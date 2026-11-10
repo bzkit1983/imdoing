@@ -7,6 +7,25 @@ const Vox = preload("res://scripts/voxel_sprite.gd")
 var kind: String = "drop"
 var sku: String = ""
 var count: int = 0
+## M2.3 LAN presentation.
+var net_agent_id: int = -1
+var net_puppet: bool = false
+
+
+func is_net_puppet() -> bool:
+	return net_puppet
+
+
+func apply_net_pose(pos: Vector2, _facing: Vector2 = Vector2.ZERO) -> void:
+	global_position = pos
+
+
+func apply_net_count(n: int) -> void:
+	count = maxi(0, n)
+	if count <= 0:
+		queue_free()
+	else:
+		_refresh_label()
 
 
 func setup(id: String, n: int) -> void:
@@ -34,6 +53,7 @@ func setup(id: String, n: int) -> void:
 func take_all() -> int:
 	var n := count
 	count = 0
+	## Host: tree_exiting → agent_despawn. Client puppet: local clear only.
 	queue_free()
 	return n
 
@@ -48,6 +68,9 @@ func take_count(n: int) -> int:
 		queue_free()
 	else:
 		_refresh_label()
+		## Host partial take keeps the node — sync remaining count (M2.3).
+		if net_agent_id >= 0 and not net_puppet and SessionService.is_lan() and SessionService.is_server():
+			SessionService.broadcast_agent_state({"id": net_agent_id, "n": count})
 	return take
 
 

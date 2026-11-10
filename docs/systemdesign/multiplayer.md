@@ -1,10 +1,10 @@
 # 多人連線設計報告（本機二＋線上補滿至四人）
 
-- **狀態：** 設計草案；**M1 本機雙人已落地**（`SeatTable`／`InteractLock`／`SessionService`）；M2 RPC／NetTransport 尚未實作；§10 企劃項已於 2026-11-05 拍板
+- **狀態：** 設計草案；**M1 本機雙人已落地**；**§12 M2 LAN 至 M2.9 已落地**（claim／結算／世界代理／掉落／貨架倉庫／技能 Intent／手持堆疊／客人清單 chrome／污物清潔條／收銀指令 UI）；§10 企劃項已於 2026-11-05 拍板
 - **範圍：** 本機合作、線上合作、以及兩者混合的同一 Session 模型；技術分層與平台差異
 - **產品錨點：** 活線 `godot/game`（Godot 4.7）；版控見 `docs/versioning.md`
-- **對照：** `docs/alpha/tech-review-v0.1.md`、`docs/systemdesign/ecosystem.md`、`docs/systemdesign/playerexport.md`、`docs/systemdesign/control.md`、`docs/systemdesign/savesystem.md`、`godot/game/scripts/platform_services.gd`
-- **產出／更新：** 2026-11-05（初稿＋§10 拍板）；同日晚間定稿 **M1 本機雙人**（§11）
+- **對照：** `docs/alpha/tech-review-v0.1.md`、`docs/systemdesign/ecosystem.md`、`docs/systemdesign/playerexport.md`、`docs/systemdesign/control.md`、`docs/systemdesign/savesystem.md`、`docs/systemdesign/pausemenu.md`、`godot/game/scripts/platform_services.gd`
+- **產出／更新：** 2026-11-05（初稿＋§10 拍板＋§11 M1）；**2026-11-09 定稿 §12 M2 LAN**；**2026-11-10 claim2／M2.1～M2.9（含收銀指令 UI）**
 
 ---
 
@@ -161,8 +161,8 @@ Peer (一條連線 / 一台邏輯客戶端)
 ### 5.5 暫停
 
 - **本機（M1）：** 任一 seat 的 Esc／Start／暫停鈕都可開／關暫停；結束本日與選單共享。
-- **線上（M2+）：** 僅 **host 機**可觸發全房暫停；client 見遮罩。
-- 對齊掛起／`PlatformServices` checkpoint；日結寫檔依 §5.4／§10／§11。
+- **線上（M2+）：** **任一機**（Host 或 client）可開／關**全房暫停**；**僅 Host 機**可「結束本日並結算」。細則 §12.6。
+- 對齊掛起／`PlatformServices` checkpoint；日結寫檔依 §5.4／§10／§11／§12。
 
 ### 5.6 斷線與補位（已拍板）
 
@@ -344,7 +344,7 @@ InputRouter
 | --- | --- | --- |
 | **M0** | 本文件與 Seat 協定對齊 | 企劃／工程讀過；§10 已拍板 |
 | **M1** | 本機 2 seat + SeatTable（`transport=local`） | **已交**（§11.9）；規格定稿 2026-11-05 |
-| **M2** | LAN／ENet 第 3、第 4 seat | **本機二的 host 接受線上補位至 4**；開日後斷線移除角色、座位不可再佔 |
+| **M2** | LAN／ENet 第 3、第 4 seat | **本機二的 host 接受線上補位至 4**；開日後斷線移除角色、座位不可再佔（**規格 §12**；首刀＋第二刀已交） |
 | **M3** | Steam lobby／peer | 同一 Session；好友邀請進混合房 |
 | **M4** | Web `web_ws` | Web↔Web 房間；**每機 1 seat** |
 | 並行可選 | 異店競賽或導出雲端 | 不阻塞 M1–M2 |
@@ -474,27 +474,200 @@ InputRouter
 
 ---
 
-## 12. 參考連結
+## 12. M2 LAN 規格（定稿）
+
+- **狀態：** 設計定稿 **2026-11-09**；**首刀～M2.6 已落地**（claim、日結、世界代理、掉落／炮台、貨架／倉庫、技能 Intent、手持堆疊）
+- **目標：** `transport=lan_enet`；Host 本機最多 2 seat，遠端以 **claim 1｜2** 補位至最多 4；可打完一日營運並依本節結算
+- **對齊：** §3／§5／§6／§8／§9 M2／§10；本機規則仍見 §11
+- **非目標（本節）：** Steam／Web、host migration、中途加入、觀戰、準備回合雙人操作；客人清單／污物清潔／收銀指令 chrome 見 M2.7～M2.9
+
+### 12.1 平台與 Transport
+
+- 僅桌面／Steam 候選包開 **`net_enet`**（`ENetMultiplayerPeer` listen-server）。
+- Web 包：**不進 M2**；維持每機 1 seat、`transport=local` 本機單人（M4 才 `web_ws`）。
+- 玩法禁止直接 `ENetMultiplayerPeer.new()`；只經 Session → NetTransport（§6.1）。
+
+### 12.2 大廳流程
+
+1. Host：準備回合選本機 **1｜2**（與 M1 同；選 2 須指定訪客槽）→ **開 LAN 房**（顯示本機埠；IP 由玩家自行告知同伴）。
+2. UI 顯示剩餘名額 `4 - occupied`。
+3. Join：輸入位址 → 選 **claim 1｜2**（選 2 須指定訪客槽）→ `join_room(claim_seats)`；Host 若 `current + claim > 4` 則拒收。
+4. Join 成功後上傳 sheet（§12.3）；各 seat 自行 `ready`。
+5. 全員 `ready` → 僅 Host 可 `start_run` → 下發世界 snapshot（§12.4）→ 開日。
+6. 開日後：禁止再 join；大廳斷線仍釋放 seat（§5.6）。
+
+### 12.3 線上角色 sheet
+
+- **claim 1：** Join 端讀本機 **`user://save.json` 主角色欄**（能力／技能／奧義／外觀／等級／XP 等；**不含**店舖 layout／倉庫／資金進世界）。
+- **claim 2：** 第一席同上主存檔；第二席讀本機 **`user://guest_slots.json`** 選定槽（與 M1 P2 同源）。
+- **無主存檔／claim2 無訪客 sheet：** 拒絕加入。
+- Host 權威持有各 seat sheet 副本；模擬只認 Host 副本。
+
+### 12.4 `start_day` 世界 snapshot（最小欄位）
+
+Host → 全員可靠下發一次（之後靠意圖＋事件，不整店 `MultiplayerSynchronizer`）：
+
+| 欄位 | 說明 |
+| --- | --- |
+| `seed`／時鐘起點 | 可重播／對齊 RNG 與日時計 |
+| `difficulty` | Host 店難度 |
+| `shop_scale`／格線／地板 | 店規模與可走範圍 |
+| `furniture`／layout | 貨架／收銀／補貨點等擺放 |
+| `stock` | 倉庫件數（開日快照） |
+| `shelf_stocks` | 各架當下陳列（若開日前已有） |
+| `clerks` | 崗位／綁定收銀 |
+| `seat_table` | 含各 seat sheet 摘要（等級／tint／skin／裝備） |
+| `tuning_flags` | 與本局相關的 feature／測試開關（可空） |
+
+Client 以 snapshot **建構表現世界**；AI／庫存／結算權威仍在 Host（§8.1）。
+
+### 12.5 輸入、鏡頭、標記
+
+- Intent 帶 `seat_id`；Host 本機 seat 短路進 Sim；遠端 seat 由擁有 peer 上送（§6.4／§8.2）。
+- **鏡頭：** 各機跟隨**本機擁有且仍在場**的 seat 中點；僅一 seat 則跟該角色。全地圖仍鎖店中心。見 `control.md`。
+- **遠端他角：** 世界標記／簡易指示（美術與 Loc 實作時定）；不要求分屏。
+
+### 12.6 暫停／結束本日／掛起
+
+- **全房暫停／繼續：** Host **或** client 任一機的 Esc／Start／HUD 暫停／「繼續遊戲」，均可 **開或關** 全房 `paused`（任機可 resume）。請求送 Host；Host 廣播權威 pause 狀態。
+- **競態：** 多端幾乎同時 toggle 時，**以 Host 套用後的最後狀態為準**（後到的請求覆蓋先前；不必佇列）。
+- **結束本日並結算：** **僅 Host 機**可觸發。Client 暫停選單**不顯示**該項（或顯示但禁用）；HUD「馬上完成營運」在 client 無效。
+- Client 暫停選單其餘項（繼續／音效／鏡頭／語言等）：**可操作**（設定寫各機本機 `settings.cfg`）。
+- **Client 系統掛起** → **斷線**（§12.7）。
+- **Client 關視窗** → **斷線**；若已開日則該 seat **凍結至日結**（§12.7）。
+- Host 系統掛起 → 全房暫停（既有 `PlatformServices` 路徑擴到連線）。
+- 交叉：`pausemenu.md`。
+
+### 12.7 斷線
+
+| 時機 | 行為 |
+| --- | --- |
+| 大廳 | 釋放其 seat；可再被 claim |
+| 開日後 peer 斷 | 移除該 peer 名下角色；該 seat **凍結至日結**（不可再佔） |
+| Host 斷 | **整房解散**（不做 migration） |
+
+### 12.8 日結（角色 XP＋M2.1 訪客本店資金）
+
+- **分母：** 開日當下參與 seat 數（含其後斷線凍結者）。
+- **分子：** 各 seat 當日已記 XP **全進** `sum`（含斷線前累積）。
+- **平分：** `sum / 開日人數`。Host 機寫店主檔＋本機訪客槽（若有 P2）；仍連線的遠端經 **日結 RPC**：
+  - `local_index 0` → 平分 XP 與 `support_rating += Host 評級` 寫入**本機主存檔**；
+  - `local_index 1`（claim2）→ 同額寫入選定 **`guest_slots`**（`savesystem.md`／§11）。
+- **已斷線 peer：** 分母仍含其開日 seat（不讓留下的人變相多拿）；其平分份**無法寫回**該機磁碟（不做重連補發）。角色已移除但 peer 仍留房等日結者＝凍結座，**可**寫回。
+- **資金／營業額（M2.1）：** Host 店照常 `money += revenue`。每位**仍連線**的遠端 peer，其**本機主存檔**再 `money +=` **同一筆**當日營業額（原額、非平分；**不**改 client 商店評價／進貨支出／`last_loss`）。本機 M1 P2／claim2 訪客槽仍無店舖資金。已斷線 peer 不寫回。
+- **評價：** 營運點／商店評價只算 Host 店（不變）。
+
+### 12.9 工程切分建議
+
+| 刀 | 範圍 | 狀態 |
+| --- | --- | --- |
+| **M2 首刀** | NetTransport ENet；`join_room(claim=1)`；大廳 ready；snapshot；spawn seat≤4；Intent RPC；斷線移除＋凍座；任機可暫停、僅 Host 可結束本日；日結角色 only | **首刀已交** |
+| **M2 第二刀** | remote `claim_seats=2`；同 peer 雙 device／雙 sheet；日結寫主檔＋訪客槽 | **第二刀已交** |
+| **M2.1 結算刀** | 訪客本店同等營業額寫入 client `save.json` 資金 | **已交** |
+| **M2.2 世界代理表現** | Host 權威 AI；client 播客人／小偷／污物／店員 spawn＋pose（§8）；不自跑 AI | **已交** |
+| **M2.3 掉落／技能單位** | 掉落飛行＋落地箱、影分身、Dark Side 臨時態、萬用炮台／炮彈；Host 權威 | **已交** |
+| **M2.4 貨架／倉庫庫存** | Host 廣播架 `sku`／`count` 與倉庫絕對快照；Client 只套用表現 | **已交** |
+| **M2.5 技能 Intent** | 修正 dash／skill 錯線；skill／ult hold＋熱鍵；Host remote_move 方向模式 | **已交** |
+| **M2.6 手持堆疊** | Host 廣播各 seat 手持件序絕對快照；Client 套用 box_stack／HUD | **已交** |
+| **M2.7 客人清單 chrome** | Host spawn／`agent_state` 廣播 shopping 絕對件序；Client puppet 套用 pictogram，不再本地亂 roll | **已交** |
+| **M2.8 污物清潔條** | Host `set_cleaning` 節流廣播 meter／stick；Client dirt puppet 套用 StickHint／淡出 | **已交** |
+| **M2.9 收銀指令 UI** | Host `checkout_seq`＋`prompt_state` 廣播箭頭／hold；Client 禁雙重 randi，puppet／本機 seat 套用 chrome | **已交** |
+
+### 12.10 M2 驗收清單
+
+**首刀**
+
+- [x] Host 開 LAN 房；至少一名 remote claim 1 加入；剩餘名額正確
+- [x] 無主存檔的 join 被拒；有檔則 sheet 上傳且 Host 可開日
+- [x] 開日後最多 4 可控角色；remote 意圖驅動 Host 模擬；client 見**玩家** puppet＋本機鏡頭
+- [x] 開日後 remote 斷線→角色消失、座位不可再佔；日結仍按開日人數平分 XP／`support_rating`
+- [x] Host 斷→整房散；**任機可開／關全房暫停**；**僅 Host** 可結束本日
+- [x] Web 包無 LAN 開房入口；本機 M1 雙人行為不回歸
+
+**第二刀**
+
+- [x] Join 可選 claim 1｜2；claim2 須訪客槽；`current + claim > 4` 拒收
+- [x] 同 peer 雙 seat：雙 device／鍵盤補位、鏡頭跟本機擁有 seat 中點、Intent 帶正確 `seat_id`
+- [x] 日結：client `local_index 0` 寫主檔、`local_index 1` 寫訪客槽（XP＋`support_rating`）
+
+**M2.1 結算刀**
+
+- [x] 日結 RPC 帶 `revenue`；仍連線 client 主存檔 `money += revenue`（與 Host 同額）
+- [x] 訪客槽／本機 P2 不寫資金；client 商店評價不因支援而改；斷線 peer 不寫回
+
+**M2.2 世界代理表現**
+
+- [x] Client 見客人進店／走動／離店；小偷與污物出現／消失；店員大致跟 Host 位置
+- [x] Client 不自跑 AI（無幽靈客人／雙倍營業額）；斷線／凍座不影響 Host 代理模擬
+- [x] 本機 M1（`transport=local`）行為不回歸
+- [x] Client 捉小偷後座位位置與 Host 對齊（本機 seat soft-reconcile Host transform；puppet 不本地散落／逃走；`fight_clear` 解鎖 mash）
+
+**M2.3 掉落／技能單位**
+
+- [x] Client 見丟掉／散落飛行與落地箱；飛行落地不雙倍生箱（落地箱只認 Host spawn）
+- [x] 影分身出現／走動／消失；Dark Side 客人變臨時員標籤再變回
+- [x] 萬用炮台部署／開火飛行／取消掉彈藥可見；Host 斷仍整房散；M1 不回歸
+
+**M2.4 貨架／倉庫庫存**
+
+- [x] Host 上架／取貨／客人拿走／扔掉補架後，Client 架標籤與 fill 與 Host 一致
+- [x] Client 本機操作可短暫預測，隨後被 Host 絕對值覆蓋且不雙倍加減
+- [x] 倉庫件數（restock 可拉量）兩邊一致；開日 full dump；M1 `transport=local` 不回歸
+
+**M2.5 技能 Intent**
+
+- [x] Client 衝刺／奔跑驅動 Host 同 seat（dash＝`_k_held`，不再被 skill 鍵誤觸）
+- [x] Client 長按 skill 開選單、方向選招、放開施放；ult hold 進 Host prep
+- [x] 熱鍵 skill 2／3（及 pad LT／RT 4／5）可遠端施放；M1 local 不回歸
+
+**M2.6 手持堆疊**
+
+- [x] Host／Client 取貨、上架、丟掉、交付後，他機見到該 seat 手持箱堆與 HUD 段數一致
+- [x] 本機操作可短暫預測，隨後與 Host 絕對件序對齊且不雙倍加減
+- [x] 開日 empty dump；M1 `transport=local` 不回歸
+
+**M2.7 客人清單 chrome**
+
+- [x] Host／Client 頭頂 pictogram 件序一致（含小偷想偷清單）
+- [x] 取貨、交付、衝撞重抽、清空後 Client 跟著變且不殘留錯 icon；Elite spawn 與 Host 一致
+- [x] M1 `transport=local` 不廣播、行為不回歸
+
+**M2.8 污物清潔條**
+
+- [x] Host 清潔時 Client 見同污物 StickHint 弧／搖桿與 meter 淡出大致跟上
+- [x] 放手取消／換目標後 Client 清掉清潔 chrome；完成只 despawn 一次
+- [x] M1 `transport=local` 不廣播、行為不回歸
+
+**M2.9 收銀指令 UI**
+
+- [x] Host 開收銀：Client 同 seat 見相同箭頭序（puppet／本機）
+- [x] 對／錯輸入：Client `idx`／紅 `fail` 跟 Host；錯則兩邊歸零；完成／取消清掉箭頭
+- [x] Senior LV3 空 seq：Client 進 Circle、不本地重抽；M1 `transport=local` 不回歸
+
+---
+
+## 13. 參考連結
 
 - `docs/alpha/tech-review-v0.1.md` — 平台與 `PlatformServices` 方針  
 - `docs/versioning.md` — 單一活線、禁止平台專案複本  
 - `docs/alpha/export-presets.md` — Web／Steam 候選匯出  
 - `docs/alpha/console-business.md`、`docs/alpha/godot-middleware-pin.md` — 主機商務與釘版  
-- `docs/systemdesign/ecosystem.md` — 一店一主角色；本機 coop 見 §11  
+- `docs/systemdesign/ecosystem.md` — 一店一主角色；本機 coop 見 §11；線上見 §12  
 - `docs/systemdesign/playerexport.md` — 導出店員（連線仍缺）  
 - `docs/systemdesign/control.md`、`docs/systemdesign/inputmodes-vj.md` — 輸入  
 - `docs/systemdesign/savesystem.md`、`docs/systemdesign/pausemenu.md` — 存檔與暫停  
 - `docs/systemdesign/customerdelivery.md` — 交付；多人 COMBO 見 §11.7  
 - `docs/systemdesign/fetchcombo.md` — COMBO 達標與 HUD  
+- `docs/alpha/implementation-status.md` — 工程對照  
 
 - `godot/game/scripts/platform_services.gd` — 平台 facade  
 - Godot 文件：High-level multiplayer、`MultiplayerPeer`、WebRTC 說明  
 
 ---
 
-## 13. 結論
+## 14. 結論
 
 - **產品：** 本機最多二人，可線上補位至同房四人；純本機／純線上是同一模型的特例。  
 - **工程：** SeatTable + listen-server + 可換 Transport；Intent 帶 `seat_id`。  
 - **平台：** Steam／Web／LAN 各換 backend；v1 不承諾跨商店互通。  
-- **下一步：** **M1 已交** → M2（連線 seat／Transport）；線上結算與 `ecosystem` 長線對齊按需補 PR。
+- **下一步：** **M1～M2.9 已交**（LAN polish 收斂）；Steam／Web 見 M3／M4。

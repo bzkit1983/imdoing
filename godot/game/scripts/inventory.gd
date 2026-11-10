@@ -110,6 +110,26 @@ func clear() -> void:
 	_bump()
 
 
+## Client presentation: Host absolute piece order (M2.6). No-op if equal.
+func apply_net_items(next: Array) -> bool:
+	var n := next.size()
+	if n == items.size():
+		var same := true
+		for i in n:
+			if String(items[i]) != String(next[i]):
+				same = false
+				break
+		if same:
+			return false
+	items.clear()
+	for v in next:
+		var sku := String(v)
+		if sku != "":
+			items.append(sku)
+	_bump()
+	return true
+
+
 func grouped() -> Array[Dictionary]:
 	var groups: Array[Dictionary] = []
 	for id in items:

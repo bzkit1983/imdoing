@@ -96,6 +96,114 @@ var _shown_timer: String = "\u0001"
 var _shown_hp_w: float = -1.0
 var _shown_facing: int = -999
 var _shown_tint: Color = Color(0, 0, 0, 0)
+## M2.2 LAN: Host-assigned id; client puppets skip AI.
+var net_agent_id: int = -1
+var net_puppet: bool = false
+var _puppet_facing: Vector2 = Vector2.DOWN
+
+
+func is_net_puppet() -> bool:
+	return net_puppet
+
+
+func apply_net_pose(pos: Vector2, facing: Vector2) -> void:
+	var moved := global_position.distance_squared_to(pos) > 2.25
+	global_position = pos
+	if facing.length_squared() > 0.01:
+		_puppet_facing = facing.normalized()
+	velocity = Vector2.ZERO
+	_sync_puppet_visual(moved)
+
+
+func apply_net_fight_clear(caught: bool) -> void:
+	## Presentation-only: drop fight UI when Host ends the mash (escape or KO).
+	if not net_puppet or state != State.FIGHT:
+		return
+	if caught:
+		state = State.FLEE
+	else:
+		state = State.LEAVE
+	fight_hp = 100.0
+	fight_left = 0.0
+	_sync_labels()
+
+
+## Client presentation: Host absolute shopping piece order (M2.7). No-op if equal.
+func apply_net_shopping(list: Array) -> void:
+	var n := list.size()
+	if n == shopping.size():
+		var same := true
+		for i in n:
+			if String(shopping[i]) != String(list[i]):
+				same = false
+				break
+		if same:
+			return
+	shopping.clear()
+	for v in list:
+		var sku := String(v)
+		if sku != "":
+			shopping.append(sku)
+	## Bump rev without Host broadcast (net apply must not echo).
+	_list_rev += 1
+	_sync_labels()
+
+
+## Client presentation: Host absolute checkout dirs (M2.9). No-op if equal.
+func apply_net_checkout_seq(seq: Array, init: bool) -> void:
+	var n := seq.size()
+	var cur_init := has_meta("checkout_seq_init") and bool(get_meta("checkout_seq_init"))
+	if init == cur_init and n == checkout_seq.size():
+		var same := true
+		for i in n:
+			if int(checkout_seq[i]) != int(seq[i]):
+				same = false
+				break
+		if same:
+			return
+	checkout_seq.clear()
+	for v in seq:
+		checkout_seq.append(int(v))
+	if init:
+		set_meta("checkout_seq_init", true)
+	elif has_meta("checkout_seq_init"):
+		remove_meta("checkout_seq_init")
+
+
+func broadcast_checkout_seq_state() -> void:
+	## Host absolute checkout_seq for client chrome (M2.9).
+	if net_puppet or net_agent_id < 0:
+		return
+	if not SessionService.is_lan() or not SessionService.is_server():
+		return
+	var init := has_meta("checkout_seq_init") and bool(get_meta("checkout_seq_init"))
+	var dirs: Array = []
+	for d in checkout_seq:
+		dirs.append(int(d))
+	SessionService.broadcast_agent_state({
+		"id": net_agent_id,
+		"checkout_seq": dirs,
+		"checkout_init": init,
+	})
+
+
+func _sync_puppet_visual(moving: bool = false) -> void:
+	## Reuse facing/anim path without AI ticks.
+	if _body == null:
+		return
+	var face_v := _puppet_facing if _puppet_facing.length_squared() > 0.01 else Vector2.DOWN
+	var prev_k := int(_body.get_meta("vox_anim_facing", _shown_facing)) if _body is AnimatedSprite2D else _shown_facing
+	var facing := Vox.k_from_facing_stable(face_v, prev_k) if _body is AnimatedSprite2D else Vox.k_from_facing(face_v)
+	var anim := "walk" if moving else "idle"
+	var anim_key := "%s_%d" % [anim, facing]
+	if _body is AnimatedSprite2D:
+		if facing != _shown_facing or anim_key != String(_body.get_meta("shown_anim", "")):
+			_shown_facing = facing
+			_body.set_meta("shown_anim", anim_key)
+			Vox.play_anim(_body as AnimatedSprite2D, _model_id, anim, face_v)
+	elif _body is Sprite2D and facing != _shown_facing:
+		_shown_facing = facing
+		Vox.apply(_body as Sprite2D, _model_id, facing)
 
 
 func setup(game: Node, door: Vector2, thief: bool = false) -> void:
@@ -367,6 +475,9 @@ func is_at_register() -> bool:
 
 func _physics_process(delta: float) -> void:
 	if _game == null:
+		return
+	if net_puppet:
+		## Presentation only — Host owns AI (§8 / M2.2).
 		return
 	if temp_clerk:
 		_tick_temp(delta)
@@ -764,6 +875,7 @@ func drop_loot_and_leave() -> void:
 func escape_with_loot() -> void:
 	## Defer stolen stats / banner until the thief actually reaches the exit.
 	## Cart stays so grab / dash on the way out can still recover loot.
+	_broadcast_fight_clear(false)
 	mood = Loc.t("mood.leave_loot")
 	_leave(false)
 
@@ -1057,6 +1169,7 @@ func begin_temp_clerk(job: String, reg: Node2D = null) -> void:
 	_clear_route()
 	_list_icons_fp = "\u0001"
 	_sync_labels()
+	_broadcast_temp_state(true)
 
 
 func end_temp_clerk() -> void:
@@ -1081,6 +1194,37 @@ func end_temp_clerk() -> void:
 	_bump_list()
 	_list_icons_fp = "\u0001"
 	_sync_labels()
+	_broadcast_temp_state(false)
+
+
+func apply_net_temp_state(temp: bool, job: String = "") -> void:
+	## Client puppet: presentation only (M2.3 Dark Side).
+	if not net_puppet:
+		return
+	if temp:
+		temp_clerk = true
+		temp_role = "cashier" if job == "cashier" else "restock"
+		state = State.TEMP
+		mood = Loc.t("mood.temp_cashier") if temp_role == "cashier" else Loc.t("mood.temp_restock")
+	else:
+		temp_clerk = false
+		temp_role = ""
+		state = State.SEEK
+		mood = Loc.t("mood.shop")
+	_list_icons_fp = "\u0001"
+	_sync_labels()
+
+
+func _broadcast_temp_state(temp: bool) -> void:
+	if net_agent_id < 0:
+		return
+	if not SessionService.is_lan() or not SessionService.is_server():
+		return
+	SessionService.broadcast_agent_state({
+		"id": net_agent_id,
+		"temp": temp,
+		"role": temp_role if temp else "",
+	})
 
 
 func apply_soothe(keep: float) -> void:
@@ -1308,6 +1452,7 @@ func _drop_temp_box() -> void:
 
 
 func _begin_flee(dir: Vector2, flee_mood: String) -> void:
+	_broadcast_fight_clear(true)
 	_notify_unoccupy()
 	state = State.FLEE
 	## Recount after state flip so is_active_thief() is false.
@@ -1320,6 +1465,19 @@ func _begin_flee(dir: Vector2, flee_mood: String) -> void:
 	mood = flee_mood
 	z_index = 8
 	_clear_route()
+
+
+func _broadcast_fight_clear(caught: bool) -> void:
+	## Tell clients to unlock seats mashed against this presentation thief.
+	if not is_thief or net_agent_id < 0:
+		return
+	if not SessionService.is_lan() or not SessionService.is_server():
+		return
+	SessionService.broadcast_agent_state({
+		"id": net_agent_id,
+		"fight_clear": true,
+		"caught": caught,
+	})
 
 
 func _tick_flee(delta: float) -> void:
@@ -1660,6 +1818,19 @@ func _refresh_labels() -> void:
 
 func _bump_list() -> void:
 	_list_rev += 1
+	_broadcast_shopping_state()
+
+
+func _broadcast_shopping_state() -> void:
+	## Host absolute shopping snapshot for client pictogram chrome (M2.7).
+	if net_puppet or net_agent_id < 0:
+		return
+	if not SessionService.is_lan() or not SessionService.is_server():
+		return
+	SessionService.broadcast_agent_state({
+		"id": net_agent_id,
+		"shopping": shopping.duplicate(),
+	})
 
 
 func _list_label_text() -> String:

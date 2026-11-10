@@ -5,13 +5,14 @@
 - **手制裝置：** 單機時 Xbox 預設綁定的 InputMap `device` 為 **-1（任何已連接手把）**；左搖桿輪詢走 `Input.get_connected_joypads()`，不寫死 device 0。Windows 常把 Xbox 編成 0 以外的裝置（XInput + DirectInput 雙重列舉、虛擬／幽靈手把佔 0），Mac 則多半就是 0。
 - **本機雙人（M1）：** Seat0＝手把 **device 0**，Seat1＝手把 **device 1**。鍵盤可佔**尚未被手把綁定**的 seat；兩 seat 都已被手把佔用時鍵盤無效。詳見 `multiplayer.md` §11.4。
 - 主要 action：`move_up`／`move_down`／`move_left`／`move_right`、`interact`、`cancel`、`dash`、`skill`、`ult`；Xbox 肩鍵快捷 `skill_2`／`skill_3`（LB／RB）；Xbox 奧義為 LT+RT 長按（輪詢板機軸，非 InputMap）；準備店舖設計另有 `rotate`；補貨快捷有 `restock_prev`／`restock_next`／`restock_slot_1..3`；鏡頭視野循環 `camera_view`（鍵盤 `V`、Xbox 視圖鍵／`JOY_BUTTON_BACK`）
-- **暫停選單：** 營運日 Esc／手把 Start 開關（見 `pausemenu.md`）。本機雙人時**任一 seat** 都可開／關。選單內移動／確定／取消仍走 `move_*`／`interact`／`cancel`
+- **暫停選單：** 營運日 Esc／手把 Start 開關（見 `pausemenu.md`）。本機雙人時**任一 seat** 都可開／關。**線上（M2+）：任機**可開／關全房暫停；**僅 Host** 可結束本日（`multiplayer.md` §12.6）。選單內移動／確定／取消仍走 `move_*`／`interact`／`cancel`
 - **UI 文案：** 準備／暫停／HUD 等已遷字串表者走 Autoload `Loc`（`docs/alpha/i18n.md`），與鍵位無關
 
 #**遊玩視點**
 - 以俯瞰視角觀察商店
 - 鏡頭預設追蹤玩家角色隨角色移動（全地圖模式除外）
 - **本機雙人（M1，見 `multiplayer.md` §11）：** 鏡頭**永遠跟隨兩可控角色的中點**；不做焦點切換。全地圖仍鎖店中心。
+- **線上（M2，見 `multiplayer.md` §12.5）：** 各機鏡頭跟隨**本機擁有且仍在場**的 seat 中點（僅一 seat 則跟該角色）；遠端他角用世界標記，不做分屏。全地圖仍鎖店中心。
 - 三種可調視野（暫停選單循環，或營運中 `camera_view`：鍵盤 `V`／Xbox 視圖鍵）。寫入 `user://settings.cfg` → `[ui] camera_view`；改完立刻生效，跨營運日保留
 - - **正常**（`normal`，預設）：Camera2D zoom **1.22**，跟隨玩家（雙人時為中點）
 - - **稍遠**（`far`）：固定 zoom **0.95**，跟隨玩家（雙人時為中點），可見範圍略大於正常

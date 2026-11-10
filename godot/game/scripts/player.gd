@@ -43,6 +43,8 @@ var seq_index: int = 0
 var seq_done: bool = false
 ## Sticky miss for this checkout attempt (ops rating P1a vs P1b).
 var _checkout_had_miss: bool = false
+## Last Host checkout prompt fingerprint (M2.9 throttle).
+var _net_prompt_fp: String = ""
 ## Cast level while `senior_cashier` buff is up (0 = inactive).
 var _senior_cashier_lv: int = 0
 var skill_menu_open: bool = false
@@ -54,6 +56,13 @@ var camera: Camera2D
 var stats = null
 ## M1 local coop seat (0 = host). Solo always 0.
 var seat_id: int = 0
+## Host applies remote LAN intent into these when seat is not local.
+var remote_move: Vector2 = Vector2.ZERO
+var remote_interact: bool = false
+var remote_cancel: bool = false
+var remote_dash: bool = false
+## Client→Host: one-shot skill hotkey slot (−1 = none). Cleared when intent is built.
+var pending_skill_hotkey: int = -1
 ## L-class target currently held via InteractLock (shelf/cashier/restock/…).
 var _lock_node: Node = null
 
@@ -129,6 +138,11 @@ var _fight_release: bool = false
 var _interact_ignore_until_up: bool = false
 ## True while KO banner / knockaway plays after a fight mash win.
 var _fight_ko: bool = false
+## Client: mash bar emptied on a net_puppet thief; wait for Host despawn before freeing move.
+var _net_ko_pending: bool = false
+## Client puppet: last Host pose for walk/facing visuals (M2).
+var _net_puppet_pos: Vector2 = Vector2.INF
+var _net_puppet_moving: bool = false
 ## EliteCustomer intro ZOOM — locks player actions (~1s).
 var _elite_focus_left: float = 0.0
 var _shake_left: float = 0.0
@@ -192,6 +206,27 @@ var _buff_cache_valid: bool = false
 var _crowd_active: bool = false
 var _crowd_say: Label
 var _wave_vfx_cd: float = 0.0
+
+
+func controls_locally() -> bool:
+	return SeatTable.seat_owned_locally(seat_id)
+
+
+func is_net_puppet() -> bool:
+	## Client-side copy of a seat owned by another peer (or frozen).
+	return SessionService.is_lan() and SessionService.is_client() and not controls_locally()
+
+
+func _agent_is_net_puppet(node: Node) -> bool:
+	## World agents on client are presentation-only (M2.2); Host owns KO / loot / flee.
+	return node != null and is_instance_valid(node) and node.has_method("is_net_puppet") and bool(node.call("is_net_puppet"))
+
+
+func _move_vector() -> Vector2:
+	## Host drives remote seats from last intent; local seats use Controls.
+	if SessionService.is_lan() and SessionService.is_server() and not controls_locally():
+		return remote_move
+	return Controls.move_vector_for(seat_id)
 
 
 func _ready() -> void:
@@ -605,6 +640,8 @@ func role_status_text() -> String:
 
 
 func set_hold(action: String, pressed: bool) -> void:
+	## LAN Host applies intents every tick as levels — must edge-trigger.
+	## Otherwise interact=false spam calls _do_short_interact every frame (auto-loot).
 	match action:
 		"interact":
 			if _interact_ignore_until_up:
@@ -630,6 +667,8 @@ func set_hold(action: String, pressed: bool) -> void:
 					_j_held = false
 				return
 			if pressed:
+				if _j_held:
+					return
 				_j_held = true
 				_j_time = 0.0
 				_long_committed = false
@@ -639,6 +678,8 @@ func set_hold(action: String, pressed: bool) -> void:
 				_pickup_used = false
 				_no_queue_logged = false
 			else:
+				if not _j_held:
+					return
 				_release_interact()
 				_j_held = false
 				_reset_hold()
@@ -648,27 +689,39 @@ func set_hold(action: String, pressed: bool) -> void:
 			if command_lock or skill_menu_open or ult_prep or _fighting:
 				return
 			if pressed:
+				if _k_held:
+					return
 				_k_held = true
 				_k_time = 0.0
 			else:
+				if not _k_held:
+					return
 				## 輕放＝衝刺；已過門檻變成奔跑的這次按鍵不再補衝（起跑不會先衝一記）。
-				if _k_held and not _running and _k_time < Tuning.RUN_HOLD_THRESHOLD:
+				if not _running and _k_time < Tuning.RUN_HOLD_THRESHOLD:
 					_try_dash()
 				_k_held = false
 				_running = false
 		"skill":
+			## Level intents from LAN must not re-enter press every tick (resets _l_time).
+			if pressed and _l_held:
+				return
 			if pressed:
 				_skill_from_pad = _skill_pad_hint
 				_skill_pad_hint = false
 			_on_skill_hold(pressed)
 		"ult":
 			## Keyboard U / touch RB button. Xbox pad uses LT+RT chord instead.
+			## Edge-only: repeat ult=true intents must not re-fire prep.
+			if pressed and _u_held:
+				return
 			if pressed:
 				_ult_chord_active = false
 			_on_ult_hold(pressed)
 		"cancel":
-			_cancel_held = pressed
 			if pressed:
+				if _cancel_held:
+					return
+				_cancel_held = true
 				_cancel_time = 0.0
 				_cancel_drop_ready = false
 				_cancel_dropped = false
@@ -677,6 +730,9 @@ func set_hold(action: String, pressed: bool) -> void:
 				_sample_cancel_drop_dir()
 				_cancel_input()
 			else:
+				if not _cancel_held:
+					return
+				_cancel_held = false
 				_on_cancel_release()
 
 
@@ -793,6 +849,8 @@ func _in_dir_mode() -> bool:
 func _input(event: InputEvent) -> void:
 	if event.is_echo():
 		return
+	if not controls_locally():
+		return
 	if not Controls.event_for_seat(event, seat_id):
 		return
 	# Early-close dialog and closeout own confirm / cancel.
@@ -863,7 +921,7 @@ func _on_cancel_release() -> void:
 
 func _sample_cancel_drop_dir() -> void:
 	## Direction keys retarget aim; no input keeps last aim or feet (zero).
-	var v := Controls.move_vector_for(seat_id) + stick_axis
+	var v := _move_vector() + stick_axis
 	if v.length() >= Tuning.DROP_DIR_DEADZONE:
 		_cancel_drop_dir = v.normalized()
 		facing = _cancel_drop_dir
@@ -1099,6 +1157,22 @@ func _cancel_input() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if is_net_puppet():
+		## Presentation only — Host already wrote facing／position; still refresh Vox.
+		velocity = Vector2.ZERO
+		if _net_puppet_pos == Vector2.INF:
+			_net_puppet_moving = false
+		else:
+			_net_puppet_moving = global_position.distance_squared_to(_net_puppet_pos) > 2.25
+		_net_puppet_pos = global_position
+		_sync_interact_glow()
+		_update_visuals()
+		return
+	if SeatTable.is_frozen(seat_id):
+		velocity = Vector2.ZERO
+		_sync_interact_glow()
+		_update_visuals()
+		return
 	if _asking_early():
 		velocity = Vector2.ZERO
 		_sync_interact_glow()
@@ -1137,7 +1211,8 @@ func _physics_process(delta: float) -> void:
 			_open_skill_menu(false)
 		if skill_menu_open and not _skill_latch:
 			_sync_hold_aim()
-	if _round_active() and not _asking_early():
+	## Pad LT/RT only on locally owned seats; remote seats get skill/ult via Intent (M2.5).
+	if controls_locally() and _round_active() and not _asking_early():
 		_tick_triggers(delta)
 	## Skill / ult / checkout dir modes: hard-stop so held WASD cannot coast.
 	if _in_dir_mode() or _move_locked_until_neutral:
@@ -1167,8 +1242,9 @@ func _physics_process(delta: float) -> void:
 			_circle.progress = hold_progress
 			_circle.blocked = blocked_mismatch
 	if _menu:
-		_menu.open = skill_menu_open
-		if skill_menu_open:
+		## Host／他機 seat：邏輯可開選單瞄準，但不畫 radial（避免殘留 P2 選單）。
+		_menu.open = skill_menu_open and controls_locally()
+		if skill_menu_open and controls_locally():
 			var mfp := "%s|%s" % [str(_cd), str(_loadout())]
 			if mfp != _menu_fp:
 				_menu_fp = mfp
@@ -1415,7 +1491,7 @@ func _tick_buffs(delta: float) -> void:
 
 
 func _wiggle_axis() -> Vector2:
-	var v := Controls.move_vector_for(seat_id) + stick_axis
+	var v := _move_vector() + stick_axis
 	if v.length_squared() > 1.0:
 		v = v.normalized()
 	return v
@@ -1434,7 +1510,7 @@ func _move_axis() -> Vector2:
 		## Arm latch: skill menu / ult / checkout / restock pick consume move_* .
 		_move_locked_until_neutral = true
 		return Vector2.ZERO
-	var v := Controls.move_vector_for(seat_id) + stick_axis
+	var v := _move_vector() + stick_axis
 	if _move_locked_until_neutral:
 		if v.length() < Controls.MOVE_DEADZONE:
 			_move_locked_until_neutral = false
@@ -1449,10 +1525,15 @@ func _move_axis() -> Vector2:
 
 func _poll_stick_cardinal() -> void:
 	# Analog only (touch stick / left stick). Discrete move_* taps are handled in _input.
+	# Host remote seats: use intent remote_move (M2.5) — no local stick on this machine.
 	if not _in_dir_mode():
 		_cardinal_armed = true
 		return
-	var v := stick_axis + _joy_stick_vector()
+	var v: Vector2
+	if SessionService.is_lan() and SessionService.is_server() and not controls_locally():
+		v = remote_move
+	else:
+		v = stick_axis + _joy_stick_vector()
 	if v.length() < 0.42:
 		_cardinal_armed = true
 		return
@@ -1515,7 +1596,7 @@ func _dasher_active() -> bool:
 
 ## Stick/keys for dash aim. Ignores post-skill move-lock so LT skill → dash still aims at the stick.
 func _dash_dir_input() -> Vector2:
-	var v := Controls.move_vector_for(seat_id) + stick_axis
+	var v := _move_vector() + stick_axis
 	if v.length() < Controls.MOVE_DEADZONE:
 		return Vector2.ZERO
 	if v.length_squared() > 1.0:
@@ -2684,7 +2765,8 @@ func _begin_fight() -> void:
 	target.call("begin_fight")
 	SfxBus.play("sfx_fight_grab")
 	log_line.emit(Loc.t("log.player.thief_grab"))
-	if _shared_camera() != null:
+	## LAN: only the catcher's machine zooms／locks the shared cam.
+	if controls_locally() and _shared_camera() != null:
 		_focus_camera_toward(target.global_position, 0.35)
 		var tw := create_tween()
 		tw.tween_property(
@@ -2697,6 +2779,13 @@ func _begin_fight() -> void:
 func _tick_fight(delta: float) -> void:
 	if _fight_ko:
 		_tick_camera_shake(delta)
+		## Net puppet KO visuals may finish while Host still owns the thief —
+		## stay locked until the presentation agent is gone (despawn) or cleared.
+		if _net_ko_pending:
+			if not is_instance_valid(target):
+				_net_ko_pending = false
+				_end_fight(true)
+			return
 		return
 	if not is_instance_valid(target) or not bool(target.call("in_fight")):
 		_end_fight(false)
@@ -2705,6 +2794,9 @@ func _tick_fight(delta: float) -> void:
 	hold_progress = clampf(float(target.fight_hp) / 100.0, 0.0, 1.0)
 	target.call("_refresh_labels")
 	_tick_camera_shake(delta)
+	## Client vs puppet: do not locally fail the mash — Host timer / outcome is authority.
+	if _agent_is_net_puppet(target):
+		return
 	if float(target.fight_left) <= 0.0:
 		_fight_fail()
 
@@ -2713,10 +2805,26 @@ func _fight_tap() -> void:
 	if not is_instance_valid(target) or _fight_ko:
 		return
 	var dmg := Tuning.hit_damage(_str_now())
-	_shake_camera(Tuning.FIGHT_HIT_SHAKE, Tuning.FIGHT_HIT_SHAKE_SEC)
+	if controls_locally():
+		_shake_camera(Tuning.FIGHT_HIT_SHAKE, Tuning.FIGHT_HIT_SHAKE_SEC)
 	SfxBus.play("sfx_fight_hit")
+	## Puppet HP bar is feel-only; Host applies real damage from interact intents.
 	if bool(target.call("take_hit", dmg)):
+		if _agent_is_net_puppet(target):
+			## Keep fighting locked; Host KO → despawn ends the mash via _net_ko_pending.
+			_fight_win_net_pending()
+			return
 		_fight_win()
+
+
+func _fight_win_net_pending() -> void:
+	## Local mash bar emptied on a presentation thief — wait for Host despawn.
+	if _fight_ko:
+		return
+	_fight_ko = true
+	_net_ko_pending = true
+	log_line.emit(Loc.t("log.player.thief_ko"))
+	_play_ko_sequence(target, "", Vector2.ZERO, false)
 
 
 func _fight_win() -> void:
@@ -2737,6 +2845,16 @@ func apply_toss_ko(thief: Node, knock_dir: Vector2) -> void:
 	if not thief.has_method("is_active_thief") or not bool(thief.call("is_active_thief")):
 		return
 	if not thief.has_method("ko_box_hit_and_flee"):
+		return
+	## Client presentation thief: Host resolves box KO + loot; local seat only plays VFX.
+	if _agent_is_net_puppet(thief):
+		var end_fight_net := _fighting and target == thief
+		if end_fight_net:
+			_fight_ko = true
+			_net_ko_pending = true
+		log_line.emit(Loc.t("log.player.thief_box_ko"))
+		SfxBus.play("sfx_box_hit_thief")
+		_play_ko_sequence(thief, "", knock_dir.normalized() if knock_dir.length_squared() > 0.01 else Vector2.ZERO, false)
 		return
 	var game := _game()
 	if game and game.has_method("record_caught"):
@@ -2761,9 +2879,11 @@ func _play_ko_sequence(
 	knock_override: Vector2 = Vector2.ZERO,
 	end_fight: bool = true,
 ) -> void:
-	_shake_camera(Tuning.FIGHT_KO_SHAKE, 0.22)
+	var local_cam := controls_locally()
+	if local_cam:
+		_shake_camera(Tuning.FIGHT_KO_SHAKE, 0.22)
 	SfxBus.play("sfx_ko_screen")
-	if _shared_camera() != null:
+	if local_cam and _shared_camera() != null:
 		if is_instance_valid(thief):
 			_focus_camera_toward((thief as Node2D).global_position, 0.35)
 		var punch := create_tween()
@@ -2776,7 +2896,8 @@ func _play_ko_sequence(
 	if game and game.has_method("play_ko_banner"):
 		game.call("play_ko_banner")
 	await get_tree().create_timer(0.18).timeout
-	if is_instance_valid(thief) and thief.has_method(flee_method):
+	## Empty flee_method = presentation-only (net puppet); Host scatters / despawns.
+	if flee_method != "" and is_instance_valid(thief) and thief.has_method(flee_method):
 		var knock: Vector2 = knock_override
 		if knock.length_squared() < 0.01:
 			knock = (thief as Node2D).global_position - global_position
@@ -2786,7 +2907,7 @@ func _play_ko_sequence(
 	await get_tree().create_timer(Tuning.FIGHT_KO_FLASH_SEC * 0.55).timeout
 	if end_fight:
 		_end_fight(true)
-	elif camera:
+	elif local_cam and camera and not _net_ko_pending:
 		## Toss KO outside a fight: restore shop framing after the punch-in.
 		restore_base_camera()
 
@@ -2799,7 +2920,112 @@ func _fight_fail() -> void:
 		if away.length_squared() < 0.01:
 			away = -facing
 		facing = away.normalized()
-		target.call("escape_with_loot")
+		## Never drive puppet escape — Host owns leave / stolen stats.
+		if not _agent_is_net_puppet(target) and target.has_method("escape_with_loot"):
+			target.call("escape_with_loot")
+	_apply_fight_fail_player()
+
+
+## Client: Host broadcast fight_clear(caught=false) — mirror slip/stun without mutating puppet.
+func apply_net_fight_fail() -> void:
+	if not _fighting and not _net_ko_pending and not _fight_ko:
+		return
+	if is_instance_valid(target):
+		var away := global_position - target.global_position
+		if away.length_squared() < 0.01:
+			away = -facing
+		facing = away.normalized()
+	_apply_fight_fail_player()
+
+
+## Client presentation: Host absolute checkout arrows／hold (M2.9). Works on puppets.
+func apply_net_checkout_prompt(on: bool, seq: Array, idx: int, fail: int, done: bool, hold: float) -> void:
+	## Do not clobber ultimate direction chrome.
+	if ult_prep:
+		return
+	var bits: PackedStringArray = []
+	for v in seq:
+		bits.append(str(int(v)))
+	var fp := "%d|%d|%d|%d|%d|%s" % [
+		1 if on else 0,
+		idx,
+		fail,
+		1 if done else 0,
+		int(round(clampf(hold, 0.0, 1.0) * 100.0)),
+		"|".join(bits),
+	]
+	if fp == _net_prompt_fp:
+		return
+	_net_prompt_fp = fp
+	seq_index = idx
+	seq_done = done
+	hold_progress = clampf(hold, 0.0, 1.0)
+	if _prompt:
+		_prompt.sequence.clear()
+		for v in seq:
+			_prompt.sequence.append(int(v))
+		_prompt.index = idx
+		_prompt.fail_at = fail
+		_prompt.active = on
+	if _circle != null and not _cleaning():
+		_circle.progress = hold_progress
+		_circle.blocked = false
+
+
+func prompt_net_row() -> Dictionary:
+	var dirs: Array = []
+	if _prompt != null:
+		for d in _prompt.sequence:
+			dirs.append(int(d))
+	var on := false
+	var fail := -1
+	if _prompt != null and not ult_prep:
+		on = bool(_prompt.active)
+		fail = int(_prompt.fail_at)
+	return {
+		"seat": seat_id,
+		"on": on,
+		"seq": dirs,
+		"idx": seq_index,
+		"fail": fail,
+		"done": seq_done,
+		"hold": hold_progress,
+	}
+
+
+func _prompt_state_fp() -> String:
+	var bits: PackedStringArray = []
+	if _prompt != null:
+		for d in _prompt.sequence:
+			bits.append(str(int(d)))
+	var on := _prompt != null and not ult_prep and bool(_prompt.active)
+	var fail := int(_prompt.fail_at) if _prompt != null else -1
+	return "%d|%d|%d|%d|%d|%s" % [
+		1 if on else 0,
+		seq_index,
+		fail,
+		1 if seq_done else 0,
+		int(round(hold_progress * 100.0)),
+		"|".join(bits),
+	]
+
+
+func _request_prompt_broadcast(force: bool = false) -> void:
+	## Host absolute checkout chrome for clients (M2.9).
+	if SessionService.is_lan() and SessionService.is_client():
+		return
+	if not SessionService.is_lan() or not SessionService.is_server():
+		return
+	var fp := _prompt_state_fp()
+	if not force and fp == _net_prompt_fp:
+		return
+	_net_prompt_fp = fp
+	var game := _game()
+	if game != null and game.has_method("_broadcast_seat_prompt"):
+		game.call("_broadcast_seat_prompt", seat_id)
+
+
+func _apply_fight_fail_player() -> void:
 	log_line.emit(Loc.t("log.player.thief_fail"))
 	SfxBus.play("sfx_fight_fail")
 	SfxBus.play("sfx_move_stun")
@@ -2819,6 +3045,7 @@ func _end_fight(_won: bool) -> void:
 	_fighting = false
 	_fight_release = false
 	_fight_ko = false
+	_net_ko_pending = false
 	_shake_left = 0.0
 	hold_progress = 0.0
 	## Mash updates `_j_held` above; if still down through KO, latch until up
@@ -2830,7 +3057,8 @@ func _end_fight(_won: bool) -> void:
 	_deliver_done = false
 	_interact_ignore_until_up = still_held
 	_clear_clean_hint()
-	restore_base_camera()
+	if controls_locally():
+		restore_base_camera()
 	var game := _game()
 	if game != null and game.has_method("notify_camera_priority_idle"):
 		game.call("notify_camera_priority_idle")
@@ -2838,6 +3066,9 @@ func _end_fight(_won: bool) -> void:
 
 func camera_priority_busy() -> bool:
 	## Fight / KO framing beats EliteCustomer intro zoom.
+	## Remote seats must not lock another peer's shared camera (LAN).
+	if not controls_locally():
+		return false
 	return _fighting or _fight_ko
 
 
@@ -2857,6 +3088,8 @@ func base_camera_zoom() -> float:
 ## Restore zoom / follow from PlatformServices camera_view (after fight, skill, elite).
 func restore_base_camera() -> void:
 	if camera == null:
+		return
+	if not controls_locally():
 		return
 	var z := base_camera_zoom()
 	camera.offset = Vector2.ZERO
@@ -2890,6 +3123,9 @@ func _prepare_camera_for_local_focus() -> void:
 ## Frame toward a world point. Shared cam (parent ≠ this seat) must use top_level
 ## global_position — local offset would be relative to seat0 and land in the wrong place.
 func _focus_camera_toward(focus_global: Vector2, blend: float) -> void:
+	## Non-local seats must not steal another peer's camera (LAN thief／elite framing).
+	if not controls_locally():
+		return
 	var cam := _shared_camera()
 	if cam == null:
 		return
@@ -2923,12 +3159,14 @@ func play_elite_focus(target_node: Node, sec: float = Tuning.ELITE_ZOOM_SEC) -> 
 
 
 func _shake_camera(mag: float, dur: float) -> void:
+	if not controls_locally():
+		return
 	_shake_mag = mag
 	_shake_left = maxf(_shake_left, dur)
 
 
 func _tick_camera_shake(delta: float) -> void:
-	if camera == null:
+	if not controls_locally() or camera == null:
 		return
 	if _shake_left <= 0.0:
 		camera.offset = Vector2.ZERO
@@ -2957,6 +3195,15 @@ func _try_dash_hits() -> void:
 				continue
 			if not _dash_segment_hits(t.global_position):
 				continue
+			## Presentation thief: Host resolves dash KO from intents; local VFX only.
+			if _agent_is_net_puppet(t):
+				SfxBus.play("sfx_thief_dash_out")
+				log_line.emit(Loc.t("log.player.thief_dash"))
+				if _fighting and target == t:
+					_fight_ko = true
+					_net_ko_pending = true
+					_play_ko_sequence(t, "", _dash_dir, false)
+				return
 			t.call("dash_knock_away", _dash_dir)
 			if g.has_method("record_caught"):
 				g.call("record_caught", seat_id)
@@ -3329,11 +3576,14 @@ func _tick_cashier(delta: float) -> void:
 	_prompt.sequence = cust.checkout_seq
 	_prompt.index = seq_index
 	if not seq_done:
+		_request_prompt_broadcast()
 		return
 	var csec := checkout_seconds_now()
 	hold_progress = minf(1.0, hold_progress + delta / csec)
 	if hold_progress >= 1.0:
 		_finish_checkout(cust)
+	else:
+		_request_prompt_broadcast()
 
 
 func _senior_cashier_lv_now() -> int:
@@ -3348,6 +3598,9 @@ func _ensure_seq(cust) -> void:
 		if cust.has_meta("checkout_seq_init") and bool(cust.get_meta("checkout_seq_init")):
 			seq_done = true
 			cust.begin_paying()
+			return
+		## Client LAN: wait for Host absolute seq — never dual-randi (M2.9).
+		if SessionService.is_lan() and SessionService.is_client():
 			return
 		var n := Tuning.command_count(cust.cart.size())
 		n = Skills.senior_cashier_command_count(n, _senior_cashier_lv_now())
@@ -3368,8 +3621,10 @@ func _ensure_seq(cust) -> void:
 			seq_done = false
 			SfxBus.play("sfx_checkout_enter")
 			log_line.emit(Loc.t("log.player.checkout_cmds", [n, cust.cart.size()]))
+		if cust.has_method("broadcast_checkout_seq_state"):
+			cust.call("broadcast_checkout_seq_state")
+		## prompt_state 由 _tick_cashier 在寫入 _prompt.sequence 後再廣播。
 	cust.begin_paying()
-
 
 func _try_dir(dir: int) -> void:
 	if _restock_picking:
@@ -3420,6 +3675,9 @@ func _try_command(dir: int) -> void:
 		seq_index = 0
 		SfxBus.play("sfx_checkout_dir_fail")
 		log_line.emit(Loc.t("log.player.cmds_fail"))
+	if _prompt:
+		_prompt.index = seq_index
+	_request_prompt_broadcast(true)
 
 
 func _finish_checkout(cust) -> void:
@@ -3447,6 +3705,8 @@ func _finish_checkout(cust) -> void:
 	seq_done = false
 	hold_progress = 0.0
 	_prompt.active = false
+	_prompt.fail_at = -1
+	_request_prompt_broadcast(true)
 
 
 func _spawn_dollar() -> void:
@@ -3502,6 +3762,9 @@ func _on_skill_hold(pressed: bool) -> void:
 	_l_held = false
 	_skill_from_pad = false
 	if short:
+		## Remote LAN seat on Host: short release must not leave a latch menu nobody can close.
+		if not controls_locally():
+			return
 		if from_pad:
 			_confirm_skill(0)
 		else:
@@ -3516,19 +3779,22 @@ func _open_skill_menu(latch: bool) -> void:
 	_running = false
 	velocity = Vector2.ZERO
 	if _menu:
-		_menu.open = true
-		_menu.call("set_slots", _loadout(), _cd)
-		if _menu.has_method("set_aim"):
-			_menu.call("set_aim", 0)
+		## Only the piloting machine draws the radial; Host still tracks aim for remote seats.
+		_menu.open = controls_locally()
+		if controls_locally():
+			_menu.call("set_slots", _loadout(), _cd)
+			if _menu.has_method("set_aim"):
+				_menu.call("set_aim", 0)
 	_menu_fp = "%s|%s" % [str(_cd), str(_loadout())]
 	## A stick already pushed for walking must not count as the tap-menu choice.
 	if latch and (stick_axis.length() >= 0.42 or _joy_stick_vector().length() >= 0.42):
 		_cardinal_armed = false
-	SfxBus.play("sfx_skill_menu_open")
-	if latch:
-		log_line.emit(Loc.t("log.player.skill_menu_tap"))
-	else:
-		log_line.emit(Loc.t("log.player.skill_menu_hold"))
+	if controls_locally():
+		SfxBus.play("sfx_skill_menu_open")
+		if latch:
+			log_line.emit(Loc.t("log.player.skill_menu_tap"))
+		else:
+			log_line.emit(Loc.t("log.player.skill_menu_hold"))
 
 
 func _sync_hold_aim() -> void:
@@ -3536,7 +3802,7 @@ func _sync_hold_aim() -> void:
 
 
 func _skill_aim_slot() -> int:
-	var v := Controls.move_vector_for(seat_id) + stick_axis
+	var v := _move_vector() + stick_axis
 	if v.length() < 0.42:
 		return 0
 	var dir := Skills.DIR_DOWN if v.y > 0.0 else Skills.DIR_UP
@@ -3576,7 +3842,16 @@ func _try_skill_hotkey(slot: int) -> void:
 	if _magneto_aim:
 		_finish_magneto_aim()
 		return
+	## Queue for Host sim when this seat is piloted on a LAN client.
+	if controls_locally() and SessionService.is_lan() and SessionService.is_client():
+		pending_skill_hotkey = clampi(slot, 0, 4)
 	_confirm_skill(slot)
+
+
+func take_pending_skill_hotkey() -> int:
+	var slot := pending_skill_hotkey
+	pending_skill_hotkey = -1
+	return slot
 
 
 ## TouchPad / external callers: slot 0–4 = skills 1–5 (0 = center; 1–4 = LB/RB/LT/RT).
@@ -3893,6 +4168,7 @@ func release_checkout() -> void:
 	if target != null and _obj_str(target, "kind") == "cashier":
 		_interact_release(target)
 	_interact_release_held()
+	_request_prompt_broadcast(true)
 
 
 func _lord_seconds(lv: int) -> float:
@@ -4004,6 +4280,8 @@ func _shared_camera() -> Camera2D:
 
 
 func _play_zoom(ult: bool) -> void:
+	if not controls_locally():
+		return
 	var cam := _shared_camera()
 	if cam == null:
 		return
@@ -4040,6 +4318,7 @@ func _reset_hold() -> void:
 	elif _obj_str(target, "kind") == "shelf":
 		_interact_release(target)
 	_interact_release_held()
+	_request_prompt_broadcast(true)
 
 
 func _interact_try(node: Object) -> bool:
@@ -4138,9 +4417,13 @@ func _visual_anim() -> String:
 		return "restock"
 	if _dashing:
 		return "dash"
-	if _running and velocity.length() > 8.0:
+	var moving := velocity.length() > 8.0
+	## Puppets zero velocity — walk from Host pose delta instead.
+	if is_net_puppet():
+		moving = _net_puppet_moving
+	if _running and moving and not is_net_puppet():
 		return "run"
-	if velocity.length() > 8.0:
+	if moving:
 		if not inventory.is_empty() and Vox.has_anim(mid, "walk_carry"):
 			return "walk_carry"
 		return "walk"

@@ -15,7 +15,7 @@ static func is_hub_page(page: String) -> bool:
 
 static func parent_page(page: String) -> String:
 	match page:
-		"hub_char", "hub_goods", "hub_shop", "hub_sys", "clerks", "confirm", "elite_test", "rating_history":
+		"hub_char", "hub_goods", "hub_shop", "hub_sys", "clerks", "confirm", "elite_test", "rating_history", "lobby", "lan_join":
 			return "home"
 		"stats", "skills", "look":
 			return "hub_char"
@@ -130,6 +130,10 @@ static func fill(menu: CanvasLayer, page: String) -> void:
 			_clerks(menu)
 		"confirm":
 			_confirm(menu)
+		"lobby":
+			_lobby(menu)
+		"lan_join":
+			_lan_join(menu)
 		"sfx":
 			_sfx(menu)
 		"elite_test":
@@ -216,11 +220,13 @@ static func _rating_history(menu: CanvasLayer) -> void:
 	const RatingRules = preload("res://scripts/session/rating_rules.gd")
 	menu._title.text = Loc.t("prep.rating.title")
 	var shop_r := int(menu.state.shop_rating) if "shop_rating" in menu.state else 0
+	var support_r := int(menu.state.support_rating) if "support_rating" in menu.state else 0
 	var hist: Array = menu.state.rating_history if menu.state.get("rating_history") is Array else []
 	var last_ops := int(menu.state.last_ops_rating) if "last_ops_rating" in menu.state else RatingRules.OPS_START
 	var last_g := int(menu.state.last_grade) if "last_grade" in menu.state else 0
 	var info := Loc.t("prep.rating.info", [
 		shop_r,
+		support_r,
 		hist.size(),
 		RatingRules.HISTORY_MAX,
 		last_ops,
@@ -696,7 +702,83 @@ static func _confirm(menu: CanvasLayer) -> void:
 			if menu._guest_slot_index >= 0 and not menu._guest_store.is_empty(menu._guest_slot_index):
 				menu._add(Loc.t("prep.confirm.cycle_guest_tint"), "cycle_guest_tint", null)
 	menu._add(Loc.t("prep.open.start_funds", [(menu.state.money - wage)]), "open", null)
+	if not web_solo and SessionService.lan_available():
+		menu._add(Loc.t("lobby.host"), "lan_host", null)
+		menu._add(Loc.t("lobby.join"), "go", "lan_join")
 	menu._add(Loc.t("prep.back"), "go", "home")
+
+
+static func _lobby(menu: CanvasLayer) -> void:
+	menu._title.text = Loc.t("lobby.title")
+	var lines: PackedStringArray = []
+	if SessionService.is_server():
+		lines.append(Loc.t("lobby.host_port", [SessionService.lan_port]))
+	else:
+		lines.append(Loc.t("lobby.joined", [SessionService.join_address, SessionService.lan_port]))
+	lines.append(Loc.t("lobby.remaining", [SessionService.seats_remaining()]))
+	for s in SeatTable.seat_ids():
+		var ready := Loc.t("lobby.ready_yes" if SeatTable.is_seat_ready(s) else "lobby.ready_no")
+		var mine := SeatTable.seat_owned_locally(s)
+		var tag := Loc.t("lobby.you") if mine else Loc.t("lobby.peer", [SeatTable.owner_peer_of(s)])
+		lines.append(Loc.t("lobby.seat_row", [s + 1, tag, ready]))
+	menu._info.text = "\n".join(lines)
+	## Toggle ready for locally owned seats.
+	for s in SeatTable.seat_ids():
+		if SeatTable.seat_owned_locally(s):
+			var lab := Loc.t("lobby.toggle_ready", [s + 1])
+			menu._add(lab, "lobby_ready", s)
+	if SessionService.is_server():
+		if SessionService.all_ready():
+			menu._add(Loc.t("lobby.start"), "lobby_start", null)
+		else:
+			menu._add(Loc.t("lobby.start_blocked"), "noop", null)
+		menu._add(Loc.t("lobby.close"), "lobby_close", null)
+	else:
+		menu._add(Loc.t("lobby.leave"), "lobby_close", null)
+
+
+static func _lan_join(menu: CanvasLayer) -> void:
+	menu._title.text = Loc.t("lobby.join_title")
+	var addr := String(menu._lan_address)
+	if addr.is_empty():
+		addr = "127.0.0.1"
+	var web_solo := OS.has_feature("web")
+	if web_solo:
+		menu._local_seats = 1
+	var claim := 1 if web_solo else clampi(menu._local_seats, 1, 2)
+	var info := Loc.t("lobby.join_info", [addr])
+	info += "\n" + Loc.t("lobby.join_claim", [
+		Loc.t("lobby.claim_2") if claim >= 2 else Loc.t("lobby.claim_1")
+	])
+	if claim >= 2:
+		menu._ensure_guest_store()
+		menu._auto_pick_guest_slot()
+		var gi: int = int(menu._guest_slot_index)
+		if gi >= 0 and not menu._guest_store.is_empty(gi):
+			info += "\n" + Loc.t("prep.confirm.guest_selected", [gi + 1, menu._guest_store.label_for(gi)])
+			info += "\n" + _confirm_guest_look_line(menu, gi)
+		else:
+			info += "\n" + Loc.t("prep.confirm.guest_none")
+		info += "\n" + Loc.t("lobby.join_claim2_hint")
+	menu._info.text = info
+	menu._ensure_lan_address_edit(addr)
+	if not web_solo:
+		menu._add(Loc.t("lobby.claim_1"), "set_seats", 1)
+		menu._add(Loc.t("lobby.claim_2"), "set_seats", 2)
+		if claim >= 2:
+			menu._ensure_guest_store()
+			for i in 3:
+				var lab := Loc.t("prep.confirm.guest_slot", [i + 1, menu._guest_store.label_for(i)])
+				if menu._guest_store.is_empty(i):
+					menu._add(Loc.t("prep.confirm.guest_clone", [i + 1]), "clone_guest_slot", i)
+					menu._add(Loc.t("prep.confirm.guest_blank_btn", [i + 1]), "blank_guest_slot", i)
+				else:
+					menu._add(lab, "pick_guest_slot", i)
+			if menu._guest_slot_index >= 0 and not menu._guest_store.is_empty(menu._guest_slot_index):
+				menu._add(Loc.t("prep.confirm.cycle_guest_tint"), "cycle_guest_tint", null)
+	menu._add(Loc.t("lobby.join_confirm"), "lan_join_do", null)
+	menu._add(Loc.t("lobby.addr_localhost"), "lan_addr", "127.0.0.1")
+	menu._add(Loc.t("prep.back"), "go", "confirm")
 
 
 static func _confirm_host_look_line(menu: CanvasLayer) -> String:

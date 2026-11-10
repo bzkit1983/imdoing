@@ -19,6 +19,14 @@
 - JSON：`{ "version": 1, "slots": [ dict|{}, … ] }`；角色 dict 含 `xp`／`level`／`unspent`／`base_*`／`*_stat`／`slots`／`ult_id`／`skill_sets`／`flags`／`tint`／`skin_id`／`unlocked_skins`／`display_name`；設計另加 **`support_rating`**（支援別店評價，見 `ratingsystem.md`）（**無** money／stock／layout／`shop_rating`）。
 - 日結：店主檔寫資金＋平分後 XP＋Host 商店評價／評級歷史；選中槽寫入訪客 XP（平分公式見 multiplayer §11.7）與 `support_rating` 更新。清除主存檔時一併 `delete_guest_slots`。
 
+## 線上訪客寫回（M2，見 `multiplayer.md` §12）
+
+- **角色來源：** Join 端上傳本機 **`user://save.json` 主角色欄**（非訪客槽）；Host 持副本。無主存檔不可加入。
+- **M2 日結（角色）：** Host 結算後以 RPC 下發各遠端 seat 的**平分 XP**與 Host 評級；client 寫入**本機主存檔角色欄**的 XP／等級相關欄與 **`support_rating`**（可與訪客槽同欄名語意，但路徑是主存檔）；claim2 第二席寫入 **`guest_slots`**。
+- **斷線凍結座位：** 仍按**開日人數**平分；凍結 seat 仍收到 XP／`support_rating`（若該 peer 已離線則 Host 保留待重連寫回——首刀可不做重連，離線則該份進度暫存至房解散丟棄，**實作：離線 peer 的角色進度不寫回其磁碟**；仍在線的凍結不適用——凍結＝角色已移除但 peer 可仍在房內等日結。若 peer 已斷，則無法寫其本機檔，該 seat 的平分份作廢僅影響該玩家——**拍板補充：** 斷線 peer 的平分 XP／support **不寫回**（無人收）；分母仍含該 seat，避免留下來的人變相多拿。  
+  （與「凍結座位仍分到」並存時：僅 **peer 仍連線至日結** 才寫回該 seat；已斷線 peer 跳過寫回。）
+- **M2.1／結算刀（已交）：** 日結 RPC 另帶 Host 當日 **`revenue`（營業額）**。每位仍連線遠端 peer 對**本機主存檔**執行一次 `money += revenue`（與 Host 同額、非平分）。**不**改 client 的 `shop_rating`／`day_procurement`／`last_loss`／評級歷史。訪客槽與本機 M1 P2 **無**店舖資金欄，不寫。時機：與角色日結同一 RPC、同一 `save_to_disk`。
+
 # 寫入時機
 
 1. **準備回合結束**：玩家通過開店檢查、扣當日工資、即將進入營運回合時寫一次  

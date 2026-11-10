@@ -103,6 +103,8 @@ static func from_game_state(src) -> RefCounted:
 		sheet.unlocked_skins = SkinCatalog.parse_unlocked(src.unlocked_skins) if SkinCatalog else []
 	else:
 		sheet.unlocked_skins = []
+	if "support_rating" in src:
+		sheet.support_rating = int(src.support_rating)
 	return sheet
 
 

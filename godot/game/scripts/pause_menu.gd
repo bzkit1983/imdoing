@@ -98,7 +98,19 @@ func can_open() -> bool:
 	return phase == "restock" or phase == "open"
 
 
+var _applying_net_pause: bool = false
+
+
 func open_menu(from_suspend: bool = false) -> void:
+	## Client system suspend during LAN day = disconnect (§12.6).
+	if from_suspend and SessionService.is_lan() and SessionService.is_client() and SessionService.day_started:
+		SessionService.close()
+		return
+	if SessionService.is_lan() and not _applying_net_pause:
+		SessionService.request_pause(true)
+		## Host suspend still requests room pause; UI opens via room_paused_changed.
+		if not from_suspend:
+			return
 	if _open:
 		if from_suspend:
 			_from_suspend = true
@@ -112,6 +124,7 @@ func open_menu(from_suspend: bool = false) -> void:
 	_stick_armed = true
 	_exit_lang_pick(false)
 	visible = true
+	_refresh_end_day_row()
 	_refresh_copy()
 	_paint_focus()
 	PlatformServices.checkpoint()
@@ -122,6 +135,9 @@ func open_menu(from_suspend: bool = false) -> void:
 
 
 func close_menu() -> void:
+	if SessionService.is_lan() and not _applying_net_pause and _open:
+		SessionService.request_pause(false)
+		return
 	if not _open:
 		return
 	_exit_lang_pick(false)
@@ -133,6 +149,24 @@ func close_menu() -> void:
 	SfxBus.play("sfx_ui_pause_close")
 	if game and game.has_method("on_pause_closed"):
 		game.call("on_pause_closed")
+
+
+func apply_net_pause(paused: bool) -> void:
+	_applying_net_pause = true
+	if paused:
+		open_menu(false)
+	else:
+		close_menu()
+	_applying_net_pause = false
+
+
+func _refresh_end_day_row() -> void:
+	if _end_btn == null:
+		return
+	var host_ok := (not SessionService.is_lan()) or SessionService.is_server()
+	_end_btn.visible = host_ok
+	_end_btn.disabled = not host_ok
+	_layout_option_rows()
 
 
 func _process(_delta: float) -> void:
@@ -340,6 +374,8 @@ func _move_focus(delta: int) -> void:
 	for _i in FOCUS_COUNT:
 		next = posmod(next + delta, FOCUS_COUNT)
 		if next == FOCUS_STICK and not _stick_row_visible():
+			continue
+		if next == FOCUS_END and _end_btn != null and not _end_btn.visible:
 			continue
 		break
 	if next == _focus:
@@ -557,6 +593,8 @@ func _activate_lang_pick() -> void:
 
 
 func _on_end_day() -> void:
+	if SessionService.is_lan() and not SessionService.request_end_day():
+		return
 	close_menu()
 	end_day_requested.emit()
 

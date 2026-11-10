@@ -15,6 +15,41 @@ var _label: Label
 var _barrel: Node2D
 var _visual: Node2D
 var dismissed := false
+## M2.3 LAN presentation.
+var net_agent_id: int = -1
+var net_puppet: bool = false
+
+
+func is_net_puppet() -> bool:
+	return net_puppet
+
+
+func apply_net_pose(pos: Vector2, _facing: Vector2 = Vector2.ZERO) -> void:
+	global_position = pos
+
+
+func apply_net_ammo(ammo_n: int, next_sku: String = "") -> void:
+	## Client puppet: refresh label only (ammo array not authoritative here).
+	if not net_puppet:
+		return
+	ammo.clear()
+	for _i in maxi(0, ammo_n):
+		ammo.append(next_sku if next_sku != "" else "box")
+	if next_sku != "" and ammo_n > 0:
+		ammo[0] = next_sku
+	refresh()
+
+
+func _broadcast_ammo_state() -> void:
+	if net_agent_id < 0 or net_puppet:
+		return
+	if not SessionService.is_lan() or not SessionService.is_server():
+		return
+	SessionService.broadcast_agent_state({
+		"id": net_agent_id,
+		"ammo_n": ammo.size(),
+		"sku": ammo[0] if not ammo.is_empty() else "",
+	})
 
 func capacity() -> int:
 	return 8 + 4 * clampi(level, 1, 3)
@@ -55,7 +90,7 @@ func available_for(player) -> bool:
 	return not dismissed and ((not ammo.is_empty() and player.inventory.count() < player.carry_cap()) or (not player.inventory.is_empty() and ammo.size() < capacity()))
 
 func load_from(player) -> int:
-	if dismissed:
+	if dismissed or net_puppet:
 		return 0
 	var run: Dictionary = player.inventory.trailing_run()
 	var n := mini(int(run["count"]), capacity() - ammo.size())
@@ -64,14 +99,16 @@ func load_from(player) -> int:
 	player.inventory.remove_trailing(n)
 	reset_aim()
 	refresh()
+	_broadcast_ammo_state()
 	return n
 
 func retrieve_to(player) -> bool:
-	if dismissed or ammo.is_empty() or player.inventory.count() >= player.carry_cap():
+	if dismissed or net_puppet or ammo.is_empty() or player.inventory.count() >= player.carry_cap():
 		return false
 	player.inventory.add_one(ammo.pop_front())
 	reset_aim()
 	refresh()
+	_broadcast_ammo_state()
 	return true
 
 func reset_aim() -> void:
@@ -116,6 +153,8 @@ func choose_target() -> Node2D:
 	return found
 
 func _physics_process(delta: float) -> void:
+	if net_puppet:
+		return
 	if dismissed or not is_instance_valid(host) or str(host.get("phase")) not in ["open", "restock"]:
 		return
 	if host.has_method("asking_early_close") and host.asking_early_close():
@@ -146,10 +185,22 @@ func tick_fire(delta: float) -> void:
 	projectile.owner_seat = owner_seat
 	projectile.setup(sku, global_position, next.global_position, Tuning.DROP_FLIGHT_SEC, 1)
 	host.get("_world").add_child(projectile)
+	## M2.3: client VFX only — Host resolves hit.
+	if SessionService.is_lan() and SessionService.is_server():
+		SessionService.broadcast_flight({
+			"sku": sku,
+			"n": 1,
+			"fx": global_position.x,
+			"fy": global_position.y,
+			"tx": next.global_position.x,
+			"ty": next.global_position.y,
+			"dur": Tuning.DROP_FLIGHT_SEC,
+		})
 	_visual.fire()
 	SfxBus.play("sfx_box_toss")
 	reset_aim()
 	refresh()
+	_broadcast_ammo_state()
 
 func dismiss() -> void:
 	if dismissed:

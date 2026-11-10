@@ -1,6 +1,6 @@
 # Alpha → v1 實作對照（設計已落地項）
 
-- 對照日：2026-10-30（含 PR #3–#117：掉貨／丟掉上架砸小偷、Design Gap、Runtime P1＋P2、SFX、客人交付 v1.2、自訂技能組、互動發光、三招狙擊手＋優先序、Pages、Dark Side、多重影分身設計）
+- 對照日：2026-11-10（含 PR #3–#117 等；多人 **M1 本機雙人已落地**；**M2 LAN 首刀～M2.9 已落地**）
 - 用途：把近期工程變更連回長線／Alpha 設計檔，方便查「文件寫在哪、程式改哪」
 - 版控：`docs/versioning.md` · 技術债清單：`docs/alpha/tech-review-v0.1.md`（§6 已全部勾完） · 缺口：`docs/systemdesign-gaps.md` · 執行期優化：`docs/alpha/runtime-perf-audit.md`
 
@@ -48,4 +48,7 @@
 | Design Gap 拍板（v1.1.0） | **`docs/systemdesign-gaps.md`**；各 systemdesign 檔 | 衝刺撞客人／擁擠／凌波微步／丟掉砸客人／多台選隊／重置費用／衝刺算抓住等；見 gaps「已處理」 |
 | 麻煩客人 EliteCustomer | **`docs/systemdesign/elitecustomer.md`**、`customer.md`、`ecosystem.md` | `customer.become_elite`／詞綴；`demo` 1–5% spawn＋橫幅／ZOOM；收銀雙倍＋`XP_ELITE_SERVE`；活線暫只解鎖 LV1 |
 
-仍缺（非 §6）：BGM／完整設定頁、教學、技能演出鎖輸入、Steamworks 等——見 `docs/alpha/design.md`。事件 SFX 音量已在暫停選單。prep UI 已拆為 `scenes/prep_menu.tscn` + `scripts/prep/`。
+| 多人 M1 本機雙人 | **`docs/systemdesign/multiplayer.md`** §11 | **已實作**。`SeatTable`／`InteractLock`／`SessionService`（`transport=local`）；prep 1｜2；訪客槽；日結 XP 平分＋`support_rating` |
+| 多人 M2 LAN／ENet | **`docs/systemdesign/multiplayer.md`** §12 | **首刀～M2.9 已交**：含 **收銀指令 UI**（`checkout_seq` `agent_state`；`prompt_state` RPC；`apply_net_checkout_prompt`；client 禁雙重 randi） |
+
+仍缺（非 §6）：BGM／完整設定頁、教學、技能演出鎖輸入、Steamworks 等——見 `docs/alpha/design.md`、`multiplayer.md` §12（M3／M4）。事件 SFX 音量已在暫停選單。prep UI 已拆為 `scenes/prep_menu.tscn` + `scripts/prep/`。

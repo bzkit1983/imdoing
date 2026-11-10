@@ -424,13 +424,23 @@ func _sync_left() -> void:
 			_combo.text = Loc.t("hud.combo", [p1, team])
 
 
+func _pane_player(pane: Dictionary) -> CharacterBody2D:
+	## Freed peers leave a dangling Variant in the pane — typed assign crashes before is_instance_valid.
+	var raw = pane.get("player")
+	if raw == null or not is_instance_valid(raw):
+		return null
+	return raw as CharacterBody2D
+
+
 func _role_status_all() -> String:
 	if _panes.size() <= 1:
+		if player == null or not is_instance_valid(player):
+			return ""
 		return String(player.call("role_status_text"))
 	var lines: PackedStringArray = []
 	for pane in _panes:
-		var p: CharacterBody2D = pane["player"]
-		if p == null or not is_instance_valid(p):
+		var p := _pane_player(pane)
+		if p == null:
 			continue
 		var seat := int(p.get("seat_id")) + 1
 		lines.append("P%d %s" % [seat, String(p.call("role_status_text"))])
@@ -463,8 +473,8 @@ func _skill_cd_text_all() -> String:
 		return _skill_cd_text_for(player, "")
 	var blocks: PackedStringArray = []
 	for pane in _panes:
-		var p: CharacterBody2D = pane["player"]
-		if p == null or not is_instance_valid(p):
+		var p := _pane_player(pane)
+		if p == null:
 			continue
 		var seat := int(p.get("seat_id")) + 1
 		blocks.append(_skill_cd_text_for(p, "P%d " % seat))
@@ -542,8 +552,8 @@ func _refresh() -> void:
 
 
 func _refresh_pane(pane: Dictionary) -> void:
-	var p: CharacterBody2D = pane.get("player")
-	if p == null or not is_instance_valid(p):
+	var p := _pane_player(pane)
+	if p == null:
 		return
 	var state_l: Label = pane["state"]
 	var stam: ProgressBar = pane["stamina"]

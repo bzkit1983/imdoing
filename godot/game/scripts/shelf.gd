@@ -8,6 +8,8 @@ const SkuIcons = preload("res://scripts/sku_icons.gd")
 
 ## old_sku / new_sku are "" when the shelf is empty.
 signal stock_sku_changed(shelf: Node, old_sku: String, new_sku: String)
+## Any count／sku mutation (including count-only). Used for M2.4 Host stock broadcast.
+signal stock_changed(shelf: Node)
 
 var kind: String = "shelf"
 var category: String = Tuning.CAT_DRY
@@ -15,6 +17,8 @@ var sku: String = ""
 var count: int = 0
 var capacity: int = Tuning.SHELF_CAP
 var shelf_index: int = 1
+## Stable id across Host／Client for the same layout slot (M2.4).
+var net_shelf_id: int = -1
 var label: Label
 var body: CanvasItem
 var _goods: Sprite2D
@@ -42,8 +46,7 @@ func add_items(item_sku: String, n: int) -> int:
 	var placed := mini(n, space)
 	sku = item_sku
 	count += placed
-	_refresh()
-	_emit_sku_change(old_sku)
+	_after_stock_mutate(old_sku)
 	return placed
 
 
@@ -56,8 +59,7 @@ func take_all() -> Array[String]:
 		out.append(sku)
 	sku = ""
 	count = 0
-	_refresh()
-	_emit_sku_change(old_sku)
+	_after_stock_mutate(old_sku)
 	return out
 
 
@@ -69,8 +71,7 @@ func take_one(want: String) -> bool:
 	if count <= 0:
 		sku = ""
 		count = 0
-	_refresh()
-	_emit_sku_change(old_sku)
+	_after_stock_mutate(old_sku)
 	return true
 
 
@@ -84,9 +85,21 @@ func take_n(n: int) -> int:
 	if count <= 0:
 		sku = ""
 		count = 0
+	_after_stock_mutate(old_sku)
+	return taken
+
+
+## Client presentation: Host absolute sku/count (M2.4). Does not emit stock_changed.
+func apply_net_stock(new_sku: String, new_count: int) -> void:
+	var old_sku := occupied_sku()
+	if new_count <= 0 or new_sku == "":
+		sku = ""
+		count = 0
+	else:
+		sku = new_sku
+		count = maxi(0, new_count)
 	_refresh()
 	_emit_sku_change(old_sku)
-	return taken
 
 
 ## Drop a fraction of current stock (LV6 / frac≥1 → all). Returns {sku, n}.
@@ -112,6 +125,12 @@ func smash_fraction(frac: float) -> Dictionary:
 
 func has_sku(want: String) -> bool:
 	return sku == want and count > 0
+
+
+func _after_stock_mutate(old_sku: String) -> void:
+	_refresh()
+	_emit_sku_change(old_sku)
+	stock_changed.emit(self)
 
 
 func _emit_sku_change(old_sku: String) -> void:

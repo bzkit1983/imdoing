@@ -61,8 +61,8 @@ prep.scenario.s2,劇本2　LV5　資金 $10000　店規模 2　1 名店員,Scena
 prep.scenario.s3,劇本3　LV10　資金 $99999　三圍 30　店規模 3　2 名店員,Scenario 3 · LV10 · $99999 · stats 30 · scale 3 · 2 clerks,剧本3　LV10　资金 $99999　三围 30　店规模 3　2 名店员,シナリオ3　LV10　資金 $99999　三能力 30　店規模 3　店員 2名
 prep.scenario.s4,劇本4　技能測試　LV10　三圍20　$99999　規模3　18×10,Scenario 4 · Skill test · LV10 · stats 20 · $99999 · scale 3 · 18×10,剧本4　技能测试　LV10　三围20　$99999　规模3　18×10,シナリオ4　スキルテスト　LV10　三能力20　$99999　規模3　18×10
 prep.home.title,營運準備,Prep,营运准备,営業準備
-prep.header,資金 $%d　LV%d　%s　STR%d AGI%d INT%d　點數 %d　商店評價 %d,Cash $%d · LV%d · %s · STR%d AGI%d INT%d · Pts %d · Shop rating %d,资金 $%d　LV%d　%s　STR%d AGI%d INT%d　点数 %d　商店评价 %d,資金 $%d　LV%d　%s　STR%d AGI%d INT%d　ポイント %d　店舗評価 %d
-prep.home.info_rating,商店評價 %d　已記錄 %d 日。選「評價記錄」可連續查看近況。,Shop rating %d · %d days logged. Open Rating history to browse.,商店评价 %d　已记录 %d 日。选“评价记录”可连续查看近况。,店舗評価 %d　記録 %d 日。「評価記録」で近況を連続閲覧できます。
+prep.header,資金 $%d　LV%d　%s　STR%d AGI%d INT%d　點數 %d　商店評價 %d　支援別店 %d,Cash $%d · LV%d · %s · STR%d AGI%d INT%d · Pts %d · Shop rating %d · Support %d,资金 $%d　LV%d　%s　STR%d AGI%d INT%d　点数 %d　商店评价 %d　支援别店 %d,資金 $%d　LV%d　%s　STR%d AGI%d INT%d　ポイント %d　店舗評価 %d　支援評価 %d
+prep.home.info_rating,商店評價 %d　支援別店評價 %d　已記錄 %d 日。選「評價記錄」可連續查看近況。,Shop rating %d · support-other-shops %d · %d days logged. Open Rating history to browse.,商店评价 %d　支援别店评价 %d　已记录 %d 日。选“评价记录”可连续查看近况。,店舗評価 %d　他店支援評価 %d　記録 %d 日。「評価記録」で近況を連続閲覧できます。
 prep.hub.char,角色整備,Character,角色整备,キャラ整備
 prep.hub.char_info,能力、技能與外觀,Stats · skills · look,能力、技能与外观,能力・スキル・外見
 prep.hub.goods,貨品管理,Goods,货品管理,商品管理
@@ -74,7 +74,7 @@ prep.hub.rating,評價記錄,Rating history,评价记录,評価記録
 prep.hub.sys,系統工具,System tools,系统工具,システムツール
 prep.hub.sys_info,畫面／測試與存檔（觸控搖桿預設關；開後僅觸控模式顯示，手掣／鍵盤會自動隱藏）,Display / testing / save (touch stick default off; shows in touch mode only — auto-hides for pad/keyboard),画面／测试与存档（触控摇杆预设关；开后仅触控模式显示，手掣／键盘会自动隐藏）,画面／テストとセーブ（タッチスティックは既定オフ。オン時はタッチモードのみ表示。パッド／キーボードでは自動非表示）
 prep.rating.title,評價記錄,Rating history,评价记录,評価記録
-prep.rating.info,商店評價 %d　紀錄 %d／%d 日　上次營運點 %d　%s（評級 %+d）,Shop rating %d · log %d/%d days · last ops %d · %s (grade %+d),商店评价 %d　纪录 %d／%d 日　上次营运点 %d　%s（评级 %+d）,店舗評価 %d　記録 %d／%d 日　前回運営点 %d　%s（評級 %+d）
+prep.rating.info,商店評價 %d　支援別店評價 %d　紀錄 %d／%d 日　上次營運點 %d　%s（評級 %d）,Shop rating %d · support-other-shops %d · log %d/%d days · last ops %d · %s (grade %d),商店评价 %d　支援别店评价 %d　纪录 %d／%d 日　上次营运点 %d　%s（评级 %d）,店舗評価 %d　他店支援評価 %d　記録 %d／%d 日　前回運営点 %d　%s（評級 %d）
 prep.rating.empty,尚無日結評級。完成一局營運後會出現在這裡。,No day grades yet. Finish a day of ops to fill this list.,尚无日结评级。完成一局营运后会出现在这里。,日次評価はまだありません。営業を1日完了するとここに表示されます。
 prep.rating.day_latest,最近一日,Latest day,最近一日,直近の日
 prep.rating.day_ago,%d 日前,%d day(s) ago,%d 日前,%d 日前
@@ -199,6 +199,38 @@ prep.confirm.guest_cloned,已複製店主到訪客槽 %d,Cloned host into guest 
 prep.confirm.guest_blank,已在訪客槽 %d 新建空白角色,Created blank character in guest slot %d,已在访客槽 %d 新建空白角色,ゲストスロット%dに空白キャラを作成しました
 prep.confirm.guest_need_title,需要訪客槽,Guest slot required,需要访客槽,ゲストスロットが必要です
 prep.confirm.guest_need_body,請先選既有槽、複製店主到空槽、或新建空白。,Pick an existing slot,请先选既有槽、复制店主到空槽、或新建空白。,既存スロットを選ぶか、店主を空きスロットに複製するか、空白を新規作成してください。
+lobby.title,LAN 大廳,LAN lobby,LAN 大厅,LANロビー
+lobby.host,開 LAN 房（等人）,Host LAN room,开 LAN 房（等人）,LAN部屋を作成
+lobby.join,加入 LAN 房,Join LAN room,加入 LAN 房,LAN部屋に参加
+lobby.join_title,加入 LAN,Join LAN,加入 LAN,LANに参加
+lobby.join_info,輸入主機 IP（目前：%s）\n預設埠 7777,Enter host IP (now: %s)\nDefault port 7777,输入主机 IP（目前：%s）\n默认端口 7777,ホストIPを入力（現在：%s）\n既定ポート7777
+lobby.join_confirm,連線加入,Connect,连接加入,接続して参加
+lobby.join_claim,本機佔位：%s,Local seats: %s,本机占位：%s,この端末の席：%s
+lobby.claim_1,加入佔 1 席,Join with 1 seat,加入占 1 席,1席で参加
+lobby.claim_2,加入佔 2 席（需訪客槽）,Join with 2 seats (guest slot),加入占 2 席（需访客槽）,2席で参加（ゲスト枠）
+lobby.join_claim2_hint,房內須剩 ≥2 名額；否則主機會拒收。,Host needs ≥2 free seats or join is rejected.,房内须剩 ≥2 名额；否则主机会拒收。,部屋に空きが2以上必要。足りないと拒否されます。
+lobby.addr_localhost,位址設為 127.0.0.1,Use 127.0.0.1,地址设为 127.0.0.1,127.0.0.1を使用
+lobby.host_port,你是房主 · 埠 %d（告訴同伴你的 IP）,You are host · port %d (share your IP),你是房主 · 端口 %d（告诉同伴你的 IP）,ホストです · ポート%d（IPを共有）
+lobby.joined,已連 %s:%d,Joined %s:%d,已连 %s:%d,%s:%d に接続
+lobby.remaining,剩餘名額 %d / 4,Seats left %d / 4,剩余名额 %d / 4,残り枠 %d / 4
+lobby.seat_row,座位 %d · %s · %s,Seat %d · %s · %s,座位 %d · %s · %s,座席%d · %s · %s
+lobby.you,你,You,你,あなた
+lobby.peer,peer %d,peer %d,peer %d,peer %d
+lobby.ready_yes,就緒,Ready,就绪,準備完了
+lobby.ready_no,未就緒,Not ready,未就绪,未準備
+lobby.toggle_ready,切換就緒（座位 %d）,Toggle ready (seat %d),切换就绪（座位 %d）,準備切替（座席%d）
+lobby.start,全員就緒 · 開始營運,All ready · start day,全员就绪 · 开始营运,全員準備完了 · 営業開始
+lobby.start_blocked,等待全員就緒…,Waiting for all ready…,等待全员就绪…,全員の準備待ち…
+lobby.close,關閉房間,Close room,关闭房间,部屋を閉じる
+lobby.leave,離開房間,Leave room,离开房间,部屋を退出
+lobby.error_title,連線錯誤,Connection error,连接错误,接続エラー
+lobby.error_body,%s,%s,%s,%s
+lobby.host_left,房主已斷線，房間解散。本日未結算。,Host disconnected — room closed. Day was not settled.,房主已断线，房间解散。本日未结算。,ホスト切断のため部屋解散。本日は未清算です。
+lobby.client_waiting_settle,等待房主結算…,Waiting for host settle…,等待房主结算…,ホストの清算待ち…
+lobby.client_settle_ok,平分經驗 +%d　支援別店評價 %d（本局評級 %d）已寫入存檔。,Shared XP +%d · support rating %d (grade %d) saved.,平分经验 +%d　支援别店评价 %d（本局评级 %d）已写入存档。,分配XP +%d　支援評価 %d（本局評級 %d）をセーブしました。
+lobby.client_settle_revenue,本店資金 +$%d（現有 $%d）。,Home-shop funds +$%d (now $%d).,本店资金 +$%d（现有 $%d）。,自店資金 +$%d（残高 $%d）。
+lobby.client_settle_fail,結算資料未能寫入本機存檔。,Could not write settle data to local save.,结算数据未能写入本机存档。,清算データをローカルセーブに書けませんでした。
+lobby.client_settle_hint,確認後返回準備。,Confirm to return to prep.,确认后返回准备。,確定で準備に戻ります。
 prep.kind.active,主動,Active,主动,アクティブ
 prep.kind.passive,被動,Passive,被动,パッシブ
 prep.kind.ult,奧義,Ult,奥义,奥義
