@@ -9,6 +9,7 @@ extends Node
 ## - get_ui_profile: "touch" | "gamepad" | "tv"
 
 const DesktopPlatform = preload("res://scripts/platform/desktop_platform.gd")
+const SteamPlatform = preload("res://scripts/platform/steam_platform.gd")
 
 const SETTINGS_PATH := "user://settings.cfg"
 const SETTINGS_SECTION := "ui"
@@ -49,7 +50,19 @@ var _locale: String = DEFAULT_LOCALE
 func _ready() -> void:
 	# Pause notifications only reach this node when process mode allows it.
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_backend = _pick_backend()
 	_load_ui_settings()
+
+
+func _pick_backend():
+	## Steam desktop candidate packages prefer steam_platform stub (Cloud later).
+	if OS.has_feature("web"):
+		return DesktopPlatform.new()
+	if OS.has_feature("steam_candidate") or OS.has_feature("net_steam"):
+		return SteamPlatform.new()
+	if ClassDB.class_exists("SteamMultiplayerPeer"):
+		return SteamPlatform.new()
+	return DesktopPlatform.new()
 
 
 func write_save(text: String) -> String:

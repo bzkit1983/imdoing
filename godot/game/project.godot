@@ -28,6 +28,10 @@ SeatTable="*res://scripts/session/seat_table.gd"
 InteractLock="*res://scripts/session/interact_lock.gd"
 SessionService="*res://scripts/session/session_service.gd"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/godotsteam/plugin.cfg")
+
 [display]
 
 window/size/viewport_width=1280

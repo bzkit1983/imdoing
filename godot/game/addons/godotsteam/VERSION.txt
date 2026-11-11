@@ -1,0 +1,5 @@
+GodotSteam GDExtension 4.24
+Steamworks SDK 1.65
+Compatibility: Godot 4.4+ (pinned for imdoing Godot 4.7.2)
+Source: Godot Asset Library asset 2445 / codeberg godotsteam commit 363010b702c34a454178c80ead87f45127608460
+Installed: 2026-11-11

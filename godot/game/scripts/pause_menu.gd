@@ -103,10 +103,10 @@ var _applying_net_pause: bool = false
 
 func open_menu(from_suspend: bool = false) -> void:
 	## Client system suspend during LAN day = disconnect (§12.6).
-	if from_suspend and SessionService.is_lan() and SessionService.is_client() and SessionService.day_started:
+	if from_suspend and SessionService.is_networked() and SessionService.is_client() and SessionService.day_started:
 		SessionService.close()
 		return
-	if SessionService.is_lan() and not _applying_net_pause:
+	if SessionService.is_networked() and not _applying_net_pause:
 		SessionService.request_pause(true)
 		## Host suspend still requests room pause; UI opens via room_paused_changed.
 		if not from_suspend:
@@ -135,7 +135,7 @@ func open_menu(from_suspend: bool = false) -> void:
 
 
 func close_menu() -> void:
-	if SessionService.is_lan() and not _applying_net_pause and _open:
+	if SessionService.is_networked() and not _applying_net_pause and _open:
 		SessionService.request_pause(false)
 		return
 	if not _open:
@@ -163,7 +163,7 @@ func apply_net_pause(paused: bool) -> void:
 func _refresh_end_day_row() -> void:
 	if _end_btn == null:
 		return
-	var host_ok := (not SessionService.is_lan()) or SessionService.is_server()
+	var host_ok := (not SessionService.is_networked()) or SessionService.is_server()
 	_end_btn.visible = host_ok
 	_end_btn.disabled = not host_ok
 	_layout_option_rows()
@@ -593,7 +593,7 @@ func _activate_lang_pick() -> void:
 
 
 func _on_end_day() -> void:
-	if SessionService.is_lan() and not SessionService.request_end_day():
+	if SessionService.is_networked() and not SessionService.request_end_day():
 		return
 	close_menu()
 	end_day_requested.emit()

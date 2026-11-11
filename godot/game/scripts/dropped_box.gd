@@ -69,7 +69,7 @@ func take_count(n: int) -> int:
 	else:
 		_refresh_label()
 		## Host partial take keeps the node — sync remaining count (M2.3).
-		if net_agent_id >= 0 and not net_puppet and SessionService.is_lan() and SessionService.is_server():
+		if net_agent_id >= 0 and not net_puppet and SessionService.is_networked() and SessionService.is_server():
 			SessionService.broadcast_agent_state({"id": net_agent_id, "n": count})
 	return take
 

@@ -322,7 +322,7 @@ func _begin_day() -> void:
 		for i in Tuning.dirt_start(_play_easy()):
 			_try_spawn_dirt()
 		## Align client shelf／warehouse／carry／prompt presentation after world exists (M2.4／M2.6／M2.9).
-		if SessionService.is_lan() and SessionService.is_server():
+		if SessionService.is_networked() and SessionService.is_server():
 			_dump_all_stock()
 			_dump_all_carry()
 			_dump_all_prompt()
@@ -1284,7 +1284,7 @@ func can_open_pause() -> bool:
 
 
 func request_pause() -> void:
-	if SessionService.is_lan():
+	if SessionService.is_networked():
 		var open_now := _pause != null and _pause.has_method("is_open") and bool(_pause.call("is_open"))
 		SessionService.request_pause(not open_now)
 		return
@@ -1423,7 +1423,7 @@ func coop_camera_midpoint() -> Vector2:
 		if p == null or not is_instance_valid(p):
 			continue
 		## LAN: follow seats owned on this machine; local coop: all seats.
-		if SessionService.is_lan() and not SeatTable.seat_owned_locally(int(p.seat_id)):
+		if SessionService.is_networked() and not SeatTable.seat_owned_locally(int(p.seat_id)):
 			continue
 		if SeatTable.is_frozen(int(p.seat_id)):
 			continue
@@ -1803,7 +1803,7 @@ func _process(delta: float) -> void:
 
 
 func _net_tick_intents_and_sync() -> void:
-	if not SessionService.is_lan() or not SessionService.day_started:
+	if not SessionService.is_networked() or not SessionService.day_started:
 		return
 	if SessionService.is_client():
 		## Send local seat intents; apply host transforms to puppets.
@@ -1897,14 +1897,14 @@ func _register_net_agent(node: Node, kind: String, extra: Dictionary = {}) -> vo
 	## Host-only: assign id, track, broadcast spawn to clients (M2.2).
 	if node == null or not is_instance_valid(node):
 		return
-	if SessionService.is_lan() and SessionService.is_client():
+	if SessionService.is_networked() and SessionService.is_client():
 		return
 	var aid := _alloc_agent_id()
 	node.set("net_agent_id", aid)
 	_net_agents[aid] = node
 	if not node.tree_exiting.is_connected(_on_net_agent_tree_exiting):
 		node.tree_exiting.connect(_on_net_agent_tree_exiting.bind(aid))
-	if not SessionService.is_lan() or not SessionService.is_server():
+	if not SessionService.is_networked() or not SessionService.is_server():
 		return
 	var payload := {
 		"id": aid,
@@ -1926,7 +1926,7 @@ func _register_net_agent(node: Node, kind: String, extra: Dictionary = {}) -> vo
 
 func _on_net_agent_tree_exiting(agent_id: int) -> void:
 	_net_agents.erase(agent_id)
-	if SessionService.is_lan() and SessionService.is_server() and SessionService.day_started:
+	if SessionService.is_networked() and SessionService.is_server() and SessionService.day_started:
 		SessionService.broadcast_agent_despawn(agent_id, "gone")
 
 
@@ -2440,13 +2440,13 @@ func _hook_warehouse_changed() -> void:
 
 func _on_shelf_stock_changed(shelf: Node) -> void:
 	## Host only — client prediction is overwritten by absolute stock_state.
-	if SessionService.is_lan() and SessionService.is_client():
+	if SessionService.is_networked() and SessionService.is_client():
 		return
 	_broadcast_shelf_stock(shelf)
 
 
 func _on_warehouse_changed() -> void:
-	if SessionService.is_lan() and SessionService.is_client():
+	if SessionService.is_networked() and SessionService.is_client():
 		return
 	_broadcast_warehouse_stock()
 
@@ -2454,7 +2454,7 @@ func _on_warehouse_changed() -> void:
 func _broadcast_shelf_stock(shelf: Node) -> void:
 	if shelf == null or not is_instance_valid(shelf):
 		return
-	if not SessionService.is_lan() or not SessionService.is_server() or not SessionService.day_started:
+	if not SessionService.is_networked() or not SessionService.is_server() or not SessionService.day_started:
 		return
 	var nid := int(shelf.get("net_shelf_id")) if shelf.get("net_shelf_id") != null else -1
 	if nid < 0:
@@ -2471,7 +2471,7 @@ func _broadcast_shelf_stock(shelf: Node) -> void:
 func _broadcast_warehouse_stock() -> void:
 	if state == null:
 		return
-	if not SessionService.is_lan() or not SessionService.is_server() or not SessionService.day_started:
+	if not SessionService.is_networked() or not SessionService.is_server() or not SessionService.day_started:
 		return
 	SessionService.broadcast_stock_state({
 		"warehouse": state.stock.duplicate(true),
@@ -2479,7 +2479,7 @@ func _broadcast_warehouse_stock() -> void:
 
 
 func _dump_all_stock() -> void:
-	if not SessionService.is_lan() or not SessionService.is_server() or not SessionService.day_started:
+	if not SessionService.is_networked() or not SessionService.is_server() or not SessionService.day_started:
 		return
 	var rows: Array = []
 	for shelf in shelves:
@@ -2752,7 +2752,7 @@ func _seat_actor(seat: int) -> Node2D:
 
 
 func skip_operate() -> void:
-	if SessionService.is_lan() and not SessionService.request_end_day():
+	if SessionService.is_networked() and not SessionService.request_end_day():
 		return
 	if _settled or (phase != "restock" and phase != "open"):
 		return
@@ -2783,7 +2783,7 @@ func _finish_day() -> void:
 	dismiss_universal_cannons()
 	## Unsold shelf + floor (+ in-flight) pieces → warehouse boxes before save.
 	_return_unsold_to_warehouse()
-	var seat_n := maxi(1, SessionService.open_day_seat_n if SessionService.is_lan() else SeatTable.seat_count)
+	var seat_n := maxi(1, SessionService.open_day_seat_n if SessionService.is_networked() else SeatTable.seat_count)
 	var xp_pack: Dictionary = DaySettle.shared_xp_for_seats(
 		seat_served, seat_caught, seat_cleaned, seat_elite, seat_n, _skip_xp
 	)
@@ -2798,7 +2798,7 @@ func _finish_day() -> void:
 	if int(result.get("ups", 0)) > 0 or guest_ups > 0:
 		SfxBus.play("sfx_ui_level_up")
 	var save_err := state.save_to_disk()
-	if SessionService.is_lan() and SessionService.is_server():
+	if SessionService.is_networked() and SessionService.is_server():
 		var per_seat := {}
 		for s in range(seat_n):
 			## Offline peers skip writeback (§12.8); still list for connected clients.
@@ -2831,7 +2831,7 @@ func _finish_day() -> void:
 		var bonus := Loc.t("settle.test_bonus", [_skip_xp]) if _skip_xp > 0 else ""
 		var save_line := Loc.t("settle.saved") if save_err == "" else (Loc.t("settle.save_fail_prefix") + save_err)
 		var xp_line := Loc.t("settle.host_xp", [int(result["xp"]), bonus, state.level_note])
-		if SeatTable.is_coop() or (SessionService.is_lan() and seat_n > 1):
+		if SeatTable.is_coop() or (SessionService.is_networked() and seat_n > 1):
 			xp_line = Loc.t("settle.split_xp", [
 				shared_xp, bonus, state.level_note, guest_xp_line
 			])
@@ -3374,7 +3374,7 @@ func _spawn_box_flight(
 
 
 func _emit_net_flight(sku: String, n: int, from: Vector2, to: Vector2, duration: float) -> void:
-	if not SessionService.is_lan() or not SessionService.is_server():
+	if not SessionService.is_networked() or not SessionService.is_server():
 		return
 	SessionService.broadcast_flight({
 		"sku": sku,
@@ -3878,13 +3878,13 @@ func _hook_player_carry(p: CharacterBody2D) -> void:
 
 func _on_player_inventory_changed(seat_id: int) -> void:
 	## Host only — client prediction is overwritten by absolute carry_state.
-	if SessionService.is_lan() and SessionService.is_client():
+	if SessionService.is_networked() and SessionService.is_client():
 		return
 	_broadcast_seat_carry(seat_id)
 
 
 func _broadcast_seat_carry(seat_id: int) -> void:
-	if not SessionService.is_lan() or not SessionService.is_server() or not SessionService.day_started:
+	if not SessionService.is_networked() or not SessionService.is_server() or not SessionService.day_started:
 		return
 	var p := _player_for_seat(seat_id)
 	if p == null:
@@ -3901,7 +3901,7 @@ func _broadcast_seat_carry(seat_id: int) -> void:
 
 
 func _dump_all_carry() -> void:
-	if not SessionService.is_lan() or not SessionService.is_server() or not SessionService.day_started:
+	if not SessionService.is_networked() or not SessionService.is_server() or not SessionService.day_started:
 		return
 	var rows: Array = []
 	for p in _players:
@@ -3921,7 +3921,7 @@ func _dump_all_carry() -> void:
 
 func _broadcast_seat_prompt(seat_id: int) -> void:
 	## Host checkout prompt chrome for one seat (M2.9).
-	if not SessionService.is_lan() or not SessionService.is_server() or not SessionService.day_started:
+	if not SessionService.is_networked() or not SessionService.is_server() or not SessionService.day_started:
 		return
 	var p := _player_for_seat(seat_id)
 	if p == null or not p.has_method("prompt_net_row"):
@@ -3932,7 +3932,7 @@ func _broadcast_seat_prompt(seat_id: int) -> void:
 
 
 func _dump_all_prompt() -> void:
-	if not SessionService.is_lan() or not SessionService.is_server() or not SessionService.day_started:
+	if not SessionService.is_networked() or not SessionService.is_server() or not SessionService.day_started:
 		return
 	var rows: Array = []
 	for p in _players:

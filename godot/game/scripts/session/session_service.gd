@@ -43,6 +43,8 @@ var settlement_applied: bool = false
 var lan_port: int = NetTransport.DEFAULT_PORT
 ## Address used by join (for UI).
 var join_address: String = ""
+## Steam lobby id (M3); 0 = none / pending callback.
+var steam_lobby_id: int = 0
 ## Client join claim 1｜2 (M2 second slice).
 var join_claim_seats: int = 1
 ## GuestSlots index for claim-2 second seat (−1 = none / ephemeral clone).
@@ -80,22 +82,36 @@ func lan_available() -> bool:
 	return NetTransport.lan_available()
 
 
+func steam_available() -> bool:
+	return NetTransport.steam_available()
+
+
 func is_local_transport() -> bool:
 	return transport_id == "local"
 
 
 func is_lan() -> bool:
+	## LAN-only UX (IP／port). Gameplay／RPC gates use is_networked().
 	return transport_id == "lan_enet" and active
 
 
+func is_steam() -> bool:
+	return transport_id == "steam" and active
+
+
+func is_networked() -> bool:
+	## Any remote transport sharing SeatTable／Intent／chrome (M2 LAN + M3 Steam + M4).
+	return active and transport_id in ["lan_enet", "steam", "web_ws"]
+
+
 func is_server() -> bool:
-	if not is_lan():
+	if not is_networked():
 		return true
 	return multiplayer.is_server()
 
 
 func is_client() -> bool:
-	return is_lan() and not multiplayer.is_server()
+	return is_networked() and not multiplayer.is_server()
 
 
 ## Open a local room (M1). `local_seat_count` 1–2; guest sheet optional.
@@ -123,6 +139,7 @@ func host_lan(local_seat_count: int = 1, guest = null, slot_index: int = -1, por
 		return String(result.get("error", "host_failed"))
 	_peer = result["peer"]
 	lan_port = int(result.get("port", port))
+	steam_lobby_id = 0
 	multiplayer.multiplayer_peer = _peer
 	transport_id = "lan_enet"
 	active = true
@@ -137,6 +154,76 @@ func host_lan(local_seat_count: int = 1, guest = null, slot_index: int = -1, por
 		if SeatTable.owner_peer_of(s) == local_peer_id:
 			SeatTable.set_seat_ready(s, true)
 	seats_changed.emit()
+	lobby_changed.emit()
+	return ""
+
+
+## Host opens Steam room (M3). Requires GodotSteam; App ID 480 for dev.
+## Awaits Steam lobby_created — call with `await` from UI.
+func host_steam(local_seat_count: int = 1, guest = null, slot_index: int = -1) -> String:
+	if not steam_available():
+		return "steam_unavailable"
+	_teardown_peer()
+	var result: Dictionary = await NetTransport.create_steam_host()
+	if not bool(result.get("ok", false)):
+		return String(result.get("error", "host_failed"))
+	_peer = result["peer"]
+	steam_lobby_id = int(result.get("lobby_id", 0))
+	join_address = "steam"
+	multiplayer.multiplayer_peer = _peer
+	transport_id = "steam"
+	active = true
+	day_started = false
+	settlement_applied = false
+	host_peer_id = LOCAL_PEER_ID
+	local_peer_id = LOCAL_PEER_ID
+	SeatTable.configure_lan_host(local_seat_count, guest, slot_index)
+	_sync_local_peers()
+	for s in SeatTable.seat_ids():
+		if SeatTable.owner_peer_of(s) == local_peer_id:
+			SeatTable.set_seat_ready(s, true)
+	seats_changed.emit()
+	lobby_changed.emit()
+	return ""
+
+
+## Client joins Steam lobby by id (M3). claim_seats 1｜2.
+## Awaits Steam lobby_joined — call with `await` from UI.
+func join_steam_lobby(
+	lobby_id: int,
+	claim_seats: int = 1,
+	guest_sheet = null,
+	guest_slot_index: int = -1
+) -> String:
+	if not steam_available():
+		return "steam_unavailable"
+	var claim := clampi(claim_seats, 1, SeatTable.MAX_LOCAL_SEATS)
+	if claim_seats != claim:
+		return "claim_invalid"
+	if not PlatformServices.has_save():
+		return "no_save"
+	if claim >= 2 and guest_sheet == null:
+		return "guest_sheet_required"
+	_teardown_peer()
+	join_address = "steam"
+	steam_lobby_id = lobby_id
+	join_claim_seats = claim
+	join_guest_slot_index = guest_slot_index if claim >= 2 else -1
+	_join_guest_sheet_dict = {}
+	if claim >= 2 and guest_sheet != null and guest_sheet.has_method("to_dict"):
+		_join_guest_sheet_dict = guest_sheet.to_dict()
+	var result: Dictionary = await NetTransport.join_steam_lobby(lobby_id)
+	if not bool(result.get("ok", false)):
+		return String(result.get("error", "join_failed"))
+	_peer = result["peer"]
+	steam_lobby_id = int(result.get("lobby_id", lobby_id))
+	multiplayer.multiplayer_peer = _peer
+	transport_id = "steam"
+	active = true
+	day_started = false
+	settlement_applied = false
+	host_peer_id = LOCAL_PEER_ID
+	SeatTable.reset_solo()
 	lobby_changed.emit()
 	return ""
 
@@ -193,6 +280,7 @@ func close() -> void:
 	open_day_seat_n = 1
 	join_claim_seats = 1
 	join_guest_slot_index = -1
+	steam_lobby_id = 0
 	_join_guest_sheet_dict = {}
 	_pending_sheets.clear()
 	SeatTable.reset_solo()
@@ -202,13 +290,13 @@ func close() -> void:
 
 
 func set_ready(seat_id: int, ready: bool = true) -> void:
-	if is_lan() and not is_server():
+	if is_networked() and not is_server():
 		_rpc_set_ready.rpc_id(1, seat_id, ready)
 		return
 	SeatTable.set_seat_ready(seat_id, ready)
 	seats_changed.emit()
 	lobby_changed.emit()
-	if is_lan() and is_server():
+	if is_networked() and is_server():
 		_broadcast_lobby()
 
 
@@ -222,11 +310,11 @@ func seats_remaining() -> int:
 
 func start_run(world_snapshot: Dictionary = {}) -> void:
 	## Lobby → day. Host only on LAN.
-	if is_lan() and not is_server():
+	if is_networked() and not is_server():
 		return
 	if not active:
 		create_room(SeatTable.seat_count, SeatTable.guest_stats, SeatTable.guest_slot_index)
-	if is_lan() and is_server():
+	if is_networked() and is_server():
 		if not all_ready():
 			net_error.emit("not_all_ready")
 			return
@@ -248,7 +336,7 @@ func seat_table_snapshot() -> Array[Dictionary]:
 
 
 func request_pause(wanted_paused: bool) -> void:
-	if not is_lan():
+	if not is_networked():
 		room_paused_changed.emit(wanted_paused)
 		return
 	if is_server():
@@ -259,13 +347,13 @@ func request_pause(wanted_paused: bool) -> void:
 
 func request_end_day() -> bool:
 	## Only host may end day on LAN.
-	if is_lan() and not is_server():
+	if is_networked() and not is_server():
 		return false
 	return true
 
 
 func send_intent(seat_id: int, payload: Dictionary) -> void:
-	if not is_lan() or is_server():
+	if not is_networked() or is_server():
 		return
 	if SeatTable.owner_peer_of(seat_id) != local_peer_id:
 		return
@@ -273,25 +361,25 @@ func send_intent(seat_id: int, payload: Dictionary) -> void:
 
 
 func broadcast_player_transforms(transforms: Array) -> void:
-	if not is_lan() or not is_server() or not day_started:
+	if not is_networked() or not is_server() or not day_started:
 		return
 	_rpc_player_transforms.rpc(transforms)
 
 
 func broadcast_agent_spawn(payload: Dictionary) -> void:
-	if not is_lan() or not is_server() or not day_started:
+	if not is_networked() or not is_server() or not day_started:
 		return
 	_rpc_agent_spawn.rpc(payload)
 
 
 func broadcast_agent_despawn(agent_id: int, reason: String = "") -> void:
-	if not is_lan() or not is_server() or not day_started:
+	if not is_networked() or not is_server() or not day_started:
 		return
 	_rpc_agent_despawn.rpc(agent_id, reason)
 
 
 func broadcast_agent_transforms(transforms: Array) -> void:
-	if not is_lan() or not is_server() or not day_started:
+	if not is_networked() or not is_server() or not day_started:
 		return
 	if transforms.is_empty():
 		return
@@ -300,21 +388,21 @@ func broadcast_agent_transforms(transforms: Array) -> void:
 
 func broadcast_agent_state(payload: Dictionary) -> void:
 	## Dark Side temp／炮台 ammo／drop 件數等低頻狀態（M2.3）.
-	if not is_lan() or not is_server() or not day_started:
+	if not is_networked() or not is_server() or not day_started:
 		return
 	_rpc_agent_state.rpc(payload)
 
 
 func broadcast_flight(payload: Dictionary) -> void:
 	## 短命飛行箱／炮彈：client 本地 lerp，落地箱另由 spawn（M2.3）.
-	if not is_lan() or not is_server() or not day_started:
+	if not is_networked() or not is_server() or not day_started:
 		return
 	_rpc_flight.rpc(payload)
 
 
 func broadcast_stock_state(payload: Dictionary) -> void:
 	## 貨架 sku/count 與倉庫件數絕對快照（M2.4）；Client 只套用。
-	if not is_lan() or not is_server() or not day_started:
+	if not is_networked() or not is_server() or not day_started:
 		return
 	if payload.is_empty():
 		return
@@ -323,7 +411,7 @@ func broadcast_stock_state(payload: Dictionary) -> void:
 
 func broadcast_carry_state(payload: Dictionary) -> void:
 	## 手持件序絕對快照（M2.6）；Client 只套用。
-	if not is_lan() or not is_server() or not day_started:
+	if not is_networked() or not is_server() or not day_started:
 		return
 	if payload.is_empty():
 		return
@@ -332,7 +420,7 @@ func broadcast_carry_state(payload: Dictionary) -> void:
 
 func broadcast_prompt_state(payload: Dictionary) -> void:
 	## 收銀指令箭頭／Circle hold 絕對快照（M2.9）；Client 只套用。
-	if not is_lan() or not is_server() or not day_started:
+	if not is_networked() or not is_server() or not day_started:
 		return
 	if payload.is_empty():
 		return
@@ -340,7 +428,7 @@ func broadcast_prompt_state(payload: Dictionary) -> void:
 
 
 func send_settle_to_clients(payload: Dictionary) -> void:
-	if not is_lan() or not is_server():
+	if not is_networked() or not is_server():
 		return
 	_rpc_settle.rpc(payload)
 
@@ -432,7 +520,7 @@ func apply_client_settle_to_save(payload: Dictionary) -> Dictionary:
 # --- Multiplayer callbacks ---------------------------------------------------
 
 func _on_peer_connected(peer_id: int) -> void:
-	if not is_lan() or not is_server():
+	if not is_networked() or not is_server():
 		return
 	## ENet MAX_CLIENTS is peer-based, not seat-based — refuse when no seat left
 	## (e.g. host2 + remote claim2 = 4 seats, but a 3rd client can still TCP/UDP in).
@@ -447,7 +535,7 @@ func _on_peer_connected(peer_id: int) -> void:
 
 
 func _on_peer_disconnected(peer_id: int) -> void:
-	if not is_lan() or not is_server():
+	if not is_networked() or not is_server():
 		return
 	_handle_peer_left(peer_id)
 	peer_left.emit(peer_id)
@@ -559,7 +647,7 @@ func _refuse_peer(peer_id: int, reason: String) -> void:
 
 
 func _disconnect_peer_now(peer_id: int) -> void:
-	if not is_lan() or not is_server():
+	if not is_networked() or not is_server():
 		return
 	var peer := multiplayer.multiplayer_peer
 	if peer == null:
@@ -752,7 +840,7 @@ func take_pending_day_snapshot() -> Dictionary:
 
 func _apply_pause(wanted_paused: bool) -> void:
 	## Last Host-applied state wins (§12.6).
-	if is_lan() and is_server():
+	if is_networked() and is_server():
 		_rpc_room_paused.rpc(wanted_paused)
 	room_paused_changed.emit(wanted_paused)
 
@@ -800,6 +888,8 @@ func _sync_local_peers() -> void:
 
 
 func _teardown_peer() -> void:
+	if transport_id == "steam" and steam_lobby_id > 0:
+		NetTransport.leave_steam_lobby(steam_lobby_id)
 	if multiplayer.multiplayer_peer != null:
 		multiplayer.multiplayer_peer = null
 	if _peer != null:

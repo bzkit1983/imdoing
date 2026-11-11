@@ -1,10 +1,10 @@
 # 多人連線設計報告（本機二＋線上補滿至四人）
 
-- **狀態：** 設計草案；**M1 本機雙人已落地**；**§12 M2 LAN 至 M2.9 已落地**（claim／結算／世界代理／掉落／貨架倉庫／技能 Intent／手持堆疊／客人清單 chrome／污物清潔條／收銀指令 UI）；§10 企劃項已於 2026-11-05 拍板
+- **狀態：** 設計草案；**M1 本機雙人已落地**；**§12 M2 LAN 至 M2.9 已落地**；**§13 M3 Steam 工程已落地**（GodotSteam 4.24 在 repo；雙帳邀請待 Steam 客戶端聯測）
 - **範圍：** 本機合作、線上合作、以及兩者混合的同一 Session 模型；技術分層與平台差異
 - **產品錨點：** 活線 `godot/game`（Godot 4.7）；版控見 `docs/versioning.md`
 - **對照：** `docs/alpha/tech-review-v0.1.md`、`docs/systemdesign/ecosystem.md`、`docs/systemdesign/playerexport.md`、`docs/systemdesign/control.md`、`docs/systemdesign/savesystem.md`、`docs/systemdesign/pausemenu.md`、`godot/game/scripts/platform_services.gd`
-- **產出／更新：** 2026-11-05（初稿＋§10 拍板＋§11 M1）；**2026-11-09 定稿 §12 M2 LAN**；**2026-11-10 claim2／M2.1～M2.9（含收銀指令 UI）**
+- **產出／更新：** 2026-11-05（初稿＋§10 拍板＋§11 M1）；**2026-11-09 定稿 §12 M2 LAN**；**2026-11-10 claim2／M2.1～M2.9**；**2026-11-10 定稿 §13 M3 Steam（含 Win／Linux／macOS depot）**
 
 ---
 
@@ -36,7 +36,7 @@
 - `PlatformServices`：存檔／掛起／UI profile（`touch`｜`gamepad`｜`tv`）
 - InputMap + Autoload `Controls`；手把不寫死 device 0（見 `control.md`）
 - 暫停／掛起 checkpoint（見 `pausemenu.md`）
-- 匯出：Web → Pages；Win／Linux Steam 候選（尚未接 Steamworks）
+- 匯出：Web → Pages；Win／Linux／**macOS** Steam 候選（見 §13；Steamworks／GodotSteam 依環境接入）
 
 ### 2.2 缺口
 
@@ -646,13 +646,70 @@ Client 以 snapshot **建構表現世界**；AI／庫存／結算權威仍在 Ho
 
 ---
 
-## 13. 參考連結
+## 13. M3 Steam lobby／peer（規格）
+
+- **對齊：** §3／§5／§6／§9 M3；玩法與結算仍見 §11／§12（同一 Session）
+- **目標：** `transport=steam`；Steam Lobby + 好友邀請進**混合房**（Host 本機 ≤2 seat，遠端 claim 1｜2 補滿至 4）；可打完一日營運
+- **非目標：** Steam↔Web、host migration、中途加入、觀戰、主機線上；自架專用伺服器（走 Steam 網路／中繼）
+
+### 13.1 產品與平台
+
+| 項 | 決議 |
+| --- | --- |
+| Session | 與 M2 **同一** SeatTable／Intent／結算／世界 chrome；只換 Transport + 進房 UX |
+| 閘門 API | 連線廣播／權威判斷用 **`is_networked()`**（`lan_enet`｜`steam`｜日後 `web_ws`）；`is_lan()` 僅 LAN 位址／port UX |
+| Depot | **Windows + Linux + macOS** 三平台 Steam 包同等目標；Deck 以 Linux 包驗證 |
+| Feature | 桌面候選 `steam_candidate`；接上 Steam peer 後包內加 `net_steam`（可另留 `net_enet` 除錯） |
+| App ID | **開發／Editor 聯測：** Spacewar **`480`**（`steam_appid.txt`）；**上架：** 正式 App ID（Steam Direct，以 Partner 當日為準） |
+| Editor | **可**在 Godot Editor 跑專案測 Steam（客戶端已登入 + GodotSteam + App ID）；邀請聯測仍需第二裝置／第二帳 |
+| 身分 | 顯示 Steam persona／ID（可選）；玩法權威仍在 Host |
+
+### 13.2 進房流程
+
+```text
+Host：Steam 登入 → host_steam（本機 1｜2 seat）→ 建 Lobby → 邀請好友／Overlay
+Join：接受邀請或 Lobby 瀏覽 → join_steam_lobby → claim 1｜2 + sheet 上傳（同 §12）
+Ready → Host start_day → 其餘與 M2 相同（Intent／freeze／settle）
+```
+
+- 失敗碼（最小集）：`steam_unavailable`、`steam_not_running`、`lobby_failed`、`join_failed`、`claim_*`／`no_save`／`guest_sheet_required`（同 LAN）
+- 無 IP:port；位址欄僅 LAN 使用
+
+### 13.3 工程切分建議
+
+| 刀 | 範圍 | 狀態 |
+| --- | --- | --- |
+| **M3 規格** | 本節；depot／480／Editor 契約 | **本節已定** |
+| **M3 閘門** | `is_networked()`；LAN 行為不回歸 | **見實作** |
+| **M3 Transport** | GodotSteam；`NetTransport` steam；`host_steam`／lobby join | **見實作（SDK 需本機安裝）** |
+| **M3 Prep UX** | Steam 開房／邀請入口 | **見實作** |
+| **M3 macOS 匯出** | `export_presets` macOS + 文件三 depot | **見實作** |
+| **M3 上架後端** | 正式 App ID、Cloud／成就、Partner depot 配置 | **可後補**（不阻塞 lobby 聯測） |
+
+### 13.4 M3 驗收清單
+
+- [ ] Host 以 Steam 開房；好友邀請後 remote claim 1｜2 加入；名額與 §12 一致（需 **Steam 客戶端＋雙帳**；SDK 已進 `addons/godotsteam`）
+- [ ] Editor（或匯出包）+ 第二 Steam 身分可完成邀請進混合房並開日
+- [ ] 開日後 Intent／暫停／凍座／日結與 M2 行為一致（`transport=steam`）
+- [x] `transport=local` 與 `lan_enet` 不回歸（`tools/m3_steam_smoke.sh`）
+- [x] Win／Linux／macOS 皆有 Steam 候選匯出預設；文件寫明三 depot（`steam_candidate`＋`net_steam`）
+- [x] 開發期可用 App ID 480（`steam_appid.txt`）；正式 ID 僅上架切換；GodotSteam **4.24** 已納入 repo
+
+### 13.5 成本與事前準備（摘要）
+
+- 開發聯測：**可零額外匯費**（Partner 免費 + 480 + 雙 Steam 帳）
+- 上架：Steam Direct（約 USD $100／款，以 Partner 為準）換專屬 App ID；**macOS depot 不另收 Direct**
+- 不需自架遊戲伺服器（對照 M4 Web）
+
+---
+
+## 14. 參考連結
 
 - `docs/alpha/tech-review-v0.1.md` — 平台與 `PlatformServices` 方針  
 - `docs/versioning.md` — 單一活線、禁止平台專案複本  
-- `docs/alpha/export-presets.md` — Web／Steam 候選匯出  
+- `docs/alpha/export-presets.md` — Web／Steam 候選匯出（Win／Linux／macOS）  
 - `docs/alpha/console-business.md`、`docs/alpha/godot-middleware-pin.md` — 主機商務與釘版  
-- `docs/systemdesign/ecosystem.md` — 一店一主角色；本機 coop 見 §11；線上見 §12  
+- `docs/systemdesign/ecosystem.md` — 一店一主角色；本機 coop 見 §11；線上見 §12／§13  
 - `docs/systemdesign/playerexport.md` — 導出店員（連線仍缺）  
 - `docs/systemdesign/control.md`、`docs/systemdesign/inputmodes-vj.md` — 輸入  
 - `docs/systemdesign/savesystem.md`、`docs/systemdesign/pausemenu.md` — 存檔與暫停  
@@ -661,13 +718,13 @@ Client 以 snapshot **建構表現世界**；AI／庫存／結算權威仍在 Ho
 - `docs/alpha/implementation-status.md` — 工程對照  
 
 - `godot/game/scripts/platform_services.gd` — 平台 facade  
-- Godot 文件：High-level multiplayer、`MultiplayerPeer`、WebRTC 說明  
+- Godot 文件：High-level multiplayer、`MultiplayerPeer`；GodotSteam／Steamworks  
 
 ---
 
-## 14. 結論
+## 15. 結論
 
 - **產品：** 本機最多二人，可線上補位至同房四人；純本機／純線上是同一模型的特例。  
-- **工程：** SeatTable + listen-server + 可換 Transport；Intent 帶 `seat_id`。  
-- **平台：** Steam／Web／LAN 各換 backend；v1 不承諾跨商店互通。  
-- **下一步：** **M1～M2.9 已交**（LAN polish 收斂）；Steam／Web 見 M3／M4。
+- **工程：** SeatTable + listen-server + 可換 Transport；Intent 帶 `seat_id`；連線閘門 `is_networked()`。  
+- **平台：** Steam／Web／LAN 各換 backend；Steam 上架目標 **Win／Linux／macOS**；v1 不承諾跨商店互通。  
+- **下一步：** M3 實作接 GodotSteam 與正式 App ID／Cloud；**M4** Web `web_ws`。

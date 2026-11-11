@@ -81,7 +81,7 @@ W4 自稱會在引擎穩定版發布後**數月內**跟上；4.7 於 2026-06 穩
 1. 安裝 Godot **4.6.x**（與 W4 提供的 port 小版本一致的最新 patch）。  
 2. 備份／分支後用 4.6 打開 `godot/game`；接受必要的專案遷移提示。  
 3. 將 `project.godot` `config/features` 與 README／`export_presets.cfg` 註解改為釘定小版本。  
-4. 回歸：準備選單、營運日、存檔讀寫、暫停／掛起、手把 InputMap、Web／Win／Linux 匯出。  
+4. 回歸：準備選單、營運日、存檔讀寫、暫停／掛起、手把 InputMap、Web／Win／Linux／macOS 匯出。
 5. 確認未誤開 Forward+／HDR；維持 **GL Compatibility**。  
 6. 文件：更新本檔「對齊日」與支援表快照；在 PR 註明「主機釘版」。
 

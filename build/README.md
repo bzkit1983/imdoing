@@ -6,6 +6,9 @@ Produced by `godot/game` export presets — **not** committed (see `.gitignore` 
 | --- | --- |
 | Windows Desktop | `windows/imdoing.exe` (+ `imdoing.pck`, console wrapper) |
 | Linux | `linux/imdoing.x86_64` (+ `imdoing.pck`) |
+| macOS | `macos/imdoing.app` (+ `imdoing.pck` when not embedded) |
+
+Features: `desktop`, `steam_candidate`, `net_steam`.
 
 Web try-play still goes to `docs/play/` (preset **Web**).
 

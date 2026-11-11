@@ -28,6 +28,9 @@ var state: StateScript
 ## LAN join address draft (M2).
 var _lan_address: String = "127.0.0.1"
 var _lan_addr_edit: LineEdit = null
+## Steam lobby id draft (M3).
+var _steam_lobby_draft: String = "0"
+var _steam_lobby_edit: LineEdit = null
 
 var _page: String = "scenario"
 var _index: int = 0
@@ -181,6 +184,25 @@ func _hide_lan_address_edit() -> void:
 		_lan_addr_edit.visible = false
 
 
+func _ensure_steam_lobby_edit(lobby_s: String) -> void:
+	if _steam_lobby_edit == null:
+		_steam_lobby_edit = LineEdit.new()
+		_steam_lobby_edit.name = "SteamLobbyEdit"
+		_steam_lobby_edit.position = Vector2(24, 160)
+		_steam_lobby_edit.size = Vector2(480, 40)
+		_steam_lobby_edit.placeholder_text = "Lobby ID"
+		add_child(_steam_lobby_edit)
+		_steam_lobby_edit.text_changed.connect(func(t: String) -> void: _steam_lobby_draft = t.strip_edges())
+	_steam_lobby_edit.visible = true
+	_steam_lobby_edit.text = lobby_s
+	_steam_lobby_draft = lobby_s
+
+
+func _hide_steam_lobby_edit() -> void:
+	if _steam_lobby_edit != null:
+		_steam_lobby_edit.visible = false
+
+
 func _bind_nodes() -> void:
 	_title = %Title
 	_info = %Info
@@ -272,6 +294,8 @@ func _show_page(page: String) -> void:
 		_clear_look_preview()
 	if page != "lan_join":
 		_hide_lan_address_edit()
+	if page != "steam_join":
+		_hide_steam_lobby_edit()
 	_page = page
 	_index = 0
 	_open_focus = -1
@@ -1013,6 +1037,10 @@ func _activate() -> void:
 		"lan_addr":
 			_lan_address = String(arg)
 			_refresh()
+		"steam_host":
+			_start_steam_host()
+		"steam_join_do":
+			_start_steam_join()
 		"lobby_ready":
 			SessionService.set_ready(int(arg), not SeatTable.is_seat_ready(int(arg)))
 			_refresh()
@@ -1168,6 +1196,44 @@ func _start_lan_join() -> void:
 		_popup_info(Loc.t("lobby.error_title"), Loc.t("lobby.error_body", [err]))
 		return
 	_hide_lan_address_edit()
+	_show_page("lobby")
+
+
+func _start_steam_host() -> void:
+	if OS.has_feature("web"):
+		_popup_info(Loc.t("lobby.error_title"), Loc.t("lobby.error_body", ["web_no_steam"]))
+		return
+	var resolved = _resolve_local_guest_for_lan()
+	if not bool(resolved[0]):
+		_popup_info(Loc.t("prep.confirm.guest_need_title"), Loc.t("prep.confirm.guest_need_body"))
+		return
+	var seats := clampi(_local_seats, 1, 2)
+	var err: String = await SessionService.host_steam(seats, resolved[1], int(resolved[2]))
+	if err != "":
+		_popup_info(Loc.t("lobby.error_title"), Loc.t("lobby.error_body", [err]))
+		return
+	_show_page("lobby")
+
+
+func _start_steam_join() -> void:
+	if _steam_lobby_edit != null:
+		_steam_lobby_draft = _steam_lobby_edit.text.strip_edges()
+	var lobby_id := int(_steam_lobby_draft) if _steam_lobby_draft.is_valid_int() else 0
+	var claim := 1 if OS.has_feature("web") else clampi(_local_seats, 1, 2)
+	var guest = null
+	var guest_slot := -1
+	if claim >= 2:
+		var resolved = _resolve_local_guest_for_lan()
+		if not bool(resolved[0]):
+			_popup_info(Loc.t("prep.confirm.guest_need_title"), Loc.t("prep.confirm.guest_need_body"))
+			return
+		guest = resolved[1]
+		guest_slot = int(resolved[2])
+	var err: String = await SessionService.join_steam_lobby(lobby_id, claim, guest, guest_slot)
+	if err != "":
+		_popup_info(Loc.t("lobby.error_title"), Loc.t("lobby.error_body", [err]))
+		return
+	_hide_steam_lobby_edit()
 	_show_page("lobby")
 
 

@@ -43,7 +43,7 @@ func apply_net_ammo(ammo_n: int, next_sku: String = "") -> void:
 func _broadcast_ammo_state() -> void:
 	if net_agent_id < 0 or net_puppet:
 		return
-	if not SessionService.is_lan() or not SessionService.is_server():
+	if not SessionService.is_networked() or not SessionService.is_server():
 		return
 	SessionService.broadcast_agent_state({
 		"id": net_agent_id,
@@ -186,7 +186,7 @@ func tick_fire(delta: float) -> void:
 	projectile.setup(sku, global_position, next.global_position, Tuning.DROP_FLIGHT_SEC, 1)
 	host.get("_world").add_child(projectile)
 	## M2.3: client VFX only — Host resolves hit.
-	if SessionService.is_lan() and SessionService.is_server():
+	if SessionService.is_networked() and SessionService.is_server():
 		SessionService.broadcast_flight({
 			"sku": sku,
 			"n": 1,

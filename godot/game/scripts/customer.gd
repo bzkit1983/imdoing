@@ -174,7 +174,7 @@ func broadcast_checkout_seq_state() -> void:
 	## Host absolute checkout_seq for client chrome (M2.9).
 	if net_puppet or net_agent_id < 0:
 		return
-	if not SessionService.is_lan() or not SessionService.is_server():
+	if not SessionService.is_networked() or not SessionService.is_server():
 		return
 	var init := has_meta("checkout_seq_init") and bool(get_meta("checkout_seq_init"))
 	var dirs: Array = []
@@ -1218,7 +1218,7 @@ func apply_net_temp_state(temp: bool, job: String = "") -> void:
 func _broadcast_temp_state(temp: bool) -> void:
 	if net_agent_id < 0:
 		return
-	if not SessionService.is_lan() or not SessionService.is_server():
+	if not SessionService.is_networked() or not SessionService.is_server():
 		return
 	SessionService.broadcast_agent_state({
 		"id": net_agent_id,
@@ -1471,7 +1471,7 @@ func _broadcast_fight_clear(caught: bool) -> void:
 	## Tell clients to unlock seats mashed against this presentation thief.
 	if not is_thief or net_agent_id < 0:
 		return
-	if not SessionService.is_lan() or not SessionService.is_server():
+	if not SessionService.is_networked() or not SessionService.is_server():
 		return
 	SessionService.broadcast_agent_state({
 		"id": net_agent_id,
@@ -1825,7 +1825,7 @@ func _broadcast_shopping_state() -> void:
 	## Host absolute shopping snapshot for client pictogram chrome (M2.7).
 	if net_puppet or net_agent_id < 0:
 		return
-	if not SessionService.is_lan() or not SessionService.is_server():
+	if not SessionService.is_networked() or not SessionService.is_server():
 		return
 	SessionService.broadcast_agent_state({
 		"id": net_agent_id,

@@ -106,7 +106,7 @@ func _broadcast_clean_state() -> void:
 	## Host absolute clean chrome for client StickHint／fade (M2.8).
 	if net_puppet or net_agent_id < 0:
 		return
-	if not SessionService.is_lan() or not SessionService.is_server():
+	if not SessionService.is_networked() or not SessionService.is_server():
 		return
 	var fp := _clean_state_fp()
 	if fp == _net_clean_fp:

@@ -214,7 +214,7 @@ func controls_locally() -> bool:
 
 func is_net_puppet() -> bool:
 	## Client-side copy of a seat owned by another peer (or frozen).
-	return SessionService.is_lan() and SessionService.is_client() and not controls_locally()
+	return SessionService.is_networked() and SessionService.is_client() and not controls_locally()
 
 
 func _agent_is_net_puppet(node: Node) -> bool:
@@ -224,7 +224,7 @@ func _agent_is_net_puppet(node: Node) -> bool:
 
 func _move_vector() -> Vector2:
 	## Host drives remote seats from last intent; local seats use Controls.
-	if SessionService.is_lan() and SessionService.is_server() and not controls_locally():
+	if SessionService.is_networked() and SessionService.is_server() and not controls_locally():
 		return remote_move
 	return Controls.move_vector_for(seat_id)
 
@@ -1530,7 +1530,7 @@ func _poll_stick_cardinal() -> void:
 		_cardinal_armed = true
 		return
 	var v: Vector2
-	if SessionService.is_lan() and SessionService.is_server() and not controls_locally():
+	if SessionService.is_networked() and SessionService.is_server() and not controls_locally():
 		v = remote_move
 	else:
 		v = stick_axis + _joy_stick_vector()
@@ -3012,9 +3012,9 @@ func _prompt_state_fp() -> String:
 
 func _request_prompt_broadcast(force: bool = false) -> void:
 	## Host absolute checkout chrome for clients (M2.9).
-	if SessionService.is_lan() and SessionService.is_client():
+	if SessionService.is_networked() and SessionService.is_client():
 		return
-	if not SessionService.is_lan() or not SessionService.is_server():
+	if not SessionService.is_networked() or not SessionService.is_server():
 		return
 	var fp := _prompt_state_fp()
 	if not force and fp == _net_prompt_fp:
@@ -3600,7 +3600,7 @@ func _ensure_seq(cust) -> void:
 			cust.begin_paying()
 			return
 		## Client LAN: wait for Host absolute seq — never dual-randi (M2.9).
-		if SessionService.is_lan() and SessionService.is_client():
+		if SessionService.is_networked() and SessionService.is_client():
 			return
 		var n := Tuning.command_count(cust.cart.size())
 		n = Skills.senior_cashier_command_count(n, _senior_cashier_lv_now())
@@ -3843,7 +3843,7 @@ func _try_skill_hotkey(slot: int) -> void:
 		_finish_magneto_aim()
 		return
 	## Queue for Host sim when this seat is piloted on a LAN client.
-	if controls_locally() and SessionService.is_lan() and SessionService.is_client():
+	if controls_locally() and SessionService.is_networked() and SessionService.is_client():
 		pending_skill_hotkey = clampi(slot, 0, 4)
 	_confirm_skill(slot)
 

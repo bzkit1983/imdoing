@@ -1,6 +1,6 @@
 # Alpha → v1 實作對照（設計已落地項）
 
-- 對照日：2026-11-10（含 PR #3–#117 等；多人 **M1 本機雙人已落地**；**M2 LAN 首刀～M2.9 已落地**）
+- 對照日：2026-11-10（含 PR #3–#117 等；多人 **M1～M2.9 已落地**；**§13 M3 Steam 規格＋閘門／匯出縫已接**；GodotSteam 原生庫依環境安裝）
 - 用途：把近期工程變更連回長線／Alpha 設計檔，方便查「文件寫在哪、程式改哪」
 - 版控：`docs/versioning.md` · 技術债清單：`docs/alpha/tech-review-v0.1.md`（§6 已全部勾完） · 缺口：`docs/systemdesign-gaps.md` · 執行期優化：`docs/alpha/runtime-perf-audit.md`
 
@@ -18,7 +18,7 @@
 | 音效需求表＋SfxBus＋測試頁 map | **`docs/systemdesign/soundeffects.md`** | `sfx_bus.gd`／`sfx_catalog.gd`；`sfx_test.tscn` 標註觸發 |
 | 準備選單測試資金 $1000 | **`docs/systemdesign/storepreparationphase.md`** | `ProductVersion.TEST_TOOLS`；prep home 按鈕 |
 | 測試版難度（簡易／普通） | **`docs/systemdesign/storepreparationphase.md`**；`customer.md`、`cleaningsystem.md`、`thiefsystem.md` | prep 主畫面；`Tuning` 簡易係數；`demo` 在開始營運後套用 |
-| Win／Linux 匯出（Steam 候選） | **`docs/alpha/export-presets.md`** | `export_presets.cfg`；輸出 `build/windows`／`build/linux`；feature `steam_candidate` |
+| Win／Linux／macOS 匯出（Steam 候選） | **`docs/alpha/export-presets.md`** | `export_presets.cfg`；輸出 `build/windows`／`build/linux`／`build/macos`；feature `desktop,steam_candidate,net_steam` |
 | 字串表 i18n | **`docs/alpha/i18n.md`**；[`AGENTS.md`](../../AGENTS.md)／[`agents/skills/i18n-content`](../../agents/skills/i18n-content/SKILL.md) | `strings.csv`+`data.csv`；技能／SKU／傢俬＋log／mood／prep／驗證／場上標籤／HUD 觸控已遷；SFX 註解除外 |
 | 主機商務評估（帳號／W4／埠接） | **`docs/alpha/console-business.md`** | 文件結論：帳號可早開；W4 自埠預設；買工具前過釘版閘門 |
 | Godot ↔ middleware 釘版 | **`docs/alpha/godot-middleware-pin.md`** | 桌面維持 4.7；主機衝刺對齊 W4 表（2026-10-21 最高 4.6）；禁止專案複本 |
@@ -50,5 +50,6 @@
 
 | 多人 M1 本機雙人 | **`docs/systemdesign/multiplayer.md`** §11 | **已實作**。`SeatTable`／`InteractLock`／`SessionService`（`transport=local`）；prep 1｜2；訪客槽；日結 XP 平分＋`support_rating` |
 | 多人 M2 LAN／ENet | **`docs/systemdesign/multiplayer.md`** §12 | **首刀～M2.9 已交**：含 **收銀指令 UI**（`checkout_seq` `agent_state`；`prompt_state` RPC；`apply_net_checkout_prompt`；client 禁雙重 randi） |
+| 多人 M3 Steam | **`docs/systemdesign/multiplayer.md`** §13 | **GodotSteam 4.24 已納入** `addons/godotsteam`；`host_with_lobby`／`connect_to_lobby`；煙測 `tools/m3_steam_smoke.sh`。雙帳邀請實測需 Steam 客戶端；正式 App ID／Cloud／成就可後補 |
 
-仍缺（非 §6）：BGM／完整設定頁、教學、技能演出鎖輸入、Steamworks 等——見 `docs/alpha/design.md`、`multiplayer.md` §12（M3／M4）。事件 SFX 音量已在暫停選單。prep UI 已拆為 `scenes/prep_menu.tscn` + `scripts/prep/`。
+仍缺（非 §6）：BGM／完整設定頁、教學、技能演出鎖輸入、GodotSteam 原生庫安裝與正式 App ID／Cloud／成就、M4 Web——見 `docs/alpha/design.md`、`multiplayer.md` §13／§15。事件 SFX 音量已在暫停選單。prep UI 已拆為 `scenes/prep_menu.tscn` + `scripts/prep/`。

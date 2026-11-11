@@ -146,7 +146,7 @@ demo.gd（場面主控 · ~1000 行）
 
 | 主題 | Alpha 現況 | Steam | Switch／Xbox 額外要求 |
 | --- | --- | --- | --- |
-| 匯出 | ~~僅 Web~~ **已有 Win／Linux 預設** | 桌面預設已加；待 Steamworks | 私有 console export template；CI 需隔離 NDA 產物 |
+| 匯出 | ~~僅 Web~~ **已有 Win／Linux／macOS 預設** | 桌面三平台預設已加；待本機 GodotSteam／正式 App | 私有 console export template；CI 需隔離 NDA 產物 |
 | 輸入 | ~~硬編碼鍵~~ **InputMap／`Controls`** | Steam Input 可接同一套 action | 手把焦點導航；斷線重連；禁用「必須觸控」 |
 | UI | 手機橫向密度＋觸控鍵；關鍵字串走 `Loc` | 桌面／Deck 可調；續遷剩餘 CJK | TV 安全區與字級；Switch 掌機可讀性；焦點框可見 |
 | 存檔 | ~~無~~ **`user://save.json`＋version** | 本機已有；待可選 Cloud | 經平台 API；處理儲存滿／失敗／多使用者 |
@@ -198,7 +198,7 @@ demo.gd（場面主控 · ~1000 行）
 | A · 穩定主線 | 可連續開發 | 凍結舊 demo；單一 alpha 主線；對齊 tuning／文件 |
 | B · 產品骨架 | 三平台共用前提 | 存檔 version、暫停、InputMap、手把焦點 UI、拆 prep；PlatformServices stub |
 | C · 效能地板 | 以 Switch 1 為準 | 髒刷新、SKU 索引、字型子集、尋路節流；雙解析度 UI |
-| D · PC 上架 | Steam 候選 | ~~Windows／Linux 匯出~~、~~字串表~~ **已做**；待 Steamworks、Cloud、成就鉤子 |
+| D · PC 上架 | Steam 候選 | ~~Windows／Linux／macOS 匯出~~、~~字串表~~、~~M3＋GodotSteam 4.24~~ **已做**；待雙帳邀請實測、正式 App ID、Cloud、成就鉤子 |
 | E · 主機 | Switch／Xbox 候選 | ~~商務~~ `console-business.md`；~~釘版政策~~ `godot-middleware-pin.md`；待帳號／devkit、執行釘版閘門、Lotcheck／TCR、分級 |
 
 玩法內容（COMBO、事件、流量等）可與 B／C 並行。主機商務啟動可與 D 重疊，但不要在 B 完成前開「主機專用玩法分叉」。
@@ -223,7 +223,7 @@ demo.gd（場面主控 · ~1000 行）
 - [x] 貨架 SKU 索引 — `demo._shelves_by_sku`；`shelf.stock_sku_changed` 維護；`find_shelf` O(1)（見 `docs/systemdesign/customer.md`）
 - [x] NotoSansTC 子集化方案 — 執行期 `NotoSansTC-Game.otf`；重建 `tools/fonts/subset_notosans_tc.py`；說明 `docs/alpha/fonts-subset.md`
 - [x] 暫停選單 + 掛起／恢復鉤子 — `pause_menu.tscn`；接 `PlatformServices` suspend／resume；見 `docs/systemdesign/pausemenu.md`
-- [x] Windows／Linux 匯出預設（Steam 候選）— `export_presets.cfg`；輸出 `build/windows`／`build/linux`；說明 `docs/alpha/export-presets.md`
+- [x] Windows／Linux／macOS 匯出預設（Steam 候選）— `export_presets.cfg`；輸出 `build/windows`／`build/linux`／`build/macos`；feature `desktop,steam_candidate,net_steam`；說明 `docs/alpha/export-presets.md`
 - [x] 字串表（i18n）抽出 — `locale/strings.csv`＋Autoload `Loc`；說明 `docs/alpha/i18n.md`；收割 `tools/i18n_harvest.py`
 - [x] 主機：開發者帳號／中介埠或埠接商評估（商務）— 結論見 **`docs/alpha/console-business.md`**（帳號可早開；W4 自埠為預設、埠接為備援；買工具前先釘 Godot）
 - [x] 對齊 Godot 小版本與 console middleware 支援表 — 政策見 **`docs/alpha/godot-middleware-pin.md`**（桌面維持 4.7；主機衝刺對齊 W4 表，2026-10-21 最高 4.6；禁止專案複本）
