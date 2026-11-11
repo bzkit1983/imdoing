@@ -171,7 +171,10 @@ func _begin_day() -> void:
 	if _pause and _pause.has_method("close_menu"):
 		_pause.close_menu()
 	## Client applies host world snapshot before building the floor.
+	## Stash home save first — live `state` becomes Host shop for presentation only.
 	if SessionService.is_client():
+		if state != null:
+			SessionService.stash_client_home_save(state.to_dict())
 		var snap: Dictionary = SessionService.take_pending_day_snapshot()
 		var world = snap.get("world", {})
 		if world is Dictionary and not world.is_empty():
@@ -1233,9 +1236,11 @@ func _return_to_prep() -> void:
 		return
 	phase = "prep"
 	clear_elite_test()
+	## Capture before close() clears settlement_applied.
+	var settled_ok := SessionService.settlement_applied
 	SessionService.close()
-	## LAN client still holds Host world snapshot in `state`; reload own save for XP / support / money.
-	_reload_local_save_for_prep()
+	## Client still holds Host world in `state` until we restore home save.
+	_reload_local_save_for_prep(settled_ok)
 	_clear_world()
 	_prep.visible = true
 	_prep.set_process_unhandled_input(true)
@@ -1244,12 +1249,35 @@ func _return_to_prep() -> void:
 		_prep.call("maybe_offer_difficulty_prompt")
 
 
-func _reload_local_save_for_prep() -> void:
+func _reload_local_save_for_prep(settled_ok: bool = false) -> void:
+	## Client day mutates `state` into Host world; never leave that in prep／disk.
 	if state == null:
 		return
-	var err := state.load_from_disk()
-	if err != "":
-		push_warning("reload save for prep failed: %s" % err)
+	if settled_ok == false:
+		settled_ok = SessionService.settlement_applied
+	if SessionService.has_client_home_stash():
+		if settled_ok:
+			## Settle already wrote stash + XP／money／support to disk.
+			var err := state.load_from_disk()
+			if err != "":
+				push_warning("reload save for prep failed: %s" % err)
+				var stash_err := state.from_dict(SessionService.peek_client_home_stash())
+				if stash_err != "":
+					push_warning("restore home stash failed: %s" % stash_err)
+		else:
+			## Host abort／dissolve: restore home shop (fixes same-machine Host clobber).
+			var stash_err2 := state.from_dict(SessionService.peek_client_home_stash())
+			if stash_err2 != "":
+				push_warning("restore home stash failed: %s" % stash_err2)
+			else:
+				var save_err := state.save_to_disk()
+				if save_err != "":
+					push_warning("rewrite home save after dissolve failed: %s" % save_err)
+		SessionService.clear_client_home_stash()
+		return
+	var err2 := state.load_from_disk()
+	if err2 != "":
+		push_warning("reload save for prep failed: %s" % err2)
 
 
 func configure_elite_test(lv: int) -> void:
@@ -1350,7 +1378,7 @@ func _dissolve_room_to_prep() -> void:
 	_early_open = false
 	clear_elite_test()
 	_clear_world()
-	_reload_local_save_for_prep()
+	_reload_local_save_for_prep(SessionService.settlement_applied)
 	phase = "prep"
 	if _prep:
 		_prep.visible = true

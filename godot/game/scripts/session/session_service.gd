@@ -59,6 +59,9 @@ var _peer: MultiplayerPeer = null
 var _pending_sheets: Dictionary = {}
 ## Client: second-seat sheet dict staged for claim-2 upload.
 var _join_guest_sheet_dict: Dictionary = {}
+## Client: home `save.json` snapshot taken before Host world is applied for the day.
+## Prevents Host layout／shop_rating from sticking after settle (esp. same-machine LAN).
+var _client_home_stash: Dictionary = {}
 
 
 func _ready() -> void:
@@ -433,9 +436,29 @@ func send_settle_to_clients(payload: Dictionary) -> void:
 	_rpc_settle.rpc(payload)
 
 
+func stash_client_home_save(data: Dictionary) -> void:
+	## Call on client before applying Host day world into live GameState.
+	if data.is_empty():
+		return
+	_client_home_stash = data.duplicate(true)
+
+
+func has_client_home_stash() -> bool:
+	return not _client_home_stash.is_empty()
+
+
+func peek_client_home_stash() -> Dictionary:
+	return _client_home_stash.duplicate(true)
+
+
+func clear_client_home_stash() -> void:
+	_client_home_stash = {}
+
+
 func apply_client_settle_to_save(payload: Dictionary) -> Dictionary:
 	## Client writes XP / support_rating (§12.8) + 同等營業額到主存檔資金（M2.1）.
 	## local_index 0 → main save (XP + support + revenue)；local_index 1 → guest_slots only.
+	## Base document must be the visitor's home shop — never Host layout／shop_rating.
 	var fail := {
 		"ok": false,
 		"shared_xp": 0,
@@ -475,8 +498,14 @@ func apply_client_settle_to_save(payload: Dictionary) -> Dictionary:
 		if li == 0:
 			var StateScript = load("res://scripts/game_state.gd")
 			var state = StateScript.new()
-			if String(state.load_from_disk()) != "":
-				continue
+			## Prefer pre-day home stash so same-machine Host save_to_disk cannot poison us.
+			var base_ok := false
+			if has_client_home_stash():
+				var stash_err: String = String(state.from_dict(peek_client_home_stash()))
+				base_ok = stash_err == ""
+			if not base_ok:
+				if String(state.load_from_disk()) != "":
+					continue
 			var sheet = CharacterSheet.from_game_state(state)
 			sheet.support_rating = int(state.support_rating)
 			sheet.apply_xp_gain(xp)
@@ -485,7 +514,7 @@ func apply_client_settle_to_save(payload: Dictionary) -> Dictionary:
 			state.level = sheet.level
 			state.unspent = sheet.unspent
 			state.support_rating = sheet.support_rating
-			## M2.1：訪客本店資金 += Host 當日營業額（商店評價／進貨支出不動）。
+			## M2.1：訪客本店資金 += Host 當日營業額（商店評價／進貨支出／layout 不動）。
 			state.money += revenue
 			if String(state.save_to_disk()) != "":
 				continue
