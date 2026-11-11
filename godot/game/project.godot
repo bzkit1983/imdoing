@@ -28,10 +28,6 @@ SeatTable="*res://scripts/session/seat_table.gd"
 InteractLock="*res://scripts/session/interact_lock.gd"
 SessionService="*res://scripts/session/session_service.gd"
 
-[editor_plugins]
-
-enabled=PackedStringArray("res://addons/godotsteam/plugin.cfg")
-
 [display]
 
 window/size/viewport_width=1280
@@ -40,6 +36,16 @@ window/size/mode=2
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 window/handheld/orientation=4
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/godotsteam/plugin.cfg")
+
+[steam]
+
+initialization/app_data/app_id=480
+initialization/processes/embed_callbacks=true
+initialization/processes/initialize_on_startup=false
 
 [gui]
 

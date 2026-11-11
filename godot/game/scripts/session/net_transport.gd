@@ -56,30 +56,53 @@ static func _scene_tree() -> SceneTree:
 	return loop as SceneTree
 
 
+static func _apply_steam_app_id(app_id: int) -> void:
+	## Editor／非 Steam 啟動時必須帶 App ID（§13 開發用 480）。
+	OS.set_environment("SteamAppId", str(app_id))
+	OS.set_environment("SteamGameId", str(app_id))
+	if ProjectSettings.has_setting("steam/initialization/app_data/app_id"):
+		ProjectSettings.set_setting("steam/initialization/app_data/app_id", app_id)
+	if ProjectSettings.has_setting("steam/initialization/processes/embed_callbacks"):
+		ProjectSettings.set_setting("steam/initialization/processes/embed_callbacks", true)
+
+
 static func ensure_steam_init(app_id: int = STEAM_TEST_APP_ID) -> String:
 	## Returns "" on ok, else error code. Safe to call repeatedly.
+	## Do not hard-fail on isSteamRunning alone — try steamInitEx for a real status.
 	if not steam_available():
 		return "steam_unavailable"
-	if not steam_running():
-		return "steam_not_running"
 	if _steam_inited:
 		return ""
 	var steam := _steam_singleton()
 	if steam == null:
 		return "steam_unavailable"
+	_apply_steam_app_id(app_id)
 	## GodotSteam 4.24: steamInitEx(app_id, embed_callbacks).
+	## status: 0 OK, 1 other failure, 2 cannot connect (client not running), 3 client outdated.
 	if steam.has_method("steamInitEx"):
 		var result: Variant = steam.call("steamInitEx", app_id, true)
 		if typeof(result) == TYPE_DICTIONARY:
 			var status := int(result.get("status", -1))
-			## 0 = STEAM_API_INIT_OK in GodotSteam.
-			if status != 0:
-				return "steam_init_%d" % status
+			var verbal := String(result.get("verbal", "")).to_lower()
+			if status == 0:
+				_steam_inited = true
+				return ""
+			if status == 2:
+				return "steam_not_running"
+			if status == 3:
+				return "steam_outdated"
+			if "install directory" in verbal or "steam client" in verbal:
+				return "steam_not_installed"
+			if not steam_running():
+				return "steam_not_running"
+			return "steam_init_%d" % status
 		_steam_inited = true
 		return ""
 	if steam.has_method("steamInit"):
 		var ok: Variant = steam.call("steamInit", app_id, true)
 		if typeof(ok) == TYPE_BOOL and not bool(ok):
+			if not steam_running():
+				return "steam_not_running"
 			return "steam_init_failed"
 		_steam_inited = true
 		return ""

@@ -1,10 +1,10 @@
 # 多人連線設計報告（本機二＋線上補滿至四人）
 
-- **狀態：** 設計草案；**M1 本機雙人已落地**；**§12 M2 LAN 至 M2.9 已落地**；**§13 M3 Steam 工程已落地**（GodotSteam 4.24 在 repo；雙帳邀請待 Steam 客戶端聯測）
+- **狀態：** 設計草案；**M1 本機雙人已落地**；**§12 M2 LAN 至 M2.9 已落地**；**§13 M3 Steam 已驗收**（GodotSteam 4.24；雙帳邀請／開日／日結聯測通過）
 - **範圍：** 本機合作、線上合作、以及兩者混合的同一 Session 模型；技術分層與平台差異
 - **產品錨點：** 活線 `godot/game`（Godot 4.7）；版控見 `docs/versioning.md`
 - **對照：** `docs/alpha/tech-review-v0.1.md`、`docs/systemdesign/ecosystem.md`、`docs/systemdesign/playerexport.md`、`docs/systemdesign/control.md`、`docs/systemdesign/savesystem.md`、`docs/systemdesign/pausemenu.md`、`godot/game/scripts/platform_services.gd`
-- **產出／更新：** 2026-11-05（初稿＋§10 拍板＋§11 M1）；**2026-11-09 定稿 §12 M2 LAN**；**2026-11-10 claim2／M2.1～M2.9**；**2026-11-10 定稿 §13 M3 Steam（含 Win／Linux／macOS depot）**
+- **產出／更新：** 2026-11-05（初稿＋§10 拍板＋§11 M1）；**2026-11-09 定稿 §12 M2 LAN**；**2026-11-10 claim2／M2.1～M2.9**；**2026-11-10 定稿 §13 M3 Steam（含 Win／Linux／macOS depot）**；**2026-11-11 §13.4 驗收通過**
 
 ---
 
@@ -345,7 +345,7 @@ InputRouter
 | **M0** | 本文件與 Seat 協定對齊 | 企劃／工程讀過；§10 已拍板 |
 | **M1** | 本機 2 seat + SeatTable（`transport=local`） | **已交**（§11.9）；規格定稿 2026-11-05 |
 | **M2** | LAN／ENet 第 3、第 4 seat | **本機二的 host 接受線上補位至 4**；開日後斷線移除角色、座位不可再佔（**規格 §12**；首刀＋第二刀已交） |
-| **M3** | Steam lobby／peer | 同一 Session；好友邀請進混合房 |
+| **M3** | Steam lobby／peer | **已驗收**（2026-11-11）：同一 Session；好友邀請進混合房 |
 | **M4** | Web `web_ws` | Web↔Web 房間；**每機 1 seat** |
 | 並行可選 | 異店競賽或導出雲端 | 不阻塞 M1–M2 |
 
@@ -681,16 +681,16 @@ Ready → Host start_day → 其餘與 M2 相同（Intent／freeze／settle）
 | --- | --- | --- |
 | **M3 規格** | 本節；depot／480／Editor 契約 | **本節已定** |
 | **M3 閘門** | `is_networked()`；LAN 行為不回歸 | **見實作** |
-| **M3 Transport** | GodotSteam；`NetTransport` steam；`host_steam`／lobby join | **見實作（SDK 需本機安裝）** |
-| **M3 Prep UX** | Steam 開房／邀請入口 | **見實作** |
-| **M3 macOS 匯出** | `export_presets` macOS + 文件三 depot | **見實作** |
-| **M3 上架後端** | 正式 App ID、Cloud／成就、Partner depot 配置 | **可後補**（不阻塞 lobby 聯測） |
+| **M3 Transport** | GodotSteam；`NetTransport` steam；`host_steam`／lobby join | **已驗收** |
+| **M3 Prep UX** | Steam 開房／邀請入口 | **已驗收** |
+| **M3 macOS 匯出** | `export_presets` macOS + 文件三 depot | **已驗收** |
+| **M3 上架後端** | 正式 App ID、Cloud／成就、Partner depot 配置 | **可後補**（不阻塞已通過之 lobby 聯測） |
 
 ### 13.4 M3 驗收清單
 
-- [ ] Host 以 Steam 開房；好友邀請後 remote claim 1｜2 加入；名額與 §12 一致（需 **Steam 客戶端＋雙帳**；SDK 已進 `addons/godotsteam`）
-- [ ] Editor（或匯出包）+ 第二 Steam 身分可完成邀請進混合房並開日
-- [ ] 開日後 Intent／暫停／凍座／日結與 M2 行為一致（`transport=steam`）
+- [x] Host 以 Steam 開房；好友邀請後 remote claim 1｜2 加入；名額與 §12 一致（2026-11-11）
+- [x] Editor（或匯出包）+ 第二 Steam 身分可完成邀請進混合房並開日
+- [x] 開日後 Intent／暫停／凍座／日結與 M2 行為一致（`transport=steam`）
 - [x] `transport=local` 與 `lan_enet` 不回歸（`tools/m3_steam_smoke.sh`）
 - [x] Win／Linux／macOS 皆有 Steam 候選匯出預設；文件寫明三 depot（`steam_candidate`＋`net_steam`）
 - [x] 開發期可用 App ID 480（`steam_appid.txt`）；正式 ID 僅上架切換；GodotSteam **4.24** 已納入 repo
@@ -727,4 +727,4 @@ Ready → Host start_day → 其餘與 M2 相同（Intent／freeze／settle）
 - **產品：** 本機最多二人，可線上補位至同房四人；純本機／純線上是同一模型的特例。  
 - **工程：** SeatTable + listen-server + 可換 Transport；Intent 帶 `seat_id`；連線閘門 `is_networked()`。  
 - **平台：** Steam／Web／LAN 各換 backend；Steam 上架目標 **Win／Linux／macOS**；v1 不承諾跨商店互通。  
-- **下一步：** M3 實作接 GodotSteam 與正式 App ID／Cloud；**M4** Web `web_ws`。
+- **下一步：** 正式 App ID／Cloud／成就（上架後補）；**M4** Web `web_ws`。

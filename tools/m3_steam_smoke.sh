@@ -55,8 +55,8 @@ func _initialize() -> void:
 		print("OK host_lan networked+lan")
 	ss.close()
 	var steam_err: String = await ss.host_steam(1)
-	if steam_err == "steam_not_running" or steam_err.begins_with("steam_init_"):
-		print("SKIP host_steam (Steam client not running): ", steam_err)
+	if steam_err in ["steam_not_running", "steam_not_installed", "steam_outdated"] or steam_err.begins_with("steam_init_"):
+		print("SKIP host_steam (Steam client / install): ", steam_err)
 	elif steam_err != "":
 		print("FAIL host_steam=", steam_err)
 		fail += 1

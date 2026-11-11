@@ -200,6 +200,9 @@ prep.confirm.guest_blank,已在訪客槽 %d 新建空白角色,Created blank cha
 prep.confirm.guest_need_title,需要訪客槽,Guest slot required,需要访客槽,ゲストスロットが必要です
 prep.confirm.guest_need_body,請先選既有槽、複製店主到空槽、或新建空白。,Pick an existing slot,请先选既有槽、复制店主到空槽、或新建空白。,既存スロットを選ぶか、店主を空きスロットに複製するか、空白を新規作成してください。
 lobby.title,LAN 大廳,LAN lobby,LAN 大厅,LANロビー
+lobby.title_steam,Steam 大廳,Steam lobby,Steam 大厅,Steamロビー
+lobby.title_local,本機大廳,Local lobby,本机大厅,ローカルロビー
+lobby.local_info,本機雙人房間（無遠端連線）。,Local co-op room (no remote peers).,本机双人房间（无远端连线）。,ローカル協力部屋（リモートなし）。
 lobby.host,開 LAN 房（等人）,Host LAN room,开 LAN 房（等人）,LAN部屋を作成
 lobby.join,加入 LAN 房,Join LAN room,加入 LAN 房,LAN部屋に参加
 lobby.join_title,加入 LAN,Join LAN,加入 LAN,LANに参加
@@ -220,6 +223,15 @@ lobby.steam_join_confirm,以 Steam 加入,Join via Steam,以 Steam 加入,Steam�
 lobby.steam_host_info,你是 Steam 房主 · Lobby %d（用 Overlay 邀請好友）,You are Steam host · lobby %d (invite via Overlay),你是 Steam 房主 · Lobby %d（用 Overlay 邀请好友）,Steamホストです · ロビー%d（オーバーレイで招待）
 lobby.steam_joined,已加入 Steam Lobby %d,Joined Steam lobby %d,已加入 Steam Lobby %d,Steamロビー%d に参加
 lobby.steam_sdk_hint,尚未偵測到 GodotSteam（見 docs/alpha/godotsteam-setup.md）。,GodotSteam not detected (see docs/alpha/godotsteam-setup.md).,尚未检测到 GodotSteam（见 docs/alpha/godotsteam-setup.md）。,GodotSteam未検出（docs/alpha/godotsteam-setup.md を参照）。
+lobby.err.steam_not_running,請先開啟並登入 Steam 客戶端，再重試開房。,Open and sign into the Steam client, then try again.,请先打开并登录 Steam 客户端，再重试开房。,Steamクライアントを起動してログインしてから再試行してください。
+lobby.err.steam_not_installed,找不到 Steam 安裝路徑。請安裝 Steam 並登入後再試。,Steam install not found. Install Steam, sign in, then retry.,找不到 Steam 安装路径。请安装 Steam 并登录后再试。,Steamのインストールが見つかりません。インストールしてログイン後に再試行してください。
+lobby.err.steam_unavailable,尚未載入 GodotSteam（見 docs/alpha/godotsteam-setup.md）。,GodotSteam not loaded (see docs/alpha/godotsteam-setup.md).,尚未加载 GodotSteam（见 docs/alpha/godotsteam-setup.md）。,GodotSteamが読み込まれていません（docs/alpha/godotsteam-setup.md）。
+lobby.err.steam_outdated,Steam 客戶端過舊，請先更新 Steam。,Steam client is outdated — update Steam first.,Steam 客户端过旧，请先更新 Steam。,Steamクライアントが古いです。先に更新してください。
+lobby.err.steam_init_failed,Steam 初始化失敗。請確認已登入 Steam 後再試。,Steam init failed. Sign into Steam and retry.,Steam 初始化失败。请确认已登录 Steam 后再试。,Steam初期化に失敗しました。ログイン後に再試行してください。
+lobby.err.lobby_timeout,建立／加入 Lobby 逾時。請確認網路與 Steam 連線。,Lobby timed out. Check network and Steam connection.,建立／加入 Lobby 超时。请确认网络与 Steam 连接。,ロビーがタイムアウトしました。ネットワークとSteam接続を確認してください。
+lobby.err.lobby_failed,無法建立 Steam Lobby。,Could not create a Steam lobby.,无法创建 Steam Lobby。,Steamロビーを作成できませんでした。
+lobby.err.lobby_invalid,Lobby ID 無效。請向房主索取正確編號。,Invalid lobby ID. Ask the host for the correct number.,Lobby ID 无效。请向房主索取正确编号。,ロビーIDが無効です。ホストに正しい番号を確認してください。
+lobby.err.web_no_steam,Web 版不支援 Steam 多人。,Steam multiplayer is not available on Web.,Web 版不支持 Steam 多人。,Web版ではSteamマルチプレイに非対応です。
 lobby.remaining,剩餘名額 %d / 4,Seats left %d / 4,剩余名额 %d / 4,残り枠 %d / 4
 lobby.seat_row,座位 %d · %s · %s,Seat %d · %s · %s,座位 %d · %s · %s,座席%d · %s · %s
 lobby.you,你,You,你,あなた

@@ -198,7 +198,7 @@ demo.gd（場面主控 · ~1000 行）
 | A · 穩定主線 | 可連續開發 | 凍結舊 demo；單一 alpha 主線；對齊 tuning／文件 |
 | B · 產品骨架 | 三平台共用前提 | 存檔 version、暫停、InputMap、手把焦點 UI、拆 prep；PlatformServices stub |
 | C · 效能地板 | 以 Switch 1 為準 | 髒刷新、SKU 索引、字型子集、尋路節流；雙解析度 UI |
-| D · PC 上架 | Steam 候選 | ~~Windows／Linux／macOS 匯出~~、~~字串表~~、~~M3＋GodotSteam 4.24~~ **已做**；待雙帳邀請實測、正式 App ID、Cloud、成就鉤子 |
+| D · PC 上架 | Steam 候選 | ~~Windows／Linux／macOS 匯出~~、~~字串表~~、~~M3 驗收~~ **已做**；待正式 App ID、Cloud、成就鉤子 |
 | E · 主機 | Switch／Xbox 候選 | ~~商務~~ `console-business.md`；~~釘版政策~~ `godot-middleware-pin.md`；待帳號／devkit、執行釘版閘門、Lotcheck／TCR、分級 |
 
 玩法內容（COMBO、事件、流量等）可與 B／C 並行。主機商務啟動可與 D 重疊，但不要在 B 完成前開「主機專用玩法分叉」。

@@ -1199,9 +1199,18 @@ func _start_lan_join() -> void:
 	_show_page("lobby")
 
 
+func _lobby_err_text(code: String) -> String:
+	var key := "lobby.err.%s" % code
+	if Loc.has_key(key):
+		return Loc.t(key)
+	if code.begins_with("steam_init_"):
+		return Loc.t("lobby.err.steam_init_failed")
+	return Loc.t("lobby.error_body", [code])
+
+
 func _start_steam_host() -> void:
 	if OS.has_feature("web"):
-		_popup_info(Loc.t("lobby.error_title"), Loc.t("lobby.error_body", ["web_no_steam"]))
+		_popup_info(Loc.t("lobby.error_title"), _lobby_err_text("web_no_steam"))
 		return
 	var resolved = _resolve_local_guest_for_lan()
 	if not bool(resolved[0]):
@@ -1210,7 +1219,7 @@ func _start_steam_host() -> void:
 	var seats := clampi(_local_seats, 1, 2)
 	var err: String = await SessionService.host_steam(seats, resolved[1], int(resolved[2]))
 	if err != "":
-		_popup_info(Loc.t("lobby.error_title"), Loc.t("lobby.error_body", [err]))
+		_popup_info(Loc.t("lobby.error_title"), _lobby_err_text(err))
 		return
 	_show_page("lobby")
 
@@ -1231,7 +1240,7 @@ func _start_steam_join() -> void:
 		guest_slot = int(resolved[2])
 	var err: String = await SessionService.join_steam_lobby(lobby_id, claim, guest, guest_slot)
 	if err != "":
-		_popup_info(Loc.t("lobby.error_title"), Loc.t("lobby.error_body", [err]))
+		_popup_info(Loc.t("lobby.error_title"), _lobby_err_text(err))
 		return
 	_hide_steam_lobby_edit()
 	_show_page("lobby")

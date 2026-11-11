@@ -33,7 +33,7 @@ Repository for game project
 ## 設計文件
 
 - 長線規則：`docs/systemdesign/`（含 [`savesystem.md`](docs/systemdesign/savesystem.md)、[`control.md`](docs/systemdesign/control.md)、[`pausemenu.md`](docs/systemdesign/pausemenu.md)、[`soundeffects.md`](docs/systemdesign/soundeffects.md)、[`elitecustomer.md`](docs/systemdesign/elitecustomer.md) 麻煩客人・已落地、[`appearance.md`](docs/systemdesign/appearance.md) 外觀／Look、[`fetchcombo.md`](docs/systemdesign/fetchcombo.md) 幫忙取貨與 COMBO、[`ratingsystem.md`](docs/systemdesign/ratingsystem.md) 評價・設計中、[`difficulty.md`](docs/systemdesign/difficulty.md) 難度 stub）
-- 多人連線（本機二＋線上補滿至四人）：[`docs/systemdesign/multiplayer.md`](docs/systemdesign/multiplayer.md)（**M1～M2.9 已落地**；**M3 GodotSteam 4.24 已納入**＋lobby Transport；雙帳邀請見 [`godotsteam-setup.md`](docs/alpha/godotsteam-setup.md)；煙測 `./tools/m3_steam_smoke.sh`；M4 Web 待做）
+- 多人連線（本機二＋線上補滿至四人）：[`docs/systemdesign/multiplayer.md`](docs/systemdesign/multiplayer.md)（**M1～M2.9 已落地**；**M3 Steam 已驗收**；見 [`godotsteam-setup.md`](docs/alpha/godotsteam-setup.md)；M4 Web 待做）
 - 缺口檢視：`docs/systemdesign-gaps.md`
 - Alpha 計劃／審查／設計：`docs/alpha/plan.md`、`docs/alpha/design.md`、`docs/alpha/tech-review-v0.1.md`
 - 執行期優化分析：`docs/alpha/runtime-perf-audit.md`

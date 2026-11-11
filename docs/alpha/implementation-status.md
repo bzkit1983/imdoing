@@ -1,6 +1,6 @@
 # Alpha → v1 實作對照（設計已落地項）
 
-- 對照日：2026-11-10（含 PR #3–#117 等；多人 **M1～M2.9 已落地**；**§13 M3 Steam 規格＋閘門／匯出縫已接**；GodotSteam 原生庫依環境安裝）
+- 對照日：2026-11-11（含 PR #3–#117 等；多人 **M1～M2.9 已落地**；**§13 M3 Steam 已驗收**）
 - 用途：把近期工程變更連回長線／Alpha 設計檔，方便查「文件寫在哪、程式改哪」
 - 版控：`docs/versioning.md` · 技術债清單：`docs/alpha/tech-review-v0.1.md`（§6 已全部勾完） · 缺口：`docs/systemdesign-gaps.md` · 執行期優化：`docs/alpha/runtime-perf-audit.md`
 
@@ -50,6 +50,6 @@
 
 | 多人 M1 本機雙人 | **`docs/systemdesign/multiplayer.md`** §11 | **已實作**。`SeatTable`／`InteractLock`／`SessionService`（`transport=local`）；prep 1｜2；訪客槽；日結 XP 平分＋`support_rating` |
 | 多人 M2 LAN／ENet | **`docs/systemdesign/multiplayer.md`** §12 | **首刀～M2.9 已交**：含 **收銀指令 UI**（`checkout_seq` `agent_state`；`prompt_state` RPC；`apply_net_checkout_prompt`；client 禁雙重 randi） |
-| 多人 M3 Steam | **`docs/systemdesign/multiplayer.md`** §13 | **GodotSteam 4.24 已納入** `addons/godotsteam`；`host_with_lobby`／`connect_to_lobby`；煙測 `tools/m3_steam_smoke.sh`。雙帳邀請實測需 Steam 客戶端；正式 App ID／Cloud／成就可後補 |
+| 多人 M3 Steam | **`docs/systemdesign/multiplayer.md`** §13 | **§13.4 已驗收**（2026-11-11）。GodotSteam 4.24；`host_with_lobby`／`connect_to_lobby`；雙帳邀請進混合房＋開日／日結。正式 App ID／Cloud／成就可後補 |
 
-仍缺（非 §6）：BGM／完整設定頁、教學、技能演出鎖輸入、GodotSteam 原生庫安裝與正式 App ID／Cloud／成就、M4 Web——見 `docs/alpha/design.md`、`multiplayer.md` §13／§15。事件 SFX 音量已在暫停選單。prep UI 已拆為 `scenes/prep_menu.tscn` + `scripts/prep/`。
+仍缺（非 §6）：BGM／完整設定頁、教學、技能演出鎖輸入、正式 App ID／Cloud／成就、M4 Web——見 `docs/alpha/design.md`、`multiplayer.md` §13／§15。事件 SFX 音量已在暫停選單。prep UI 已拆為 `scenes/prep_menu.tscn` + `scripts/prep/`。
