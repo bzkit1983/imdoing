@@ -140,16 +140,25 @@ func abort_pick() -> void:
 
 func take_box() -> bool:
 	## Player restock: consume 1 piece from warehouse.
+	return take_pieces(1) == 1
+
+
+func take_pieces(requested: int) -> int:
+	## Player restock: consume up to `requested` pieces from the selected SKU.
+	if requested <= 0:
+		return 0
 	var sku := selected_sku()
 	if sku == "":
-		return false
+		return 0
 	var game := get_tree().get_first_node_in_group("game") if is_inside_tree() else null
 	if game == null or game.get("state") == null:
-		return false
-	if not bool(game.state.consume_stock(sku, 1)):
-		return false
+		return 0
+	var available := int(game.state.stock.get(sku, 0))
+	var taken := mini(requested, available)
+	if taken <= 0 or not bool(game.state.consume_stock(sku, taken)):
+		return 0
 	pull_stock()
-	return true
+	return taken
 
 
 func pull_stock() -> void:

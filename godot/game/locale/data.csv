@@ -87,6 +87,8 @@ skill.checkout_speed.name,收銀速度增加,Checkout Speed Up,收银速度增�
 skill.checkout_speed.blurb,收銀 +20%,Checkout +20%,收银 +20%,レジ速度 +20%
 skill.restock_speed.name,上架速度增加,Restock Speed Up,上架速度增加,陳列速度増加
 skill.restock_speed.blurb,上架 +20%,Restock +20%,上架 +20%,陳列 +20%
+skill.quick_swallow.name,快吞轟,Quick Swallow,快吞轰,クイックスワロー
+skill.quick_swallow.blurb,短按補貨點／貨架一次取 2／3／5 件（LV1／2／3）,Tap a restock point or shelf to take 2/3/5 pieces at once (LV1/2/3),短按补货点／货架一次取 2／3／5 件（LV1／2／3）,補充棚／棚を短押しして一度に2／3／5個取得（LV1／2／3）
 skill.polite_dash.name,禮貌衝撞,Polite Dash,礼貌冲撞,丁寧ダッシュ
 skill.polite_dash.blurb,衝刺撞客人不滿不增加,Dashing into guests does not raise dissatisfaction,冲刺撞客人不满不增加,ダッシュで客にぶつかっても不満が増えない
 skill.wave_step.name,凌波微步,Wave Step,凌波微步,凌波微歩
@@ -259,7 +261,7 @@ log.player.restock_busy,補貨點使用中,Restock point busy,补货点使用中
 log.player.sku_list_hint,貨品清單 — 上下選擇，放手確定，B／; 取消,"SKU list — up/down, release confirm, B/; cancel",货品清单 — 上下选择，放手确定，B／; 取消,商品リスト — 上下で選択、放して確定、B／; でキャンセル
 log.player.carry_need,負重不足：%d/%d 件,Carry short: %d/%d pcs,负重不足：%d/%d 件,所持不足：%d/%d 個
 log.player.restock_empty,%s 補貨點已空,%s restock point empty,%s 补货点已空,%s の補充ポイントは空
-log.player.pull_instant,執貨（即時）%s 1件,Pull (instant) %s ×1,执货（即时）%s 1件,取荷（即時）%s 1個
+log.player.pull_instant,執貨（即時）%s %d件,Pull (instant) %s ×%d,执货（即时）%s %d件,取荷（即時）%s %d個
 log.player.empty_hands_shelf,空手 — 不能上架,Empty hands — cannot restock,空手 — 不能上架,素手 — 陳列できない
 log.player.shelf_busy,貨架使用中,Shelf busy,货架使用中,棚使用中
 log.player.shelf_full,貨架已滿,Shelf full,货架已满,棚が満杯
@@ -312,7 +314,7 @@ log.player.slip,水漬滑倒 — 滑出 3 身位，暈眩 3 秒,"Puddle slip —
 log.player.vomit,踩到嘔吐物 — 技能禁止、能力 −30% 10 秒,"Stepped in vomit — skills blocked, stats −30% 10s",踩到呕吐物 — 技能禁止、能力 −30% 10 秒,嘔吐物を踏んだ — スキル禁止、能力 −30% が 10 秒
 log.player.restock_set,補貨點改為 %s,Restock point set to %s,补货点改为 %s,補充ポイントを %s に変更
 log.player.hold_deliver_hint,長按行動鍵把貨交給客人,Hold Action to deliver to guest,长按行动键把货交给客人,アクション長押しで客に商品を渡す
-log.player.take_shelf,從貨架取 %s 1件,Take %s ×1 from shelf,从货架取 %s 1件,棚から %s を 1個取る
+log.player.take_shelf,從貨架取 %s %d件,Take %s ×%d from shelf,从货架取 %s %d件,棚から %s を %d個取る
 log.player.aim_preview,%s — 範圍預覽，再按技能確認，取消取消,"%s — range preview; skill confirm, cancel cancels",%s — 范围预览，再按技能确认，取消取消,%s — 範囲プレビュー、スキル再押しで確定、キャンセルで中止
 log.player.cancel_named,取消 %s,Cancel %s,取消 %s,%s をキャンセル
 log.player.must_fail_empty,手上沒貨 — 使命必達 失敗,Hands empty — Must Deliver failed,手上没货 — 使命必达 失败,手持ちなし — 使命必達 失敗

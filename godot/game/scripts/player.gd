@@ -1912,20 +1912,29 @@ func _do_short_interact() -> void:
 
 
 func _take_shelf_piece(shelf: Node2D) -> void:
-	if inventory.count() >= carry_cap():
+	var room := maxi(0, carry_cap() - inventory.count())
+	if room <= 0:
 		SfxBus.play("sfx_box_pull_fail")
 		log_line.emit(Loc.t("log.player.carry_need", [inventory.count(), carry_cap()]))
 		return
 	var sku := _obj_str(shelf, "sku")
 	if sku == "" or not shelf.has_method("take_n"):
 		return
-	var taken := int(shelf.call("take_n", 1))
+	var requested := mini(_manual_pickup_limit(), room)
+	var taken := int(shelf.call("take_n", requested))
 	if taken <= 0:
 		return
-	inventory.add_one(sku)
+	inventory.take_pieces(sku, taken)
 	_spawn_fx("suck", shelf.global_position)
 	SfxBus.play("sfx_box_pull")
-	log_line.emit(Loc.t("log.player.take_shelf", [Tuning.sku_name(sku)]))
+	log_line.emit(Loc.t("log.player.take_shelf", [Tuning.sku_name(sku), taken]))
+
+
+func _manual_pickup_limit() -> int:
+	for sk in _loadout():
+		if bool(sk.get("quick_swallow", false)):
+			return Skills.quick_swallow_pieces(int(sk.get("lv", 3)))
+	return 1
 
 
 func _guest_wants_carried(guest: Node) -> bool:
@@ -3307,19 +3316,22 @@ func _try_pickup() -> void:
 	if _pickup_used:
 		return
 	_pickup_used = true
-	if not inventory.can_take_pieces(1, carry_cap()):
+	var room := maxi(0, carry_cap() - inventory.count())
+	if room <= 0:
 		SfxBus.play("sfx_box_pull_fail")
 		log_line.emit(Loc.t("log.player.carry_need", [inventory.count(), carry_cap()]))
 		return
-	if not bool(target.call("take_box")):
-		SfxBus.play("sfx_box_pull_fail")
-		log_line.emit(Loc.t("log.player.restock_empty", [Tuning.sku_name(String(target.call("selected_sku")))]))
-		return
 	var sku := String(target.call("selected_sku"))
-	inventory.take_pieces(sku, 1)
+	var requested := mini(_manual_pickup_limit(), room)
+	var taken := int(target.call("take_pieces", requested))
+	if taken <= 0:
+		SfxBus.play("sfx_box_pull_fail")
+		log_line.emit(Loc.t("log.player.restock_empty", [Tuning.sku_name(sku)]))
+		return
+	inventory.take_pieces(sku, taken)
 	_spawn_fx("suck", target.global_position)
 	SfxBus.play("sfx_box_pull")
-	log_line.emit(Loc.t("log.player.pull_instant", [Tuning.sku_name(sku)]))
+	log_line.emit(Loc.t("log.player.pull_instant", [Tuning.sku_name(sku), taken]))
 
 
 func _tick_restock(delta: float) -> void:
