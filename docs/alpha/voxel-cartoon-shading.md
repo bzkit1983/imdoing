@@ -34,7 +34,7 @@ art/src/*.vox
 | 頂／前／側面倍率 | 1.08／0.78／0.62 | 1.15／0.72／0.52 |
 | RGB 階調 | 無 | 每通道 4 階（0–255 → 4 buckets） |
 | 墨線 | 無 | 不透明外輪廓 1px，色約 `#1a1a1a` |
-| 像素 | 4px／voxel、nearest | 不變 |
+| 像素 | 低解 4px／voxel；高解 PX=1 後 nearest `DISPLAY_SCALE=0.5`（見 [`voxel-hires-scale-plan.md`](voxel-hires-scale-plan.md)） | 同左；cartoon 在 downscale **前**做 |
 
 **樣張簽核（全庫 bake 前必過）：** `player`（至少一面向靜態）+ `shelf_dry`。標準：可讀、色盤不髒、墨線不吞小臉。
 

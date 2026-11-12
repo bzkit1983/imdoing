@@ -56,14 +56,18 @@ def _save_model(name: str, model: vb.Model, facing: int, anchors: dict, pal: lis
     size = model.size
     cells = model.cells
     rsize, rcells = vs.rotate(size, cells, facing)
-    width, height, image = vs.render(rsize, rcells, pal)
+    px_use = vs.bake_px_for_size(rsize)
+    dscale = vs.display_scale_for_size(rsize)
+    width, height, image = vs.render(rsize, rcells, pal, px=px_use)
+    width, height, image = vs.downscale_nearest(width, height, image, dscale)
     vs.save_png(OUT / f"{name}.png", width, height, image)
     sx, sy, sz = rsize
     anchors[name] = {
-        "ax": sx * vs.PX / 2,
-        "ay": sz * vs.PX + sy * vs.PX / 2,
-        "fw": sx * vs.PX,
-        "fh": sy * vs.PX,
+        "ax": sx * px_use * dscale / 2,
+        "ay": (sz * px_use + sy * px_use / 2) * dscale,
+        "fw": sx * px_use * dscale,
+        "fh": sy * px_use * dscale,
+        "hires": bool(vs.is_hires_size(rsize)),
     }
 
 

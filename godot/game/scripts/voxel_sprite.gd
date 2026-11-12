@@ -220,6 +220,12 @@ static func fit(spr: CanvasItem, target: Vector2) -> void:
 	spr.scale = Vector2(s, s)
 
 
+## Anchor dict for a static sprite key `{id}_{k}` (ax/ay/fw/fh; may include hires).
+static func anchor_info(id: String, k: int = 0) -> Dictionary:
+	var info: Variant = _meta().get(_key(id, k), {})
+	return info if info is Dictionary else {}
+
+
 static func texture(id: String, k: int = 0) -> Texture2D:
 	return load(_DIR + _key(id, k) + ".png")
 

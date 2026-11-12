@@ -36,7 +36,8 @@ func setup(id: String, n: int) -> void:
 	monitoring = false
 	z_index = 2
 	var spr := Vox.sprite("box", 0)
-	spr.scale = Vector2(0.65, 0.65)
+	## Fit dropped box near legacy ~0.65 of 32px (~21px wide).
+	Vox.fit(spr, Vector2(24, 22))
 	var tint: Color = Tuning.SKU_COLOR.get(id, Color.WHITE)
 	spr.modulate = tint.lerp(Color.WHITE, 0.4)
 	add_child(spr)

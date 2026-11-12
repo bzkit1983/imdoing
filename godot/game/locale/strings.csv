@@ -130,6 +130,7 @@ prep.look.locked_skin,此造型尚未解放。,This skin is locked.,此造型尚
 skin.player,標準,Standard,标准,スタンダード
 skin.player_alt1,外星人,Alien,外星人,エイリアン
 skin.player_alt2,維京人,Viking,维京人,バイキング
+skin.player_alt3,學生,Schoolboy,学生,学生
 prep.confirm.host_look,店主外觀：%s　色調 %d,Host look: %s · tint %d,店主外观：%s　色调 %d,店主の外見：%s　色調 %d
 prep.confirm.guest_look,訪客外觀：%s　色調 %d,Guest look: %s · tint %d,访客外观：%s　色调 %d,ゲストの外見：%s　色調 %d
 prep.stats.title,角色能力,Stats,角色能力,キャラ能力

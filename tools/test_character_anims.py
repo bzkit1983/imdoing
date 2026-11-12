@@ -20,6 +20,7 @@ REQUIRED = {
     "player": _PLAYER_ANIMS,
     "player_alt1": _PLAYER_ANIMS,
     "player_alt2": _PLAYER_ANIMS,
+    "player_alt3": _PLAYER_ANIMS,
     "customer": ["idle", "walk", "angry", "leave"],
     "customer_hurry": ["idle", "walk", "angry", "leave"],
     "customer_slow": ["idle", "walk", "angry", "leave"],

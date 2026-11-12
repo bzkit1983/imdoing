@@ -92,6 +92,8 @@ class Model:
 
 def person(shirt, shirt_dark, hair, hood=False, mask=False, badge=False, bag=False):
     """Shared 12 x 10 x 20 body. Feet on z=0, face toward +Y."""
+    # Legacy scaffold size. Hires character envelope is 90×40×130 (player_alt3);
+    # do not overwrite designer art/src with this script — see voxel-hires-scale-plan.md.
     m = Model(12, 10, 20)
     m.fill(3, 4, 0, 5, 6, 0, "shoe")
     m.fill(7, 4, 0, 9, 6, 0, "shoe")

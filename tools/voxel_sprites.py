@@ -2,7 +2,13 @@
 """Bake MagicaVoxel .vox files into gameplay sprites for the living line.
 
 Reads godot/game/art/src/*.vox and writes godot/game/art/sprites.
-Does not modify the .vox sources. 4 px = 1 voxel, so 16 voxels match one 64 px shop tile.
+Does not modify the .vox sources.
+
+Legacy low-res: PX=4 so 16 voxels → 64 px shop tile.
+Hi-res (docs/alpha/voxel-hires-scale-plan.md): PX_bake=1 then nearest
+DISPLAY_SCALE=0.5 so 128 voxels → 64 px display; char ~90 wide → ~45 px.
+
+Auto: model with max(sx,sy,sz) >= HIRES_DIM_MIN uses hi-res path; else legacy.
 
 Facing (characters, 16-way): 0 south … 15 SSW (22.5° steps).
 Facing (furniture, 4-way): 0 south, 1 east, 2 north, 3 west — same as legacy.
@@ -26,7 +32,18 @@ ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "godot" / "game" / "art" / "src"
 OUT = ROOT / "godot" / "game" / "art" / "sprites"
 PREVIEW = ROOT / "godot" / "game" / "art" / "preview"
+
+## Legacy path (12×10×20 chars, tile 16).
 PX = 4
+TILE_VOXELS_LEGACY = 16
+## Hi-res path (90×40×130 chars, tile 128). Cartoon runs at bake res before downscale.
+PX_HIRES = 1
+DISPLAY_SCALE_HIRES = 0.5
+TILE_VOXELS_HIRES = 128
+## After ×8 upsample, SKUs are often 64³ — treat ≥64 as hi-res.
+HIRES_DIM_MIN = 64
+## Reference character envelope (player_alt3).
+HIRES_CHAR_SIZE = (90, 40, 130)
 
 ## Face light scales + posterize / outline (docs/alpha/voxel-cartoon-shading.md).
 SHADING_CLASSIC = {
@@ -63,11 +80,43 @@ def bake_id_filter() -> set[str] | None:
         return None
     return {part.strip() for part in raw.split(",") if part.strip()}
 
+
+def is_hires_size(size) -> bool:
+    sx, sy, sz = size
+    return max(int(sx), int(sy), int(sz)) >= HIRES_DIM_MIN
+
+
+def bake_px_for_size(size) -> int:
+    return PX_HIRES if is_hires_size(size) else PX
+
+
+def display_scale_for_size(size) -> float:
+    return DISPLAY_SCALE_HIRES if is_hires_size(size) else 1.0
+
+
+def downscale_nearest(
+    width: int, height: int, image: list[tuple[int, int, int, int]], scale: float
+) -> tuple[int, int, list[tuple[int, int, int, int]]]:
+    if scale >= 0.999:
+        return width, height, image
+    nw = max(1, int(round(width * scale)))
+    nh = max(1, int(round(height * scale)))
+    out: list[tuple[int, int, int, int]] = []
+    for y in range(nh):
+        sy = min(height - 1, int(y / scale))
+        row = sy * width
+        for x in range(nw):
+            sx = min(width - 1, int(x / scale))
+            out.append(image[row + sx])
+    return nw, nh, out
+
+
 # Characters: 16 yaw steps. Furniture / props: still 4 cardinals.
 CHAR_WAY = {
     "player",
     "player_alt1",
     "player_alt2",
+    "player_alt3",
     "customer",
     "thief",
     "clerk_cashier",
@@ -235,17 +284,18 @@ def _apply_silhouette_outline(
     return out
 
 
-def render(size, cells, palette, shading: dict | None = None):
+def render(size, cells, palette, shading: dict | None = None, px: int | None = None):
     params = shading if shading is not None else shading_params()
     top_s = float(params["top"])
     front_s = float(params["front"])
     side_s = float(params["side"])
     buckets = int(params.get("posterize", 0))
     do_outline = bool(params.get("outline", False))
+    px_use = int(px) if px is not None else bake_px_for_size(size)
 
     sx, sy, sz = size
-    width = sx * PX
-    height = sy * PX + sz * PX
+    width = sx * px_use
+    height = sy * px_use + sz * px_use
     image = [(0, 0, 0, 0)] * (width * height)
 
     def shade(index, scale):
@@ -267,20 +317,29 @@ def render(size, cells, palette, shading: dict | None = None):
             for x in range(x0, x0 + w):
                 put(x, y, color)
 
+    side_w = max(1, px_use // 3)
     order = sorted(cells.items(), key=lambda item: (item[0][1], item[0][0], item[0][2]))
     for (x, y, z), index in order:
-        gx = x * PX
-        gy = sz * PX + y * PX
+        gx = x * px_use
+        gy = sz * px_use + y * px_use
         if (x, y, z + 1) not in cells:
-            rect(gx, gy - (z + 1) * PX, PX, PX, shade(index, top_s))
+            rect(gx, gy - (z + 1) * px_use, px_use, px_use, shade(index, top_s))
         if (x, y + 1, z) not in cells:
-            rect(gx, gy - z * PX, PX, PX, shade(index, front_s))
+            rect(gx, gy - z * px_use, px_use, px_use, shade(index, front_s))
         if (x + 1, y, z) not in cells:
-            rect(gx + PX - max(1, PX // 3), gy - (z + 1) * PX, max(1, PX // 3), PX, shade(index, side_s))
+            rect(gx + px_use - side_w, gy - (z + 1) * px_use, side_w, px_use, shade(index, side_s))
 
     if do_outline:
         image = _apply_silhouette_outline(width, height, image, OUTLINE_RGBA)
     return width, height, image
+
+
+def render_display(size, cells, palette, shading: dict | None = None):
+    """Bake at native px then nearest-downscale hi-res to display pixels."""
+    px_use = bake_px_for_size(size)
+    scale = display_scale_for_size(size)
+    width, height, image = render(size, cells, palette, shading, px=px_use)
+    return downscale_nearest(width, height, image, scale)
 
 
 def save_png(path, width, height, image):
@@ -318,12 +377,18 @@ def main():
     if not isinstance(anchors, dict):
         anchors = {}
     anchors["px"] = PX
-    anchors["tile_px"] = 16 * PX
+    anchors["tile_px"] = TILE_VOXELS_LEGACY * PX
+    anchors["px_hires"] = PX_HIRES
+    anchors["display_scale_hires"] = DISPLAY_SCALE_HIRES
+    anchors["tile_voxels_hires"] = TILE_VOXELS_HIRES
+    anchors["tile_px_hires"] = int(TILE_VOXELS_HIRES * PX_HIRES * DISPLAY_SCALE_HIRES)
     baked = 0
     for path in sorted(SRC.glob("*.vox")):
         if id_filter is not None and path.stem not in id_filter:
             continue
         size, cells, palette = read_vox(path)
+        px_use = bake_px_for_size(size)
+        dscale = display_scale_for_size(size)
         if path.stem in CHAR_WAY:
             facings = 16
         elif path.stem in FOUR_WAY:
@@ -332,20 +397,26 @@ def main():
             facings = 1
         for k in range(facings):
             rsize, rcells = rotate_facing(size, cells, k, facings)
-            width, height, image = render(rsize, rcells, palette, params)
+            width, height, image = render(rsize, rcells, palette, params, px=px_use)
+            width, height, image = downscale_nearest(width, height, image, dscale)
             name = f"{path.stem}_{k}"
             save_png(OUT / f"{name}.png", width, height, image)
             sx, sy, sz = rsize
             anchors[name] = {
-                "ax": sx * PX / 2,
-                "ay": sz * PX + sy * PX / 2,
-                "fw": sx * PX,
-                "fh": sy * PX,
+                "ax": sx * px_use * dscale / 2,
+                "ay": (sz * px_use + sy * px_use / 2) * dscale,
+                "fw": sx * px_use * dscale,
+                "fh": sy * px_use * dscale,
+                "hires": bool(is_hires_size(size)),
             }
         baked += 1
-        print(path.stem, "x".join(str(n) for n in size), f"facings={facings}")
+        print(
+            path.stem,
+            "x".join(str(n) for n in size),
+            f"facings={facings} px={px_use} scale={dscale}",
+        )
     anchors_path.write_text(json.dumps(anchors, indent=2) + "\n", encoding="utf-8")
-    print(f"sprites baked={baked} anchors_keys={len(anchors) - 2}")
+    print(f"sprites baked={baked} anchors_keys={len(anchors) - 6}")
 
 
 if __name__ == "__main__":

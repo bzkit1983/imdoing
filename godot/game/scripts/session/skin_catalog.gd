@@ -8,6 +8,7 @@ const ENTRIES: Array[Dictionary] = [
 	{"id": "player", "name_key": "skin.player"},
 	{"id": "player_alt1", "name_key": "skin.player_alt1"},
 	{"id": "player_alt2", "name_key": "skin.player_alt2"},
+	{"id": "player_alt3", "name_key": "skin.player_alt3"},
 ]
 
 
@@ -42,6 +43,8 @@ static func id_fallback_label(skin_id: String) -> String:
 			return Loc.t("skin.player_alt1")
 		"player_alt2":
 			return Loc.t("skin.player_alt2")
+		"player_alt3":
+			return Loc.t("skin.player_alt3")
 		"player", "":
 			return Loc.t("skin.player")
 		_:

@@ -61,12 +61,13 @@ FACING_NAMES = [
 # Character kits: shirt, shirt_dark, hair, extras
 # customer_hurry / customer_slow = Alpha pace variants (not full recolors of one mesh).
 ## Player skins share the same anim kit; appearance comes from art/src/{id}.vox.
-PLAYER_IDS = ["player", "player_alt1", "player_alt2"]
+PLAYER_IDS = ["player", "player_alt1", "player_alt2", "player_alt3"]
 
 CHARS = {
     "player": dict(shirt="player", shirt_dark="player_dark", hair="hair"),
     "player_alt1": dict(shirt="player", shirt_dark="player_dark", hair="hair"),
     "player_alt2": dict(shirt="player", shirt_dark="player_dark", hair="hair"),
+    "player_alt3": dict(shirt="player", shirt_dark="player_dark", hair="hair"),
     "customer": dict(shirt="customer", shirt_dark="customer_dark", hair="hair_brown", bag=True),
     "customer_hurry": dict(shirt="soda", shirt_dark="thief", hair="hair", bag=True),
     "customer_slow": dict(shirt="clerk", shirt_dark="clerk_dark", hair="hair_brown", bag=True),
@@ -300,45 +301,58 @@ def _write_mv_frames(
 
 
 def _apply_pose_to_vox(size, cells: dict, pose: dict | None):
-    """Shift designer voxels by shared limb regions (12×10×20 person layout).
+    """Shift designer voxels by limb regions scaled from 12×10×20 → model size.
 
-    Regions (MagicaVoxel: X right, Y forward, Z up):
+    Base layout (MagicaVoxel: X right, Y forward, Z up) on 12×10×20:
       leg L x3-5 z0-6 · leg R x7-9 z0-6
       arm L x0-1 z7-11 · arm R x10-11 z7-11
       torso/head: lean (+Y) and bob (+Z)
+    Hi-res (e.g. 90×40×130 / player_alt3): offsets × sx/12, regions × same.
     """
     pose = pose or {}
-    leg_l_y = int(pose.get("leg_l_y", 0))
-    leg_r_y = int(pose.get("leg_r_y", 0))
-    arm_l_y = int(pose.get("arm_l_y", 0))
-    arm_r_y = int(pose.get("arm_r_y", 0))
-    arm_l_z = int(pose.get("arm_l_z", 0))
-    arm_r_z = int(pose.get("arm_r_z", 0))
-    lean = int(pose.get("lean", 0))
-    bob = int(pose.get("bob", 0))
+    sx, sy, sz = size
+    # Scale pose amplitudes and region bounds to the model grid.
+    rx = max(sx / 12.0, 1.0)
+    rz = max(sz / 20.0, 1.0)
+    leg_l_y = int(round(int(pose.get("leg_l_y", 0)) * rx))
+    leg_r_y = int(round(int(pose.get("leg_r_y", 0)) * rx))
+    arm_l_y = int(round(int(pose.get("arm_l_y", 0)) * rx))
+    arm_r_y = int(round(int(pose.get("arm_r_y", 0)) * rx))
+    arm_l_z = int(round(int(pose.get("arm_l_z", 0)) * rz))
+    arm_r_z = int(round(int(pose.get("arm_r_z", 0)) * rz))
+    lean = int(round(int(pose.get("lean", 0)) * rx))
+    bob = int(round(int(pose.get("bob", 0)) * rz))
     if not any((leg_l_y, leg_r_y, arm_l_y, arm_r_y, arm_l_z, arm_r_z, lean, bob)):
         return size, cells
 
-    sx, sy, sz = size
     out_sy = sy + abs(lean) + 2
     out_sz = sz + max(0, bob) + max(0, max(arm_l_z, arm_r_z))
     moved: dict = {}
+
+    leg_z_max = max(1, int(round(6 * rz)))
+    arm_z0 = int(round(7 * rz))
+    arm_z1 = int(round(11 * rz))
+    leg_l0, leg_l1 = int(round(3 * rx)), int(round(5 * rx))
+    leg_r0, leg_r1 = int(round(7 * rx)), int(round(9 * rx))
+    arm_l_xmax = int(round(1 * rx))
+    arm_r_xmin = int(round(10 * rx))
+    torso_z_min = arm_z0
 
     def put(x: int, y: int, z: int, index: int) -> None:
         if 0 <= x < sx and 0 <= y < out_sy and 0 <= z < out_sz:
             moved[(x, y, z)] = index
 
     for (x, y, z), index in cells.items():
-        dy = lean if lean > 0 and z >= 7 else (lean if lean < 0 and z >= 7 else 0)
+        dy = lean if lean != 0 and z >= torso_z_min else 0
         dz = bob
-        if 3 <= x <= 5 and z <= 6:
+        if leg_l0 <= x <= leg_l1 and z <= leg_z_max:
             dy += leg_l_y
-        elif 7 <= x <= 9 and z <= 6:
+        elif leg_r0 <= x <= leg_r1 and z <= leg_z_max:
             dy += leg_r_y
-        elif x <= 1 and 7 <= z <= 11:
+        elif x <= arm_l_xmax and arm_z0 <= z <= arm_z1:
             dy += arm_l_y
             dz += arm_l_z
-        elif x >= 10 and 7 <= z <= 11:
+        elif x >= arm_r_xmin and arm_z0 <= z <= arm_z1:
             dy += arm_r_y
             dz += arm_r_z
         put(x, y + dy, z + dz, index)
@@ -447,14 +461,18 @@ def _palette_list():
 
 
 def _write_frame(anchors: dict, name: str, size, cells, palette) -> None:
-    width, height, image = vs.render(size, cells, palette)
+    px_use = vs.bake_px_for_size(size)
+    dscale = vs.display_scale_for_size(size)
+    width, height, image = vs.render(size, cells, palette, px=px_use)
+    width, height, image = vs.downscale_nearest(width, height, image, dscale)
     vs.save_png(OUT / f"{name}.png", width, height, image)
     sx, sy, sz = size
     anchors[name] = {
-        "ax": sx * vs.PX / 2,
-        "ay": sz * vs.PX + sy * vs.PX / 2,
-        "fw": sx * vs.PX,
-        "fh": sy * vs.PX,
+        "ax": sx * px_use * dscale / 2,
+        "ay": (sz * px_use + sy * px_use / 2) * dscale,
+        "fw": sx * px_use * dscale,
+        "fh": sy * px_use * dscale,
+        "hires": bool(vs.is_hires_size(size)),
     }
 
 

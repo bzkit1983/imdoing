@@ -2281,7 +2281,8 @@ func _refresh_look_preview(skin_id: String) -> void:
 	if not Vox.has_anim(sid, "idle"):
 		return
 	_look_preview_spr = Vox.animated(sid)
-	_look_preview_spr.scale = Vector2(2.0, 2.0)
+	## Target ~120×160 preview box so hi-res (display ~45×85) and legacy both read.
+	Vox.fit(_look_preview_spr, Vector2(120, 160))
 	_look_preview_spr.modulate = tint_col
 	Vox.play_anim(_look_preview_spr, sid, "idle", Vector2(0, 1))
 	_look_preview_root.add_child(_look_preview_spr)

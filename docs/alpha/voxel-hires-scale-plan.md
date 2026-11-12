@@ -41,6 +41,19 @@ flowchart LR
 
 軸向不變：X 右、Y 前、Z 上；腳底 z=0；角色臉 +Y。
 
+## 角色標準（美術基準）
+
+| 項目 | 決定 |
+| --- | --- |
+| 基準模型 id | **`player_alt3`**（`godot/game/art/src/player_alt3.vox`） |
+| 包絡 | **90 × 40 × 130**（已對齊） |
+| 姿勢 | **A-pose**（手臂約 45° 下展；肢體不黏軀幹） |
+| 腳／朝向 | z=0；臉 +Y |
+| Look 皮膚 | 新增造型，**暫不**替換預設 `player`（待刀 1 樣張驗收） |
+| T-pose 備份 | `tools/vox_backups/player_alt3_tpose.vox`；重跑 A-pose：`tools/repose_player_alt3_a_pose.py` |
+
+後續玩家／NPC 高解稿須對齊此外框與 A-pose 習慣；程序肢體姿對高解改為按 `sx/90`（或停用改 Magica 幀包）。
+
 ## Bake／顯示策略（選定）
 
 1. **世界：** 繼續 `CELL=64`；`tile_voxels=128`。  
@@ -92,12 +105,12 @@ flowchart LR
 
 | 刀 | 內容 | 驗收 |
 | --- | --- | --- |
-| **0** | 本文件＋凍結合約寫入 `voxel-v0.1.md` 草案段 | 團隊同意 T=128、DISPLAY_SCALE |
-| **1** | Bake：`tile_voxels`、PX／downscale、anchors；用 **1 角色 + 1 貨架 + 1 地板** 樣張 | 格仍 64；角色寬≈舊；fit 貨架不爆格 |
-| **2** | 肢體姿比例化或改幀包優先；`test_character_anims` | walk／idle 不裂肢 |
-| **3** | Runtime：`voxel_sprite` scale、`floor_tiles`、box／Look | 店內走一圈無飄地板／巨箱 |
-| **4** | 美術全庫換稿（或工具升採樣占位）＋全量 rebake＋import | 合約測試綠 |
-| **5** | 文件與 cartoon「4px／voxel」敘述更新；偏移微調 | 簽核樣張 |
+| **0** | 本文件＋凍結合約寫入 `voxel-v0.1.md` 草案段；標準 id=`player_alt3` | 團隊同意 T=128、DISPLAY_SCALE | **已交** |
+| **1** | Bake：`tile_voxels`、PX／downscale、anchors；用 **1 角色 + 1 貨架 + 1 地板** 樣張 | 格仍 64；角色寬≈舊；fit 貨架不爆格 | **已交**（`player_alt3` 顯示寬 45） |
+| **2** | 肢體姿比例化或改幀包優先；`test_character_anims` | walk／idle 不裂肢 | **已交**（`sx/12` 比例；含 `player_alt3`） |
+| **3** | Runtime：`voxel_sprite` scale、`floor_tiles`、box／Look | 店內走一圈無飄地板／巨箱 | **已交**（anchors／fit） |
+| **4** | 美術全庫換稿（或工具升採樣占位）＋全量 rebake＋import | 合約測試綠 | **已交占位**（`voxel_upsample_hires.py`＋全量 rebake）；設計師精修仍待 |
+| **5** | 文件與 cartoon「4px／voxel」敘述更新；偏移微調 | 簽核樣張 | **文件已交**；店內目視微調可續 |
 
 ## 風險
 
