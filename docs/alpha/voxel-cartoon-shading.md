@@ -2,7 +2,7 @@
 
 - **狀態：** 刀 0–3 已交（預設 cartoon 全庫已重烘；執行期 Canvas 描邊預設關）；刀 4 待做
 - **活線：** `godot/game`
-- **對照：** [`voxel-v0.1.md`](voxel-v0.1.md)、[`voxel-3d-play-deferred.md`](voxel-3d-play-deferred.md)、[`animation-v1.0.md`](animation-v1.0.md)
+- **對照：** [`voxel-v0.1.md`](voxel-v0.1.md)、[`voxel-hires-scale-plan.md`](voxel-hires-scale-plan.md)、[`voxel-3d-play-deferred.md`](voxel-3d-play-deferred.md)、[`animation-v1.0.md`](animation-v1.0.md)
 
 ## 產品邊界（勿誤解）
 

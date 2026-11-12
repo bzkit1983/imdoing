@@ -11,6 +11,7 @@
 - 已落地項對照：`docs/alpha/implementation-status.md`
 - 主機商務／Godot 釘版：`docs/alpha/console-business.md`、`docs/alpha/godot-middleware-pin.md`
 - 字串表／字型／匯出：`docs/alpha/i18n.md`、`docs/alpha/fonts-subset.md`、`docs/alpha/export-presets.md`
+- Voxel 高解析升模（人物包絡 **90×40×130**，舊 100×40×130 已廢；畫面格不變）：`docs/alpha/voxel-hires-scale-plan.md`
 
 # 版本目標
 
@@ -293,9 +294,10 @@ flowchart LR
 
 - 源檔：`art/src/player.vox` 這類
 - 圖：透明背景 PNG。檔名等於動畫名加格號，例如 `art/player/walk_s_01.png`
-- 角色大約 16 voxel 高，輸出大約 32×40 像素
+- 角色大約 16 voxel 高，輸出大約 32×40 像素（歷史 Alpha 插座數；現行初模為 12×10×20，見 `voxel-v0.1.md`）
 - 傢俬對齊 20px 格的倍數
 - 覆蓋同名 PNG 就換上，不用改腳本
+- **高解析升級（計劃）：** 人物 Magica 包絡基準 **90 × 40 × 130**（舊 100×40×130 作廢）；`CELL`／身位凍結，bake display 縮放見 `docs/alpha/voxel-hires-scale-plan.md`
 
 ## 接線順序
 

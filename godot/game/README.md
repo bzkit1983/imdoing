@@ -15,4 +15,5 @@ v1.0 起唯一維護的 Godot 專案。從凍結的 `godot/alpha_v0_1` 複製一
 **活線試玩：** https://bzkit1983.github.io/imdoing/play/  
 Alpha v0.1 試玩（不動）：https://bzkit1983.github.io/imdoing/play-alpha-v01/
 
-**角色動畫：** `python3 tools/voxel_character_anims.py` → `art/sprites/*_{anim}_{facing}_{frame}.png`（說明：`docs/alpha/animation-v1.0.md`；待辦：`docs/alpha/animation-pending.md`）
+**角色動畫：** `python3 tools/voxel_character_anims.py` → `art/sprites/*_{anim}_{facing}_{frame}.png`（說明：`docs/alpha/animation-v1.0.md`；待辦：`docs/alpha/animation-pending.md`）  
+**高解析升模（計劃）：** 人物包絡 **90×40×130**（舊 100×40×130 已廢；畫面格不變）；見 `docs/alpha/voxel-hires-scale-plan.md`。現行店內仍是低解析 12×10×20。

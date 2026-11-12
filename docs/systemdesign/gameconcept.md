@@ -8,7 +8,7 @@
 - 施放不同技能協助完成任務
 - 角色育成成長增強能力, 學習新技能
 - 擴建便利店規模
-- 美術風格使用Voxel Art。Alpha V0.1 先把人物和物件做成 3D Voxel 初模，規範在 `docs/alpha/voxel-v0.1.md`
+- 美術風格使用Voxel Art。Alpha V0.1 先把人物和物件做成 3D Voxel 初模，規範在 `docs/alpha/voxel-v0.1.md`。活線高解析升模（人物包絡 **90×40×130**，畫面尺寸不變）見 `docs/alpha/voxel-hires-scale-plan.md`
 
 #三層遊戲循環機制
 1. 劇情和事件發生

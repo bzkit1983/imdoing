@@ -2,7 +2,7 @@
   "version": "alpha-v0.1",
   "voxel_meters": 0.1,
   "tile_voxels": 16,
-  "axis": "MagicaVoxel X right, Y forward, Z up. Feet on z=0. Characters face +Y.",
+  "axis": "MagicaVoxel X right, Y forward, Z up. Feet on z=0. Characters face +Y. Living-line low-res characters are 12x10x20; planned hires character envelope is 90x40x130 (see docs/alpha/voxel-hires-scale-plan.md; former 100x40x130 draft dropped).",
   "palette": [
     {
       "index": 1,

@@ -1,7 +1,7 @@
 # 角色十六向面向
 
 - **狀態：** 活線試行（`godot/game`）
-- **對照：** [`animation-v1.0.md`](animation-v1.0.md)、[`animation-pending.md`](animation-pending.md)、[`voxel-3d-play-deferred.md`](voxel-3d-play-deferred.md)
+- **對照：** [`animation-v1.0.md`](animation-v1.0.md)、[`animation-pending.md`](animation-pending.md)、[`voxel-3d-play-deferred.md`](voxel-3d-play-deferred.md)、[`voxel-hires-scale-plan.md`](voxel-hires-scale-plan.md)
 
 ## 決議
 

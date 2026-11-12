@@ -24,6 +24,7 @@
 | Godot ↔ middleware 釘版 | **`docs/alpha/godot-middleware-pin.md`** | 桌面維持 4.7；主機衝刺對齊 W4 表（2026-10-21 最高 4.6）；禁止專案複本 |
 | Alpha／v1 Web → Pages | `docs/versioning.md`；`docs/play/README.md` | `godot/game` Web 匯出到 `docs/play/`；試玩 https://bzkit1983.github.io/imdoing/play/ |
 | 角色四向動作動畫＋pending enrichment | **`docs/alpha/animation-v1.0.md`**；**`docs/alpha/animation-pending.md`** | `voxel_character_anims.py`／`voxel_alpha_props.py`；`Vox.animated`／`play_anim`；`fx_burst`；shelf／dirt／客人 pace |
+| Voxel 高解析升模計劃（人物包絡 90×40×130） | **`docs/alpha/voxel-hires-scale-plan.md`**（舊 100×40×130 已廢）；`voxel-v0.1.md` | 文件先鎖；刀 0 尺寸基準已改；bake／全庫換稿未開工 |
 | Loading Circle 最上層 | **`docs/systemdesign/playeraction.md`**、`replenishmentsystem.md` | `loading_circle.gd` viewport CanvasLayer |
 | 清潔：只顯示藍計，隱藏黃 Circle | **`docs/systemdesign/cleaningsystem.md`**、`playeraction.md` | `player._cleaning` 抑制黃圈；`dirt.StickHint` 抬高 |
 | 掉貨瞄準／放手掉出／5 身位／青軌道 | **`docs/systemdesign/playeraction.md`**、`control.md` | `player.gd` cancel hold；`Tuning.DROP_*`；`drop_flight.gd` |

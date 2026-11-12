@@ -2,7 +2,7 @@
 
 - **狀態：** 產品未拍板前 **不做**
 - **活線：** `godot/game`
-- **對照：** [`voxel-v0.1.md`](voxel-v0.1.md)、[`animation-v1.0.md`](animation-v1.0.md)、[`tech-review-v0.1.md`](tech-review-v0.1.md)、[`voxel-cartoon-shading.md`](voxel-cartoon-shading.md)（活線卡通＝**烘焙精靈**，不是本文件的立體店 Toon）
+- **對照：** [`voxel-v0.1.md`](voxel-v0.1.md)、[`voxel-hires-scale-plan.md`](voxel-hires-scale-plan.md)（高解析包絡 90×40×130／畫面格不變，與本文件解綁）、[`animation-v1.0.md`](animation-v1.0.md)、[`tech-review-v0.1.md`](tech-review-v0.1.md)、[`voxel-cartoon-shading.md`](voxel-cartoon-shading.md)（活線卡通＝**烘焙精靈**，不是本文件的立體店 Toon）
 
 ## 決議
 
