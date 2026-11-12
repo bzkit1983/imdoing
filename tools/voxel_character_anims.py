@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Bake Alpha character action sprites (pose × facing × frame).
 
+Shading follows voxel_sprites.render (VOXEL_SHADING=classic|cartoon, default cartoon).
 Does NOT overwrite designer .vox in art/src/.
 
 When `art/src/{id}.vox` exists, that MagicaVoxel model is the appearance source:

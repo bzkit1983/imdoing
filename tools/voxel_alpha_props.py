@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Bake Alpha enrichment props: shelf fill levels, dirt clean fades, event FX.
 
+Shading follows voxel_sprites.render (VOXEL_SHADING=classic|cartoon, default cartoon).
 Alpha presentation only — designers replace with MagicaVoxel art later.
 Does not overwrite art/src/*.vox.
 

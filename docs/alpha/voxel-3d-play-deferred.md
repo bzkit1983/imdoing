@@ -2,7 +2,7 @@
 
 - **狀態：** 產品未拍板前 **不做**
 - **活線：** `godot/game`
-- **對照：** [`voxel-v0.1.md`](voxel-v0.1.md)、[`animation-v1.0.md`](animation-v1.0.md)、[`tech-review-v0.1.md`](tech-review-v0.1.md)
+- **對照：** [`voxel-v0.1.md`](voxel-v0.1.md)、[`animation-v1.0.md`](animation-v1.0.md)、[`tech-review-v0.1.md`](tech-review-v0.1.md)、[`voxel-cartoon-shading.md`](voxel-cartoon-shading.md)（活線卡通＝**烘焙精靈**，不是本文件的立體店 Toon）
 
 ## 決議
 
@@ -39,3 +39,4 @@ Alpha V0.1 已寫明「不做 3D 鏡頭遊玩」。本文件把該凍結升成�
 - 執行期每隻角色 `vox_mesh.load_mesh`
 - 把 Skeleton3D 嵌進現有 `demo`／`player` 2D loop
 - 為 3D 動畫再開一份 Godot 專案複本
+- 把「Cartoon Shading」當成必須先做立體店／執行期 mesh toon（卡通活線見 [`voxel-cartoon-shading.md`](voxel-cartoon-shading.md)）

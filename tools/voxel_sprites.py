@@ -7,6 +7,9 @@ Does not modify the .vox sources. 4 px = 1 voxel, so 16 voxels match one 64 px s
 Facing (characters, 16-way): 0 south … 15 SSW (22.5° steps).
 Facing (furniture, 4-way): 0 south, 1 east, 2 north, 3 west — same as legacy.
 
+Shading: VOXEL_SHADING=classic|cartoon (default cartoon). See docs/alpha/voxel-cartoon-shading.md.
+Filter ids: VOXEL_BAKE_IDS=player,shelf_dry (comma-separated; empty = all).
+
 Frozen Alpha art stays in godot/alpha_v0_1/art/ — do not point this tool there.
 """
 
@@ -14,6 +17,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import struct
 import zlib
 from pathlib import Path
@@ -21,7 +25,43 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "godot" / "game" / "art" / "src"
 OUT = ROOT / "godot" / "game" / "art" / "sprites"
+PREVIEW = ROOT / "godot" / "game" / "art" / "preview"
 PX = 4
+
+## Face light scales + posterize / outline (docs/alpha/voxel-cartoon-shading.md).
+SHADING_CLASSIC = {
+    "top": 1.08,
+    "front": 0.78,
+    "side": 0.62,
+    "posterize": 0,
+    "outline": False,
+}
+SHADING_CARTOON = {
+    "top": 1.15,
+    "front": 0.72,
+    "side": 0.52,
+    "posterize": 4,
+    "outline": True,
+}
+OUTLINE_RGBA = (26, 26, 26, 255)
+
+
+def shading_mode() -> str:
+    raw = os.environ.get("VOXEL_SHADING", "cartoon").strip().lower()
+    if raw in ("classic", "cartoon"):
+        return raw
+    return "cartoon"
+
+
+def shading_params() -> dict:
+    return SHADING_CLASSIC if shading_mode() == "classic" else SHADING_CARTOON
+
+
+def bake_id_filter() -> set[str] | None:
+    raw = os.environ.get("VOXEL_BAKE_IDS", "").strip()
+    if not raw:
+        return None
+    return {part.strip() for part in raw.split(",") if part.strip()}
 
 # Characters: 16 yaw steps. Furniture / props: still 4 cardinals.
 CHAR_WAY = {
@@ -154,7 +194,55 @@ def rotate_facing(size, cells, facing: int, facings: int = 16):
     return rotate_yaw_degrees(rsize, rcells, rem)
 
 
-def render(size, cells, palette):
+def _posterize_channel(value: int, buckets: int) -> int:
+    if buckets <= 1:
+        return value
+    # Map 0–255 into `buckets` even steps (e.g. 4 → 0,85,170,255).
+    step = 255 / (buckets - 1)
+    return max(0, min(255, int(round(round(value / step) * step))))
+
+
+def _posterize_rgba(color: tuple[int, int, int, int], buckets: int) -> tuple[int, int, int, int]:
+    if buckets <= 0 or color[3] == 0:
+        return color
+    return (
+        _posterize_channel(color[0], buckets),
+        _posterize_channel(color[1], buckets),
+        _posterize_channel(color[2], buckets),
+        color[3],
+    )
+
+
+def _apply_silhouette_outline(
+    width: int, height: int, image: list[tuple[int, int, int, int]], ink: tuple[int, int, int, int]
+) -> list[tuple[int, int, int, int]]:
+    """1px outline on transparent pixels that touch an opaque neighbor (4-connected)."""
+    out = list(image)
+    opaque = [pix[3] > 0 for pix in image]
+    for y in range(height):
+        for x in range(width):
+            i = y * width + x
+            if opaque[i]:
+                continue
+            edge = False
+            for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < width and 0 <= ny < height and opaque[ny * width + nx]:
+                    edge = True
+                    break
+            if edge:
+                out[i] = ink
+    return out
+
+
+def render(size, cells, palette, shading: dict | None = None):
+    params = shading if shading is not None else shading_params()
+    top_s = float(params["top"])
+    front_s = float(params["front"])
+    side_s = float(params["side"])
+    buckets = int(params.get("posterize", 0))
+    do_outline = bool(params.get("outline", False))
+
     sx, sy, sz = size
     width = sx * PX
     height = sy * PX + sz * PX
@@ -162,7 +250,13 @@ def render(size, cells, palette):
 
     def shade(index, scale):
         r, g, b = palette[index - 1]
-        return (max(0, min(255, int(r * scale))), max(0, min(255, int(g * scale))), max(0, min(255, int(b * scale))), 255)
+        color = (
+            max(0, min(255, int(r * scale))),
+            max(0, min(255, int(g * scale))),
+            max(0, min(255, int(b * scale))),
+            255,
+        )
+        return _posterize_rgba(color, buckets)
 
     def put(x, y, color):
         if 0 <= x < width and 0 <= y < height and color[3]:
@@ -178,11 +272,14 @@ def render(size, cells, palette):
         gx = x * PX
         gy = sz * PX + y * PX
         if (x, y, z + 1) not in cells:
-            rect(gx, gy - (z + 1) * PX, PX, PX, shade(index, 1.08))
+            rect(gx, gy - (z + 1) * PX, PX, PX, shade(index, top_s))
         if (x, y + 1, z) not in cells:
-            rect(gx, gy - z * PX, PX, PX, shade(index, 0.78))
+            rect(gx, gy - z * PX, PX, PX, shade(index, front_s))
         if (x + 1, y, z) not in cells:
-            rect(gx + PX - max(1, PX // 3), gy - (z + 1) * PX, max(1, PX // 3), PX, shade(index, 0.62))
+            rect(gx + PX - max(1, PX // 3), gy - (z + 1) * PX, max(1, PX // 3), PX, shade(index, side_s))
+
+    if do_outline:
+        image = _apply_silhouette_outline(width, height, image, OUTLINE_RGBA)
     return width, height, image
 
 
@@ -203,6 +300,12 @@ def save_png(path, width, height, image):
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
+    mode = shading_mode()
+    params = shading_params()
+    id_filter = bake_id_filter()
+    print(f"shading={mode} posterize={params.get('posterize', 0)} outline={params.get('outline', False)}")
+    if id_filter:
+        print(f"filter={','.join(sorted(id_filter))}")
     ## Merge — do not wipe shelf fill / dirt clean / fx keys from voxel_alpha_props.
     anchors_path = OUT / "anchors.json"
     if anchors_path.exists():
@@ -216,7 +319,10 @@ def main():
         anchors = {}
     anchors["px"] = PX
     anchors["tile_px"] = 16 * PX
+    baked = 0
     for path in sorted(SRC.glob("*.vox")):
+        if id_filter is not None and path.stem not in id_filter:
+            continue
         size, cells, palette = read_vox(path)
         if path.stem in CHAR_WAY:
             facings = 16
@@ -226,7 +332,7 @@ def main():
             facings = 1
         for k in range(facings):
             rsize, rcells = rotate_facing(size, cells, k, facings)
-            width, height, image = render(rsize, rcells, palette)
+            width, height, image = render(rsize, rcells, palette, params)
             name = f"{path.stem}_{k}"
             save_png(OUT / f"{name}.png", width, height, image)
             sx, sy, sz = rsize
@@ -236,9 +342,10 @@ def main():
                 "fw": sx * PX,
                 "fh": sy * PX,
             }
+        baked += 1
         print(path.stem, "x".join(str(n) for n in size), f"facings={facings}")
     anchors_path.write_text(json.dumps(anchors, indent=2) + "\n", encoding="utf-8")
-    print(f"sprites {len(anchors) - 2}")
+    print(f"sprites baked={baked} anchors_keys={len(anchors) - 2}")
 
 
 if __name__ == "__main__":

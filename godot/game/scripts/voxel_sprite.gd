@@ -3,9 +3,12 @@ extends RefCounted
 ## Character facing (16-way): 0 S … 15 SSW (22.5°). Manifest facings drives count.
 ## Furniture / static 4-way still uses 0 S, 1 E, 2 N, 3 W via k_from_facing(..., 4).
 ## Anim frames: {id}_{anim}_{facing}_{frame}.png — see art/sprites/anim_manifest.json.
+## Optional runtime canvas outline (shaders/sprite_outline.gdshader) is OFF by default —
+## bake ink is the live look; enable only for QA／加粗描邊.
 
 const _DIR := "res://art/sprites/"
 const _MANIFEST := "res://art/sprites/anim_manifest.json"
+const _OUTLINE_SHADER_PATH := "res://shaders/sprite_outline.gdshader"
 const FACING_FADE_SEC := 0.09
 ## Stick noise near 8-way sector edges: stay on prev until ~20% into the neighbor.
 const FACING_HYSTERESIS := 0.20
@@ -13,6 +16,10 @@ const FACING_HYSTERESIS := 0.20
 static var _anchors: Dictionary = {}
 static var _manifest: Dictionary = {}
 static var _frames_cache: Dictionary = {} ## char_id -> SpriteFrames
+## Runtime canvas outline thicken — default false (bake silhouette is enough).
+static var canvas_outline_enabled: bool = false
+static var _outline_mat: ShaderMaterial = null
+static var _outline_env_read: bool = false
 
 
 static func facing_count() -> int:
@@ -88,11 +95,37 @@ static func k_from_facing_stable(v: Vector2, prev: int, facings: int = -1) -> in
 	return raw
 
 
+static func is_canvas_outline_enabled() -> bool:
+	_read_outline_env_once()
+	return canvas_outline_enabled
+
+
+## QA／美術：執行期加粗描邊。預設關；開啟後新建 Vox.sprite／animated 會掛 shader。
+## 已存在的精靈需再呼叫 apply_canvas_outline(spr)。
+static func set_canvas_outline_enabled(on: bool) -> void:
+	_read_outline_env_once()
+	canvas_outline_enabled = on
+
+
+## Attach or clear outline material. `force`: -1＝跟全域開關，0＝關，1＝開。
+static func apply_canvas_outline(spr: CanvasItem, force: int = -1) -> void:
+	if spr == null:
+		return
+	_read_outline_env_once()
+	var on := canvas_outline_enabled if force < 0 else (force == 1)
+	if not on:
+		if _is_outline_material(spr.material):
+			spr.material = null
+		return
+	spr.material = _outline_material()
+
+
 static func sprite(id: String, k: int = 0) -> Sprite2D:
 	var spr := Sprite2D.new()
 	spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	spr.centered = false
 	apply(spr, id, k)
+	apply_canvas_outline(spr)
 	return spr
 
 
@@ -106,6 +139,7 @@ static func animated(id: String) -> AnimatedSprite2D:
 	_apply_anchor(spr, id, "idle", 0, 0)
 	spr.set_meta("vox_anim_facing", 0)
 	spr.set_meta("vox_anim_name", "idle")
+	apply_canvas_outline(spr)
 	spr.play()
 	return spr
 
@@ -342,6 +376,31 @@ static func _apply_anchor(spr: AnimatedSprite2D, id: String, anim: String, facin
 	spr.set_meta("fw", float(info.get("fw", 64)))
 	spr.set_meta("fh", float(info.get("fh", 64)))
 	spr.set_meta("vox_id", id)
+
+
+static func _read_outline_env_once() -> void:
+	if _outline_env_read:
+		return
+	_outline_env_read = true
+	var raw := OS.get_environment("VOXEL_CANVAS_OUTLINE").strip_edges().to_lower()
+	if raw in ["1", "true", "on", "yes"]:
+		canvas_outline_enabled = true
+
+
+static func _is_outline_material(mat: Material) -> bool:
+	if mat == null or not (mat is ShaderMaterial):
+		return false
+	var sm := mat as ShaderMaterial
+	return sm.shader != null and String(sm.shader.resource_path) == _OUTLINE_SHADER_PATH
+
+
+static func _outline_material() -> ShaderMaterial:
+	if _outline_mat != null and is_instance_valid(_outline_mat):
+		return _outline_mat
+	var sm := ShaderMaterial.new()
+	sm.shader = load(_OUTLINE_SHADER_PATH) as Shader
+	_outline_mat = sm
+	return _outline_mat
 
 
 static func _meta() -> Dictionary:
