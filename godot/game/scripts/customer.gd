@@ -1421,6 +1421,8 @@ func _temp_missing_sku(category: String, present: Dictionary, reserved: Dictiona
 	for sku in Tuning.skus_for(category):
 		if not developed.has(sku):
 			continue
+		if st.has_method("is_for_sale") and not st.is_for_sale(sku):
+			continue
 		if present.has(sku) or reserved.has(sku):
 			continue
 		if int(stock.get(sku, 0)) <= 0:

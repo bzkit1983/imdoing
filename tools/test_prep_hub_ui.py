@@ -19,7 +19,7 @@ def need( Cond: bool, msg: str) -> None:
 
 
 need("hub_char" in PAGES and "hub_goods" in PAGES and "hub_shop" in PAGES and "hub_sys" in PAGES, "hub pages missing")
-need("_develop" in PAGES and "_buy" in PAGES, "develop/buy split missing")
+need("_develop" in PAGES and "_buy" in PAGES and "_for_sale" in PAGES, "develop/buy/for_sale split missing")
 need("locked_look" in PAGES or "locked_look" in MENU, "appearance lock missing")
 need("HubPanel" in SCENE and "OpenBar" in SCENE and "OpenMain" in SCENE, "scene hub/open chrome missing")
 need("_rebuild_hub_tiles" in MENU and "_setup_open_bar" in MENU, "hub rebuild helpers missing")
@@ -29,15 +29,23 @@ W = (ROOT / "godot/game/scripts/prep/prep_widgets.gd").read_text(encoding="utf-8
 need("LIST_ROW_H" in W and "list_row_spacer" in W, "ItemList touch row spacer missing")
 need("list_row_spacer" in MENU, "prep_menu must attach list row spacer icons")
 need("parent_page" in PAGES, "parent_page helper missing")
-need("prep.hub.char" in LOCALE and "prep.home.develop" in LOCALE and "prep.home.buy" in LOCALE, "locale hub keys missing")
+need(
+	"prep.hub.char" in LOCALE
+	and "prep.home.develop" in LOCALE
+	and "prep.home.buy" in LOCALE
+	and "prep.home.for_sale" in LOCALE,
+	"locale hub keys missing",
+)
 need("開始營運" in LOCALE and "麻煩客人模式" in LOCALE, "open labels missing")
 need("DiffBar" in SCENE and "DiffEasy" in SCENE and "DiffNormal" in SCENE, "difficulty bar missing")
 need("prep.difficulty.easy" in LOCALE and "prep.difficulty.normal" in LOCALE, "difficulty locale missing")
 need("_choose_difficulty" in MENU and "set_play_difficulty" in (ROOT / "godot/game/scripts/demo.gd").read_text(encoding="utf-8"), "difficulty choice not wired")
 need("難度" in DOC and "簡易" in DOC, "design doc missing difficulty")
 need("art/ui/prep" in ICONS, "icon override path missing")
-need("角色整備" in DOC and "貨品管理" in DOC and "系統工具" in DOC, "design doc not aligned")
+need("角色整備" in DOC and "貨品管理" in DOC and "系統工具" in DOC and "設定可售貨品" in DOC, "design doc not aligned")
 need('page == "buy"' in MENU or '_page == "buy"' in MENU, "qty flow should use buy page")
+need("toggle_sale" in MENU and "set_for_sale" in (ROOT / "godot/game/scripts/game_state.gd").read_text(encoding="utf-8"), "for_sale toggle not wired")
+need('"for_sale"' in ICONS, "for_sale hub icon missing")
 
 if errs:
     print("FAIL")

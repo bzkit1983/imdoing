@@ -64,6 +64,8 @@ var skin_id: String = "player"
 ## Unlocked skin ids. Empty ⇒ all catalog skins unlocked (BETA).
 var unlocked_skins: Array = []
 var developed: Dictionary = {}
+## Per developed SKU: true = offer for sale this ops round. Missing key ⇒ sellable.
+var for_sale: Dictionary = {}
 var stock: Dictionary = {}
 var owned: Dictionary = {}
 var placed: Array[Dictionary] = []
@@ -103,6 +105,7 @@ func _init() -> void:
 func apply_scenario(id: int) -> void:
 	scenario = id
 	developed.clear()
+	for_sale.clear()
 	stock.clear()
 	owned.clear()
 	placed.clear()
@@ -128,12 +131,14 @@ func apply_scenario(id: int) -> void:
 		_:
 			_scenario_new()
 	_grant_initial_goods()
+	_default_for_sale_for_developed()
 
 
 func _grant_initial_goods() -> void:
 	developed["can"] = true
 	if not stock.has("can"):
 		stock["can"] = 0
+	for_sale["can"] = true
 
 
 func _scenario_new() -> void:
@@ -369,6 +374,7 @@ func sku_unlocked(sku: String) -> bool:
 func develop(sku: String) -> String:
 	if sku == "can":
 		developed["can"] = true
+		for_sale["can"] = true
 		if not stock.has("can"):
 			stock["can"] = 0
 		return Loc.t("err.can_free")
@@ -381,6 +387,7 @@ func develop(sku: String) -> String:
 		return Loc.t("err.funds")
 	money -= fee
 	developed[sku] = true
+	for_sale[sku] = true
 	if not stock.has(sku):
 		stock[sku] = 0
 	return ""
@@ -389,6 +396,8 @@ func develop(sku: String) -> String:
 func buy_stock(sku: String, pieces: int) -> String:
 	if not developed.has(sku):
 		return Loc.t("err.not_developed")
+	if not is_for_sale(sku):
+		return Loc.t("err.not_for_sale")
 	pieces = clampi(pieces, 1, Tuning.RESTOCK_PIECES)
 	var cost := Tuning.cost_for_pieces(sku, pieces)
 	if money < cost:
@@ -962,6 +971,54 @@ func developed_of(category: String) -> Array[String]:
 	return out
 
 
+## Developed SKUs in `category` that are currently for sale.
+func sellable_of(category: String) -> Array[String]:
+	var out: Array[String] = []
+	for sku in Tuning.skus_for(category):
+		if developed.has(sku) and is_for_sale(sku):
+			out.append(sku)
+	return out
+
+
+func is_for_sale(sku: String) -> bool:
+	if not developed.has(sku):
+		return false
+	## Missing key ⇒ sellable (legacy saves / new develop).
+	if not for_sale.has(sku):
+		return true
+	return bool(for_sale[sku])
+
+
+## Empty string = ok. Turning off the last sellable SKU is rejected.
+func set_for_sale(sku: String, on: bool) -> String:
+	if not developed.has(sku):
+		return Loc.t("err.not_developed")
+	if not on and is_for_sale(sku) and sellable().size() <= 1:
+		return Loc.t("err.last_for_sale")
+	for_sale[sku] = on
+	if not on:
+		_sanitize_restock_defaults()
+	return ""
+
+
+## If a restock rack default_sku is no longer for sale, fall back to first sellable in category.
+func _sanitize_restock_defaults() -> void:
+	for it in placed:
+		if not (it is Dictionary):
+			continue
+		var typ := String(it.get("type", ""))
+		if not is_restock_type(typ):
+			continue
+		var cat := restock_category_of_type(typ)
+		var pool := sellable_of(cat)
+		var cur := String(it.get("default_sku", ""))
+		if pool.is_empty():
+			it["default_sku"] = ""
+			continue
+		if cur == "" or pool.find(cur) < 0:
+			it["default_sku"] = pool[0]
+
+
 func guest_cap() -> int:
 	return 15 if scenario == 3 else 10
 
@@ -993,9 +1050,36 @@ func thief_spawn_sec() -> float:
 func sellable() -> Array[String]:
 	var out: Array[String] = []
 	for sku in Tuning.SELLABLE_SKUS:
-		if developed.has(sku):
+		if developed.has(sku) and is_for_sale(sku):
 			out.append(sku)
 	return out
+
+
+func _default_for_sale_for_developed() -> void:
+	for sku in developed.keys():
+		var id := String(sku)
+		if not for_sale.has(id):
+			for_sale[id] = true
+
+
+## Never leave developed shops with an empty sellable pool.
+func _ensure_one_for_sale() -> void:
+	_default_for_sale_for_developed()
+	if not developed.is_empty() and sellable().is_empty():
+		if developed.has("can"):
+			for_sale["can"] = true
+		else:
+			var fixed := false
+			for sku in Tuning.SELLABLE_SKUS:
+				if developed.has(sku):
+					for_sale[sku] = true
+					fixed = true
+					break
+			if not fixed:
+				for sku in developed.keys():
+					for_sale[String(sku)] = true
+					break
+	_sanitize_restock_defaults()
 
 
 func to_dict() -> Dictionary:
@@ -1041,6 +1125,7 @@ func to_dict() -> Dictionary:
 		"skin_id": _normalized_skin_id(),
 		"unlocked_skins": _parsed_unlocked_skins(),
 		"developed": developed.duplicate(true),
+		"for_sale": for_sale.duplicate(true),
 		"stock": stock.duplicate(true),
 		"owned": owned.duplicate(true),
 		"placed": placed_list,
@@ -1091,6 +1176,7 @@ func from_dict(data: Dictionary) -> String:
 	skin_id = _normalize_skin_id(String(data.get("skin_id", "player")))
 	unlocked_skins = _parse_unlocked_skins(data.get("unlocked_skins", []))
 	developed = _string_bool_dict(data.get("developed", {}))
+	for_sale = _string_bool_dict(data.get("for_sale", {}))
 	stock = _string_int_dict(data.get("stock", {}))
 	if ver < 2:
 		## v1 stock was warehouse boxes; v2+ is pieces.
@@ -1163,6 +1249,7 @@ func from_dict(data: Dictionary) -> String:
 	difficulty_prompt_acked = String(data.get("difficulty_prompt_acked", ""))
 	support_rating = int(data.get("support_rating", 0))
 	_grant_initial_goods()
+	_ensure_one_for_sale()
 	return ""
 
 

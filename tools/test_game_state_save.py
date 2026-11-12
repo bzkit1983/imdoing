@@ -26,6 +26,7 @@ REQUIRED = {
     "agi_stat",
     "int_stat",
     "developed",
+    "for_sale",
     "stock",
     "owned",
     "placed",
@@ -58,6 +59,7 @@ def sample() -> dict:
         "agi_stat": 14,
         "int_stat": 11,
         "developed": {"can": True, "snack": True},
+        "for_sale": {"can": True, "snack": True},
         "stock": {"can": 3, "snack": 1},
         "owned": {"cashier": 1, "shelf_dry_12": 2},
         "placed": [
@@ -94,6 +96,7 @@ def validate(data: dict) -> None:
     assert not missing, f"missing keys: {missing}"
     assert int(data["version"]) == SAVE_VERSION
     assert isinstance(data["developed"], dict)
+    assert isinstance(data["for_sale"], dict)
     assert isinstance(data["stock"], dict)
     assert isinstance(data["owned"], dict)
     assert isinstance(data["placed"], list)

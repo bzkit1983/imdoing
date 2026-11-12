@@ -55,6 +55,9 @@ func setup(cat: String) -> void:
 func skus() -> Array[String]:
 	var game := get_tree().get_first_node_in_group("game") if is_inside_tree() else null
 	if game != null and game.get("state") != null:
+		## Ops restock pick: only SKUs marked for sale this round.
+		if game.state.has_method("sellable_of"):
+			return game.state.sellable_of(category)
 		return game.state.developed_of(category)
 	return []
 
@@ -85,8 +88,8 @@ func set_highlight(index: int) -> void:
 	_refresh()
 
 
-## Apply prep-layout default. Invalid / empty → first developed SKU. Day-only picks use set_highlight / commit_pick.
-## Caller must add this node to the tree first so skus() can resolve developed_of via the game group.
+## Apply prep-layout default. Invalid / empty / not for sale → first sellable SKU.
+## Caller must add this node to the tree first so skus() can resolve sellable_of via the game group.
 func apply_default_sku(sku: String) -> void:
 	var list := skus()
 	if list.is_empty():

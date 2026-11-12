@@ -63,6 +63,10 @@ static func _draw(id: String) -> ImageTexture:
 		"buy":
 			_box(img, 16, 40, 28, 28, Color("c45c26"))
 			_box(img, 48, 28, 28, 40, Color("f4d35e"))
+		"for_sale":
+			_box(img, 22, 28, 52, 40, Color("24302a"))
+			_box(img, 30, 36, 36, 24, Color("f4d35e"))
+			_hline(img, 30, 48, 36, Color("1c241f"))
 		"furn":
 			_box(img, 18, 28, 60, 40, Color("3d5a46"))
 			_box(img, 28, 40, 16, 20, Color("f4d35e"))

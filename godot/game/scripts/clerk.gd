@@ -226,6 +226,8 @@ func _missing_sku(category: String, present: Dictionary, reserved: Dictionary) -
 	for sku in Tuning.skus_for(category):
 		if not _game.state.developed.has(sku):
 			continue
+		if _game.state.has_method("is_for_sale") and not _game.state.is_for_sale(sku):
+			continue
 		if present.has(sku) or reserved.has(sku):
 			continue
 		if int(_game.state.stock.get(sku, 0)) <= 0:

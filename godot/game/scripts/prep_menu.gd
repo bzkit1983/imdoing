@@ -922,6 +922,10 @@ func _activate() -> void:
 			_popup_info(Loc.t("prep.msg.locked_title"), _locked_sku_body(String(arg)))
 		"need_develop":
 			_popup_info(Loc.t("prep.locked_title"), Loc.t("prep.buy.need_develop", [Tuning.sku_name(String(arg))]))
+		"not_for_sale":
+			_popup_info(Loc.t("prep.locked_title"), Loc.t("prep.buy.not_for_sale", [Tuning.sku_name(String(arg))]))
+		"toggle_sale":
+			_toggle_for_sale(String(arg))
 		"locked_look":
 			_popup_info(Loc.t("prep.locked_title"), Loc.t("prep.look.locked_body"))
 		"set_skin":
@@ -1317,11 +1321,25 @@ func _ask_buy() -> void:
 	if not state.developed.has(_qty_sku):
 		_popup_info(Loc.t("prep.msg.locked_title"), Loc.t("prep.msg.need_dev_buy", [name]))
 		return
+	if not state.is_for_sale(_qty_sku):
+		_popup_info(Loc.t("prep.locked_title"), Loc.t("prep.buy.not_for_sale", [name]))
+		return
 	var cost := Tuning.cost_for_pieces(_qty_sku, pieces)
 	if state.money < cost:
 		_popup_info(Loc.t("err.funds"), _funds_line(Loc.t("prep.msg.buy_what", [name, pieces]), cost))
 		return
 	_popup_confirm(Loc.t("prep.msg.confirm_title"), Loc.t("prep.msg.buy_ask", [name, pieces, cost]), {"action": "buy", "sku": _qty_sku, "boxes": pieces})
+
+
+func _toggle_for_sale(sku: String) -> void:
+	var name := Tuning.sku_name(sku)
+	var turn_on: bool = not bool(state.is_for_sale(sku))
+	var err := String(state.set_for_sale(sku, turn_on))
+	if err != "":
+		_popup_info(Loc.t("prep.for_sale.cant_title"), err)
+		return
+	_msg = Loc.t("prep.msg.for_sale_on" if turn_on else "prep.msg.for_sale_off", [name])
+	_refresh()
 
 
 func _ask_furniture(type: String) -> void:
@@ -2280,7 +2298,7 @@ func _try_begin_restock_sku_pick() -> bool:
 	if not state.is_restock_type(typ):
 		return false
 	var cat := state.restock_category_of_type(typ)
-	var list: Array[String] = state.developed_of(cat)
+	var list: Array[String] = state.sellable_of(cat)
 	if list.is_empty():
 		_msg = Loc.t("prep.msg.cat_locked")
 		_refresh()
@@ -2299,7 +2317,7 @@ func _sku_pick_list() -> Array[String]:
 	if _sku_pick_i < 0 or _sku_pick_i >= state.placed.size():
 		return []
 	var typ := String(state.placed[_sku_pick_i].get("type", ""))
-	return state.developed_of(state.restock_category_of_type(typ))
+	return state.sellable_of(state.restock_category_of_type(typ))
 
 
 func _nudge_sku_pick(dir: int) -> void:

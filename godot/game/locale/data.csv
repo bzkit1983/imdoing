@@ -207,6 +207,8 @@ err.already_developed,已開發,Already developed,已开发,開発済み
 err.locked_level,未到開放等級,Level not unlocked,未到开放等级,開放レベルに未到達
 err.funds,資金不足,Not enough funds,资金不足,資金不足
 err.not_developed,尚未開發,Not developed,尚未开发,未開発
+err.not_for_sale,此貨品目前不可售,This good is not for sale,此货品目前不可售,この商品はいま非売です
+err.last_for_sale,至少要保留一項可售貨品,Keep at least one sellable good,至少要保留一项可售货品,販売中の商品を少なくとも1つ残してください
 err.no_such_item,沒有這件,Unknown item,没有这件,該当なし
 err.no_fit,放不下,Doesn't fit,放不下,入らない
 err.grid_min,闊度和長度最少是 8。,Width and height must be at least 8.,阔度和长度最少是 8。,幅と長さは最低 8 必要。

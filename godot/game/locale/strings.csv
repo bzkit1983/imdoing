@@ -66,7 +66,7 @@ prep.home.info_rating,商店評價 %d　支援別店評價 %d　已記錄 %d 日
 prep.hub.char,角色整備,Character,角色整备,キャラ整備
 prep.hub.char_info,能力、技能與外觀,Stats · skills · look,能力、技能与外观,能力・スキル・外見
 prep.hub.goods,貨品管理,Goods,货品管理,商品管理
-prep.hub.goods_info,開發與採購分開,Develop and buy separately,开发与采购分开,開発と仕入れは別メニュー
+prep.hub.goods_info,開發、採購、設定可售,Develop, buy, and set sellable goods,开发、采购、设定可售,開発・仕入れ・販売設定
 prep.hub.shop,店舖管理,Shop,店铺管理,店舗管理
 prep.hub.shop_info,規模 LV%d　地圖 %d×%d　購入、擴張、設計,Scale LV%d · map %d×%d · buy · expand · layout,规模 LV%d　地图 %d×%d　购入、扩张、设计,規模 LV%d　マップ %d×%d　購入・拡張・設計
 prep.hub.staff,員工管理　%d 人,Staff · %d,员工管理　%d 人,従業員管理　%d 人
@@ -94,6 +94,7 @@ prep.home.look,外觀調整,Appearance,外观调整,外見調整
 prep.home.stock,開發／採購貨品,Develop / buy goods,开发／采购货品,開発／仕入れ
 prep.home.develop,開發商品,Develop goods,开发商品,商品開発
 prep.home.buy,採購貨品,Buy goods,采购货品,商品仕入れ
+prep.home.for_sale,設定可售貨品,Set sellable goods,设定可售货品,販売する商品を設定
 prep.home.furn,購入商店物品,Buy furniture,购入商店物品,店舗アイテム購入
 prep.home.expand,擴張店面　現時 LV%d　%d×%d,Expand · LV%d · %d×%d,扩张店面　现时 LV%d　%d×%d,店舗拡張　現在 LV%d　%d×%d
 prep.home.expand_short,擴張店舖,Expand shop,扩张店铺,店舗拡張
@@ -166,8 +167,13 @@ prep.stock.info,罐頭是初始貨物，不用開發就能採購。其他未開�
 prep.develop.title,開發商品,Develop goods,开发商品,商品開発
 prep.develop.info,罐頭是初始貨物，不用開發。其他貨品先付開發費，開發後才能採購。,Cans start unlocked. Other goods need a develop fee before buying.,罐头是初始货物，不用开发。其他货品先付开发费，开发后才能采购。,缶詰は初期商品で開発不要。他の商品は先に開発費を払い、開発後に仕入れ可能になります。
 prep.buy.title,採購貨品,Buy goods,采购货品,商品仕入れ
-prep.buy.info,只列出已開發的貨品。未開發的請先到「開發商品」。,Only developed goods. Undeveloped items need Develop first.,只列出已开发的货品。未开发的请先到“开发商品”。,開発済みの商品のみ表示。未開発は先に「商品開発」へ。
+prep.buy.info,只列出已開發且可售的貨品。未開發的請先到「開發商品」；不可售的到「設定可售貨品」開啟。,Only developed and sellable goods. Undeveloped need Develop; unsellable need Set sellable.,只列出已开发且可售的货品。未开发的请先到“开发商品”；不可售的到“设定可售货品”开启。,開発済みかつ販売中の商品のみ。未開発は「商品開発」、非売は「販売設定」でオンに。
 prep.buy.need_develop,%s尚未開發，請先到開發商品。,%s is not developed yet — open Develop first.,%s尚未开发，请先到开发商品。,%sは未開発です。先に商品開発へ。
+prep.buy.not_for_sale,%s目前不可售，請先到「設定可售貨品」開啟。,%s is not for sale — enable it under Set sellable goods.,%s目前不可售，请先到“设定可售货品”开启。,%sはいま非売です。「販売する商品を設定」でオンにしてください。
+prep.for_sale.title,設定可售貨品,Set sellable goods,设定可售货品,販売する商品を設定
+prep.for_sale.info,已開發貨品可開關是否於下一營運回合發售。至少保留一項可售。關掉的不會進客人購物清單，也不能採購或補貨選用。,Toggle which developed goods sell next ops round. Keep at least one sellable. Off goods skip guest lists, buy, and restock picks.,已开发货品可开关是否于下一营运回合发售。至少保留一项可售。关掉的不会进客人购物清单，也不能采购或补货选用。,開発済み商品の販売を次の営業ラウンド向けに切替。最低1つは販売中に。オフは客の買い物リスト・仕入れ・補充候補から外れます。
+prep.for_sale.empty,尚未開發任何貨品。,No goods developed yet.,尚未开发任何货品。,まだ開発した商品がありません。
+prep.for_sale.cant_title,不能更改可售,Cannot change sellable,不能更改可售,販売設定を変更できません
 prep.stock.qty_title,採購 %s,Buy %s,采购 %s,%sを仕入れ
 prep.stock.qty_info,庫存 %d 件　標示 $%d／件（4 件價÷4）。中間是件數，按按鈕加減。,Stock %d pcs · ~$%d/pc. Middle is qty in pieces.,库存 %d 件　标示 $%d／件（4 件价÷4）。中间是件数，按按钮加减。,在庫 %d 個　表示 $%d／個（4個価格÷4）。中央は個数、ボタンで加減。
 prep.furn.title,購入商店物品,Buy furniture,购入商店物品,店舗アイテム購入
@@ -330,6 +336,9 @@ prep.sku.locked,%s　LV%d 開放,%s  unlocks LV%d,%s　LV%d 开放,%s　LV%d で
 prep.sku.developed,%s　已開發,%s  developed,%s　已开发,%s　開発済み
 prep.sku.develop_row,開發 %s　$%d,Develop %s  $%d,开发 %s　$%d,開発 %s　$%d
 prep.sku.need_dev,%s　尚未開發,%s  not developed,%s　尚未开发,%s　未開発
+prep.sku.buy_not_for_sale,%s　不可售（先到設定可售開啟）,%s  not for sale (enable under Set sellable),%s　不可售（先到设定可售开启）,%s　非売（販売設定でオンに）
+prep.sku.for_sale_on,%s　可售　〔按確定關閉〕,%s  for sale  [confirm to disable],%s　可售　〔按确定关闭〕,%s　販売中　〔決定でオフ〕
+prep.sku.for_sale_off,%s　不可售　〔按確定開啟〕,%s  not for sale  [confirm to enable],%s　不可售　〔按确定开启〕,%s　非売　〔決定でオン〕
 prep.sku.buy_row,採購 %s　庫存 %d 件　約$%d/件（4件$%d）,Buy %s  stock %d  ~$%d/pc (4pcs $%d),采购 %s　库存 %d 件　约$%d/件（4件$%d）,仕入 %s　在庫 %d 個　約$%d/個（4個$%d）
 prep.sku.total,合計 $%d,Total $%d,合计 $%d,合計 $%d
 prep.sku.confirm_buy,確定購買,Confirm purchase,确定购买,購入を確定
@@ -385,6 +394,8 @@ prep.msg.cant_hire,不能召募,Cannot hire,不能召募,募集できません
 prep.msg.hire_need_register,店員不能多過已放置的收銀機。請先在店舖設計放一台收銀機。,Clerks cannot exceed placed registers. Place a register first.,店员不能多过已放置的收银机。请先在店铺设计放一台收银机。,店員は配置済みレジの台数を超えられません。先に店舗設計でレジを置いてください。
 prep.msg.hire_now,現在不能召募。,Cannot hire now.,现在不能召募。,いまは募集できません。
 prep.msg.developed,已開發 %s,Developed %s,已开发 %s,%sを開発しました
+prep.msg.for_sale_on,已設為可售：%s,Now for sale: %s,已设为可售：%s,販売中にしました：%s
+prep.msg.for_sale_off,已設為不可售：%s,Now not for sale: %s,已设为不可售：%s,非売にしました：%s
 prep.msg.cant_buy,不能採購,Cannot buy,不能采购,仕入できません
 prep.msg.bought_sku,已採購 %s ×%d 件,Bought %s ×%d,已采购 %s ×%d 件,%s ×%d 個を仕入ました
 prep.msg.cant_buy_furn,不能購入,Cannot buy furniture,不能购入,購入できません

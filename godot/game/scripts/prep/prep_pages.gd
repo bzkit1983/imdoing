@@ -23,7 +23,7 @@ static func parent_page(page: String) -> String:
 			return "skills"
 		"skill_pick":
 			return "skill_set"
-		"develop", "buy":
+		"develop", "buy", "for_sale":
 			return "hub_goods"
 		"furn", "expand", "layout":
 			return "hub_shop"
@@ -148,6 +148,8 @@ static func fill(menu: CanvasLayer, page: String) -> void:
 			_develop(menu)
 		"buy":
 			_buy(menu)
+		"for_sale":
+			_for_sale(menu)
 		"furn":
 			_furn(menu)
 		"expand":
@@ -304,6 +306,7 @@ static func _hub_goods(menu: CanvasLayer) -> void:
 	menu._info.text = menu._pair(menu._header(), Loc.t("prep.hub.goods_info"))
 	menu._add_hub(Loc.t("prep.home.develop"), "go", "develop", "develop")
 	menu._add_hub(Loc.t("prep.home.buy"), "go", "buy", "buy")
+	menu._add_hub(Loc.t("prep.home.for_sale"), "go", "for_sale", "for_sale")
 	menu._rebuild_hub_tiles()
 
 
@@ -505,6 +508,8 @@ static func _buy(menu: CanvasLayer) -> void:
 			menu._add(Loc.t("prep.sku.locked", [Tuning.sku_name(sku), int(Tuning.SKU_UNLOCK_LV[sku])]), "locked_sku", sku)
 		elif not menu.state.developed.has(sku):
 			menu._add(Loc.t("prep.sku.need_dev", [Tuning.sku_name(sku)]), "need_develop", sku)
+		elif not menu.state.is_for_sale(sku):
+			menu._add(Loc.t("prep.sku.buy_not_for_sale", [Tuning.sku_name(sku)]), "not_for_sale", sku)
 		else:
 			menu._add(
 				Loc.t("prep.sku.buy_row", [
@@ -516,6 +521,22 @@ static func _buy(menu: CanvasLayer) -> void:
 				"qty",
 				sku,
 			)
+	menu._add(Loc.t("prep.back"), "go", "hub_goods")
+
+
+static func _for_sale(menu: CanvasLayer) -> void:
+	menu._title.text = Loc.t("prep.for_sale.title")
+	menu._info.text = menu._pair(menu._header(), menu._msg if menu._msg != "" else Loc.t("prep.for_sale.info"))
+	var any := false
+	for sku in Tuning.SELLABLE_SKUS:
+		if not menu.state.developed.has(sku):
+			continue
+		any = true
+		var on: bool = bool(menu.state.is_for_sale(sku))
+		var key := "prep.sku.for_sale_on" if on else "prep.sku.for_sale_off"
+		menu._add(Loc.t(key, [Tuning.sku_name(sku)]), "toggle_sale", sku)
+	if not any:
+		menu._add(Loc.t("prep.for_sale.empty"), "noop", null)
 	menu._add(Loc.t("prep.back"), "go", "hub_goods")
 
 static func _build_qty(menu: CanvasLayer, total: int) -> void:
