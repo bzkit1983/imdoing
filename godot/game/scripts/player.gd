@@ -2406,6 +2406,18 @@ func _cast_self_checkout(level: int) -> bool:
 	return count > 0
 
 
+func _cast_calm_zone(level: int) -> bool:
+	var host := _game()
+	if host == null:
+		return false
+	if SessionService.is_networked() and SessionService.is_client():
+		## Cast is predicted locally; Host creates and broadcasts the authoritative field.
+		return String(host.get("phase")) in ["open", "restock"]
+	if not host.has_method("deploy_calm_zone"):
+		return false
+	return host.call("deploy_calm_zone", global_position, level, seat_id) != null
+
+
 func _cast_harvest_chives(lv: int) -> bool:
 	var reg: Node2D = null
 	if is_instance_valid(target) and _obj_str(target, "kind") == "cashier":
@@ -4044,6 +4056,18 @@ func _cast_slot(i: int) -> void:
 		SfxBus.play("sfx_skill_cast")
 		_begin_cast_pose(false)
 		skill_cast.emit(Loc.t("self_checkout.active"), false)
+		_play_zoom(false)
+		return
+	if bool(sk.get("calm_zone", false)):
+		_cancel_must_deliver_aim()
+		_cancel_magneto_aim()
+		if not _cast_calm_zone(int(sk.get("lv", 3))):
+			return
+		_cd[sid] = Tuning.cd_seconds(float(sk.get("cd", 30.0)), _int_now())
+		SfxBus.play("sfx_skill_cast")
+		log_line.emit(Loc.t("log.player.cast", [String(sk.get("name")), int(sk.get("lv", 3))]))
+		_begin_cast_pose(false)
+		skill_cast.emit(String(sk.get("name")), false)
 		_play_zoom(false)
 		return
 	## Instant force_sell: empty hands / no target must not start CD.

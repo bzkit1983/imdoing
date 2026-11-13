@@ -130,6 +130,7 @@ const ACTIVES: Array[Dictionary] = [
 	{"id": "checkout_rush", "kind": "active", "lv": 3, "cost": 1, "checkout_pct": 0.60, "duration": ACTIVE_DURATION, "cd": ACTIVE_CD},
 	{"id": "universal_cannon", "kind": "active", "lv": 3, "cost": 2, "universal_cannon": true, "cd": 60.0},
 	{"id": "self_checkout", "kind": "active", "lv": 3, "cost": 2, "self_checkout": true, "duration": 15.0, "cd": 30.0},
+	{"id": "calm_zone", "kind": "active", "lv": 3, "cost": 2, "calm_zone": true, "duration": 15.0, "cd": 30.0},
 	{"id": "senior_cashier", "kind": "active", "lv": 3, "cost": 2, "senior_cashier": true, "duration": 45.0, "cd": 15.0},
 	{"id": "instant_restock", "kind": "active", "lv": 3, "cost": 1, "restock_instant": true, "restock_circle_mult": 0.0, "duration": ACTIVE_DURATION, "cd": ACTIVE_CD},
 	{"id": "soothe", "kind": "active", "lv": 3, "cost": 1, "soothe_keep": 0.0, "duration": 0.0, "cd": ACTIVE_CD},
@@ -196,6 +197,7 @@ static func prep_picks_level(sk: Dictionary) -> bool:
 		or bool(sk.get("dasher", false))
 		or bool(sk.get("universal_cannon", false))
 		or bool(sk.get("self_checkout", false))
+		or bool(sk.get("calm_zone", false))
 		or bool(sk.get("senior_cashier", false))
 		or bool(sk.get("hoop_ace", false))
 		or bool(sk.get("force_sell", false))
@@ -205,6 +207,30 @@ static func prep_picks_level(sk: Dictionary) -> bool:
 		or bool(sk.get("magneto", false))
 		or bool(sk.get("sweeping_monk", false))
 	)
+
+
+static func calm_zone_body_lengths(lv: int) -> float:
+	match lv:
+		1:
+			return 5.0
+		2:
+			return 7.0
+		_:
+			return 10.0
+
+
+static func calm_zone_radius(lv: int) -> float:
+	return calm_zone_body_lengths(lv) * Tuning.BODY_LENGTH
+
+
+static func calm_zone_dissat_per_sec(lv: int) -> float:
+	match lv:
+		1:
+			return 2.0
+		2:
+			return 3.0
+		_:
+			return 4.0
 
 
 static func dasher_seconds(lv: int) -> float:

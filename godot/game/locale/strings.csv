@@ -66,7 +66,7 @@ prep.home.info_rating,商店評價 %d　支援別店評價 %d　已記錄 %d 日
 prep.hub.char,角色整備,Character,角色整备,キャラ整備
 prep.hub.char_info,能力、技能與外觀,Stats · skills · look,能力、技能与外观,能力・スキル・外見
 prep.hub.goods,貨品管理,Goods,货品管理,商品管理
-prep.hub.goods_info,開發、採購、設定可售,Develop, buy, and set sellable goods,开发、采购、设定可售,開発・仕入れ・販売設定
+prep.hub.goods_info,開發、採購、設定可售,"Develop, buy, and set sellable goods",开发、采购、设定可售,開発・仕入れ・販売設定
 prep.hub.shop,店舖管理,Shop,店铺管理,店舗管理
 prep.hub.shop_info,規模 LV%d　地圖 %d×%d　購入、擴張、設計,Scale LV%d · map %d×%d · buy · expand · layout,规模 LV%d　地图 %d×%d　购入、扩张、设计,規模 LV%d　マップ %d×%d　購入・拡張・設計
 prep.hub.staff,員工管理　%d 人,Staff · %d,员工管理　%d 人,従業員管理　%d 人
@@ -172,7 +172,7 @@ prep.buy.info,只列出已開發且可售的貨品。未開發的請先到「開
 prep.buy.need_develop,%s尚未開發，請先到開發商品。,%s is not developed yet — open Develop first.,%s尚未开发，请先到开发商品。,%sは未開発です。先に商品開発へ。
 prep.buy.not_for_sale,%s目前不可售，請先到「設定可售貨品」開啟。,%s is not for sale — enable it under Set sellable goods.,%s目前不可售，请先到“设定可售货品”开启。,%sはいま非売です。「販売する商品を設定」でオンにしてください。
 prep.for_sale.title,設定可售貨品,Set sellable goods,设定可售货品,販売する商品を設定
-prep.for_sale.info,已開發貨品可開關是否於下一營運回合發售。至少保留一項可售。關掉的不會進客人購物清單，也不能採購或補貨選用。,Toggle which developed goods sell next ops round. Keep at least one sellable. Off goods skip guest lists, buy, and restock picks.,已开发货品可开关是否于下一营运回合发售。至少保留一项可售。关掉的不会进客人购物清单，也不能采购或补货选用。,開発済み商品の販売を次の営業ラウンド向けに切替。最低1つは販売中に。オフは客の買い物リスト・仕入れ・補充候補から外れます。
+prep.for_sale.info,已開發貨品可開關是否於下一營運回合發售。至少保留一項可售。關掉的不會進客人購物清單，也不能採購或補貨選用。,"Toggle which developed goods sell next ops round. Keep at least one sellable. Off goods skip guest lists, buy, and restock picks.",已开发货品可开关是否于下一营运回合发售。至少保留一项可售。关掉的不会进客人购物清单，也不能采购或补货选用。,開発済み商品の販売を次の営業ラウンド向けに切替。最低1つは販売中に。オフは客の買い物リスト・仕入れ・補充候補から外れます。
 prep.for_sale.empty,尚未開發任何貨品。,No goods developed yet.,尚未开发任何货品。,まだ開発した商品がありません。
 prep.for_sale.cant_title,不能更改可售,Cannot change sellable,不能更改可售,販売設定を変更できません
 prep.stock.qty_title,採購 %s,Buy %s,采购 %s,%sを仕入れ
@@ -230,8 +230,8 @@ lobby.steam_join_confirm,以 Steam 加入,Join via Steam,以 Steam 加入,Steam�
 lobby.steam_host_info,你是 Steam 房主 · Lobby %d（用 Overlay 邀請好友）,You are Steam host · lobby %d (invite via Overlay),你是 Steam 房主 · Lobby %d（用 Overlay 邀请好友）,Steamホストです · ロビー%d（オーバーレイで招待）
 lobby.steam_joined,已加入 Steam Lobby %d,Joined Steam lobby %d,已加入 Steam Lobby %d,Steamロビー%d に参加
 lobby.steam_sdk_hint,尚未偵測到 GodotSteam（見 docs/alpha/godotsteam-setup.md）。,GodotSteam not detected (see docs/alpha/godotsteam-setup.md).,尚未检测到 GodotSteam（见 docs/alpha/godotsteam-setup.md）。,GodotSteam未検出（docs/alpha/godotsteam-setup.md を参照）。
-lobby.err.steam_not_running,請先開啟並登入 Steam 客戶端，再重試開房。,Open and sign into the Steam client, then try again.,请先打开并登录 Steam 客户端，再重试开房。,Steamクライアントを起動してログインしてから再試行してください。
-lobby.err.steam_not_installed,找不到 Steam 安裝路徑。請安裝 Steam 並登入後再試。,Steam install not found. Install Steam, sign in, then retry.,找不到 Steam 安装路径。请安装 Steam 并登录后再试。,Steamのインストールが見つかりません。インストールしてログイン後に再試行してください。
+lobby.err.steam_not_running,請先開啟並登入 Steam 客戶端，再重試開房。,"Open and sign into the Steam client, then try again.",请先打开并登录 Steam 客户端，再重试开房。,Steamクライアントを起動してログインしてから再試行してください。
+lobby.err.steam_not_installed,找不到 Steam 安裝路徑。請安裝 Steam 並登入後再試。,"Steam install not found. Install Steam, sign in, then retry.",找不到 Steam 安装路径。请安装 Steam 并登录后再试。,Steamのインストールが見つかりません。インストールしてログイン後に再試行してください。
 lobby.err.steam_unavailable,尚未載入 GodotSteam（見 docs/alpha/godotsteam-setup.md）。,GodotSteam not loaded (see docs/alpha/godotsteam-setup.md).,尚未加载 GodotSteam（见 docs/alpha/godotsteam-setup.md）。,GodotSteamが読み込まれていません（docs/alpha/godotsteam-setup.md）。
 lobby.err.steam_outdated,Steam 客戶端過舊，請先更新 Steam。,Steam client is outdated — update Steam first.,Steam 客户端过旧，请先更新 Steam。,Steamクライアントが古いです。先に更新してください。
 lobby.err.steam_init_failed,Steam 初始化失敗。請確認已登入 Steam 後再試。,Steam init failed. Sign into Steam and retry.,Steam 初始化失败。请确认已登录 Steam 后再试。,Steam初期化に失敗しました。ログイン後に再試行してください。

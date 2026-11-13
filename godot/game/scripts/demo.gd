@@ -1970,7 +1970,7 @@ func _collect_agent_transforms() -> Array:
 			continue
 		## Static presentation agents — pose fixed after spawn (M2.3).
 		var kind := String(n.get("kind")) if n.get("kind") != null else ""
-		if kind in ["drop", "dirt", "universal_cannon"]:
+		if kind in ["drop", "dirt", "universal_cannon", "calm_zone"]:
 			continue
 		var fx := 0.0
 		var fy := 1.0
@@ -2053,6 +2053,8 @@ func _apply_agent_spawn_payload(payload: Dictionary) -> void:
 			_spawn_shadow_clone_puppet(aid, pos, payload)
 		"universal_cannon":
 			_spawn_cannon_puppet(aid, pos, payload)
+		"calm_zone":
+			_spawn_calm_zone_puppet(aid, pos, payload)
 		_:
 			pass
 
@@ -2341,6 +2343,18 @@ func _spawn_cannon_puppet(aid: int, pos: Vector2, payload: Dictionary) -> void:
 		if player != null and is_instance_valid(player) and not player.interactables.has(cannon):
 			player.interactables.append(cannon)
 	_net_agents[aid] = cannon
+
+
+func _spawn_calm_zone_puppet(aid: int, pos: Vector2, payload: Dictionary) -> void:
+	var zone: Node2D = preload("res://scripts/calm_zone.gd").new()
+	zone.host = self
+	zone.level = clampi(int(payload.get("level", 3)), 1, 3)
+	zone.owner_seat = int(payload.get("owner_seat", 0))
+	zone.visual_only = true
+	zone.net_agent_id = aid
+	_world.add_child(zone)
+	zone.global_position = pos
+	_net_agents[aid] = zone
 
 
 func find_shelf(sku: String) -> Node2D:
@@ -4136,6 +4150,24 @@ func deploy_universal_cannon(at: Vector2, level: int, seat: int) -> Node2D:
 		"sku": "",
 	})
 	return cannon
+
+
+func deploy_calm_zone(at: Vector2, level: int, seat: int) -> Node2D:
+	if _world == null or phase not in ["open", "restock"]:
+		return null
+	if SessionService.is_networked() and SessionService.is_client():
+		return null
+	var zone: Node2D = preload("res://scripts/calm_zone.gd").new()
+	zone.host = self
+	zone.level = clampi(level, 1, 3)
+	zone.owner_seat = seat
+	_world.add_child(zone)
+	zone.global_position = at
+	_register_net_agent(zone, "calm_zone", {
+		"owner_seat": seat,
+		"level": zone.level,
+	})
+	return zone
 
 
 func _remove_cannon_interactable(cannon: Node2D) -> void:
