@@ -1,16 +1,28 @@
 # Alpha 版本設計
 
-- 這裡記留到 Alpha 才設計的問題
-- 長線規則仍以 `docs/systemdesign/` 為準
-- 對照：`docs/systemdesign-gaps.md`（2026-10-29）；工程落地對照：`docs/alpha/implementation-status.md`；執行期優化：`docs/alpha/runtime-perf-audit.md`
+- 這裡記**曾留到 Alpha 才拍板／收口**的題；**不是**現況規格全文。
+- 長線規則仍以 `docs/systemdesign/` 為準。
+- 工程落地對照：[`implementation-status.md`](implementation-status.md)；缺口表：[`systemdesign-gaps.md`](../systemdesign-gaps.md)；執行期優化：[`runtime-perf-audit.md`](runtime-perf-audit.md)。
+- **讀法：** 「已拍板／已實作」以 `implementation-status`＋長線檔為準；本檔若與它們衝突，以它們為準。
 
-# 幫忙取貨與 COMBO
+---
 
-核心節奏寫了兩句：客人找不到貨時可幫忙提取；清單上的貨可以一口氣交付，做出 COMBO。
+# 幫忙取貨與 COMBO（已實作）
 
-仍未寫：對誰按、按什麼指令、怎樣算完成、分數或營業額怎樣加、跟收銀和客人不滿的關係。
+核心節奏：客人找不到貨時玩家可代取／交付；成功交付累加 COMBO；完美交清清單有額外回饋。
 
-檔案：`gameconcept.md`、`customer.md`、`playeraction.md`
+| 問題（舊「仍未寫」） | 現況 |
+| --- | --- |
+| 對誰按、按什麼 | 營運時段對清單未完成的一般／麻煩客人；空手／持貨對貨架短按取 1 件；持貨長按行動＝親手交付；方向＋短按取消＝丟 1 件等——見 `customerdelivery.md`、`playeraction.md` |
+| 怎樣算完成 | 清單交清 → 去收銀排隊（交付當下不收錢） |
+| 分數／營業額／不滿 | 每交對 1 件不滿 −15；完美交付（一次交清剩餘清單）不滿 −40、該筆結帳 ×1.2、評級 P5_COMBO——見 `fetchcombo.md`、`customerdelivery.md` |
+| 與收銀／COMBO | 成功交付 → 個人＋全隊 COMBO +1；失誤個人 RESET；多人接棒見 `multiplayer.md` §11.7 |
+
+- **長線：** [`customerdelivery.md`](../systemdesign/customerdelivery.md)、[`fetchcombo.md`](../systemdesign/fetchcombo.md)  
+- **工程：** [`implementation-status.md`](implementation-status.md)「客人貨品交付」；`session/combo_state.gd`  
+- **gaps：** `systemdesign-gaps.md` 已標「幫忙取貨與 COMBO」為已處理  
+
+---
 
 # 已拍板並寫回長線（原 Alpha 項）
 
@@ -26,22 +38,28 @@
 | 小偷與污物／世界 | 小偷不受污物；不佔客人數；The World 含小偷 |
 | 攜帶清單 FILO | 改為堆疊說明（後取先上） |
 
-# 角色導出
+---
 
-`playerexport.md` 只說導出後以店員身分幫忙。`clerksystem.md` 補了：佔一個雇員欄、用導出的 STR／AGI／INT、工資仍付。連線、檔案、權限仍無。
+# 角色導出（連線仍缺）
+
+`playerexport.md` 只說導出後以店員身分幫忙。`clerksystem.md` 補了：佔一個雇員欄、用導出的 STR／AGI／INT、工資仍付。**連線、檔案、權限仍無**（長線未關）。
 
 檔案：`playerexport.md`、`clerksystem.md`
+
+---
 
 # 暫停、設定、存檔與教學
 
 時計、營業額、人數、狀態、被偷、提早關店的詢問已有。
 
-- **存檔／暫停／操作／字串表／準備 UI／工程路徑／事件 SFX 音量：** 已寫進長線或工程文件（見 `pausemenu.md`、`soundeffects.md`、`implementation-status.md`）。
-- 仍未寫（玩法／產品）：BGM／完整設定頁、失敗／過關流程、教學、技能演出期間能否操作。外觀配置只有一句。
+- **已寫進長線或工程：** 存檔／暫停／操作／字串表／準備 UI／工程路徑／事件 SFX 音量（見 `pausemenu.md`、`soundeffects.md`、`implementation-status.md`）。
+- **仍缺（玩法／產品；對齊 tech-review H）：** BGM／完整設定頁（H2）、失敗／過關／提早關店敘事或標明 EA 不做（H3）、教學／第一日引導（H2）、技能演出期間能否操作、外觀配置仍只有一句。正式 App ID／Cloud／成就見 H1。
 
-# 用詞
+---
 
-寫回原設計檔：
+# 用詞（歷史）
+
+已寫回原設計檔：
 
 - 「以為」→「以下」（`storeoperationphase.md`）
 - 「三能種力值」→「三種能力值」（`gameconcept.md`）

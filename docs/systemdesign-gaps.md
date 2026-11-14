@@ -12,7 +12,7 @@
 
 **一局時長已拍板：** 現實 30 秒上貨 + 3 分鐘營運。
 
-**資金、準備回合、店舖設計、店員、存檔已有檔。** 操作以 InputMap 為準。雇員上限已暫時跟到規模 LV3。經驗來源已跟 `ecosystem.md`，只增不減。開放表裡叮叮飯、收銀機、規模等級和起始資金已寫。幫忙取貨、COMBO 和全部 P2 見 `docs/alpha/design.md`。客人流量、污物與小偷流量見 `docs/beta/design.md`。工程活線見 `docs/versioning.md`。
+**資金、準備回合、店舖設計、店員、存檔已有檔。** 操作以 InputMap 為準。雇員上限已暫時跟到規模 LV3。經驗來源已跟 `ecosystem.md`，只增不減。開放表裡叮叮飯、收銀機、規模等級和起始資金已寫。幫忙取貨／COMBO 以 `fetchcombo.md`、`customerdelivery.md` 為準（`docs/alpha/design.md` 僅 Alpha 收口筆記，勿當未寫規格）。客人流量、污物與小偷流量見 `docs/beta/design.md`。工程活線見 `docs/versioning.md`。
 
 用語：P0 不定則長線系統互相卡住；P1 已有系統但規則或數值不夠寫程式。Alpha、Beta 是改放到該版本才設計，不在這份長線清單裡先拍。
 

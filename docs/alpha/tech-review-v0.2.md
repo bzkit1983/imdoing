@@ -69,7 +69,7 @@ demo.gd（GameHost · ~4.5k）──── 日循環 · 生成 · 技能世界�
 
 **值得保留：** `tuning.gd`、Voxel／`art/catalog.json` bake、設計檔驅動、`GameHost` 契約、Session 模組邊界、agent skills（i18n／playerskillvalidator）。
 
-**主要風險：** 兩支 4k+ 腳本同時承載玩法＋網路；場景幾乎全程式碼組裝（僅 7 個 `.tscn`）；文件少數檔（如 `docs/alpha/design.md`）落後於 `implementation-status.md`。
+**主要風險：** 兩支 4k+ 腳本同時承載玩法＋網路；場景幾乎全程式碼組裝（僅 7 個 `.tscn`）；產品殼（BGM／教學／失敗流）與平台後端仍缺（見 H）。
 
 ---
 
@@ -94,7 +94,7 @@ demo.gd（GameHost · ~4.5k）──── 日循環 · 生成 · 技能世界�
 | **高** | 多人邏輯浸入巨石 | demo／player 內大量 M2 註解與 puppet 狀態 | Net 表示層與模擬命令佇列抽出；RPC 表集中單檔並做契約測試 |
 | **中** | duck-typing 協調 | ~593 `call`／`has_method` | 擴大 `GameHost` 實作覆蓋；熱路徑禁止字串 `call` |
 | **中** | UI／世界少場景組件 | 7× `.tscn`；prep／hud 部分落地 | 傢俬與顧客預製體化；減少 `new()` 樹 |
-| **中** | 文件漂移 | `docs/alpha/design.md` 仍寫 COMBO「仍未寫」；實作與 gaps 已關 | 以 `implementation-status` 為準回寫或標過時 |
+| **中** | 文件漂移 | ~~`docs/alpha/design.md` 仍寫 COMBO「仍未寫」~~ **I1 已回寫** | 以 `implementation-status` 為準；殘餘產品缺項見 H |
 | **低** | 凍結目錄佔 repo | ~36MB demos＋alpha；game art 89MB | 大資產 LFS 或 Pages 產物分離（可選） |
 | **低** | 腳本內殘 CJK | 19 個 `.gd` 仍含漢字（多為註解／技能內部 id 註） | 玩家可見串繼續收割；註解可留中文 |
 
@@ -193,7 +193,7 @@ PlatformServices：Desktop 實作完整；Steam 後端 **磁碟路徑可用、Cl
 - [ ] **H1** 正式 Steam App ID；Cloud 接 `write_save`；成就接 `unlock_achievement`
 - [ ] **H2** BGM＋完整設定頁；最小教學／第一日引導
 - [ ] **H3** 失敗／提早關店／過關敘事（或文件標明 EA 不做）
-- [ ] **I1** 回寫過時 `docs/alpha/design.md`（COMBO／取貨等）
+- [x] **I1** 回寫過時 `docs/alpha/design.md`（COMBO／取貨等）— 改標已實作並指向 `customerdelivery.md`／`fetchcombo.md`／`implementation-status`；gaps／animation-pending 交叉引用一併修正
 - [ ] **J1** 滿店＋技能＋雙人 Profiler 基線文件化
 - [ ] **J2** drop-flight／技能 VFX 物件池
 - [ ] **K1** 主機帳號／釘版重查（執行閘門，非玩法）

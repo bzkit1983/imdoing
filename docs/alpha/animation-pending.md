@@ -34,7 +34,7 @@
 | --- | --- | --- | --- |
 | P1 | player 等 | MagicaVoxel 精修幀 | 靜態 `.vox` 已自動進動作烘焙；完整幀可放 `art/src/anim/`（十六向齊、舊八向或四向包均可） |
 | P2 | 工程 | SpriteFrames 圖集打包 | tech-review：比每幀 load 更省 |
-| P3 | 幫忙取貨／COMBO | 玩法規則＋正式交付姿 | Alpha 已有 `deliver` 姿插座；規則見 `docs/alpha/design.md` |
+| P3 | 幫忙取貨／COMBO | 玩法規則＋正式交付姿 | Alpha 已有 `deliver` 姿插座；規則見 `fetchcombo.md`／`customerdelivery.md` |
 | P3 | 命名對齊 plan | `walk_s_01` 目錄結構 | 現用 `{id}_{anim}_{facing}_{frame}`；可加轉檔 |
 | 之後 | 連續水平角／真 3D | 產品評估 | 見 deferred |
 
