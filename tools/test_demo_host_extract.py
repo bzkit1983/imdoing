@@ -23,6 +23,11 @@ need("func build_furniture(" in WORLD and "func build_floor(" in WORLD, "world_b
 need("func register_net_agent(" in NET and "func apply_agent_spawn_payload(" in NET, "net_world agent sync")
 need("static func return_unsold_to_warehouse(" in SETTLE, "day_settle unsold credit")
 need("DaySettle.return_unsold_to_warehouse(self)" in DEMO, "demo delegates unsold")
+# Inside day_settle.gd there is no class_name — self-calls must be bare static names.
+need("DaySettle.add_pieces" not in SETTLE, "day_settle must not self-qualify add_pieces")
+need("DaySettle.collect_" not in SETTLE, "day_settle must not self-qualify collect_*")
+need("host.sync_stock()" in NET, "net_world stock apply uses host.sync_stock")
+need("var was_thief: bool" in NET, "net_world types was_thief")
 need("_world_build.build_furniture(nodes)" in DEMO, "demo delegates furniture")
 need("_net.register_net_agent(node, kind, extra)" in DEMO, "demo delegates net register")
 # Puppets / intent tick stay on demo for F1.

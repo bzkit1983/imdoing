@@ -100,10 +100,11 @@ static func closeout_body(
 ## clerk-held boxes, and guests who finished their list but have not paid.
 static func collect_unsold_pieces(host) -> Dictionary:
 	var out: Dictionary = {}
-	DaySettle.add_pieces(out, DaySettle.collect_shelf_floor_pieces(host))
-	DaySettle.add_pieces(out, DaySettle.collect_player_carry_pieces(host))
-	DaySettle.add_pieces(out, DaySettle.collect_clerk_held_pieces(host))
-	DaySettle.add_pieces(out, DaySettle.collect_unpaid_checkout_pieces(host))
+	## Same-script statics — bare names only (this script has no class_name).
+	add_pieces(out, collect_shelf_floor_pieces(host))
+	add_pieces(out, collect_player_carry_pieces(host))
+	add_pieces(out, collect_clerk_held_pieces(host))
+	add_pieces(out, collect_unpaid_checkout_pieces(host))
 	return out
 
 static func add_pieces(dst: Dictionary, src: Dictionary) -> void:
@@ -206,16 +207,13 @@ static func collect_unpaid_checkout_pieces(host) -> Dictionary:
 	return out
 
 static func return_unsold_to_warehouse(host) -> void:
-	var pieces := DaySettle.collect_unsold_pieces(host)
+	var pieces: Dictionary = collect_unsold_pieces(host)
 	if pieces.is_empty():
 		return
 	host.state.credit_unsold_pieces(pieces)
-	DaySettle.clear_credited_unsold(host)
+	clear_credited_unsold(host)
 	host.sync_stock()
 
-
-## Clear credited world / carry goods after warehouse credit so closeout
-## does not leave orphan drops or double-count if somehow re-entered.
 
 ## Clear credited world / carry goods after warehouse credit so closeout
 ## does not leave orphan drops or double-count if somehow re-entered.

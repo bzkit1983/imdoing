@@ -309,7 +309,7 @@ func on_agent_despawn_received(agent_id: int, _reason: String) -> void:
 	host._net_agents.erase(agent_id)
 	## Free local seats still mashed against this presentation thief.
 	if n != null and is_instance_valid(n):
-		var was_thief := host._obj_truthy(n, "is_thief")
+		var was_thief: bool = bool(host._obj_truthy(n, "is_thief"))
 		for p in host._players:
 			if p == null or not is_instance_valid(p):
 				continue
@@ -433,5 +433,5 @@ func apply_stock_state_payload(payload: Dictionary) -> void:
 			if shelf.has_method("apply_net_stock"):
 				shelf.call("apply_net_stock", String(row.get("sku", "")), int(row.get("count", 0)))
 	if wh_changed:
-		sync_stock()
+		host.sync_stock()
 
