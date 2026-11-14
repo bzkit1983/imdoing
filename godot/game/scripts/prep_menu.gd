@@ -31,6 +31,8 @@ var _lan_addr_edit: LineEdit = null
 ## Steam lobby id draft (M3).
 var _steam_lobby_draft: String = "0"
 var _steam_lobby_edit: LineEdit = null
+## True when join UI came from Overlay／cmdline invite (§13.6) — hide ID field.
+var _steam_join_from_invite: bool = false
 
 var _page: String = "scenario"
 var _index: int = 0
@@ -136,12 +138,17 @@ func setup(host: Node) -> void:
 		SessionService.net_error.connect(_on_net_error)
 	if not SessionService.start_day.is_connected(_on_session_start_day):
 		SessionService.start_day.connect(_on_session_start_day)
+	if not SessionService.steam_invite_pending.is_connected(_on_steam_invite_pending):
+		SessionService.steam_invite_pending.connect(_on_steam_invite_pending)
 	var load_err := state.load_from_disk()
 	if load_err == "":
 		_msg = Loc.t("prep.msg.loaded", [state.scenario, state.level, state.money])
 		_show_page("home")
 	else:
 		_show_page("scenario")
+	## Cold-start／invite that arrived before Prep was ready.
+	if SessionService.has_pending_steam_invite():
+		_on_steam_invite_pending(SessionService.pending_steam_lobby_id)
 
 
 func _on_lobby_changed() -> void:
@@ -153,9 +160,22 @@ func _on_net_error(message: String) -> void:
 	## Mid-day Host drop is handled by demo._dissolve_room_to_prep (disconnect_session).
 	if not visible and SessionService.day_started:
 		return
-	_popup_info(Loc.t("lobby.error_title"), Loc.t("lobby.error_body", [message]))
+	_popup_info(Loc.t("lobby.error_title"), _lobby_err_text(message))
 	if _page == "lobby" or _page == "lan_join":
 		_show_page("confirm")
+
+
+func _on_steam_invite_pending(lobby_id: int) -> void:
+	## §13.6: accept Overlay／cmdline invite → claim UI without typing ID.
+	if lobby_id <= 0:
+		return
+	if not visible:
+		## Day／in-game: SessionService already emitted invite_busy when networked.
+		## If prep hidden for another reason, stash only — reopen when prep returns.
+		return
+	_steam_lobby_draft = str(lobby_id)
+	_steam_join_from_invite = true
+	_show_page("steam_join")
 
 
 func _on_session_start_day() -> void:
@@ -286,6 +306,15 @@ func _bind_nodes() -> void:
 		Loc.locale_changed.connect(_on_locale_changed)
 
 
+func _apply_steam_join_invite_state() -> void:
+	## Prefer pending invite lobby when opening steam_join.
+	if SessionService.has_pending_steam_invite():
+		_steam_lobby_draft = str(SessionService.pending_steam_lobby_id)
+		_steam_join_from_invite = true
+	elif not _steam_join_from_invite:
+		_steam_join_from_invite = false
+
+
 func _show_page(page: String) -> void:
 	# The confirm key that opened this page must not also activate the new page.
 	_confirm_latch = true
@@ -296,8 +325,13 @@ func _show_page(page: String) -> void:
 		_clear_look_preview()
 	if page != "lan_join":
 		_hide_lan_address_edit()
-	if page != "steam_join":
+	if page == "steam_join":
+		_apply_steam_join_invite_state()
+	else:
 		_hide_steam_lobby_edit()
+		## Leaving claim UI without joining keeps pending; clear invite chrome only.
+		if not SessionService.has_pending_steam_invite():
+			_steam_join_from_invite = false
 	_page = page
 	_index = 0
 	_open_focus = -1
@@ -867,6 +901,9 @@ func _activate() -> void:
 			## Leaving confirm／選單回 home 時清掉麻煩客人測試旗標（未按開始則不生效）。
 			if dest == "home" and demo != null and demo.has_method("clear_elite_test"):
 				demo.call("clear_elite_test")
+			## Manual Steam join entry — only invite-lock when pending exists.
+			if dest == "steam_join" and not SessionService.has_pending_steam_invite():
+				_steam_join_from_invite = false
 			_show_page(dest)
 		"reset":
 			var fee := state.reset_stats_cost()
@@ -1059,6 +1096,8 @@ func _activate() -> void:
 			_start_steam_host()
 		"steam_join_do":
 			_start_steam_join()
+		"lobby_invite":
+			_lobby_invite_friends()
 		"lobby_ready":
 			SessionService.set_ready(int(arg), not SeatTable.is_seat_ready(int(arg)))
 			_refresh()
@@ -1283,10 +1322,21 @@ func _start_steam_host() -> void:
 	_show_page("lobby")
 
 
+func _lobby_invite_friends() -> void:
+	var err := SessionService.invite_steam_friends()
+	if err != "":
+		_popup_info(Loc.t("lobby.error_title"), _lobby_err_text(err))
+
+
 func _start_steam_join() -> void:
-	if _steam_lobby_edit != null:
-		_steam_lobby_draft = _steam_lobby_edit.text.strip_edges()
-	var lobby_id := int(_steam_lobby_draft) if _steam_lobby_draft.is_valid_int() else 0
+	var lobby_id := 0
+	if _steam_join_from_invite and SessionService.has_pending_steam_invite():
+		lobby_id = SessionService.pending_steam_lobby_id
+		_steam_lobby_draft = str(lobby_id)
+	else:
+		if _steam_lobby_edit != null and _steam_lobby_edit.visible:
+			_steam_lobby_draft = _steam_lobby_edit.text.strip_edges()
+		lobby_id = int(_steam_lobby_draft) if _steam_lobby_draft.is_valid_int() else 0
 	var claim := 1 if OS.has_feature("web") else clampi(_local_seats, 1, 2)
 	var guest = null
 	var guest_slot := -1
@@ -1301,6 +1351,7 @@ func _start_steam_join() -> void:
 	if err != "":
 		_popup_info(Loc.t("lobby.error_title"), _lobby_err_text(err))
 		return
+	_steam_join_from_invite = false
 	_hide_steam_lobby_edit()
 	_show_page("lobby")
 

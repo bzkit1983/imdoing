@@ -20,14 +20,18 @@ Repo **已含** GDExtension 外掛（Win／Linux／macOS universal／Android）�
 7. F5：Prep → **Steam 開房**；Steam 已登入時應得到非 0 Lobby ID。
 未安裝／未載入時：`host_steam`／`join_steam_lobby` 回傳 `steam_unavailable`；Steam 未開則 `steam_not_running`。LAN 路徑不受影響。
 
-## 雙帳邀請驗收（§13.4 主路徑）
+## 雙帳邀請驗收（§13.4／§13.6 主路徑）
 
-**狀態：已通過（2026-11-11）。** 重跑聯測時本機需 **Steam 已登入** + **第二 Steam 帳或第二裝置**：
+本機需 **Steam 已登入** + **第二 Steam 帳或第二裝置**。**主路徑＝Overlay 邀請（免手打 Lobby ID）**；手動 ID 僅備援。
 
-1. **Host（帳 A）**：Prep → Steam 開房（本機 seat 1｜2）→ 記下 Lobby ID（或 Overlay 邀請好友）。  
-2. **Join（帳 B）**：Prep → 加入 Steam → 輸入 Lobby ID → claim 1｜2（claim2 需訪客存檔）。  
+1. **Host（帳 A）**：Prep → Steam 開房（本機 seat 1｜2）→ 大廳按 **邀請好友**（`activateGameOverlayInviteDialog`）。  
+2. **Join（帳 B）**：Steam Overlay／好友通知 **接受邀請** → 遊戲開 Prep「加入 Steam」（Lobby ID 已預填／隱藏）→ 只選 claim 1｜2（claim2 需訪客存檔）→ 確認加入。  
+   - 遊戲未開時接受邀請：Steam 以 `+connect_lobby <id>` 啟動 → 進 Prep 後同樣進 claim UI。  
 3. 雙方 ready → Host 開日 → 打完一日：Intent／暫停／凍座／日結。  
-4. 可選跨平台：Mac↔Win／Linux 匯出包（[`export-presets.md`](export-presets.md)）。
+4. **備援（Editor／Overlay 失效）**：Join 手動開「加入 Steam」→ 輸入 Host 大廳顯示的 Lobby ID。  
+5. 可選跨平台：Mac↔Win／Linux 匯出包（[`export-presets.md`](export-presets.md)）。
+
+設計細節見 [`multiplayer.md`](../systemdesign/multiplayer.md) §13.6。
 
 ## 上架
 

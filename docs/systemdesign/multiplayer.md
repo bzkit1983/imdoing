@@ -4,7 +4,7 @@
 - **範圍：** 本機合作、線上合作、以及兩者混合的同一 Session 模型；技術分層與平台差異
 - **產品錨點：** 活線 `godot/game`（Godot 4.7）；版控見 `docs/versioning.md`
 - **對照：** `docs/alpha/tech-review-v0.1.md`、`docs/systemdesign/ecosystem.md`、`docs/systemdesign/playerexport.md`、`docs/systemdesign/control.md`、`docs/systemdesign/savesystem.md`、`docs/systemdesign/pausemenu.md`、`godot/game/scripts/platform_services.gd`
-- **產出／更新：** 2026-11-05（初稿＋§10 拍板＋§11 M1）；**2026-11-09 定稿 §12 M2 LAN**；**2026-11-10 claim2／M2.1～M2.9**；**2026-11-10 定稿 §13 M3 Steam（含 Win／Linux／macOS depot）**；**2026-11-11 §13.4 驗收通過**
+- **產出／更新：** 2026-11-05（初稿＋§10 拍板＋§11 M1）；**2026-11-09 定稿 §12 M2 LAN**；**2026-11-10 claim2／M2.1～M2.9**；**2026-11-10 定稿 §13 M3 Steam（含 Win／Linux／macOS depot）**；**2026-11-11 §13.4 驗收通過**；**2026-11-14 §13.6 邀請免手打 Lobby ID**
 
 ---
 
@@ -667,13 +667,14 @@ Client 以 snapshot **建構表現世界**；AI／庫存／結算權威仍在 Ho
 ### 13.2 進房流程
 
 ```text
-Host：Steam 登入 → host_steam（本機 1｜2 seat）→ 建 Lobby → 邀請好友／Overlay
-Join：接受邀請或 Lobby 瀏覽 → join_steam_lobby → claim 1｜2 + sheet 上傳（同 §12）
+Host：Steam 登入 → host_steam（本機 1｜2 seat）→ 建 Lobby → Overlay 邀請好友
+Join：接受邀請（免手打 Lobby ID）→ claim 1｜2 + sheet 上傳（同 §12）→ join_steam_lobby
 Ready → Host start_day → 其餘與 M2 相同（Intent／freeze／settle）
 ```
 
-- 失敗碼（最小集）：`steam_unavailable`、`steam_not_running`、`lobby_failed`、`join_failed`、`claim_*`／`no_save`／`guest_sheet_required`（同 LAN）
+- 失敗碼（最小集）：`steam_unavailable`、`steam_not_running`、`lobby_failed`、`join_failed`、`invite_busy`、`claim_*`／`no_save`／`guest_sheet_required`（同 LAN）
 - 無 IP:port；位址欄僅 LAN 使用
+- **手動 Lobby ID** 僅 Editor／Overlay 失效／除錯備援（見 §13.6）
 
 ### 13.3 工程切分建議
 
@@ -682,24 +683,49 @@ Ready → Host start_day → 其餘與 M2 相同（Intent／freeze／settle）
 | **M3 規格** | 本節；depot／480／Editor 契約 | **本節已定** |
 | **M3 閘門** | `is_networked()`；LAN 行為不回歸 | **見實作** |
 | **M3 Transport** | GodotSteam；`NetTransport` steam；`host_steam`／lobby join | **已驗收** |
-| **M3 Prep UX** | Steam 開房／邀請入口 | **已驗收** |
+| **M3 Prep UX** | Steam 開房／大廳邀請按鈕 | **已驗收**（開房）；邀請 Overlay 見 §13.6 |
+| **M3 邀請橋接** | Overlay／Friends／冷啟動 → pending lobby → claim UI | **§13.6** |
 | **M3 macOS 匯出** | `export_presets` macOS + 文件三 depot | **已驗收** |
 | **M3 上架後端** | 正式 App ID、Cloud／成就、Partner depot 配置 | **可後補**（不阻塞已通過之 lobby 聯測） |
 
 ### 13.4 M3 驗收清單
 
-- [x] Host 以 Steam 開房；好友邀請後 remote claim 1｜2 加入；名額與 §12 一致（2026-11-11）
-- [x] Editor（或匯出包）+ 第二 Steam 身分可完成邀請進混合房並開日
+- [x] Host 以 Steam 開房；remote 以 Lobby ID claim 1｜2 加入；名額與 §12 一致（2026-11-11；**當日為手動 ID 路徑**）
+- [x] Editor（或匯出包）+ 第二 Steam 身分可完成進混合房並開日
 - [x] 開日後 Intent／暫停／凍座／日結與 M2 行為一致（`transport=steam`）
 - [x] `transport=local` 與 `lan_enet` 不回歸（`tools/m3_steam_smoke.sh`）
 - [x] Win／Linux／macOS 皆有 Steam 候選匯出預設；文件寫明三 depot（`steam_candidate`＋`net_steam`）
 - [x] 開發期可用 App ID 480（`steam_appid.txt`）；正式 ID 僅上架切換；GodotSteam **4.24** 已納入 repo
+- [ ] **§13.6**：接受 Overlay 邀請後免輸入 Lobby ID；冷啟動 `+connect_lobby`；手動 ID 備援仍可用
 
 ### 13.5 成本與事前準備（摘要）
 
 - 開發聯測：**可零額外匯費**（Partner 免費 + 480 + 雙 Steam 帳）
 - 上架：Steam Direct（約 USD $100／款，以 Partner 為準）換專屬 App ID；**macOS depot 不另收 Direct**
 - 不需自架遊戲伺服器（對照 M4 Web）
+
+### 13.6 邀請進房橋接（免手打 Lobby ID）
+
+- **對齊：** §13.2；實作於 `NetTransport`／`SessionService`／Prep（**不**放 `steam_platform.gd`）
+- **不變：** 邀請只解決「長 ID」；進房前仍須 claim 1｜2＋guest sheet（同 §12）
+- **單一進房入口：** 取得 lobby id 後一律呼叫既有 `SessionService.join_steam_lobby`
+
+| 來源 | Steam／GodotSteam | 本機行為 |
+| --- | --- | --- |
+| Overlay 接受邀請（遊戲已開） | `join_requested`（lobby_id, friend_id） | 寫 `pending_steam_lobby_id` → Prep `steam_join`（隱藏 ID 欄） |
+| Friends「加入遊戲」 | Rich Presence `connect`＝lobby id；`join_game_requested` | 同上（自 connect 字串解析 id） |
+| 遊戲未開 | cmdline `+connect_lobby <id>` | 開機解析 → 同上 |
+| Host 邀請 UI | `activateGameOverlayInviteDialog(lobby_id)` | 大廳「邀請好友」；不靠口頭傳 ID |
+| Host 房間中繼 | `setLobbyData`＋`setRichPresence("connect", …)` | `host_steam` 成功後設；離房／關房 `clearRichPresence` |
+
+**衝突：** 若本機已 `is_networked()` 或 `day_started`，不中斷現局；回 `invite_busy`／彈錯，不覆寫 pending。僅主選單／Prep 空閒時消費 pending。
+
+**備援：** Prep 手動進入「加入 Steam」仍可輸入 Lobby ID（Editor／Overlay 在 Editor 常失效）。
+
+```text
+Host → createLobby → publish_lobby → Overlay 邀請
+Guest → join_requested｜+connect_lobby → pending → claim UI → join_steam_lobby
+```
 
 ---
 

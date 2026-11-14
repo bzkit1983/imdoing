@@ -15,6 +15,10 @@ const STEAM_RESULT_OK := 1
 const STEAM_LOBBY_TIMEOUT_SEC := 12.0
 
 static var _steam_inited: bool = false
+## Invite／Join Game hooks bound once after Steam init (§13.6).
+static var _invite_hooks_bound: bool = false
+## Callable(lobby_id: int) — SessionService queues pending join.
+static var _on_invite_lobby: Callable = Callable()
 
 
 static func lan_available() -> bool:
@@ -221,6 +225,146 @@ static func leave_steam_lobby(lobby_id: int) -> void:
 	var steam := _steam_singleton()
 	if steam != null and steam.has_method("leaveLobby"):
 		steam.call("leaveLobby", lobby_id)
+
+
+## Bind Overlay／Friends invite callbacks. `on_lobby(lobby_id: int)` receives pending joins.
+static func bind_invite_hooks(on_lobby: Callable) -> void:
+	_on_invite_lobby = on_lobby
+	var init_err := ensure_steam_init()
+	if init_err != "":
+		return
+	_connect_invite_signals()
+
+
+static func _connect_invite_signals() -> void:
+	if _invite_hooks_bound:
+		return
+	var steam := _steam_singleton()
+	if steam == null:
+		return
+	## GameLobbyJoinRequested — Overlay invite / Join Lobby while game running.
+	if steam.has_signal("join_requested") and not steam.is_connected("join_requested", _on_join_requested):
+		steam.connect("join_requested", _on_join_requested)
+	## GameRichPresenceJoinRequested — Friends "Join Game" via connect string.
+	if steam.has_signal("join_game_requested") and not steam.is_connected("join_game_requested", _on_join_game_requested):
+		steam.connect("join_game_requested", _on_join_game_requested)
+	_invite_hooks_bound = true
+
+
+static func _on_join_requested(lobby_id: int, _friend_id: int) -> void:
+	_emit_invite_lobby(int(lobby_id))
+
+
+static func _on_join_game_requested(_friend_id: int, connect_string: String) -> void:
+	var lobby_id := parse_lobby_id_from_connect(String(connect_string))
+	if lobby_id > 0:
+		_emit_invite_lobby(lobby_id)
+
+
+static func _emit_invite_lobby(lobby_id: int) -> void:
+	if lobby_id <= 0:
+		return
+	if _on_invite_lobby.is_valid():
+		_on_invite_lobby.call(lobby_id)
+
+
+## After host lobby create: lobby data + Rich Presence so Friends can Join Game.
+static func publish_lobby(lobby_id: int) -> void:
+	if lobby_id <= 0:
+		return
+	var steam := _steam_singleton()
+	if steam == null:
+		return
+	if steam.has_method("setLobbyData"):
+		steam.call("setLobbyData", lobby_id, "game", "imdoing")
+	if steam.has_method("setRichPresence"):
+		steam.call("setRichPresence", "status", "In lobby")
+		steam.call("setRichPresence", "connect", str(lobby_id))
+
+
+static func clear_lobby_presence() -> void:
+	var steam := _steam_singleton()
+	if steam == null:
+		return
+	if steam.has_method("clearRichPresence"):
+		steam.call("clearRichPresence")
+
+
+## Opens Steam Overlay invite dialog for the current lobby. Returns "" or error code.
+static func invite_overlay(lobby_id: int) -> String:
+	if lobby_id <= 0:
+		return "lobby_invalid"
+	var init_err := ensure_steam_init()
+	if init_err != "":
+		return init_err
+	var steam := _steam_singleton()
+	if steam == null:
+		return "steam_unavailable"
+	if not steam.has_method("activateGameOverlayInviteDialog"):
+		return "steam_peer_api"
+	steam.call("activateGameOverlayInviteDialog", lobby_id)
+	return ""
+
+
+## Parse lobby id from Rich Presence / invite connect string.
+static func parse_lobby_id_from_connect(connect_string: String) -> int:
+	var s := connect_string.strip_edges()
+	if s.is_empty():
+		return 0
+	if s.is_valid_int():
+		return int(s)
+	## Tolerate "+connect_lobby 123" or "connect_lobby=123" embedded in one token.
+	var args := s.split(" ", false)
+	var parsed := parse_connect_lobby_args(args)
+	if parsed > 0:
+		return parsed
+	if "=" in s:
+		var parts := s.split("=", false, 1)
+		if parts.size() == 2 and String(parts[1]).strip_edges().is_valid_int():
+			return int(String(parts[1]).strip_edges())
+	return 0
+
+
+## Parse `+connect_lobby <id>` from a string arg list (testable; used by cmdline consume).
+static func parse_connect_lobby_args(args: PackedStringArray) -> int:
+	for i in args.size():
+		var a := String(args[i]).strip_edges()
+		if a == "+connect_lobby" or a == "connect_lobby":
+			if i + 1 < args.size():
+				var id_s := String(args[i + 1]).strip_edges()
+				if id_s.is_valid_int():
+					return int(id_s)
+		elif a.begins_with("+connect_lobby="):
+			var id_s := a.substr(String("+connect_lobby=").length()).strip_edges()
+			if id_s.is_valid_int():
+				return int(id_s)
+		elif a.begins_with("connect_lobby="):
+			var id_s2 := a.substr(String("connect_lobby=").length()).strip_edges()
+			if id_s2.is_valid_int():
+				return int(id_s2)
+	return 0
+
+
+## Cold-start: Steam launches with +connect_lobby when invite accepted while game closed.
+static func consume_cmdline_connect_lobby() -> int:
+	var args: PackedStringArray = OS.get_cmdline_args()
+	args.append_array(OS.get_cmdline_user_args())
+	var from_os := parse_connect_lobby_args(args)
+	if from_os > 0:
+		return from_os
+	## Steam API only after successful init (avoids Apps-class errors when client missing).
+	if not _steam_inited:
+		return 0
+	var steam := _steam_singleton()
+	if steam != null and steam.has_method("getLaunchCommandLine"):
+		var launch: Variant = steam.call("getLaunchCommandLine")
+		if typeof(launch) == TYPE_STRING:
+			return parse_lobby_id_from_connect(String(launch))
+		if typeof(launch) == TYPE_DICTIONARY:
+			var cmd := String(launch.get("command_line", launch.get("cmd", "")))
+			if not cmd.is_empty():
+				return parse_lobby_id_from_connect(cmd)
+	return 0
 
 
 static func close_peer(peer: MultiplayerPeer) -> void:

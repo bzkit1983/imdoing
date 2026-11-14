@@ -26,6 +26,8 @@ signal stock_state_received(payload: Dictionary)
 signal carry_state_received(payload: Dictionary)
 ## M2.9: Host → client seat checkout prompt chrome (arrows／hold).
 signal prompt_state_received(payload: Dictionary)
+## M3 §13.6: Overlay／Friends／cmdline queued a lobby for Prep claim UI.
+signal steam_invite_pending(lobby_id: int)
 
 const ROOM_MAX_SEATS := 4
 const LOCAL_PEER_ID := 1
@@ -45,6 +47,8 @@ var lan_port: int = NetTransport.DEFAULT_PORT
 var join_address: String = ""
 ## Steam lobby id (M3); 0 = none / pending callback.
 var steam_lobby_id: int = 0
+## §13.6: lobby id from invite／Join Game／+connect_lobby awaiting Prep claim.
+var pending_steam_lobby_id: int = 0
 ## Client join claim 1｜2 (M2 second slice).
 var join_claim_seats: int = 1
 ## GuestSlots index for claim-2 second seat (−1 = none / ephemeral clone).
@@ -74,6 +78,45 @@ func _ready() -> void:
 	multiplayer.connected_to_server.connect(_on_connected_to_server)
 	multiplayer.connection_failed.connect(_on_connection_failed)
 	multiplayer.server_disconnected.connect(_on_server_disconnected)
+	_setup_steam_invite_bridge()
+
+
+func _setup_steam_invite_bridge() -> void:
+	## §13.6: consume cold-start cmdline; bind Overlay hooks only if Steam client is up
+	## (avoid steamInit spam for LAN-only／no-Steam boots).
+	if not steam_available():
+		return
+	var cold := NetTransport.consume_cmdline_connect_lobby()
+	if cold > 0:
+		_on_steam_invite_lobby(cold)
+	if NetTransport.steam_running():
+		NetTransport.bind_invite_hooks(_on_steam_invite_lobby)
+
+
+func _on_steam_invite_lobby(lobby_id: int) -> void:
+	if lobby_id <= 0:
+		return
+	if is_networked() or day_started:
+		net_error.emit("invite_busy")
+		return
+	pending_steam_lobby_id = lobby_id
+	steam_invite_pending.emit(lobby_id)
+
+
+func clear_pending_steam_lobby() -> void:
+	pending_steam_lobby_id = 0
+
+
+## Host: open Steam Overlay invite dialog for current lobby.
+func invite_steam_friends() -> String:
+	if not is_steam() or not is_server():
+		return "lobby_invalid"
+	return NetTransport.invite_overlay(steam_lobby_id)
+
+
+## True when Prep should hide manual Lobby ID (came from invite).
+func has_pending_steam_invite() -> bool:
+	return pending_steam_lobby_id > 0
 
 
 func _on_seat_count_changed(_count: int) -> void:
@@ -185,6 +228,9 @@ func host_steam(local_seat_count: int = 1, guest = null, slot_index: int = -1) -
 	for s in SeatTable.seat_ids():
 		if SeatTable.owner_peer_of(s) == local_peer_id:
 			SeatTable.set_seat_ready(s, true)
+	NetTransport.publish_lobby(steam_lobby_id)
+	## Ensure invite hooks live on host too (init may have succeeded here first).
+	NetTransport.bind_invite_hooks(_on_steam_invite_lobby)
 	seats_changed.emit()
 	lobby_changed.emit()
 	return ""
@@ -226,6 +272,10 @@ func join_steam_lobby(
 	day_started = false
 	settlement_applied = false
 	host_peer_id = LOCAL_PEER_ID
+	## Joined via invite／manual — clear pending so Prep doesn't re-open claim.
+	if pending_steam_lobby_id == steam_lobby_id or pending_steam_lobby_id == lobby_id:
+		pending_steam_lobby_id = 0
+	NetTransport.bind_invite_hooks(_on_steam_invite_lobby)
 	SeatTable.reset_solo()
 	lobby_changed.emit()
 	return ""
@@ -917,8 +967,10 @@ func _sync_local_peers() -> void:
 
 
 func _teardown_peer() -> void:
-	if transport_id == "steam" and steam_lobby_id > 0:
-		NetTransport.leave_steam_lobby(steam_lobby_id)
+	if transport_id == "steam":
+		NetTransport.clear_lobby_presence()
+		if steam_lobby_id > 0:
+			NetTransport.leave_steam_lobby(steam_lobby_id)
 	if multiplayer.multiplayer_peer != null:
 		multiplayer.multiplayer_peer = null
 	if _peer != null:

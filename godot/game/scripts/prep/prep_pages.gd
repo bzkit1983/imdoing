@@ -104,16 +104,20 @@ static func _layout_lobby_panels(menu: CanvasLayer, line_n: int) -> void:
 	menu._info.clip_contents = true
 	var gap := 12.0
 	var list_top := info_top + info_h + gap
-	## Join pages place a LineEdit between info and list.
+	## Join pages place a LineEdit between info and list (hidden for Steam invite path).
 	if menu._page == "lan_join" or menu._page == "steam_join":
 		var edit_top := info_top + info_h + 8.0
+		var edit_visible := false
 		if menu._page == "lan_join" and menu._lan_addr_edit != null and menu._lan_addr_edit.visible:
 			menu._lan_addr_edit.position = Vector2(24, edit_top)
 			menu._lan_addr_edit.size = Vector2(480, 40)
+			edit_visible = true
 		if menu._page == "steam_join" and menu._steam_lobby_edit != null and menu._steam_lobby_edit.visible:
 			menu._steam_lobby_edit.position = Vector2(24, edit_top)
 			menu._steam_lobby_edit.size = Vector2(480, 40)
-		list_top = edit_top + 48.0
+			edit_visible = true
+		if edit_visible:
+			list_top = edit_top + 48.0
 	menu._list.position = Vector2(24, list_top)
 	menu._list.size = Vector2(1232, maxf(160.0, 668.0 - list_top))
 
@@ -947,6 +951,8 @@ static func _lobby(menu: CanvasLayer) -> void:
 			var lab := Loc.t("lobby.toggle_ready", [s + 1])
 			menu._add(lab, "lobby_ready", s)
 	if SessionService.is_server():
+		if SessionService.is_steam():
+			menu._add(Loc.t("lobby.steam_invite"), "lobby_invite", null)
 		if SessionService.all_ready():
 			menu._add(Loc.t("lobby.start"), "lobby_start", null)
 		else:
@@ -1007,10 +1013,15 @@ static func _steam_join(menu: CanvasLayer) -> void:
 	if web_solo:
 		menu._local_seats = 1
 	var claim := 1 if web_solo else clampi(menu._local_seats, 1, 2)
+	var from_invite: bool = bool(menu._steam_join_from_invite)
 	var lobby_s := String(menu._steam_lobby_draft)
 	if lobby_s.is_empty():
 		lobby_s = "0"
-	var info := Loc.t("lobby.steam_join_info", [lobby_s])
+	var info: String
+	if from_invite:
+		info = Loc.t("lobby.steam_join_invite_info", [lobby_s])
+	else:
+		info = Loc.t("lobby.steam_join_info", [lobby_s])
 	info += "\n" + Loc.t("lobby.join_claim", [
 		Loc.t("lobby.claim_2") if claim >= 2 else Loc.t("lobby.claim_1")
 	])
@@ -1027,7 +1038,11 @@ static func _steam_join(menu: CanvasLayer) -> void:
 			info += "\n" + Loc.t("prep.confirm.guest_none")
 		info += "\n" + Loc.t("lobby.join_claim2_hint")
 	menu._info.text = info
-	menu._ensure_steam_lobby_edit(lobby_s)
+	if from_invite:
+		menu._hide_steam_lobby_edit()
+		menu._steam_lobby_draft = lobby_s
+	else:
+		menu._ensure_steam_lobby_edit(lobby_s)
 	_layout_lobby_panels(menu, info.split("\n").size())
 	if not web_solo:
 		menu._add(Loc.t("lobby.claim_1"), "set_seats", 1)
