@@ -11,7 +11,7 @@ Repository for game project
 **產品版：** `v1.4.0`（全單位改「件」；見 [`VERSION`](VERSION)、[`docs/versioning.md`](docs/versioning.md)；上一錨點 `v1.3.0`）  
 **網頁試玩：** https://bzkit1983.github.io/imdoing/play/
 
-技術設計審查（效能／Steam·Switch·Xbox／跟進清單）：[`docs/alpha/tech-review-v0.1.md`](docs/alpha/tech-review-v0.1.md)
+技術評估（可持續／效能／遊戲設計／平台；現行）：[`docs/alpha/tech-review-v0.2.md`](docs/alpha/tech-review-v0.2.md) · 前一輪：[`tech-review-v0.1.md`](docs/alpha/tech-review-v0.1.md)
 
 ## 凍結快照（勿開新功能）
 
@@ -35,7 +35,7 @@ Repository for game project
 - 長線規則：`docs/systemdesign/`（含 [`savesystem.md`](docs/systemdesign/savesystem.md)、[`control.md`](docs/systemdesign/control.md)、[`pausemenu.md`](docs/systemdesign/pausemenu.md)、[`soundeffects.md`](docs/systemdesign/soundeffects.md)、[`elitecustomer.md`](docs/systemdesign/elitecustomer.md) 麻煩客人・已落地、[`appearance.md`](docs/systemdesign/appearance.md) 外觀／Look、[`fetchcombo.md`](docs/systemdesign/fetchcombo.md) 幫忙取貨與 COMBO、[`ratingsystem.md`](docs/systemdesign/ratingsystem.md) 評價・設計中、[`difficulty.md`](docs/systemdesign/difficulty.md) 難度 stub）
 - 多人連線（本機二＋線上補滿至四人）：[`docs/systemdesign/multiplayer.md`](docs/systemdesign/multiplayer.md)（**M1～M2.9 已落地**；**M3 Steam 已驗收**；見 [`godotsteam-setup.md`](docs/alpha/godotsteam-setup.md)；M4 Web 待做）
 - 缺口檢視：`docs/systemdesign-gaps.md`
-- Alpha 計劃／審查／設計：`docs/alpha/plan.md`、`docs/alpha/design.md`、`docs/alpha/tech-review-v0.1.md`
+- Alpha 計劃／審查／設計：`docs/alpha/plan.md`、`docs/alpha/design.md`、`docs/alpha/tech-review-v0.2.md`（現行）、`docs/alpha/tech-review-v0.1.md`（歷史）
 - 執行期優化分析：`docs/alpha/runtime-perf-audit.md`
 - 工程對照：`docs/alpha/implementation-status.md`（存檔、InputMap、暫停／SFX／鏡頭視野、i18n、客人交付、技能組、互動發光、三招狙擊手、Dark Side、多重影分身、M1 本機雙人、Look 外觀、營運飄字、Pages 等）
 - 字串表／字型／匯出：`docs/alpha/i18n.md`、`docs/alpha/fonts-subset.md`、`docs/alpha/export-presets.md`

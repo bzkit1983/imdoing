@@ -2,7 +2,7 @@
 
 - 對照日：2026-11-11（含 PR #3–#117 等；多人 **M1～M2.9 已落地**；**§13 M3 Steam 已驗收**）
 - 用途：把近期工程變更連回長線／Alpha 設計檔，方便查「文件寫在哪、程式改哪」
-- 版控：`docs/versioning.md` · 技術债清單：`docs/alpha/tech-review-v0.1.md`（§6 已全部勾完） · 缺口：`docs/systemdesign-gaps.md` · 執行期優化：`docs/alpha/runtime-perf-audit.md`
+- 版控：`docs/versioning.md` · 技術評估：`docs/alpha/tech-review-v0.2.md`（現行；v0.1 §6 已全部勾完見 [`tech-review-v0.1.md`](tech-review-v0.1.md)） · 缺口：`docs/systemdesign-gaps.md` · 執行期優化：`docs/alpha/runtime-perf-audit.md`
 
 | 變更 | 長線／Alpha 文件 | 工程 |
 | --- | --- | --- |
