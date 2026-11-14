@@ -40,8 +40,8 @@ func clear_runtime() -> void:
 	## Keep `_warehouse_hooked` — state signal stays connected across days.
 
 func alloc_agent_id() -> int:
-	var id := host._next_agent_id
-	host._next_agent_id += 1
+	var id: int = int(host._next_agent_id)
+	host._next_agent_id = id + 1
 	return id
 
 func register_net_agent(node: Node, kind: String, extra: Dictionary = {}) -> void:

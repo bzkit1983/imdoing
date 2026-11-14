@@ -33,6 +33,9 @@ need(
     and WORLD.find("add_child(node)") < WORLD.find("node.apply_default_sku"),
     "restock still add_child before apply_default_sku",
 )
+# host is typed Node — FLOOR_* reads need Vector2 annotations for `:=` inference.
+need("var o: Vector2 = host.FLOOR_ORIGIN" in WORLD, "walls_and_door types FLOOR_ORIGIN")
+need("var s: Vector2 = host.FLOOR_SIZE" in WORLD, "walls_and_door types FLOOR_SIZE")
 
 if errs:
     print("FAIL")

@@ -92,8 +92,9 @@ func build_floor() -> void:
 
 func walls_and_door() -> void:
 	var t := 18.0
-	var o := host.FLOOR_ORIGIN
-	var s := host.FLOOR_SIZE
+	## `host` is typed Node — annotate Vector2 so `:=` can infer north_y / mid / etc.
+	var o: Vector2 = host.FLOOR_ORIGIN
+	var s: Vector2 = host.FLOOR_SIZE
 	var door_w := 90.0
 	var mid := o.x + s.x * 0.5
 	solid(Rect2(o.x - t, o.y - t, mid - door_w * 0.5 - (o.x - t), t))
@@ -167,9 +168,10 @@ func make_cashier(r: Rect2, rot: int, index: int) -> Node2D:
 func build_furniture(nodes: Array[Node2D]) -> void:
 	var shelf_i := 1
 	var reg_i := 0
+	var origin: Vector2 = host.FLOOR_ORIGIN
 	for it in host.state.placed:
 		var cell := StateScript.CELL
-		var r := Rect2(host.FLOOR_ORIGIN + Vector2(int(it["x"]), int(it["y"])) * cell, Vector2(int(it["w"]), int(it["h"])) * cell)
+		var r := Rect2(origin + Vector2(int(it["x"]), int(it["y"])) * cell, Vector2(int(it["w"]), int(it["h"])) * cell)
 		var t := String(it["type"])
 		var rot := int(it["rot"])
 		if t.begins_with("restock"):
@@ -202,7 +204,9 @@ func spawn_clerks() -> void:
 		if String(c["role"]) == "cashier" and not host.cashiers.is_empty():
 			reg = host.cashiers[mini(int(c["register"]), host.cashiers.size() - 1)]
 		host._world.add_child(clerk)
-		clerk.setup(host, host.FLOOR_ORIGIN + Vector2(80 + i * 36, host.FLOOR_SIZE.y - 120), String(c["role"]), reg)
+		var origin: Vector2 = host.FLOOR_ORIGIN
+		var floor_size: Vector2 = host.FLOOR_SIZE
+		clerk.setup(host, origin + Vector2(80 + i * 36, floor_size.y - 120), String(c["role"]), reg)
 		host._clerks.append(clerk)
 		host._register_net_agent(clerk, "clerk", {
 			"role": String(c["role"]),
