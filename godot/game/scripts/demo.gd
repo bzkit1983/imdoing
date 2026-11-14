@@ -2983,7 +2983,7 @@ func spawn_dropped_box(
 	## Optional side offset (投籃高手第二件) after sniper dest so piles do not stack.
 	dest += land_nudge
 	_emit_net_flight(sku, n, pos, dest, Tuning.DROP_FLIGHT_SEC)
-	var flight: Node2D = DropFlightScript.new()
+	var flight: Node2D = DropFlightScript.acquire()
 	flight.setup(sku, pos, dest, Tuning.DROP_FLIGHT_SEC, n)
 	_world.add_child(flight)
 	flight.finished.connect(func() -> void:
@@ -2997,7 +2997,7 @@ func spawn_dropped_box(
 			_resolve_toss_landing(pos, dest, sku, n, toss_dir)
 		if on_landed.is_valid():
 			on_landed.call()
-	)
+	, CONNECT_ONE_SHOT)
 
 
 ## Scatter cart piles from `origin` with flight anim; destinations do not overlap.
@@ -3049,14 +3049,14 @@ func _spawn_box_flight(
 	on_landed: Callable,
 ) -> void:
 	_emit_net_flight(sku, n, from, to, duration)
-	var flight: Node2D = DropFlightScript.new()
+	var flight: Node2D = DropFlightScript.acquire()
 	flight.setup(sku, from, to, duration, n)
 	_world.add_child(flight)
 	flight.finished.connect(func() -> void:
 		_place_dropped_box(to, sku, n)
 		if on_landed.is_valid():
 			on_landed.call()
-	)
+	, CONNECT_ONE_SHOT)
 
 
 func _emit_net_flight(sku: String, n: int, from: Vector2, to: Vector2, duration: float) -> void:

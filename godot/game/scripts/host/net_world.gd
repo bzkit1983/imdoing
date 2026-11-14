@@ -272,7 +272,7 @@ func play_net_flight(payload: Dictionary) -> void:
 	var from := Vector2(float(payload.get("fx", 0.0)), float(payload.get("fy", 0.0)))
 	var to := Vector2(float(payload.get("tx", 0.0)), float(payload.get("ty", 0.0)))
 	var dur := float(payload.get("dur", Tuning.DROP_FLIGHT_SEC))
-	var flight: Node2D = DropFlightScript.new()
+	var flight: Node2D = DropFlightScript.acquire()
 	flight.setup(sku, from, to, dur, n)
 	host._world.add_child(flight)
 

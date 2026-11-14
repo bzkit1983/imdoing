@@ -1,5 +1,6 @@
 extends Node2D
 ## Flies a box sprite from `from` to `to`, then notifies via `finished`.
+## Tech-review J2: instances are pooled (acquire / release) instead of new/free each toss.
 
 const Tuning = preload("res://scripts/tuning.gd")
 const Vox = preload("res://scripts/voxel_sprite.gd")
@@ -19,6 +20,17 @@ var _from: Vector2 = Vector2.ZERO
 var _to: Vector2 = Vector2.ZERO
 var _pts := PackedVector2Array([Vector2.ZERO, Vector2.ZERO])
 
+const POOL_CAP := 32
+static var _pool: Array = []
+
+
+static func acquire() -> Node2D:
+	while not _pool.is_empty():
+		var n = _pool.pop_back()
+		if n != null and is_instance_valid(n):
+			return n as Node2D
+	return (load("res://scripts/drop_flight.gd") as Script).new() as Node2D
+
 
 func setup(
 	id: String,
@@ -32,21 +44,26 @@ func setup(
 	_from = from
 	_to = to
 	_duration = maxf(0.05, duration)
+	_elapsed = 0.0
 	z_index = 8
-	_trail = Line2D.new()
-	_trail.width = 3.0
+	visible = true
+	if _trail == null:
+		_trail = Line2D.new()
+		_trail.width = 3.0
+		_trail.z_index = -1
+		add_child(_trail)
 	_trail.default_color = Tuning.DROP_FLIGHT_TRAIL_COLOR
-	_trail.z_index = -1
 	_pts[0] = Vector2.ZERO
 	_pts[1] = to - from
 	_trail.points = _pts
-	add_child(_trail)
-	_spr = Vox.sprite("box", 0)
-	_spr.scale = Vector2(0.65, 0.65)
+	if _spr == null:
+		_spr = Vox.sprite("box", 0)
+		_spr.scale = Vector2(0.65, 0.65)
+		add_child(_spr)
 	var tint: Color = Tuning.SKU_COLOR.get(id, Color.WHITE)
 	_spr.modulate = tint.lerp(Color.WHITE, 0.35)
-	add_child(_spr)
 	global_position = from
+	set_process(true)
 
 
 func _process(delta: float) -> void:
@@ -62,5 +79,19 @@ func _process(delta: float) -> void:
 	_trail.points = _pts
 	_trail.default_color.a = 0.55 * (1.0 - t * 0.35)
 	if t >= 1.0:
+		set_process(false)
 		finished.emit()
+		_recycle()
+
+
+func _recycle() -> void:
+	visible = false
+	_elapsed = 0.0
+	for c in finished.get_connections():
+		finished.disconnect(c["callable"])
+	if get_parent() != null:
+		get_parent().remove_child(self)
+	if _pool.size() >= POOL_CAP:
 		queue_free()
+		return
+	_pool.append(self)

@@ -3,6 +3,7 @@ extends Node2D
 ## Color follows player-facing sign: positive = green, negative = red.
 ## Dissat callers pass display_value = -internal_delta (patience polarity).
 ## Concurrent floats near the same head stack upward so they stay readable.
+## Tech-review J2: instances are pooled.
 
 const UiFont = preload("res://scripts/ui_font.gd")
 
@@ -23,6 +24,12 @@ const STACK_GROUP := "ops_float"
 const STACK_X := 56.0
 const STACK_Y := 96.0
 
+const POOL_CAP := 32
+static var _pool: Array = []
+
+var _lab: Label
+var _tween: Tween
+
 
 static func spawn(parent: Node, world_pos: Vector2, display_value: float, kind: String = "", stagger: int = 0) -> void:
 	if parent == null:
@@ -30,15 +37,26 @@ static func spawn(parent: Node, world_pos: Vector2, display_value: float, kind: 
 	var shown := int(round(display_value))
 	if shown == 0:
 		return
-	var script: Script = load("res://scripts/ui/float_text.gd") as Script
-	var n: Node2D = script.new() as Node2D
+	var n: Node2D = _acquire()
 	n.name = "FloatText"
 	n.z_index = 40
 	var slot := maxi(stagger, _stack_index(parent, world_pos))
-	n.global_position = world_pos + Vector2(0, -slot * STAGGER_Y)
-	n.add_to_group(STACK_GROUP)
+	n.visible = true
+	n.modulate = Color.WHITE
+	n.scale = Vector2(POP_SCALE, POP_SCALE)
 	parent.add_child(n)
+	n.global_position = world_pos + Vector2(0, -slot * STAGGER_Y)
+	if not n.is_in_group(STACK_GROUP):
+		n.add_to_group(STACK_GROUP)
 	n.call("_begin", shown, kind, slot)
+
+
+static func _acquire() -> Node2D:
+	while not _pool.is_empty():
+		var n = _pool.pop_back()
+		if n != null and is_instance_valid(n):
+			return n as Node2D
+	return (load("res://scripts/ui/float_text.gd") as Script).new() as Node2D
 
 
 static func spawn_on(actor: Node2D, display_value: float, kind: String = "", stagger: int = 0) -> void:
@@ -89,27 +107,47 @@ static func _stack_index(parent: Node, at: Vector2) -> int:
 
 
 func _begin(shown: int, kind: String, slot: int = 0) -> void:
-	var lab := Label.new()
-	lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lab.text = _format(shown, kind)
-	UiFont.apply_label(lab, FONT_SIZE)
+	if _tween != null and is_instance_valid(_tween):
+		_tween.kill()
+		_tween = null
+	if _lab == null:
+		_lab = Label.new()
+		_lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_lab.position = Vector2(-56, -12)
+		_lab.size = Vector2(112, 36)
+		add_child(_lab)
+	_lab.modulate = Color.WHITE
+	_lab.text = _format(shown, kind)
+	UiFont.apply_label(_lab, FONT_SIZE)
 	var col := COLOR_GOOD if shown > 0 else COLOR_BAD
-	lab.add_theme_color_override("font_color", col)
-	lab.add_theme_color_override("font_outline_color", COLOR_OUTLINE)
-	lab.add_theme_constant_override("outline_size", 6)
-	lab.position = Vector2(-56, -12)
-	lab.size = Vector2(112, 36)
+	_lab.add_theme_color_override("font_color", col)
+	_lab.add_theme_color_override("font_outline_color", COLOR_OUTLINE)
+	_lab.add_theme_constant_override("outline_size", 6)
 	scale = Vector2(POP_SCALE, POP_SCALE)
-	add_child(lab)
 	var delay := mini(0.12, 0.04 * float(slot))
 	var hold := DURATION * HOLD_FRAC
 	var fade := DURATION - hold
-	var tw := create_tween()
-	tw.set_parallel(true)
-	tw.tween_property(self, "scale", Vector2.ONE, 0.14).set_delay(delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_property(self, "position:y", position.y - RISE_PX, DURATION).set_delay(delay).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	tw.tween_property(lab, "modulate:a", 0.0, fade).set_delay(delay + hold)
-	tw.chain().tween_callback(queue_free)
+	_tween = create_tween()
+	_tween.set_parallel(true)
+	_tween.tween_property(self, "scale", Vector2.ONE, 0.14).set_delay(delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_tween.tween_property(self, "position:y", position.y - RISE_PX, DURATION).set_delay(delay).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	_tween.tween_property(_lab, "modulate:a", 0.0, fade).set_delay(delay + hold)
+	_tween.chain().tween_callback(_recycle)
+
+
+func _recycle() -> void:
+	if _tween != null and is_instance_valid(_tween):
+		_tween.kill()
+		_tween = null
+	visible = false
+	if is_in_group(STACK_GROUP):
+		remove_from_group(STACK_GROUP)
+	if get_parent() != null:
+		get_parent().remove_child(self)
+	if _pool.size() >= POOL_CAP:
+		queue_free()
+		return
+	_pool.append(self)
 
 
 func _format(shown: int, kind: String) -> String:
