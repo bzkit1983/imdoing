@@ -185,7 +185,7 @@ PlatformServices：Desktop 實作完整；Steam 後端 **磁碟路徑可用、Cl
 
 ## 7. 跟進清單（建議開 issue）
 
-- [ ] **F1** 從 `demo.gd` 抽出世界生成／日結／網路世界同步模組（行為不變）
+- [x] **F1** 從 `demo.gd` 抽出世界生成／日結／網路世界同步模組（行為不變）— `host/world_build.gd`、`host/net_world.gd`、擴充 `host/day_settle.gd`；puppet／intent tick 仍在 demo；`demo.gd` ~4474→~3744 行
 - [ ] **F2** 從 `player.gd` 抽出技能施放／丟掉／打擊控制器（延續 `interact_scan.gd`）
 - [ ] **F3** GameHost 覆蓋殘餘熱路徑 `call()`；新增 API 必須進 `game_host.gd`
 - [ ] **G1** GitHub Actions：既有 `tools/test_*.py`／關鍵 `*_check.gd` 於 PR

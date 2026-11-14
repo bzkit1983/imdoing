@@ -36,7 +36,7 @@
 | 小偷打擊 KO／連打晃動／近遠散落 | **`docs/systemdesign/thiefsystem.md`**、`playermovement.md` | `player.gd` fight／KO；`demo.spawn_loot_scatter`；`Tuning.LOOT_SCATTER_*`／`FIGHT_*` |
 | 離店途中仍可抓／砸／撞；出口才計被偷＋橫幅 | **`docs/systemdesign/thiefsystem.md`**、`storeoperationphase.md` | `is_active_thief` 含 LEAVE；`_finish_thief_exit`；`show_stolen_banner`／`demo.stolen_banner` |
 | 客人離店不卡門 | **`docs/systemdesign/customer.md`** | leave `collision_mask=0`；`exit_pos` 在 pathfinder 內；門檻／逾時 despawn |
-| 技術審查與跟進清單 | `docs/alpha/tech-review-v0.1.md` | 非玩法規格；§6 項目已全部勾完 |
+| 技術審查與跟進清單 | `docs/alpha/tech-review-v0.1.md`；**現行** [`tech-review-v0.2.md`](tech-review-v0.2.md) | 非玩法規格；v0.1 §6 已勾完；**v0.2 F1** demo 抽出 world_build／net_world／day_settle unsold |
 | Runtime P1＋P2 熱路徑優化 | **`docs/alpha/runtime-perf-audit.md`**（文末 P1／P2 DONE） | `player`/`customer`/`demo`/`pathfinder`/`inventory`/`box_stack`/`floor_tiles`／`cashier`／`clerk`／`hud`／`drop_flight`；A* 預算、髒 HUD、地板單節點、佇列索引、dirt 網格 |
 | 客人貨品交付（v1.2.0） | **`docs/systemdesign/customerdelivery.md`** | **已實作**。貨架短按 1 件、長按親手交付（近的先、每件 −15）、方向＋短按丟一件、整箱改每件 −15、主動技衝刺交付（COST 1、5 秒） |
 | 自訂技能組合 | **`docs/systemdesign/customizedskillset.md`**、`playersetup.md` | **已實作**。五組預存、準備時可改未選用組、改完立刻寫檔、營運中鎖定。自訂名稱只准 10 個英文字母。角色整備入口「裝備技能」不顯示 COST；各組列表仍顯示 |
