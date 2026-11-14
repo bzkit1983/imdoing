@@ -1083,7 +1083,7 @@ func _collect_shelf_floor_pieces() -> Dictionary:
 		if c == null or not is_instance_valid(c) or c.is_queued_for_deletion():
 			continue
 		var kind := str(c.get("kind"))
-		if kind == "universal_cannon":
+		if kind in ["universal_cannon", "shelf_cannon"]:
 			for item in c.ammo:
 				out[item] = int(out.get(item, 0)) + 1
 			continue
@@ -1194,7 +1194,7 @@ func _clear_credited_unsold() -> void:
 			continue
 		## Mixed world children: String(null) on missing kind aborts the sweep.
 		var kind := str(c.get("kind"))
-		if kind == "universal_cannon":
+		if kind in ["universal_cannon", "shelf_cannon"]:
 			c.ammo.clear()
 			c.dismiss()
 			continue
@@ -1970,7 +1970,7 @@ func _collect_agent_transforms() -> Array:
 			continue
 		## Static presentation agents — pose fixed after spawn (M2.3).
 		var kind := String(n.get("kind")) if n.get("kind") != null else ""
-		if kind in ["drop", "dirt", "universal_cannon", "calm_zone"]:
+		if kind in ["drop", "dirt", "universal_cannon", "shelf_cannon", "calm_zone"]:
 			continue
 		var fx := 0.0
 		var fy := 1.0
@@ -2053,6 +2053,8 @@ func _apply_agent_spawn_payload(payload: Dictionary) -> void:
 			_spawn_shadow_clone_puppet(aid, pos, payload)
 		"universal_cannon":
 			_spawn_cannon_puppet(aid, pos, payload)
+		"shelf_cannon":
+			_spawn_shelf_cannon_puppet(aid, pos, payload)
 		"calm_zone":
 			_spawn_calm_zone_puppet(aid, pos, payload)
 		_:
@@ -2339,6 +2341,25 @@ func _spawn_cannon_puppet(aid: int, pos: Vector2, payload: Dictionary) -> void:
 	var sku := String(payload.get("sku", ""))
 	if ammo_n > 0 and cannon.has_method("apply_net_ammo"):
 		cannon.call("apply_net_ammo", ammo_n, sku)
+	for player in _players:
+		if player != null and is_instance_valid(player) and not player.interactables.has(cannon):
+			player.interactables.append(cannon)
+	_net_agents[aid] = cannon
+
+
+func _spawn_shelf_cannon_puppet(aid: int, pos: Vector2, payload: Dictionary) -> void:
+	var cannon: Node2D = preload("res://scripts/shelf_cannon.gd").new()
+	cannon.host = self
+	cannon.level = clampi(int(payload.get("level", 3)), 1, 3)
+	cannon.owner_seat = int(payload.get("owner_seat", 0))
+	cannon.net_puppet = true
+	cannon.net_agent_id = aid
+	_world.add_child(cannon)
+	cannon.global_position = pos
+	var ammo_n := int(payload.get("ammo_n", 0))
+	var sku := String(payload.get("sku", ""))
+	if ammo_n > 0:
+		cannon.apply_net_ammo(ammo_n, sku)
 	for player in _players:
 		if player != null and is_instance_valid(player) and not player.interactables.has(cannon):
 			player.interactables.append(cannon)
@@ -2823,6 +2844,7 @@ func _finish_day() -> void:
 	## Clones drop held boxes onto the floor before unsold collect, then vanish.
 	dismiss_shadow_clones()
 	dismiss_universal_cannons()
+	dismiss_shelf_cannons()
 	## Unsold shelf + floor (+ in-flight) pieces → warehouse boxes before save.
 	_return_unsold_to_warehouse()
 	var seat_n := maxi(1, SessionService.open_day_seat_n if SessionService.is_networked() else SeatTable.seat_count)
@@ -4152,6 +4174,30 @@ func deploy_universal_cannon(at: Vector2, level: int, seat: int) -> Node2D:
 	return cannon
 
 
+func deploy_shelf_cannon(at: Vector2, level: int, seat: int) -> Node2D:
+	if _world == null or phase not in ["open", "restock"]:
+		return null
+	for child in _world.get_children():
+		if str(child.get("kind")) == "shelf_cannon" and child.owner_seat == seat and not child.dismissed:
+			return child
+	var cannon: Node2D = preload("res://scripts/shelf_cannon.gd").new()
+	cannon.host = self
+	cannon.level = clampi(level, 1, 3)
+	cannon.owner_seat = seat
+	_world.add_child(cannon)
+	cannon.global_position = at
+	for player in _players:
+		if not player.interactables.has(cannon):
+			player.interactables.append(cannon)
+	_register_net_agent(cannon, "shelf_cannon", {
+		"owner_seat": seat,
+		"level": cannon.level,
+		"ammo_n": 0,
+		"sku": "",
+	})
+	return cannon
+
+
 func deploy_calm_zone(at: Vector2, level: int, seat: int) -> Node2D:
 	if _world == null or phase not in ["open", "restock"]:
 		return null
@@ -4188,6 +4234,14 @@ func dismiss_universal_cannons() -> void:
 		return
 	for child in _world.get_children():
 		if str(child.get("kind")) == "universal_cannon":
+			child.dismiss()
+
+
+func dismiss_shelf_cannons() -> void:
+	if _world == null:
+		return
+	for child in _world.get_children():
+		if str(child.get("kind")) == "shelf_cannon":
 			child.dismiss()
 
 

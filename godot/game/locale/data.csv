@@ -41,6 +41,8 @@ skill.checkout_rush.name,人肉數錢機,Human Cash Machine,人肉数钱机,人�
 skill.checkout_rush.blurb,收銀 +60%，20 秒,Checkout +60% for 20s,收银 +60%，20 秒,レジ速度 +60%、20 秒
 skill.universal_cannon.name,萬用炮,Universal Cannon,万用炮,万能砲
 skill.universal_cannon.blurb,腳下布置可穿行炮台，FIFO容量12／16／20件、每5／4／3秒射1件；再按取消後CD60秒,Deploy a pass-through turret; FIFO capacity 12/16/20; fires one item every 5/4/3s; cancel to start a 60s INT-scaled cooldown,脚下布置可穿行炮台，FIFO容量12／16／20件、每5／4／3秒射1件；再按取消后CD60秒,足元に通行可能な砲台を設置。FIFO容量12／16／20個、5／4／3秒ごとに1個発射；再押下で解除後CD60秒
+skill.shelf_cannon.name,上架炮,Shelf Cannon,上架炮,陳列砲
+skill.shelf_cannon.blurb,腳下布置可穿行炮台；容量50件；260px內自動補架；LV1／2／3每4／3／2秒射1件；再按取消後CD60秒,Deploy a pass-through turret with 50-item FIFO capacity; automatically restocks compatible shelves within 260px; fires every 4/3/2s by level; cancel to start a 60s INT-scaled cooldown,脚下布置可穿行炮台；容量50件；260px内自动补架；LV1／2／3每4／3／2秒射1件；再按取消后CD60秒,足元に通行可能な砲台を設置。FIFO容量50個、260px以内の棚を自動補充。LV1／2／3は4／3／2秒ごとに1個発射；再押下で解除後CD60秒
 skill.self_checkout.name,Self Checkout,Self Checkout,Self Checkout,Self Checkout
 skill.self_checkout.blurb,啟動5身位內機台15秒；每客5／4／3秒自助，真人／NPC優先，尾單收完,Enable nearby registers for 15s within 5 body lengths; 5/4/3s per guest; operators take priority; finish final guest,启动5身位内机台15秒；每客5／4／3秒自助，真人／NPC优先，尾单收完,5体長内のレジを15秒稼働；客1人あたり5／4／3秒でセルフ精算、プレイヤー／NPC優先、最後の客は完了まで
 skill.calm_zone.name,你定少少先,Take a Breather,你定少少先,少し落ち着いて

@@ -565,7 +565,7 @@ Client 以 snapshot **建構表現世界**；AI／庫存／結算權威仍在 Ho
 | **M2 第二刀** | remote `claim_seats=2`；同 peer 雙 device／雙 sheet；日結寫主檔＋訪客槽 | **第二刀已交** |
 | **M2.1 結算刀** | 訪客本店同等營業額寫入 client `save.json` 資金 | **已交** |
 | **M2.2 世界代理表現** | Host 權威 AI；client 播客人／小偷／污物／店員 spawn＋pose（§8）；不自跑 AI | **已交** |
-| **M2.3 掉落／技能單位** | 掉落飛行＋落地箱、影分身、Dark Side 臨時態、萬用炮台／炮彈；Host 權威 | **已交** |
+| **M2.3 掉落／技能單位** | 掉落飛行＋落地箱、影分身、Dark Side 臨時態、萬用炮／上架炮台及炮彈；Host 權威 | **已交** |
 | **M2.4 貨架／倉庫庫存** | Host 廣播架 `sku`／`count` 與倉庫絕對快照；Client 只套用表現 | **已交** |
 | **M2.5 技能 Intent** | 修正 dash／skill 錯線；skill／ult hold＋熱鍵；Host remote_move 方向模式 | **已交** |
 | **M2.6 手持堆疊** | Host 廣播各 seat 手持件序絕對快照；Client 套用 box_stack／HUD | **已交** |
@@ -606,7 +606,7 @@ Client 以 snapshot **建構表現世界**；AI／庫存／結算權威仍在 Ho
 
 - [x] Client 見丟掉／散落飛行與落地箱；飛行落地不雙倍生箱（落地箱只認 Host spawn）
 - [x] 影分身出現／走動／消失；Dark Side 客人變臨時員標籤再變回
-- [x] 萬用炮台部署／開火飛行／取消掉彈藥可見；Host 斷仍整房散；M1 不回歸
+- [x] 萬用炮及上架炮台部署／開火飛行／取消掉彈藥可見；Host 斷仍整房散；M1 不回歸
 
 **M2.4 貨架／倉庫庫存**
 

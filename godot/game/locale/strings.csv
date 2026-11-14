@@ -303,6 +303,11 @@ cannon.cancelled,萬用炮已取消，剩貨落地，開始冷卻,Cannon removed
 cannon.deployed,萬用炮已布置；短按取下一發，長按裝貨,Cannon deployed; tap to retrieve next round; hold to load,万用炮已布置；短按取下一发，长按装货,万能砲を設置；短押しで次弾取得、長押しで装填
 cannon.take_failed,無法取貨：炮台空或負重已滿,Cannot retrieve: cannon empty or hands full,无法取货：炮台空或负重已满,取得不可：砲台が空、または所持上限
 cannon.loaded,萬用炮裝入 %d 件,Loaded %d items into cannon,万用炮装入 %d 件,万能砲に %d 個装填
+shelf_cannon.empty,無彈藥,Empty,无弹药,弾薬なし
+shelf_cannon.status,P%d 上架炮 %d／%d\n下一發：%s,P%d Shelf Cannon %d/%d\nNext: %s,P%d 上架炮 %d／%d\n下一发：%s,P%d 陳列砲 %d／%d\n次弾：%s
+shelf_cannon.cancelled,上架炮已取消，剩貨落地，開始冷卻,Shelf Cannon removed; remaining stock dropped; cooldown started,上架炮已取消，剩货落地，开始冷却,陳列砲を解除、残りの在庫は落下、クールダウン開始
+shelf_cannon.deployed,上架炮已布置；長按裝貨,Shelf Cannon deployed; hold to load,上架炮已布置；长按装货,陳列砲を設置；長押しで装填
+shelf_cannon.loaded,上架炮裝入 %d 件,Loaded %d items into Shelf Cannon,上架炮装入 %d 件,陳列砲に %d 個装填
 err.platform.save,無法寫入存檔（錯誤 %d）,Cannot write save (error %d),无法写入存档（错误 %d）,セーブを書き込めません（エラー %d）
 err.platform.guest_slot,無法寫入訪客槽（錯誤 %d）,Cannot write guest slot (error %d),无法写入访客槽（错误 %d）,ゲストスロットを書き込めません（エラー %d）
 hud.skill.ready,就緒,Ready,就绪,準備完了
