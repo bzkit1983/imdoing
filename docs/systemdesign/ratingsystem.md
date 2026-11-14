@@ -117,12 +117,14 @@ flowchart TD
 
 # 達成條件（語意）
 
-事件／劇情／成就可引用（表內容 Beta 後補）：
+事件／劇情／成就／**任務**可引用（任務 metric 見 `tasksystem.md`；成就另系統）：
 
 - 單日最終營運點／評級  
 - 商店評價達標  
 - 歷史窗口內評級統計（例如最近 30 日平均、連續好評日數）  
 - 支援別店評價達標（訪客向）
+
+任務可把上述寫成 `ops_rating`／`shop_rating`／`day_grade`／`grade_streak` 等條件；正式報酬可否直接改 `shop_rating` 見 `tasksystem.md`（細節 Beta）。
 
 # 存檔欄位（設計）
 

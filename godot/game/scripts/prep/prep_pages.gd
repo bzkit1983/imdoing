@@ -15,7 +15,7 @@ static func is_hub_page(page: String) -> bool:
 
 static func parent_page(page: String) -> String:
 	match page:
-		"hub_char", "hub_goods", "hub_shop", "hub_sys", "clerks", "confirm", "elite_test", "rating_history", "lobby", "lan_join", "steam_join":
+		"hub_char", "hub_goods", "hub_shop", "hub_sys", "clerks", "confirm", "elite_test", "rating_history", "lobby", "lan_join", "steam_join", "tasks":
 			return "home"
 		"stats", "skills", "look":
 			return "hub_char"
@@ -27,7 +27,7 @@ static func parent_page(page: String) -> String:
 			return "hub_goods"
 		"furn", "expand", "layout":
 			return "hub_shop"
-		"sfx", "locale":
+		"sfx", "locale", "test_tasks":
 			return "hub_sys"
 		_:
 			return "home"
@@ -172,6 +172,10 @@ static func fill(menu: CanvasLayer, page: String) -> void:
 			_elite_test(menu)
 		"rating_history":
 			_rating_history(menu)
+		"tasks":
+			_tasks(menu)
+		"test_tasks":
+			_test_tasks(menu)
 		"skill_pick":
 			pass
 		_:
@@ -243,9 +247,147 @@ static func _home(menu: CanvasLayer) -> void:
 	menu._add_hub(Loc.t("prep.hub.shop"), "go", "hub_shop", "shop")
 	menu._add_hub(Loc.t("prep.hub.staff", [menu.state.clerks.size()]), "go", "clerks", "staff")
 	menu._add_hub(Loc.t("prep.hub.rating"), "go", "rating_history", "rating")
+	menu._add_hub(Loc.t("prep.hub.tasks"), "go", "tasks", "tasks")
 	menu._add_hub(Loc.t("prep.hub.sys"), "go", "hub_sys", "sys")
 	menu._rebuild_hub_tiles()
 	menu._setup_open_bar()
+
+
+static func _pending_test_pack(menu: CanvasLayer) -> Dictionary:
+	const TaskCatalog = preload("res://scripts/session/task_catalog.gd")
+	var mode := String(menu.state.task_test_mode) if "task_test_mode" in menu.state else "off"
+	match mode:
+		"pack":
+			return TaskCatalog.pack_by_id(String(menu.state.task_test_pack_id))
+		"random":
+			return TaskCatalog.generate_ops(
+				int(menu.state.task_test_seed),
+				3,
+				int(menu.state.day_index) if "day_index" in menu.state else 0,
+				int(menu.state.level) if "level" in menu.state else 1
+			)
+		_:
+			return {}
+
+
+static func _add_pack_task_rows(menu: CanvasLayer, pack: Dictionary, progress_rows: Array = []) -> void:
+	const TaskCatalog = preload("res://scripts/session/task_catalog.gd")
+	const TaskTracker = preload("res://scripts/session/task_tracker.gd")
+	var by_id: Dictionary = {}
+	for row in progress_rows:
+		if row is Dictionary:
+			var tid := String((row.get("task", {}) as Dictionary).get("id", ""))
+			if tid != "":
+				by_id[tid] = row
+	var tasks = pack.get("tasks", [])
+	if not (tasks is Array) or tasks.is_empty():
+		menu._add(Loc.t("prep.tasks.empty"), "noop", null)
+		return
+	for t in tasks:
+		if not (t is Dictionary):
+			continue
+		var task: Dictionary = t
+		var id := String(task.get("id", ""))
+		var cur := 0
+		var st := "active"
+		if by_id.has(id):
+			var row: Dictionary = by_id[id]
+			cur = int(row.get("current", 0))
+			st = String(row.get("status", "active"))
+		var unwired := not TaskCatalog.is_wired(String(task.get("metric", "")))
+		var mark := TaskTracker.status_mark(st, unwired)
+		var key := String(task.get("loc_key", ""))
+		var label := Loc.t(key) if key != "" else id
+		var tgt := int(task.get("target", 0))
+		var op := String(task.get("op", ">="))
+		var prog := TaskTracker.progress_text(op, cur, tgt, st)
+		if unwired:
+			menu._add("%s %s (%s)" % [mark, label, Loc.t("hud.tasks_unwired")], "noop", null)
+		elif st == "done":
+			menu._add(Loc.t("prep.tasks.row_done", [mark, label, prog]), "noop", null)
+		else:
+			menu._add(Loc.t("prep.tasks.row", [mark, label, prog]), "noop", null)
+
+
+static func _tasks(menu: CanvasLayer) -> void:
+	const TaskCatalog = preload("res://scripts/session/task_catalog.gd")
+	const TaskTracker = preload("res://scripts/session/task_tracker.gd")
+	menu._title.text = Loc.t("prep.tasks.title")
+	var day_i := int(menu.state.day_index) if "day_index" in menu.state else 0
+	var mode := String(menu.state.task_test_mode) if "task_test_mode" in menu.state else "off"
+	var mode_label := Loc.t("prep.tasks.mode_off")
+	match mode:
+		"pack":
+			mode_label = Loc.t("prep.tasks.mode_pack", [String(menu.state.task_test_pack_id)])
+		"random":
+			mode_label = Loc.t("prep.tasks.mode_random", [int(menu.state.task_test_seed)])
+	var info := Loc.t("prep.tasks.info", [day_i, mode_label])
+	if menu._msg != "":
+		info = menu._pair(info, menu._msg)
+	menu._info.text = info
+	var bags = menu.state.active_tasks_by_seat if "active_tasks_by_seat" in menu.state else {}
+	var seat0: Array = bags.get("0", []) if bags is Dictionary else []
+	## Pending test pack (selected in prep; attaches on next open).
+	var pending: Dictionary = _pending_test_pack(menu)
+	if not pending.is_empty():
+		menu._add(Loc.t("prep.tasks.pending_header", [String(pending.get("pack_id", ""))]), "noop", null)
+		## Fresh test attach: ignore leftover bag progress／extras.
+		_add_pack_task_rows(menu, pending, [])
+	## Cross-day leftovers only when no test pack is queued.
+	var extras: Array = []
+	if pending.is_empty():
+		for row in seat0:
+			if row is Dictionary:
+				extras.append(row)
+	if not extras.is_empty():
+		menu._add(Loc.t("prep.tasks.active_header"), "noop", null)
+		for row in extras:
+			var task: Dictionary = row.get("task", {})
+			var st := String(row.get("status", "active"))
+			var unwired := st == "unwired" or not TaskCatalog.is_wired(String(task.get("metric", "")))
+			var mark := TaskTracker.status_mark(st, unwired)
+			var key := String(task.get("loc_key", ""))
+			var label := Loc.t(key) if key != "" else String(task.get("id", ""))
+			var prog := TaskTracker.progress_text(
+				String(task.get("op", ">=")),
+				int(row.get("current", 0)),
+				int(task.get("target", 0)),
+				st
+			)
+			if unwired:
+				menu._add("%s %s (%s)" % [mark, label, Loc.t("hud.tasks_unwired")], "noop", null)
+			elif st == "done":
+				menu._add(Loc.t("prep.tasks.row_done", [mark, label, prog]), "noop", null)
+			else:
+				menu._add(Loc.t("prep.tasks.row", [mark, label, prog]), "noop", null)
+	if pending.is_empty() and extras.is_empty():
+		menu._add(Loc.t("prep.tasks.empty"), "noop", null)
+	menu._add(Loc.t("prep.back"), "go", "home")
+
+
+static func _test_tasks(menu: CanvasLayer) -> void:
+	const TaskCatalog = preload("res://scripts/session/task_catalog.gd")
+	menu._title.text = Loc.t("prep.test_tasks.title")
+	var mode := String(menu.state.task_test_mode) if "task_test_mode" in menu.state else "off"
+	var pack_id := String(menu.state.task_test_pack_id) if "task_test_pack_id" in menu.state else "OP-TUT-001"
+	var seed := int(menu.state.task_test_seed) if "task_test_seed" in menu.state else 1
+	var info := Loc.t("prep.test_tasks.info", [mode, pack_id, seed])
+	if menu._msg != "":
+		info = menu._pair(info, menu._msg)
+	menu._info.text = info
+	menu._add(Loc.t("prep.test_tasks.off"), "task_test_off", null)
+	for pid in TaskCatalog.list_test_pack_ids():
+		menu._add(Loc.t("prep.test_tasks.pack", [pid]), "task_test_pack", pid)
+	menu._add(Loc.t("prep.test_tasks.random", [seed]), "task_test_random", seed)
+	menu._add(Loc.t("prep.test_tasks.reroll"), "task_test_reroll", null)
+	## Show currently selected pack contents immediately after changing selection.
+	var pending: Dictionary = _pending_test_pack(menu)
+	if pending.is_empty():
+		menu._add(Loc.t("prep.test_tasks.preview_off"), "noop", null)
+	else:
+		menu._add(Loc.t("prep.tasks.pending_header", [String(pending.get("pack_id", ""))]), "noop", null)
+		_add_pack_task_rows(menu, pending)
+	menu._add(Loc.t("prep.back"), "go", "hub_sys")
 
 
 static func _rating_history(menu: CanvasLayer) -> void:
@@ -333,10 +475,18 @@ static func _hub_sys(menu: CanvasLayer) -> void:
 		null,
 		"stick"
 	)
+	var dev_on := PlatformServices.is_show_dev_hud()
+	menu._add_hub(
+		Loc.t("prep.sys.dev_hud_on" if dev_on else "prep.sys.dev_hud_off"),
+		"toggle_dev_hud",
+		null,
+		"dev"
+	)
 	var lang_name := Loc.t("locale.name.%s" % Loc.get_locale())
 	menu._add_hub(Loc.t("prep.sys.language", [lang_name]), "go", "locale", "lang")
 	if ProductVersion.test_tools_enabled():
 		menu._add_hub(Loc.t("prep.home.test_money"), "test_money", null, "money")
+		menu._add_hub(Loc.t("prep.home.test_tasks"), "go", "test_tasks", "tasks")
 		menu._add_hub(Loc.t("prep.home.sfx_test"), "go", "sfx", "sfx")
 	menu._add_hub(Loc.t("prep.home.wipe"), "wipe_save", null, "wipe")
 	menu._rebuild_hub_tiles()

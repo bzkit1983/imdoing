@@ -449,3 +449,30 @@ hud.move.magneto,攝石人,Magneto,摄石人,マグニートー
 prep.msg.locked_title,尚未開放,Locked,尚未开放,未開放
 prep.msg.confirm_btn,確定,OK,确定,OK
 prep.ult.empty,空,Empty,空,空
+prep.hub.tasks,任務,Tasks,任务,タスク
+prep.home.test_tasks,測試任務,Test tasks,测试任务,テストタスク
+prep.tasks.title,任務,Tasks,任务,タスク
+prep.tasks.info,營業日 %d　掛載：%s,Ops day %d · attach: %s,营业日 %d　挂载：%s,営業日 %d　設定：%s
+prep.tasks.mode_off,（無測試包）,（no test pack）,(无测试包),（テストパックなし）
+prep.tasks.mode_pack,指定包 %s,Pack %s,指定包 %s,パック %s
+prep.tasks.mode_random,隨機 seed %d,Random seed %d,随机 seed %d,ランダム seed %d
+prep.tasks.empty,尚無進行中任務,No active tasks,尚无进行中任务,進行中のタスクなし
+prep.tasks.row,%s %s　%s,%s %s  %s,%s %s　%s,%s %s　%s
+prep.tasks.row_done,%s %s　%s　已完成,%s %s  %s  Done,%s %s　%s　已完成,%s %s　%s　完了
+prep.test_tasks.title,測試任務,Test tasks,测试任务,テストタスク
+prep.test_tasks.info,模式 %s　包 %s　seed %d,Mode %s · pack %s · seed %d,模式 %s　包 %s　seed %d,モード %s　パック %s　seed %d
+prep.test_tasks.off,關閉測試任務,Turn off test tasks,关闭测试任务,テストタスクをオフ
+prep.test_tasks.pack,使用組合 %s,Use pack %s,使用组合 %s,パック %s を使う
+prep.test_tasks.random,隨機生成（seed %d）,Random generate (seed %d),随机生成（seed %d）,ランダム生成（seed %d）
+prep.test_tasks.reroll,重抽隨機 seed,Reroll random seed,重抽随机 seed,ランダム seed を振り直す
+prep.test_tasks.set_off,已關閉測試任務（下回開店生效）,Test tasks off (applies next open),已关闭测试任务（下回开店生效）,テストタスクをオフ（次回開店で反映）
+prep.test_tasks.set_pack,已選測試包 %s（下回開店生效）,Test pack %s (applies next open),已选测试包 %s（下回开店生效）,テストパック %s（次回開店で反映）
+prep.test_tasks.set_random,已選隨機任務 seed %d（下回開店生效）,Random tasks seed %d (applies next open),已选随机任务 seed %d（下回开店生效）,ランダムタスク seed %d（次回開店で反映）
+hud.tasks_header,任務,Tasks,任务,タスク
+hud.tasks_unwired,未接線,Unwired,未接线,未接続
+hud.tasks_done,已完成,Done,已完成,完了
+prep.tasks.pending_header,下回開店將掛載：%s,Next open will attach: %s,下回开店将挂载：%s,次回開店で設定：%s
+prep.tasks.active_header,進行中（跨日）,In progress (cross-day),进行中（跨日）,進行中（日またぎ）
+prep.test_tasks.preview_off,目前未選測試包,No test pack selected,目前未选测试包,テストパック未選択
+prep.sys.dev_hud_on,顯示開發用資訊：開,Show developer HUD: On,显示开发用资讯：开,開発用HUD表示：オン
+prep.sys.dev_hud_off,顯示開發用資訊：關,Show developer HUD: Off,显示开发用资讯：关,開発用HUD表示：オフ

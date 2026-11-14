@@ -1979,8 +1979,8 @@ func _give_guest(guest: Node) -> int:
 		if taken > 0:
 			inventory.remove_sku(sku, taken)
 			given += taken
-	## COMBO: cleared remaining list (≥3) in this burst.
-	if given > 0 and before >= 3 and guest.shopping.is_empty():
+	## Perfect deliver: cleared remaining list in this burst (any count ≥1).
+	if given > 0 and before >= 1 and guest.shopping.is_empty():
 		guest.set_meta("combo_cleared_n", before)
 	return given
 
@@ -2092,7 +2092,7 @@ func _cast_must_deliver(lv: int) -> bool:
 				inventory.add_one(String(sku))
 			continue
 		total += taken
-		if before >= 3 and guest.shopping.is_empty():
+		if before >= 1 and guest.shopping.is_empty():
 			guest.set_meta("combo_cleared_n", before)
 		var shown: Array = []
 		for j in taken:
@@ -2483,7 +2483,7 @@ func _cast_force_sell(lv: int) -> bool:
 		_interact_release(guest)
 		log_line.emit(Loc.t("log.player.force_no_guest"))
 		return false
-	if before >= 3 and guest.shopping.is_empty():
+	if before >= 1 and guest.shopping.is_empty():
 		guest.set_meta("combo_cleared_n", before)
 	_interact_release(guest)
 	log_line.emit(Loc.t("log.player.force_n", [taken]))
@@ -2860,7 +2860,7 @@ func _fight_win() -> void:
 	_fight_ko = true
 	var game := _game()
 	if game and game.has_method("record_caught"):
-		game.call("record_caught", seat_id)
+		game.call("record_caught", seat_id, "melee")
 	log_line.emit(Loc.t("log.player.thief_ko"))
 	_play_ko_sequence(target, "ko_scatter_and_flee")
 
@@ -2885,7 +2885,7 @@ func apply_toss_ko(thief: Node, knock_dir: Vector2) -> void:
 		return
 	var game := _game()
 	if game and game.has_method("record_caught"):
-		game.call("record_caught", seat_id)
+		game.call("record_caught", seat_id, "box")
 	log_line.emit(Loc.t("log.player.thief_box_ko"))
 	SfxBus.play("sfx_box_hit_thief")
 	## If this toss finishes an ongoing grab fight, clear fight state after the KO.
@@ -3233,7 +3233,7 @@ func _try_dash_hits() -> void:
 				return
 			t.call("dash_knock_away", _dash_dir)
 			if g.has_method("record_caught"):
-				g.call("record_caught", seat_id)
+				g.call("record_caught", seat_id, "dash")
 			SfxBus.play("sfx_thief_dash_out")
 			log_line.emit(Loc.t("log.player.thief_dash"))
 			if _fighting:
@@ -3418,6 +3418,9 @@ func _tick_restock(delta: float) -> void:
 		else:
 			SfxBus.play("sfx_shelf_stock_done")
 		log_line.emit(Loc.t("log.player.shelve", [Tuning.sku_name(sku), placed]))
+		var game_shelve := _game()
+		if placed > 0 and game_shelve != null and game_shelve.has_method("note_shelve"):
+			game_shelve.call("note_shelve", seat_id, String(sku), placed)
 		hold_progress = 0.0
 		_interact_release(target)
 
@@ -4411,11 +4414,11 @@ func _interact_release_held() -> void:
 
 
 func _note_delivery_combo(guests: Array, _pieces: int) -> void:
-	## Qualifying COMBO: cleared remaining list with ≥3 pieces on a guest this burst.
+	## Successful delivery → personal+team COMBO +1. Perfect clear-list → guest bonus + P5.
 	var game := _game()
-	if game == null or not game.has_method("combo_note_qualify"):
+	if game == null:
 		return
-	var qualified := false
+	var perfect_n := 0
 	for guest in guests:
 		if guest == null or not is_instance_valid(guest):
 			continue
@@ -4423,14 +4426,17 @@ func _note_delivery_combo(guests: Array, _pieces: int) -> void:
 			continue
 		var n := int(guest.get_meta("combo_cleared_n"))
 		guest.remove_meta("combo_cleared_n")
-		if n >= 3:
-			qualified = true
+		if n >= 1:
+			perfect_n += 1
 			if guest.has_method("apply_combo_bonus"):
 				guest.call("apply_combo_bonus")
-	if qualified:
+	if game.has_method("combo_note_qualify"):
 		game.call("combo_note_qualify", seat_id)
-	elif game.has_method("combo_break_personal"):
-		game.call("combo_break_personal", seat_id)
+	if perfect_n > 0 and game.has_method("combo_note_perfect"):
+		game.call("combo_note_perfect", seat_id)
+	## One deliver_count per successful delivery action (this burst).
+	if game.has_method("note_deliver"):
+		game.call("note_deliver", seat_id, "hand", 1, perfect_n > 0)
 
 
 func _handle_hotkey_actions(event: InputEvent) -> void:

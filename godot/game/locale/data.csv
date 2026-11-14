@@ -346,3 +346,15 @@ mood.dazed,暈眩…,Dazed…,晕眩…,くらくら…
 mood.thanks_pay,謝謝！去付款,Thanks! Going to pay,谢谢！去付款,ありがとう！会計へ
 mood.thanks_bang,謝謝！,Thanks!,谢谢！,ありがとう！
 mood.reject_item,不想要這貨品！,Don't want this!,不想要这货品！,この商品はいらない！
+settle.tasks_header,任務結算,Task settle,任务结算,タスク決算
+quest.op_tut_001_a,罐頭上架 12,Shelve cans ×12,罐头上架 12,缶詰を12個陳列
+quest.op_tut_001_b,完成清潔 6,Clean ×6,完成清洁 6,清掃を6回
+quest.op_tut_001_c,總交付 10,Deliver ×10,总交付 10,配達を10回
+quest.op_tut_001_d,完美交付 3,Perfect deliver ×3,完美交付 3,完璧配達を3回
+quest.op_tut_001_e,成功收銀 3,Checkout ×3,成功收银 3,会計を3回
+quest.op_tut_001_f,不滿離開少於 5,Angry leaves <5,不满离开少于 5,怒り退店を5未満に
+quest.op_man_001_a,當日營業額 ≥500,Day revenue ≥500,当日营业额 ≥500,当日売上 ≥500
+quest.op_man_001_b,當日評級 ≥+1,Day grade ≥+1,当日评级 ≥+1,当日評価 ≥+1
+quest.op_man_002_a,3 日內清潔 20,Clean 20 in 3 days,3 日内清洁 20,3日以内に清掃20
+quest.op_man_002_b,商店評價 ≥5,Shop rating ≥5,商店评价 ≥5,店舗評価 ≥5
+quest.op_rand_generic,隨機營運任務,Random ops task,随机营运任务,ランダム営業タスク

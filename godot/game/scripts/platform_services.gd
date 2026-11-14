@@ -14,6 +14,7 @@ const SteamPlatform = preload("res://scripts/platform/steam_platform.gd")
 const SETTINGS_PATH := "user://settings.cfg"
 const SETTINGS_SECTION := "ui"
 const SETTINGS_VIRTUAL_STICK := "virtual_stick"
+const SETTINGS_SHOW_DEV_HUD := "show_dev_hud"
 const SETTINGS_CAMERA_VIEW := "camera_view"
 const SETTINGS_LOCALE := "locale"
 
@@ -34,6 +35,8 @@ signal resumed
 signal pause_menu_requested
 ## Fired when the player toggles on-screen stick visibility (prep System tools).
 signal virtual_stick_changed(enabled: bool)
+## Fired when prep toggles verbose / developer HUD chrome.
+signal show_dev_hud_changed(enabled: bool)
 ## Fired when shop camera framing mode changes (pause / View button).
 signal camera_view_changed(mode: String)
 
@@ -41,6 +44,9 @@ var _backend = DesktopPlatform.new()
 ## Player preference; only applies when the platform profile is touch (Web / mobile).
 ## Default off (tester/PM): player opts in via Prep System tools or Pause.
 var _virtual_stick: bool = false
+## Verbose HUD diagnostics (left store／role／ops + right action／log + skip). Default off.
+## Skills／CD and stamina are always-on standard HUD.
+var _show_dev_hud: bool = false
 ## Shop camera framing: normal | far | overview. Persists across days.
 var _camera_view: String = CAMERA_VIEW_NORMAL
 ## UI language code (CSV locale). Persists across sessions; Loc applies at boot.
@@ -142,6 +148,24 @@ func toggle_virtual_stick() -> bool:
 	return _virtual_stick
 
 
+func is_show_dev_hud() -> bool:
+	return _show_dev_hud
+
+
+func set_show_dev_hud(on: bool) -> void:
+	var next := bool(on)
+	if next == _show_dev_hud:
+		return
+	_show_dev_hud = next
+	_save_ui_settings()
+	show_dev_hud_changed.emit(_show_dev_hud)
+
+
+func toggle_show_dev_hud() -> bool:
+	set_show_dev_hud(not _show_dev_hud)
+	return _show_dev_hud
+
+
 func get_camera_view() -> String:
 	return _camera_view
 
@@ -236,6 +260,7 @@ func _load_ui_settings() -> void:
 	if cf.load(SETTINGS_PATH) != OK:
 		return
 	_virtual_stick = bool(cf.get_value(SETTINGS_SECTION, SETTINGS_VIRTUAL_STICK, false))
+	_show_dev_hud = bool(cf.get_value(SETTINGS_SECTION, SETTINGS_SHOW_DEV_HUD, false))
 	_camera_view = _normalize_camera_view(
 		String(cf.get_value(SETTINGS_SECTION, SETTINGS_CAMERA_VIEW, CAMERA_VIEW_NORMAL))
 	)
@@ -246,6 +271,7 @@ func _save_ui_settings() -> void:
 	var cf := ConfigFile.new()
 	cf.load(SETTINGS_PATH)
 	cf.set_value(SETTINGS_SECTION, SETTINGS_VIRTUAL_STICK, _virtual_stick)
+	cf.set_value(SETTINGS_SECTION, SETTINGS_SHOW_DEV_HUD, _show_dev_hud)
 	cf.set_value(SETTINGS_SECTION, SETTINGS_CAMERA_VIEW, _camera_view)
 	cf.set_value(SETTINGS_SECTION, SETTINGS_LOCALE, _locale)
 	cf.save(SETTINGS_PATH)

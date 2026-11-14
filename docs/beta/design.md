@@ -7,6 +7,12 @@
 
 劇情和事件也留待 Beta。經驗不從那裡增減。見 `playerlevel.md`、`ecosystem.md`。事件表、觸發和失敗條件仍未寫。
 
+任務系統條件語意與測試內容已進長線：`docs/systemdesign/tasksystem.md`。本 Beta 檔仍欠：
+
+- **任務報酬系統**（XP、`shop_rating`、學技能、貨品開發解鎖、外觀解鎖等發放時機與表）
+- **店鋪進度以任務解鎖**的詳細機制（改 `shopprogress.md`）
+- 完整事件／劇情任務內容表（stub 見 `taskcontent-event-stub.md`、`taskcontent-story-stub.md`）
+
 # 技能解鎖表
 
 技能本身的 LV1–LV3 效果已寫在長線。  

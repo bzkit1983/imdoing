@@ -32,6 +32,17 @@ var _panes: Array = []
 @onready var _skills: Label = $Root/Left/Skills
 var _combo: Label
 var _ops_rating: Label
+var _stamina_std: ProgressBar
+var _carry_std: Label
+var _carry_icons_std: HBoxContainer
+var _carry_std_fp: String = ""
+var _tr_panel: PanelContainer
+var _skills_std: Label
+var _skills_panel: PanelContainer
+var _tasks: Label
+var _tasks_panel: PanelContainer
+var _left_panel: PanelContainer
+@onready var _right: PanelContainer = $Root/Right
 @onready var _right_vbox: VBoxContainer = $Root/Right/Margin/VBox
 @onready var _state: Label = $Root/Right/Margin/VBox/State
 @onready var _stamina: ProgressBar = $Root/Right/Margin/VBox/Stamina
@@ -57,6 +68,15 @@ func setup(g: Node, p: CharacterBody2D) -> void:
 	_hud_list.visible = false
 	_build_combo_label()
 	_build_ops_rating_label()
+	_wrap_left_status_panel()
+	_build_tr_std()
+	_build_bottom_left_panel()
+	## Scene Skills row stays as legacy; standard skills live bottom-right.
+	if _skills:
+		_skills.visible = false
+	if not PlatformServices.show_dev_hud_changed.is_connected(_on_show_dev_hud_changed):
+		PlatformServices.show_dev_hud_changed.connect(_on_show_dev_hud_changed)
+	_apply_dev_hud_visibility()
 	## No round-start demo banner; hide legacy scope copy on the right panel.
 	_banner.visible = false
 	var title := $Root/Right/Margin/VBox/Title
@@ -231,6 +251,155 @@ func _build_ops_rating_label() -> void:
 	_apply_cjk_fonts(_ops_rating)
 
 
+func _wrap_left_status_panel() -> void:
+	## Dark plate + outline so clock／revenue／guests stay readable over floor tiles.
+	var left: VBoxContainer = $Root/Left
+	var root: Control = $Root
+	var idx := left.get_index()
+	root.remove_child(left)
+	_left_panel = _make_hud_panel()
+	_left_panel.name = "LeftStatusPanel"
+	_left_panel.position = Vector2(12, 8)
+	left.layout_mode = 2
+	left.offset_left = 0.0
+	left.offset_top = 0.0
+	left.offset_right = 0.0
+	left.offset_bottom = 0.0
+	left.custom_minimum_size = Vector2(360, 0)
+	_left_panel.add_child(left)
+	root.add_child(_left_panel)
+	root.move_child(_left_panel, idx)
+	for lab in [_time, _phase, _rev, _guests, _store, _role, _combo, _ops_rating]:
+		if lab:
+			_apply_readable_label(lab)
+
+
+func _apply_readable_label(lab: Label) -> void:
+	lab.add_theme_color_override("font_color", Color(0.98, 0.97, 0.94, 1))
+	lab.add_theme_color_override("font_outline_color", Color(0.04, 0.04, 0.05, 1))
+	lab.add_theme_constant_override("outline_size", 6)
+
+
+func _build_tr_std() -> void:
+	## Standard stamina + carry — top-right (below pause button).
+	_tr_panel = _make_hud_panel()
+	_tr_panel.name = "TopRightStd"
+	_tr_panel.anchor_left = 1.0
+	_tr_panel.anchor_right = 1.0
+	_tr_panel.anchor_top = 0.0
+	_tr_panel.anchor_bottom = 0.0
+	_tr_panel.offset_left = -248.0
+	_tr_panel.offset_right = -12.0
+	_tr_panel.offset_top = 88.0
+	_tr_panel.offset_bottom = 200.0
+	_tr_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_tr_panel.grow_vertical = Control.GROW_DIRECTION_END
+	var vbox := VBoxContainer.new()
+	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vbox.add_theme_constant_override("separation", 6)
+	_tr_panel.add_child(vbox)
+	_stamina_std = ProgressBar.new()
+	_stamina_std.name = "StaminaStd"
+	_stamina_std.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_stamina_std.show_percentage = false
+	_stamina_std.max_value = 100.0
+	_stamina_std.value = 100.0
+	_stamina_std.custom_minimum_size = Vector2(200, 18)
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = Color(0.35, 0.78, 0.55, 0.95)
+	fill.set_corner_radius_all(4)
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color(0.08, 0.1, 0.1, 0.7)
+	bg.set_corner_radius_all(4)
+	_stamina_std.add_theme_stylebox_override("fill", fill)
+	_stamina_std.add_theme_stylebox_override("background", bg)
+	vbox.add_child(_stamina_std)
+	_carry_std = _make_hud_label("CarryStd")
+	_carry_std.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_carry_std.text = Loc.t("hud.carry", [0, 0])
+	vbox.add_child(_carry_std)
+	_carry_icons_std = _make_carry_icons()
+	_carry_icons_std.alignment = BoxContainer.ALIGNMENT_END
+	vbox.add_child(_carry_icons_std)
+	$Root.add_child(_tr_panel)
+	$Root.move_child(_tr_panel, _banner.get_index())
+	_apply_cjk_fonts(_carry_std)
+	_fit_tr_panel()
+
+
+func _make_hud_panel() -> PanelContainer:
+	var panel := PanelContainer.new()
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.05, 0.06, 0.08, 0.82)
+	sb.set_corner_radius_all(8)
+	sb.content_margin_left = 12
+	sb.content_margin_right = 12
+	sb.content_margin_top = 8
+	sb.content_margin_bottom = 8
+	panel.add_theme_stylebox_override("panel", sb)
+	return panel
+
+
+func _make_hud_label(name: String) -> Label:
+	var lab := Label.new()
+	lab.name = name
+	lab.text = ""
+	lab.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lab.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	lab.add_theme_color_override("font_color", Color(0.96, 0.95, 0.92, 1))
+	lab.add_theme_color_override("font_outline_color", Color(0.05, 0.05, 0.05, 1))
+	lab.add_theme_constant_override("outline_size", 4)
+	return lab
+
+
+func _build_bottom_left_panel() -> void:
+	## Tasks — bottom-left. Skills／CD — bottom-right.
+	_tasks_panel = _make_hud_panel()
+	_tasks_panel.name = "TasksPanel"
+	_tasks_panel.visible = false
+	_tasks_panel.anchor_left = 0.0
+	_tasks_panel.anchor_right = 0.0
+	_tasks_panel.anchor_top = 1.0
+	_tasks_panel.anchor_bottom = 1.0
+	_tasks_panel.offset_left = 12.0
+	_tasks_panel.offset_right = 360.0
+	_tasks_panel.offset_top = -48.0
+	_tasks_panel.offset_bottom = -12.0
+	_tasks_panel.grow_horizontal = Control.GROW_DIRECTION_END
+	_tasks_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	var t_margin := MarginContainer.new()
+	t_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_tasks_panel.add_child(t_margin)
+	_tasks = _make_hud_label("Tasks")
+	t_margin.add_child(_tasks)
+	$Root.add_child(_tasks_panel)
+	$Root.move_child(_tasks_panel, _banner.get_index())
+	_apply_cjk_fonts(_tasks)
+
+	_skills_panel = _make_hud_panel()
+	_skills_panel.name = "SkillsPanel"
+	_skills_panel.anchor_left = 1.0
+	_skills_panel.anchor_right = 1.0
+	_skills_panel.anchor_top = 1.0
+	_skills_panel.anchor_bottom = 1.0
+	_skills_panel.offset_left = -380.0
+	_skills_panel.offset_right = -12.0
+	_skills_panel.offset_top = -48.0
+	_skills_panel.offset_bottom = -12.0
+	_skills_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_skills_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	var s_margin := MarginContainer.new()
+	s_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_skills_panel.add_child(s_margin)
+	_skills_std = _make_hud_label("SkillsStd")
+	_skills_std.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	s_margin.add_child(_skills_std)
+	$Root.add_child(_skills_panel)
+	$Root.move_child(_skills_panel, _banner.get_index())
+	_apply_cjk_fonts(_skills_std)
+
+
 func _mark_right_dirty() -> void:
 	_right_dirty = true
 
@@ -279,8 +448,7 @@ func _process(delta: float) -> void:
 		var running := game != null and (String(game.phase) == "restock" or String(game.phase) == "open")
 		if running != _skip_running:
 			_skip_running = running
-			if _skip:
-				_skip.visible = running
+			_apply_dev_hud_visibility()
 			if _pause_btn:
 				_pause_btn.visible = running
 
@@ -311,6 +479,31 @@ func _build_skip() -> void:
 	btn.add_theme_color_override("font_color", Color("1c241f"))
 	btn.pressed.connect(_on_skip_operate)
 	_skip = btn
+	_apply_dev_hud_visibility()
+
+
+func _on_show_dev_hud_changed(_enabled: bool) -> void:
+	_apply_dev_hud_visibility()
+
+
+func _apply_dev_hud_visibility() -> void:
+	## Developer chrome: store／role／ops + right action／log + skip. Default off.
+	## Standard: left status plate, stamina／carry (top-right), skills／CD (bottom-right), tasks (bottom-left).
+	var show := PlatformServices.is_show_dev_hud()
+	if _store:
+		_store.visible = show
+	if _role:
+		_role.visible = show
+	if _skills:
+		_skills.visible = false
+	if _ops_rating:
+		_ops_rating.visible = show
+	if _right:
+		_right.visible = show
+	if _skip:
+		var ProductVersion = preload("res://scripts/product_version.gd")
+		var running := game != null and (String(game.phase) == "restock" or String(game.phase) == "open")
+		_skip.visible = show and ProductVersion.test_tools_enabled() and running
 
 
 func _build_pause() -> void:
@@ -383,8 +576,11 @@ func _sync_left() -> void:
 	## ~1 game-minute buckets so the clock label still ticks without full rebuild spam.
 	var hour_bucket := int(floor(hours * 60.0))
 	var rev := int(game.get("hud_rev")) if game.get("hud_rev") != null else 0
+	## Stamina updates every frame; other left chrome is fingerprint-gated.
+	_sync_stamina_std()
 	var skills_txt := _skill_cd_text_all()
-	if rev == _left_hud_rev and hour_bucket == _left_hour_bucket and skills_txt == _skills.text:
+	var skills_shown := _skills_std.text if _skills_std else ""
+	if rev == _left_hud_rev and hour_bucket == _left_hour_bucket and skills_txt == skills_shown:
 		return
 	_left_hud_rev = rev
 	_left_hour_bucket = hour_bucket
@@ -400,9 +596,10 @@ func _sync_left() -> void:
 	var p2 := int(game.call("combo_personal", 1)) if game.has_method("combo_personal") else 0
 	var team := int(game.call("combo_team")) if game.has_method("combo_team") else 0
 	var ops_n := int(game.get("ops_rating")) if game.get("ops_rating") != null else 50
-	var fp := "%s|%s|%d|%d|%d|%d|%s|%s|%s|%d|%d|%d|%d|%d|%d" % [
+	var tasks_txt := _tasks_status_text()
+	var fp := "%s|%s|%d|%d|%d|%d|%s|%s|%s|%d|%d|%d|%d|%d|%d|%s" % [
 		time_txt, phase_txt, rev_n, stolen_n, guests_n, thieves_n,
-		store_txt, role_txt, skills_txt, p1, p2, team, rev, hour_bucket, ops_n,
+		store_txt, role_txt, skills_txt, p1, p2, team, rev, hour_bucket, ops_n, tasks_txt,
 	]
 	if fp == _left_fp:
 		return
@@ -416,12 +613,29 @@ func _sync_left() -> void:
 	_guests.text = Loc.t("hud.guests", [guests_n, thieves_n])
 	_store.text = store_txt
 	_role.text = role_txt
-	_skills.text = skills_txt
+	if _skills_std:
+		_skills_std.text = skills_txt
+	if _skills_panel:
+		_skills_panel.visible = skills_txt != ""
+		if skills_txt != "":
+			var skill_lines := skills_txt.count("\n") + 1
+			var sh := float(24 + skill_lines * 22)
+			_skills_panel.offset_bottom = -12.0
+			_skills_panel.offset_top = -12.0 - maxf(sh, 48.0)
 	if _combo:
 		if SeatTable.is_coop():
 			_combo.text = Loc.t("hud.combo_coop", [p1, p2, team])
 		else:
 			_combo.text = Loc.t("hud.combo", [p1, team])
+	if _tasks:
+		_tasks.text = tasks_txt
+	if _tasks_panel:
+		_tasks_panel.visible = tasks_txt != ""
+		if tasks_txt != "":
+			var task_lines := tasks_txt.count("\n") + 1
+			var th := float(24 + task_lines * 22)
+			_tasks_panel.offset_bottom = -12.0
+			_tasks_panel.offset_top = -12.0 - maxf(th, 48.0)
 
 
 func _pane_player(pane: Dictionary) -> CharacterBody2D:
@@ -444,6 +658,71 @@ func _role_status_all() -> String:
 			continue
 		var seat := int(p.get("seat_id")) + 1
 		lines.append("P%d %s" % [seat, String(p.call("role_status_text"))])
+	return "\n".join(lines)
+
+
+func _sync_stamina_std() -> void:
+	if _stamina_std == null or player == null or not is_instance_valid(player):
+		return
+	if player.has_method("stamina_max_now"):
+		_stamina_std.max_value = float(player.call("stamina_max_now"))
+	_stamina_std.value = float(player.get("stamina"))
+	_sync_carry_std()
+
+
+func _sync_carry_std() -> void:
+	if _carry_std == null or player == null or not is_instance_valid(player):
+		return
+	var inv = player.get("inventory")
+	var n := int(inv.count()) if inv != null else 0
+	var cap := int(player.call("carry_cap")) if player.has_method("carry_cap") else 0
+	_carry_std.text = Loc.t("hud.carry", [n, cap])
+	var before := _carry_std_fp
+	_sync_carry_icons_into(_carry_icons_std, inv, true)
+	if _carry_std_fp != before:
+		_fit_tr_panel(n > 0)
+
+
+func _fit_tr_panel(has_icons: bool = false) -> void:
+	if _tr_panel == null:
+		return
+	## Stamina + carry line + optional icon strip.
+	var h := 72.0 if not has_icons else 128.0
+	_tr_panel.offset_top = 88.0
+	_tr_panel.offset_bottom = 88.0 + h
+
+
+func _tasks_status_text() -> String:
+	if game == null or not game.has_method("task_hud_lines"):
+		return ""
+	var seat := 0
+	if player != null and is_instance_valid(player):
+		seat = int(player.seat_id)
+	var rows: Array = game.call("task_hud_lines", seat)
+	if rows.is_empty():
+		return ""
+	const TaskTracker = preload("res://scripts/session/task_tracker.gd")
+	var lines: PackedStringArray = PackedStringArray()
+	lines.append(Loc.t("hud.tasks_header"))
+	for row in rows:
+		if not (row is Dictionary):
+			continue
+		var st := String(row.get("status", "active"))
+		var unwired := bool(row.get("unwired", false))
+		var mark := TaskTracker.status_mark(st, unwired)
+		var key := String(row.get("loc_key", ""))
+		var label := Loc.t(key) if key != "" else String(row.get("id", ""))
+		if unwired:
+			lines.append("%s %s (%s)" % [mark, label, Loc.t("hud.tasks_unwired")])
+			continue
+		var cur := int(row.get("current", 0))
+		var tgt := int(row.get("target", 0))
+		var op := String(row.get("op", ">="))
+		var prog := TaskTracker.progress_text(op, cur, tgt, st)
+		if st == "done":
+			lines.append("%s %s %s %s" % [mark, label, prog, Loc.t("hud.tasks_done")])
+		else:
+			lines.append("%s %s %s" % [mark, label, prog])
 	return "\n".join(lines)
 
 
@@ -647,6 +926,27 @@ func _sync_carry_icons(pane: Dictionary, inv) -> void:
 	if fp == String(pane.get("icons_fp", "")):
 		return
 	pane["icons_fp"] = fp
+	_rebuild_carry_icon_row(icons, groups)
+
+
+func _sync_carry_icons_into(icons: HBoxContainer, inv, use_std_fp: bool) -> void:
+	if icons == null:
+		return
+	var groups: Array = []
+	if inv != null and not inv.is_empty():
+		groups = inv.grouped()
+	var bits: PackedStringArray = []
+	for g in groups:
+		bits.append("%s:%d" % [String(g["id"]), int(g["count"])])
+	var fp := "|".join(bits)
+	if use_std_fp:
+		if fp == _carry_std_fp:
+			return
+		_carry_std_fp = fp
+	_rebuild_carry_icon_row(icons, groups)
+
+
+func _rebuild_carry_icon_row(icons: HBoxContainer, groups: Array) -> void:
 	for c in icons.get_children():
 		c.queue_free()
 	if groups.is_empty():

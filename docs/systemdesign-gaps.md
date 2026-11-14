@@ -51,8 +51,9 @@
 | 已處理 | 規則含糊 | 全體集資「一半客人」沒有選法 | LV1 只處理排隊。LV2、LV3 都不含離開中客人和小偷。略過指令與 Circle，馬上收錢。已拿走的貨按售價全額入帳；未買完的貨不入帳、不白送，客人當已付款離開。 | playerultimateskills.md, cashiersystem.md |
 | 已處理 | 規則含糊 | 全體集資 LV2 一半怎樣取 | 單數向上取整。已拿走件數最多的客人優先。件數相同時，銷售金額最高者優先。件數和金額都相同時，不滿度較高者優先。不滿度也相同時，隨意選一位。 | playerultimateskills.md |
 | 已處理 | 規則含糊 | 衝刺撞飛客人與尋路互相打架 | 衝刺撞客人：Screen KO 飛起再**原地落地**（不離店）；停止 2 秒；+50 不滿（基值；禮貌衝撞則 +0）；購物車貨品原地掉落；**購物清單不變**（不重抽），已取貨放回清單後從頭尋貨。路人擁擠：玩家 3 身位內有客人／小偷 → 移速 ×0.5＋頭頂「唔該借借⋯」。小偷被衝刺撞飛或貨箱砸中都**算抓住**。 | playermovement.md, customer.md, playerpassiveskills.md, thiefsystem.md, ecosystem.md |
-| P1 | 缺檔／缺系統 | 劇情／事件層沒有設計檔 | 已標明留待 Beta，現階段經驗不從這裡增減。三層循環的第一層仍無事件表、觸發、失敗條件。評價條件語意已有（`ratingsystem.md`），事件／劇情表本身仍缺。 | gameconcept.md, playerlevel.md, ecosystem.md, ratingsystem.md |
-| Alpha | 缺檔／缺系統 | 幫忙取貨與 COMBO 交貨沒有規則 | 留待 Alpha 設計，見 `docs/alpha/design.md`。核心節奏有兩句，沒有互動對象、指令、計分、與收銀／不滿的關係。 | gameconcept.md, customer.md, playeraction.md |
+| P1 | 缺檔／缺系統 | 劇情／事件層沒有設計檔 | 任務條件語意已有（`tasksystem.md`）；事件表、觸發、失敗條件與完整劇情任務內容仍缺（stub：`taskcontent-event-stub.md`、`taskcontent-story-stub.md`）。經驗不從事件／劇情增減仍標 Beta。 | gameconcept.md, playerlevel.md, ecosystem.md, ratingsystem.md, tasksystem.md |
+| 已處理 | 缺檔／缺系統 | 任務系統無設計檔 | 已有 `tasksystem.md`＋測試／stub 內容檔；活線未實作。報酬與店鋪任務解鎖細節標 Beta。 | tasksystem.md, taskcontent-ops-test.md, docs/beta/design.md |
+| 已處理 | 規則含糊 | 幫忙取貨與 COMBO | 活線已改：每成功交付 +1、失誤個人 RESET；完美交付＝清單一次交清（見 `fetchcombo.md`／`tasksystem.md`）。 | fetchcombo.md, tasksystem.md, gameconcept.md |
 | Beta | 未定數值 | 客人流量幾乎沒有長線數值 | 留待 Beta 設計，見 `docs/beta/design.md`。有清單上限 15、逗留 1 秒、思考 3 秒。抽出件數交給各 Demo。沒有生成間隔、在店人數上限、客人類別移速表。找不到貨長線點數未定（Demo v0.3 為 +18）。麻煩客人行為已寫進 `elitecustomer.md` 並落地；仍欠劇情 LV 解鎖／事件表。 | customer.md, elitecustomer.md, gameconcept.md |
 | Beta | 未定數值 | 污物／小偷的長線流量未定 | 留待 Beta 設計，見 `docs/beta/design.md`。清潔檔的生成頻率、同時上限、垃圾氣力、三類不滿長線未定。小偷清單件數、同時人數、出現間隔長線未定。霸王色「減少 50%」沒有基礎出現率可乘。 | cleaningsystem.md, thiefsystem.md, playerpassiveskills.md |
 | 已處理 | 規則含糊 | 凌波微步只寫不減速 | 發動時：污物不減速；dash 遇污物高速繞過（特效）；垃圾不扣氣；水漬跑／衝不滑（自水漬 dash 則高速離污）；嘔吐物不禁技能、不減能力。擁擠減速見衝刺／擁擠項。 | playerpassiveskills.md, cleaningsystem.md, playermovement.md |
@@ -75,8 +76,8 @@
 
 經營回合與準備回合的主循環已有拆檔（含清潔、小偷、採購、店舖設計、店員）。下列主題被點名，但沒有對應設計，或檔案仍是一句。
 
-- **循環與進度：** 劇情／事件表、過關與失敗、技能解鎖表。~~評價／經營值~~ 見 `ratingsystem.md`（難度 stub 見 `difficulty.md`）。~~存檔~~ 見 `savesystem.md`。~~暫停／掛起~~ 見 `pausemenu.md`
-- **店內系統：** 冰櫃與凍櫃的操作差異。幫忙取貨與 COMBO 留待 Alpha
+- **循環與進度：** 劇情／事件表、過關與失敗、技能解鎖表。~~評價／經營值~~ 見 `ratingsystem.md`（難度 stub 見 `difficulty.md`）。~~存檔~~ 見 `savesystem.md`。~~暫停／掛起~~ 見 `pausemenu.md`。~~任務條件語意~~ 見 `tasksystem.md`（活線／報酬／事件全表仍缺）
+- **店內系統：** 冰櫃與凍櫃的操作差異。幫忙取貨與 COMBO：`fetchcombo.md` 現行；任務新語意待對齊活線
 - **幾乎是空檔：** 角色導出的連線與檔案留待 Alpha。Voxel 初模和給設計師加細節的規矩在 `docs/alpha/voxel-v0.1.md`。外觀配置只有一句
 - **多人連線：** 設計見 [`docs/systemdesign/multiplayer.md`](systemdesign/multiplayer.md)（§10／§11／§12／§13）。**M2 首刀～M2.9 已交**；**M3 §13.4 已驗收**（2026-11-11）。下一步：正式 App ID／Cloud／成就，與 **M4** Web。交叉：`savesystem.md`／`pausemenu.md`／`control.md`
 - **工程路徑：** Demo／Alpha 專案目錄已凍結；v1 只改 `godot/game`（`docs/versioning.md`）。平台商務／Godot 釘版見 `docs/alpha/console-business.md`、`docs/alpha/godot-middleware-pin.md`（非玩法規則）
