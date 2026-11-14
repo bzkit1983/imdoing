@@ -1,5 +1,7 @@
 # Alpha v0.1 技術設計審查
 
+> **後繼：** 現行評估見 [`tech-review-v0.2.md`](tech-review-v0.2.md)（2026-11-14 · 活線 `godot/game` · v1.4.0）。本文保留為歷史基線與 §6 勾選紀錄。
+
 - **範圍：** 審查時以 `godot/alpha_v0_1` 為準；**之後實作只改** `godot/game`（見 `docs/versioning.md`）
 - **對照：** `docs/alpha/`、`docs/systemdesign/`（含 `savesystem.md`）、`docs/systemdesign-gaps.md`
 - **目標平台：** Steam · Nintendo Switch · Xbox（及現行 Web 試玩）

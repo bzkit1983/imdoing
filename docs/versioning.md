@@ -1,7 +1,7 @@
 # 版本控制策略（Alpha v0.1 → v1.0+）
 
 - **目的：** 保留可玩的 Alpha v0.1，之後所有 issue／功能只在一條主線上推進，不再整包複製 Godot 專案。
-- **對照：** 技術债與平台清單見 `docs/alpha/tech-review-v0.1.md`。
+- **對照：** 技術評估見 `docs/alpha/tech-review-v0.2.md`（現行）；v0.1 歷史清單見 `docs/alpha/tech-review-v0.1.md`。
 - **拍板日：** 2026-10-21
 
 ## 一句話
