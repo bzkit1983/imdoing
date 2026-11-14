@@ -27,6 +27,8 @@ const RatingRules = preload("res://scripts/session/rating_rules.gd")
 const FloorTilesScript = preload("res://scripts/floor_tiles.gd")
 const ProductVersion = preload("res://scripts/product_version.gd")
 const DaySettle = preload("res://scripts/host/day_settle.gd")
+const TaskCatalog = preload("res://scripts/session/task_catalog.gd")
+const TaskTrackerScript = preload("res://scripts/session/task_tracker.gd")
 
 var FLOOR_SIZE := Vector2(640, 640)
 var FLOOR_ORIGIN := Vector2(48, 36)
@@ -40,6 +42,7 @@ var seat_served: Array[int] = [0]
 var seat_caught: Array[int] = [0]
 var seat_elite: Array[int] = [0]
 var _combo = null
+var _tasks = null
 var _settled: bool = false
 ## After closeout, block confirm/cancel return until this game time (msec).
 var _closeout_ready_msec: int = 0
@@ -215,6 +218,7 @@ func _begin_day() -> void:
 	var ComboState = preload("res://scripts/session/combo_state.gd")
 	_combo = ComboState.new()
 	_combo.reset(SeatTable.seat_count)
+	_setup_day_tasks()
 	var il := get_node_or_null("/root/InteractLock")
 	if il != null and il.has_method("clear"):
 		il.clear()
@@ -283,6 +287,7 @@ func _begin_day() -> void:
 	add_child(_hud)
 	## setup binds every seat in `_players` (right panes + cast/log).
 	_hud.setup(self, _player)
+	_bind_player_task_signals()
 	var pad = preload("res://scripts/touch_pad.gd").new()
 	pad.name = "TouchPad"
 	add_child(pad)
@@ -444,6 +449,9 @@ func note_clean(seat: int = 0) -> void:
 	if actor != null:
 		FloatText.spawn_xp(actor, StateScript.XP_CLEAN)
 	apply_ops_rating(RatingRules.P4_CLEAN, actor)
+	if _tasks != null:
+		_tasks.note_metric(seat, "clean_count", 1)
+		bump_hud()
 
 
 func _seat_bump(arr: Array, seat: int, n: int) -> void:
@@ -453,10 +461,16 @@ func _seat_bump(arr: Array, seat: int, n: int) -> void:
 
 
 func combo_note_qualify(seat: int) -> void:
+	## +1 COMBO streak only; ops P5 is on perfect clear-list via combo_note_perfect.
 	if _combo == null:
 		return
 	_combo.note_qualify(seat)
 	bump_hud()
+	if _tasks != null:
+		_tasks.set_metric_absolute(seat, "deliver_combo", int(_combo.personal_of(seat)))
+
+
+func combo_note_perfect(seat: int) -> void:
 	apply_ops_rating(RatingRules.P5_COMBO, _seat_actor(seat))
 
 
@@ -465,6 +479,8 @@ func combo_break_personal(seat: int) -> void:
 		return
 	_combo.note_break_personal(seat)
 	bump_hud()
+	if _tasks != null:
+		_tasks.set_metric_absolute(seat, "deliver_combo", 0)
 
 
 func combo_personal(seat: int) -> int:
@@ -2691,7 +2707,7 @@ func record_stolen(items: Array) -> void:
 	apply_ops_rating(delta, _player)
 
 
-func record_caught(seat: int = 0) -> void:
+func record_caught(seat: int = 0, method: String = "any") -> void:
 	thieves_caught += 1
 	_seat_bump(seat_caught, seat, 1)
 	bump_hud()
@@ -2700,6 +2716,13 @@ func record_caught(seat: int = 0) -> void:
 	if actor != null:
 		FloatText.spawn_xp(actor, StateScript.XP_CATCH)
 	apply_ops_rating(RatingRules.P3_CATCH, actor)
+	if _tasks != null:
+		_tasks.note_metric(seat, "thief_caught", 1)
+		match String(method):
+			"melee":
+				_tasks.note_metric(seat, "thief_caught_melee", 1)
+			"dash":
+				_tasks.note_metric(seat, "thief_caught_dash", 1)
 
 
 func apply_ops_rating(delta: int, actor: Node2D = null) -> void:
@@ -2707,6 +2730,8 @@ func apply_ops_rating(delta: int, actor: Node2D = null) -> void:
 		return
 	ops_rating += delta
 	bump_hud()
+	if _tasks != null:
+		_tasks.sync_absolute_for_all_seats("ops_rating", ops_rating)
 	var body: Node2D = actor if actor != null and is_instance_valid(actor) else _player
 	if body != null and is_instance_valid(body):
 		var FloatText = preload("res://scripts/ui/float_text.gd")
@@ -2715,14 +2740,25 @@ func apply_ops_rating(delta: int, actor: Node2D = null) -> void:
 
 func note_angry_leave(actor: Node2D = null) -> void:
 	apply_ops_rating(RatingRules.N1_ANGRY, actor)
+	if _tasks != null:
+		_tasks.sync_absolute_for_all_seats("angry_leave", angry_left)
+		bump_hud()
 
 
 func note_wrong_deliver(actor: Node2D = null) -> void:
 	apply_ops_rating(RatingRules.N4_WRONG_DELIVER, actor)
+	var seat := _actor_seat(actor)
+	if _tasks != null:
+		_tasks.note_metric(seat, "wrong_deliver", 1)
+		bump_hud()
 
 
 func note_dash_guest(actor: Node2D = null) -> void:
 	apply_ops_rating(RatingRules.N5_DASH_GUEST, actor)
+	var seat := _actor_seat(actor)
+	if _tasks != null:
+		_tasks.note_metric(seat, "dash_knock_guest", 1)
+		bump_hud()
 
 
 func note_fight_fail(actor: Node2D = null) -> void:
@@ -2757,6 +2793,20 @@ func _on_paid(
 		if from_elite:
 			FloatText.spawn_xp(body, StateScript.XP_ELITE_SERVE, stagger)
 	apply_ops_rating(RatingRules.checkout_delta(from_elite, perfect), body)
+	## Checkout task credit: player seat only — player body or that seat's self-checkout ring.
+	## Skip clerk NPC and skill mass-pay (actor null).
+	if _tasks != null:
+		_tasks.sync_absolute_for_all_seats("sales_revenue", revenue)
+		_tasks.sync_absolute_for_all_seats("ops_rating", ops_rating)
+		var kind := str(actor.get("kind")) if actor != null and is_instance_valid(actor) else ""
+		var credit := _is_player_seat(seat) and (
+			_is_player_actor(actor) or kind == "cashier"
+		)
+		if credit:
+			_tasks.note_metric(seat, "checkout_count", 1)
+			if perfect:
+				_tasks.note_metric(seat, "checkout_perfect", 1)
+		bump_hud()
 	if _player != null:
 		var FxBurst = preload("res://scripts/fx_burst.gd")
 		var at: Vector2 = _player.global_position + Vector2(0, -28)
@@ -2777,6 +2827,127 @@ func _seat_actor(seat: int) -> Node2D:
 	if _player != null and is_instance_valid(_player):
 		return _player
 	return null
+
+
+func _actor_seat(actor: Node2D = null) -> int:
+	if actor != null and is_instance_valid(actor) and actor.get("seat_id") != null:
+		return int(actor.seat_id)
+	return 0
+
+
+func _is_player_seat(seat: int) -> bool:
+	## Clerk/NPC seats are not in `_players`; only controllable seats count for tasks.
+	return seat >= 0 and seat < _players.size() and _players[seat] != null
+
+
+func _is_player_actor(actor: Node2D = null) -> bool:
+	if actor == null or not is_instance_valid(actor):
+		return false
+	for p in _players:
+		if p == actor:
+			return true
+	return false
+
+
+func note_shelve(seat: int, sku: String, n: int) -> void:
+	if n <= 0 or _tasks == null or not _is_player_seat(seat):
+		return
+	_tasks.note_metric(seat, "shelve_count", n)
+	_tasks.note_metric(seat, "shelve_count_sku", n, {"sku": String(sku)})
+	bump_hud()
+
+
+func note_deliver(seat: int, mode: String, n: int = 1, perfect: bool = false) -> void:
+	if n <= 0 or _tasks == null or not _is_player_seat(seat):
+		return
+	_tasks.note_metric(seat, "deliver_count", n)
+	match String(mode):
+		"hand":
+			_tasks.note_metric(seat, "hand_deliver_count", n)
+		"toss":
+			_tasks.note_metric(seat, "toss_deliver_count", n)
+	if perfect:
+		_tasks.note_metric(seat, "perfect_deliver_count", 1)
+	bump_hud()
+
+
+func note_skill_cast(seat: int, skill_id: String, is_ult: bool) -> void:
+	if _tasks == null or not _is_player_seat(seat):
+		return
+	if is_ult:
+		_tasks.note_metric(seat, "ult_cast", 1, {"skill_id": skill_id})
+	else:
+		_tasks.note_metric(seat, "skill_cast", 1, {"skill_id": skill_id})
+	bump_hud()
+
+
+func task_hud_lines(seat: int = 0) -> Array:
+	if _tasks == null:
+		return []
+	return _tasks.hud_lines(seat)
+
+
+func _setup_day_tasks() -> void:
+	_tasks = TaskTrackerScript.new()
+	_tasks.reset_seats(SeatTable.seat_count)
+	_tasks.day_index = int(state.day_index) if state != null else 0
+	var mode := String(state.task_test_mode) if state != null else "off"
+	## Test packs replace the bag; do not carry leftover accumulate／in-progress rows.
+	if mode == "pack" or mode == "random":
+		if state != null:
+			state.active_tasks_by_seat = {}
+	else:
+		_tasks.load_from_save(state.active_tasks_by_seat if state != null else {})
+		_tasks.clear_day_tasks()
+	var seats: Array = []
+	for s in SeatTable.seat_ids():
+		seats.append(int(s))
+	if seats.is_empty():
+		seats.append(0)
+	var pack: Dictionary = {}
+	match mode:
+		"pack":
+			pack = TaskCatalog.pack_by_id(String(state.task_test_pack_id))
+		"random":
+			var seed := int(state.task_test_seed) if state != null else 1
+			pack = TaskCatalog.generate_ops(seed, 3, int(state.day_index), int(state.level))
+		_:
+			pack = {}
+	if not pack.is_empty():
+		_tasks.attach_pack(pack, seats, int(state.day_index))
+	if not _tasks.changed.is_connected(_on_tasks_changed):
+		_tasks.changed.connect(_on_tasks_changed)
+
+
+func _on_tasks_changed() -> void:
+	bump_hud()
+
+
+func _bind_player_task_signals() -> void:
+	for p in _players:
+		if p == null:
+			continue
+		var seat := int(p.seat_id)
+		p.skill_cast.connect(func(skill_name: String, is_ult: bool) -> void:
+			var sid := _skill_id_from_cast_name(skill_name, is_ult)
+			note_skill_cast(seat, sid, is_ult)
+		)
+
+
+func _skill_id_from_cast_name(skill_name: String, is_ult: bool) -> String:
+	## Prefer matching localized name to catalog id; fall back to raw string.
+	var SkillsScript = preload("res://scripts/skills.gd")
+	var pool: Array = SkillsScript.ULTS if is_ult else SkillsScript.ACTIVES
+	for sk in pool:
+		if not (sk is Dictionary):
+			continue
+		var nm := String(sk.get("name", ""))
+		if nm == skill_name or Loc.t(nm) == skill_name:
+			return String(sk.get("id", skill_name))
+		var id := String(sk.get("id", ""))
+		if id != "" and Loc.t("skill.%s.name" % id) == skill_name:
+			return id
+	return skill_name
 
 
 func skip_operate() -> void:
@@ -2816,6 +2987,19 @@ func _finish_day() -> void:
 		seat_served, seat_caught, seat_cleaned, seat_elite, seat_n, _skip_xp
 	)
 	var shared_xp: int = int(xp_pack["shared_xp"])
+	## Evaluate tasks against the ending day before day_index increments in settle().
+	var ending_day := int(state.day_index)
+	var pending_grade := RatingRules.grade_for_ops(ops_rating)
+	if _tasks != null:
+		_tasks.settle_day(ending_day, {
+			"sales_revenue": revenue,
+			"shop_money": int(state.money) + revenue,
+			"ops_rating": ops_rating,
+			"day_grade": pending_grade,
+			"shop_rating": maxi(0, int(state.shop_rating) + pending_grade),
+			"angry_leave": angry_left,
+		})
+		state.active_tasks_by_seat = _tasks.to_save()
 	var result: Dictionary = state.settle(
 		revenue, served, thieves_caught, cleaned, _skip_xp, elite_served, shared_xp, ops_rating
 	)
@@ -2873,11 +3057,16 @@ func _finish_day() -> void:
 				int(result.get("shop_rating", 0)),
 			]
 		)
+		var task_block := ""
+		if _tasks != null:
+			var tlines: PackedStringArray = _tasks.closeout_lines(0)
+			if not tlines.is_empty():
+				task_block = "\n" + Loc.t("settle.tasks_header") + "\n" + "\n".join(tlines)
 		_hud._close_text.text = DaySettle.closeout_body(
 			head, loss, revenue, state.money, int(result["spent"]), served, angry_left,
 			stolen_count, stolen_value, thieves_caught, thieves_escaped,
 			xp_line, save_line, grade_line
-		)
+		) + task_block
 	## Prep will check difficulty suggestion after closeout returns.
 
 
@@ -3514,9 +3703,15 @@ func _guest_for_toss(from: Vector2, dest: Vector2) -> Node2D:
 
 
 func _resolve_toss_guest(guest: Node2D, dest: Vector2, sku: String, n: int) -> void:
+	var before := 0
+	if guest != null and guest.get("shopping") != null:
+		before = int((guest.shopping as Array).size())
 	var taken := 0
 	if guest.has_method("accept_toss_box"):
 		taken = int(guest.call("accept_toss_box", sku, n))
+	var toss_seat := 0
+	if _player != null:
+		toss_seat = int(_player.seat_id)
 	if taken > 0:
 		var left := n - taken
 		SfxBus.play("sfx_box_hit_guest_ok")
@@ -3529,11 +3724,19 @@ func _resolve_toss_guest(guest: Node2D, dest: Vector2, sku: String, n: int) -> v
 			)
 		if left > 0:
 			_place_dropped_box(dest, sku, left)
+		var perfect: bool = before >= 1 and guest != null and guest.get("shopping") != null and bool(guest.shopping.is_empty())
+		if perfect and guest.has_method("apply_combo_bonus"):
+			guest.call("apply_combo_bonus")
+		combo_note_qualify(toss_seat)
+		if perfect:
+			combo_note_perfect(toss_seat)
+		note_deliver(toss_seat, "toss", 1, perfect)
 		return
 	if guest.has_method("apply_toss_reject"):
 		guest.call("apply_toss_reject", sku)
 	SfxBus.play("sfx_box_hit_guest_reject")
 	_place_dropped_box(dest, sku, n)
+	combo_break_personal(toss_seat)
 	if _player:
 		_player.log_line.emit(Loc.t("log.demo.toss_guest_reject"))
 
@@ -3660,12 +3863,25 @@ func _resolve_sniper_guest_landing(guest: Node2D, dest: Vector2, sku: String, n:
 				Loc.t("log.demo.sniper_guest_gone", [Tuning.sku_name(sku), n])
 			)
 		return
+	var before := 0
+	if guest.get("shopping") != null:
+		before = int((guest.shopping as Array).size())
 	var taken := 0
 	if guest.has_method("accept_toss_box"):
 		taken = int(guest.call("accept_toss_box", sku, n))
 	var left := n - taken
+	var toss_seat := 0
+	if _player != null:
+		toss_seat = int(_player.seat_id)
 	if taken > 0:
 		SfxBus.play("sfx_box_hit_guest_ok")
+		var perfect: bool = before >= 1 and bool(guest.shopping.is_empty())
+		if perfect and guest.has_method("apply_combo_bonus"):
+			guest.call("apply_combo_bonus")
+		combo_note_qualify(toss_seat)
+		if perfect:
+			combo_note_perfect(toss_seat)
+		note_deliver(toss_seat, "toss", 1, perfect)
 		if _player:
 			if left <= 0:
 				_player.log_line.emit(

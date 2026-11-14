@@ -74,8 +74,28 @@ func combo_team() -> int:
 	return 0
 
 
-func record_caught(_seat: int = 0) -> void:
+func record_caught(_seat: int = 0, _method: String = "any") -> void:
 	pass
+
+
+func combo_note_perfect(_seat: int) -> void:
+	pass
+
+
+func note_shelve(_seat: int, _sku: String, _n: int) -> void:
+	pass
+
+
+func note_deliver(_seat: int, _mode: String, _n: int = 1, _perfect: bool = false) -> void:
+	pass
+
+
+func note_skill_cast(_seat: int, _skill_id: String, _is_ult: bool) -> void:
+	pass
+
+
+func task_hud_lines(_seat: int = 0) -> Array:
+	return []
 
 
 func record_stolen(_items: Array) -> void:

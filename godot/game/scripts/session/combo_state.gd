@@ -1,6 +1,7 @@
 extends RefCounted
 ## Personal + team COMBO (§11.7 / fetchcombo.md).
-## Qualify: one delivery clears remaining guest list with ≥3 pieces.
+## +1 per successful guest delivery; personal RESET on miss.
+## Perfect clear-list (any piece count) is separate guest bonus / ops P5.
 
 signal changed
 

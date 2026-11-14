@@ -252,8 +252,10 @@ func _bind_nodes() -> void:
 	PrepWidgets.paint_btn(_back_btn, true)
 	UiFont.apply_button(_back_btn, PrepWidgets.PREP_BTN)
 	_back_btn.custom_minimum_size = Vector2(200, 52)
-	UiFont.apply_label(%Hint, PREP_HINT)
-	%Hint.add_theme_color_override("font_color", Color("c8d4c5"))
+	## Bottom control dump was cluttering every prep page; layout tips live in page info.
+	if %Hint:
+		%Hint.visible = false
+		%Hint.text = ""
 	UiFont.apply_label(%DiffLabel, 26)
 	%DiffLabel.add_theme_color_override("font_color", Color("f4f1ea"))
 	%DiffLabel.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -328,7 +330,8 @@ func _refresh_chrome_copy() -> void:
 	if _back_btn:
 		_back_btn.text = Loc.t("prep.chrome.back")
 	if %Hint:
-		%Hint.text = Loc.t("prep.chrome.hint")
+		%Hint.visible = false
+		%Hint.text = ""
 	if _open_main:
 		_open_main.text = Loc.t("prep.home.open")
 	if _open_elite:
@@ -427,7 +430,7 @@ func _rebuild_hub_tiles() -> void:
 		return
 	PrepWidgets.clear(_hub_panel)
 	_hub_panel.columns = maxi(1, _hub_cols)
-	_hub_panel.clip_contents = true
+	_hub_panel.clip_contents = false
 	var as_rows := _hub_cols <= 1
 	for i in _rows.size():
 		var row: Dictionary = _rows[i]
@@ -477,11 +480,13 @@ func _apply_chrome_button_font(btn: Button, size: int) -> void:
 
 
 func _layout_hub_chrome() -> void:
-	## Pack hub to content height; stack diff + open below (no overlap).
+	## Pack hub to content height; stack diff + open strictly below (never overlap tiles).
+	## Cap to 720p usable area and shrink rows if needed so sys tools aren't clipped.
 	if _hub_panel == null:
 		return
 	var top := 156.0
 	var gap := 10.0
+	var screen_bottom := 700.0
 	var cols := maxi(1, _hub_cols)
 	var n := maxi(1, _rows.size())
 	var row_n := int(ceil(float(n) / float(cols)))
@@ -490,33 +495,42 @@ func _layout_hub_chrome() -> void:
 		var c0 := _hub_panel.get_child(0) as Control
 		if c0 != null:
 			cell_h = maxf(cell_h, c0.get_combined_minimum_size().y)
+	## Reserve chrome under hub on home so diff／open never sit on icons.
+	var reserve := 0.0
+	if _page == "home" and _open_bar != null:
+		reserve = PrepWidgets.OPEN_MAIN_H + 12.0
+		if _diff_bar != null and _diff_bar.visible:
+			reserve += PrepWidgets.DIFF_H + 10.0
+	var avail := maxf(120.0, screen_bottom - top - reserve)
 	var hub_h := float(row_n) * cell_h + float(maxi(0, row_n - 1)) * gap
-	## Undersizing a free GridContainer below its minimum balloons the panel.
-	hub_h = maxf(hub_h, _hub_panel.get_combined_minimum_size().y)
+	if hub_h > avail and row_n > 0:
+		var fit_cell := (avail - float(maxi(0, row_n - 1)) * gap) / float(row_n)
+		cell_h = maxf(44.0, fit_cell)
+		for child in _hub_panel.get_children():
+			if child is Control:
+				var c := child as Control
+				var ms := c.custom_minimum_size
+				ms.y = cell_h
+				c.custom_minimum_size = ms
+		hub_h = float(row_n) * cell_h + float(maxi(0, row_n - 1)) * gap
+	hub_h = minf(hub_h, avail)
 	_hub_panel.position = Vector2(24, top)
 	_hub_panel.size = Vector2(1232, hub_h)
+	## Clip on home so oversized tile icons cannot paint over diff／open.
+	_hub_panel.clip_contents = _page == "home"
 	_hub_panel.add_theme_constant_override("h_separation", int(gap))
 	_hub_panel.add_theme_constant_override("v_separation", int(gap))
-	if _open_bar == null:
-		return
-	if _page != "home":
+	if _open_bar == null or _page != "home":
 		return
 	var y := top + hub_h + 12.0
-	var open_h := PrepWidgets.OPEN_MAIN_H
 	if _diff_bar != null and _diff_bar.visible:
 		var diff_h := PrepWidgets.DIFF_H
-		var preferred_open := 600.0 - open_h
-		var diff_top := preferred_open - 10.0 - diff_h
-		if diff_top < y:
-			diff_top = y
-		_diff_bar.position = Vector2(24, diff_top)
+		_diff_bar.position = Vector2(24, y)
 		_diff_bar.size = Vector2(1232, diff_h)
 		_diff_bar.clip_contents = true
-		y = diff_top + diff_h + 10.0
-	var preferred := 600.0 - open_h
-	var open_top := preferred if preferred > y else y
-	_open_bar.position = Vector2(24, open_top)
-	_open_bar.size = Vector2(1232, open_h)
+		y += diff_h + 10.0
+	_open_bar.position = Vector2(24, y)
+	_open_bar.size = Vector2(1232, PrepWidgets.OPEN_MAIN_H)
 	_open_bar.clip_contents = true
 
 
@@ -1055,8 +1069,18 @@ func _activate() -> void:
 			_show_page("confirm")
 		"test_money":
 			_grant_test_money()
+		"task_test_off":
+			_set_task_test("off", "", 0)
+		"task_test_pack":
+			_set_task_test("pack", String(arg), int(state.task_test_seed))
+		"task_test_random":
+			_set_task_test("random", String(state.task_test_pack_id), int(arg) if arg != null else int(state.task_test_seed))
+		"task_test_reroll":
+			_set_task_test("random", String(state.task_test_pack_id), int(Time.get_ticks_msec()) % 100000 + 1)
 		"toggle_virtual_stick":
 			_toggle_virtual_stick()
+		"toggle_dev_hud":
+			_toggle_dev_hud()
 		"set_locale":
 			_set_locale(String(arg))
 		"play_sfx":
@@ -1072,6 +1096,13 @@ func _toggle_virtual_stick() -> void:
 	SfxBus.play("sfx_ui_confirm")
 	_msg = Loc.t("prep.sys.virtual_stick_on" if on else "prep.sys.virtual_stick_off")
 	## Visibility updates via InputMode.show_vj_changed → demo._on_show_vj_changed.
+	_refresh()
+
+
+func _toggle_dev_hud() -> void:
+	var on := PlatformServices.toggle_show_dev_hud()
+	SfxBus.play("sfx_ui_confirm")
+	_msg = Loc.t("prep.sys.dev_hud_on" if on else "prep.sys.dev_hud_off")
 	_refresh()
 
 
@@ -1091,6 +1122,30 @@ func _grant_test_money() -> void:
 		return
 	state.money += 1000
 	_msg = Loc.t("prep.home.test_money_ok", [state.money])
+	_refresh()
+
+
+func _set_task_test(mode: String, pack_id: String, seed: int) -> void:
+	const ProductVersion = preload("res://scripts/product_version.gd")
+	if not ProductVersion.test_tools_enabled():
+		return
+	state.task_test_mode = mode
+	if pack_id != "":
+		state.task_test_pack_id = pack_id
+	if seed > 0:
+		state.task_test_seed = seed
+	## Test pack replaces prior bags — drop in-progress／accumulate so Tasks page only shows the new set.
+	if mode == "pack" or mode == "random":
+		state.active_tasks_by_seat = {}
+	state.save_to_disk()
+	SfxBus.play("sfx_ui_confirm")
+	match mode:
+		"pack":
+			_msg = Loc.t("prep.test_tasks.set_pack", [state.task_test_pack_id])
+		"random":
+			_msg = Loc.t("prep.test_tasks.set_random", [state.task_test_seed])
+		_:
+			_msg = Loc.t("prep.test_tasks.set_off")
 	_refresh()
 
 

@@ -126,6 +126,7 @@ func open_menu(from_suspend: bool = false) -> void:
 	visible = true
 	_refresh_end_day_row()
 	_refresh_copy()
+	_layout_option_rows()
 	_paint_focus()
 	PlatformServices.checkpoint()
 	SfxBus.play("sfx_ui_pause_open")
@@ -347,26 +348,57 @@ func _refresh_lang_row() -> void:
 
 
 func _layout_option_rows() -> void:
-	if _end_btn == null or _camera_btn == null or _lang_btn == null:
+	## Fit all main options inside the 720p card (old fixed Y pushed End day off-screen).
+	if _resume_btn == null or _end_btn == null:
 		return
-	var stick_on := _stick_btn != null and _stick_btn.visible
-	## Rows: stick (optional) → camera → language → end day.
-	if stick_on:
-		_stick_btn.offset_top = 472.0
-		_stick_btn.offset_bottom = 544.0
-		_camera_btn.offset_top = 558.0
-		_camera_btn.offset_bottom = 630.0
-		_lang_btn.offset_top = 644.0
-		_lang_btn.offset_bottom = 716.0
-		_end_btn.offset_top = 730.0
-		_end_btn.offset_bottom = 802.0
-	else:
-		_camera_btn.offset_top = 472.0
-		_camera_btn.offset_bottom = 544.0
-		_lang_btn.offset_top = 558.0
-		_lang_btn.offset_bottom = 630.0
-		_end_btn.offset_top = 644.0
-		_end_btn.offset_bottom = 716.0
+	var card := _resume_btn.get_parent() as Control
+	if card == null:
+		return
+	var vp_h := get_viewport().get_visible_rect().size.y
+	var card_top := 8.0
+	var card_bottom := mini(712.0, vp_h - 8.0)
+	card.offset_top = card_top
+	card.offset_bottom = card_bottom
+	var inner_h := card_bottom - card_top
+	## Header block (title／body／hint) stays compact; pack buttons below.
+	var header_h := 168.0
+	var rows: Array[Control] = []
+	rows.append(_resume_btn)
+	rows.append(_sfx_btn)
+	if _vol_btn != null and _vol_btn.get_parent() is Control:
+		rows.append(_vol_btn.get_parent() as Control)
+	if _stick_btn != null and _stick_btn.visible:
+		rows.append(_stick_btn)
+	if _camera_btn != null and _camera_btn.visible:
+		rows.append(_camera_btn)
+	if _lang_btn != null and _lang_btn.visible:
+		rows.append(_lang_btn)
+	if _end_btn != null and _end_btn.visible:
+		rows.append(_end_btn)
+	var n := rows.size()
+	if n <= 0:
+		return
+	var gap := 6.0
+	var avail := maxf(120.0, inner_h - header_h - 12.0)
+	var row_h := minf(56.0, (avail - gap * float(n - 1)) / float(n))
+	row_h = maxf(40.0, row_h)
+	var y := header_h
+	## If still overflowing, shrink header a bit.
+	var need := row_h * float(n) + gap * float(n - 1)
+	if y + need > inner_h - 8.0:
+		y = maxf(120.0, inner_h - 8.0 - need)
+	for row in rows:
+		row.offset_left = 36.0
+		row.offset_right = 764.0
+		row.offset_top = y
+		row.offset_bottom = y + row_h
+		## Volume row children fill the row height.
+		if row == _vol_btn.get_parent():
+			for child in row.get_children():
+				if child is Button:
+					(child as Button).offset_top = 0.0
+					(child as Button).offset_bottom = row_h
+		y += row_h + gap
 
 
 func _move_focus(delta: int) -> void:
@@ -489,7 +521,11 @@ func _set_main_options_visible(on: bool) -> void:
 		_camera_btn.visible = on
 	if _lang_btn:
 		_lang_btn.visible = on
-	_end_btn.visible = on
+	## Host-only end-day; keep prior host_ok rule from _refresh_end_day_row.
+	if on:
+		_refresh_end_day_row()
+	else:
+		_end_btn.visible = false
 
 
 func _build_lang_pick() -> void:

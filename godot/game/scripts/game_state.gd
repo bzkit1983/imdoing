@@ -7,7 +7,8 @@ const Skills = preload("res://scripts/skills.gd")
 ## Bump when the save schema changes; from_dict must migrate or reject.
 ## 2+: stock is pieces. v1 saves store boxes and are multiplied by BOX_SIZE on load.
 ## 3+: shop_rating / rating_history / difficulty / last_* rating fields.
-const SAVE_VERSION := 3
+## 4+: day_index / active_tasks_by_seat / task test selection (tasksystem.md).
+const SAVE_VERSION := 4
 const RatingRules = preload("res://scripts/session/rating_rules.gd")
 
 const CELL := 64.0
@@ -96,6 +97,14 @@ var last_grade: int = 0
 var difficulty_prompt_acked: String = ""
 ## Support-other-shop rating when this character visits online (multiplayer.md §12.8).
 var support_rating: int = 0
+## Closed ops days (increments on every close including early close).
+var day_index: int = 0
+## seat id string → Array of task runtime rows (see session/task_tracker.gd).
+var active_tasks_by_seat: Dictionary = {}
+## Prep「測試任務」: off | pack | random
+var task_test_mode: String = "off"
+var task_test_pack_id: String = "OP-TUT-001"
+var task_test_seed: int = 1
 
 
 func _init() -> void:
@@ -118,6 +127,11 @@ func apply_scenario(id: int) -> void:
 	difficulty = RatingRules.DIFF_NORMAL
 	last_ops_rating = RatingRules.OPS_START
 	last_grade = 0
+	day_index = 0
+	active_tasks_by_seat.clear()
+	task_test_mode = "off"
+	task_test_pack_id = "OP-TUT-001"
+	task_test_seed = 1
 	difficulty_prompt_acked = ""
 	support_rating = 0
 	_install_new_game_sets()
@@ -932,6 +946,8 @@ func settle(
 	rating_history.append(grade)
 	while rating_history.size() > RatingRules.HISTORY_MAX:
 		rating_history.remove_at(0)
+	## Every close (including early) advances the ops day counter.
+	day_index += 1
 	return {
 		"xp": gain_xp,
 		"ups": ups,
@@ -942,6 +958,7 @@ func settle(
 		"grade": grade,
 		"shop_before": shop_before,
 		"shop_rating": shop_rating,
+		"day_index": day_index,
 	}
 
 
@@ -1147,6 +1164,11 @@ func to_dict() -> Dictionary:
 		"last_grade": last_grade,
 		"difficulty_prompt_acked": difficulty_prompt_acked,
 		"support_rating": support_rating,
+		"day_index": day_index,
+		"active_tasks_by_seat": active_tasks_by_seat.duplicate(true),
+		"task_test_mode": task_test_mode,
+		"task_test_pack_id": task_test_pack_id,
+		"task_test_seed": task_test_seed,
 	}
 
 
@@ -1248,6 +1270,23 @@ func from_dict(data: Dictionary) -> String:
 	last_grade = clampi(int(data.get("last_grade", 0)), -3, 3)
 	difficulty_prompt_acked = String(data.get("difficulty_prompt_acked", ""))
 	support_rating = int(data.get("support_rating", 0))
+	day_index = maxi(0, int(data.get("day_index", 0)))
+	active_tasks_by_seat = {}
+	var raw_tasks = data.get("active_tasks_by_seat", {})
+	if raw_tasks is Dictionary:
+		for sk in raw_tasks.keys():
+			var rows: Array = []
+			var raw_rows = raw_tasks[sk]
+			if raw_rows is Array:
+				for row in raw_rows:
+					if row is Dictionary:
+						rows.append((row as Dictionary).duplicate(true))
+			active_tasks_by_seat[str(sk)] = rows
+	task_test_mode = String(data.get("task_test_mode", "off"))
+	if task_test_mode != "off" and task_test_mode != "pack" and task_test_mode != "random":
+		task_test_mode = "off"
+	task_test_pack_id = String(data.get("task_test_pack_id", "OP-TUT-001"))
+	task_test_seed = int(data.get("task_test_seed", 1))
 	_grant_initial_goods()
 	_ensure_one_for_sale()
 	return ""
