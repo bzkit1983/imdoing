@@ -27,6 +27,8 @@ const RatingRules = preload("res://scripts/session/rating_rules.gd")
 const FloorTilesScript = preload("res://scripts/floor_tiles.gd")
 const ProductVersion = preload("res://scripts/product_version.gd")
 const DaySettle = preload("res://scripts/host/day_settle.gd")
+const WorldBuildScript = preload("res://scripts/host/world_build.gd")
+const NetWorldScript = preload("res://scripts/host/net_world.gd")
 const TaskCatalog = preload("res://scripts/session/task_catalog.gd")
 const TaskTrackerScript = preload("res://scripts/session/task_tracker.gd")
 const ThreeVolleyVisualScript = preload("res://scripts/three_volley_visual.gd")
@@ -136,6 +138,8 @@ var _empty_by_cat: Dictionary = {}
 ## Coarse cells blocked for dirt spawn (furniture + door + existing dirt).
 const DIRT_CELL := 40.0
 var _dirt_block_cells: Dictionary = {}
+var _world_build = WorldBuildScript.new()
+var _net = NetWorldScript.new()
 
 
 func _ready() -> void:
@@ -151,16 +155,9 @@ func _ready() -> void:
 	SessionService.seats_changed.connect(_on_session_seats_changed)
 	SessionService.settle_payload_received.connect(_on_settle_payload)
 	SessionService.disconnect_session.connect(_on_session_disconnect)
-	if not SessionService.agent_spawn_received.is_connected(_on_agent_spawn_received):
-		SessionService.agent_spawn_received.connect(_on_agent_spawn_received)
-	if not SessionService.agent_despawn_received.is_connected(_on_agent_despawn_received):
-		SessionService.agent_despawn_received.connect(_on_agent_despawn_received)
-	if not SessionService.agent_state_received.is_connected(_on_agent_state_received):
-		SessionService.agent_state_received.connect(_on_agent_state_received)
-	if not SessionService.flight_received.is_connected(_on_flight_received):
-		SessionService.flight_received.connect(_on_flight_received)
-	if not SessionService.stock_state_received.is_connected(_on_stock_state_received):
-		SessionService.stock_state_received.connect(_on_stock_state_received)
+	_world_build.bind(self)
+	_net.bind(self)
+	_net.connect_session()
 	if not SessionService.carry_state_received.is_connected(_on_carry_state_received):
 		SessionService.carry_state_received.connect(_on_carry_state_received)
 	if not SessionService.prompt_state_received.is_connected(_on_prompt_state_received):
@@ -370,8 +367,6 @@ func _clear_world() -> void:
 	shelves.clear()
 	_shelves_by_sku.clear()
 	_empty_by_cat.clear()
-	_shelves_by_net_id.clear()
-	_next_net_shelf_id = 0
 	_dirt_block_cells.clear()
 	_thieves.clear()
 	_guest_n = 0
@@ -379,15 +374,7 @@ func _clear_world() -> void:
 	cashiers.clear()
 	_dirts.clear()
 	_clerks.clear()
-	_net_agents.clear()
-	_next_agent_id = 1
-	_agent_xform_tick = 0
-	_pending_agent_spawns.clear()
-	_pending_flights.clear()
-	_pending_agent_states.clear()
-	_pending_stock_states.clear()
-	_pending_carry_states.clear()
-	_pending_prompt_states.clear()
+	_net.clear_runtime()
 	_obstacles.clear()
 	cashier = null
 	_player = null
@@ -401,51 +388,10 @@ func _clear_world() -> void:
 
 
 func _build_furniture(nodes: Array[Node2D]) -> void:
-	var shelf_i := 1
-	var reg_i := 0
-	for it in state.placed:
-		var cell := StateScript.CELL
-		var r := Rect2(FLOOR_ORIGIN + Vector2(int(it["x"]), int(it["y"])) * cell, Vector2(int(it["w"]), int(it["h"])) * cell)
-		var t := String(it["type"])
-		var rot := int(it["rot"])
-		if t.begins_with("restock"):
-			var cat := Tuning.CAT_DRY
-			if t.ends_with("frozen"):
-				cat = Tuning.CAT_FROZEN
-			elif t.ends_with("ice"):
-				cat = Tuning.CAT_ICE
-			nodes.append(_restock(r, cat, String(it.get("default_sku", ""))))
-		elif t.begins_with("shelf"):
-			var cat := Tuning.CAT_DRY
-			if t.contains("frozen"):
-				cat = Tuning.CAT_FROZEN
-			elif t.contains("ice"):
-				cat = Tuning.CAT_ICE
-			nodes.append(_make_shelf(r, cat, shelf_i, rot, state.shelf_capacity(t)))
-			shelf_i += 1
-		elif t == "cashier":
-			var node := _make_cashier(r, rot, reg_i)
-			nodes.append(node)
-			reg_i += 1
-	if not cashiers.is_empty():
-		cashier = cashiers[0]
-
+	_world_build.build_furniture(nodes)
 
 func _spawn_clerks() -> void:
-	var i := 0
-	for c in state.clerks:
-		var clerk: CharacterBody2D = ClerkScript.new()
-		var reg: Node2D = null
-		if String(c["role"]) == "cashier" and not cashiers.is_empty():
-			reg = cashiers[mini(int(c["register"]), cashiers.size() - 1)]
-		_world.add_child(clerk)
-		clerk.setup(self, FLOOR_ORIGIN + Vector2(80 + i * 36, FLOOR_SIZE.y - 120), String(c["role"]), reg)
-		_clerks.append(clerk)
-		_register_net_agent(clerk, "clerk", {
-			"role": String(c["role"]),
-		})
-		i += 1
-
+	_world_build.spawn_clerks()
 
 func note_clean(seat: int = 0) -> void:
 	cleaned += 1
@@ -1161,167 +1107,30 @@ func sync_stock() -> void:
 
 ## Aggregate unsold pieces: shelves, floor, in-flight, player carry,
 ## clerk-held boxes, and guests who finished their list but have not paid.
-func _collect_unsold_pieces() -> Dictionary:
-	var out: Dictionary = {}
-	_add_pieces(out, _collect_shelf_floor_pieces())
-	_add_pieces(out, _collect_player_carry_pieces())
-	_add_pieces(out, _collect_clerk_held_pieces())
-	_add_pieces(out, _collect_unpaid_checkout_pieces())
-	return out
 
+func _collect_unsold_pieces() -> Dictionary:
+	return DaySettle.collect_unsold_pieces(self)
 
 func _add_pieces(dst: Dictionary, src: Dictionary) -> void:
-	for sku_v in src.keys():
-		var n := int(src[sku_v])
-		if n <= 0:
-			continue
-		var sku := String(sku_v)
-		dst[sku] = int(dst.get(sku, 0)) + n
-
+	DaySettle.add_pieces(dst, src)
 
 func _collect_shelf_floor_pieces() -> Dictionary:
-	var out: Dictionary = {}
-	for s in shelves:
-		if s == null or not is_instance_valid(s):
-			continue
-		## str() — String(null) throws in Godot 4 when Object.get misses.
-		var sku := str(s.get("sku"))
-		var n_v = s.get("count")
-		var n := int(n_v) if n_v != null else 0
-		if sku == "" or n <= 0:
-			continue
-		out[sku] = int(out.get(sku, 0)) + n
-	if _world == null:
-		return out
-	for c in _world.get_children():
-		if c == null or not is_instance_valid(c) or c.is_queued_for_deletion():
-			continue
-		var kind := str(c.get("kind"))
-		if kind in ["universal_cannon", "shelf_cannon"]:
-			for item in c.ammo:
-				out[item] = int(out.get(item, 0)) + 1
-			continue
-		## Floor / Labels / Customers / FloatText lack kind — already using str() above.
-		if kind != "drop" and kind != "drop_flight":
-			continue
-		var sku := str(c.get("sku"))
-		var n_v = c.get("count")
-		var n := int(n_v) if n_v != null else 0
-		if sku == "" or n <= 0:
-			continue
-		out[sku] = int(out.get(sku, 0)) + n
-	return out
-
+	return DaySettle.collect_shelf_floor_pieces(self)
 
 func _collect_player_carry_pieces() -> Dictionary:
-	var out: Dictionary = {}
-	var seats: Array = _players.duplicate()
-	if seats.is_empty() and is_instance_valid(_player):
-		seats.append(_player)
-	for player in seats:
-		if not is_instance_valid(player):
-			continue
-		for sku_v in player.inventory.items:
-			var sku := str(sku_v)
-			if sku != "":
-				out[sku] = int(out.get(sku, 0)) + 1
-	return out
+	return DaySettle.collect_player_carry_pieces(self)
 
 func _collect_clerk_held_pieces() -> Dictionary:
-	var out: Dictionary = {}
-	if _world != null:
-		for c in _world.get_children():
-			if c == null or not is_instance_valid(c):
-				continue
-			if str(c.get("role")) != "restock":
-				continue
-			var sku := str(c.get("_box_sku"))
-			var n := int(c.get("_box_n"))
-			if sku == "" or n <= 0:
-				continue
-			out[sku] = int(out.get(sku, 0)) + n
-	if _customers == null:
-		return out
-	for c in _customers.get_children():
-		if c == null or not is_instance_valid(c):
-			continue
-		if not c.get("temp_clerk") or str(c.get("temp_role")) != "restock":
-			continue
-		var held := str(c.get("_temp_box_sku"))
-		var pieces := int(c.get("_temp_box_n"))
-		if held == "" or pieces <= 0:
-			continue
-		out[held] = int(out.get(held, 0)) + pieces
-	return out
-
+	return DaySettle.collect_clerk_held_pieces(self)
 
 func _collect_unpaid_checkout_pieces() -> Dictionary:
-	var out: Dictionary = {}
-	if _customers == null:
-		return out
-	for c in _customers.get_children():
-		if c == null or not is_instance_valid(c):
-			continue
-		if not c.has_method("unsold_checkout_cart"):
-			continue
-		var cart: Array = c.call("unsold_checkout_cart")
-		for sku_v in cart:
-			var sku := String(sku_v)
-			if sku == "":
-				continue
-			out[sku] = int(out.get(sku, 0)) + 1
-	return out
-
+	return DaySettle.collect_unpaid_checkout_pieces(self)
 
 func _return_unsold_to_warehouse() -> void:
-	var pieces := _collect_unsold_pieces()
-	if pieces.is_empty():
-		return
-	state.credit_unsold_pieces(pieces)
-	_clear_credited_unsold()
-	sync_stock()
+	DaySettle.return_unsold_to_warehouse(self)
 
-
-## Clear credited world / carry goods after warehouse credit so closeout
-## does not leave orphan drops or double-count if somehow re-entered.
 func _clear_credited_unsold() -> void:
-	for s in shelves:
-		if s == null or not is_instance_valid(s):
-			continue
-		if s.has_method("take_all"):
-			s.call("take_all")
-	var seats: Array = _players.duplicate()
-	if seats.is_empty() and is_instance_valid(_player):
-		seats.append(_player)
-	for player in seats:
-		if is_instance_valid(player):
-			player.inventory.clear()
-	if _customers != null:
-		for c in _customers.get_children():
-			if c != null and is_instance_valid(c) and c.has_method("clear_unsold_checkout_cart"):
-				c.call("clear_unsold_checkout_cart")
-	if _world == null:
-		return
-	var kill: Array[Node] = []
-	for c in _world.get_children():
-		if c == null or not is_instance_valid(c):
-			continue
-		## Mixed world children: String(null) on missing kind aborts the sweep.
-		var kind := str(c.get("kind"))
-		if kind in ["universal_cannon", "shelf_cannon"]:
-			c.ammo.clear()
-			c.dismiss()
-			continue
-		if kind == "drop" or kind == "drop_flight":
-			kill.append(c)
-			continue
-		if str(c.get("role")) == "restock":
-			c.set("_box_n", 0)
-			c.set("_box_sku", "")
-	for c in kill:
-		c.queue_free()
-
-
+	DaySettle.clear_credited_unsold(self)
 func _unhandled_input(event: InputEvent) -> void:
 	if _early_open:
 		_early_input(event)
@@ -2032,221 +1841,37 @@ func _net_tick_intents_and_sync() -> void:
 
 
 func _alloc_agent_id() -> int:
-	var id := _next_agent_id
-	_next_agent_id += 1
-	return id
-
+	return _net.alloc_agent_id()
 
 func _register_net_agent(node: Node, kind: String, extra: Dictionary = {}) -> void:
-	## Host-only: assign id, track, broadcast spawn to clients (M2.2).
-	if node == null or not is_instance_valid(node):
-		return
-	if SessionService.is_networked() and SessionService.is_client():
-		return
-	var aid := _alloc_agent_id()
-	node.set("net_agent_id", aid)
-	_net_agents[aid] = node
-	if not node.tree_exiting.is_connected(_on_net_agent_tree_exiting):
-		node.tree_exiting.connect(_on_net_agent_tree_exiting.bind(aid))
-	if not SessionService.is_networked() or not SessionService.is_server():
-		return
-	var payload := {
-		"id": aid,
-		"kind": kind,
-		"px": float(node.global_position.x) if node is Node2D else 0.0,
-		"py": float(node.global_position.y) if node is Node2D else 0.0,
-		"fx": 0.0,
-		"fy": 1.0,
-	}
-	if node is CharacterBody2D:
-		var vel: Vector2 = (node as CharacterBody2D).velocity
-		if vel.length_squared() > 1.0:
-			payload["fx"] = vel.x
-			payload["fy"] = vel.y
-	for k in extra.keys():
-		payload[k] = extra[k]
-	SessionService.broadcast_agent_spawn(payload)
-
+	_net.register_net_agent(node, kind, extra)
 
 func _on_net_agent_tree_exiting(agent_id: int) -> void:
-	_net_agents.erase(agent_id)
-	if SessionService.is_networked() and SessionService.is_server() and SessionService.day_started:
-		SessionService.broadcast_agent_despawn(agent_id, "gone")
-
+	_net.on_net_agent_tree_exiting(agent_id)
 
 func _collect_agent_transforms() -> Array:
-	var out: Array = []
-	var stale: Array[int] = []
-	for aid in _net_agents.keys():
-		var n = _net_agents[aid]
-		if n == null or not is_instance_valid(n):
-			stale.append(int(aid))
-			continue
-		if not (n is Node2D):
-			continue
-		## Static presentation agents — pose fixed after spawn (M2.3).
-		var kind := String(n.get("kind")) if n.get("kind") != null else ""
-		if kind in ["drop", "dirt", "universal_cannon", "shelf_cannon", "calm_zone", "three_volley"]:
-			continue
-		var fx := 0.0
-		var fy := 1.0
-		if n is CharacterBody2D:
-			var vel: Vector2 = (n as CharacterBody2D).velocity
-			if vel.length_squared() > 16.0:
-				fx = vel.x
-				fy = vel.y
-			elif "facing" in n:
-				var f: Vector2 = n.facing
-				fx = f.x
-				fy = f.y
-		out.append({
-			"id": int(aid),
-			"px": (n as Node2D).global_position.x,
-			"py": (n as Node2D).global_position.y,
-			"fx": fx,
-			"fy": fy,
-		})
-	for sid in stale:
-		_net_agents.erase(sid)
-	return out
-
+	return _net.collect_agent_transforms()
 
 func _apply_agent_transforms(rows: Array) -> void:
-	for row in rows:
-		if not (row is Dictionary):
-			continue
-		var aid := int(row.get("id", -1))
-		if aid < 0 or not _net_agents.has(aid):
-			continue
-		var n = _net_agents[aid]
-		if n == null or not is_instance_valid(n):
-			_net_agents.erase(aid)
-			continue
-		var pos := Vector2(float(row.get("px", 0.0)), float(row.get("py", 0.0)))
-		var fac := Vector2(float(row.get("fx", 0.0)), float(row.get("fy", 1.0)))
-		if n.has_method("apply_net_pose"):
-			n.call("apply_net_pose", pos, fac)
-		elif n is Node2D:
-			(n as Node2D).global_position = pos
-
+	_net.apply_agent_transforms(rows)
 
 func _on_agent_spawn_received(payload: Dictionary) -> void:
-	## Client: instantiate presentation puppet from Host spawn event.
-	if not SessionService.is_client():
-		return
-	if _world == null or not is_instance_valid(_world) or _customers == null:
-		_pending_agent_spawns.append(payload.duplicate(true))
-		return
-	_apply_agent_spawn_payload(payload)
-
+	_net.on_agent_spawn_received(payload)
 
 func _flush_pending_agent_spawns() -> void:
-	if _pending_agent_spawns.is_empty():
-		return
-	var queued: Array = _pending_agent_spawns.duplicate(true)
-	_pending_agent_spawns.clear()
-	for payload in queued:
-		if payload is Dictionary:
-			_apply_agent_spawn_payload(payload)
-
+	_net.flush_pending_agent_spawns()
 
 func _apply_agent_spawn_payload(payload: Dictionary) -> void:
-	var aid := int(payload.get("id", -1))
-	if aid < 0 or _net_agents.has(aid):
-		return
-	var kind := String(payload.get("kind", ""))
-	var pos := Vector2(float(payload.get("px", 0.0)), float(payload.get("py", 0.0)))
-	match kind:
-		"customer", "thief":
-			_spawn_customer_puppet(aid, kind == "thief", pos, payload)
-		"clerk":
-			_spawn_clerk_puppet(aid, pos, payload)
-		"dirt":
-			_spawn_dirt_puppet(aid, pos, payload)
-		"drop":
-			_spawn_drop_puppet(aid, pos, payload)
-		"shadow_clone":
-			_spawn_shadow_clone_puppet(aid, pos, payload)
-		"universal_cannon":
-			_spawn_cannon_puppet(aid, pos, payload)
-		"shelf_cannon":
-			_spawn_shelf_cannon_puppet(aid, pos, payload)
-		"calm_zone":
-			_spawn_calm_zone_puppet(aid, pos, payload)
-		"three_volley":
-			_spawn_three_volley_puppet(aid, pos, payload)
-		_:
-			pass
-
+	_net.apply_agent_spawn_payload(payload)
 
 func _on_agent_state_received(payload: Dictionary) -> void:
-	if not SessionService.is_client():
-		return
-	if _world == null or not is_instance_valid(_world):
-		_pending_agent_states.append(payload.duplicate(true))
-		return
-	_apply_agent_state_payload(payload)
-
+	_net.on_agent_state_received(payload)
 
 func _flush_pending_agent_states() -> void:
-	if _pending_agent_states.is_empty():
-		return
-	var queued: Array = _pending_agent_states.duplicate(true)
-	_pending_agent_states.clear()
-	for payload in queued:
-		if payload is Dictionary:
-			_apply_agent_state_payload(payload)
-
+	_net.flush_pending_agent_states()
 
 func _apply_agent_state_payload(payload: Dictionary) -> void:
-	var aid := int(payload.get("id", -1))
-	if aid < 0 or not _net_agents.has(aid):
-		return
-	var n = _net_agents[aid]
-	if n == null or not is_instance_valid(n):
-		_net_agents.erase(aid)
-		return
-	## Drop remaining count.
-	if payload.has("n") and n.has_method("apply_net_count"):
-		n.call("apply_net_count", int(payload.get("n", 0)))
-		if int(payload.get("n", 0)) <= 0:
-			_net_agents.erase(aid)
-		return
-	## Guest／thief shopping pictogram chrome (M2.7).
-	if payload.has("shopping") and n.has_method("apply_net_shopping"):
-		n.call("apply_net_shopping", payload.get("shopping", []))
-		return
-	## Guest checkout dir sequence (M2.9).
-	if payload.has("checkout_seq") and n.has_method("apply_net_checkout_seq"):
-		n.call(
-			"apply_net_checkout_seq",
-			payload.get("checkout_seq", []),
-			bool(payload.get("checkout_init", false)),
-		)
-		return
-	## Dirt clean StickHint／meter chrome (M2.8).
-	if payload.has("cleaning") and n.has_method("apply_net_clean"):
-		n.call(
-			"apply_net_clean",
-			bool(payload.get("cleaning", false)),
-			float(payload.get("meter", 0.0)),
-			Vector2(float(payload.get("sx", 0.0)), float(payload.get("sy", 0.0))),
-			int(payload.get("seat", -1)),
-		)
-		return
-	## Dark Side temp morph on customer puppet.
-	if payload.has("temp") and n.has_method("apply_net_temp_state"):
-		n.call("apply_net_temp_state", bool(payload.get("temp", false)), String(payload.get("role", "")))
-		return
-	## Cannon ammo label.
-	if payload.has("ammo_n") and n.has_method("apply_net_ammo"):
-		n.call("apply_net_ammo", int(payload.get("ammo_n", 0)), String(payload.get("sku", "")))
-		return
-	## Host fight outcome for a presentation thief (unlock client mash / pending KO).
-	if payload.has("fight_clear"):
-		_resolve_net_fight_clear(n, bool(payload.get("caught", false)))
-
-
+	_net.apply_agent_state_payload(payload)
 func _obj_truthy(obj: Object, prop: String) -> bool:
 	## Object.get missing → null; Godot 4 has no bool(null) constructor.
 	if obj == null or not is_instance_valid(obj):
@@ -2279,74 +1904,16 @@ func _resolve_net_fight_clear(thief: Node, caught: bool) -> void:
 
 
 func _on_flight_received(payload: Dictionary) -> void:
-	if not SessionService.is_client():
-		return
-	if _world == null or not is_instance_valid(_world):
-		_pending_flights.append(payload.duplicate(true))
-		return
-	_play_net_flight(payload)
-
+	_net.on_flight_received(payload)
 
 func _flush_pending_flights() -> void:
-	if _pending_flights.is_empty():
-		return
-	var queued: Array = _pending_flights.duplicate(true)
-	_pending_flights.clear()
-	for payload in queued:
-		if payload is Dictionary:
-			_play_net_flight(payload)
-
+	_net.flush_pending_flights()
 
 func _play_net_flight(payload: Dictionary) -> void:
-	## Client VFX only — do NOT place a floor box on land (Host sends drop spawn).
-	if _world == null:
-		return
-	var sku := String(payload.get("sku", ""))
-	var n := int(payload.get("n", 0))
-	if sku == "" or n <= 0:
-		return
-	var from := Vector2(float(payload.get("fx", 0.0)), float(payload.get("fy", 0.0)))
-	var to := Vector2(float(payload.get("tx", 0.0)), float(payload.get("ty", 0.0)))
-	var dur := float(payload.get("dur", Tuning.DROP_FLIGHT_SEC))
-	var flight: Node2D = DropFlightScript.new()
-	flight.setup(sku, from, to, dur, n)
-	_world.add_child(flight)
-
+	_net.play_net_flight(payload)
 
 func _on_agent_despawn_received(agent_id: int, _reason: String) -> void:
-	if not SessionService.is_client():
-		return
-	## Drop matching pending spawn if despawn raced ahead.
-	var i := 0
-	while i < _pending_agent_spawns.size():
-		var row = _pending_agent_spawns[i]
-		if row is Dictionary and int(row.get("id", -1)) == agent_id:
-			_pending_agent_spawns.remove_at(i)
-			continue
-		i += 1
-	if not _net_agents.has(agent_id):
-		return
-	var n = _net_agents[agent_id]
-	_net_agents.erase(agent_id)
-	## Free local seats still mashed against this presentation thief.
-	if n != null and is_instance_valid(n):
-		var was_thief := _obj_truthy(n, "is_thief")
-		for p in _players:
-			if p == null or not is_instance_valid(p):
-				continue
-			if p.get("target") != n:
-				continue
-			if _obj_truthy(p, "_fighting") or _obj_truthy(p, "_net_ko_pending") or _obj_truthy(p, "_fight_ko"):
-				if was_thief and not _obj_truthy(p, "_fight_ko"):
-					play_ko_banner()
-				if p.has_method("_end_fight"):
-					p.call("_end_fight", true)
-		_clerks.erase(n)
-		_dirts.erase(n)
-		_remove_interactable(n)
-		n.queue_free()
-
-
+	_net.on_agent_despawn_received(agent_id, _reason)
 func _spawn_customer_puppet(aid: int, thief: bool, pos: Vector2, payload: Dictionary) -> void:
 	if _customers == null:
 		return
@@ -2552,198 +2119,49 @@ func take_from_shelf(shelf: Node2D, sku: String) -> bool:
 
 
 func _index_shelf_sku(sku: String, shelf: Node) -> void:
-	if sku == "" or shelf == null:
-		return
-	var list: Array = _shelves_by_sku.get(sku, [])
-	if not list.has(shelf):
-		list.append(shelf)
-	_shelves_by_sku[sku] = list
-
+	_world_build.index_shelf_sku(sku, shelf)
 
 func _unindex_shelf_sku(sku: String, shelf: Node) -> void:
-	if sku == "" or not _shelves_by_sku.has(sku):
-		return
-	var list: Array = _shelves_by_sku[sku]
-	list.erase(shelf)
-	if list.is_empty():
-		_shelves_by_sku.erase(sku)
-	else:
-		_shelves_by_sku[sku] = list
-
+	_world_build.unindex_shelf_sku(sku, shelf)
 
 func _on_shelf_stock_sku_changed(shelf: Node, old_sku: String, new_sku: String) -> void:
-	if old_sku != "":
-		_unindex_shelf_sku(old_sku, shelf)
-	if new_sku != "":
-		_index_shelf_sku(new_sku, shelf)
-		_unindex_empty_shelf(shelf)
-	else:
-		_index_empty_shelf(shelf)
-
+	_world_build.on_shelf_stock_sku_changed(shelf, old_sku, new_sku)
 
 func _index_empty_shelf(shelf: Node) -> void:
-	if shelf == null:
-		return
-	var cat := String(shelf.get("category"))
-	var list: Array = _empty_by_cat.get(cat, [])
-	if not list.has(shelf):
-		list.append(shelf)
-	_empty_by_cat[cat] = list
-
+	_world_build.index_empty_shelf(shelf)
 
 func _unindex_empty_shelf(shelf: Node) -> void:
-	if shelf == null:
-		return
-	var cat := String(shelf.get("category"))
-	if not _empty_by_cat.has(cat):
-		return
-	var list: Array = _empty_by_cat[cat]
-	list.erase(shelf)
-	if list.is_empty():
-		_empty_by_cat.erase(cat)
-	else:
-		_empty_by_cat[cat] = list
-
+	_world_build.unindex_empty_shelf(shelf)
 
 func _register_shelf(node: Node2D) -> void:
-	shelves.append(node)
-	var nid := int(node.get("net_shelf_id")) if node.get("net_shelf_id") != null else -1
-	if nid >= 0:
-		_shelves_by_net_id[nid] = node
-	if node.has_signal("stock_sku_changed"):
-		node.connect("stock_sku_changed", _on_shelf_stock_sku_changed)
-	if node.has_signal("stock_changed"):
-		node.connect("stock_changed", _on_shelf_stock_changed)
-	var sku := ""
-	if node.has_method("occupied_sku"):
-		sku = String(node.call("occupied_sku"))
-	elif int(node.get("count")) > 0:
-		sku = String(node.get("sku"))
-	if sku != "":
-		_index_shelf_sku(sku, node)
-	else:
-		_index_empty_shelf(node)
-
+	_world_build.register_shelf(node)
 
 func _hook_warehouse_changed() -> void:
-	if state == null or _warehouse_hooked:
-		return
-	if state.has_signal("warehouse_changed") and not state.warehouse_changed.is_connected(_on_warehouse_changed):
-		state.warehouse_changed.connect(_on_warehouse_changed)
-		_warehouse_hooked = true
-
+	_net.hook_warehouse_changed()
 
 func _on_shelf_stock_changed(shelf: Node) -> void:
-	## Host only — client prediction is overwritten by absolute stock_state.
-	if SessionService.is_networked() and SessionService.is_client():
-		return
-	_broadcast_shelf_stock(shelf)
-
+	_net.on_shelf_stock_changed(shelf)
 
 func _on_warehouse_changed() -> void:
-	if SessionService.is_networked() and SessionService.is_client():
-		return
-	_broadcast_warehouse_stock()
-
+	_net.on_warehouse_changed()
 
 func _broadcast_shelf_stock(shelf: Node) -> void:
-	if shelf == null or not is_instance_valid(shelf):
-		return
-	if not SessionService.is_networked() or not SessionService.is_server() or not SessionService.day_started:
-		return
-	var nid := int(shelf.get("net_shelf_id")) if shelf.get("net_shelf_id") != null else -1
-	if nid < 0:
-		return
-	SessionService.broadcast_stock_state({
-		"shelves": [{
-			"id": nid,
-			"sku": String(shelf.get("sku")),
-			"count": int(shelf.get("count")),
-		}],
-	})
-
+	_net.broadcast_shelf_stock(shelf)
 
 func _broadcast_warehouse_stock() -> void:
-	if state == null:
-		return
-	if not SessionService.is_networked() or not SessionService.is_server() or not SessionService.day_started:
-		return
-	SessionService.broadcast_stock_state({
-		"warehouse": state.stock.duplicate(true),
-	})
-
+	_net.broadcast_warehouse_stock()
 
 func _dump_all_stock() -> void:
-	if not SessionService.is_networked() or not SessionService.is_server() or not SessionService.day_started:
-		return
-	var rows: Array = []
-	for shelf in shelves:
-		if shelf == null or not is_instance_valid(shelf):
-			continue
-		var nid := int(shelf.get("net_shelf_id")) if shelf.get("net_shelf_id") != null else -1
-		if nid < 0:
-			continue
-		rows.append({
-			"id": nid,
-			"sku": String(shelf.get("sku")),
-			"count": int(shelf.get("count")),
-		})
-	var payload := {}
-	if not rows.is_empty():
-		payload["shelves"] = rows
-	if state != null:
-		payload["warehouse"] = state.stock.duplicate(true)
-	if not payload.is_empty():
-		SessionService.broadcast_stock_state(payload)
-
+	_net.dump_all_stock()
 
 func _on_stock_state_received(payload: Dictionary) -> void:
-	if not SessionService.is_client():
-		return
-	if _world == null or not is_instance_valid(_world):
-		_pending_stock_states.append(payload.duplicate(true))
-		return
-	_apply_stock_state_payload(payload)
-
+	_net.on_stock_state_received(payload)
 
 func _flush_pending_stock_states() -> void:
-	if _pending_stock_states.is_empty():
-		return
-	var queued: Array = _pending_stock_states.duplicate(true)
-	_pending_stock_states.clear()
-	for payload in queued:
-		if payload is Dictionary:
-			_apply_stock_state_payload(payload)
-
+	_net.flush_pending_stock_states()
 
 func _apply_stock_state_payload(payload: Dictionary) -> void:
-	var wh_changed := false
-	if payload.has("warehouse") and state != null:
-		var wh = payload.get("warehouse")
-		if wh is Dictionary:
-			## Absolute warehouse dict from Host — replace presentation stock.
-			state.stock.clear()
-			for k in wh.keys():
-				state.stock[String(k)] = int(wh[k])
-			wh_changed = true
-	var rows = payload.get("shelves", [])
-	if rows is Array:
-		for row in rows:
-			if not (row is Dictionary):
-				continue
-			var nid := int(row.get("id", -1))
-			if nid < 0 or not _shelves_by_net_id.has(nid):
-				continue
-			var shelf = _shelves_by_net_id[nid]
-			if shelf == null or not is_instance_valid(shelf):
-				_shelves_by_net_id.erase(nid)
-				continue
-			if shelf.has_method("apply_net_stock"):
-				shelf.call("apply_net_stock", String(row.get("sku", "")), int(row.get("count", 0)))
-	if wh_changed:
-		sync_stock()
-
-
+	_net.apply_stock_state_payload(payload)
 func shelf_stand(shelf: Node2D) -> Vector2:
 	if shelf and shelf.has_method("stand_position"):
 		return shelf.stand_position()
@@ -3223,13 +2641,6 @@ func _finish_day() -> void:
 	## Prep will check difficulty suggestion after closeout returns.
 
 
-func _seat_get(arr: Array, seat: int) -> int:
-	if seat < 0 or seat >= arr.size():
-		return 0
-	return int(arr[seat])
-
-
-## Real-second inject for 諸客的黃昏. Successful entries only count toward remain.
 func _tick_guest_dusk(delta: float) -> void:
 	if _guest_dusk_left <= 0.0 and _guest_dusk_remain <= 0:
 		return
@@ -3378,70 +2789,16 @@ func _spawn_thief() -> void:
 
 
 func _floor() -> void:
-	## One canvas item that draws tiled floor (avoids 100–400 Sprite2D nodes).
-	var floor: Node2D = FloorTilesScript.new()
-	floor.name = "Floor"
-	floor.z_index = -8
-	_world.add_child(floor)
-	floor.call("setup", FLOOR_ORIGIN, FLOOR_SIZE, StateScript.CELL)
-
+	_world_build.build_floor()
 
 func _walls_and_door() -> void:
-	var t := 18.0
-	var o := FLOOR_ORIGIN
-	var s := FLOOR_SIZE
-	var door_w := 90.0
-	var mid := o.x + s.x * 0.5
-	_solid(Rect2(o.x - t, o.y - t, mid - door_w * 0.5 - (o.x - t), t))
-	_solid(Rect2(mid + door_w * 0.5, o.y - t, (o.x + s.x + t) - (mid + door_w * 0.5), t))
-	_solid(Rect2(o.x - t, o.y + s.y, s.x + t * 2.0, t))
-	_solid(Rect2(o.x - t, o.y, t, s.y))
-	_solid(Rect2(o.x + s.x, o.y, t, s.y))
-	var north_y := o.y - t * 0.5
-	var south_y := o.y + s.y + t * 0.5
-	var west_x := o.x - t * 0.5
-	var east_x := o.x + s.x + t * 0.5
-	_run_wall(Vector2(o.x, north_y), Vector2(mid - door_w * 0.5, north_y), 0)
-	_run_wall(Vector2(mid + door_w * 0.5, north_y), Vector2(o.x + s.x, north_y), 0)
-	_run_wall(Vector2(o.x, south_y), Vector2(o.x + s.x, south_y), 2)
-	_run_wall(Vector2(west_x, o.y), Vector2(west_x, o.y + s.y), 1)
-	_run_wall(Vector2(east_x, o.y), Vector2(east_x, o.y + s.y), 3)
-	var door := Vox.sprite("door", 0)
-	door.z_index = -4
-	door.position = Vector2(mid, north_y)
-	_world.add_child(door)
-	_caption(Vector2(mid - 28, o.y + 6), Loc.t("world.door"))
-
+	_world_build.walls_and_door()
 
 func _run_wall(a: Vector2, b: Vector2, k: int) -> void:
-	var delta := b - a
-	var length := delta.length()
-	if length < 8.0:
-		return
-	var dir := delta / length
-	var count := maxi(1, int(round(length / 64.0)))
-	var each := length / float(count)
-	for i in count:
-		var spr := Vox.sprite("wall", k)
-		spr.z_index = -5
-		spr.position = a + dir * (each * (float(i) + 0.5))
-		_world.add_child(spr)
-
+	_world_build.run_wall(a, b, k)
 
 func _restock(r: Rect2, cat: String, default_sku: String = "") -> Node2D:
-	_obstacles.append(r)
-	var node: StaticBody2D = RestockScript.new()
-	_fit_body(node, r, "restock_" + cat, 0, 2)
-	node.body = node.get_node("Body")
-	node.label = _caption(r.position + Vector2(4, 18), "")
-	node.setup(cat)
-	## Must be in-tree before apply_default_sku — skus() reads game state via the tree.
-	_world.add_child(node)
-	node.apply_default_sku(default_sku)
-	node.pull_stock()
-	return node
-
-
+	return _world_build.restock(r, cat, default_sku)
 func _make_shelves(cat: String, start: Vector2, count: int, start_index: int) -> Array[Node2D]:
 	var out: Array[Node2D] = []
 	for i in count:
@@ -3468,54 +2825,13 @@ func _make_shelves(cat: String, start: Vector2, count: int, start_index: int) ->
 
 
 func _facing(rot: int) -> Vector2:
-	match posmod(rot, 4):
-		1:
-			return Vector2.RIGHT
-		2:
-			return Vector2.DOWN
-		3:
-			return Vector2.LEFT
-		_:
-			return Vector2.UP
-
+	return _world_build.facing(rot)
 
 func _make_shelf(r: Rect2, cat: String, index: int, rot: int, cap: int = Tuning.SHELF_CAP) -> Node2D:
-	_obstacles.append(r)
-	var node: StaticBody2D = ShelfScript.new()
-	node.category = cat
-	node.capacity = cap
-	node.shelf_index = index
-	node.net_shelf_id = _next_net_shelf_id
-	_next_net_shelf_id += 1
-	node.facing = _facing(rot)
-	_fit_body(node, r, "shelf_" + cat, rot, 2)
-	node.body = node.get_node("Body")
-	var lab := Label.new()
-	lab.position = Vector2(-58, -18)
-	UiFont.apply_label(lab, UiFont.WORLD)
-	lab.add_theme_color_override("font_color", Color("fff4c2"))
-	lab.add_theme_color_override("font_outline_color", Color("121212"))
-	lab.add_theme_constant_override("outline_size", 5)
-	node.add_child(lab)
-	node.label = lab
-	_world.add_child(node)
-	node._refresh()
-	_register_shelf(node)
-	return node
-
+	return _world_build.make_shelf(r, cat, index, rot, cap)
 
 func _make_cashier(r: Rect2, rot: int, index: int) -> Node2D:
-	_obstacles.append(r)
-	var node: StaticBody2D = CashierScript.new()
-	_fit_body(node, r, "register", rot, 2)
-	node.register_index = index
-	node.set_facing(_facing(rot))
-	node.label = _caption(r.position + Vector2(8, 4), "")
-	_world.add_child(node)
-	cashiers.append(node)
-	return node
-
-
+	return _world_build.make_cashier(r, rot, index)
 func _dirt_cell_key(p: Vector2) -> int:
 	var cx := int(floor(p.x / DIRT_CELL))
 	var cy := int(floor(p.y / DIRT_CELL))
@@ -3744,20 +3060,7 @@ func _spawn_box_flight(
 
 
 func _emit_net_flight(sku: String, n: int, from: Vector2, to: Vector2, duration: float) -> void:
-	if not SessionService.is_networked() or not SessionService.is_server():
-		return
-	SessionService.broadcast_flight({
-		"sku": sku,
-		"n": n,
-		"fx": from.x,
-		"fy": from.y,
-		"tx": to.x,
-		"ty": to.y,
-		"dur": duration,
-	})
-
-
-## Directional toss: thief hit → KO; else matching shelf restock; else floor.
+	_net.emit_net_flight(sku, n, from, to, duration)
 func _resolve_toss_landing(
 	from: Vector2, dest: Vector2, sku: String, n: int, toss_dir: Vector2
 ) -> void:
@@ -3802,7 +3105,6 @@ func _resolve_toss_landing(
 			)
 	if left > 0:
 		_place_dropped_box(dest, sku, left)
-
 
 
 func _clone_for_toss(from: Vector2, dest: Vector2) -> Node2D:
@@ -4441,47 +3743,13 @@ func _apply_carry_state_payload(payload: Dictionary) -> void:
 
 
 func _solid(r: Rect2) -> void:
-	_obstacles.append(r)
-	var body := StaticBody2D.new()
-	body.collision_layer = 1
-	body.collision_mask = 0
-	body.position = r.position + r.size * 0.5
-	var col := CollisionShape2D.new()
-	var shape := RectangleShape2D.new()
-	shape.size = r.size
-	col.shape = shape
-	body.add_child(col)
-	_world.add_child(body)
-
+	_world_build.solid(r)
 
 func _fit_body(body: StaticBody2D, r: Rect2, model_id: String, rot: int, layer: int = 1) -> void:
-	body.collision_layer = layer
-	body.collision_mask = 0
-	body.position = r.position + r.size * 0.5
-	var spr := Vox.sprite(model_id, Vox.k_from_rot(rot))
-	spr.name = "Body"
-	Vox.fit(spr, r.size)
-	body.add_child(spr)
-	var col := CollisionShape2D.new()
-	var shape := RectangleShape2D.new()
-	shape.size = r.size
-	col.shape = shape
-	body.add_child(col)
-
+	_world_build.fit_body(body, r, model_id, rot, layer)
 
 func _caption(pos: Vector2, text: String) -> Label:
-	var l := Label.new()
-	l.text = text
-	l.position = pos
-	l.z_index = 3
-	UiFont.apply_label(l, UiFont.WORLD)
-	l.add_theme_color_override("font_color", Color("fff4c2"))
-	l.add_theme_color_override("font_outline_color", Color("121212"))
-	l.add_theme_constant_override("outline_size", 5)
-	_world.add_child(l)
-	return l
-
-
+	return _world_build.caption(pos, text)
 func deploy_universal_cannon(at: Vector2, level: int, seat: int) -> Node2D:
 	if _world == null or phase not in ["open", "restock"]:
 		return null

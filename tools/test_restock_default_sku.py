@@ -6,6 +6,7 @@ ROOT = Path(__file__).resolve().parents[1]
 STATE = (ROOT / "godot/game/scripts/game_state.gd").read_text(encoding="utf-8")
 PREP = (ROOT / "godot/game/scripts/prep_menu.gd").read_text(encoding="utf-8")
 DEMO = (ROOT / "godot/game/scripts/demo.gd").read_text(encoding="utf-8")
+WORLD_BUILD = (ROOT / "godot/game/scripts/host/world_build.gd").read_text(encoding="utf-8")
 RP = (ROOT / "godot/game/scripts/restock_point.gd").read_text(encoding="utf-8")
 SHOP = (ROOT / "docs/systemdesign/shopsetup.md").read_text(encoding="utf-8")
 REP = (ROOT / "docs/systemdesign/replenishmentsystem.md").read_text(encoding="utf-8")
@@ -24,16 +25,22 @@ need("is_restock_type" in STATE and "restock_category_of_type" in STATE, "state 
 need('_try_begin_restock_sku_pick' in PREP and "_commit_sku_pick" in PREP, "prep sku pick")
 need("_hold_default_sku" in PREP, "preserve default on pickup")
 need("SKU_PICK_HOLD" in PREP, "long-press threshold")
-need("apply_default_sku" in DEMO and "apply_default_sku" in RP, "ops apply default")
+need(
+    ("apply_default_sku" in DEMO or "apply_default_sku" in WORLD_BUILD)
+    and "apply_default_sku" in RP,
+    "ops apply default",
+)
 # apply_default_sku must run after add_child so skus() sees the game group.
-_restock_at = DEMO.find("func _restock(")
-need(_restock_at >= 0, "_restock helper present")
-restock_fn = DEMO[_restock_at : DEMO.find("\nfunc ", _restock_at + 1)]
+# F1: body lives in host/world_build.gd; demo keeps a thin `_restock` delegate.
+_restock_at = WORLD_BUILD.find("func restock(")
+need(_restock_at >= 0, "world_build restock helper present")
+need("func _restock(" in DEMO, "demo _restock delegate present")
+restock_fn = WORLD_BUILD[_restock_at : WORLD_BUILD.find("\nfunc ", _restock_at + 1)]
 need(
     "add_child(node)" in restock_fn
     and restock_fn.find("add_child(node)")
     < restock_fn.find("node.apply_default_sku"),
-    "_restock must add_child before apply_default_sku",
+    "restock must add_child before apply_default_sku",
 )
 need("default_sku" in SHOP and "長按確定" in SHOP, "shopsetup docs")
 need("不回寫" in REP or "不回寫店舖設計" in REP, "ops pick day-only docs")
