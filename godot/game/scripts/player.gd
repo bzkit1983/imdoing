@@ -13,6 +13,9 @@ const FxBurst = preload("res://scripts/fx_burst.gd")
 const GlowScript = preload("res://scripts/interact_glow.gd")
 const SkuIcons = preload("res://scripts/sku_icons.gd")
 const InteractScan = preload("res://scripts/player/interact_scan.gd")
+const TossControllerScript = preload("res://scripts/player/toss_controller.gd")
+const FightControllerScript = preload("res://scripts/player/fight_controller.gd")
+const SkillCasterScript = preload("res://scripts/player/skill_caster.gd")
 const CustomerScript = preload("res://scripts/customer.gd")
 
 signal stats_changed
@@ -207,6 +210,9 @@ var _buff_cache_valid: bool = false
 var _crowd_active: bool = false
 var _crowd_say: Label
 var _wave_vfx_cd: float = 0.0
+var _toss = TossControllerScript.new()
+var _fight_ctrl = FightControllerScript.new()
+var _skills = SkillCasterScript.new()
 
 
 func controls_locally() -> bool:
@@ -245,6 +251,9 @@ func _ready() -> void:
 	add_child(stack)
 	if inventory.has_signal("changed"):
 		inventory.changed.connect(_mark_hud_dirty)
+	_toss.bind(self)
+	_fight_ctrl.bind(self)
+	_skills.bind(self)
 	_setup_drop_aim()
 	_setup_must_deliver_ring()
 	_setup_magneto_ring()
@@ -268,44 +277,13 @@ func _setup_crowd_say() -> void:
 
 
 func _setup_drop_aim() -> void:
-	_drop_aim_line = Line2D.new()
-	_drop_aim_line.name = "DropAimLine"
-	_drop_aim_line.width = 3.0
-	_drop_aim_line.default_color = Tuning.DROP_AIM_LINE_COLOR
-	_drop_aim_line.visible = false
-	_drop_aim_line.z_index = 6
-	add_child(_drop_aim_line)
-	_drop_aim_mark = Polygon2D.new()
-	_drop_aim_mark.name = "DropAimMark"
-	_drop_aim_mark.color = Tuning.DROP_AIM_MARK_COLOR
-	_drop_aim_mark.polygon = PackedVector2Array([
-		Vector2(-10, 0), Vector2(0, -10), Vector2(10, 0), Vector2(0, 10),
-	])
-	_drop_aim_mark.visible = false
-	_drop_aim_mark.z_index = 6
-	add_child(_drop_aim_mark)
-
+	_toss.setup_drop_aim()
 
 func _setup_must_deliver_ring() -> void:
-	_must_deliver_ring = Line2D.new()
-	_must_deliver_ring.name = "MustDeliverRing"
-	_must_deliver_ring.width = 2.0
-	_must_deliver_ring.default_color = Color(0.35, 0.9, 1.0, 0.55)
-	_must_deliver_ring.visible = false
-	_must_deliver_ring.z_index = 5
-	add_child(_must_deliver_ring)
-
+	_skills.setup_must_deliver_ring()
 
 func _setup_magneto_ring() -> void:
-	_magneto_ring = Line2D.new()
-	_magneto_ring.name = "MagnetoRing"
-	_magneto_ring.width = 2.0
-	_magneto_ring.default_color = Color(0.75, 0.45, 1.0, 0.55)
-	_magneto_ring.visible = false
-	_magneto_ring.z_index = 5
-	add_child(_magneto_ring)
-
-
+	_skills.setup_magneto_ring()
 func _setup_monk_tornado() -> void:
 	_monk_tornado = Node2D.new()
 	_monk_tornado.name = "SweepingMonkTornado"
@@ -330,10 +308,9 @@ func _setup_monk_tornado() -> void:
 
 
 ## Base 5 身位; later drop-range skills can multiply this.
+
 func drop_toss_dist() -> float:
-	return Tuning.DROP_TOSS_DIST
-
-
+	return _toss.drop_toss_dist()
 func _loadout() -> Array[Dictionary]:
 	if stats != null and stats.has_method("loadout"):
 		return stats.loadout()
@@ -880,76 +857,25 @@ func _input(event: InputEvent) -> void:
 
 
 func _begin_drop_aim() -> void:
-	## Entering drop prep pauses walk/run/dash until the box lands.
-	_running = false
-	_dashing = false
-	velocity = Vector2.ZERO
-
+	_toss.begin_drop_aim()
 
 func _tick_cancel_hold(delta: float) -> void:
-	if _cancel_dropped:
-		return
-	## Direction is sampled the whole time. Aim circle and move-lock start only after the long press.
-	_sample_cancel_drop_dir()
-	_cancel_time += delta
-	if _cancel_time >= Tuning.DROP_HOLD_SEC:
-		if not _cancel_drop_ready:
-			_cancel_drop_ready = true
-			_begin_drop_aim()
-			SfxBus.play("sfx_box_drop_aim")
-		_update_drop_aim()
-
+	_toss.tick_cancel_hold(delta)
 
 func _on_cancel_release() -> void:
-	## Armed by long-press → toss the top segment on release.
-	## Short press with a direction tosses one piece, unless this press cancelled a menu or action.
-	if _cancel_drop_ready and not _cancel_dropped and not _drop_flight_lock:
-		_cancel_dropped = true
-		_hide_drop_aim()
-		_discard_top_box()
-	elif not _drop_flight_lock:
-		if not _cancel_swallowed:
-			_toss_top_piece()
-		_cancel_drop_dir = Vector2.ZERO
-		_hide_drop_aim()
-	## Previous piece already landed and this press did not throw another: walk again.
-	## A whole-box flight keeps its own lock, so clear the piece lock here too.
-	if _piece_flights <= 0:
-		_piece_drop_lock = false
-	_cancel_time = 0.0
-	_cancel_drop_ready = false
-
+	_toss.on_cancel_release()
 
 func _sample_cancel_drop_dir() -> void:
-	## Direction keys retarget aim; no input keeps last aim or feet (zero).
-	var v := _move_vector() + stick_axis
-	if v.length() >= Tuning.DROP_DIR_DEADZONE:
-		_cancel_drop_dir = v.normalized()
-		facing = _cancel_drop_dir
-
+	_toss.sample_cancel_drop_dir()
 
 func _drop_aim_dest() -> Vector2:
-	return global_position + Tuning.drop_offset(_cancel_drop_dir, drop_toss_dist())
-
+	return _toss.drop_aim_dest()
 
 func _update_drop_aim() -> void:
-	if _drop_aim_line == null or inventory.is_empty():
-		_hide_drop_aim()
-		return
-	var dest := _drop_aim_dest()
-	_drop_aim_line.visible = true
-	_drop_aim_mark.visible = true
-	_drop_aim_line.points = PackedVector2Array([Vector2.ZERO, dest - global_position])
-	_drop_aim_mark.position = dest - global_position
-
+	_toss.update_drop_aim()
 
 func _hide_drop_aim() -> void:
-	if _drop_aim_line:
-		_drop_aim_line.visible = false
-	if _drop_aim_mark:
-		_drop_aim_mark.visible = false
-
-
+	_toss.hide_drop_aim()
 func _game() -> Node:
 	if game != null and is_instance_valid(game):
 		return game
@@ -975,100 +901,13 @@ func _mark_hud_dirty() -> void:
 
 
 func _discard_top_box() -> void:
-	if not _round_active():
-		return
-	if _stun_left > 0.0 or _slip_left > 0.0 or _fighting:
-		return
-	if inventory.is_empty():
-		log_line.emit(Loc.t("log.player.hands_empty"))
-		_hide_drop_aim()
-		return
-	var run: Dictionary = inventory.trailing_run()
-	var name := Tuning.sku_name(String(run["id"]))
-	var n := int(run["count"])
-	var toss := _cancel_drop_dir
-	_drop_top_box(toss)
-	if toss.length_squared() > 0.01:
-		SfxBus.play("sfx_box_toss")
-		var hint := _sniper_toss_log(name, true)
-		if hint != "":
-			log_line.emit(hint)
-		else:
-			log_line.emit(
-				Loc.t("log.player.toss_fly", [name, n, _drop_dir_label(toss)])
-			)
-	else:
-		SfxBus.play("sfx_box_drop_feet")
-		log_line.emit(Loc.t("log.player.toss_feet", [name, n]))
+	_toss.discard_top_box()
 
-
-## Direction + short cancel: throw the top piece. No aim circle.
-## Stop while it flies. Another toss before it lands keeps the stop.
-## When the last piece lands and cancel is up, a held direction walks again.
 func _toss_top_piece() -> bool:
-	if not _round_active():
-		return false
-	if _stun_left > 0.0 or _slip_left > 0.0 or _fighting or _drop_flight_lock:
-		return false
-	if _cancel_drop_dir.length_squared() < 0.01:
-		return false
-	if inventory.is_empty():
-		log_line.emit(Loc.t("log.player.hands_empty"))
-		return false
-	## 投籃高手：短按方向一次飛出最上 2 件（可不同 SKU）；只有 1 件則 1。
-	var want := 2 if buff_left("hoop_ace") > 0.05 else 1
-	var tossed: PackedStringArray = []
-	for _i in want:
-		if inventory.is_empty():
-			break
-		var run: Dictionary = inventory.trailing_run()
-		var sku := String(run["id"])
-		inventory.remove_trailing(1)
-		tossed.append(sku)
-	if tossed.is_empty():
-		return false
-	var dir := _cancel_drop_dir
-	var dist := drop_toss_dist()
-	_launch_piece_toss(String(tossed[0]), dir, dist, Vector2.ZERO)
-	if tossed.size() >= 2:
-		## Delay + lateral land offset so the second box reads as a separate toss.
-		var sku2 := String(tossed[1])
-		var nudge := _hoop_ace_side_nudge(dir)
-		_piece_flights += 1
-		_piece_drop_lock = true
-		_running = false
-		_dashing = false
-		velocity = Vector2.ZERO
-		get_tree().create_timer(Tuning.HOOP_ACE_SECOND_DELAY_SEC).timeout.connect(
-			func() -> void:
-				if not is_instance_valid(self):
-					return
-				if not _round_active():
-					_on_piece_drop_landed()
-					return
-				_launch_piece_toss(sku2, dir, dist, nudge, false)
-		)
-	var names: PackedStringArray = []
-	for s in tossed:
-		names.append(Tuning.sku_name(String(s)))
-	var label := "、".join(names)
-	var hint := _sniper_toss_log(label, false)
-	if hint != "":
-		log_line.emit(hint)
-	elif tossed.size() >= 2:
-		log_line.emit(Loc.t("log.player.hoop_toss", [label, _drop_dir_label(dir)]))
-	else:
-		log_line.emit(Loc.t("log.player.toss_one", [label, _drop_dir_label(dir)]))
-	return true
-
+	return _toss.toss_top_piece()
 
 func _hoop_ace_side_nudge(dir: Vector2) -> Vector2:
-	if dir.length_squared() < 0.0001:
-		return Vector2(Tuning.HOOP_ACE_SIDE_OFFSET, 0.0)
-	var forward := dir.normalized()
-	## Perpendicular to toss (screen-right of throw direction).
-	return Vector2(-forward.y, forward.x) * Tuning.HOOP_ACE_SIDE_OFFSET
-
+	return _toss.hoop_ace_side_nudge(dir)
 
 func _launch_piece_toss(
 	sku: String,
@@ -1077,57 +916,16 @@ func _launch_piece_toss(
 	land_nudge: Vector2 = Vector2.ZERO,
 	count_flight: bool = true,
 ) -> void:
-	var host := _game()
-	if host == null or not host.has_method("spawn_dropped_box"):
-		if not count_flight:
-			_on_piece_drop_landed()
-		return
-	if count_flight:
-		_piece_flights += 1
-	_piece_drop_lock = true
-	_running = false
-	_dashing = false
-	velocity = Vector2.ZERO
-	host.call(
-		"spawn_dropped_box",
-		global_position,
-		sku,
-		1,
-		dir,
-		dist,
-		Callable(self, "_on_piece_drop_landed"),
-		land_nudge,
-	)
-	SfxBus.play("sfx_box_toss")
-
+	_toss.launch_piece_toss(sku, dir, dist, land_nudge, count_flight)
 
 func _sniper_toss_log(sku_name: String, whole_run: bool) -> String:
-	var unit := Loc.t("log.player.unit_run") if whole_run else Loc.t("log.player.unit_one")
-	if sniper_thief_active():
-		return Loc.t("log.player.sniper_toss_thief", [sku_name, unit])
-	if sniper_guest_active():
-		return Loc.t("log.player.sniper_toss_guest", [sku_name, unit])
-	if sniper_shelf_active():
-		return Loc.t("log.player.sniper_toss_shelf", [sku_name, unit])
-	return ""
-
+	return _toss.sniper_toss_log(sku_name, whole_run)
 
 func _on_piece_drop_landed() -> void:
-	_piece_flights = maxi(0, _piece_flights - 1)
-	if _piece_flights > 0:
-		return
-	## Still holding cancel for another short drop: stay stopped until that press ends.
-	if _cancel_held and not _cancel_swallowed and not _cancel_drop_ready:
-		return
-	_piece_drop_lock = false
-
+	_toss.on_piece_drop_landed()
 
 func _drop_dir_label(dir: Vector2) -> String:
-	if absf(dir.x) > absf(dir.y):
-		return Loc.t("dir.right") if dir.x > 0.0 else Loc.t("dir.left")
-	return Loc.t("dir.down") if dir.y > 0.0 else Loc.t("dir.up")
-
-
+	return _toss.drop_dir_label(dir)
 func _cancel_input() -> void:
 	var used := _fighting or _stun_left > 0.0 or _slip_left > 0.0 or _long_committed or command_lock
 	if _restock_picking:
@@ -1696,37 +1494,10 @@ func _tick_slip(delta: float) -> void:
 
 
 func _drop_top_box(toss_dir: Vector2 = Vector2.ZERO, lock_until_land: bool = true) -> void:
-	if inventory.is_empty():
-		return
-	var run: Dictionary = inventory.trailing_run()
-	var n := int(run["count"])
-	inventory.remove_trailing(n)
-	var game := _game()
-	if game and game.has_method("spawn_dropped_box"):
-		var landed := Callable()
-		if lock_until_land:
-			_drop_flight_lock = true
-			_running = false
-			_dashing = false
-			velocity = Vector2.ZERO
-			landed = Callable(self, "_on_drop_flight_done")
-		game.call(
-			"spawn_dropped_box",
-			global_position,
-			String(run["id"]),
-			n,
-			toss_dir,
-			drop_toss_dist(),
-			landed,
-		)
-
+	_toss.drop_top_box(toss_dir, lock_until_land)
 
 func _on_drop_flight_done() -> void:
-	_drop_flight_lock = false
-	_cancel_drop_dir = Vector2.ZERO
-	_hide_drop_aim()
-
-
+	_toss.on_drop_flight_done()
 func _tick_status(delta: float) -> void:
 	if _stun_left > 0.0:
 		_stun_left = maxf(0.0, _stun_left - delta)
@@ -1986,513 +1757,73 @@ func _give_guest(guest: Node) -> int:
 
 
 func _begin_must_deliver_aim(sk: Dictionary) -> void:
-	_must_deliver_aim = true
-	_must_deliver_lv = int(sk.get("lv", 3))
-	_must_deliver_sid = String(sk.get("id"))
-	_must_deliver_cd = float(sk.get("cd", Skills.ACTIVE_CD))
-	_must_deliver_name = String(sk.get("name"))
-	_rebuild_must_deliver_ring(Skills.must_deliver_range(_must_deliver_lv))
-	if _must_deliver_ring:
-		_must_deliver_ring.visible = true
-	SfxBus.play("sfx_skill_cast")
-	log_line.emit(Loc.t("log.player.aim_preview", [_must_deliver_name]))
-
+	_skills.begin_must_deliver_aim(sk)
 
 func _cancel_must_deliver_aim() -> void:
-	if not _must_deliver_aim:
-		return
-	_must_deliver_aim = false
-	if _must_deliver_ring:
-		_must_deliver_ring.visible = false
-	SfxBus.play("sfx_skill_menu_cancel")
-	log_line.emit(Loc.t("log.player.cancel_named", [_must_deliver_name]))
-
+	_skills.cancel_must_deliver_aim()
 
 func _rebuild_must_deliver_ring(radius: float) -> void:
-	if _must_deliver_ring == null:
-		return
-	var pts := PackedVector2Array()
-	var n := 48
-	for i in n + 1:
-		var a := TAU * float(i) / float(n)
-		pts.append(Vector2(cos(a), sin(a)) * radius)
-	_must_deliver_ring.points = pts
-
+	_skills.rebuild_must_deliver_ring(radius)
 
 func _finish_must_deliver_aim() -> void:
-	if not _must_deliver_aim:
-		return
-	var lv := _must_deliver_lv
-	var sid := _must_deliver_sid
-	var name := _must_deliver_name
-	var cd_base := _must_deliver_cd
-	if not _cast_must_deliver(lv):
-		_must_deliver_aim = false
-		if _must_deliver_ring:
-			_must_deliver_ring.visible = false
-		return
-	_must_deliver_aim = false
-	if _must_deliver_ring:
-		_must_deliver_ring.visible = false
-	_cd[sid] = Tuning.cd_seconds(cd_base, _int_now())
-	_buffs.erase(sid)
-	_buff_cache_valid = false
-	SfxBus.play("sfx_skill_cast")
-	log_line.emit(Loc.t("log.player.cast", [name, lv]))
-	_begin_cast_pose(false)
-	skill_cast.emit(name, false)
-	_play_zoom(false)
+	_skills.finish_must_deliver_aim()
 
-
-## Complete-first fill for guests in range. False = fail (no CD).
 func _cast_must_deliver(lv: int) -> bool:
-	if inventory.is_empty():
-		log_line.emit(Loc.t("log.player.must_fail_empty"))
-		return false
-	if not _store_open():
-		log_line.emit(Loc.t("log.player.must_fail_guest"))
-		return false
-	var radius := Skills.must_deliver_range(lv)
-	var max_n := Skills.must_deliver_max_guests(lv)
-	var guests := _must_deliver_guests(radius)
-	if guests.is_empty():
-		log_line.emit(Loc.t("log.player.must_fail_guest"))
-		return false
-	var ordered := _must_deliver_order_guests(guests, inventory.items)
-	var counts := _must_deliver_count_map(inventory.items)
-	var plan: Array = []
-	for g in ordered:
-		if plan.size() >= max_n:
-			break
-		var pieces := _must_deliver_match_pieces(g.shopping, counts)
-		if pieces.is_empty():
-			continue
-		plan.append({"guest": g, "pieces": pieces})
-	if plan.is_empty():
-		log_line.emit(Loc.t("log.player.must_fail_match"))
-		return false
-	var total := 0
-	var vfx: Array = []
-	var touched: Array = []
-	for entry in plan:
-		var guest: Node = entry["guest"]
-		var pieces: Array = entry["pieces"]
-		if guest == null or not is_instance_valid(guest) or not guest.has_method("accept_must_deliver"):
-			continue
-		## D3 L — skill delivery target.
-		if not _interact_try(guest):
-			continue
-		touched.append(guest)
-		var before := int((guest.shopping as Array).size()) if guest.get("shopping") != null else 0
-		for sku in pieces:
-			inventory.remove_sku(String(sku), 1)
-		var taken := int(guest.call("accept_must_deliver", pieces))
-		if taken <= 0:
-			for sku in pieces:
-				inventory.add_one(String(sku))
-			continue
-		total += taken
-		if before >= 1 and guest.shopping.is_empty():
-			guest.set_meta("combo_cleared_n", before)
-		var shown: Array = []
-		for j in taken:
-			shown.append(String(pieces[j]))
-		vfx.append({"pos": guest.global_position, "skus": shown})
-	for g in touched:
-		_interact_release(g)
-	if total <= 0:
-		log_line.emit(Loc.t("log.player.must_fail_match"))
-		return false
-	_play_must_deliver_vfx(vfx)
-	log_line.emit(Loc.t("log.player.must_n", [total]))
-	_deliver_pose_left = 0.4
-	_note_delivery_combo(touched, total)
-	return true
-
+	return _skills.cast_must_deliver(lv)
 
 func _must_deliver_guests(radius: float) -> Array:
-	var found: Array = []
-	var g := _game()
-	if g == null:
-		return found
-	var custs = g.get("_customers")
-	if custs == null:
-		return found
-	var r2 := radius * radius
-	for c in custs.get_children():
-		if c == null or not is_instance_valid(c):
-			continue
-		if c.get("temp_clerk"):
-			continue
-		if not c.has_method("can_receive_delivery") or not bool(c.call("can_receive_delivery")):
-			continue
-		if global_position.distance_squared_to(c.global_position) > r2:
-			continue
-		found.append(c)
-	found.sort_custom(func(a, b) -> bool:
-		return global_position.distance_squared_to(a.global_position) < global_position.distance_squared_to(b.global_position)
-	)
-	return found
-
+	return _skills.must_deliver_guests(radius)
 
 func _must_deliver_count_map(items: Array) -> Dictionary:
-	var counts := {}
-	for s in items:
-		var sku := String(s)
-		counts[sku] = int(counts.get(sku, 0)) + 1
-	return counts
-
+	return _skills.must_deliver_count_map(items)
 
 func _must_deliver_can_complete(shopping: Array, sim: Dictionary) -> bool:
-	if shopping.is_empty():
-		return false
-	var need := {}
-	for s in shopping:
-		var sku := String(s)
-		need[sku] = int(need.get(sku, 0)) + 1
-	for sku in need:
-		if int(sim.get(sku, 0)) < int(need[sku]):
-			return false
-	return true
-
+	return _skills.must_deliver_can_complete(shopping, sim)
 
 func _must_deliver_deduct_shopping(shopping: Array, sim: Dictionary) -> void:
-	for s in shopping:
-		var sku := String(s)
-		sim[sku] = int(sim.get(sku, 0)) - 1
+	_skills.must_deliver_deduct_shopping(shopping, sim)
 
-
-## Completable guests first (near→far with inventory reservation), then partials near→far.
 func _must_deliver_order_guests(guests: Array, inv_items: Array) -> Array:
-	var sim := _must_deliver_count_map(inv_items)
-	var completable: Array = []
-	var rest: Array = []
-	for g in guests:
-		var shopping: Array = g.shopping if g != null else []
-		if _must_deliver_can_complete(shopping, sim):
-			_must_deliver_deduct_shopping(shopping, sim)
-			completable.append(g)
-		else:
-			rest.append(g)
-	return completable + rest
+	return _skills.must_deliver_order_guests(guests, inv_items)
 
-
-## Match shopping needs against counts (mutates counts). Any inventory order.
 func _must_deliver_match_pieces(shopping: Array, counts: Dictionary) -> Array[String]:
-	var pieces: Array[String] = []
-	for s in shopping:
-		var sku := String(s)
-		if int(counts.get(sku, 0)) <= 0:
-			continue
-		pieces.append(sku)
-		counts[sku] = int(counts.get(sku, 0)) - 1
-	return pieces
-
+	return _skills.must_deliver_match_pieces(shopping, counts)
 
 func _play_must_deliver_vfx(deliveries: Array) -> void:
-	if deliveries.is_empty():
-		return
-	var parent: Node = get_parent()
-	var g := _game()
-	if g != null:
-		var world = g.get("_world")
-		if world != null:
-			parent = world
-	var gather := global_position + Vector2(0.0, -72.0)
-	var i := 0
-	for d in deliveries:
-		var dest_base: Vector2 = d.get("pos", global_position)
-		var skus: Array = d.get("skus", [])
-		for sku_v in skus:
-			var sku := String(sku_v)
-			var spr: Sprite2D = SkuIcons.make_sprite(sku, 20.0)
-			spr.z_index = 12
-			parent.add_child(spr)
-			spr.global_position = global_position + Vector2(randf_range(-10.0, 10.0), -18.0)
-			var gather_pt := gather + Vector2(randf_range(-22.0, 22.0), randf_range(-12.0, 12.0))
-			var land := dest_base + Vector2(randf_range(-8.0, 8.0), -44.0)
-			var tw := spr.create_tween()
-			tw.tween_interval(0.02 * float(i))
-			tw.tween_property(spr, "global_position", gather_pt, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-			tw.tween_interval(0.1)
-			tw.tween_property(spr, "global_position", land, 0.28).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-			tw.tween_callback(spr.queue_free)
-			i += 1
+	_skills.play_must_deliver_vfx(deliveries)
 
-
-## Instant door summon. False = 0 guests (no CD).
 func _cast_summon_guest(lv: int) -> bool:
-	var want := Skills.summon_guest_count(lv)
-	var game := _game()
-	if game == null or not game.has_method("cast_summon_guest"):
-		log_line.emit(Loc.t("log.player.summon_fail"))
-		return false
-	var n := int(game.call("cast_summon_guest", want))
-	if n <= 0:
-		log_line.emit(Loc.t("log.player.summon_fail_phase"))
-		return false
-	log_line.emit(Loc.t("log.player.summon_n", [n]))
-	return true
-
+	return _skills.cast_summon_guest(lv)
 
 func _begin_magneto_aim(sk: Dictionary) -> void:
-	if inventory.count() >= carry_cap():
-		log_line.emit(Loc.t("log.player.magneto_full"))
-		return
-	if _must_deliver_aim:
-		_cancel_must_deliver_aim()
-	_magneto_aim = true
-	_magneto_lv = int(sk.get("lv", 3))
-	_magneto_sid = String(sk.get("id"))
-	_magneto_cd = float(sk.get("cd", Skills.ACTIVE_CD))
-	_magneto_name = String(sk.get("name"))
-	_rebuild_magneto_ring(Skills.magneto_range(_magneto_lv))
-	if _magneto_ring:
-		_magneto_ring.visible = true
-	SfxBus.play("sfx_skill_cast")
-	log_line.emit(Loc.t("log.player.aim_preview", [_magneto_name]))
-
+	_skills.begin_magneto_aim(sk)
 
 func _cancel_magneto_aim() -> void:
-	if not _magneto_aim:
-		return
-	_magneto_aim = false
-	if _magneto_ring:
-		_magneto_ring.visible = false
-	SfxBus.play("sfx_skill_menu_cancel")
-	log_line.emit(Loc.t("log.player.cancel_named", [_magneto_name]))
-
+	_skills.cancel_magneto_aim()
 
 func _rebuild_magneto_ring(radius: float) -> void:
-	if _magneto_ring == null:
-		return
-	var pts := PackedVector2Array()
-	var n := 48
-	for i in n + 1:
-		var a := TAU * float(i) / float(n)
-		pts.append(Vector2(cos(a), sin(a)) * radius)
-	_magneto_ring.points = pts
-
+	_skills.rebuild_magneto_ring(radius)
 
 func _finish_magneto_aim() -> void:
-	if not _magneto_aim:
-		return
-	var lv := _magneto_lv
-	var sid := _magneto_sid
-	var name := _magneto_name
-	var cd_base := _magneto_cd
-	## Full carry: abort without CD (preview shouldn't have started, but re-check).
-	if inventory.count() >= carry_cap():
-		_magneto_aim = false
-		if _magneto_ring:
-			_magneto_ring.visible = false
-		log_line.emit(Loc.t("log.player.magneto_full"))
-		return
-	_cast_magneto(lv)
-	_magneto_aim = false
-	if _magneto_ring:
-		_magneto_ring.visible = false
-	## Empty absorb still starts CD.
-	_cd[sid] = Tuning.cd_seconds(cd_base, _int_now())
-	_buffs.erase(sid)
-	_buff_cache_valid = false
-	SfxBus.play("sfx_skill_cast")
-	log_line.emit(Loc.t("log.player.cast", [name, lv]))
-	_begin_cast_pose(false)
-	skill_cast.emit(name, false)
-	_play_zoom(false)
+	_skills.finish_magneto_aim()
 
-
-## Absorb landed drops in radius until carry_cap. Always "succeeds" for CD (0 pieces ok).
 func _cast_magneto(lv: int) -> void:
-	var range_px := Skills.magneto_range(lv)
-	var range_sq := range_px * range_px
-	var piles: Array = []
-	for node in interactables:
-		if node == null or not is_instance_valid(node):
-			continue
-		if _obj_str(node, "kind") != "drop":
-			continue
-		if _obj_int(node, "count") <= 0:
-			continue
-		if global_position.distance_squared_to(node.global_position) > range_sq:
-			continue
-		piles.append(node)
-	piles.sort_custom(func(a, b) -> bool:
-		return global_position.distance_squared_to(a.global_position) < global_position.distance_squared_to(b.global_position)
-	)
-	var flights: Array = []
-	var locked_piles: Array = []
-	for pile in piles:
-		if not is_instance_valid(pile):
-			continue
-		var room := carry_cap() - inventory.count()
-		if room <= 0:
-			break
-		if not pile.has_method("take_count"):
-			continue
-		## D4 L — magneto floor pile.
-		if not _interact_try(pile):
-			continue
-		locked_piles.append(pile)
-		var sku := _obj_str(pile, "sku")
-		var at: Vector2 = pile.global_position
-		var got := int(pile.call("take_count", room))
-		if got <= 0:
-			continue
-		for _i in got:
-			inventory.add_one(sku)
-			flights.append({"sku": sku, "from": at})
-		_spawn_fx("suck", at)
-	for pile in locked_piles:
-		_interact_release(pile)
-	_spawn_fx("suck", global_position)
-	_play_magneto_vfx(flights)
-	var taken_total := flights.size()
-	var game := _game()
-	if game != null and game.has_method("play_skill_banner"):
-		game.call("play_skill_banner", Loc.t("log.player.magneto_n", [taken_total]))
-	log_line.emit(Loc.t("log.player.magneto_n", [taken_total]))
+	_skills.cast_magneto(lv)
 
-
-## One-by-one fly from pile toward player (visual only; inventory already updated).
 func _play_magneto_vfx(flights: Array) -> void:
-	if flights.is_empty():
-		return
-	var parent: Node = get_parent()
-	var g := _game()
-	if g != null:
-		var world = g.get("_world")
-		if world != null:
-			parent = world
-	var i := 0
-	for f in flights:
-		var sku := String(f.get("sku", ""))
-		var from: Vector2 = f["from"] as Vector2 if f.has("from") else global_position
-		var spr: Sprite2D = SkuIcons.make_sprite(sku, 18.0)
-		spr.z_index = 12
-		parent.add_child(spr)
-		spr.global_position = from + Vector2(randf_range(-6.0, 6.0), randf_range(-6.0, 6.0))
-		## Capture landing target each tween start so it tracks a walking player.
-		var delay := 0.035 * float(i)
-		var dur := 0.22
-		var tw := spr.create_tween()
-		tw.tween_interval(delay)
-		tw.tween_callback(func() -> void:
-			if not is_instance_valid(spr):
-				return
-			var land := global_position + Vector2(randf_range(-10.0, 10.0), -20.0)
-			var fly := spr.create_tween()
-			fly.tween_property(spr, "global_position", land, dur).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-			fly.tween_property(spr, "scale", Vector2(0.35, 0.35), dur * 0.85)
-			fly.tween_callback(spr.queue_free)
-		)
-		i += 1
-		## Soft cap so huge pulls stay readable.
-		if i >= 48:
-			break
+	_skills.play_magneto_vfx(flights)
 
-
-## Instant harvest_chives on aimed cashier queue. False = fail (no CD).
 func _cast_self_checkout(level: int) -> bool:
-	var host := _game()
-	var count := 0
-	if host != null:
-		for reg in host.get("cashiers"):
-			if is_instance_valid(reg) and global_position.distance_squared_to(reg.global_position) <= pow(5.0 * Tuning.BODY_LENGTH, 2):
-				reg.activate_self_checkout(host, level, seat_id)
-				count += 1
-	if count == 0:
-		log_line.emit(Loc.t("self_checkout.no_register"))
-	else:
-		var ring_script = preload("res://scripts/self_checkout_ring.gd")
-		ring_script.spawn(host, global_position)
-	return count > 0
-
+	return _skills.cast_self_checkout(level)
 
 func _cast_calm_zone(level: int) -> bool:
-	var host := _game()
-	if host == null:
-		return false
-	if SessionService.is_networked() and SessionService.is_client():
-		## Cast is predicted locally; Host creates and broadcasts the authoritative field.
-		return String(host.get("phase")) in ["open", "restock"]
-	if not host.has_method("deploy_calm_zone"):
-		return false
-	return host.call("deploy_calm_zone", global_position, level, seat_id) != null
-
+	return _skills.cast_calm_zone(level)
 
 func _cast_harvest_chives(lv: int) -> bool:
-	var reg: Node2D = null
-	if is_instance_valid(target) and _obj_str(target, "kind") == "cashier":
-		reg = target
-	else:
-		reg = _nearest_kind("cashier")
-	if reg == null or _interact_dist(reg) < 0.0:
-		log_line.emit(Loc.t("log.player.chives_aim"))
-		return false
-	## D4 L — harvest register.
-	if not _interact_try(reg):
-		log_line.emit(Loc.t("log.player.chives_busy"))
-		return false
-	var want := Skills.harvest_chives_count(lv)
-	var game := _game()
-	if game == null or not game.has_method("cast_harvest_chives"):
-		_interact_release(reg)
-		log_line.emit(Loc.t("log.player.chives_fail"))
-		return false
-	var n := int(game.call("cast_harvest_chives", reg, want))
-	_interact_release(reg)
-	if n <= 0:
-		log_line.emit(Loc.t("log.player.chives_empty"))
-		return false
-	return true
+	return _skills.cast_harvest_chives(lv)
 
-
-## Instant force_sell into nearest hand-deliverable guest cart. False = fail (no CD).
 func _cast_force_sell(lv: int) -> bool:
-	if inventory.is_empty():
-		log_line.emit(Loc.t("log.player.force_empty"))
-		return false
-	var guest: Node = null
-	for g in _faced_guests():
-		if g == null or not is_instance_valid(g):
-			continue
-		if g.get("temp_clerk"):
-			continue
-		guest = g
-		break
-	if guest == null or not guest.has_method("accept_force_sell"):
-		log_line.emit(Loc.t("log.player.force_no_guest"))
-		return false
-	## D3 L — force_sell guest.
-	if not _interact_try(guest):
-		log_line.emit(Loc.t("log.player.force_busy"))
-		return false
-	var before := int((guest.shopping as Array).size()) if guest.get("shopping") != null else 0
-	var n := mini(Skills.force_sell_count(lv), inventory.count())
-	var pieces: Array[String] = inventory.pop_trailing(n)
-	if pieces.is_empty():
-		_interact_release(guest)
-		log_line.emit(Loc.t("log.player.force_empty"))
-		return false
-	var taken := int(guest.call("accept_force_sell", pieces))
-	if taken <= 0:
-		for sku in pieces:
-			inventory.add_one(String(sku))
-		_interact_release(guest)
-		log_line.emit(Loc.t("log.player.force_no_guest"))
-		return false
-	if before >= 1 and guest.shopping.is_empty():
-		guest.set_meta("combo_cleared_n", before)
-	_interact_release(guest)
-	log_line.emit(Loc.t("log.player.force_n", [taken]))
-	_deliver_pose_left = 0.4
-	_note_delivery_combo([guest], taken)
-	return true
-
-
-## Nearest guest first. `penalize_miss` adds +15 on the nearest guest when nothing matched.
+	return _skills.cast_force_sell(lv)
 func _hand_deliver(guests: Array, penalize_miss: bool) -> int:
 	var total := 0
 	var nearest: Node = null
@@ -2776,196 +2107,31 @@ func _tick_action(delta: float) -> void:
 
 
 func _begin_fight() -> void:
-	## Carry allowed; goods stay in hand for the mash window.
-	## Restock/shelf targets have no is_thief — bool(Object.get null) crashes Godot 4.
-	if not is_instance_valid(target) or not target.get("is_thief"):
-		return
-	if not target.has_method("is_active_thief") or not bool(target.call("is_active_thief")):
-		return
-	## A6 L — another seat already fighting this thief.
-	if not _interact_try(target):
-		log_line.emit(Loc.t("log.player.thief_claimed"))
-		return
-	_fighting = true
-	_fight_ko = false
-	_fight_release = true
-	target.call("begin_fight")
-	SfxBus.play("sfx_fight_grab")
-	log_line.emit(Loc.t("log.player.thief_grab"))
-	## LAN: only the catcher's machine zooms／locks the shared cam.
-	if controls_locally() and _shared_camera() != null:
-		_focus_camera_toward(target.global_position, 0.35)
-		var tw := create_tween()
-		tw.tween_property(
-			camera, "zoom",
-			Vector2(Tuning.FIGHT_ZOOM, Tuning.FIGHT_ZOOM),
-			0.16,
-		)
-
+	_fight_ctrl.begin_fight()
 
 func _tick_fight(delta: float) -> void:
-	if _fight_ko:
-		_tick_camera_shake(delta)
-		## Net puppet KO visuals may finish while Host still owns the thief —
-		## stay locked until the presentation agent is gone (despawn) or cleared.
-		if _net_ko_pending:
-			if not is_instance_valid(target):
-				_net_ko_pending = false
-				_end_fight(true)
-			return
-		return
-	if not is_instance_valid(target) or not bool(target.call("in_fight")):
-		_end_fight(false)
-		return
-	target.fight_left = maxf(0.0, float(target.fight_left) - delta)
-	hold_progress = clampf(float(target.fight_hp) / 100.0, 0.0, 1.0)
-	target.call("_refresh_labels")
-	_tick_camera_shake(delta)
-	## Client vs puppet: do not locally fail the mash — Host timer / outcome is authority.
-	if _agent_is_net_puppet(target):
-		return
-	if float(target.fight_left) <= 0.0:
-		_fight_fail()
-
+	_fight_ctrl.tick_fight(delta)
 
 func _fight_tap() -> void:
-	if not is_instance_valid(target) or _fight_ko:
-		return
-	var dmg := Tuning.hit_damage(_str_now())
-	if controls_locally():
-		_shake_camera(Tuning.FIGHT_HIT_SHAKE, Tuning.FIGHT_HIT_SHAKE_SEC)
-	SfxBus.play("sfx_fight_hit")
-	## Puppet HP bar is feel-only; Host applies real damage from interact intents.
-	if bool(target.call("take_hit", dmg)):
-		if _agent_is_net_puppet(target):
-			## Keep fighting locked; Host KO → despawn ends the mash via _net_ko_pending.
-			_fight_win_net_pending()
-			return
-		_fight_win()
-
+	_fight_ctrl.fight_tap()
 
 func _fight_win_net_pending() -> void:
-	## Local mash bar emptied on a presentation thief — wait for Host despawn.
-	if _fight_ko:
-		return
-	_fight_ko = true
-	_net_ko_pending = true
-	log_line.emit(Loc.t("log.player.thief_ko"))
-	_play_ko_sequence(target, "", Vector2.ZERO, false)
-
+	_fight_ctrl.fight_win_net_pending()
 
 func _fight_win() -> void:
-	if _fight_ko:
-		return
-	_fight_ko = true
-	var game := _game()
-	if game and game.has_method("record_caught"):
-		game.call("record_caught", seat_id, "melee")
-	log_line.emit(Loc.t("log.player.thief_ko"))
-	_play_ko_sequence(target, "ko_scatter_and_flee")
+	_fight_ctrl.fight_win()
 
-
-## Directional tossed box hit an active thief → Screen KO (counts as catch).
 func apply_toss_ko(thief: Node, knock_dir: Vector2) -> void:
-	if thief == null or not is_instance_valid(thief):
-		return
-	if not thief.has_method("is_active_thief") or not bool(thief.call("is_active_thief")):
-		return
-	if not thief.has_method("ko_box_hit_and_flee"):
-		return
-	## Client presentation thief: Host resolves box KO + loot; local seat only plays VFX.
-	if _agent_is_net_puppet(thief):
-		var end_fight_net := _fighting and target == thief
-		if end_fight_net:
-			_fight_ko = true
-			_net_ko_pending = true
-		log_line.emit(Loc.t("log.player.thief_box_ko"))
-		SfxBus.play("sfx_box_hit_thief")
-		_play_ko_sequence(thief, "", knock_dir.normalized() if knock_dir.length_squared() > 0.01 else Vector2.ZERO, false)
-		return
-	var game := _game()
-	if game and game.has_method("record_caught"):
-		game.call("record_caught", seat_id, "box")
-	log_line.emit(Loc.t("log.player.thief_box_ko"))
-	SfxBus.play("sfx_box_hit_thief")
-	## If this toss finishes an ongoing grab fight, clear fight state after the KO.
-	var end_fight := _fighting and target == thief
-	if end_fight:
-		_fight_ko = true
-	var dir := knock_dir
-	if dir.length_squared() < 0.01:
-		dir = (thief as Node2D).global_position - global_position
-	if dir.length_squared() < 0.01:
-		dir = facing
-	_play_ko_sequence(thief, "ko_box_hit_and_flee", dir.normalized(), end_fight)
+	_fight_ctrl.apply_toss_ko(thief, knock_dir)
 
-
-func _play_ko_sequence(
-	thief: Node,
-	flee_method: String = "ko_scatter_and_flee",
-	knock_override: Vector2 = Vector2.ZERO,
-	end_fight: bool = true,
-) -> void:
-	var local_cam := controls_locally()
-	if local_cam:
-		_shake_camera(Tuning.FIGHT_KO_SHAKE, 0.22)
-	SfxBus.play("sfx_ko_screen")
-	if local_cam and _shared_camera() != null:
-		if is_instance_valid(thief):
-			_focus_camera_toward((thief as Node2D).global_position, 0.35)
-		var punch := create_tween()
-		punch.tween_property(
-			camera, "zoom",
-			Vector2(Tuning.FIGHT_KO_ZOOM, Tuning.FIGHT_KO_ZOOM),
-			0.07,
-		)
-	var game := _game()
-	if game and game.has_method("play_ko_banner"):
-		game.call("play_ko_banner")
-	await get_tree().create_timer(0.18).timeout
-	## Empty flee_method = presentation-only (net puppet); Host scatters / despawns.
-	if flee_method != "" and is_instance_valid(thief) and thief.has_method(flee_method):
-		var knock: Vector2 = knock_override
-		if knock.length_squared() < 0.01:
-			knock = (thief as Node2D).global_position - global_position
-		if knock.length_squared() < 0.01:
-			knock = facing
-		thief.call(flee_method, knock.normalized())
-	await get_tree().create_timer(Tuning.FIGHT_KO_FLASH_SEC * 0.55).timeout
-	if end_fight:
-		_end_fight(true)
-	elif local_cam and camera and not _net_ko_pending:
-		## Toss KO outside a fight: restore shop framing after the punch-in.
-		restore_base_camera()
-
+func _play_ko_sequence(thief: Node, flee_method: String = "ko_scatter_and_flee", knock_override: Vector2 = Vector2.ZERO, end_fight: bool = true,) -> void:
+	await _fight_ctrl.play_ko_sequence(thief, flee_method, knock_override, end_fight)
 
 func _fight_fail() -> void:
-	if _fight_ko:
-		return
-	if is_instance_valid(target):
-		var away := global_position - target.global_position
-		if away.length_squared() < 0.01:
-			away = -facing
-		facing = away.normalized()
-		## Never drive puppet escape — Host owns leave / stolen stats.
-		if not _agent_is_net_puppet(target) and target.has_method("escape_with_loot"):
-			target.call("escape_with_loot")
-	_apply_fight_fail_player()
+	_fight_ctrl.fight_fail()
 
-
-## Client: Host broadcast fight_clear(caught=false) — mirror slip/stun without mutating puppet.
 func apply_net_fight_fail() -> void:
-	if not _fighting and not _net_ko_pending and not _fight_ko:
-		return
-	if is_instance_valid(target):
-		var away := global_position - target.global_position
-		if away.length_squared() < 0.01:
-			away = -facing
-		facing = away.normalized()
-	_apply_fight_fail_player()
-
-
-## Client presentation: Host absolute checkout arrows／hold (M2.9). Works on puppets.
+	_fight_ctrl.apply_net_fight_fail()
 func apply_net_checkout_prompt(on: bool, seq: Array, idx: int, fail: int, done: bool, hold: float) -> void:
 	## Do not clobber ultimate direction chrome.
 	if ult_prep:
@@ -3053,44 +2219,10 @@ func _request_prompt_broadcast(force: bool = false) -> void:
 
 
 func _apply_fight_fail_player() -> void:
-	log_line.emit(Loc.t("log.player.thief_fail"))
-	SfxBus.play("sfx_fight_fail")
-	SfxBus.play("sfx_move_stun")
-	_end_fight(false)
-	_dashing = false
-	_running = false
-	_slip_left = Tuning.SLIP_TIME
-	_stun_pending = Tuning.FIGHT_DOWN_SEC
-	var g := _game()
-	if g != null and g.has_method("note_fight_fail"):
-		g.call("note_fight_fail", self)
-
+	_fight_ctrl.apply_fight_fail_player()
 
 func _end_fight(_won: bool) -> void:
-	if is_instance_valid(target):
-		_interact_release(target)
-	_fighting = false
-	_fight_release = false
-	_fight_ko = false
-	_net_ko_pending = false
-	_shake_left = 0.0
-	hold_progress = 0.0
-	## Mash updates `_j_held` above; if still down through KO, latch until up
-	## so `_tick_action` cannot long-commit nearby dirt/shelf/cashier.
-	var still_held := _j_held
-	_j_held = false
-	_j_time = 0.0
-	_long_committed = false
-	_deliver_done = false
-	_interact_ignore_until_up = still_held
-	_clear_clean_hint()
-	if controls_locally():
-		restore_base_camera()
-	var game := _game()
-	if game != null and game.has_method("notify_camera_priority_idle"):
-		game.call("notify_camera_priority_idle")
-
-
+	_fight_ctrl.end_fight(_won)
 func camera_priority_busy() -> bool:
 	## Fight / KO framing beats EliteCustomer intro zoom.
 	## Remote seats must not lock another peer's shared camera (LAN).
@@ -3757,130 +2889,25 @@ func _spawn_dollar() -> void:
 
 
 func _on_skill_hold(pressed: bool) -> void:
-	if pressed:
-		if _sick_left > 0.0 or _stun_left > 0.0 or _fighting:
-			log_line.emit(Loc.t("log.player.cant_skill"))
-			return
-		## Second skill press confirms range preview skills.
-		if _must_deliver_aim:
-			_finish_must_deliver_aim()
-			_skill_release_ignore = true
-			return
-		if _magneto_aim:
-			_finish_magneto_aim()
-			_skill_release_ignore = true
-			return
-		if _skill_latch:
-			_confirm_skill(0)
-			_skill_release_ignore = true
-			return
-		_l_held = true
-		_l_time = 0.0
-		_skill_aim = 0
-		return
-	if _skill_release_ignore:
-		_skill_release_ignore = false
-		_l_held = false
-		return
-	## Cancel already dropped the hold, or this release is not ours.
-	if not _l_held:
-		return
-	if skill_menu_open:
-		if not _skill_latch:
-			_sync_hold_aim()
-		_confirm_skill(_skill_aim)
-		return
-	var short := _l_time < Skills.HOLD_MENU_SEC
-	var from_pad := _skill_from_pad
-	_l_held = false
-	_skill_from_pad = false
-	if short:
-		## Remote LAN seat on Host: short release must not leave a latch menu nobody can close.
-		if not controls_locally():
-			return
-		if from_pad:
-			_confirm_skill(0)
-		else:
-			_open_skill_menu(true)
-
+	_skills.on_skill_hold(pressed)
 
 func _open_skill_menu(latch: bool) -> void:
-	skill_menu_open = true
-	_skill_latch = latch
-	_skill_aim = 0
-	_move_locked_until_neutral = true
-	_running = false
-	velocity = Vector2.ZERO
-	if _menu:
-		## Only the piloting machine draws the radial; Host still tracks aim for remote seats.
-		_menu.open = controls_locally()
-		if controls_locally():
-			_menu.call("set_slots", _loadout(), _cd)
-			if _menu.has_method("set_aim"):
-				_menu.call("set_aim", 0)
-	_menu_fp = "%s|%s" % [str(_cd), str(_loadout())]
-	## A stick already pushed for walking must not count as the tap-menu choice.
-	if latch and (stick_axis.length() >= 0.42 or _joy_stick_vector().length() >= 0.42):
-		_cardinal_armed = false
-	if controls_locally():
-		SfxBus.play("sfx_skill_menu_open")
-		if latch:
-			log_line.emit(Loc.t("log.player.skill_menu_tap"))
-		else:
-			log_line.emit(Loc.t("log.player.skill_menu_hold"))
-
+	_skills.open_skill_menu(latch)
 
 func _sync_hold_aim() -> void:
-	_set_skill_aim(_skill_aim_slot())
-
+	_skills.sync_hold_aim()
 
 func _skill_aim_slot() -> int:
-	var v := _move_vector() + stick_axis
-	if v.length() < 0.42:
-		return 0
-	var dir := Skills.DIR_DOWN if v.y > 0.0 else Skills.DIR_UP
-	if absf(v.x) > absf(v.y):
-		dir = Skills.DIR_RIGHT if v.x > 0.0 else Skills.DIR_LEFT
-	return int(Skills.DIR_TO_SLOT.get(dir, 0))
-
+	return _skills.skill_aim_slot()
 
 func _set_skill_aim(slot: int) -> void:
-	slot = clampi(slot, 0, 4)
-	if slot == _skill_aim:
-		if _menu and _menu.has_method("set_aim"):
-			_menu.call("set_aim", slot)
-		return
-	_skill_aim = slot
-	if _menu and _menu.has_method("set_aim"):
-		_menu.call("set_aim", slot)
-	SfxBus.play("sfx_skill_menu_move")
-
+	_skills.set_skill_aim(slot)
 
 func _confirm_skill(slot: int) -> void:
-	_close_skill_menu()
-	_cast_slot(slot)
-	_move_locked_until_neutral = true
-	velocity = Vector2.ZERO
-
+	_skills.confirm_skill(slot)
 
 func _try_skill_hotkey(slot: int) -> void:
-	if _sick_left > 0.0 or _stun_left > 0.0 or _fighting:
-		log_line.emit(Loc.t("log.player.cant_skill"))
-		return
-	if ult_prep or _elite_focus_left > 0.0:
-		return
-	if _must_deliver_aim:
-		_finish_must_deliver_aim()
-		return
-	if _magneto_aim:
-		_finish_magneto_aim()
-		return
-	## Queue for Host sim when this seat is piloted on a LAN client.
-	if controls_locally() and SessionService.is_networked() and SessionService.is_client():
-		pending_skill_hotkey = clampi(slot, 0, 4)
-	_confirm_skill(slot)
-
-
+	_skills.try_skill_hotkey(slot)
 func take_pending_skill_hotkey() -> int:
 	var slot := pending_skill_hotkey
 	pending_skill_hotkey = -1
@@ -3943,284 +2970,16 @@ func _tick_triggers(delta: float) -> void:
 
 
 func _close_skill_menu() -> void:
-	_l_held = false
-	_l_time = 0.0
-	_skill_latch = false
-	_skill_aim = 0
-	skill_menu_open = false
-	if _menu:
-		_menu.open = false
-		if _menu.has_method("set_aim"):
-			_menu.call("set_aim", 0)
-
+	_skills.close_skill_menu()
 
 func _on_ult_hold(pressed: bool) -> void:
-	if pressed:
-		if _sick_left > 0.0 or _stun_left > 0.0 or _fighting:
-			log_line.emit(Loc.t("log.player.cant_ult"))
-			return
-		var ult := _ult_sk()
-		if ult.is_empty() or String(ult.get("id", "")) == "":
-			log_line.emit(Loc.t("log.player.no_ult"))
-			return
-		if bool(ult.get("unimplemented", false)):
-			log_line.emit(Loc.t("log.player.demo_no_cd", [String(ult.get("name"))]))
-			return
-		var ult_id := String(ult.get("id"))
-		if cd_left(ult_id) > 0.05:
-			SfxBus.play("sfx_skill_cd_deny")
-			log_line.emit(Loc.t("log.player.ult_cd", [cd_left(ult_id)]))
-			return
-		_u_held = true
-		ult_prep = true
-		_ult_index = 0
-		SfxBus.play("sfx_ult_prep")
-		_prompt.active = true
-		var seq: Array[int] = []
-		for d in ult.get("seq", []):
-			seq.append(int(d))
-		_prompt.sequence = seq
-		_prompt.index = 0
-		_prompt.fail_at = -1
-		log_line.emit(Loc.t("log.player.ult_prep", [String(_ult_sk().get("name"))]))
-		return
-	if ult_prep:
-		SfxBus.play("sfx_ult_cancel")
-		log_line.emit(Loc.t("log.player.ult_cancel"))
-	_u_held = false
-	ult_prep = false
-	if not command_lock:
-		_prompt.active = false
-		_prompt.fail_at = -1
-
+	_skills.on_ult_hold(pressed)
 
 func _try_ult_dir(dir: int) -> void:
-	var seq: Array = _ult_sk().get("seq", [])
-	if seq.is_empty() or _ult_index < 0 or _ult_index >= seq.size():
-		return
-	if dir == int(seq[_ult_index]):
-		_prompt.fail_at = -1
-		_ult_index += 1
-		_prompt.index = _ult_index
-		SfxBus.play("sfx_ult_dir_ok")
-		if _ult_index >= seq.size():
-			_cast_ultimate()
-			_u_held = false
-			ult_prep = false
-			_ult_chord_active = false
-	else:
-		_prompt.fail_at = _ult_index
-		_ult_index = 0
-		_prompt.index = 0
-		SfxBus.play("sfx_ult_dir_fail")
-		log_line.emit(Loc.t("log.player.ult_cmds_fail"))
-
+	_skills.try_ult_dir(dir)
 
 func _cast_slot(i: int) -> void:
-	if _sick_left > 0.0 or _stun_left > 0.0 or _fighting:
-		log_line.emit(Loc.t("log.player.cant_skill"))
-		return
-	var sk: Dictionary = _skill_at(i)
-	if sk.is_empty():
-		return
-	if bool(sk.get("unimplemented", false)):
-		log_line.emit(Loc.t("log.player.demo_no_cd", [String(sk.get("name"))]))
-		return
-	if str(sk.get("kind", "")) != "active":
-		log_line.emit(Loc.t("log.player.passive", [String(sk.get("name"))]))
-		return
-	var sid := String(sk.get("id"))
-	if cd_left(sid) > 0.05:
-		SfxBus.play("sfx_skill_cd_deny")
-		log_line.emit(Loc.t("log.player.skill_cd", [String(sk.get("name")), cd_left(sid)]))
-		return
-	if bool(sk.get("universal_cannon", false)):
-		if not _round_active():
-			return
-		_cancel_must_deliver_aim()
-		_cancel_magneto_aim()
-		if is_instance_valid(_cannon) and not _cannon.dismissed:
-			_cannon.dismiss()
-			_cannon = null
-			_cd[sid] = Tuning.cd_seconds(60.0, _int_now())
-			log_line.emit(Loc.t("cannon.cancelled"))
-		else:
-			var host := _game()
-			if host == null or not host.has_method("deploy_universal_cannon"):
-				return
-			_cannon = host.deploy_universal_cannon(global_position, int(sk.get("lv", 3)), seat_id)
-			if _cannon == null:
-				return
-			log_line.emit(Loc.t("cannon.deployed"))
-		SfxBus.play("sfx_skill_cast")
-		_begin_cast_pose(false)
-		skill_cast.emit(Loc.t("cannon.name"), false)
-		return
-	if bool(sk.get("shelf_cannon", false)):
-		if not _round_active():
-			return
-		_cancel_must_deliver_aim()
-		_cancel_magneto_aim()
-		if is_instance_valid(_shelf_cannon) and not _shelf_cannon.dismissed:
-			_shelf_cannon.dismiss()
-			_shelf_cannon = null
-			_cd[sid] = Tuning.cd_seconds(60.0, _int_now())
-			log_line.emit(Loc.t("shelf_cannon.cancelled"))
-		else:
-			var host := _game()
-			if host == null or not host.has_method("deploy_shelf_cannon"):
-				return
-			_shelf_cannon = host.deploy_shelf_cannon(global_position, int(sk.get("lv", 3)), seat_id)
-			if _shelf_cannon == null:
-				return
-			log_line.emit(Loc.t("shelf_cannon.deployed"))
-		SfxBus.play("sfx_skill_cast")
-		_begin_cast_pose(false)
-		skill_cast.emit(Loc.t("skill.shelf_cannon.name"), false)
-		return
-	if bool(sk.get("self_checkout", false)):
-		if not _cast_self_checkout(int(sk.get("lv", 3))):
-			return
-		_cancel_must_deliver_aim()
-		_cancel_magneto_aim()
-		_cd[sid] = Tuning.cd_seconds(30.0, _int_now())
-		SfxBus.play("sfx_skill_cast")
-		_begin_cast_pose(false)
-		skill_cast.emit(Loc.t("self_checkout.active"), false)
-		_play_zoom(false)
-		return
-	if bool(sk.get("calm_zone", false)):
-		_cancel_must_deliver_aim()
-		_cancel_magneto_aim()
-		if not _cast_calm_zone(int(sk.get("lv", 3))):
-			return
-		_cd[sid] = Tuning.cd_seconds(float(sk.get("cd", 30.0)), _int_now())
-		SfxBus.play("sfx_skill_cast")
-		log_line.emit(Loc.t("log.player.cast", [String(sk.get("name")), int(sk.get("lv", 3))]))
-		_begin_cast_pose(false)
-		skill_cast.emit(String(sk.get("name")), false)
-		_play_zoom(false)
-		return
-	## Instant force_sell: empty hands / no target must not start CD.
-	if bool(sk.get("force_sell", false)):
-		if _must_deliver_aim:
-			_cancel_must_deliver_aim()
-		if _magneto_aim:
-			_cancel_magneto_aim()
-		if not _cast_force_sell(int(sk.get("lv", 3))):
-			return
-		_cd[sid] = Tuning.cd_seconds(float(sk.get("cd", Skills.ACTIVE_CD)), _int_now())
-		_buffs.erase(sid)
-		_buff_cache_valid = false
-		SfxBus.play("sfx_skill_cast")
-		log_line.emit(Loc.t("log.player.cast", [String(sk.get("name")), int(sk.get("lv", 3))]))
-		_begin_cast_pose(false)
-		skill_cast.emit(String(sk.get("name")), false)
-		_play_zoom(false)
-		return
-	## Instant harvest_chives: must aim a cashier with QUEUE/PAYING; 0 must not start CD.
-	if bool(sk.get("harvest_chives", false)):
-		if _must_deliver_aim:
-			_cancel_must_deliver_aim()
-		if _magneto_aim:
-			_cancel_magneto_aim()
-		if not _cast_harvest_chives(int(sk.get("lv", 3))):
-			return
-		_cd[sid] = Tuning.cd_seconds(float(sk.get("cd", Skills.ACTIVE_CD)), _int_now())
-		_buffs.erase(sid)
-		_buff_cache_valid = false
-		SfxBus.play("sfx_skill_cast")
-		log_line.emit(Loc.t("log.player.cast", [String(sk.get("name")), int(sk.get("lv", 3))]))
-		_begin_cast_pose(false)
-		skill_cast.emit(String(sk.get("name")), false)
-		_play_zoom(false)
-		return
-	## Instant summon_guest: 0 spawned must not start CD.
-	if bool(sk.get("summon_guest", false)):
-		if _must_deliver_aim:
-			_cancel_must_deliver_aim()
-		if _magneto_aim:
-			_cancel_magneto_aim()
-		if not _cast_summon_guest(int(sk.get("lv", 3))):
-			return
-		_cd[sid] = Tuning.cd_seconds(float(sk.get("cd", Skills.ACTIVE_CD)), _int_now())
-		_buffs.erase(sid)
-		_buff_cache_valid = false
-		SfxBus.play("sfx_skill_cast")
-		log_line.emit(Loc.t("log.player.cast", [String(sk.get("name")), int(sk.get("lv", 3))]))
-		_begin_cast_pose(false)
-		skill_cast.emit(String(sk.get("name")), false)
-		_play_zoom(false)
-		return
-	## 攝石人: first cast = range preview (no CD); confirm via skill press while aiming.
-	if bool(sk.get("magneto", false)):
-		if _magneto_aim:
-			_finish_magneto_aim()
-			return
-		_begin_magneto_aim(sk)
-		return
-	## 使命必達: first cast = range preview (no CD); confirm is via skill press while aiming.
-	if bool(sk.get("must_deliver", false)):
-		if _must_deliver_aim:
-			_finish_must_deliver_aim()
-			return
-		if _magneto_aim:
-			_cancel_magneto_aim()
-		_begin_must_deliver_aim(sk)
-		return
-	if _must_deliver_aim:
-		_cancel_must_deliver_aim()
-	if _magneto_aim:
-		_cancel_magneto_aim()
-	_cd[sid] = Tuning.cd_seconds(float(sk.get("cd", Skills.ACTIVE_CD)), _int_now())
-	## 衝刺交付: the armed window is the cooldown itself, and INT does not shorten this 5s.
-	## Dark Side / Multiple Shadow Clone: CD still eats INT, but each body keeps its own 30s.
-	## Recast must not refresh people already working (clones despawn then respawn).
-	if bool(sk.get("dash_deliver", false)):
-		var window := float(sk.get("cd", 5.0))
-		_cd[sid] = window
-		_buffs[sid] = window
-	elif bool(sk.get("dasher", false)):
-		_buffs[sid] = Skills.dasher_seconds(int(sk.get("lv", 3)))
-	elif bool(sk.get("hoop_ace", false)):
-		_buffs[sid] = Skills.hoop_ace_seconds(int(sk.get("lv", 3)))
-	elif bool(sk.get("senior_cashier", false)):
-		_senior_cashier_lv = int(sk.get("lv", 3))
-		_buffs[sid] = Skills.senior_cashier_seconds(_senior_cashier_lv)
-	elif bool(sk.get("sweeping_monk", false)):
-		_buffs[sid] = Skills.sweeping_monk_seconds(int(sk.get("lv", 3)))
-	elif bool(sk.get("dark_side", false)) or bool(sk.get("shadow_clone", false)):
-		_buffs.erase(sid)
-	else:
-		_buffs[sid] = float(sk.get("duration", Skills.ACTIVE_DURATION))
-	_buff_cache_valid = false
-	if sk.has("customer_move_pct"):
-		_enqueue_cust_speed(sid)
-	if sk.has("soothe_keep"):
-		var game := _game()
-		if game and game.has_method("soothe_all"):
-			game.soothe_all(float(sk.get("soothe_keep")))
-		SfxBus.play("sfx_skill_soothe")
-	else:
-		if bool(sk.get("dark_side", false)):
-			var host := _game()
-			if host and host.has_method("cast_dark_side"):
-				host.call("cast_dark_side", int(sk.get("lv", 3)))
-		elif bool(sk.get("shadow_clone", false)):
-			var clone_host := _game()
-			if clone_host and clone_host.has_method("cast_shadow_clone"):
-				clone_host.call("cast_shadow_clone", int(sk.get("lv", 3)))
-		elif bool(sk.get("sweeping_monk", false)):
-			_activate_sweeping_monk()
-			SfxBus.play("sfx_skill_sweeping_monk")
-		else:
-			SfxBus.play("sfx_skill_cast")
-	log_line.emit(Loc.t("log.player.cast", [String(sk.get("name")), int(sk.get("lv", 3))]))
-	_begin_cast_pose(false)
-	skill_cast.emit(String(sk.get("name")), false)
-	_play_zoom(false)
-
-
+	_skills.cast_slot(i)
 func release_checkout() -> void:
 	seq_index = 0
 	seq_done = false
@@ -4239,105 +2998,13 @@ func release_checkout() -> void:
 
 
 func _lord_seconds(lv: int) -> float:
-	match lv:
-		1:
-			return 3.0
-		2:
-			return 5.0
-		_:
-			return 10.0
-
+	return _skills.lord_seconds(lv)
 
 func _cast_ultimate() -> void:
-	var sk: Dictionary = _ult_sk()
-	if sk.is_empty() or String(sk.get("id", "")) == "":
-		log_line.emit(Loc.t("log.player.no_ult"))
-		_prompt.active = false
-		return
-	if bool(sk.get("unimplemented", false)):
-		log_line.emit(Loc.t("log.player.demo_missing", [String(sk.get("name"))]))
-		_prompt.active = false
-		return
-	var sid := String(sk.get("id"))
-	var lv := int(sk.get("lv", 3))
-	_cd[sid] = Tuning.cd_seconds(float(sk.get("cd", Skills.ULT_CD)), _int_now())
-	_buff_cache_valid = false
-	var game := _game()
-	if sid == "fundraise":
-		if game and game.has_method("cast_fundraise"):
-			game.call("cast_fundraise", lv)
-		SfxBus.play("sfx_ult_fundraise")
-		log_line.emit(Loc.t("log.player.ult_fundraise", [lv]))
-		_begin_cast_pose(true)
-		skill_cast.emit(String(sk.get("name")), true)
-		_play_zoom(true)
-		_prompt.active = false
-		return
-	if sid == "close_gate":
-		if game and game.has_method("cast_close_gate"):
-			game.call("cast_close_gate")
-		SfxBus.play("sfx_ult_close_gate")
-		log_line.emit(Loc.t("log.player.ult_close_gate"))
-		_begin_cast_pose(true)
-		skill_cast.emit(String(sk.get("name")), true)
-		_play_zoom(true)
-		_prompt.active = false
-		return
-	if sid == "three_volley":
-		if game and game.has_method("cast_three_volley"):
-			game.call("cast_three_volley")
-		SfxBus.play("sfx_ult_yes_my_lord")
-		log_line.emit(Loc.t("log.player.ult_three_volley"))
-		_begin_cast_pose(true)
-		skill_cast.emit(String(sk.get("name")), true)
-		_play_zoom(true)
-		_prompt.active = false
-		return
-	if sid == "guest_dusk":
-		var dusk_ok := false
-		if game and game.has_method("cast_guest_dusk"):
-			dusk_ok = bool(game.call("cast_guest_dusk"))
-		if dusk_ok:
-			_buffs[sid] = Skills.GUEST_DUSK_DURATION
-			log_line.emit(Loc.t("log.player.ult_dusk", [Skills.GUEST_DUSK_COUNT]))
-		else:
-			_buffs.erase(sid)
-			log_line.emit(Loc.t("log.player.ult_dusk_closed"))
-		_buff_cache_valid = false
-		SfxBus.play("sfx_ult_guest_dusk")
-		_begin_cast_pose(true)
-		_spawn_fx("combo", global_position + Vector2(0, -36))
-		skill_cast.emit(String(sk.get("name")), true)
-		_play_zoom(true)
-		_prompt.active = false
-		return
-	if sid == "yes_my_lord":
-		_buffs[sid] = _lord_seconds(lv)
-		_buff_cache_valid = false
-		SfxBus.play("sfx_ult_yes_my_lord")
-		log_line.emit(Loc.t("log.player.ult_lord", [lv, _lord_seconds(lv)]))
-		_begin_cast_pose(true)
-		_spawn_fx("combo", global_position + Vector2(0, -36))
-		skill_cast.emit(String(sk.get("name")), true)
-		_play_zoom(true)
-		_prompt.active = false
-		return
-	_buffs[sid] = float(sk.get("duration", Skills.ULT_DURATION))
-	_buff_cache_valid = false
-	_enqueue_cust_speed(sid)
-	SfxBus.play("sfx_ult_the_world")
-	log_line.emit(Loc.t("log.player.ult_world", [String(sk.get("name")), lv]))
-	_begin_cast_pose(true)
-	_spawn_fx("timestop", global_position + Vector2(0, -40))
-	skill_cast.emit(String(sk.get("name")), true)
-	_play_zoom(true)
-	_prompt.active = false
-
+	_skills.cast_ultimate()
 
 func _begin_cast_pose(ult: bool) -> void:
-	_cast_pose_left = 0.55 if ult else 0.35
-
-
+	_skills.begin_cast_pose(ult)
 func _spawn_fx(fx_id: String, at: Vector2) -> void:
 	var host: Node = _game()
 	if host == null:
@@ -4357,21 +3024,7 @@ func _shared_camera() -> Camera2D:
 
 
 func _play_zoom(ult: bool) -> void:
-	if not controls_locally():
-		return
-	var cam := _shared_camera()
-	if cam == null:
-		return
-	## Keep local ref so restore_base_camera / shake also work for seat1+.
-	camera = cam
-	var base := base_camera_zoom()
-	var z := base * (1.28 if ult else 1.12)
-	var tw := create_tween()
-	tw.tween_property(cam, "zoom", Vector2(z, z), 0.18)
-	tw.tween_interval(0.22 if ult else 0.12)
-	tw.tween_callback(restore_base_camera)
-
-
+	_skills.play_zoom(ult)
 func _reset_hold() -> void:
 	if hold_progress > 0.0 or seq_index > 0:
 		SfxBus.play("sfx_checkout_release_reset")
