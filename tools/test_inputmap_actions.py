@@ -34,8 +34,9 @@ def main() -> int:
         assert re.search(rf':= "{action}"', controls), f"const for {action}"
     player = (GAME / "scripts" / "player.gd").read_text(encoding="utf-8")
     assert "Controls.INTERACT" in player
-    assert "Controls.move_vector()" in player
-    assert "Controls.stick_vector()" in player
+    ## Seat-aware helpers (local coop / net); bare move_vector() is not used on player.
+    assert "Controls.move_vector_for(seat_id)" in player
+    assert "Controls.stick_vector_for(seat_id)" in player
     assert "KEY_J" not in player
     assert "JOY_BUTTON_A" not in player
     assert "get_joy_axis(0" not in controls

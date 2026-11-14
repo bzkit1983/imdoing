@@ -188,8 +188,8 @@ PlatformServices：Desktop 實作完整；Steam 後端 **磁碟路徑可用、Cl
 - [x] **F1** 從 `demo.gd` 抽出世界生成／日結／網路世界同步模組（行為不變）— `host/world_build.gd`、`host/net_world.gd`、擴充 `host/day_settle.gd`；puppet／intent tick 仍在 demo；`demo.gd` ~4474→~3744 行
 - [x] **F2** 從 `player.gd` 抽出技能施放／丟掉／打擊控制器（延續 `interact_scan.gd`）— `player/toss_controller.gd`、`player/fight_controller.gd`、`player/skill_caster.gd`；狀態仍在 player；`_physics_process`／input／puppet 仍在 player；`player.gd` ~4620→~3273 行
 - [x] **F3** GameHost 覆蓋殘餘熱路徑 `call()`；新增 API 必須進 `game_host.gd`— 熱路徑（customer／clerk／shadow_clone／player＋controllers／hud／calm_zone）改 typed 呼叫；`game_host.gd` 補齊貨架／結帳／loot／部署等契約（約 45→90+ API）
-- [ ] **G1** GitHub Actions：既有 `tools/test_*.py`／關鍵 `*_check.gd` 於 PR
-- [ ] **G2** 最少一條多人煙霧（本機 host＋client intent／開日／日結；可先標 manual checklist）
+- [x] **G1** GitHub Actions：既有 `tools/test_*.py` 於 PR（`.github/workflows/ci.yml` → `tools/run_ci_static.py`）；Godot `*_check.gd` 仍本機／可選（需 `GODOT=`）；少數過時契約列 quarantine
+- [x] **G2** 最少一條多人煙霧（本機 host＋client intent／開日／日結）— 手動清單 [`multiplayer-smoke-checklist.md`](multiplayer-smoke-checklist.md)＋靜態錨點 `tools/test_multiplayer_smoke_contract.py`
 - [ ] **H1** 正式 Steam App ID；Cloud 接 `write_save`；成就接 `unlock_achievement`
 - [ ] **H2** BGM＋完整設定頁；最小教學／第一日引導
 - [ ] **H3** 失敗／提早關店／過關敘事（或文件標明 EA 不做）

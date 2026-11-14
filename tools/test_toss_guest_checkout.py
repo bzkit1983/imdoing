@@ -30,7 +30,12 @@ def main() -> int:
             errs.append("accept_toss_box must call _begin_checkout when list done")
         if "shopping.is_empty()" not in body:
             errs.append("accept_toss_box must check shopping.is_empty()")
-        if "謝謝！去付款" not in body and "去付款" not in body:
+        if (
+            'Loc.t("mood.thanks_pay")' not in body
+            and 'Loc.t("mood.to_pay")' not in body
+            and "去付款" not in body
+            and "謝謝！去付款" not in body
+        ):
             errs.append("accept_toss_box should set checkout mood")
     after = re.search(r"func _after_think\(\)[\s\S]*?func _begin_checkout", text)
     if not after:
