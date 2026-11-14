@@ -37,7 +37,7 @@ const ENTRIES: Array[Dictionary] = [
 	{"id": "sfx_ult_dir_ok", "priority": "P0", "path": "res://audio/sfx/sfx_ult_dir_ok.wav", "group": "ult", "trigger": "奧義方向指令正確"},
 	{"id": "sfx_ult_fundraise", "priority": "P0", "path": "res://audio/sfx/sfx_ult_fundraise.wav", "group": "ult", "trigger": "全體集資發動／批次入帳"},
 	{"id": "sfx_ult_the_world", "priority": "P0", "path": "res://audio/sfx/sfx_ult_the_world.wav", "group": "ult", "trigger": "The World! 發動"},
-	{"id": "sfx_ult_yes_my_lord", "priority": "P0", "path": "res://audio/sfx/sfx_ult_yes_my_lord.wav", "group": "ult", "trigger": "Yes! My Lord! 發動"},
+	{"id": "sfx_ult_yes_my_lord", "priority": "P0", "path": "res://audio/sfx/sfx_ult_yes_my_lord.wav", "group": "ult", "trigger": "Yes! My Lord!／三段火槍陣發動"},
 	{"id": "sfx_box_drop_aim", "priority": "P1", "path": "res://audio/sfx/sfx_box_drop_aim.wav", "group": "box", "trigger": "長按取消達丟掉瞄準門檻"},
 	{"id": "sfx_box_hit_guest_ok", "priority": "P1", "path": "res://audio/sfx/sfx_box_hit_guest_ok.wav", "group": "box", "trigger": "丟掉砸中客人且 SKU 在清單（含狙擊手客人交付）"},
 	{"id": "sfx_box_hit_guest_reject", "priority": "P1", "path": "res://audio/sfx/sfx_box_hit_guest_reject.wav", "group": "box", "trigger": "丟掉砸中客人且 SKU 不在清單"},

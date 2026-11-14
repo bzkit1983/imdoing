@@ -180,6 +180,7 @@ const ULTS: Array[Dictionary] = [
 	{"id": "fundraise", "kind": "ultimate", "lv": 3, "cost": 0, "duration": 0.0, "cd": ULT_CD, "seq": [0, 1, 0, 1, 2, 3, 2, 3]},
 	{"id": "close_gate", "kind": "ultimate", "lv": 1, "cost": 0, "duration": 0.0, "cd": 120.0, "seq": [0, 1, 0, 1, 2, 3, 2, 3]},
 	{"id": "guest_dusk", "kind": "ultimate", "lv": 1, "cost": 0, "duration": 30.0, "cd": 120.0, "seq": [0, 2, 3, 1, 1, 2, 3, 0]},
+	{"id": "three_volley", "kind": "ultimate", "lv": 1, "cost": 0, "duration": 4.0, "cd": 120.0, "seq": [0, 3, 1, 2, 0, 3, 1, 2]},
 ]
 
 

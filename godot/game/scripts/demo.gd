@@ -29,6 +29,7 @@ const ProductVersion = preload("res://scripts/product_version.gd")
 const DaySettle = preload("res://scripts/host/day_settle.gd")
 const TaskCatalog = preload("res://scripts/session/task_catalog.gd")
 const TaskTrackerScript = preload("res://scripts/session/task_tracker.gd")
+const ThreeVolleyVisualScript = preload("res://scripts/three_volley_visual.gd")
 
 var FLOOR_SIZE := Vector2(640, 640)
 var FLOOR_ORIGIN := Vector2(48, 36)
@@ -82,6 +83,9 @@ var _spawn_in: float = 2.0
 var _guest_dusk_left: float = 0.0
 var _guest_dusk_remain: int = 0
 var _guest_dusk_in: float = 0.0
+## 三段火槍陣: per-cast follow-up volleys use real seconds, unaffected by The World.
+var _three_volley_casts: Array[Dictionary] = []
+var _three_volley_visuals: Array[Node2D] = []
 var _player: CharacterBody2D
 ## M1 local coop: all seated players. `_player` stays seat0 alias.
 var _players: Array[CharacterBody2D] = []
@@ -226,6 +230,7 @@ func _begin_day() -> void:
 	SfxBus.play("sfx_phase_restock")
 	_spawn_in = 2.0
 	clear_guest_dusk()
+	_clear_three_volley()
 	_dirt_spawn_in = dirt_spawn_interval()
 	_thief_spawn_in = state.thief_spawn_first()
 	FLOOR_SIZE = Vector2(state.grid_w, state.grid_h) * StateScript.CELL
@@ -352,6 +357,7 @@ func _local_touch_player() -> CharacterBody2D:
 
 
 func _clear_world() -> void:
+	_clear_three_volley()
 	var kill: Array[Node] = []
 	for c in get_children():
 		if c == _prep or c == _pause:
@@ -673,6 +679,98 @@ func cast_close_gate() -> void:
 	release_player_checkout()
 	if _player:
 		_player.log_line.emit(Loc.t("demo.close_gate", [queued, left, thieves]))
+
+
+func cast_three_volley() -> void:
+	## Host resolves shopping and thief outcomes; clients only receive the volley visual.
+	if SessionService.is_client() or _customers == null or _world == null:
+		return
+	var effect: Node2D = ThreeVolleyVisualScript.new()
+	effect.name = "ThreeVolleyEffect"
+	_world.add_child(effect)
+	effect.call("setup", FLOOR_ORIGIN, FLOOR_SIZE)
+	_track_three_volley_visual(effect)
+	_register_net_agent(effect, "three_volley", {
+		"ox": FLOOR_ORIGIN.x,
+		"oy": FLOOR_ORIGIN.y,
+		"fw": FLOOR_SIZE.x,
+		"fh": FLOOR_SIZE.y,
+	})
+	var hit_thieves: Array[int] = []
+	_resolve_three_volley_wave(hit_thieves)
+	_three_volley_casts.append({
+		"until_next": 2.0,
+		"waves_left": 2,
+		"hit_thieves": hit_thieves,
+		"effect": effect,
+	})
+
+
+func _track_three_volley_visual(effect: Node2D) -> void:
+	_three_volley_visuals.append(effect)
+	effect.tree_exiting.connect(_on_three_volley_visual_exiting.bind(effect))
+
+
+func _on_three_volley_visual_exiting(effect: Node2D) -> void:
+	_three_volley_visuals.erase(effect)
+
+
+func _clear_three_volley() -> void:
+	_three_volley_casts.clear()
+	for effect in _three_volley_visuals.duplicate():
+		if effect != null and is_instance_valid(effect):
+			effect.queue_free()
+	_three_volley_visuals.clear()
+
+
+func _tick_three_volley(delta: float) -> void:
+	if _three_volley_casts.is_empty():
+		return
+	for cast_i in range(_three_volley_casts.size() - 1, -1, -1):
+		var cast: Dictionary = _three_volley_casts[cast_i]
+		var until_next := float(cast.get("until_next", 0.0)) - delta
+		var waves_left := int(cast.get("waves_left", 0))
+		var hit_thieves: Array[int] = []
+		var hit_thieves_v = cast.get("hit_thieves", [])
+		if hit_thieves_v is Array:
+			for thief_id_v in hit_thieves_v:
+				hit_thieves.append(int(thief_id_v))
+		while until_next <= 0.0 and waves_left > 0:
+			_resolve_three_volley_wave(hit_thieves)
+			waves_left -= 1
+			until_next += 2.0
+		if waves_left <= 0:
+			_three_volley_casts.remove_at(cast_i)
+		else:
+			cast["until_next"] = until_next
+			cast["waves_left"] = waves_left
+			cast["hit_thieves"] = hit_thieves
+			_three_volley_casts[cast_i] = cast
+
+
+func _resolve_three_volley_wave(hit_thieves: Array[int]) -> void:
+	if _customers == null or not is_instance_valid(_customers):
+		return
+	for target in _customers.get_children():
+		if target == null or not is_instance_valid(target):
+			continue
+		if target.has_method("is_active_thief") and bool(target.call("is_active_thief")):
+			var thief_id := int(target.get_instance_id())
+			if hit_thieves.has(thief_id):
+				continue
+			hit_thieves.append(thief_id)
+			if target.has_method("drop_loot_and_leave"):
+				target.call("drop_loot_and_leave")
+			continue
+		if not target.has_method("can_receive_delivery") or not bool(target.call("can_receive_delivery")):
+			continue
+		if target.get("temp_clerk") == true:
+			continue
+		var shopping_v = target.get("shopping")
+		if not (shopping_v is Array) or shopping_v.is_empty():
+			continue
+		if target.has_method("accept_must_deliver"):
+			target.call("accept_must_deliver", [String(shopping_v[0])])
 
 
 func sellable() -> Array[String]:
@@ -1814,11 +1912,13 @@ func _process(delta: float) -> void:
 	game_hours = float(tick["game_hours"])
 	if bool(tick["finished"]):
 		clear_guest_dusk()
+		_clear_three_volley()
 		if phase != prev_phase:
 			bump_hud()
 			host_phase_changed.emit(phase)
 		_finish_day()
 		return
+	_tick_three_volley(delta)
 	if phase == "open":
 		if bool(tick["open_sfx"]) and _sfx_phase != "open":
 			_sfx_phase = "open"
@@ -1986,7 +2086,7 @@ func _collect_agent_transforms() -> Array:
 			continue
 		## Static presentation agents — pose fixed after spawn (M2.3).
 		var kind := String(n.get("kind")) if n.get("kind") != null else ""
-		if kind in ["drop", "dirt", "universal_cannon", "shelf_cannon", "calm_zone"]:
+		if kind in ["drop", "dirt", "universal_cannon", "shelf_cannon", "calm_zone", "three_volley"]:
 			continue
 		var fx := 0.0
 		var fy := 1.0
@@ -2073,6 +2173,8 @@ func _apply_agent_spawn_payload(payload: Dictionary) -> void:
 			_spawn_shelf_cannon_puppet(aid, pos, payload)
 		"calm_zone":
 			_spawn_calm_zone_puppet(aid, pos, payload)
+		"three_volley":
+			_spawn_three_volley_puppet(aid, pos, payload)
 		_:
 			pass
 
@@ -2392,6 +2494,20 @@ func _spawn_calm_zone_puppet(aid: int, pos: Vector2, payload: Dictionary) -> voi
 	_world.add_child(zone)
 	zone.global_position = pos
 	_net_agents[aid] = zone
+
+
+func _spawn_three_volley_puppet(aid: int, _pos: Vector2, payload: Dictionary) -> void:
+	var effect: Node2D = ThreeVolleyVisualScript.new()
+	effect.name = "ThreeVolleyEffectPuppet"
+	effect.set("net_agent_id", aid)
+	_world.add_child(effect)
+	_track_three_volley_visual(effect)
+	effect.call(
+		"setup",
+		Vector2(float(payload.get("ox", FLOOR_ORIGIN.x)), float(payload.get("oy", FLOOR_ORIGIN.y))),
+		Vector2(float(payload.get("fw", FLOOR_SIZE.x)), float(payload.get("fh", FLOOR_SIZE.y))),
+	)
+	_net_agents[aid] = effect
 
 
 func find_shelf(sku: String) -> Node2D:
@@ -2999,6 +3115,7 @@ func skip_operate() -> void:
 
 
 func _finish_day() -> void:
+	_clear_three_volley()
 	if _settled:
 		return
 	## Clients wait for Host settle RPC (_on_settle_payload); do not invent a local shop settle.

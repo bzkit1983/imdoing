@@ -71,6 +71,7 @@
 | 已處理 | 缺檔／缺系統 | 暫停選單／掛起 | 已有 `pausemenu.md`；活線接 `PlatformServices` suspend／resume。 | pausemenu.md, storeoperationphase.md, savesystem.md |
 | Alpha | 缺檔／缺系統 | HUD 以外的介面層空白 | 存檔／InputMap／暫停／字串表已補。暫停選單已有**事件 SFX 開／關與聲量**（見 `pausemenu.md`）。仍缺：BGM／整體設定頁、失敗／過關、教學、技能演出期間能否操作。 | storeoperationphase.md, playerskills.md, control.md, playersetup.md, pausemenu.md |
 | Alpha | 用詞／錯字 | 用詞與錯字會改規則解讀 | 留待 Alpha 改回原檔，見 `docs/alpha/design.md`。以為→以下；三能種力值；奧義「技令」；衝刺句子斷掉。 | storeoperationphase.md, gameconcept.md, playerultimateskills.md, playermovement.md |
+| Alpha | 缺檔／缺系統 | 三段火槍陣新增字元未進執行期字型 | 四語字串已加入，但目前 `NotoSansTC-Game.ttf` 子集缺「火槍陣枪阵銃斉」；需使用完整 JP 字型來源與 fonttools 重建，避免無系統字型回退的平台顯示豆腐字。 | playerultimateskills.md, `docs/alpha/fonts-subset.md` |
 
 # 缺了整份檔的系統
 

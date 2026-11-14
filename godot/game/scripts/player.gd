@@ -4283,6 +4283,16 @@ func _cast_ultimate() -> void:
 		_play_zoom(true)
 		_prompt.active = false
 		return
+	if sid == "three_volley":
+		if game and game.has_method("cast_three_volley"):
+			game.call("cast_three_volley")
+		SfxBus.play("sfx_ult_yes_my_lord")
+		log_line.emit(Loc.t("log.player.ult_three_volley"))
+		_begin_cast_pose(true)
+		skill_cast.emit(String(sk.get("name")), true)
+		_play_zoom(true)
+		_prompt.active = false
+		return
 	if sid == "guest_dusk":
 		var dusk_ok := false
 		if game and game.has_method("cast_guest_dusk"):

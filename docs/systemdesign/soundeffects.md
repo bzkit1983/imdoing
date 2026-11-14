@@ -114,7 +114,7 @@
 | `sfx_ult_cancel` | 奧義蓄力放手取消 | 消散 | P2 | `control.md` |
 | `sfx_ult_the_world` | The World! 發動 | 時停 stinger（短） | P0 | `playerultimateskills.md` |
 | `sfx_ult_the_world_end` | The World! 結束恢復流速 | 時間回流 tip | P1 | `playerultimateskills.md` |
-| `sfx_ult_yes_my_lord` | Yes! My Lord! 發動 | 號令／搶購起哄短層 | P0 | `playerultimateskills.md` |
+| `sfx_ult_yes_my_lord` | Yes! My Lord!／三段火槍陣發動 | 號令／搶購起哄短層 | P0 | `playerultimateskills.md` |
 | `sfx_ult_fundraise` | 全體集資發動／批次入帳 | 錢潮／批量收銀 | P0 | `playerultimateskills.md` |
 | `sfx_ult_close_gate` | 落閘放狗發動 | 落閘／趕客短層 | P0 | `playerultimateskills.md` |
 | `sfx_ult_guest_dusk` | 諸客的黃昏發動 | 人潮湧入短層 | P2 | `playerultimateskills.md`（暫可共用其他奧義發動音） |

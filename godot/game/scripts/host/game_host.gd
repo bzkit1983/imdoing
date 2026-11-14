@@ -154,6 +154,10 @@ func cast_close_gate() -> void:
 	pass
 
 
+func cast_three_volley() -> void:
+	pass
+
+
 func cast_guest_dusk() -> bool:
 	return false
 
