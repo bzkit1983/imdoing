@@ -1233,6 +1233,12 @@ func apply_soothe(keep: float) -> void:
 	dissatisfaction = dissatisfaction * keep
 
 
+func apply_calm_zone(amount: float) -> void:
+	if amount <= 0.0 or is_thief or temp_clerk or state == State.LEAVE:
+		return
+	dissatisfaction = maxf(0.0, dissatisfaction - amount)
+
+
 func _tick_temp(delta: float) -> void:
 	if _game.has_method("asking_early_close") and bool(_game.call("asking_early_close")):
 		velocity = Vector2.ZERO

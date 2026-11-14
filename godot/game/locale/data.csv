@@ -43,6 +43,8 @@ skill.universal_cannon.name,萬用炮,Universal Cannon,万用炮,万能砲
 skill.universal_cannon.blurb,腳下布置可穿行炮台，FIFO容量12／16／20件、每5／4／3秒射1件；再按取消後CD60秒,Deploy a pass-through turret; FIFO capacity 12/16/20; fires one item every 5/4/3s; cancel to start a 60s INT-scaled cooldown,脚下布置可穿行炮台，FIFO容量12／16／20件、每5／4／3秒射1件；再按取消后CD60秒,足元に通行可能な砲台を設置。FIFO容量12／16／20個、5／4／3秒ごとに1個発射；再押下で解除後CD60秒
 skill.self_checkout.name,Self Checkout,Self Checkout,Self Checkout,Self Checkout
 skill.self_checkout.blurb,啟動5身位內機台15秒；每客5／4／3秒自助，真人／NPC優先，尾單收完,Enable nearby registers for 15s within 5 body lengths; 5/4/3s per guest; operators take priority; finish final guest,启动5身位内机台15秒；每客5／4／3秒自助，真人／NPC优先，尾单收完,5体長内のレジを15秒稼働；客1人あたり5／4／3秒でセルフ精算、プレイヤー／NPC優先、最後の客は完了まで
+skill.calm_zone.name,你定少少先,Take a Breather,你定少少先,少し落ち着いて
+skill.calm_zone.blurb,定點安撫15秒；LV1／2／3半徑5／7／10身位，每秒減怒2／3／4,"Place a 15s calm zone; LV1/2/3 radius 5/7/10 body lengths, reducing dissatisfaction by 2/3/4 per second",定点安抚15秒；LV1／2／3半径5／7／10身位，每秒减怒2／3／4,15秒間その場に落ち着きゾーンを設置；LV1／2／3の範囲は5／7／10体長、毎秒不満を2／3／4減少
 skill.senior_cashier.name,資深收銀員,Senior Cashier,资深收银员,ベテランレジ係
 skill.senior_cashier.blurb,減指令次數／LV3免指令且Circle×0.5。準備頁選 LV1／2／3，沒選預設 LV3,Fewer command inputs; LV3 skips commands and Circle×0.5. Prep picks LV1/2/3 (default LV3),减指令次数／LV3免指令且Circle×0.5。准备页选 LV1／2／3，没选预设 LV3,コマンド回数減少／LV3はコマンド不要かつCircle×0.5。準備画面で LV1／2／3 を選択、未選択時は LV3
 skill.instant_restock.name,瞬間補貨,Instant Restock,瞬间补货,瞬間補充
