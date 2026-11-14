@@ -539,13 +539,13 @@ func _build_pause() -> void:
 
 func _on_skip_operate() -> void:
 	SfxBus.play("sfx_ui_test_skip")
-	if game and game.has_method("skip_operate"):
+	if game:
 		game.skip_operate()
 
 
 func _on_pause_pressed() -> void:
-	if game and game.has_method("request_pause"):
-		game.call("request_pause")
+	if game:
+		game.request_pause()
 
 
 func _on_log(text: String) -> void:
@@ -589,12 +589,12 @@ func _sync_left() -> void:
 	var rev_n := int(game.revenue)
 	var stolen_n := int(game.stolen_value)
 	var guests_n := int(game.guest_count())
-	var thieves_n := int(game.call("thief_count"))
+	var thieves_n := int(game.thief_count())
 	var store_txt := String(player.call("store_status_text"))
 	var role_txt := _role_status_all()
-	var p1 := int(game.call("combo_personal", 0)) if game.has_method("combo_personal") else 0
-	var p2 := int(game.call("combo_personal", 1)) if game.has_method("combo_personal") else 0
-	var team := int(game.call("combo_team")) if game.has_method("combo_team") else 0
+	var p1 := int(game.combo_personal(0))
+	var p2 := int(game.combo_personal(1))
+	var team := int(game.combo_team())
 	var ops_n := int(game.get("ops_rating")) if game.get("ops_rating") != null else 50
 	var tasks_txt := _tasks_status_text()
 	var fp := "%s|%s|%d|%d|%d|%d|%s|%s|%s|%d|%d|%d|%d|%d|%d|%s" % [
@@ -693,12 +693,12 @@ func _fit_tr_panel(has_icons: bool = false) -> void:
 
 
 func _tasks_status_text() -> String:
-	if game == null or not game.has_method("task_hud_lines"):
+	if game == null:
 		return ""
 	var seat := 0
 	if player != null and is_instance_valid(player):
 		seat = int(player.seat_id)
-	var rows: Array = game.call("task_hud_lines", seat)
+	var rows: Array = game.task_hud_lines(seat)
 	if rows.is_empty():
 		return ""
 	const TaskTracker = preload("res://scripts/session/task_tracker.gd")

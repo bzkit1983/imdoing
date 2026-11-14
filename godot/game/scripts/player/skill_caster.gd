@@ -270,10 +270,10 @@ func play_must_deliver_vfx(deliveries: Array) -> void:
 func cast_summon_guest(lv: int) -> bool:
 	var want := Skills.summon_guest_count(lv)
 	var game = host._game()
-	if game == null or not game.has_method("cast_summon_guest"):
+	if game == null:
 		host.log_line.emit(Loc.t("log.player.summon_fail"))
 		return false
-	var n := int(game.call("cast_summon_guest", want))
+	var n := int(game.cast_summon_guest(want))
 	if n <= 0:
 		host.log_line.emit(Loc.t("log.player.summon_fail_phase"))
 		return false
@@ -394,8 +394,8 @@ func cast_magneto(lv: int) -> void:
 	play_magneto_vfx(flights)
 	var taken_total := flights.size()
 	var game = host._game()
-	if game != null and game.has_method("play_skill_banner"):
-		game.call("play_skill_banner", Loc.t("log.player.magneto_n", [taken_total]))
+	if game != null:
+		game.play_skill_banner(Loc.t("log.player.magneto_n", [taken_total]))
 	host.log_line.emit(Loc.t("log.player.magneto_n", [taken_total]))
 
 
@@ -464,9 +464,7 @@ func cast_calm_zone(level: int) -> bool:
 	if SessionService.is_networked() and SessionService.is_client():
 		## Cast is predicted locally; Host creates and broadcasts the authoritative field.
 		return String(game.get("phase")) in ["open", "restock"]
-	if not game.has_method("deploy_calm_zone"):
-		return false
-	return game.call("deploy_calm_zone", host.global_position, level, host.seat_id) != null
+	return game.deploy_calm_zone(host.global_position, level, host.seat_id) != null
 
 func cast_harvest_chives(lv: int) -> bool:
 	var reg: Node2D = null
@@ -483,11 +481,11 @@ func cast_harvest_chives(lv: int) -> bool:
 		return false
 	var want := Skills.harvest_chives_count(lv)
 	var game = host._game()
-	if game == null or not game.has_method("cast_harvest_chives"):
+	if game == null:
 		host._interact_release(reg)
 		host.log_line.emit(Loc.t("log.player.chives_fail"))
 		return false
-	var n := int(game.call("cast_harvest_chives", reg, want))
+	var n := int(game.cast_harvest_chives(reg, want))
 	host._interact_release(reg)
 	if n <= 0:
 		host.log_line.emit(Loc.t("log.player.chives_empty"))
@@ -761,7 +759,7 @@ func cast_slot(i: int) -> void:
 			host.log_line.emit(Loc.t("cannon.cancelled"))
 		else:
 			var game = host._game()
-			if game == null or not game.has_method("deploy_universal_cannon"):
+			if game == null:
 				return
 			host._cannon = game.deploy_universal_cannon(host.global_position, int(sk.get("lv", 3)), host.seat_id)
 			if host._cannon == null:
@@ -783,7 +781,7 @@ func cast_slot(i: int) -> void:
 			host.log_line.emit(Loc.t("shelf_cannon.cancelled"))
 		else:
 			var game = host._game()
-			if game == null or not game.has_method("deploy_shelf_cannon"):
+			if game == null:
 				return
 			host._shelf_cannon = game.deploy_shelf_cannon(host.global_position, int(sk.get("lv", 3)), host.seat_id)
 			if host._shelf_cannon == null:
@@ -913,18 +911,18 @@ func cast_slot(i: int) -> void:
 		host._enqueue_cust_speed(sid)
 	if sk.has("soothe_keep"):
 		var game = host._game()
-		if game and game.has_method("soothe_all"):
+		if game:
 			game.soothe_all(float(sk.get("soothe_keep")))
 		SfxBus.play("sfx_skill_soothe")
 	else:
 		if bool(sk.get("dark_side", false)):
 			var game = host._game()
-			if game and game.has_method("cast_dark_side"):
-				game.call("cast_dark_side", int(sk.get("lv", 3)))
+			if game:
+				game.cast_dark_side(int(sk.get("lv", 3)))
 		elif bool(sk.get("shadow_clone", false)):
 			var clone_host = host._game()
-			if clone_host and clone_host.has_method("cast_shadow_clone"):
-				clone_host.call("cast_shadow_clone", int(sk.get("lv", 3)))
+			if clone_host:
+				clone_host.cast_shadow_clone(int(sk.get("lv", 3)))
 		elif bool(sk.get("sweeping_monk", false)):
 			host._activate_sweeping_monk()
 			SfxBus.play("sfx_skill_sweeping_monk")
@@ -960,8 +958,8 @@ func cast_ultimate() -> void:
 	host._buff_cache_valid = false
 	var game = host._game()
 	if sid == "fundraise":
-		if game and game.has_method("cast_fundraise"):
-			game.call("cast_fundraise", lv)
+		if game:
+			game.cast_fundraise(lv)
 		SfxBus.play("sfx_ult_fundraise")
 		host.log_line.emit(Loc.t("log.player.ult_fundraise", [lv]))
 		begin_cast_pose(true)
@@ -970,8 +968,8 @@ func cast_ultimate() -> void:
 		host._prompt.active = false
 		return
 	if sid == "close_gate":
-		if game and game.has_method("cast_close_gate"):
-			game.call("cast_close_gate")
+		if game:
+			game.cast_close_gate()
 		SfxBus.play("sfx_ult_close_gate")
 		host.log_line.emit(Loc.t("log.player.ult_close_gate"))
 		begin_cast_pose(true)
@@ -980,8 +978,8 @@ func cast_ultimate() -> void:
 		host._prompt.active = false
 		return
 	if sid == "three_volley":
-		if game and game.has_method("cast_three_volley"):
-			game.call("cast_three_volley")
+		if game:
+			game.cast_three_volley()
 		SfxBus.play("sfx_ult_yes_my_lord")
 		host.log_line.emit(Loc.t("log.player.ult_three_volley"))
 		begin_cast_pose(true)
@@ -991,8 +989,8 @@ func cast_ultimate() -> void:
 		return
 	if sid == "guest_dusk":
 		var dusk_ok := false
-		if game and game.has_method("cast_guest_dusk"):
-			dusk_ok = bool(game.call("cast_guest_dusk"))
+		if game:
+			dusk_ok = bool(game.cast_guest_dusk())
 		if dusk_ok:
 			host._buffs[sid] = Skills.GUEST_DUSK_DURATION
 			host.log_line.emit(Loc.t("log.player.ult_dusk", [Skills.GUEST_DUSK_COUNT]))

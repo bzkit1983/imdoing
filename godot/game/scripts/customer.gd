@@ -326,7 +326,7 @@ func on_dirt() -> bool:
 func gain_dissat(amount: float, reason: String = "") -> void:
 	if amount <= 0.0 or temp_clerk:
 		return
-	var easy := _game != null and _game.has_method("play_is_easy") and bool(_game.call("play_is_easy"))
+	var easy := _game != null and bool(_game.play_is_easy())
 	var before := dissatisfaction
 	dissatisfaction = minf(Tuning.DISSAT_MAX, dissatisfaction + Tuning.dissat_gain(amount, easy))
 	var applied := dissatisfaction - before
@@ -483,7 +483,7 @@ func _physics_process(delta: float) -> void:
 		_tick_temp(delta)
 		_sync_labels()
 		return
-	if _game.has_method("asking_early_close") and bool(_game.asking_early_close()):
+	if bool(_game.asking_early_close()):
 		velocity = Vector2.ZERO
 		return
 	if _dash_stun_left > 0.0:
@@ -491,7 +491,7 @@ func _physics_process(delta: float) -> void:
 		velocity = Vector2.ZERO
 		_sync_labels()
 		return
-	var td := float(_game.call("world_delta", delta))
+	var td := float(_game.world_delta(delta))
 	if String(_game.get("phase")) == "closed" and state != State.LEAVE and state != State.FLEE and state != State.FIGHT:
 		if is_thief:
 			escape_with_loot()
@@ -504,15 +504,15 @@ func _physics_process(delta: float) -> void:
 		_dirt_float_cd = maxf(0.0, _dirt_float_cd - td)
 		if dirt_rate > 0.01 and _dirt_float_cd <= 0.0:
 			_dirt_float_cd = 1.0
-			var easy := _game != null and _game.has_method("play_is_easy") and bool(_game.call("play_is_easy"))
+			var easy := _game != null and bool(_game.play_is_easy())
 			var FloatText = preload("res://scripts/ui/float_text.gd")
 			FloatText.spawn_dissat(self, Tuning.dissat_gain(dirt_rate, easy))
 	if is_elite and state != State.LEAVE and state != State.FLEE and state != State.FIGHT:
 		_tick_elite_affixes(delta, td)
 	if _lord_pull():
 		if state != State.RAID:
-			if state == State.PAYING and _game.has_method("release_player_checkout"):
-				_game.call("release_player_checkout", self)
+			if state == State.PAYING:
+				_game.release_player_checkout(self)
 			if _reg():
 				_reg().dequeue(self)
 			state = State.RAID
@@ -582,7 +582,7 @@ func _tick_seek(delta: float) -> void:
 		mood = Loc.t("mood.cant_find", [Tuning.sku_name(want)])
 		_sku_popup(want, SkuIcons.KIND_MISS)
 		return
-	var stand: Vector2 = _game.call("shelf_stand", shelf)
+	var stand: Vector2 = _game.shelf_stand(shelf)
 	if _follow_to(stand, delta):
 		state = State.LINGER
 		_timer = Tuning.LINGER_SEC
@@ -593,10 +593,10 @@ func _tick_seek(delta: float) -> void:
 func _take_current() -> void:
 	var want := shopping[0]
 	var shelf: Node2D = _target_shelf
-	if shelf == null or not bool(_game.callv("shelf_has", [shelf, want])):
+	if shelf == null or not bool(_game.shelf_has(shelf, want)):
 		shelf = _game.find_shelf(want)
 		_target_shelf = shelf
-	if shelf and bool(_game.callv("take_from_shelf", [shelf, want])):
+	if shelf and bool(_game.take_from_shelf(shelf, want)):
 		cart.append(want)
 		shopping.remove_at(0)
 		_bump_list()
@@ -662,7 +662,7 @@ func _lord_pull() -> bool:
 		return false
 	if state == State.LEAVE or state == State.FLEE or state == State.FIGHT:
 		return false
-	return _game.has_method("yes_my_lord_on") and bool(_game.call("yes_my_lord_on"))
+	return bool(_game.yes_my_lord_on())
 
 
 func grab_items(items: Array) -> void:
@@ -674,11 +674,11 @@ func grab_items(items: Array) -> void:
 
 
 func _tick_raid(delta: float) -> void:
-	var shelf: Node2D = _game.call("nearest_stocked_shelf", global_position)
+	var shelf: Node2D = _game.nearest_stocked_shelf(global_position)
 	if shelf == null:
 		velocity = Vector2.ZERO
 		return
-	var stand: Vector2 = _game.call("shelf_stand", shelf)
+	var stand: Vector2 = _game.shelf_stand(shelf)
 	if _follow_to(stand, delta):
 		var items: Array = shelf.call("take_all")
 		grab_items(items)
@@ -692,7 +692,7 @@ func _end_raid() -> void:
 
 
 func _join_register() -> bool:
-	if _game == null or not _game.has_method("pick_register"):
+	if _game == null:
 		return false
 	register = _game.pick_register(self)
 	if register == null:
@@ -714,7 +714,7 @@ func _tick_queue(delta: float, td: float) -> void:
 	var slot: Vector2 = reg.slot_position(idx)
 	if _follow_to(slot, delta):
 		velocity = Vector2.ZERO
-	var blocked := _game and _game.has_method("queue_dissat_blocked") and bool(_game.queue_dissat_blocked())
+	var blocked := _game and bool(_game.queue_dissat_blocked())
 	if not is_thief and not blocked:
 		gain_dissat(Tuning.DISSAT_QUEUE_PER_SEC * td)
 	mood = Loc.t("mood.queue")
@@ -744,7 +744,7 @@ func _follow_to(pos: Vector2, delta: float) -> bool:
 		velocity = Vector2.ZERO
 		return true
 	if _path.is_empty() or pos.distance_squared_to(_goal) > 324.0:
-		var pts: PackedVector2Array = _game.call("find_path", global_position, pos)
+		var pts: PackedVector2Array = _game.find_path(global_position, pos)
 		if pts.is_empty() and not _path.is_empty():
 			## Path budget exhausted — keep walking prior path.
 			pass
@@ -766,7 +766,7 @@ func _follow_to(pos: Vector2, delta: float) -> bool:
 	## Metal rush and other guest-speed skills do not move a temp clerk.
 	## The World! also does not slow them: this path uses the real frame delta.
 	if not temp_clerk:
-		spd *= float(_game.customer_move_mult()) if _game.has_method("customer_move_mult") else float(_game.call("customer_move_mult"))
+		spd *= float(_game.customer_move_mult())
 	if on_dirt() and state != State.LEAVE and not is_thief:
 		spd *= Tuning.DIRT_MULT
 	if spd <= 0.01:
@@ -820,13 +820,13 @@ func _leave(angry: bool) -> void:
 	if angry and _game:
 		_game.angry_left += 1
 		SfxBus.play("sfx_guest_angry_leave")
-		if _game.has_method("note_angry_leave"):
-			_game.call("note_angry_leave", self)
+		if _game:
+			_game.note_angry_leave(self)
 
 
 func _tick_leave(delta: float, td: float) -> void:
 	_leave_elapsed += td
-	var exit_p: Vector2 = _game.call("exit_pos")
+	var exit_p: Vector2 = _game.exit_pos()
 	if _follow_to(exit_p, delta) or _leave_near_exit(exit_p) or _leave_elapsed >= LEAVE_TIMEOUT_SEC:
 		if is_thief:
 			_finish_thief_exit()
@@ -835,9 +835,7 @@ func _tick_leave(delta: float, td: float) -> void:
 
 func _leave_near_exit(exit_p: Vector2) -> bool:
 	## Door threshold counts as left — avoids hanging just inside the frame.
-	if not _game.has_method("door_pos"):
-		return false
-	var door_p: Vector2 = _game.call("door_pos")
+	var door_p: Vector2 = _game.door_pos()
 	if global_position.distance_to(door_p) <= Tuning.CUSTOMER_ARRIVE_DIST:
 		## Only once they've crossed to / past the door line (north of shop).
 		return global_position.y <= door_p.y + 8.0
@@ -884,10 +882,10 @@ func escape_with_loot() -> void:
 func _finish_thief_exit() -> void:
 	if cart.is_empty():
 		return
-	if _game and _game.has_method("record_stolen"):
-		_game.call("record_stolen", cart)
-	if _game and _game.has_method("show_stolen_banner"):
-		_game.call("show_stolen_banner")
+	if _game:
+		_game.record_stolen(cart)
+	if _game:
+		_game.show_stolen_banner()
 	cart.clear()
 	_bump_list()
 
@@ -940,8 +938,8 @@ func dash_knock_guest(add_dissat: float) -> void:
 	## Release the seat locking this guest while they are still the ready customer,
 	## then dequeue — otherwise ready_customer no longer matches and the UI sticks.
 	var was_paying := state == State.PAYING
-	if was_paying and _game and _game.has_method("release_player_checkout"):
-		_game.call("release_player_checkout", self)
+	if was_paying and _game:
+		_game.release_player_checkout(self)
 	if _reg():
 		_reg().dequeue(self)
 	## Rebuild wanted list = taken (cart) + still needed (shopping), then drop cart.
@@ -1096,8 +1094,8 @@ func apply_toss_reject(sku: String = "") -> void:
 	if sku != "":
 		_sku_popup(sku, SkuIcons.KIND_BAD)
 	_sync_labels()
-	if _game != null and _game.has_method("note_wrong_deliver"):
-		_game.call("note_wrong_deliver", self)
+	if _game != null:
+		_game.note_wrong_deliver(self)
 
 
 func _scatter_cart(min_r: float, max_r: float) -> void:
@@ -1111,11 +1109,8 @@ func _scatter_cart(min_r: float, max_r: float) -> void:
 	_bump_list()
 	if piles.is_empty():
 		return
-	if _game.has_method("spawn_loot_scatter"):
-		_game.call("spawn_loot_scatter", global_position, piles, min_r, max_r)
-	elif _game.has_method("spawn_dropped_box"):
-		for pile in piles:
-			_game.call("spawn_dropped_box", global_position, String(pile["sku"]), int(pile["n"]))
+	if _game:
+		_game.spawn_loot_scatter(global_position, piles, min_r, max_r)
 
 
 ## Drop every cart pile at the thief's feet (no flight scatter).
@@ -1130,11 +1125,8 @@ func _drop_cart_inplace() -> void:
 	_bump_list()
 	if piles.is_empty():
 		return
-	if _game.has_method("spawn_loot_inplace"):
-		_game.call("spawn_loot_inplace", global_position, piles)
-	elif _game.has_method("spawn_dropped_box"):
-		for pile in piles:
-			_game.call("spawn_dropped_box", global_position, String(pile["sku"]), int(pile["n"]))
+	if _game:
+		_game.spawn_loot_inplace(global_position, piles)
 
 
 ## Pull this guest into a 30s temp job. A second call does not refresh the timer.
@@ -1240,7 +1232,7 @@ func apply_calm_zone(amount: float) -> void:
 
 
 func _tick_temp(delta: float) -> void:
-	if _game.has_method("asking_early_close") and bool(_game.call("asking_early_close")):
+	if bool(_game.asking_early_close()):
 		velocity = Vector2.ZERO
 		temp_left -= delta
 		if temp_left <= 0.0:
@@ -1272,7 +1264,7 @@ func _tick_temp_cashier(delta: float) -> void:
 		return
 	if not _follow_to(reg.call("back_position"), delta):
 		return
-	if _game != null and _game.has_method("seat_locks_register") and bool(_game.call("seat_locks_register", reg)):
+	if _game != null and bool(_game.seat_locks_register(reg)):
 		return
 	var cust = reg.call("ready_customer") if reg.has_method("ready_customer") else null
 	if cust == null:
@@ -1289,8 +1281,8 @@ func _tick_temp_cashier(delta: float) -> void:
 	var amount: int = int(cust.call("payout_total")) if cust.has_method("payout_total") else int(cust.call("cart_total"))
 	var from_elite: bool = cust.get("is_elite") == true
 	SfxBus.play("sfx_checkout_clerk")
-	if _game.has_method("_on_paid"):
-		_game.call("_on_paid", amount, from_elite, 0, self)
+	if _game:
+		_game._on_paid(amount, from_elite, 0, self)
 	if cust.has_method("finish_paid"):
 		cust.finish_paid()
 	if reg.has_method("dequeue"):
@@ -1302,10 +1294,7 @@ func _tick_temp_restock(delta: float) -> void:
 		if _temp_shelf == null or not is_instance_valid(_temp_shelf):
 			_drop_temp_box()
 			return
-		if not _game.has_method("shelf_stand"):
-			_drop_temp_box()
-			return
-		var stand: Vector2 = _game.call("shelf_stand", _temp_shelf)
+		var stand: Vector2 = _game.shelf_stand(_temp_shelf)
 		if not _follow_to(stand, delta):
 			return
 		_temp_work += delta
@@ -1336,7 +1325,7 @@ func _tick_temp_restock(delta: float) -> void:
 		_temp_shelf = job["shelf"]
 		_temp_plan_sku = String(job["sku"])
 	var cat := String(_temp_shelf.get("category"))
-	var point: Node2D = _game.call("restock_for", cat) if _game.has_method("restock_for") else null
+	var point: Node2D = _game.restock_for(cat)
 	if point == null:
 		_temp_clear_plan()
 		velocity = Vector2.ZERO
@@ -1356,8 +1345,8 @@ func _tick_temp_restock(delta: float) -> void:
 	if n_t <= 0 or not bool(st.call("consume_stock", _temp_plan_sku, n_t)):
 		_temp_clear_plan()
 		return
-	if _game.has_method("sync_stock"):
-		_game.call("sync_stock")
+	if _game:
+		_game.sync_stock()
 	_temp_box_sku = _temp_plan_sku
 	_temp_box_n = n_t
 	_temp_work = 0.0
@@ -1379,7 +1368,7 @@ func _temp_find_job() -> Dictionary:
 		var on := String(s.get("sku"))
 		if on != "":
 			present[on] = true
-	var held: Dictionary = _game.call("restock_holds", self) if _game.has_method("restock_holds") else {"sku": {}, "shelf": {}}
+	var held: Dictionary = _game.restock_holds(self)
 	var reserved_sku: Dictionary = held.get("sku", {})
 	var reserved_shelf: Dictionary = held.get("shelf", {})
 	var best_shelf: Node2D = null
@@ -1453,10 +1442,8 @@ func _drop_temp_box() -> void:
 	if n <= 0 or sku == "" or _game == null:
 		return
 	var piles: Array = [{"sku": sku, "n": n}]
-	if _game.has_method("spawn_loot_inplace"):
-		_game.call("spawn_loot_inplace", global_position, piles)
-	elif _game.has_method("spawn_dropped_box"):
-		_game.call("spawn_dropped_box", global_position, sku, n)
+	if _game:
+		_game.spawn_loot_inplace(global_position, piles)
 
 
 func _begin_flee(dir: Vector2, flee_mood: String) -> void:
@@ -1464,8 +1451,8 @@ func _begin_flee(dir: Vector2, flee_mood: String) -> void:
 	_notify_unoccupy()
 	state = State.FLEE
 	## Recount after state flip so is_active_thief() is false.
-	if is_thief and _game and _game.has_method("note_thief_active_changed"):
-		_game.call("note_thief_active_changed")
+	if is_thief and _game:
+		_game.note_thief_active_changed()
 	_flee_dir = dir.normalized() if dir.length_squared() > 0.01 else Vector2.UP
 	_flee_left = 0.55
 	collision_layer = 0
@@ -1521,11 +1508,11 @@ func _elite_try_cd_affix(affix: String, fn: Callable) -> void:
 
 
 func _elite_incite(td: float) -> void:
-	if _game == null or not _game.has_method("customers_in_radius"):
+	if _game == null:
 		return
 	var rate := Tuning.elite_incite_per_sec(elite_effect_lv("incite"))
 	var r := Tuning.ELITE_INCITE_RADIUS
-	var near: Array = _game.call("customers_in_radius", global_position, r * r)
+	var near: Array = _game.customers_in_radius(global_position, r * r)
 	for c in near:
 		if c == null or c == self or not is_instance_valid(c):
 			continue
@@ -1546,15 +1533,15 @@ func _elite_incite(td: float) -> void:
 
 
 func _elite_contact_shelf() -> Node2D:
-	if _game == null or not _game.has_method("nearest_shelf"):
+	if _game == null:
 		return null
-	var shelf: Node2D = _game.call("nearest_shelf", global_position)
+	var shelf: Node2D = _game.nearest_shelf(global_position)
 	if shelf == null:
 		return null
 	if global_position.distance_to(shelf.global_position) > Tuning.ELITE_CONTACT_DIST + 40.0:
 		## Also accept stand distance (facing aisle).
-		if _game.has_method("shelf_stand"):
-			var stand: Vector2 = _game.call("shelf_stand", shelf)
+		if _game:
+			var stand: Vector2 = _game.shelf_stand(shelf)
 			if global_position.distance_to(stand) > Tuning.ELITE_CONTACT_DIST + 12.0:
 				return null
 		else:
@@ -1572,17 +1559,17 @@ func _elite_try_smash_shelf() -> bool:
 	var pile: Dictionary = shelf.call("smash_fraction", frac)
 	if pile.is_empty():
 		return false
-	if _game and _game.has_method("spawn_dropped_box"):
-		_game.call("spawn_dropped_box", global_position + Vector2(randf_range(-12, 12), 8), String(pile["sku"]), int(pile["n"]))
+	if _game:
+		_game.spawn_dropped_box(global_position + Vector2(randf_range(-12, 12), 8), String(pile["sku"]), int(pile["n"]))
 	mood = Loc.t("mood.affix.smash")
 	return true
 
 
 func _elite_nearby_normal_guest() -> Node:
-	if _game == null or not _game.has_method("customers_in_radius"):
+	if _game == null:
 		return null
 	var r := Tuning.ELITE_CONTACT_DIST + 16.0
-	var near: Array = _game.call("customers_in_radius", global_position, r * r)
+	var near: Array = _game.customers_in_radius(global_position, r * r)
 	var best: Node = null
 	var best_d := 1.0e12
 	for c in near:
@@ -1625,7 +1612,7 @@ func _elite_try_drive_off() -> bool:
 
 
 func _elite_try_litter() -> bool:
-	if _game == null or not _game.has_method("spawn_dirt_at"):
+	if _game == null:
 		return false
 	## Prefer a spot slightly ahead on open floor.
 	var at := global_position + Vector2(randf_range(-18, 18), randf_range(10, 28))
@@ -1633,7 +1620,7 @@ func _elite_try_litter() -> bool:
 	if pool.is_empty():
 		return false
 	var dtype := pool[randi() % pool.size()]
-	if bool(_game.call("spawn_dirt_at", at, dtype)):
+	if bool(_game.spawn_dirt_at(at, dtype)):
 		mood = Loc.t("mood.affix.dirt")
 		return true
 	return false
@@ -1651,12 +1638,12 @@ func _tick_elite_passive_wander(delta: float) -> void:
 
 
 func _pick_elite_wander_point() -> Vector2:
-	if _game and _game.has_method("random_shelf_stand"):
-		var p: Vector2 = _game.call("random_shelf_stand")
+	if _game:
+		var p: Vector2 = _game.random_shelf_stand()
 		if p != Vector2.ZERO:
 			return p
-	if _game and _game.has_method("inside_pos"):
-		return _game.call("inside_pos") + Vector2(randf_range(-80, 80), randf_range(-60, 60))
+	if _game:
+		return _game.inside_pos() + Vector2(randf_range(-80, 80), randf_range(-60, 60))
 	return global_position + Vector2(randf_range(-40, 40), randf_range(-40, 40))
 
 
@@ -1682,11 +1669,8 @@ func elite_ruck_cart(pct: float) -> bool:
 	for s in dropped:
 		shopping.append(s)
 	var piles: Array[Dictionary] = Tuning.loot_piles_from_cart(dropped)
-	if _game and _game.has_method("spawn_loot_inplace") and not piles.is_empty():
-		_game.call("spawn_loot_inplace", global_position, piles)
-	elif _game and _game.has_method("spawn_dropped_box"):
-		for pile in piles:
-			_game.call("spawn_dropped_box", global_position, String(pile["sku"]), int(pile["n"]))
+	if _game and not piles.is_empty():
+		_game.spawn_loot_inplace(global_position, piles)
 	if _reg():
 		_reg().dequeue(self)
 	_target_shelf = null
@@ -1714,7 +1698,7 @@ func elite_drive_off(add: float) -> void:
 
 func _roll_list() -> Array[String]:
 	var pool: Array[String] = []
-	if _game and _game.has_method("sellable"):
+	if _game:
 		pool = _game.sellable()
 	if pool.is_empty():
 		return []
@@ -1723,7 +1707,7 @@ func _roll_list() -> Array[String]:
 	if is_thief:
 		lo = Tuning.THIEF_LIST_MIN
 		hi = Tuning.THIEF_LIST_MAX
-	elif _game and _game.has_method("customer_list_bounds"):
+	elif _game:
 		var bounds: Vector2i = _game.customer_list_bounds()
 		lo = bounds.x
 		hi = bounds.y
@@ -1870,8 +1854,8 @@ func _notify_unoccupy() -> void:
 	if not _occupy_counted or _game == null:
 		return
 	_occupy_counted = false
-	if _game.has_method("note_customer_occupy_changed"):
-		_game.call("note_customer_occupy_changed", self, false)
+	if _game:
+		_game.note_customer_occupy_changed(self, false)
 
 
 func _sku_popup(sku: String, kind: String) -> void:

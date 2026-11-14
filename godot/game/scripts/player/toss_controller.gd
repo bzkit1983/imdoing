@@ -203,7 +203,7 @@ func launch_piece_toss(
 	count_flight: bool = true
 ) -> void:
 	var game = host._game()
-	if game == null or not game.has_method("spawn_dropped_box"):
+	if game == null:
 		if not count_flight:
 			on_piece_drop_landed()
 		return
@@ -213,9 +213,7 @@ func launch_piece_toss(
 	host._running = false
 	host._dashing = false
 	host.velocity = Vector2.ZERO
-	game.call(
-		"spawn_dropped_box",
-		host.global_position,
+	game.spawn_dropped_box(host.global_position,
 		sku,
 		1,
 		dir,
@@ -256,7 +254,7 @@ func drop_top_box(toss_dir: Vector2 = Vector2.ZERO, lock_until_land: bool = true
 	var n := int(run["count"])
 	host.inventory.remove_trailing(n)
 	var game = host._game()
-	if game and game.has_method("spawn_dropped_box"):
+	if game:
 		var landed := Callable()
 		if lock_until_land:
 			host._drop_flight_lock = true
@@ -264,9 +262,7 @@ func drop_top_box(toss_dir: Vector2 = Vector2.ZERO, lock_until_land: bool = true
 			host._dashing = false
 			host.velocity = Vector2.ZERO
 			landed = Callable(host, "_on_drop_flight_done")
-		game.call(
-			"spawn_dropped_box",
-			host.global_position,
+		game.spawn_dropped_box(host.global_position,
 			String(run["id"]),
 			n,
 			toss_dir,

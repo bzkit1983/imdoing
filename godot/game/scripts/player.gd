@@ -764,10 +764,10 @@ func speed_mult() -> float:
 
 func _crowd_near() -> bool:
 	var g := _game()
-	if g == null or not g.has_method("customers_near"):
+	if g == null:
 		## Fallback: scan game customers group / thieves list.
 		return _crowd_near_fallback()
-	return g.call("customers_near", global_position, Tuning.CROWD_RADIUS_SQ) == true
+	return g.customers_near(global_position, Tuning.CROWD_RADIUS_SQ) == true
 
 
 func _crowd_near_fallback() -> bool:
@@ -893,7 +893,7 @@ func _round_active() -> bool:
 
 func _asking_early() -> bool:
 	var g := _game()
-	return g != null and g.has_method("asking_early_close") and bool(g.asking_early_close())
+	return g != null and bool(g.asking_early_close())
 
 
 func _mark_hud_dirty() -> void:
@@ -1856,8 +1856,8 @@ func _hand_deliver(guests: Array, penalize_miss: bool) -> int:
 		else:
 			log_line.emit(Loc.t("log.player.wrong_dissat"))
 	var game := _game()
-	if game != null and game.has_method("combo_break_personal"):
-		game.call("combo_break_personal", seat_id)
+	if game != null:
+		game.combo_break_personal(seat_id)
 	for g in locked:
 		_interact_release(g)
 	return 0
@@ -1895,11 +1895,11 @@ func _dash_guests() -> Array:
 
 func _dash_clone() -> Node:
 	var g := _game()
-	if g == null or not g.has_method("shadow_clones"):
+	if g == null:
 		return null
 	var best: Node = null
 	var best_d_sq := Tuning.DASH_HIT_RANGE_SQ
-	for c in g.call("shadow_clones"):
+	for c in g.shadow_clones():
 		if c == null or not is_instance_valid(c):
 			continue
 		if c.get("_vanishing"):
@@ -2214,8 +2214,8 @@ func _request_prompt_broadcast(force: bool = false) -> void:
 		return
 	_net_prompt_fp = fp
 	var game := _game()
-	if game != null and game.has_method("_broadcast_seat_prompt"):
-		game.call("_broadcast_seat_prompt", seat_id)
+	if game != null:
+		game._broadcast_seat_prompt(seat_id)
 
 
 func _apply_fight_fail_player() -> void:
@@ -2237,8 +2237,8 @@ func base_camera_zoom() -> float:
 			return Tuning.CAMERA_ZOOM_FAR
 		PlatformServices.CAMERA_VIEW_OVERVIEW:
 			var game := _game()
-			if game != null and game.has_method("overview_camera_zoom"):
-				return float(game.call("overview_camera_zoom"))
+			if game != null:
+				return float(game.overview_camera_zoom())
 			return Tuning.CAMERA_ZOOM_FAR
 		_:
 			return Tuning.CAMERA_ZOOM
@@ -2255,14 +2255,14 @@ func restore_base_camera() -> void:
 	var game := _game()
 	if PlatformServices.get_camera_view() == PlatformServices.CAMERA_VIEW_OVERVIEW:
 		camera.top_level = true
-		if game != null and game.has_method("shop_camera_center"):
-			camera.global_position = game.call("shop_camera_center") as Vector2
+		if game != null:
+			camera.global_position = game.shop_camera_center() as Vector2
 		camera.zoom = Vector2(z, z)
-	elif game != null and game.has_method("is_local_coop") and bool(game.call("is_local_coop")):
+	elif game != null and bool(game.is_local_coop()):
 		## Coop follow: world-space midpoint (demo keeps it each frame).
 		camera.top_level = true
-		if game.has_method("coop_camera_midpoint"):
-			camera.global_position = game.call("coop_camera_midpoint") as Vector2
+		if game:
+			camera.global_position = game.coop_camera_midpoint() as Vector2
 		camera.zoom = Vector2(z, z)
 	else:
 		camera.top_level = false
@@ -2346,8 +2346,8 @@ func _try_dash_hits() -> void:
 		return
 	_try_wave_dirt_vfx()
 	## Thieves first (caught).
-	if g.has_method("thieves"):
-		for t in g.call("thieves"):
+	if g:
+		for t in g.thieves():
 			if t == null or not is_instance_valid(t):
 				continue
 			if not bool(t.call("is_active_thief")):
@@ -2364,8 +2364,8 @@ func _try_dash_hits() -> void:
 					_play_ko_sequence(t, "", _dash_dir, false)
 				return
 			t.call("dash_knock_away", _dash_dir)
-			if g.has_method("record_caught"):
-				g.call("record_caught", seat_id, "dash")
+			if g:
+				g.record_caught(seat_id, "dash")
 			SfxBus.play("sfx_thief_dash_out")
 			log_line.emit(Loc.t("log.player.thief_dash"))
 			if _fighting:
@@ -2395,12 +2395,12 @@ func _try_dash_hits() -> void:
 			var nearest: Node = guests[0]
 			_dash_guest_done = true
 			var add := 0.0 if _has_flag("polite_dash") else Tuning.DASH_GUEST_DISSAT
-			if g.has_method("play_ko_banner"):
-				g.call("play_ko_banner")
+			if g:
+				g.play_ko_banner()
 			if nearest.has_method("dash_knock_guest"):
 				nearest.call("dash_knock_guest", add)
-			if add > 0.0 and g.has_method("note_dash_guest"):
-				g.call("note_dash_guest", self)
+			if add > 0.0:
+				g.note_dash_guest(self)
 			SfxBus.play("sfx_ko_guest_dash")
 			log_line.emit(Loc.t("log.player.dash_guest") if add > 0.0 else Loc.t("log.player.dash_polite"))
 			return
@@ -2410,8 +2410,8 @@ func _try_dash_hits() -> void:
 	if clone == null:
 		return
 	_dash_guest_done = true
-	if g.has_method("play_ko_banner"):
-		g.call("play_ko_banner")
+	if g:
+		g.play_ko_banner()
 	if clone.has_method("dash_knock"):
 		clone.call("dash_knock")
 	SfxBus.play("sfx_ko_guest_dash")
@@ -2573,8 +2573,8 @@ func _activate_sweeping_monk() -> void:
 	## Immediate pulse; ongoing clears happen in _tick_sweeping_monk.
 	_clear_dirt_in_monk_range()
 	var game := _game()
-	if game != null and game.has_method("play_skill_banner"):
-		game.call("play_skill_banner", Loc.t("log.player.monk_banner"))
+	if game != null:
+		game.play_skill_banner(Loc.t("log.player.monk_banner"))
 
 
 func _sync_monk_tornado(force_on: bool = false) -> void:
@@ -2625,7 +2625,7 @@ func _clear_dirt_in_monk_range() -> void:
 		d.queue_free()
 		_spawn_fx("clean_spark", at)
 		SfxBus.play("sfx_clean_done")
-		if g.has_method("note_clean"):
+		if g:
 			g.note_clean()
 		log_line.emit(Loc.t("log.player.monk_clear", [name]))
 
@@ -2673,7 +2673,7 @@ func _tick_clean(_delta: float) -> void:
 		_spawn_fx("clean_spark", spark_at)
 		SfxBus.play("sfx_clean_done")
 		var game := _game()
-		if game and game.has_method("note_clean"):
+		if game:
 			game.note_clean(seat_id)
 		log_line.emit(Loc.t("log.player.clean_done", [name]))
 
@@ -2851,8 +2851,8 @@ func _finish_checkout(cust) -> void:
 	var perfect := not _checkout_had_miss
 	## paid signal → demo._on_paid; pass elite via game helper when connected.
 	var game := _game()
-	if game != null and game.has_method("_on_paid"):
-		game.call("_on_paid", amount, from_elite, seat_id, self, perfect)
+	if game != null:
+		game._on_paid(amount, from_elite, seat_id, self, perfect)
 	else:
 		paid.emit(amount)
 	_checkout_had_miss = false
@@ -3093,13 +3093,13 @@ func _note_delivery_combo(guests: Array, _pieces: int) -> void:
 			perfect_n += 1
 			if guest.has_method("apply_combo_bonus"):
 				guest.call("apply_combo_bonus")
-	if game.has_method("combo_note_qualify"):
-		game.call("combo_note_qualify", seat_id)
-	if perfect_n > 0 and game.has_method("combo_note_perfect"):
-		game.call("combo_note_perfect", seat_id)
+	if game:
+		game.combo_note_qualify(seat_id)
+	if perfect_n > 0:
+		game.combo_note_perfect(seat_id)
 	## One deliver_count per successful delivery action (this burst).
-	if game.has_method("note_deliver"):
-		game.call("note_deliver", seat_id, "hand", 1, perfect_n > 0)
+	if game:
+		game.note_deliver(seat_id, "hand", 1, perfect_n > 0)
 
 
 func _handle_hotkey_actions(event: InputEvent) -> void:

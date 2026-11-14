@@ -76,7 +76,7 @@ func _physics_process(delta: float) -> void:
 	if _game == null or String(_game.get("phase")) == "closed" or String(_game.get("phase")) == "prep":
 		_sync_visual("idle", Vector2.DOWN)
 		return
-	if _game.has_method("asking_early_close") and bool(_game.asking_early_close()):
+	if bool(_game.asking_early_close()):
 		velocity = Vector2.ZERO
 		_sync_visual("idle", Vector2.DOWN)
 		return
@@ -99,7 +99,7 @@ func _tick_cashier(delta: float) -> void:
 		return
 	if not _follow(register.call("back_position"), delta):
 		return
-	if _game != null and _game.has_method("seat_locks_register") and bool(_game.call("seat_locks_register", register)):
+	if _game != null and bool(_game.seat_locks_register(register)):
 		return
 	var cust = register.call("ready_customer")
 	if cust == null:
@@ -116,7 +116,7 @@ func _tick_cashier(delta: float) -> void:
 	var amount: int = int(cust.call("payout_total")) if cust.has_method("payout_total") else int(cust.call("cart_total"))
 	var from_elite: bool = cust.get("is_elite") == true
 	SfxBus.play("sfx_checkout_clerk")
-	_game.call("_on_paid", amount, from_elite, 0, self)
+	_game._on_paid(amount, from_elite, 0, self)
 	cust.finish_paid()
 	register.dequeue(cust)
 
@@ -126,7 +126,7 @@ func _tick_restock(delta: float) -> void:
 		if _shelf == null or not is_instance_valid(_shelf):
 			_drop_box()
 			return
-		var stand: Vector2 = _game.call("shelf_stand", _shelf)
+		var stand: Vector2 = _game.shelf_stand(_shelf)
 		if not _follow(stand, delta):
 			return
 		_timer += delta
@@ -157,7 +157,7 @@ func _tick_restock(delta: float) -> void:
 		_shelf = job["shelf"]
 		_plan_sku = String(job["sku"])
 	var cat := String(_shelf.get("category"))
-	var point: Node2D = _game.call("restock_for", cat)
+	var point: Node2D = _game.restock_for(cat)
 	if point == null:
 		_clear_plan()
 		return
@@ -172,7 +172,7 @@ func _tick_restock(delta: float) -> void:
 	if n <= 0 or not bool(_game.state.consume_stock(_plan_sku, n)):
 		_clear_plan()
 		return
-	_game.call("sync_stock")
+	_game.sync_stock()
 	_box_sku = _plan_sku
 	_box_n = n
 	_timer = 0.0
@@ -248,8 +248,8 @@ func _skus_on_shelves() -> Dictionary:
 
 
 func _reserved_by_others() -> Dictionary:
-	if _game != null and _game.has_method("restock_holds"):
-		return _game.call("restock_holds", self)
+	if _game != null:
+		return _game.restock_holds(self)
 	var sku := {}
 	var shelf := {}
 	var parent := get_parent()
@@ -295,7 +295,7 @@ func _follow(pos: Vector2, delta: float) -> bool:
 		velocity = Vector2.ZERO
 		return true
 	if _path.is_empty() or pos.distance_squared_to(_goal) > 324.0:
-		var pts: PackedVector2Array = _game.call("find_path", global_position, pos)
+		var pts: PackedVector2Array = _game.find_path(global_position, pos)
 		if pts.is_empty() and not _path.is_empty():
 			pass
 		else:
@@ -311,7 +311,7 @@ func _follow(pos: Vector2, delta: float) -> bool:
 	if to.length_squared() < 1.0:
 		return global_position.distance_squared_to(pos) <= arrive_sq
 	var spd := Tuning.WALK_SPEED * Tuning.agi_mult(10)
-	spd *= float(_game.customer_move_mult()) if _game.has_method("customer_move_mult") else float(_game.call("customer_move_mult"))
+	spd *= float(_game.customer_move_mult())
 	velocity = to.normalized() * maxf(spd, 1.0)
 	var walk_anim := "walk_carry" if _box_n > 0 and Vox.has_anim(_model_id, "walk_carry") else "walk"
 	_sync_visual(walk_anim, velocity)

@@ -43,7 +43,7 @@ func _physics_process(delta: float) -> void:
 	if phase in ["closed", "prep"]:
 		queue_free()
 		return
-	if host.has_method("asking_early_close") and bool(host.call("asking_early_close")):
+	if bool(host.asking_early_close()):
 		return
 
 	elapsed += delta
@@ -58,8 +58,8 @@ func _physics_process(delta: float) -> void:
 	if visual_only:
 		return
 	var world_delta := delta
-	if host.has_method("world_delta"):
-		world_delta = float(host.call("world_delta", delta))
+	if host:
+		world_delta = float(host.world_delta(delta))
 	if world_delta <= 0.0:
 		return
 

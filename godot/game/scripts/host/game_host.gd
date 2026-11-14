@@ -212,9 +212,168 @@ func customers_near(_pos: Vector2, _radius_sq: float) -> bool:
 	return false
 
 
+func customers_in_radius(_origin: Vector2, _radius_sq: float) -> Array:
+	return []
+
+
 func clock_text() -> String:
 	return DayPhase.clock_text(game_hours)
 
 
 func phase_text() -> String:
 	return DayPhase.phase_text(phase)
+
+
+# --- Shop geometry / shelves (F3 hot-path contract) ---------------------------
+
+func shelf_stand(_shelf: Node2D) -> Vector2:
+	return Vector2.ZERO
+
+
+func find_shelf(_sku: String) -> Node2D:
+	return null
+
+
+func shelf_has(_shelf: Node2D, _sku: String) -> bool:
+	return false
+
+
+func take_from_shelf(_shelf: Node2D, _sku: String) -> bool:
+	return false
+
+
+func nearest_shelf(_origin: Vector2) -> Node2D:
+	return null
+
+
+func nearest_stocked_shelf(_from: Vector2) -> Node2D:
+	return null
+
+
+func random_shelf_stand() -> Vector2:
+	return Vector2.ZERO
+
+
+func exit_pos() -> Vector2:
+	return Vector2.ZERO
+
+
+func door_pos() -> Vector2:
+	return Vector2.ZERO
+
+
+func inside_pos() -> Vector2:
+	return Vector2.ZERO
+
+
+func restock_for(_cat: String) -> Node2D:
+	return null
+
+
+func restock_holds(_except: Node) -> Dictionary:
+	return {}
+
+
+func sync_stock() -> void:
+	pass
+
+
+func sellable() -> Array[String]:
+	return []
+
+
+# --- Guests / checkout / pause -----------------------------------------------
+
+func play_is_easy() -> bool:
+	return false
+
+
+func yes_my_lord_on() -> bool:
+	return false
+
+
+func pick_register(_cust: Node) -> Node2D:
+	return null
+
+
+func seat_locks_register(_reg: Node) -> bool:
+	return false
+
+
+func release_player_checkout(_guest = null) -> void:
+	pass
+
+
+func queue_dissat_blocked() -> bool:
+	return false
+
+
+func note_customer_occupy_changed(_c: Node, _occupies: bool) -> void:
+	pass
+
+
+func note_thief_active_changed() -> void:
+	pass
+
+
+func customer_list_bounds() -> Vector2i:
+	return Vector2i.ZERO
+
+
+func can_open_pause() -> bool:
+	return true
+
+
+func request_pause() -> void:
+	pass
+
+
+func skip_operate() -> void:
+	pass
+
+
+func _broadcast_seat_prompt(_seat_id: int) -> void:
+	pass
+
+
+# --- Loot / dirt / extra skill world effects ---------------------------------
+
+func spawn_loot_inplace(_origin: Vector2, _piles: Array) -> void:
+	pass
+
+
+func spawn_loot_scatter(
+	_origin: Vector2,
+	_piles: Array,
+	_min_r: float,
+	_max_r: float,
+) -> void:
+	pass
+
+
+func spawn_dirt_at(_at: Vector2, _dtype: String) -> bool:
+	return false
+
+
+func show_stolen_banner() -> void:
+	pass
+
+
+func cast_dark_side(_level: int) -> void:
+	pass
+
+
+func cast_shadow_clone(_level: int) -> void:
+	pass
+
+
+func deploy_calm_zone(_at: Vector2, _level: int, _seat: int) -> Node2D:
+	return null
+
+
+func deploy_universal_cannon(_at: Vector2, _level: int, _seat: int) -> Node2D:
+	return null
+
+
+func deploy_shelf_cannon(_at: Vector2, _level: int, _seat: int) -> Node2D:
+	return null

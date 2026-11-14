@@ -91,8 +91,8 @@ func fight_win() -> void:
 		return
 	host._fight_ko = true
 	var game = host._game()
-	if game and game.has_method("record_caught"):
-		game.call("record_caught", host.seat_id, "melee")
+	if game:
+		game.record_caught(host.seat_id, "melee")
 	host.log_line.emit(Loc.t("log.player.thief_ko"))
 	play_ko_sequence(host.target, "ko_scatter_and_flee")
 
@@ -118,8 +118,8 @@ func apply_toss_ko(thief: Node, knock_dir: Vector2) -> void:
 		play_ko_sequence(thief, "", knock_dir.normalized() if knock_dir.length_squared() > 0.01 else Vector2.ZERO, false)
 		return
 	var game = host._game()
-	if game and game.has_method("record_caught"):
-		game.call("record_caught", host.seat_id, "box")
+	if game:
+		game.record_caught(host.seat_id, "box")
 	host.log_line.emit(Loc.t("log.player.thief_box_ko"))
 	SfxBus.play("sfx_box_hit_thief")
 	## If this toss finishes an ongoing grab fight, clear fight state after the KO.
@@ -153,8 +153,8 @@ func play_ko_sequence(
 			0.07,
 		)
 	var game = host._game()
-	if game and game.has_method("play_ko_banner"):
-		game.call("play_ko_banner")
+	if game:
+		game.play_ko_banner()
 	await host.get_tree().create_timer(0.18).timeout
 	## Empty flee_method = presentation-only (net puppet); Host scatters / despawns.
 	if flee_method != "" and is_instance_valid(thief) and thief.has_method(flee_method):
@@ -211,8 +211,8 @@ func apply_fight_fail_player() -> void:
 	host._slip_left = Tuning.SLIP_TIME
 	host._stun_pending = Tuning.FIGHT_DOWN_SEC
 	var g = host._game()
-	if g != null and g.has_method("note_fight_fail"):
-		g.call("note_fight_fail", self)
+	if g != null:
+		g.note_fight_fail(self)
 
 func end_fight(_won: bool) -> void:
 	if is_instance_valid(host.target):
@@ -235,6 +235,6 @@ func end_fight(_won: bool) -> void:
 	if host.controls_locally():
 		host.restore_base_camera()
 	var game = host._game()
-	if game != null and game.has_method("notify_camera_priority_idle"):
-		game.call("notify_camera_priority_idle")
+	if game != null:
+		game.notify_camera_priority_idle()
 
