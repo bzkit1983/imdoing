@@ -26,11 +26,11 @@ v0.1 清單（產品骨架＋主機準備文件）已兌現；專案已從「可
 | --- | --- | --- |
 | **A. 架構與可持續** | **5.5** | 活線／Autoload／GameHost 起步佳；兩支 4k+ 腳本＋593× duck-call 拖垮中期 |
 | **B. 效能與擴展** | **7.0** | 髒刷新、SKU 索引、A* 預算、字型子集已落地；缺主機實機與物件池 |
-| **C. 工程質素／測試** | **6.0** | `tools/` 設計／契約測試可觀；無 CI workflow；場景組合極薄 |
+| **C. 工程質素／測試** | **6.0** | `tools/` 約 2:1 設計／靜態 vs 無頭 Godot；**缺多人 RPC 整合測**與 CI |
 | **D. 內容管線** | **7.0** | Voxel bake／catalog／i18n CSV／技能驗證 skill 成熟於獨立團隊平均 |
 | **E. 平台就緒** | **5.5** | Desktop＋Steam transport 驗收；Cloud／成就 stub；主機未開工 |
 | **F. 多人／網路** | **7.5** | 規格完整、M1–M3 落地；權威模型清楚；實作耦合重 |
-| **G. 遊戲設計完整度** | **6.5** | 核心爽感循環完整；三層循環的「劇情／事件」層與新手引導仍空 |
+| **G. 遊戲設計完整度** | **6.5** | 日循環／技能／經濟優；缺 `eventsystem.md`、教學／失敗流、`difficulty` 倍率表 |
 | **H. 文件／流程** | **8.0** | systemdesign＋gaps＋versioning＋agent skills 遠超多數同規模專案 |
 | **綜合（等權）** | **~6.6** | **Steam Early Access 候選可談；「完整零售＋主機」尚早** |
 
@@ -45,7 +45,8 @@ v0.1 清單（產品骨架＋主機準備文件）已兌現；專案已從「可
 | `call`／`has_method` 出現次數 | 高（未量化） | **~593**（player 172 · demo 165 · customer 98） | 熱路徑已部分 cache；整體仍鬆散 |
 | `@rpc` | 無 | **19** | 連線面存在；仍集中在大腳本 |
 | Autoload | 少／無平台層 | Controls · PlatformServices · InputMode · Loc · SfxBus · SeatTable · InteractLock · SessionService | 產品化及格 |
-| 自動化測試 | **0** | `tools/test_*.py|cjs` **37** + `*_check.gd` **15** | 設計／契約層佳；缺引擎內整合 CI |
+| 自動化測試 | **0** | `tools/test_*.py|cjs` **37** + `*_check.gd` **15**（設計契約偏多；幾乎無 RPC／連線整合測） | 設計／契約層佳；缺 CI 與多人回歸 |
+| 活線磁碟 | （未列） | `game` ~186MB（art ~89MB + GodotSteam addon ~93MB）；凍結 demo／alpha 複本 ~36MB | 策略對；大資產／addon 可考慮 LFS 或產物分離 |
 | 存檔／InputMap／暫停／i18n | 缺或草稿 | **已落地**（`SAVE_VERSION=4`；四語 CSV） | v0.1 §6 已勾完 |
 | 多人 | 文件構想 | **M1～M2.9 落地 · M3 §13.4 驗收** | 質素上是本輪最大正向 |
 | 凍結複本策略 | 風險項 | **已停複本**；`demo_*`＋`alpha` 仍佔 ~36MB 在 tree | 策略對；清理可選 |
@@ -144,7 +145,8 @@ v0.1 的最低門檻（停複本／存檔／InputMap／拆 prep／PlatformServic
 | **系統深度 vs 複雜稅** | 中高風險 | 技能／COST／多人鎖／評價並存；有 `playerskillvalidator` 屬加分，但玩家認知負擔需教學消化 |
 | **進度與長期動機** | 中 | 等級／店擴／技能／評價有骨幹；**技能解鎖表、事件／劇情、任務報酬**仍 Beta（外層循環空心） |
 | **難度曲線** | 弱–中 | `difficulty.md` stub；活線多為 TEST_TOOLS 簡易／普通；流量數字仍 Demo／tuning 驅動 |
-| **新手引導／失敗可讀** | 弱 | Alpha 仍列缺教學、失敗／過關流程、技能演出輸入鎖 |
+| **新手引導／失敗可讀** | 弱 | Alpha 仍列缺教學、失敗／過關流程、技能演出輸入鎖；`tasksystem` 點名的 `eventsystem.md` 尚不存在 |
+| **Live-ops／後製內容** | 弱 | 無事系統、任務報酬／店鋪任務解鎖仍 Beta；難度殼無倍率表；偏 EA 而非長線營運 |
 | **平衡工具** | 中上 | `tuning.gd` 集中；缺試算表／遙測；獨立 EA 可接受 |
 | **多人設計完整性** | 優 | `multiplayer.md` 里程碑、權威、斷線、結算拍板清楚；高於同規模均值 |
 | **內容管線** | 中上 | Voxel／動畫／i18n／SKU 圖示契約；劇情內容表仍 stub |
@@ -186,7 +188,8 @@ PlatformServices：Desktop 實作完整；Steam 後端 **磁碟路徑可用、Cl
 - [ ] **F1** 從 `demo.gd` 抽出世界生成／日結／網路世界同步模組（行為不變）
 - [ ] **F2** 從 `player.gd` 抽出技能施放／丟掉／打擊控制器（延續 `interact_scan.gd`）
 - [ ] **F3** GameHost 覆蓋殘餘熱路徑 `call()`；新增 API 必須進 `game_host.gd`
-- [ ] **G1** GitHub Actions：`python3 -m pytest`／既有 `tools/test_*.py` 於 PR
+- [ ] **G1** GitHub Actions：既有 `tools/test_*.py`／關鍵 `*_check.gd` 於 PR
+- [ ] **G2** 最少一條多人煙霧（本機 host＋client intent／開日／日結；可先標 manual checklist）
 - [ ] **H1** 正式 Steam App ID；Cloud 接 `write_save`；成就接 `unlock_achievement`
 - [ ] **H2** BGM＋完整設定頁；最小教學／第一日引導
 - [ ] **H3** 失敗／提早關店／過關敘事（或文件標明 EA 不做）
