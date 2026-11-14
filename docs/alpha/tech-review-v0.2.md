@@ -124,7 +124,7 @@ v0.1 的最低門檻（停複本／存檔／InputMap／拆 prep／PlatformServic
 
 | 優先 | 項目 | 狀態／建議 |
 | --- | --- | --- |
-| P0 | 實機／目標硬體幀時間基線 | **未做**：Deck／低階筆電／（未來）Switch 剖面；建議固定「滿店＋2 影分身＋雙人」場景錄 Profiler |
+| P0 | 實機／目標硬體幀時間基線 | **配方＋實驗室首筆已文件化**（[`perf-baseline-j1.md`](perf-baseline-j1.md)）；Deck／Switch 實機列仍待填 |
 | P1 | drop-flight／VFX 物件池 | audit 列為可選；技能增多後升為 P1 |
 | P1 | 多人頻寬與 snapshot 頻率 | 文件已定意圖模型；需加「滿座壓力」自動化或手動清單 |
 | P2 | PC Forward+ 與 Compatibility 分流 | 仍合理；非阻塞 |
@@ -194,7 +194,7 @@ PlatformServices：Desktop 實作完整；Steam 後端 **磁碟路徑可用、Cl
 - [ ] **H2** BGM＋完整設定頁；最小教學／第一日引導
 - [ ] **H3** 失敗／提早關店／過關敘事（或文件標明 EA 不做）
 - [x] **I1** 回寫過時 `docs/alpha/design.md`（COMBO／取貨等）— 改標已實作並指向 `customerdelivery.md`／`fetchcombo.md`／`implementation-status`；gaps／animation-pending 交叉引用一併修正
-- [ ] **J1** 滿店＋技能＋雙人 Profiler 基線文件化
+- [x] **J1** 滿店＋技能＋雙人 Profiler 基線文件化— [`perf-baseline-j1.md`](perf-baseline-j1.md)（手動滿載配方＋`tools/j1_perf_probe.sh` 空店 settle 首筆；Deck／Switch 待補列）
 - [ ] **J2** drop-flight／技能 VFX 物件池
 - [ ] **K1** 主機帳號／釘版重查（執行閘門，非玩法）
 
