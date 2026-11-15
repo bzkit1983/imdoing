@@ -810,7 +810,7 @@ func cast_slot(i: int) -> void:
 				return
 			host.log_line.emit(Loc.t("kind_cannon.deployed"))
 		SfxBus.play("sfx_skill_cast")
-		host.begin_cast_pose(false)
+		begin_cast_pose(false)
 		host.skill_cast.emit(Loc.t("skill.kind_cannon.name"), false)
 		return
 	if bool(sk.get("self_checkout", false)):
@@ -1066,4 +1066,3 @@ func play_zoom(ult: bool) -> void:
 	tw.tween_property(cam, "zoom", Vector2(z, z), 0.18)
 	tw.tween_interval(0.22 if ult else 0.12)
 	tw.tween_callback(host.restore_base_camera)
-
