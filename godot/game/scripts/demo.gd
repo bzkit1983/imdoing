@@ -29,6 +29,7 @@ const ProductVersion = preload("res://scripts/product_version.gd")
 const DaySettle = preload("res://scripts/host/day_settle.gd")
 const WorldBuildScript = preload("res://scripts/host/world_build.gd")
 const NetWorldScript = preload("res://scripts/host/net_world.gd")
+const NetPresentationScript = preload("res://scripts/session/net_presentation.gd")
 const TaskCatalog = preload("res://scripts/session/task_catalog.gd")
 const TaskTrackerScript = preload("res://scripts/session/task_tracker.gd")
 const ThreeVolleyVisualScript = preload("res://scripts/three_volley_visual.gd")
@@ -102,8 +103,12 @@ var _clerks: Array[Node2D] = []
 ## M2.2: Host agent_id → node; client puppets share the same map.
 var _net_agents: Dictionary = {}
 var _next_agent_id: int = 1
-var _agent_xform_tick: int = 0
-const AGENT_XFORM_EVERY := 2
+## §8.4: fixed-rate net tick + presentation buffer (replaces EVERY=2 hard snaps).
+var _net_pres = NetPresentationScript.new()
+var _net_accum: float = 0.0
+var _agent_xform_accum: float = 0.0
+## Client: last Host pose for owned-seat soft reconcile (not delayed interp).
+var _owned_host_pose: Dictionary = {}
 ## Client: spawn RPCs that arrived before `_world` existed.
 var _pending_agent_spawns: Array = []
 var _pending_flights: Array = []
@@ -216,6 +221,10 @@ func _begin_day() -> void:
 	game_hours = Tuning.GAME_START_HOUR
 	hud_rev = 0
 	phase = "restock"
+	_net_pres.clear()
+	_owned_host_pose.clear()
+	_net_accum = 0.0
+	_agent_xform_accum = 0.0
 	var ComboState = preload("res://scripts/session/combo_state.gd")
 	_combo = ComboState.new()
 	_combo.reset(SeatTable.seat_count)
@@ -380,6 +389,10 @@ func _clear_world() -> void:
 	_player = null
 	_players.clear()
 	_customers = null
+	_net_pres.clear()
+	_owned_host_pose.clear()
+	_net_accum = 0.0
+	_agent_xform_accum = 0.0
 	_early_open = false
 	_early_latched = false
 	_early_layer = null
@@ -1723,7 +1736,7 @@ func _process(delta: float) -> void:
 	_maintain_overview_camera()
 	_maintain_coop_camera()
 	_soft_push_players(delta)
-	_net_tick_intents_and_sync()
+	_net_tick_intents_and_sync(delta)
 	real_time += world_delta(delta)
 	var prev_phase := phase
 	var tick: Dictionary = DayPhase.advance(real_time)
@@ -1765,52 +1778,128 @@ func _process(delta: float) -> void:
 			_dirt_spawn_in = dirt_spawn_interval()
 
 
-func _net_tick_intents_and_sync() -> void:
+func _net_tick_intents_and_sync(delta: float) -> void:
 	if not SessionService.is_networked() or not SessionService.day_started:
+		_net_accum = 0.0
+		_agent_xform_accum = 0.0
 		return
+	## §8.4: fixed net ticks first (ingest／broadcast), then render presentation.
+	_net_accum += delta
+	var steps := 0
+	while _net_accum >= NetPresentationScript.NET_DT and steps < 3:
+		_net_accum -= NetPresentationScript.NET_DT
+		steps += 1
+		_net_tick_once()
+	if SessionService.is_server():
+		_agent_xform_accum += delta
+		if _agent_xform_accum >= NetPresentationScript.AGENT_DT:
+			_agent_xform_accum = 0.0
+			SessionService.broadcast_agent_transforms(_collect_agent_transforms())
+	_net_apply_presentation(delta)
+
+
+func _net_tick_once() -> void:
 	if SessionService.is_client():
-		## Send local seat intents; apply host transforms to puppets.
-		for p in _players:
-			if p == null or not is_instance_valid(p):
-				continue
-			var sid := int(p.seat_id)
-			if SeatTable.seat_owned_locally(sid):
-				var mv := Controls.move_vector_for(sid)
-				## dash = run/dash hold (_k_held); skill = _l_held; ult = _u_held (M2.5).
-				var hotkey := -1
-				if p.has_method("take_pending_skill_hotkey"):
-					hotkey = int(p.call("take_pending_skill_hotkey"))
-				SessionService.send_intent(sid, {
-					"mx": mv.x,
-					"my": mv.y,
-					"interact": p.get("_j_held") == true,
-					"cancel": p.get("_cancel_held") == true,
-					"dash": p.get("_k_held") == true,
-					"skill": p.get("_l_held") == true,
-					"ult": p.get("_u_held") == true,
-					"hotkey": hotkey,
-				})
-		var xforms: Array = SessionService.peek_player_transforms()
-		for row in xforms:
-			if row is Dictionary:
-				var sid2 := int(row.get("seat", -1))
-				var pos := Vector2(float(row.get("px", 0.0)), float(row.get("py", 0.0)))
-				var fac := Vector2(float(row.get("fx", 1.0)), float(row.get("fy", 0.0)))
-				for p2 in _players:
-					if p2 != null and is_instance_valid(p2) and int(p2.seat_id) == sid2:
-						if SeatTable.seat_owned_locally(sid2):
-							## Host is authority. Soft-reconcile local prediction so fight/KO
-							## dual-sim cannot leave CLIENT permanently offset from HOST.
-							if p2.global_position.distance_squared_to(pos) > 64.0:
-								p2.global_position = pos
-								p2.facing = fac
-						else:
-							p2.global_position = pos
-							p2.facing = fac
-						break
-		_apply_agent_transforms(SessionService.peek_agent_transforms())
+		_net_client_send_intents()
+		_net_client_ingest_poses()
 		return
-	## Host: apply remote intents + broadcast transforms.
+	_net_host_apply_intents()
+	_net_host_broadcast_players()
+
+
+func _net_client_send_intents() -> void:
+	for p in _players:
+		if p == null or not is_instance_valid(p):
+			continue
+		var sid := int(p.seat_id)
+		if not SeatTable.seat_owned_locally(sid):
+			continue
+		var mv := Controls.move_vector_for(sid)
+		var hotkey := -1
+		if p.has_method("take_pending_skill_hotkey"):
+			hotkey = int(p.call("take_pending_skill_hotkey"))
+		SessionService.send_intent(sid, {
+			"mx": mv.x,
+			"my": mv.y,
+			"interact": p.get("_j_held") == true,
+			"cancel": p.get("_cancel_held") == true,
+			"dash": p.get("_k_held") == true,
+			"skill": p.get("_l_held") == true,
+			"ult": p.get("_u_held") == true,
+			"hotkey": hotkey,
+		})
+
+
+func _net_client_ingest_poses() -> void:
+	var now := Time.get_ticks_msec() * 0.001
+	var xforms: Array = SessionService.peek_player_transforms()
+	for row in xforms:
+		if not (row is Dictionary):
+			continue
+		var sid2 := int(row.get("seat", -1))
+		var pos := Vector2(float(row.get("px", 0.0)), float(row.get("py", 0.0)))
+		var fac := Vector2(float(row.get("fx", 1.0)), float(row.get("fy", 0.0)))
+		var t := float(row.get("t", now))
+		if SeatTable.seat_owned_locally(sid2):
+			_owned_host_pose[sid2] = {"pos": pos, "facing": fac}
+		else:
+			_net_pres.push_sample(NetPresentationScript.seat_key(sid2), t, pos, fac)
+	var agents: Array = SessionService.peek_agent_transforms()
+	for row2 in agents:
+		if not (row2 is Dictionary):
+			continue
+		var aid := int(row2.get("id", -1))
+		if aid < 0:
+			continue
+		var apos := Vector2(float(row2.get("px", 0.0)), float(row2.get("py", 0.0)))
+		var afac := Vector2(float(row2.get("fx", 0.0)), float(row2.get("fy", 1.0)))
+		var at := float(row2.get("t", now))
+		_net_pres.push_sample(NetPresentationScript.agent_key(aid), at, apos, afac)
+
+
+func _net_apply_presentation(delta: float) -> void:
+	if not SessionService.is_client():
+		return
+	var render_t := Time.get_ticks_msec() * 0.001
+	for p2 in _players:
+		if p2 == null or not is_instance_valid(p2):
+			continue
+		var sid2 := int(p2.seat_id)
+		if SeatTable.seat_owned_locally(sid2):
+			if not _owned_host_pose.has(sid2):
+				continue
+			var host_row: Dictionary = _owned_host_pose[sid2]
+			var hpos: Vector2 = host_row.get("pos", p2.global_position)
+			var hfac: Vector2 = host_row.get("facing", p2.facing if "facing" in p2 else Vector2.RIGHT)
+			var fight_v = p2.get("_fighting")
+			var ko_v = p2.get("_fight_ko")
+			var in_combat := (fight_v != null and fight_v == true) or (ko_v != null and ko_v == true)
+			p2.global_position = _net_pres.reconcile_owned(p2.global_position, hpos, delta, in_combat)
+			if in_combat or p2.global_position.distance_squared_to(hpos) >= NetPresentationScript.OWNED_BLEND_PX_SQ:
+				p2.facing = hfac
+			continue
+		var samp: Dictionary = _net_pres.sample(NetPresentationScript.seat_key(sid2), render_t)
+		if not bool(samp.get("ok", false)):
+			continue
+		p2.global_position = samp["pos"]
+		p2.facing = samp["facing"]
+	## Agents: interpolate into presentation poses.
+	for aid in _net_agents.keys():
+		var n = _net_agents[aid]
+		if n == null or not is_instance_valid(n):
+			continue
+		var asamp: Dictionary = _net_pres.sample(NetPresentationScript.agent_key(int(aid)), render_t)
+		if not bool(asamp.get("ok", false)):
+			continue
+		var apos: Vector2 = asamp["pos"]
+		var afac: Vector2 = asamp["facing"]
+		if n.has_method("apply_net_pose"):
+			n.call("apply_net_pose", apos, afac)
+		elif n is Node2D:
+			(n as Node2D).global_position = apos
+
+
+func _net_host_apply_intents() -> void:
 	for p in _players:
 		if p == null or not is_instance_valid(p):
 			continue
@@ -1819,9 +1908,10 @@ func _net_tick_intents_and_sync() -> void:
 			continue
 		var intent: Dictionary = SessionService.take_remote_intent(sid3)
 		if intent.is_empty():
+			if SessionService.intent_is_stale(sid3, NetPresentationScript.INTENT_STALE_TICKS):
+				p.remote_move = Vector2.ZERO
 			continue
 		p.remote_move = Vector2(float(intent.get("mx", 0.0)), float(intent.get("my", 0.0)))
-		## Hold edges: apply pressed state from remote (M2.5: dash/skill/ult correct).
 		if p.has_method("set_hold"):
 			p.set_hold("interact", intent.get("interact", false) == true)
 			p.set_hold("cancel", intent.get("cancel", false) == true)
@@ -1831,6 +1921,10 @@ func _net_tick_intents_and_sync() -> void:
 		var hotkey := int(intent.get("hotkey", -1))
 		if hotkey >= 0 and p.has_method("_try_skill_hotkey"):
 			p.call("_try_skill_hotkey", hotkey)
+
+
+func _net_host_broadcast_players() -> void:
+	var now := Time.get_ticks_msec() * 0.001
 	var out: Array = []
 	for p3 in _players:
 		if p3 == null or not is_instance_valid(p3):
@@ -1842,12 +1936,9 @@ func _net_tick_intents_and_sync() -> void:
 			"py": p3.global_position.y,
 			"fx": fac2.x,
 			"fy": fac2.y,
+			"t": now,
 		})
 	SessionService.broadcast_player_transforms(out)
-	_agent_xform_tick += 1
-	if _agent_xform_tick >= AGENT_XFORM_EVERY:
-		_agent_xform_tick = 0
-		SessionService.broadcast_agent_transforms(_collect_agent_transforms())
 
 
 func _alloc_agent_id() -> int:

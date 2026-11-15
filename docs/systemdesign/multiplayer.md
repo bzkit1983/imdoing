@@ -4,7 +4,7 @@
 - **範圍：** 本機合作、線上合作、以及兩者混合的同一 Session 模型；技術分層與平台差異
 - **產品錨點：** 活線 `godot/game`（Godot 4.7）；版控見 `docs/versioning.md`
 - **對照：** `docs/alpha/tech-review-v0.1.md`、`docs/systemdesign/ecosystem.md`、`docs/systemdesign/playerexport.md`、`docs/systemdesign/control.md`、`docs/systemdesign/savesystem.md`、`docs/systemdesign/pausemenu.md`、`godot/game/scripts/platform_services.gd`
-- **產出／更新：** 2026-11-05（初稿＋§10 拍板＋§11 M1）；**2026-11-09 定稿 §12 M2 LAN**；**2026-11-10 claim2／M2.1～M2.9**；**2026-11-10 定稿 §13 M3 Steam（含 Win／Linux／macOS depot）**；**2026-11-11 §13.4 驗收通過**；**2026-11-14 §13.6 邀請免手打 Lobby ID**；**2026-11-14 §12.10 日結後留房連開**
+- **產出／更新：** 2026-11-05（初稿＋§10 拍板＋§11 M1）；**2026-11-09 定稿 §12 M2 LAN**；**2026-11-10 claim2／M2.1～M2.9**；**2026-11-10 定稿 §13 M3 Steam（含 Win／Linux／macOS depot）**；**2026-11-11 §13.4 驗收通過**；**2026-11-14 §13.6 邀請免手打 Lobby ID**；**2026-11-14 §12.10 日結後留房連開**；**2026-11-15 §8.4 Client 表現與網頻**
 
 ---
 
@@ -327,17 +327,35 @@ InputRouter
 
 ### 8.3 分頻
 
-| 通道 | 內容 |
-| --- | --- |
-| 不可靠／高頻 | 角色位置、面向 |
-| 可靠／事件 | 互動、技能、結算、關店、Seat 表變更 |
-| 不同步 | 客人 AI 內部狀態（host 跑；client 播表現） |
+| 通道 | 內容 | 目標頻率 |
+| --- | --- | --- |
+| 不可靠／意圖 | 移動／action hold／技能熱鍵（帶 `seq`） | **30 Hz**（固定網 tick，不綁渲染幀） |
+| 不可靠／玩家 pose | 位置、面向（帶 `t`） | **30 Hz** |
+| 不可靠／動態 agent pose | 客人／小偷／店員／影分身等 | **15 Hz**＋Client 插值 |
+| 可靠／事件 | 互動結果、技能單位、結算、關店、Seat 表、chrome 絕對快照 | 事件 |
+| 不同步 | 客人 AI 內部狀態（host 跑；client 播表現） | — |
 
-不要對整店實體上滿 `MultiplayerSynchronizer`。四人＝最多 4 路意圖 + 表現快照，模擬負載仍以店內代理為主。
+不要對整店實體上滿 `MultiplayerSynchronizer`。四人＝最多 4 路意圖 + 表現快照，模擬負載仍以店內代理為主。Steam／LAN／`web_ws` **共用**此契約（Transport 只換 peer）。
 
-### 8.4 安全
+### 8.4 Client 表現與網頻（流暢度）
 
-當輸入為不可信；校驗 seat 是否屬於該 peer、頻率限制、拒絕越權 `seat_id`。
+- **對齊：** §8.1–§8.3；實作見 `scripts/session/net_presentation.gd`＋`demo._net_tick_*`
+- **目標：** Client 操作感貼近 Host；遠端角色／代理不步進閃爍；停走無幽靈滑。**不做** FPS lag-comp／rollback
+- **固定網 tick：** `NET_HZ = 30`；Host／Client 以累積 `delta` 跑拍，與 `_process` 解耦
+- **遠端插值：** Client 對非本座玩家與動態 agent 緩衝約 **90 ms**，兩點樣本 lerp；位移 > **128 px** 硬切
+- **本座：** 保留本機移動預測；Host 校正：`<4 px` 忽略、`4–48 px` 柔和拉回、更大或戰鬥／KO **硬置**
+- **Intent 衛生：** 上送單調 `seq`；Host 連續約 **3** 個網 tick 無新包 → `remote_move = 0`
+- **仍必須 Host 權威：** 庫存、收銀 RNG、AI、L 鎖、掉落落地、技能世界效果、營收／XP／結算（表現可樂觀，絕對 RPC 覆蓋）
+
+#### 驗收
+
+- [ ] Steam 雙帳：Client 走／停／衝刺手感接近 Host；遠端與客人無明顯步進閃爍
+- [ ] 停輸入後 remote 角色在數個 tick 內停下
+- [ ] `transport=local`／`lan_enet` 不回歸
+
+### 8.5 安全
+
+當輸入為不可信；校驗 seat 是否屬於該 peer、頻率限制（對齊 §8.4 網 tick）、拒絕越權 `seat_id`。
 
 ---
 

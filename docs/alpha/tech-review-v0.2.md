@@ -126,7 +126,7 @@ v0.1 的最低門檻（停複本／存檔／InputMap／拆 prep／PlatformServic
 | --- | --- | --- |
 | P0 | 實機／目標硬體幀時間基線 | **配方＋實驗室首筆已文件化**（[`perf-baseline-j1.md`](perf-baseline-j1.md)）；Deck／Switch 實機列仍待填 |
 | P1 | drop-flight／VFX 物件池 | **J2 已做**：`drop_flight`／`fx_burst`／`float_text` 池化 |
-| P1 | 多人頻寬與 snapshot 頻率 | 文件已定意圖模型；需加「滿座壓力」自動化或手動清單 |
+| P1 | 多人頻寬與 snapshot 頻率 | **§8.4 已定**固定 30 Hz／agent 15 Hz＋插值；滿座壓力仍可手動（見 smoke checklist） |
 | P2 | PC Forward+ 與 Compatibility 分流 | 仍合理；非阻塞 |
 | P2 | 解析度／TV 安全區 UI profile | PlatformServices 有 camera／touch；十呎 UI 未完成 |
 

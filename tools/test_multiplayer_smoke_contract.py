@@ -35,6 +35,17 @@ demo = (SCRIPTS / "demo.gd").read_text(encoding="utf-8")
 need("func _net_tick_intents_and_sync" in demo, "demo intent tick")
 need("@rpc" in session, "SessionService still has RPC surface")
 need("keeps_room_after_settle" in demo and "return_to_lobby_after_settle" in demo, "demo keep-room return path")
+need("NetPresentation" in demo or "net_presentation" in demo, "demo §8.4 NetPresentation")
+need("_net_apply_presentation" in demo and "NET_DT" in demo, "demo fixed net tick + presentation")
+
+pres = SCRIPTS / "session" / "net_presentation.gd"
+need(pres.is_file(), "net_presentation.gd present")
+pres_body = pres.read_text(encoding="utf-8") if pres.is_file() else ""
+need("NET_HZ" in pres_body and "INTERP_DELAY" in pres_body, "net_presentation constants")
+need("reconcile_owned" in pres_body and "INTENT_STALE_TICKS" in pres_body, "net_presentation reconcile／stale")
+
+need("func intent_is_stale" in session, "SessionService.intent_is_stale (§8.4)")
+need("next_intent_seq" in session, "SessionService intent seq (§8.4)")
 
 player = (SCRIPTS / "player.gd").read_text(encoding="utf-8")
 need("var remote_move" in player and "func is_net_puppet" in player, "player net puppet / remote move")
@@ -46,11 +57,13 @@ need("開日" in body and "日結" in body, "checklist covers open-day / settle"
 need("intent" in body.lower() or "意圖" in body, "checklist covers intent")
 need("host" in body.lower() or "Host" in body, "checklist covers host+client")
 need("留房" in body or "§12.10" in body, "checklist covers keep-room after settle")
+need("§8.4" in body or "流暢" in body, "checklist covers client feel §8.4")
 
 mp = DOCS / "systemdesign" / "multiplayer.md"
 need(mp.is_file(), "multiplayer design doc present")
 mp_body = mp.read_text(encoding="utf-8") if mp.is_file() else ""
 need("12.10" in mp_body and "留房" in mp_body, "multiplayer.md §12.10 keep-room section")
+need("8.4" in mp_body and "30" in mp_body and "插值" in mp_body, "multiplayer.md §8.4 client feel")
 
 if errs:
     print("FAIL")

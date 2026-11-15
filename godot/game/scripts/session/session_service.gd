@@ -341,6 +341,8 @@ func close() -> void:
 	steam_lobby_id = 0
 	_join_guest_sheet_dict = {}
 	_pending_sheets.clear()
+	_intent_stale_ticks.clear()
+	_intent_seq = 0
 	SeatTable.reset_solo()
 	disconnect_session.emit(false)
 	seats_changed.emit()
@@ -410,12 +412,26 @@ func request_end_day() -> bool:
 	return true
 
 
+## Client intent sequence (§8.4); monotonic per local machine.
+var _intent_seq: int = 0
+## Host: seat_id → ticks since last intent packet.
+var _intent_stale_ticks: Dictionary = {}
+
+
+func next_intent_seq() -> int:
+	_intent_seq += 1
+	return _intent_seq
+
+
 func send_intent(seat_id: int, payload: Dictionary) -> void:
 	if not is_networked() or is_server():
 		return
 	if SeatTable.owner_peer_of(seat_id) != local_peer_id:
 		return
-	_rpc_intent.rpc_id(1, seat_id, payload)
+	var body := payload.duplicate(true)
+	if not body.has("seq"):
+		body["seq"] = next_intent_seq()
+	_rpc_intent.rpc_id(1, seat_id, body)
 
 
 func broadcast_player_transforms(transforms: Array) -> void:
@@ -837,18 +853,36 @@ func _rpc_intent(seat_id: int, payload: Dictionary) -> void:
 		return
 	if SeatTable.is_frozen(seat_id):
 		return
-	## demo polls via take_remote_intent
+	## demo polls via take_remote_intent；drop older seq if present.
 	if not has_meta("remote_intents"):
 		set_meta("remote_intents", {})
 	var bag: Dictionary = get_meta("remote_intents")
+	var incoming_seq := int(payload.get("seq", 0))
+	if bag.has(seat_id):
+		var prev: Dictionary = bag[seat_id]
+		var prev_seq := int(prev.get("seq", 0))
+		if incoming_seq > 0 and prev_seq > 0 and incoming_seq < prev_seq:
+			return
 	bag[seat_id] = payload
+	_intent_stale_ticks[seat_id] = 0
 
 
 @rpc("authority", "unreliable")
 func _rpc_player_transforms(transforms: Array) -> void:
 	if is_server():
 		return
-	set_meta("player_transforms", transforms)
+	## Wrap with receive time if Host omitted t.
+	var now := Time.get_ticks_msec() * 0.001
+	var rows: Array = []
+	for row in transforms:
+		if row is Dictionary:
+			var d: Dictionary = row.duplicate(true)
+			if not d.has("t"):
+				d["t"] = now
+			rows.append(d)
+		else:
+			rows.append(row)
+	set_meta("player_transforms", rows)
 
 
 @rpc("authority", "reliable")
@@ -869,7 +903,17 @@ func _rpc_agent_despawn(agent_id: int, reason: String) -> void:
 func _rpc_agent_transforms(transforms: Array) -> void:
 	if is_server():
 		return
-	set_meta("agent_transforms", transforms)
+	var now := Time.get_ticks_msec() * 0.001
+	var rows: Array = []
+	for row in transforms:
+		if row is Dictionary:
+			var d: Dictionary = row.duplicate(true)
+			if not d.has("t"):
+				d["t"] = now
+			rows.append(d)
+		else:
+			rows.append(row)
+	set_meta("agent_transforms", rows)
 
 
 @rpc("authority", "reliable")
@@ -964,25 +1008,38 @@ func _rpc_freeze_seat(seat_id: int) -> void:
 
 func take_remote_intent(seat_id: int) -> Dictionary:
 	if not has_meta("remote_intents"):
+		_intent_stale_ticks[seat_id] = int(_intent_stale_ticks.get(seat_id, 0)) + 1
 		return {}
 	var bag: Dictionary = get_meta("remote_intents")
 	if not bag.has(seat_id):
+		_intent_stale_ticks[seat_id] = int(_intent_stale_ticks.get(seat_id, 0)) + 1
 		return {}
 	var out: Dictionary = bag[seat_id]
 	bag.erase(seat_id)
+	_intent_stale_ticks[seat_id] = 0
 	return out
+
+
+## True when Host should zero remote_move (§8.4 sticky clear).
+func intent_is_stale(seat_id: int, max_ticks: int = 3) -> bool:
+	return int(_intent_stale_ticks.get(seat_id, 0)) >= max_ticks
 
 
 func peek_player_transforms() -> Array:
 	if not has_meta("player_transforms"):
 		return []
-	return get_meta("player_transforms")
+	var rows: Array = get_meta("player_transforms")
+	## Consume so stale poses are not reapplied every render until next packet.
+	remove_meta("player_transforms")
+	return rows
 
 
 func peek_agent_transforms() -> Array:
 	if not has_meta("agent_transforms"):
 		return []
-	return get_meta("agent_transforms")
+	var rows: Array = get_meta("agent_transforms")
+	remove_meta("agent_transforms")
+	return rows
 
 
 func take_pending_day_snapshot() -> Dictionary:

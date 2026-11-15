@@ -39,6 +39,22 @@ func _initialize() -> void:
 		fail += 1
 	else:
 		print("OK steam_available")
+	## §8.4: presentation constants load.
+	const NetPres = preload("res://scripts/session/net_presentation.gd")
+	if absf(NetPres.NET_HZ - 30.0) > 0.01 or absf(NetPres.INTERP_DELAY - 0.09) > 0.001:
+		print("FAIL net_presentation constants")
+		fail += 1
+	else:
+		print("OK net_presentation constants")
+	var np = NetPres.new()
+	np.push_sample("seat:0", 1.0, Vector2(0, 0), Vector2.RIGHT)
+	np.push_sample("seat:0", 1.1, Vector2(100, 0), Vector2.RIGHT)
+	var mid: Dictionary = np.sample("seat:0", 1.05 + NetPres.INTERP_DELAY)
+	if not bool(mid.get("ok", false)) or absf(float((mid["pos"] as Vector2).x) - 50.0) > 8.0:
+		print("FAIL net_presentation lerp got=", mid)
+		fail += 1
+	else:
+		print("OK net_presentation lerp")
 	## §13.6: cmdline／connect string parse (no Steam client required).
 	var parsed := NetTransport.parse_connect_lobby_args(PackedStringArray(["+connect_lobby", "109775241012345678"]))
 	if parsed != 109775241012345678:

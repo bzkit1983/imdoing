@@ -110,12 +110,14 @@ func collect_agent_transforms() -> Array:
 			"py": (n as Node2D).global_position.y,
 			"fx": fx,
 			"fy": fy,
+			"t": Time.get_ticks_msec() * 0.001,
 		})
 	for sid in stale:
 		host._net_agents.erase(sid)
 	return out
 
 func apply_agent_transforms(rows: Array) -> void:
+	## Legacy hard-apply path; Client §8.4 prefers NetPresentation buffer＋lerp.
 	for row in rows:
 		if not (row is Dictionary):
 			continue
