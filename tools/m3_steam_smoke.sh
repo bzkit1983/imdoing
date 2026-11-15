@@ -74,6 +74,20 @@ func _initialize() -> void:
 		fail += 1
 	else:
 		print("OK host_lan networked+lan")
+	## §12.10: settle → keep room (no peer teardown).
+	ss.day_started = true
+	ss.begin_post_settle_lobby()
+	if ss.day_started or not ss.keeps_room_after_settle() or not ss.is_networked():
+		print("FAIL begin_post_settle_lobby keep-room gates")
+		fail += 1
+	else:
+		print("OK begin_post_settle_lobby keeps lan room")
+	ss.return_to_lobby_after_settle()
+	if not ss.is_networked() or ss.transport_id != "lan_enet":
+		print("FAIL return_to_lobby_after_settle tore down lan")
+		fail += 1
+	else:
+		print("OK return_to_lobby_after_settle keeps transport")
 	ss.close()
 	var steam_err: String = await ss.host_steam(1)
 	if steam_err in ["steam_not_running", "steam_not_installed", "steam_outdated"] or steam_err.begins_with("steam_init_"):

@@ -40,6 +40,7 @@
 - 各機顯示暫停選單（可繼續、改音效／鏡頭／語言等本機設定）。
 - Client **不可**「結束本日並結算」（選單隱藏或禁用）；HUD `skip_operate` 在 client 無效。
 - Host「結束本日」→ 全房走結算；client 等日結 RPC 寫檔（角色 only，見 `savesystem.md`）。
+- 結算確認後**留房回大廳**（§12.10），不因日結解散；局間「離開／關閉房間」才 `SessionService.close()`。
 
 ## 掛起／恢復
 

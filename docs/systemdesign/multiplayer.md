@@ -4,7 +4,7 @@
 - **範圍：** 本機合作、線上合作、以及兩者混合的同一 Session 模型；技術分層與平台差異
 - **產品錨點：** 活線 `godot/game`（Godot 4.7）；版控見 `docs/versioning.md`
 - **對照：** `docs/alpha/tech-review-v0.1.md`、`docs/systemdesign/ecosystem.md`、`docs/systemdesign/playerexport.md`、`docs/systemdesign/control.md`、`docs/systemdesign/savesystem.md`、`docs/systemdesign/pausemenu.md`、`godot/game/scripts/platform_services.gd`
-- **產出／更新：** 2026-11-05（初稿＋§10 拍板＋§11 M1）；**2026-11-09 定稿 §12 M2 LAN**；**2026-11-10 claim2／M2.1～M2.9**；**2026-11-10 定稿 §13 M3 Steam（含 Win／Linux／macOS depot）**；**2026-11-11 §13.4 驗收通過**；**2026-11-14 §13.6 邀請免手打 Lobby ID**
+- **產出／更新：** 2026-11-05（初稿＋§10 拍板＋§11 M1）；**2026-11-09 定稿 §12 M2 LAN**；**2026-11-10 claim2／M2.1～M2.9**；**2026-11-10 定稿 §13 M3 Steam（含 Win／Linux／macOS depot）**；**2026-11-11 §13.4 驗收通過**；**2026-11-14 §13.6 邀請免手打 Lobby ID**；**2026-11-14 §12.10 日結後留房連開**
 
 ---
 
@@ -166,9 +166,9 @@ Peer (一條連線 / 一台邏輯客戶端)
 
 ### 5.6 斷線與補位（已拍板）
 
-- **大廳（未開日）：** peer 斷線 → 釋放其名下 seat，可再被他人 `claim`。
+- **大廳（未開日＝開房後或日結後局間，見 §12.10）：** peer 斷線 → 釋放其名下 seat，可再被他人 `claim`。
 - **開日後斷線：** 該玩家角色**移除**，進度／結算相關狀態**凍結至日結**；**座位中途不可再被佔用**。
-- **中途加入：** 不允許。
+- **中途加入：** 不允許（僅 `day_started` 期間）。
 - Host 離開：v1 可解散整房；介面預留 host migration，不必首版實作。
 
 ### 5.7 大廳流程
@@ -177,7 +177,10 @@ Peer (一條連線 / 一台邏輯客戶端)
 2. UI 顯示剩餘名額（`4 - occupied`）  
 3. Join 端選加入為 **1｜2** 人（受剩餘名額與 `per_peer_max_local_seats` 限制；**Web 限 claim 1**）  
 4. 全員 `ready` → 開日（之後不可再加入）  
-5. 純本機雙人：§11；之後「邀請線上」＝掛上真實 peer，**不重寫玩法**
+5. 日結寫檔 → 關店結算 UI → 確認後**回到同一大廳**（留 peer／lobby／座位；見 §12.10）；**不**因結算解散  
+6. 局間可改技能／升級（各 peer 本機角色）；Host 可改店舖整備；再 `ready` → 再開日  
+7. 純本機雙人：§11；之後「邀請線上」＝掛上真實 peer，**不重寫玩法**  
+8. **離開／關閉房間** 才 `SessionService.close()`（回 Prep 單人）
 
 ---
 
@@ -380,7 +383,7 @@ InputRouter
 1. **準備回合：** 仍單人（主存檔／P1 店主）。可管理訪客角色槽（見 §11.2）。
 2. **開始營業前：** 選本機玩家人數 **1｜2**。選 2 時必須指定 P2 所用訪客槽（既有／複製主角色／新建空白）。
 3. **營運日（補貨＋開店）：** 兩 seat 同時可控；共用 P1 店舖世界。
-4. **關店結算：** 依 §11.7 寫 P1 店檔＋兩角色經驗；然後回準備（單人）。
+4. **關店結算：** 依 §11.7 寫 P1 店檔＋兩角色經驗；然後回**本機大廳**連開（席位保留、可再整備／就緒／開日，見 §12.10）。純單人（本機 1 seat）仍回 Prep `home`。
 
 ### 11.2 訪客角色槽與複製
 
@@ -495,6 +498,7 @@ InputRouter
 4. Join 成功後上傳 sheet（§12.3）；各 seat 自行 `ready`。
 5. 全員 `ready` → 僅 Host 可 `start_run` → 下發世界 snapshot（§12.4）→ 開日。
 6. 開日後：禁止再 join；大廳斷線仍釋放 seat（§5.6）。
+7. 日結 → closeout → **局間大廳**（§12.10）→ 再 ready → `start_run`（sheet 必再傳）。
 
 ### 12.3 線上角色 sheet
 
@@ -502,6 +506,7 @@ InputRouter
 - **claim 2：** 第一席同上主存檔；第二席讀本機 **`user://guest_slots.json`** 選定槽（與 M1 P2 同源）。
 - **無主存檔／claim2 無訪客 sheet：** 拒絕加入。
 - Host 權威持有各 seat sheet 副本；模擬只認 Host 副本。
+- **局間再開日前：** 各 peer **必須**重傳／覆寫已佔 seat 的 sheet（反映剛改的技能／升級）；Host 拒絕缺 sheet 或席位數不符的 refresh。
 
 ### 12.4 `start_day` 世界 snapshot（最小欄位）
 
@@ -556,6 +561,7 @@ Client 以 snapshot **建構表現世界**；AI／庫存／結算權威仍在 Ho
 - **已斷線 peer：** 分母仍含其開日 seat（不讓留下的人變相多拿）；其平分份**無法寫回**該機磁碟（不做重連補發）。角色已移除但 peer 仍留房等日結者＝凍結座，**可**寫回。
 - **資金／營業額（M2.1）：** Host 店照常 `money += revenue`。每位**仍連線**的遠端 peer，其**本機主存檔**再 `money +=` **同一筆**當日營業額（原額、非平分；**不**改 client 商店評價／進貨支出／`last_loss`）。本機 M1 P2／claim2 訪客槽仍無店舖資金。已斷線 peer 不寫回。
 - **評價：** 營運點／商店評價只算 Host 店（不變）。
+- **結算後房間：** settle RPC／Host 日結完成後立刻 `day_started=false`、清凍座、全員 `ready=false`；**保留** peer／Steam lobby／SeatTable。關店結算確認走 `return_to_lobby_after_settle()`，**不** `leaveLobby`／`close()`（見 §12.10）。
 
 ### 12.9 工程切分建議
 
@@ -572,8 +578,64 @@ Client 以 snapshot **建構表現世界**；AI／庫存／結算權威仍在 Ho
 | **M2.7 客人清單 chrome** | Host spawn／`agent_state` 廣播 shopping 絕對件序；Client puppet 套用 pictogram，不再本地亂 roll | **已交** |
 | **M2.8 污物清潔條** | Host `set_cleaning` 節流廣播 meter／stick；Client dirt puppet 套用 StickHint／淡出 | **已交** |
 | **M2.9 收銀指令 UI** | Host `checkout_seq`＋`prompt_state` 廣播箭頭／hold；Client 禁雙重 randi，puppet／本機 seat 套用 chrome | **已交** |
+| **M2.10 留房連開** | 日結後回大廳；局間整備；sheet 再傳；再開日（§12.10） | **規格本節；實作對齊** |
 
-### 12.10 M2 驗收清單
+### 12.10 日結後房間生命週期（留房連開）
+
+- **對齊：** §5.6／§5.7／§12.2／§12.3／§12.8；`transport=local`（本機 ≥2 seat）、`lan_enet`、`steam` **同一**生命週期
+- **目標：** 日結後隊友留在同一房間，各自改技能／升級，Host 改店舖，就緒後以新狀態再開日
+- **非目標：** Host migration、開日中途加入、觀戰、局間代打他人角色、遠端改 Host 店、斷線 peer 補發日結寫回
+
+#### 相位
+
+| 相位 | 判準 | 行為摘要 |
+| --- | --- | --- |
+| `lobby` | `active && !day_started` | claim／ready／整備／開日；斷線釋放 seat |
+| `day` | `day_started` | 禁 join；斷線凍座 |
+| `closeout` | 結算 UI 顯示中 | peer 仍連；確認後回 `lobby` |
+
+局間與開房後大廳共用 `lobby` 相位（以 `day_started==false && active` 區分於單人 Prep）。
+
+#### 流程
+
+```text
+Host settle（§12.8）→ 雙端 day_started=false、清凍座、ready=false
+→ 關店結算 UI → 確認
+→ return_to_lobby_after_settle（清世界、重載本機存檔供整備、Prep 開 lobby）
+→ 各 peer 整備（角色／Host 店）→ sheet 再傳 → ready → Host start_run → 新 snapshot 開日
+```
+
+- **`return_to_lobby_after_settle()`：** **禁止** `_teardown_peer`／`leaveLobby`／`SeatTable.reset_solo`
+- **`close()`：** 僅「離開／關閉房間」或 Host 斷線解散
+- **純單人**（`transport=local` 且 seat＝1）：結算後仍回 Prep `home`（不走留房）
+
+#### 局間整備權限
+
+| 誰 | 可改 |
+| --- | --- |
+| 任一 peer | 本機擁有 seat 的技能／奧義／能力升級／外觀（`save.json`／`guest_slots`） |
+| 僅 Host | 店舖 layout／進貨／倉庫／店員／難度等影響下一局世界的 hub |
+| 訪客 | **不可**改 Host 店 |
+
+#### Sheet 與再開日
+
+- ready 或 `start_run` 前：各 peer 對已佔 seat **refresh sheet**（RPC 覆寫 Host 副本）
+- Host `start_run` 下發新世界 snapshot（含 Host 剛整備的店＋新 sheet 摘要）
+- Client 局間恢復 home stash／本機存檔供角色編輯；開日再套 Host snapshot
+
+#### Steam（對齊 §13.2）
+
+- 局間：保留 lobby id；Host `publish_lobby`／Rich Presence 回到 In lobby
+- 離開房間才 `clearRichPresence`＋`leaveLobby`
+
+#### 驗收（本節）
+
+- [ ] 日結確認後 peer／Steam lobby 仍在；Prep 進 lobby 非 home
+- [ ] 局間改技能／Host 改店 → ready → 第二日開日套用新狀態
+- [ ] 離開房間才 teardown；Host 斷仍整房解散
+- [ ] 本機單人不回歸；M1 本機二可留房連開
+
+### 12.11 M2 驗收清單
 
 **首刀**
 
@@ -670,11 +732,14 @@ Client 以 snapshot **建構表現世界**；AI／庫存／結算權威仍在 Ho
 Host：Steam 登入 → host_steam（本機 1｜2 seat）→ 建 Lobby → Overlay 邀請好友
 Join：接受邀請（免手打 Lobby ID）→ claim 1｜2 + sheet 上傳（同 §12）→ join_steam_lobby
 Ready → Host start_day → 其餘與 M2 相同（Intent／freeze／settle）
+日結 → 局間大廳（保留 Steam lobby；§12.10）→ 再 ready → 再開日
+離開房間 → leaveLobby／clearRichPresence
 ```
 
 - 失敗碼（最小集）：`steam_unavailable`、`steam_not_running`、`lobby_failed`、`join_failed`、`invite_busy`、`claim_*`／`no_save`／`guest_sheet_required`（同 LAN）
 - 無 IP:port；位址欄僅 LAN 使用
 - **手動 Lobby ID** 僅 Editor／Overlay 失效／除錯備援（見 §13.6）
+- **局間：** Host 重設 `publish_lobby`；確認結算**不** `leaveLobby`
 
 ### 13.3 工程切分建議
 

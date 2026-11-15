@@ -1160,16 +1160,26 @@ func _return_to_prep() -> void:
 	phase = "prep"
 	clear_elite_test()
 	## Capture before close() clears settlement_applied.
-	var settled_ok := SessionService.settlement_applied
-	SessionService.close()
+	var settled_ok := SessionService.settlement_applied or _settled
+	var keep_room := SessionService.keeps_room_after_settle()
+	if keep_room:
+		## §12.10: stay in lobby — do not tear down peer／Steam lobby.
+		SessionService.return_to_lobby_after_settle()
+	else:
+		SessionService.close()
 	## Client still holds Host world in `state` until we restore home save.
 	_reload_local_save_for_prep(settled_ok)
 	_clear_world()
 	_prep.visible = true
 	_prep.set_process_unhandled_input(true)
-	_prep._show_page("home")
-	if _prep.has_method("maybe_offer_difficulty_prompt"):
-		_prep.call("maybe_offer_difficulty_prompt")
+	if keep_room:
+		if _prep.has_method("refresh_room_sheets_from_state"):
+			_prep.call("refresh_room_sheets_from_state")
+		_prep._show_page("lobby")
+	else:
+		_prep._show_page("home")
+		if _prep.has_method("maybe_offer_difficulty_prompt"):
+			_prep.call("maybe_offer_difficulty_prompt")
 
 
 func _reload_local_save_for_prep(settled_ok: bool = false) -> void:
@@ -2603,6 +2613,9 @@ func _finish_day() -> void:
 			## M2.1：每位仍連線訪客本店同等加這筆營業額（非平分）。
 			"revenue": revenue,
 		})
+	elif SessionService.keeps_room_after_settle():
+		## Local coop：日結後進局間大廳（§12.10）。
+		SessionService.begin_post_settle_lobby()
 	if _hud:
 		_hud.show_closeout()
 		var loss := Loc.t("settle.loss") if bool(result["loss"]) else Loc.t("settle.no_loss")

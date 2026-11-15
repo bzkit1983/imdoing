@@ -150,6 +150,11 @@ func is_networked() -> bool:
 	return active and transport_id in ["lan_enet", "steam", "web_ws"]
 
 
+## True when settle should return to lobby instead of dissolving (§12.10).
+func keeps_room_after_settle() -> bool:
+	return active and (is_networked() or SeatTable.seat_count >= 2)
+
+
 func is_server() -> bool:
 	if not is_networked():
 		return true
@@ -484,6 +489,45 @@ func send_settle_to_clients(payload: Dictionary) -> void:
 	if not is_networked() or not is_server():
 		return
 	_rpc_settle.rpc(payload)
+	## Host clears day flags immediately so closeout disconnect ≠ mid-day freeze (§12.10).
+	begin_post_settle_lobby()
+
+
+## After settle: clear day／freeze／ready; keep peer／lobby／seats (§12.10).
+func begin_post_settle_lobby() -> void:
+	if not active:
+		return
+	day_started = false
+	settlement_applied = true
+	SeatTable.clear_all_frozen()
+	SeatTable.clear_all_ready()
+	if is_steam() and is_server() and steam_lobby_id > 0:
+		NetTransport.publish_lobby(steam_lobby_id)
+	if is_networked() and is_server():
+		_broadcast_lobby()
+	seats_changed.emit()
+	lobby_changed.emit()
+
+
+## Keep room after closeout confirm — never tear down peer／Steam lobby.
+func return_to_lobby_after_settle() -> void:
+	if not keeps_room_after_settle():
+		close()
+		return
+	begin_post_settle_lobby()
+
+
+## Refresh Host-held sheets for locally owned seats from dicts (local_index order).
+## Client: RPC to host. Host／local: apply immediately.
+func refresh_owned_sheets(sheet_dicts: Array) -> String:
+	if not active or day_started:
+		return "day_started"
+	if sheet_dicts.is_empty():
+		return "claim_invalid"
+	if is_networked() and is_client():
+		_rpc_refresh_sheets.rpc_id(1, sheet_dicts)
+		return ""
+	return _apply_owned_sheet_refresh(local_peer_id, sheet_dicts)
 
 
 func stash_client_home_save(data: Dictionary) -> void:
@@ -869,13 +913,45 @@ func _rpc_settle(payload: Dictionary) -> void:
 		return
 	var result: Dictionary = apply_client_settle_to_save(payload)
 	if bool(result.get("ok", false)):
-		settlement_applied = true
-		## Day is closed out; Host may tear down the room without it being an abort.
+		## Day closed; keep room for between-day lobby (§12.10).
+		begin_post_settle_lobby()
+	else:
+		## Still leave day phase so Host keep-room closeout is not mid-day abort.
 		day_started = false
+		settlement_applied = false
 	## Always notify demo (UI can show ok/fail from payload meta).
 	var ui_payload := payload.duplicate(true)
 	ui_payload["_apply"] = result
 	settle_payload_received.emit(ui_payload)
+
+
+@rpc("any_peer", "reliable")
+func _rpc_refresh_sheets(sheet_dicts: Array) -> void:
+	if not is_server() or day_started:
+		return
+	var peer_id := multiplayer.get_remote_sender_id()
+	var err := _apply_owned_sheet_refresh(peer_id, sheet_dicts)
+	if err != "":
+		net_error.emit(err)
+
+
+func _apply_owned_sheet_refresh(peer_id: int, sheet_dicts: Array) -> String:
+	var owned: Array[int] = SeatTable.seats_owned_by(peer_id)
+	owned.sort_custom(func(a: int, b: int) -> bool:
+		return SeatTable.local_index_of(a) < SeatTable.local_index_of(b)
+	)
+	if owned.size() != sheet_dicts.size():
+		return "claim_invalid"
+	for i in owned.size():
+		var data = sheet_dicts[i]
+		if not (data is Dictionary):
+			return "claim_failed"
+		SeatTable.set_sheet(int(owned[i]), CharacterSheet.from_dict(data))
+	if is_networked() and is_server():
+		_broadcast_lobby()
+	seats_changed.emit()
+	lobby_changed.emit()
+	return ""
 
 
 @rpc("authority", "reliable")

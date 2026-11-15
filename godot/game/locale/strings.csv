@@ -253,6 +253,10 @@ lobby.start,全員就緒 · 開始營運,All ready · start day,全员就绪 · 
 lobby.start_blocked,等待全員就緒…,Waiting for all ready…,等待全员就绪…,全員の準備待ち…
 lobby.close,關閉房間,Close room,关闭房间,部屋を閉じる
 lobby.leave,離開房間,Leave room,离开房间,部屋を退出
+lobby.between_day_hint,日結後可留房：改技能／升級後再就緒開下一局。,"After settle you keep the room — edit skills/stats, ready, start again.",日结后可留房：改技能／升级后再就绪开下一局。,清算後も部屋に残ります。スキル／強化後に準備完了で次の日へ。
+lobby.between_day_home,局間整備（改完後返回大廳就緒）。,Between-day prep — return to lobby when ready.,局间整备（改完后返回大厅就绪）。,日と日の間の準備。終わったらロビーへ戻って準備完了。
+lobby.prep_char,角色整備（技能／能力／外觀）,Character prep (skills/stats/look),角色整备（技能／能力／外观）,キャラ準備（スキル／能力／外見）
+lobby.prep_shop,店舖整備（Host）,Shop prep (Host),店铺整备（Host）,店舗準備（ホスト）
 lobby.error_title,連線錯誤,Connection error,连接错误,接続エラー
 lobby.error_body,%s,%s,%s,%s
 lobby.host_left,房主已斷線，房間解散。本日未結算。,Host disconnected — room closed. Day was not settled.,房主已断线，房间解散。本日未结算。,ホスト切断のため部屋解散。本日は未清算です。
@@ -260,7 +264,7 @@ lobby.client_waiting_settle,等待房主結算…,Waiting for host settle…,等
 lobby.client_settle_ok,平分經驗 +%d　支援別店評價 %d（本局評級 %d）已寫入存檔。,Shared XP +%d · support rating %d (grade %d) saved.,平分经验 +%d　支援别店评价 %d（本局评级 %d）已写入存档。,分配XP +%d　支援評価 %d（本局評級 %d）をセーブしました。
 lobby.client_settle_revenue,本店資金 +$%d（現有 $%d）。,Home-shop funds +$%d (now $%d).,本店资金 +$%d（现有 $%d）。,自店資金 +$%d（残高 $%d）。
 lobby.client_settle_fail,結算資料未能寫入本機存檔。,Could not write settle data to local save.,结算数据未能写入本机存档。,清算データをローカルセーブに書けませんでした。
-lobby.client_settle_hint,確認後返回準備。,Confirm to return to prep.,确认后返回准备。,確定で準備に戻ります。
+lobby.client_settle_hint,確認後返回大廳（留房連開）。,Confirm to return to lobby (keep room).,确认后返回大厅（留房连开）。,確定でロビーへ（部屋を維持）。
 prep.kind.active,主動,Active,主动,アクティブ
 prep.kind.passive,被動,Passive,被动,パッシブ
 prep.kind.ult,奧義,Ult,奥义,奥義

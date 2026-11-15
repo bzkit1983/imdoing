@@ -14,8 +14,16 @@ static func is_hub_page(page: String) -> bool:
 
 
 static func parent_page(page: String) -> String:
+	## Between-day／in-room lobby: hub roots return to lobby (§12.10).
+	var in_room_lobby := (
+		SessionService.active
+		and not SessionService.day_started
+		and SessionService.keeps_room_after_settle()
+	)
 	match page:
-		"hub_char", "hub_goods", "hub_shop", "hub_sys", "clerks", "confirm", "elite_test", "rating_history", "lobby", "lan_join", "steam_join", "tasks":
+		"hub_char", "hub_goods", "hub_shop", "hub_sys", "clerks", "confirm", "elite_test", "rating_history", "lobby", "lan_join", "steam_join", "tasks", "home":
+			if in_room_lobby and page != "lobby" and page != "lan_join" and page != "steam_join" and page != "confirm":
+				return "lobby"
 			return "home"
 		"stats", "skills", "look":
 			return "hub_char"
@@ -242,19 +250,41 @@ static func _scenario(menu: CanvasLayer) -> void:
 	menu._add(Loc.t("prep.scenario.s4"), "sc", 4)
 
 
+static func _in_room_lobby() -> bool:
+	return (
+		SessionService.active
+		and not SessionService.day_started
+		and SessionService.keeps_room_after_settle()
+	)
+
+
 static func _home(menu: CanvasLayer) -> void:
 	menu._hub_cols = 3
 	menu._title.text = Loc.t("prep.home.title")
-	menu._info.text = menu._pair(menu._header(), menu._msg if menu._msg != "" else menu._home_info())
+	var in_room := _in_room_lobby()
+	if in_room:
+		menu._info.text = menu._pair(menu._header(), Loc.t("lobby.between_day_home"))
+	else:
+		menu._info.text = menu._pair(menu._header(), menu._msg if menu._msg != "" else menu._home_info())
 	menu._add_hub(Loc.t("prep.hub.char"), "go", "hub_char", "char")
-	menu._add_hub(Loc.t("prep.hub.goods"), "go", "hub_goods", "goods")
-	menu._add_hub(Loc.t("prep.hub.shop"), "go", "hub_shop", "shop")
-	menu._add_hub(Loc.t("prep.hub.staff", [menu.state.clerks.size()]), "go", "clerks", "staff")
-	menu._add_hub(Loc.t("prep.hub.rating"), "go", "rating_history", "rating")
-	menu._add_hub(Loc.t("prep.hub.tasks"), "go", "tasks", "tasks")
+	## Guests in a kept room only edit their character (§12.10); Host keeps shop hubs.
+	var host_shop := (not SessionService.is_networked()) or SessionService.is_server()
+	if host_shop or not in_room:
+		menu._add_hub(Loc.t("prep.hub.goods"), "go", "hub_goods", "goods")
+		menu._add_hub(Loc.t("prep.hub.shop"), "go", "hub_shop", "shop")
+		menu._add_hub(Loc.t("prep.hub.staff", [menu.state.clerks.size()]), "go", "clerks", "staff")
+		menu._add_hub(Loc.t("prep.hub.rating"), "go", "rating_history", "rating")
+		menu._add_hub(Loc.t("prep.hub.tasks"), "go", "tasks", "tasks")
 	menu._add_hub(Loc.t("prep.hub.sys"), "go", "hub_sys", "sys")
 	menu._rebuild_hub_tiles()
-	menu._setup_open_bar()
+	if in_room:
+		## Between-day: open bar would start a solo day — hide it; return via hub back → lobby.
+		if menu._open_bar:
+			menu._open_bar.visible = false
+		if menu._diff_bar:
+			menu._diff_bar.visible = false
+	else:
+		menu._setup_open_bar()
 
 
 static func _pending_test_pack(menu: CanvasLayer) -> Dictionary:
@@ -366,7 +396,7 @@ static func _tasks(menu: CanvasLayer) -> void:
 				menu._add(Loc.t("prep.tasks.row", [mark, label, prog]), "noop", null)
 	if pending.is_empty() and extras.is_empty():
 		menu._add(Loc.t("prep.tasks.empty"), "noop", null)
-	menu._add(Loc.t("prep.back"), "go", "home")
+	menu._add(Loc.t("prep.back"), "go", parent_page("tasks"))
 
 
 static func _test_tasks(menu: CanvasLayer) -> void:
@@ -433,7 +463,7 @@ static func _rating_history(menu: CanvasLayer) -> void:
 				"noop",
 				null
 			)
-	menu._add(Loc.t("prep.back"), "go", "home")
+	menu._add(Loc.t("prep.back"), "go", parent_page("rating_history"))
 
 
 static func _hub_char(menu: CanvasLayer) -> void:
@@ -860,7 +890,7 @@ static func _clerks(menu: CanvasLayer) -> void:
 		if String(c["role"]) == "cashier":
 			menu._add(Loc.t("prep.hire.reassign"), "reg", i)
 		menu._add(Loc.t("prep.hire.fire", [(i + 1)]), "fire", i)
-	menu._add(Loc.t("prep.back"), "go", "home")
+	menu._add(Loc.t("prep.back"), "go", parent_page("clerks"))
 
 
 static func _confirm(menu: CanvasLayer) -> void:
@@ -937,6 +967,7 @@ static func _lobby(menu: CanvasLayer) -> void:
 			lines.append(Loc.t("lobby.joined", [SessionService.join_address, SessionService.lan_port]))
 	else:
 		lines.append(Loc.t("lobby.local_info"))
+	lines.append(Loc.t("lobby.between_day_hint"))
 	lines.append(Loc.t("lobby.remaining", [SessionService.seats_remaining()]))
 	for s in SeatTable.seat_ids():
 		var ready := Loc.t("lobby.ready_yes" if SeatTable.is_seat_ready(s) else "lobby.ready_no")
@@ -945,6 +976,10 @@ static func _lobby(menu: CanvasLayer) -> void:
 		lines.append(Loc.t("lobby.seat_row", [s + 1, tag, ready]))
 	menu._info.text = "\n".join(lines)
 	_layout_lobby_panels(menu, lines.size())
+	## Between-day／pre-day prep without leaving the room (§12.10).
+	menu._add(Loc.t("lobby.prep_char"), "go", "hub_char")
+	if SessionService.is_server():
+		menu._add(Loc.t("lobby.prep_shop"), "go", "home")
 	## Toggle ready for locally owned seats (list sits below seat status).
 	for s in SeatTable.seat_ids():
 		if SeatTable.seat_owned_locally(s):

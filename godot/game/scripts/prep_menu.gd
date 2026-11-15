@@ -1099,7 +1099,12 @@ func _activate() -> void:
 		"lobby_invite":
 			_lobby_invite_friends()
 		"lobby_ready":
-			SessionService.set_ready(int(arg), not SeatTable.is_seat_ready(int(arg)))
+			var seat_id := int(arg)
+			var want_ready := not SeatTable.is_seat_ready(seat_id)
+			## Refresh sheets when becoming ready so next day sees loadout edits (§12.10).
+			if want_ready:
+				refresh_room_sheets_from_state()
+			SessionService.set_ready(seat_id, want_ready)
 			_refresh()
 		"lobby_start":
 			_lobby_start_day()
@@ -1356,11 +1361,60 @@ func _start_steam_join() -> void:
 	_show_page("lobby")
 
 
+func refresh_room_sheets_from_state() -> void:
+	## Push local character sheets into Session for between-day／pre-start (§12.10).
+	if not SessionService.active or SessionService.day_started:
+		return
+	if state == null:
+		return
+	var save_err := state.save_to_disk()
+	if save_err != "":
+		push_warning("room sheet save failed: %s" % save_err)
+	var sheets: Array = []
+	var main = CharacterSheet.from_game_state(state)
+	main.support_rating = int(state.support_rating)
+	sheets.append(main.to_dict())
+	## Local coop / host claim2: include guest sheet when this machine owns seat 1.
+	var owned_local := false
+	for s in SeatTable.seat_ids():
+		if SeatTable.seat_owned_locally(s) and SeatTable.local_index_of(s) == 1:
+			owned_local = true
+			break
+	if owned_local:
+		_ensure_guest_store()
+		var gi := int(_guest_slot_index)
+		if gi < 0:
+			gi = int(SessionService.join_guest_slot_index)
+		if gi < 0:
+			gi = int(SeatTable.guest_slot_index)
+		if gi >= 0 and not _guest_store.is_empty(gi):
+			var guest = _guest_store.get_sheet(gi)
+			if guest != null and guest.has_method("to_dict"):
+				sheets.append(guest.to_dict())
+			else:
+				sheets.append(main.to_dict())
+		elif SeatTable.sheet_of(1) != null and SeatTable.sheet_of(1).has_method("to_dict"):
+			sheets.append(SeatTable.sheet_of(1).to_dict())
+	## Networked client claim1: only main sheet. Host with only seat0: only main.
+	var expect_n := 0
+	for s in SeatTable.seat_ids():
+		if SeatTable.seat_owned_locally(s):
+			expect_n += 1
+	while sheets.size() > expect_n:
+		sheets.pop_back()
+	while sheets.size() < expect_n:
+		sheets.append(main.to_dict())
+	var err := SessionService.refresh_owned_sheets(sheets)
+	if err != "":
+		push_warning("refresh_owned_sheets: %s" % err)
+
+
 func _lobby_start_day() -> void:
 	if not SessionService.is_server():
 		return
 	if not SessionService.all_ready():
 		return
+	refresh_room_sheets_from_state()
 	var open_msg := state.begin_day()
 	if open_msg != "":
 		_popup_info(Loc.t("prep.msg.cant_open"), open_msg)

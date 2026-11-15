@@ -165,6 +165,15 @@ func freeze_seat(seat_id: int) -> void:
 	_frozen[seat_id] = true
 
 
+func clear_all_frozen() -> void:
+	_frozen.clear()
+
+
+func clear_all_ready() -> void:
+	for s in seat_count:
+		set_seat_ready(s, false)
+
+
 func is_frozen(seat_id: int) -> bool:
 	return bool(_frozen.get(seat_id, false))
 

@@ -178,7 +178,7 @@ settle.guest_xp,\n訪客經驗 +%d　%s,\nGuest XP +%d  %s,\n访客经验 +%d　
 settle.support_rating,\n支援別店評價 %+d　現 %d,\nSupport rating %+d  now %d,\n支援别店评价 %+d　现 %d,\n支援先評価 %+d　現在 %d
 settle.guest_save_fail_prefix,（訪客存檔失敗：,(Guest save failed: ,（访客存档失败：,（ゲストセーブ失敗：
 settle.body,%s　%s\n營業額 $%d　入帳後資金 $%d\n進貨成本 $%d\n成功收銀 %d　生氣離開 %d\n被偷 %d 件 $%d　抓住 %d／逃走 %d\n%s\n%s,%s  %s\nRevenue $%d  funds after $%d\nStock cost $%d\nChecked out %d  left angry %d\nStolen %d pcs $%d  caught %d / fled %d\n%s\n%s,%s　%s\n营业额 $%d　入账后资金 $%d\n进货成本 $%d\n成功收银 %d　生气离开 %d\n被偷 %d 件 $%d　抓住 %d／逃走 %d\n%s\n%s,%s　%s\n売上 $%d　入金後資金 $%d\n仕入れコスト $%d\n会計成功 %d　怒って退店 %d\n盗難 %d 個 $%d　捕まえた %d／逃走 %d\n%s\n%s
-settle.back_hint,\n按 J／A 返回準備,\nPress J/A to return to prep,\n按 J／A 返回准备,\nJ／A で準備に戻る
+settle.back_hint,\n按 J／A 返回大廳（連線／多人留房；單人回準備）,\nPress J/A to return to lobby (keep room in multiplayer; solo → prep),\n按 J／A 返回大厅（连线／多人留房；单人回准备）,\nJ／A でロビーへ（マルチは部屋維持／ソロは準備）
 settle.hud_legacy,關店結算\n營業額 $%d\n成功收銀 %d 人\n生氣離開 %d 人\n被偷 %d 件  $%d\n抓住小偷 %d ／ 逃走 %d\n（資金於結算後才入帳，v0.5 先顯示營業額）,Day settle\nRevenue $%d\nChecked out %d\nLeft angry %d\nStolen %d pcs  $%d\nCaught %d / fled %d\n(Funds post after settle; v0.5 shows revenue),关店结算\n营业额 $%d\n成功收银 %d 人\n生气离开 %d 人\n被偷 %d 件  $%d\n抓住小偷 %d ／ 逃走 %d\n（资金于结算后才入账，v0.5 先显示营业额）,閉店精算\n売上 $%d\n会計成功 %d 人\n怒って退店 %d 人\n盗難 %d 個  $%d\n泥棒確保 %d ／ 逃走 %d\n（資金は精算後に入金、v0.5 は売上を表示）
 settle.loss,虧損（營業額低於進貨）,Loss (revenue below stock cost),亏损（营业额低于进货）,赤字（売上が仕入れ未満）
 settle.no_loss,未虧損,No loss,未亏损,赤字なし
