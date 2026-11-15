@@ -21,7 +21,7 @@ Bindings for [`../SKILL.md`](../SKILL.md). Other products replace this file only
 | Paged modal | [`godot/game/scripts/tutorial/tutorial_modal.gd`](../../../../godot/game/scripts/tutorial/tutorial_modal.gd), [`godot/game/scenes/tutorial_modal.tscn`](../../../../godot/game/scenes/tutorial_modal.tscn) |
 | Progress save | [`godot/game/scripts/game_state.gd`](../../../../godot/game/scripts/game_state.gd) → `tutorial_progress` |
 | Day host／`note_*`／settle gates | [`godot/game/scripts/demo.gd`](../../../../godot/game/scripts/demo.gd) |
-| Prep open-day gate／consider | [`godot/game/scripts/prep_menu.gd`](../../../../godot/game/scripts/prep_menu.gd) |
+| Prep open-day gate／consider／`prep_restrict` soft-lock | [`godot/game/scripts/prep_menu.gd`](../../../../godot/game/scripts/prep_menu.gd)、[`prep_pages.gd`](../../../../godot/game/scripts/prep/prep_pages.gd) |
 | Pause「教學」review | [`godot/game/scripts/pause_menu.gd`](../../../../godot/game/scripts/pause_menu.gd) |
 | Scenario 5 | `game_state._scenario_tutorial()`；list in [`prep_pages.gd`](../../../../godot/game/scripts/prep/prep_pages.gd) when `ProductVersion.test_tools_enabled()` |
 
@@ -33,6 +33,8 @@ Bindings for [`../SKILL.md`](../SKILL.md). Other products replace this file only
 | --- | --- |
 | `placed_count` | `state.placed.size()` |
 | `owned_furniture_kinds` | `state.owned.size()` |
+| `cashier_count` | `state.cashier_count()` |
+| `open_ready` | `1` if `state.open_blockers().is_empty()` else `0` |
 
 Any other Prep metric = Fail until Director evaluates it.
 
@@ -54,7 +56,8 @@ Any other Prep metric = Fail until Director evaluates it.
 | --- | --- | --- |
 | `tut.<lesson>.pN.title`／`.body` | `godot/game/locale/strings.csv` | Explain pages |
 | `tut.<lesson>.task.name`／`.desc` | `strings.csv` | HUD／pause task row (`ops_task`) |
-| `tut.modal.*`／`tut.gate.*` | `strings.csv` | Shell chrome (shared) |
+| `tut.modal.*`／`tut.gate.*`／`tut.prep.restrict.*` | `strings.csv` | Shell chrome + prep soft-lock copy |
+| Lesson optional `prep_restrict` | catalog | `home_hub_allow`／`shop_hub_allow`／`pages_allow`／`furniture_owned_cap` |
 | `pause.tutorial.*` | `strings.csv` | Pause review submenu |
 | `prep.scenario.s5` | `strings.csv` | Test scenario label |
 

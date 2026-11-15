@@ -9,6 +9,41 @@ pause.tasks,任務詳情,Task details,任务详情,タスク詳細
 pause.tasks.title,任務詳情,Task details,任务详情,タスク詳細
 pause.tasks.back,返回,Back,返回,戻る
 pause.tasks.empty,目前沒有進行中任務,No active tasks,目前没有进行中任务,進行中のタスクはありません
+pause.tutorial,教學,Tutorial,教学,チュートリアル
+pause.tutorial.title,教學重溫,Tutorial review,教学重温,チュートリアル復習
+pause.tutorial.back,返回,Back,返回,戻る
+pause.tutorial.empty,尚無已完成的教學,No completed tutorials yet,尚无已完成的教学,完了したチュートリアルはまだありません
+tut.modal.prev,上一步,Back,上一步,戻る
+tut.modal.next,下一步,Next,下一步,次へ
+tut.modal.practice,開始練習,Start practice,开始练习,練習を始める
+tut.modal.close,關閉,Close,关闭,閉じる
+tut.modal.page,%d／%d,%d / %d,%d／%d,%d／%d
+tut.modal.empty_title,教學,Tutorial,教学,チュートリアル
+tut.modal.empty_body,（暫無內容）,No content yet,（暂无内容）,（内容なし）
+tut.gate.title,教學進行中,Tutorial in progress,教学进行中,チュートリアル進行中
+tut.gate.prep,請先完成目前的教學步驟，才能開始營運。,Finish the current tutorial step before opening the shop.,请先完成目前的教学步骤，才能开始营运。,営業を始める前に、今のチュートリアル手順を完了してください。
+tut.gate.ops,請先完成目前的教學步驟，才能結算本日。,Finish the current tutorial step before settling the day.,请先完成目前的教学步骤，才能结算本日。,本日を精算する前に、今のチュートリアル手順を完了してください。
+tut.task.fallback_name,教學目標,Tutorial goal,教学目标,チュートリアル目標
+tut.task.fallback_desc,完成畫面上的教學步驟。,Complete the on-screen tutorial step.,完成画面上的教学步骤。,画面のチュートリアル手順を完了してください。
+tut.prep.open_shop.p1.title,開店第一步,First step: open shop,开店第一步,開店の第一歩
+tut.prep.open_shop.p1.body,空店不能直接營業。這一步只開放「店舖管理」；先買齊並擺好三件基本商店物品。,An empty shop cannot open yet. Only Shop is available — buy and place the three starter pieces.,空店不能直接营业。这一步只开放“店铺管理”；先买齐并摆好三件基本商店物品。,空の店ではすぐ営業できません。この段階では「店舗管理」だけ使えます。基本の店舗アイテム3つを購入して設置しましょう。
+tut.prep.open_shop.p2.title,只買這三件,Buy only these three,只买这三件,この3つだけ購入
+tut.prep.open_shop.p2.body,各買一件：收銀機、乾貨補貨架、乾貨類貨架（4件）。其他商店物品與選單功能暫時停用。,"Buy one each: cashier, dry restock rack, dry shelf (4). Other shop items and menus stay off for now.",各买一件：收银机、干货补货架、干货类货架（4件）。其他商店物品与选单功能暂时停用。,それぞれ1つ：レジ、常温補充棚、常温棚（4個）。他の店舗アイテムとメニューはしばらく使えません。
+tut.prep.open_shop.p3.title,開始練習,Start practice,开始练习,練習を始める
+tut.prep.open_shop.p3.body,到「店舖管理」購入並放置三件後即可開業，完成本教學。,"In Shop, buy and place all three, then open the day to finish this lesson.",到“店铺管理”购入并放置三件后即可开业，完成本教学。,「店舗管理」で3つを購入・設置したら営業開始でこのチュートリアル完了です。
+tut.prep.open_shop.task.name,開店第一步,First step: open shop,开店第一步,開店の第一歩
+tut.prep.open_shop.task.desc,購入並放置：收銀機、乾貨補貨架、乾貨貨架（4件）。,"Buy and place: cashier, dry restock, dry shelf (4).",购入并放置：收银机、干货补货架、干货货架（4件）。,購入して設置：レジ、常温補充棚、常温棚（4個）。
+tut.prep.restrict.hub,教學進行中，此功能暫時停用。請先到「店舖管理」完成步驟。,Unavailable during the tutorial — use Shop to finish the step.,教学进行中，此功能暂时停用。请先到“店铺管理”完成步骤。,チュートリアル中はこの機能を使えません。「店舗管理」で手順を進めてください。
+tut.prep.restrict.home_hint,開店第一步：只能進入「店舖管理」。購入並放置三件基本商店物品後再開業。,"First step: only Shop is open. Buy and place the three pieces, then open.",开店第一步：只能进入“店铺管理”。购入并放置三件基本商店物品后再开业。,開店の第一歩：「店舗管理」だけ使えます。3つを購入・設置してから営業開始。
+tut.prep.restrict.shop_hint,教學中可「購入商店物品」與「店面配置」；擴張暫時停用。,Buy furniture and layout are available; expand is off for now.,教学中可“购入商店物品”与“店面配置”；扩张暂时停用。,チュートリアル中は「店舗アイテム購入」と「レイアウト」のみ。拡張はオフです。
+tut.prep.restrict.furn_hint,只能各買一件：收銀機、乾貨補貨架、乾貨類貨架（4件）。,"Buy one each: cashier, dry restock rack, dry shelf (4).",只能各买一件：收银机、干货补货架、干货类货架（4件）。,それぞれ1つまで：レジ、常温補充棚、常温棚（4個）。
+tut.prep.restrict.furn_denied,教學中只能購買指定的商店物品。,Only the listed shop items can be bought during this tutorial.,教学中只能购买指定的商店物品。,このチュートリアルでは指定の店舗アイテムだけ購入できます。
+tut.prep.restrict.furn_cap,這件已買夠教學所需數量。,You already bought enough of this for the tutorial.,这件已买够教学所需数量。,このアイテムはチュートリアル分すでに購入済みです。
+tut.prep.restrict.furn_owned_row,%s　已購入 %d（教學上限）,%s  owned %d (tutorial cap),%s　已购入 %d（教学上限）,%s　所持 %d（チュートリアル上限）
+tut.stub.ops_clean.p1.title,清潔入門,Cleaning basics,清洁入门,掃除の基本
+tut.stub.ops_clean.p1.body,營運中請清掉地上至少 1 團污物。完成後即可正常結算。,"During ops, clean at least 1 dirt pile. Then you can settle normally.",营运中请清掉地上至少 1 团污物。完成后即可正常结算。,営業中に汚れを1つ以上掃除してください。完了後は通常どおり精算できます。
+tut.stub.ops_clean.task.name,教學：清潔 1 次,Tutorial: clean once,教学：清洁 1 次,チュートリアル：1回掃除
+tut.stub.ops_clean.task.desc,清掉至少 1 團污物。,Clean at least 1 dirt pile.,清掉至少 1 团污物。,汚れを1つ以上掃除する。
 pause.sfx_on,音效：開,SFX: On,音效：开,効果音：オン
 pause.sfx_off,音效：關,SFX: Off,音效：关,効果音：オフ
 pause.sfx_volume,音效聲量：%d%%,SFX volume: %d%%,音效声量：%d%%,効果音ボリューム：%d%%
@@ -63,7 +98,8 @@ hud.combo_coop,COMBO P1 %d  ·  P2 %d  ·  TEAM %d,COMBO P1 %d  ·  P2 %d  ·  T
 hud.seat,P%d,P%d,P%d,P%d
 prep.back,返回,Back,返回,戻る
 prep.scenario.title,選擇劇本,Choose scenario,选择剧本,シナリオ選択
-prep.scenario.info,劇本1 從空店開始，資金 $10000。劇本2、3 帶現成店面和店員。劇本4 用來試技能。,Scenario 1 starts empty with $10000. 2 and 3 include a shop and clerks. 4 is for trying skills.,剧本1 从空店开始，资金 $10000。剧本2、3 带现成店面和店员。剧本4 用来试技能。,シナリオ1は空の店から開始、資金 $10000。シナリオ2・3は店舗と店員付き。シナリオ4はスキル試し用。
+prep.scenario.info,劇本1 從空店開始，資金 $10000。劇本2、3 帶現成店面和店員。劇本4 用來試技能。測試版另有劇本5 教學模式（$3000）。,Scenario 1 starts empty with $10000. 2 and 3 include a shop and clerks. 4 is for trying skills. Test builds also list Scenario 5 Tutorial ($3000).,剧本1 从空店开始，资金 $10000。剧本2、3 带现成店面和店员。剧本4 用来试技能。测试版另有剧本5 教学模式（$3000）。,シナリオ1は空の店から開始、資金 $10000。シナリオ2・3は店舗と店員付き。シナリオ4はスキル試し用。テスト版にはシナリオ5 チュートリアル（$3000）もあります。
+prep.scenario.s5,劇本5　教學模式　LV1　$3000　空店（測試）,Scenario 5 · Tutorial · LV1 · $3000 · empty shop (test),剧本5　教学模式　LV1　$3000　空店（测试）,シナリオ5　チュートリアル　LV1　$3000　空店舗（テスト）
 prep.scenario.s1,劇本1　從新開始　資金 $10000　LV1　空店,Scenario 1 · Fresh start · $10000 · LV1 · empty,剧本1　从新开始　资金 $10000　LV1　空店,シナリオ1　新規スタート　資金 $10000　LV1　空き店
 prep.scenario.s2,劇本2　LV5　資金 $10000　店規模 2　1 名店員,Scenario 2 · LV5 · $10000 · scale 2 · 1 clerk,剧本2　LV5　资金 $10000　店规模 2　1 名店员,シナリオ2　LV5　資金 $10000　店規模 2　店員 1名
 prep.scenario.s3,劇本3　LV10　資金 $99999　三圍 30　店規模 3　2 名店員,Scenario 3 · LV10 · $99999 · stats 30 · scale 3 · 2 clerks,剧本3　LV10　资金 $99999　三围 30　店规模 3　2 名店员,シナリオ3　LV10　資金 $99999　三能力 30　店規模 3　店員 2名

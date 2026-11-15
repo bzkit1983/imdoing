@@ -140,6 +140,12 @@ func setup(host: Node) -> void:
 		SessionService.start_day.connect(_on_session_start_day)
 	if not SessionService.steam_invite_pending.is_connected(_on_steam_invite_pending):
 		SessionService.steam_invite_pending.connect(_on_steam_invite_pending)
+	var tut := _tutorial()
+	if tut != null:
+		tut.setup(state)
+		## Soft-lock tiles must rebuild as soon as「開始練習」arms the forced step.
+		if not tut.gate_changed.is_connected(_on_tutorial_gate_changed):
+			tut.gate_changed.connect(_on_tutorial_gate_changed)
 	var load_err := state.load_from_disk()
 	if load_err == "":
 		_msg = Loc.t("prep.msg.loaded", [state.scenario, state.level, state.money])
@@ -149,6 +155,74 @@ func setup(host: Node) -> void:
 	## Cold-start／invite that arrived before Prep was ready.
 	if SessionService.has_pending_steam_invite():
 		_on_steam_invite_pending(SessionService.pending_steam_lobby_id)
+
+
+func _tutorial() -> Node:
+	if demo != null and demo.has_method("tutorial"):
+		return demo.tutorial()
+	return null
+
+
+func _tutorial_blocks_open() -> bool:
+	var tut := _tutorial()
+	return tut != null and bool(tut.blocks_open_day())
+
+
+func tutorial_prep_restricts() -> bool:
+	var tut := _tutorial()
+	return tut != null and not tut.prep_restrict().is_empty()
+
+
+func tutorial_home_hub_locked(hub_key: String) -> bool:
+	var tut := _tutorial()
+	return tut != null and bool(tut.prep_hub_target_locked(hub_key, "home_hub_allow"))
+
+
+func tutorial_shop_hub_locked(hub_key: String) -> bool:
+	var tut := _tutorial()
+	return tut != null and bool(tut.prep_hub_target_locked(hub_key, "shop_hub_allow"))
+
+
+func tutorial_furniture_caps() -> Dictionary:
+	var tut := _tutorial()
+	if tut == null:
+		return {}
+	var r: Dictionary = tut.prep_restrict()
+	var caps = r.get("furniture_owned_cap", {})
+	return caps if caps is Dictionary else {}
+
+
+func tutorial_furniture_buy_block(type: String) -> String:
+	var tut := _tutorial()
+	if tut == null or not tut.has_method("furniture_buy_block_reason"):
+		return ""
+	return String(tut.furniture_buy_block_reason(type))
+
+
+func _notify_tutorial_prep() -> void:
+	if not visible:
+		return
+	var tut := _tutorial()
+	if tut == null:
+		return
+	tut.setup(state)
+	if _page == "home" or _page == "layout" or PrepPages.is_hub_page(_page):
+		tut.consider_prep()
+	else:
+		tut.notify_prep_state_changed()
+
+
+func _on_tutorial_gate_changed() -> void:
+	## Pages close → forced step on: rebuild hub locks without waiting for another click.
+	if not visible or _building:
+		return
+	call_deferred("_refresh_for_tutorial_gate")
+
+
+func _refresh_for_tutorial_gate() -> void:
+	if not visible or _building:
+		return
+	_refresh()
 
 
 func _on_lobby_changed() -> void:
@@ -316,6 +390,10 @@ func _apply_steam_join_invite_state() -> void:
 
 
 func _show_page(page: String) -> void:
+	## Soft-lock: bounce out of pages outside the active prep tutorial path.
+	var tut := _tutorial()
+	if tut != null and tut.has_method("prep_page_allowed") and not bool(tut.prep_page_allowed(page)):
+		page = "home"
 	# The confirm key that opened this page must not also activate the new page.
 	_confirm_latch = true
 	_close_dialog()
@@ -412,6 +490,7 @@ func _refresh() -> void:
 	if _page == "look":
 		_refresh_look_preview_from_index()
 	_grid.queue_redraw()
+	_notify_tutorial_prep()
 
 
 func _pair(top: String, bottom: String) -> String:
@@ -633,6 +712,9 @@ func _sync_diff_from_demo() -> void:
 
 
 func _choose_difficulty(easy: bool) -> void:
+	if tutorial_prep_restricts():
+		_popup_info(Loc.t("tut.gate.title"), Loc.t("tut.prep.restrict.hub"))
+		return
 	if demo != null and demo.has_method("set_play_difficulty"):
 		demo.call("set_play_difficulty", "easy" if easy else "normal")
 	_diff_cursor = 0 if easy else 1
@@ -670,6 +752,9 @@ func _on_diff_normal_pressed() -> void:
 func _on_open_elite_pressed() -> void:
 	if _dlg_open or _swallow_click or _confirm_latch or _building:
 		return
+	if tutorial_prep_restricts():
+		_popup_info(Loc.t("tut.gate.title"), Loc.t("tut.prep.restrict.hub"))
+		return
 	if not ProductVersion.test_tools_enabled():
 		return
 	_open_focus = 1
@@ -681,6 +766,13 @@ func _activate_locked_row(row: Dictionary) -> void:
 	var action := String(row.get("action", ""))
 	if action == "locked_look":
 		_popup_info(Loc.t("prep.locked_title"), Loc.t("prep.look.locked_body"))
+		return
+	if action == "tut_furn_cap":
+		_popup_info(Loc.t("tut.gate.title"), Loc.t("tut.prep.restrict.furn_cap"))
+		return
+	if tutorial_prep_restricts():
+		_popup_info(Loc.t("tut.gate.title"), Loc.t("tut.prep.restrict.hub"))
+		return
 
 
 func _on_stat_pressed(stat: String, delta: int, row: int) -> void:
@@ -990,10 +1082,15 @@ func _activate() -> void:
 			_refresh()
 		"buy_f":
 			_ask_furniture(String(arg))
+		"tut_furn_cap":
+			_popup_info(Loc.t("tut.gate.title"), Loc.t("tut.prep.restrict.furn_cap"))
 		"locked_furn":
 			_popup_locked_furn(String(arg))
 		"expand":
-			_ask_expand()
+			if tutorial_shop_hub_locked("expand"):
+				_popup_info(Loc.t("tut.gate.title"), Loc.t("tut.prep.restrict.hub"))
+			else:
+				_ask_expand()
 		"expand_max":
 			_popup_info(Loc.t("prep.msg.locked_title"), Loc.t("prep.msg.max_scale_detail"))
 		"hold":
@@ -1073,6 +1170,9 @@ func _activate() -> void:
 			## Host tint lives on Look page; keep action as no-op fallback.
 			_cycle_look_tint()
 		"open":
+			if _tutorial_blocks_open():
+				_popup_info(Loc.t("tut.gate.title"), Loc.t("tut.gate.prep"))
+				return
 			var open_msg := state.begin_day()
 			if open_msg != "":
 				_popup_info(Loc.t("prep.msg.cant_open"), open_msg)
@@ -1415,6 +1515,9 @@ func _lobby_start_day() -> void:
 		return
 	if not SessionService.all_ready():
 		return
+	if _tutorial_blocks_open():
+		_popup_info(Loc.t("tut.gate.title"), Loc.t("tut.gate.prep"))
+		return
 	refresh_room_sheets_from_state()
 	var open_msg := state.begin_day()
 	if open_msg != "":
@@ -1506,6 +1609,10 @@ func _toggle_for_sale(sku: String) -> void:
 func _ask_furniture(type: String) -> void:
 	var spec: Dictionary = state.FURNITURE[type]
 	var name := state.furniture_name(type)
+	var tut_block := tutorial_furniture_buy_block(type)
+	if tut_block != "":
+		_popup_info(Loc.t("tut.gate.title"), Loc.t(tut_block, [name]))
+		return
 	if not state.furniture_unlocked(type):
 		_popup_locked_furn(type)
 		return
@@ -1577,6 +1684,10 @@ func _run_pending(pending: Dictionary) -> void:
 				_refresh()
 		"furn":
 			var type := String(pending["type"])
+			var tut_block := tutorial_furniture_buy_block(type)
+			if tut_block != "":
+				_popup_info(Loc.t("tut.gate.title"), Loc.t(tut_block, [state.furniture_name(type)]))
+				return
 			var msg3 := state.buy_furniture(type)
 			if msg3 != "":
 				_popup_info(Loc.t("prep.msg.cant_buy_furn"), msg3)
@@ -1585,6 +1696,9 @@ func _run_pending(pending: Dictionary) -> void:
 				_msg = Loc.t("prep.msg.bought_furn", [state.furniture_name(type)])
 				_refresh()
 		"expand":
+			if tutorial_shop_hub_locked("expand"):
+				_popup_info(Loc.t("tut.gate.title"), Loc.t("tut.prep.restrict.hub"))
+				return
 			var msg4 := state.expand()
 			if msg4 != "":
 				_popup_info(Loc.t("prep.msg.cant_expand"), msg4)
@@ -1746,6 +1860,9 @@ func _dialog_move(x: int, _y: int) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible:
+		return
+	var tut := _tutorial()
+	if tut != null and tut.is_modal_open():
 		return
 	if event.is_echo():
 		return

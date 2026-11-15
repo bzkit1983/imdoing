@@ -105,6 +105,8 @@ var active_tasks_by_seat: Dictionary = {}
 var task_test_mode: String = "off"
 var task_test_pack_id: String = "OP-TUT-001"
 var task_test_seed: int = 1
+## Tutorial progress: lesson_id → { status, step_id?, pages_acked? } (tutorial.md).
+var tutorial_progress: Dictionary = {}
 
 
 func _init() -> void:
@@ -134,6 +136,7 @@ func apply_scenario(id: int) -> void:
 	task_test_seed = 1
 	difficulty_prompt_acked = ""
 	support_rating = 0
+	tutorial_progress.clear()
 	_install_new_game_sets()
 	match id:
 		2:
@@ -142,6 +145,8 @@ func apply_scenario(id: int) -> void:
 			_scenario_late()
 		4:
 			_scenario_skill()
+		5:
+			_scenario_tutorial()
 		_:
 			_scenario_new()
 	_grant_initial_goods()
@@ -169,6 +174,52 @@ func _scenario_new() -> void:
 	shop_scale = 1
 	grid_w = 10
 	grid_h = 10
+
+
+## Test-only tutorial campaign: empty shop like new game, $3000 (tutorial.md).
+func _scenario_tutorial() -> void:
+	_scenario_new()
+	money = 3000
+
+
+func is_intro_scenario() -> bool:
+	return scenario == 1 or scenario == 5
+
+
+func tutorial_status(lesson_id: String) -> String:
+	var row = tutorial_progress.get(lesson_id, null)
+	if row is Dictionary:
+		return String(row.get("status", "unseen"))
+	return "unseen"
+
+
+func tutorial_row(lesson_id: String) -> Dictionary:
+	var row = tutorial_progress.get(lesson_id, null)
+	if row is Dictionary:
+		return (row as Dictionary).duplicate(true)
+	return {"status": "unseen"}
+
+
+func set_tutorial_row(lesson_id: String, row: Dictionary) -> void:
+	if lesson_id == "":
+		return
+	tutorial_progress[lesson_id] = row.duplicate(true)
+
+
+func mark_tutorial_done(lesson_id: String) -> void:
+	if lesson_id == "":
+		return
+	tutorial_progress[lesson_id] = {"status": "done", "pages_acked": true}
+
+
+func list_tutorial_done_ids() -> Array[String]:
+	var out: Array[String] = []
+	for id in tutorial_progress.keys():
+		var row = tutorial_progress[id]
+		if row is Dictionary and String(row.get("status", "")) == "done":
+			out.append(String(id))
+	out.sort()
+	return out
 
 
 func _scenario_mid() -> void:
@@ -1045,23 +1096,23 @@ func spawn_every() -> float:
 
 
 func customer_list_min() -> int:
-	return 1 if scenario == 1 else Tuning.LIST_MIN
+	return 1 if is_intro_scenario() else Tuning.LIST_MIN
 
 
 func customer_list_max() -> int:
-	return 3 if scenario == 1 else Tuning.LIST_MAX
+	return 3 if is_intro_scenario() else Tuning.LIST_MAX
 
 
 func dirt_spawn_sec() -> float:
-	return Tuning.DIRT_SPAWN_SEC * 2.0 if scenario == 1 else Tuning.DIRT_SPAWN_SEC
+	return Tuning.DIRT_SPAWN_SEC * 2.0 if is_intro_scenario() else Tuning.DIRT_SPAWN_SEC
 
 
 func thief_spawn_first() -> float:
-	return Tuning.THIEF_SPAWN_FIRST * 2.0 if scenario == 1 else Tuning.THIEF_SPAWN_FIRST
+	return Tuning.THIEF_SPAWN_FIRST * 2.0 if is_intro_scenario() else Tuning.THIEF_SPAWN_FIRST
 
 
 func thief_spawn_sec() -> float:
-	return Tuning.THIEF_SPAWN_SEC * 2.0 if scenario == 1 else Tuning.THIEF_SPAWN_SEC
+	return Tuning.THIEF_SPAWN_SEC * 2.0 if is_intro_scenario() else Tuning.THIEF_SPAWN_SEC
 
 
 func sellable() -> Array[String]:
@@ -1169,6 +1220,7 @@ func to_dict() -> Dictionary:
 		"task_test_mode": task_test_mode,
 		"task_test_pack_id": task_test_pack_id,
 		"task_test_seed": task_test_seed,
+		"tutorial_progress": tutorial_progress.duplicate(true),
 	}
 
 
@@ -1287,6 +1339,13 @@ func from_dict(data: Dictionary) -> String:
 		task_test_mode = "off"
 	task_test_pack_id = String(data.get("task_test_pack_id", "OP-TUT-001"))
 	task_test_seed = int(data.get("task_test_seed", 1))
+	tutorial_progress.clear()
+	var raw_tut = data.get("tutorial_progress", {})
+	if raw_tut is Dictionary:
+		for tid in raw_tut.keys():
+			var trow = raw_tut[tid]
+			if trow is Dictionary:
+				tutorial_progress[String(tid)] = (trow as Dictionary).duplicate(true)
 	_grant_initial_goods()
 	_ensure_one_for_sale()
 	return ""

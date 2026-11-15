@@ -248,6 +248,9 @@ static func _scenario(menu: CanvasLayer) -> void:
 	menu._add(Loc.t("prep.scenario.s2"), "sc", 2)
 	menu._add(Loc.t("prep.scenario.s3"), "sc", 3)
 	menu._add(Loc.t("prep.scenario.s4"), "sc", 4)
+	const ProductVersion = preload("res://scripts/product_version.gd")
+	if ProductVersion.test_tools_enabled():
+		menu._add(Loc.t("prep.scenario.s5"), "sc", 5)
 
 
 static func _in_room_lobby() -> bool:
@@ -262,20 +265,47 @@ static func _home(menu: CanvasLayer) -> void:
 	menu._hub_cols = 3
 	menu._title.text = Loc.t("prep.home.title")
 	var in_room := _in_room_lobby()
+	var tut_lock: bool = menu.tutorial_prep_restricts()
 	if in_room:
 		menu._info.text = menu._pair(menu._header(), Loc.t("lobby.between_day_home"))
+	elif tut_lock:
+		menu._info.text = menu._pair(
+			menu._header(),
+			menu._msg if menu._msg != "" else Loc.t("tut.prep.restrict.home_hint")
+		)
 	else:
 		menu._info.text = menu._pair(menu._header(), menu._msg if menu._msg != "" else menu._home_info())
-	menu._add_hub(Loc.t("prep.hub.char"), "go", "hub_char", "char")
+	menu._add_hub(
+		Loc.t("prep.hub.char"), "go", "hub_char", "char",
+		menu.tutorial_home_hub_locked("hub_char")
+	)
 	## Guests in a kept room only edit their character (§12.10); Host keeps shop hubs.
 	var host_shop := (not SessionService.is_networked()) or SessionService.is_server()
 	if host_shop or not in_room:
-		menu._add_hub(Loc.t("prep.hub.goods"), "go", "hub_goods", "goods")
-		menu._add_hub(Loc.t("prep.hub.shop"), "go", "hub_shop", "shop")
-		menu._add_hub(Loc.t("prep.hub.staff", [menu.state.clerks.size()]), "go", "clerks", "staff")
-		menu._add_hub(Loc.t("prep.hub.rating"), "go", "rating_history", "rating")
-		menu._add_hub(Loc.t("prep.hub.tasks"), "go", "tasks", "tasks")
-	menu._add_hub(Loc.t("prep.hub.sys"), "go", "hub_sys", "sys")
+		menu._add_hub(
+			Loc.t("prep.hub.goods"), "go", "hub_goods", "goods",
+			menu.tutorial_home_hub_locked("hub_goods")
+		)
+		menu._add_hub(
+			Loc.t("prep.hub.shop"), "go", "hub_shop", "shop",
+			menu.tutorial_home_hub_locked("hub_shop")
+		)
+		menu._add_hub(
+			Loc.t("prep.hub.staff", [menu.state.clerks.size()]), "go", "clerks", "staff",
+			menu.tutorial_home_hub_locked("clerks")
+		)
+		menu._add_hub(
+			Loc.t("prep.hub.rating"), "go", "rating_history", "rating",
+			menu.tutorial_home_hub_locked("rating_history")
+		)
+		menu._add_hub(
+			Loc.t("prep.hub.tasks"), "go", "tasks", "tasks",
+			menu.tutorial_home_hub_locked("tasks")
+		)
+	menu._add_hub(
+		Loc.t("prep.hub.sys"), "go", "hub_sys", "sys",
+		menu.tutorial_home_hub_locked("hub_sys")
+	)
 	menu._rebuild_hub_tiles()
 	if in_room:
 		## Between-day: open bar would start a solo day — hide it; return via hub back → lobby.
@@ -285,6 +315,13 @@ static func _home(menu: CanvasLayer) -> void:
 			menu._diff_bar.visible = false
 	else:
 		menu._setup_open_bar()
+		## Tutorial soft-lock: hide elite／difficulty chrome outside the lesson path.
+		if tut_lock:
+			if menu._open_elite:
+				menu._open_elite.visible = false
+			if menu._diff_bar:
+				menu._diff_bar.visible = false
+			menu._layout_hub_chrome()
 
 
 static func _pending_test_pack(menu: CanvasLayer) -> Dictionary:
@@ -500,12 +537,24 @@ static func _hub_goods(menu: CanvasLayer) -> void:
 static func _hub_shop(menu: CanvasLayer) -> void:
 	menu._hub_cols = 1
 	menu._title.text = Loc.t("prep.hub.shop")
-	menu._info.text = menu._pair(menu._header(), Loc.t("prep.hub.shop_info", [
+	var shop_info := Loc.t("prep.hub.shop_info", [
 		menu.state.shop_scale, menu.state.grid_w, menu.state.grid_h,
-	]))
-	menu._add_hub(Loc.t("prep.home.furn"), "go", "furn", "furn")
-	menu._add_hub(Loc.t("prep.home.expand_short"), "go", "expand", "expand")
-	menu._add_hub(Loc.t("prep.home.layout"), "go", "layout", "layout")
+	])
+	if menu.tutorial_prep_restricts():
+		shop_info = Loc.t("tut.prep.restrict.shop_hint")
+	menu._info.text = menu._pair(menu._header(), shop_info)
+	menu._add_hub(
+		Loc.t("prep.home.furn"), "go", "furn", "furn",
+		menu.tutorial_shop_hub_locked("furn")
+	)
+	menu._add_hub(
+		Loc.t("prep.home.expand_short"), "go", "expand", "expand",
+		menu.tutorial_shop_hub_locked("expand")
+	)
+	menu._add_hub(
+		Loc.t("prep.home.layout"), "go", "layout", "layout",
+		menu.tutorial_shop_hub_locked("layout")
+	)
 	menu._rebuild_hub_tiles()
 
 
@@ -797,14 +846,26 @@ static func _qty_button(menu: CanvasLayer, text: String, focus_i: int) -> Button
 
 static func _furn(menu: CanvasLayer) -> void:
 	menu._title.text = Loc.t("prep.furn.title")
-	menu._info.text = menu._pair(menu._header(), menu._msg if menu._msg != "" else Loc.t("prep.furn.info"))
+	var furn_info := Loc.t("prep.furn.info")
+	if menu.tutorial_prep_restricts():
+		furn_info = Loc.t("tut.prep.restrict.furn_hint")
+	menu._info.text = menu._pair(menu._header(), menu._msg if menu._msg != "" else furn_info)
+	var tut_caps: Dictionary = menu.tutorial_furniture_caps()
 	for type in menu.state.FURNITURE.keys():
 		var spec: Dictionary = menu.state.FURNITURE[type]
 		var fname := String(menu.state.furniture_name(type))
+		## During open-shop tutorial: only show the allowlisted pieces.
+		if not tut_caps.is_empty() and not tut_caps.has(type):
+			continue
 		if not menu.state.furniture_unlocked(type):
 			menu._add(Loc.t("prep.furn.locked_row", [fname, int(spec["unlock"]), int(spec["price"])]), "locked_furn", type)
+			continue
+		var owned_n := int(menu.state.owned.get(type, 0))
+		var row_label := Loc.t("prep.furn.buy_row", [fname, int(spec["price"]), owned_n, menu.state.unplaced(type)])
+		if not tut_caps.is_empty() and owned_n >= int(tut_caps[type]):
+			menu._add(Loc.t("tut.prep.restrict.furn_owned_row", [fname, owned_n]), "tut_furn_cap", type)
 		else:
-			menu._add(Loc.t("prep.furn.buy_row", [fname, int(spec["price"]), int(menu.state.owned.get(type, 0)), menu.state.unplaced(type)]), "buy_f", type)
+			menu._add(row_label, "buy_f", type)
 	menu._add(Loc.t("prep.back"), "go", "hub_shop")
 
 
