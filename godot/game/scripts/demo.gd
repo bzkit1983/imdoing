@@ -1871,9 +1871,7 @@ func _net_apply_presentation(delta: float) -> void:
 			var host_row: Dictionary = _owned_host_pose[sid2]
 			var hpos: Vector2 = host_row.get("pos", p2.global_position)
 			var hfac: Vector2 = host_row.get("facing", p2.facing if "facing" in p2 else Vector2.RIGHT)
-			var fight_v = p2.get("_fighting")
-			var ko_v = p2.get("_fight_ko")
-			var in_combat := (fight_v != null and fight_v == true) or (ko_v != null and ko_v == true)
+			var in_combat: bool = _obj_truthy(p2, "_fighting") or _obj_truthy(p2, "_fight_ko")
 			p2.global_position = _net_pres.reconcile_owned(p2.global_position, hpos, delta, in_combat)
 			if in_combat or p2.global_position.distance_squared_to(hpos) >= NetPresentationScript.OWNED_BLEND_PX_SQ:
 				p2.facing = hfac
