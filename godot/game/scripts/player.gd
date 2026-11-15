@@ -973,6 +973,12 @@ func _physics_process(delta: float) -> void:
 		_sync_interact_glow()
 		_update_visuals()
 		return
+	## Tutorial explain modal — freeze local play without get_tree().paused.
+	if game != null and game.has_method("tutorial_freezes_play") and bool(game.tutorial_freezes_play()):
+		velocity = Vector2.ZERO
+		_sync_interact_glow()
+		_update_visuals()
+		return
 	if _asking_early():
 		velocity = Vector2.ZERO
 		_sync_interact_glow()

@@ -33,6 +33,7 @@ const NetPresentationScript = preload("res://scripts/session/net_presentation.gd
 const TaskCatalog = preload("res://scripts/session/task_catalog.gd")
 const TaskTrackerScript = preload("res://scripts/session/task_tracker.gd")
 const ThreeVolleyVisualScript = preload("res://scripts/three_volley_visual.gd")
+const TutorialDirectorScript = preload("res://scripts/tutorial/tutorial_director.gd")
 
 var FLOOR_SIZE := Vector2(640, 640)
 var FLOOR_ORIGIN := Vector2(48, 36)
@@ -49,6 +50,7 @@ var seat_kind_converted: Array[int] = [0]
 var kind_converted_total: int = 0
 var _combo = null
 var _tasks = null
+var _tutorial: Node = null
 var _settled: bool = false
 ## After closeout, block confirm/cancel return until this game time (msec).
 var _closeout_ready_msec: int = 0
@@ -153,6 +155,11 @@ var _net = NetWorldScript.new()
 func _ready() -> void:
 	add_to_group("game")
 	state = StateScript.new()
+	_tutorial = TutorialDirectorScript.new()
+	_tutorial.name = "TutorialDirector"
+	_tutorial.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(_tutorial)
+	_tutorial.setup(state)
 	_prep = PrepScene.instantiate()
 	add_child(_prep)
 	_prep.setup(self)
@@ -177,6 +184,15 @@ func _ready() -> void:
 	_pause.end_day_requested.connect(_on_pause_end_day)
 	if not PlatformServices.show_dev_hud_changed.is_connected(_on_show_dev_hud_changed):
 		PlatformServices.show_dev_hud_changed.connect(_on_show_dev_hud_changed)
+
+
+func tutorial() -> Node:
+	return _tutorial
+
+
+## True while tutorial explain modal is up — freeze day clock／player input (no tree pause).
+func tutorial_freezes_play() -> bool:
+	return _tutorial != null and is_instance_valid(_tutorial) and _tutorial.is_modal_open()
 
 
 func _on_show_dev_hud_changed(_enabled: bool) -> void:
@@ -223,6 +239,9 @@ func _begin_day() -> void:
 		_prep.set_process_unhandled_input(false)
 	if _pause and _pause.has_method("close_menu"):
 		_pause.close_menu()
+	## Safety: leftover tree pause must never carry into ops.
+	if get_tree() != null and get_tree().paused:
+		get_tree().paused = false
 	## Client applies host world snapshot before building the floor.
 	## Stash home save first — live `state` becomes Host shop for presentation only.
 	if SessionService.is_client():
@@ -276,6 +295,11 @@ func _begin_day() -> void:
 	_combo = ComboState.new()
 	_combo.reset(SeatTable.seat_count)
 	_setup_day_tasks()
+	if _tutorial != null:
+		_tutorial.setup(state)
+		if not _tutorial.progress_changed.is_connected(_on_tutorial_progress):
+			_tutorial.progress_changed.connect(_on_tutorial_progress)
+		## Do not open／pause mid-build — wait until world／HUD exist (see end of _begin_day).
 	var il := get_node_or_null("/root/InteractLock")
 	if il != null and il.has_method("clear"):
 		il.clear()
@@ -400,6 +424,9 @@ func _begin_day() -> void:
 		_flush_pending_stock_states()
 		_flush_pending_carry_states()
 		_flush_pending_prompt_states()
+	## Ops tutorial after world／HUD exist (director survives _clear_world).
+	if _tutorial != null and is_instance_valid(_tutorial):
+		_tutorial.call_deferred("consider_ops")
 
 
 func _local_touch_player() -> CharacterBody2D:
@@ -411,9 +438,13 @@ func _local_touch_player() -> CharacterBody2D:
 
 func _clear_world() -> void:
 	_clear_three_volley()
+	## TutorialDirector owns the explain modal — must survive day rebuild
+	## (same as prep／pause). Killing it left a freed ref and soft-locked ops.
+	if _tutorial != null and is_instance_valid(_tutorial) and _tutorial.has_method("close_modal_if_open"):
+		_tutorial.close_modal_if_open()
 	var kill: Array[Node] = []
 	for c in get_children():
-		if c == _prep or c == _pause:
+		if c == _prep or c == _pause or c == _tutorial:
 			continue
 		kill.append(c)
 	for c in kill:
@@ -454,6 +485,10 @@ func _build_furniture(nodes: Array[Node2D]) -> void:
 func _spawn_clerks() -> void:
 	_world_build.spawn_clerks()
 
+func _on_tutorial_progress() -> void:
+	bump_hud()
+
+
 func note_clean(seat: int = 0) -> void:
 	cleaned += 1
 	_seat_bump(seat_cleaned, seat, 1)
@@ -464,7 +499,9 @@ func note_clean(seat: int = 0) -> void:
 	apply_ops_rating(RatingRules.P4_CLEAN, actor)
 	if _tasks != null:
 		_tasks.note_metric(seat, "clean_count", 1)
-		bump_hud()
+	if _tutorial != null:
+		_tutorial.note_metric("clean_count", 1)
+	bump_hud()
 
 
 func _seat_bump(arr: Array, seat: int, n: int) -> void:
@@ -1310,6 +1347,8 @@ func asking_early_close() -> bool:
 func can_open_pause() -> bool:
 	if _early_open:
 		return false
+	if _tutorial != null and _tutorial.is_modal_open():
+		return false
 	return phase == "restock" or phase == "open"
 
 
@@ -1756,6 +1795,10 @@ func _early_input(event: InputEvent) -> void:
 
 
 func _confirm_early_close() -> void:
+	if _tutorial != null and _tutorial.blocks_settle():
+		_decline_early_close()
+		return
+
 	if not _early_open:
 		return
 	_hide_early_dialog()
@@ -1796,6 +1839,9 @@ func customer_move_mult() -> float:
 func _process(delta: float) -> void:
 	if phase == "prep" or phase == "closed" or _early_open:
 		return
+	## Tutorial pages open: hold the day still without get_tree().paused.
+	if tutorial_freezes_play():
+		return
 	_poll_camera_view_hotkey()
 	_maintain_overview_camera()
 	_maintain_coop_camera()
@@ -1812,6 +1858,12 @@ func _process(delta: float) -> void:
 		if phase != prev_phase:
 			bump_hud()
 			host_phase_changed.emit(phase)
+		## Avoid end-of-day spin while a forced ops tutorial still blocks settle.
+		if _tutorial != null and _tutorial.blocks_settle():
+			real_time = maxf(0.0, Tuning.RESTOCK_REAL_SEC + Tuning.OPEN_REAL_SEC - 0.35)
+			phase = "open"
+			game_hours = maxf(game_hours, Tuning.CLOSE_HOUR - 0.05)
+			return
 		_finish_day()
 		return
 	_tick_three_volley(delta)
@@ -2598,24 +2650,38 @@ func _is_player_actor(actor: Node2D = null) -> bool:
 
 
 func note_shelve(seat: int, sku: String, n: int) -> void:
-	if n <= 0 or _tasks == null or not _is_player_seat(seat):
+	if n <= 0 or not _is_player_seat(seat):
 		return
-	_tasks.note_metric(seat, "shelve_count", n)
-	_tasks.note_metric(seat, "shelve_count_sku", n, {"sku": String(sku)})
+	if _tasks != null:
+		_tasks.note_metric(seat, "shelve_count", n)
+		_tasks.note_metric(seat, "shelve_count_sku", n, {"sku": String(sku)})
+	if _tutorial != null:
+		_tutorial.note_metric("shelve_count", n)
+		_tutorial.note_metric("shelve_count_sku", n, {"sku": String(sku)})
 	bump_hud()
 
 
 func note_deliver(seat: int, mode: String, n: int = 1, perfect: bool = false) -> void:
-	if n <= 0 or _tasks == null or not _is_player_seat(seat):
+	if n <= 0 or not _is_player_seat(seat):
 		return
-	_tasks.note_metric(seat, "deliver_count", n)
-	match String(mode):
-		"hand":
-			_tasks.note_metric(seat, "hand_deliver_count", n)
-		"toss":
-			_tasks.note_metric(seat, "toss_deliver_count", n)
-	if perfect:
-		_tasks.note_metric(seat, "perfect_deliver_count", 1)
+	if _tasks != null:
+		_tasks.note_metric(seat, "deliver_count", n)
+		match String(mode):
+			"hand":
+				_tasks.note_metric(seat, "hand_deliver_count", n)
+			"toss":
+				_tasks.note_metric(seat, "toss_deliver_count", n)
+		if perfect:
+			_tasks.note_metric(seat, "perfect_deliver_count", 1)
+	if _tutorial != null:
+		_tutorial.note_metric("deliver_count", n)
+		match String(mode):
+			"hand":
+				_tutorial.note_metric("hand_deliver_count", n)
+			"toss":
+				_tutorial.note_metric("toss_deliver_count", n)
+		if perfect:
+			_tutorial.note_metric("perfect_deliver_count", 1)
 	bump_hud()
 
 
@@ -2630,9 +2696,14 @@ func note_skill_cast(seat: int, skill_id: String, is_ult: bool) -> void:
 
 
 func task_hud_lines(seat: int = 0) -> Array:
-	if _tasks == null:
-		return []
-	return _tasks.hud_lines(seat)
+	var lines: Array = []
+	if _tutorial != null:
+		for row in _tutorial.hud_lines():
+			lines.append(row)
+	if _tasks != null:
+		for row in _tasks.hud_lines(seat):
+			lines.append(row)
+	return lines
 
 
 func _setup_day_tasks() -> void:
@@ -2703,6 +2774,9 @@ func skip_operate() -> void:
 		return
 	if _settled or (phase != "restock" and phase != "open"):
 		return
+	if _tutorial != null and _tutorial.blocks_settle():
+		play_skill_banner(Loc.t("tut.gate.ops"))
+		return
 	if _early_open:
 		_hide_early_dialog()
 	_skip_xp = 400
@@ -2711,9 +2785,19 @@ func skip_operate() -> void:
 	_finish_day()
 
 
+func tutorial_blocks_settle() -> bool:
+	return _tutorial != null and _tutorial.blocks_settle()
+
+
 func _finish_day() -> void:
 	_clear_three_volley()
 	if _settled:
+		return
+	if _tutorial != null and _tutorial.blocks_settle():
+		## Keep day running until forced tutorial step is done.
+		if phase == "closed":
+			phase = "open"
+			game_hours = maxf(game_hours, Tuning.CLOSE_HOUR - 0.05)
 		return
 	## Clients wait for Host settle RPC (_on_settle_payload); do not invent a local shop settle.
 	if SessionService.is_client():

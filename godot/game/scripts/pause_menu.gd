@@ -10,13 +10,16 @@ signal end_day_requested
 
 const FOCUS_RESUME := 0
 const FOCUS_TASKS := 1
-const FOCUS_SFX := 2
-const FOCUS_VOL := 3
-const FOCUS_STICK := 4
-const FOCUS_CAMERA := 5
-const FOCUS_LANG := 6
-const FOCUS_END := 7
-const FOCUS_COUNT := 8
+const FOCUS_TUTORIAL := 2
+const FOCUS_SFX := 3
+const FOCUS_VOL := 4
+const FOCUS_STICK := 5
+const FOCUS_CAMERA := 6
+const FOCUS_LANG := 7
+const FOCUS_END := 8
+const FOCUS_COUNT := 9
+
+const TutorialCatalog = preload("res://scripts/tutorial/tutorial_catalog.gd")
 
 var game: Node
 var _open: bool = false
@@ -37,6 +40,14 @@ var _tasks_detail: bool = false
 var _tasks_detail_root: Control = null
 var _tasks_detail_back: Button = null
 var _tasks_detail_scroll: ScrollContainer = null
+## Tutorial review list sub-mode.
+var _tut_review: bool = false
+var _tut_review_root: Control = null
+var _tut_review_back: Button = null
+var _tut_review_btns: Array[Button] = []
+var _tut_review_ids: Array[String] = []
+var _tut_review_focus: int = 0
+var _tut_review_scroll: ScrollContainer = null
 
 @onready var _shade: ColorRect = %Shade
 @onready var _title: Label = %Title
@@ -44,6 +55,7 @@ var _tasks_detail_scroll: ScrollContainer = null
 @onready var _hint: Label = %Hint
 @onready var _resume_btn: Button = %ResumeBtn
 @onready var _tasks_btn: Button = %TasksBtn
+@onready var _tutorial_btn: Button = %TutorialBtn
 @onready var _sfx_btn: Button = %SfxBtn
 @onready var _vol_btn: Button = %VolBtn
 @onready var _vol_down: Button = %VolDownBtn
@@ -66,7 +78,7 @@ func setup(host: Node) -> void:
 	_body.add_theme_color_override("font_color", Color("f4f1ea"))
 	UiFont.apply_label(_hint, 20)
 	_hint.add_theme_color_override("font_color", Color("c8c2b4"))
-	for b in [_resume_btn, _tasks_btn, _sfx_btn, _vol_btn, _vol_down, _vol_up, _stick_btn, _camera_btn, _lang_btn, _end_btn]:
+	for b in [_resume_btn, _tasks_btn, _tutorial_btn, _sfx_btn, _vol_btn, _vol_down, _vol_up, _stick_btn, _camera_btn, _lang_btn, _end_btn]:
 		if b == null:
 			continue
 		UiFont.apply_button(b, 22)
@@ -74,6 +86,8 @@ func setup(host: Node) -> void:
 	_resume_btn.pressed.connect(_on_resume)
 	if _tasks_btn:
 		_tasks_btn.pressed.connect(_enter_tasks_detail)
+	if _tutorial_btn:
+		_tutorial_btn.pressed.connect(_enter_tut_review)
 	_sfx_btn.pressed.connect(_on_sfx_toggle)
 	_vol_btn.pressed.connect(_on_vol_preview)
 	_vol_down.pressed.connect(_on_vol_nudge.bind(-1))
@@ -139,6 +153,7 @@ func open_menu(from_suspend: bool = false) -> void:
 	_stick_armed = true
 	_exit_lang_pick(false)
 	_exit_tasks_detail(false)
+	_exit_tut_review(false)
 	visible = true
 	_refresh_end_day_row()
 	_refresh_copy()
@@ -159,6 +174,7 @@ func close_menu() -> void:
 		return
 	_exit_lang_pick(false)
 	_exit_tasks_detail(false)
+	_exit_tut_review(false)
 	_open = false
 	_from_suspend = false
 	_stick_armed = true
@@ -232,6 +248,17 @@ func _refresh_copy() -> void:
 			_tasks_detail_back.text = Loc.t("pause.tasks.back")
 		_refresh_hint_visibility()
 		return
+	if _tut_review:
+		_title.text = Loc.t("pause.tutorial.title")
+		_body.text = Loc.t("pause.tutorial")
+		if InputMode.show_vj():
+			_hint.text = Loc.t("pause.hint_touch")
+		else:
+			_hint.text = Loc.t("pause.hint")
+		if _tut_review_back:
+			_tut_review_back.text = Loc.t("pause.tutorial.back")
+		_refresh_hint_visibility()
+		return
 	_title.text = Loc.t("pause.title")
 	if _from_suspend:
 		_body.text = Loc.t("pause.body_suspend")
@@ -244,6 +271,8 @@ func _refresh_copy() -> void:
 	_resume_btn.text = Loc.t("pause.resume")
 	if _tasks_btn:
 		_tasks_btn.text = Loc.t("pause.tasks")
+	if _tutorial_btn:
+		_tutorial_btn.text = Loc.t("pause.tutorial")
 	_end_btn.text = Loc.t("pause.end_day")
 	_refresh_audio_labels()
 	_refresh_stick_row()
@@ -289,8 +318,8 @@ func _refresh_hint_visibility() -> void:
 	if _hint:
 		_hint.visible = show
 	if _body:
-		## Keep body visible in language／tasks subpages (they reuse it for context).
-		if _lang_pick or _tasks_detail:
+		## Keep body visible in language／tasks／tutorial subpages (they reuse it for context).
+		if _lang_pick or _tasks_detail or _tut_review:
 			_body.visible = true
 		else:
 			_body.visible = show
@@ -314,6 +343,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if _tasks_detail:
 		_tasks_detail_input(event)
+		return
+	if _tut_review:
+		_tut_review_input(event)
 		return
 	var dir := _dir_of(event)
 	if dir == 0:
@@ -420,6 +452,8 @@ func _layout_option_rows() -> void:
 	rows.append(_resume_btn)
 	if _tasks_btn != null and _tasks_btn.visible:
 		rows.append(_tasks_btn)
+	if _tutorial_btn != null and _tutorial_btn.visible:
+		rows.append(_tutorial_btn)
 	rows.append(_sfx_btn)
 	if _vol_btn != null and _vol_btn.get_parent() is Control:
 		rows.append(_vol_btn.get_parent() as Control)
@@ -480,6 +514,8 @@ func _activate_focus() -> void:
 			_on_resume()
 		FOCUS_TASKS:
 			_enter_tasks_detail()
+		FOCUS_TUTORIAL:
+			_enter_tut_review()
 		FOCUS_SFX:
 			_on_sfx_toggle()
 		FOCUS_VOL:
@@ -548,6 +584,7 @@ func _enter_lang_pick() -> void:
 	if _lang_pick:
 		return
 	_exit_tasks_detail(false)
+	_exit_tut_review(false)
 	SfxBus.play("sfx_ui_confirm")
 	_lang_pick = true
 	_lang_pick_focus = 0
@@ -562,7 +599,7 @@ func _exit_lang_pick(play_focus: bool) -> void:
 		return
 	_lang_pick = false
 	_clear_lang_pick()
-	if not _tasks_detail:
+	if not _tasks_detail and not _tut_review:
 		_set_main_options_visible(true)
 	_refresh_copy()
 	_focus = FOCUS_LANG
@@ -574,6 +611,7 @@ func _enter_tasks_detail() -> void:
 	if _tasks_detail:
 		return
 	_exit_lang_pick(false)
+	_exit_tut_review(false)
 	SfxBus.play("sfx_ui_confirm")
 	_tasks_detail = true
 	_set_main_options_visible(false)
@@ -587,10 +625,37 @@ func _exit_tasks_detail(play_focus: bool) -> void:
 		return
 	_tasks_detail = false
 	_clear_tasks_detail()
-	if not _lang_pick:
+	if not _lang_pick and not _tut_review:
 		_set_main_options_visible(true)
 	_refresh_copy()
 	_focus = FOCUS_TASKS
+	if play_focus:
+		_paint_focus()
+
+
+func _enter_tut_review() -> void:
+	if _tut_review:
+		return
+	_exit_lang_pick(false)
+	_exit_tasks_detail(false)
+	SfxBus.play("sfx_ui_confirm")
+	_tut_review = true
+	_tut_review_focus = 0
+	_set_main_options_visible(false)
+	_build_tut_review()
+	_refresh_copy()
+	_paint_focus()
+
+
+func _exit_tut_review(play_focus: bool) -> void:
+	if not _tut_review and _tut_review_root == null:
+		return
+	_tut_review = false
+	_clear_tut_review()
+	if not _lang_pick and not _tasks_detail:
+		_set_main_options_visible(true)
+	_refresh_copy()
+	_focus = FOCUS_TUTORIAL
 	if play_focus:
 		_paint_focus()
 
@@ -599,6 +664,8 @@ func _set_main_options_visible(on: bool) -> void:
 	_resume_btn.visible = on
 	if _tasks_btn:
 		_tasks_btn.visible = on
+	if _tutorial_btn:
+		_tutorial_btn.visible = on
 	_sfx_btn.visible = on
 	if _vol_btn.get_parent() is Control:
 		(_vol_btn.get_parent() as Control).visible = on
@@ -847,10 +914,160 @@ func _activate_lang_pick() -> void:
 
 
 func _on_end_day() -> void:
+	if game != null and game.has_method("tutorial_blocks_settle") and bool(game.call("tutorial_blocks_settle")):
+		SfxBus.play("sfx_ui_cancel")
+		if game.has_method("play_skill_banner"):
+			game.call("play_skill_banner", Loc.t("tut.gate.ops"))
+		return
 	if SessionService.is_networked() and not SessionService.request_end_day():
 		return
 	close_menu()
 	end_day_requested.emit()
+
+
+func _game_state():
+	if game == null:
+		return null
+	return game.get("state")
+
+
+func _tutorial_director() -> Node:
+	if game != null and game.has_method("tutorial"):
+		return game.tutorial()
+	return null
+
+
+func _lesson_review_title(lesson_id: String) -> String:
+	var lesson := TutorialCatalog.lesson_by_id(lesson_id)
+	var pages = lesson.get("pages", [])
+	if pages is Array and not pages.is_empty() and pages[0] is Dictionary:
+		var key := String((pages[0] as Dictionary).get("title_key", ""))
+		if key != "":
+			return Loc.t(key)
+	return lesson_id
+
+
+func _build_tut_review() -> void:
+	_clear_tut_review()
+	var card := _resume_btn.get_parent()
+	if card == null:
+		return
+	_tut_review_root = Control.new()
+	_tut_review_root.name = "TutorialReviewRoot"
+	_tut_review_root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_tut_review_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card.add_child(_tut_review_root)
+	_tut_review_scroll = ScrollContainer.new()
+	_tut_review_scroll.offset_left = 36.0
+	_tut_review_scroll.offset_right = 764.0
+	_tut_review_scroll.offset_top = 214.0
+	_tut_review_scroll.offset_bottom = 600.0
+	_tut_review_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_tut_review_root.add_child(_tut_review_scroll)
+	var box := VBoxContainer.new()
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.add_theme_constant_override("separation", 10)
+	box.custom_minimum_size = Vector2(720, 0)
+	_tut_review_scroll.add_child(box)
+	_tut_review_ids.clear()
+	_tut_review_btns.clear()
+	var st = _game_state()
+	var done_ids: Array[String] = []
+	if st != null and st.has_method("list_tutorial_done_ids"):
+		done_ids = st.list_tutorial_done_ids()
+	if done_ids.is_empty():
+		var empty := Label.new()
+		empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		empty.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		empty.text = Loc.t("pause.tutorial.empty")
+		UiFont.apply_label(empty, 22)
+		empty.add_theme_color_override("font_color", Color("f4f1ea"))
+		box.add_child(empty)
+	else:
+		for i in done_ids.size():
+			var lid := done_ids[i]
+			_tut_review_ids.append(lid)
+			var btn := Button.new()
+			btn.focus_mode = Control.FOCUS_NONE
+			btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			btn.custom_minimum_size = Vector2(0, 56)
+			UiFont.apply_button(btn, 22)
+			btn.text = _lesson_review_title(lid)
+			var idx := i
+			btn.pressed.connect(func() -> void:
+				_tut_review_focus = idx
+				_activate_tut_review()
+			)
+			box.add_child(btn)
+			_tut_review_btns.append(btn)
+	_tut_review_back = Button.new()
+	_tut_review_back.focus_mode = Control.FOCUS_NONE
+	_tut_review_back.offset_left = 36.0
+	_tut_review_back.offset_right = 764.0
+	_tut_review_back.offset_top = 612.0
+	_tut_review_back.offset_bottom = 684.0
+	UiFont.apply_button(_tut_review_back, 22)
+	_tut_review_back.text = Loc.t("pause.tutorial.back")
+	_tut_review_back.pressed.connect(func() -> void:
+		SfxBus.play("sfx_ui_cancel")
+		_exit_tut_review(true)
+	)
+	_tut_review_root.add_child(_tut_review_back)
+
+
+func _clear_tut_review() -> void:
+	_tut_review_btns.clear()
+	_tut_review_ids.clear()
+	_tut_review_back = null
+	_tut_review_scroll = null
+	if _tut_review_root != null and is_instance_valid(_tut_review_root):
+		_tut_review_root.queue_free()
+	_tut_review_root = null
+
+
+func _tut_review_count() -> int:
+	return _tut_review_btns.size() + (1 if _tut_review_back != null else 0)
+
+
+func _move_tut_review_focus(delta: int) -> void:
+	var n := _tut_review_count()
+	if n <= 0:
+		return
+	_tut_review_focus = posmod(_tut_review_focus + delta, n)
+	SfxBus.play("sfx_ui_move")
+	_paint_focus()
+
+
+func _activate_tut_review() -> void:
+	if _tut_review_focus >= 0 and _tut_review_focus < _tut_review_btns.size():
+		var lid := _tut_review_ids[_tut_review_focus] if _tut_review_focus < _tut_review_ids.size() else ""
+		var dir := _tutorial_director()
+		if lid != "" and dir != null:
+			SfxBus.play("sfx_ui_confirm")
+			## Close pause so tutorial modal can own tree pause cleanly.
+			close_menu()
+			resume_requested.emit()
+			dir.open_review(lid)
+		return
+	SfxBus.play("sfx_ui_cancel")
+	_exit_tut_review(true)
+
+
+func _tut_review_input(event: InputEvent) -> void:
+	var dir := _dir_of(event)
+	if dir == 0:
+		_move_tut_review_focus(-1)
+		get_viewport().set_input_as_handled()
+	elif dir == 1:
+		_move_tut_review_focus(1)
+		get_viewport().set_input_as_handled()
+	elif _is_confirm(event):
+		get_viewport().set_input_as_handled()
+		_activate_tut_review()
+	elif _is_cancel(event):
+		get_viewport().set_input_as_handled()
+		SfxBus.play("sfx_ui_cancel")
+		_exit_tut_review(true)
 
 
 func _paint_focus() -> void:
@@ -864,9 +1081,17 @@ func _paint_focus() -> void:
 		if _tasks_detail_back:
 			_style_btn(_tasks_detail_back, true)
 		return
+	if _tut_review:
+		for i in _tut_review_btns.size():
+			_style_btn(_tut_review_btns[i], _tut_review_focus == i)
+		if _tut_review_back:
+			_style_btn(_tut_review_back, _tut_review_focus == _tut_review_btns.size())
+		return
 	_style_btn(_resume_btn, _focus == FOCUS_RESUME)
 	if _tasks_btn:
 		_style_btn(_tasks_btn, _focus == FOCUS_TASKS)
+	if _tutorial_btn:
+		_style_btn(_tutorial_btn, _focus == FOCUS_TUTORIAL)
 	_style_btn(_sfx_btn, _focus == FOCUS_SFX)
 	var vol_on := _focus == FOCUS_VOL
 	_style_btn(_vol_btn, vol_on)
