@@ -357,6 +357,12 @@ func _stat_base(which: String) -> int:
 func _has_flag(flag: String) -> bool:
 	if stats != null and stats.has_method("has_flag") and bool(stats.has_flag(flag)):
 		return true
+	## Fallback: scan loadout skill keys (CharacterSheet used to miss these via empty flags).
+	for sk in _loadout():
+		if sk.is_empty():
+			continue
+		if bool(sk.get(flag, false)):
+			return true
 	## 掃地僧: timed full dirt immunity (same flags as 凌波微步).
 	if buff_left("sweeping_monk") > 0.05:
 		match flag:
@@ -2457,7 +2463,7 @@ func _tick_sku_pick(delta: float) -> void:
 		_restock_hold = 0.0
 		return
 	_restock_picking = true
-	target.call("begin_pick")
+	target.call("begin_pick", seat_id)
 	SfxBus.play("sfx_box_sku_open")
 	log_line.emit(Loc.t("log.player.sku_list_hint"))
 

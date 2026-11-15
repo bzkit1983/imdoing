@@ -127,6 +127,8 @@ var _warehouse_hooked: bool = false
 var _pending_carry_states: Array = []
 ## M2.9: client pending checkout prompt RPCs before world ready.
 var _pending_prompt_states: Array = []
+## Client pending day HUD economy RPCs before world ready.
+var _pending_day_hud_states: Array = []
 var _dirt_spawn_in: float = Tuning.DIRT_SPAWN_SEC
 var _thief_spawn_in: float = Tuning.THIEF_SPAWN_FIRST
 var _early_open: bool = false
@@ -177,6 +179,8 @@ func _ready() -> void:
 		SessionService.carry_state_received.connect(_on_carry_state_received)
 	if not SessionService.prompt_state_received.is_connected(_on_prompt_state_received):
 		SessionService.prompt_state_received.connect(_on_prompt_state_received)
+	if not SessionService.day_hud_state_received.is_connected(_on_day_hud_state_received):
+		SessionService.day_hud_state_received.connect(_on_day_hud_state_received)
 	_hook_warehouse_changed()
 	_pause = PauseScene.instantiate()
 	add_child(_pause)
@@ -346,18 +350,17 @@ func _begin_day() -> void:
 			if a and b:
 				a.add_collision_exception_with(b)
 				b.add_collision_exception_with(a)
-	## Camera follows local owned seats; attach to first local player (fallback seat0).
-	var cam_host: CharacterBody2D = _player
+	## Local seat for HUD／camera／prompts (Client is often seat 1+, not seat 0).
 	for p in _players:
 		if p != null and SeatTable.seat_owned_locally(int(p.seat_id)):
-			cam_host = p
+			_player = p
 			break
 	var cam := Camera2D.new()
 	cam.zoom = Vector2(Tuning.CAMERA_ZOOM, Tuning.CAMERA_ZOOM)
 	cam.position_smoothing_enabled = true
 	cam.position_smoothing_speed = 7.5
-	if cam_host:
-		cam_host.add_child(cam)
+	if _player:
+		_player.add_child(cam)
 		cam.make_current()
 	for p in _players:
 		if p != null:
@@ -367,7 +370,7 @@ func _begin_day() -> void:
 	apply_camera_view()
 	_hud = preload("res://scenes/hud.tscn").instantiate()
 	add_child(_hud)
-	## setup binds every seat in `_players` (right panes + cast/log).
+	## setup binds every seat in `_players` (right panes + cast/log); primary = local seat.
 	_hud.setup(self, _player)
 	_bind_player_task_signals()
 	var pad = preload("res://scripts/touch_pad.gd").new()
@@ -416,6 +419,7 @@ func _begin_day() -> void:
 			_dump_all_stock()
 			_dump_all_carry()
 			_dump_all_prompt()
+			_broadcast_day_hud_state()
 	else:
 		## Apply spawn／flight／state RPCs that raced ahead of world build (M2.2～M2.9).
 		_flush_pending_agent_spawns()
@@ -424,6 +428,7 @@ func _begin_day() -> void:
 		_flush_pending_stock_states()
 		_flush_pending_carry_states()
 		_flush_pending_prompt_states()
+		_flush_pending_day_hud_states()
 	## Ops tutorial after world／HUD exist (director survives _clear_world).
 	if _tutorial != null and is_instance_valid(_tutorial):
 		_tutorial.call_deferred("consider_ops")
@@ -2509,6 +2514,9 @@ func _recount_active_thieves() -> void:
 
 
 func record_stolen(items: Array) -> void:
+	## Host authority — client HUD gets stolen／ops via day_hud_state.
+	if SessionService.is_networked() and SessionService.is_client():
+		return
 	var pieces := 0
 	for sku in items:
 		stolen_count += 1
@@ -2521,13 +2529,16 @@ func record_stolen(items: Array) -> void:
 
 
 func record_caught(seat: int = 0, method: String = "any") -> void:
+	var actor := _seat_actor(seat)
+	var FloatText = preload("res://scripts/ui/float_text.gd")
+	if actor != null:
+		FloatText.spawn_xp(actor, StateScript.XP_CATCH)
+	if SessionService.is_networked() and SessionService.is_client():
+		apply_ops_rating(RatingRules.P3_CATCH, actor)
+		return
 	thieves_caught += 1
 	_seat_bump(seat_caught, seat, 1)
 	bump_hud()
-	var FloatText = preload("res://scripts/ui/float_text.gd")
-	var actor := _seat_actor(seat)
-	if actor != null:
-		FloatText.spawn_xp(actor, StateScript.XP_CATCH)
 	apply_ops_rating(RatingRules.P3_CATCH, actor)
 	if _tasks != null:
 		_tasks.note_metric(seat, "thief_caught", 1)
@@ -2541,10 +2552,14 @@ func record_caught(seat: int = 0, method: String = "any") -> void:
 func apply_ops_rating(delta: int, actor: Node2D = null) -> void:
 	if delta == 0:
 		return
-	ops_rating += delta
-	bump_hud()
-	if _tasks != null:
-		_tasks.sync_absolute_for_all_seats("ops_rating", ops_rating)
+	## Client: float only — Host owns ops_rating and pushes absolute HUD (§ ratingsystem Host 店).
+	var net_client := SessionService.is_networked() and SessionService.is_client()
+	if not net_client:
+		ops_rating += delta
+		bump_hud()
+		if _tasks != null:
+			_tasks.sync_absolute_for_all_seats("ops_rating", ops_rating)
+		_broadcast_day_hud_state()
 	var body: Node2D = actor if actor != null and is_instance_valid(actor) else _player
 	if body != null and is_instance_valid(body):
 		var FloatText = preload("res://scripts/ui/float_text.gd")
@@ -2553,13 +2568,18 @@ func apply_ops_rating(delta: int, actor: Node2D = null) -> void:
 
 func note_angry_leave(actor: Node2D = null) -> void:
 	apply_ops_rating(RatingRules.N1_ANGRY, actor)
+	if SessionService.is_networked() and SessionService.is_client():
+		return
 	if _tasks != null:
 		_tasks.sync_absolute_for_all_seats("angry_leave", angry_left)
 		bump_hud()
+	_broadcast_day_hud_state()
 
 
 func note_wrong_deliver(actor: Node2D = null) -> void:
 	apply_ops_rating(RatingRules.N4_WRONG_DELIVER, actor)
+	if SessionService.is_networked() and SessionService.is_client():
+		return
 	var seat := _actor_seat(actor)
 	if _tasks != null:
 		_tasks.note_metric(seat, "wrong_deliver", 1)
@@ -2568,6 +2588,8 @@ func note_wrong_deliver(actor: Node2D = null) -> void:
 
 func note_dash_guest(actor: Node2D = null) -> void:
 	apply_ops_rating(RatingRules.N5_DASH_GUEST, actor)
+	if SessionService.is_networked() and SessionService.is_client():
+		return
 	var seat := _actor_seat(actor)
 	if _tasks != null:
 		_tasks.note_metric(seat, "dash_knock_guest", 1)
@@ -2585,13 +2607,6 @@ func _on_paid(
 	actor: Node2D = null,
 	perfect: bool = true,
 ) -> void:
-	revenue += amount
-	served += 1
-	_seat_bump(seat_served, seat, 1)
-	if from_elite:
-		elite_served += 1
-		_seat_bump(seat_elite, seat, 1)
-	bump_hud()
 	var body: Node2D = actor if actor != null and is_instance_valid(actor) else _seat_actor(seat)
 	if body == null:
 		body = _player
@@ -2605,6 +2620,17 @@ func _on_paid(
 		stagger += 1
 		if from_elite:
 			FloatText.spawn_xp(body, StateScript.XP_ELITE_SERVE, stagger)
+	## Client: presentation only — Host absolute day_hud overwrites revenue／ops.
+	if SessionService.is_networked() and SessionService.is_client():
+		apply_ops_rating(RatingRules.checkout_delta(from_elite, perfect), body)
+		return
+	revenue += amount
+	served += 1
+	_seat_bump(seat_served, seat, 1)
+	if from_elite:
+		elite_served += 1
+		_seat_bump(seat_elite, seat, 1)
+	bump_hud()
 	apply_ops_rating(RatingRules.checkout_delta(from_elite, perfect), body)
 	## Checkout task credit: player seat only — player body or that seat's self-checkout ring.
 	## Skip clerk NPC and skill mass-pay (actor null).
@@ -2620,6 +2646,7 @@ func _on_paid(
 			if perfect:
 				_tasks.note_metric(seat, "checkout_perfect", 1)
 		bump_hud()
+	_broadcast_day_hud_state()
 	if _player != null:
 		var FxBurst = preload("res://scripts/fx_burst.gd")
 		var at: Vector2 = _player.global_position + Vector2(0, -28)
@@ -3239,6 +3266,7 @@ func spawn_dropped_box(
 	toss_dist: float = -1.0,
 	on_landed: Callable = Callable(),
 	land_nudge: Vector2 = Vector2.ZERO,
+	toss_player: CharacterBody2D = null,
 ) -> void:
 	var dest := pos + Tuning.drop_offset(toss_dir, toss_dist)
 	## Instant place when no flight needed (e.g. legacy callers).
@@ -3248,21 +3276,24 @@ func spawn_dropped_box(
 	var sniper_guest: Node2D = null
 	var sniper_thief: Node2D = null
 	var sniper_shelf: Node2D = null
-	if toss_dir.length_squared() > 0.0001 and _player != null:
+	## Sniper buffs belong to the tossing seat — never fall back to global `_player`
+	## (Client seats on Host would otherwise miss guest／thief／shelf sniper).
+	var sniper_src: CharacterBody2D = toss_player
+	if toss_dir.length_squared() > 0.0001 and sniper_src != null and is_instance_valid(sniper_src):
 		## Priority when several snipers are armed: thief → guest → shelf.
-		if _player.has_method("sniper_thief_active") and bool(_player.call("sniper_thief_active")):
+		if sniper_src.has_method("sniper_thief_active") and bool(sniper_src.call("sniper_thief_active")):
 			sniper_thief = _sniper_thief_for(pos)
 			if sniper_thief != null:
 				dest = _sniper_thief_drop_pos(sniper_thief)
-		if sniper_thief == null and _player.has_method("sniper_guest_active") and bool(_player.call("sniper_guest_active")):
+		if sniper_thief == null and sniper_src.has_method("sniper_guest_active") and bool(sniper_src.call("sniper_guest_active")):
 			sniper_guest = _sniper_guest_for(sku, pos)
 			if sniper_guest != null:
 				dest = _sniper_guest_drop_pos(sniper_guest)
 		if (
 			sniper_thief == null
 			and sniper_guest == null
-			and _player.has_method("sniper_shelf_active")
-			and bool(_player.call("sniper_shelf_active"))
+			and sniper_src.has_method("sniper_shelf_active")
+			and bool(sniper_src.call("sniper_shelf_active"))
 		):
 			sniper_shelf = _sniper_shelf_for(sku, pos)
 			if sniper_shelf != null:
@@ -3275,13 +3306,13 @@ func spawn_dropped_box(
 	_world.add_child(flight)
 	flight.finished.connect(func() -> void:
 		if sniper_thief != null and is_instance_valid(sniper_thief):
-			_resolve_sniper_thief_landing(sniper_thief, dest, sku, n, toss_dir)
+			_resolve_sniper_thief_landing(sniper_thief, dest, sku, n, toss_dir, sniper_src)
 		elif sniper_guest != null and is_instance_valid(sniper_guest):
-			_resolve_sniper_guest_landing(sniper_guest, dest, sku, n)
+			_resolve_sniper_guest_landing(sniper_guest, dest, sku, n, sniper_src)
 		elif sniper_shelf != null and is_instance_valid(sniper_shelf):
-			_resolve_sniper_landing(sniper_shelf, dest, sku, n)
+			_resolve_sniper_landing(sniper_shelf, dest, sku, n, sniper_src)
 		else:
-			_resolve_toss_landing(pos, dest, sku, n, toss_dir)
+			_resolve_toss_landing(pos, dest, sku, n, toss_dir, sniper_src)
 		if on_landed.is_valid():
 			on_landed.call()
 	, CONNECT_ONE_SHOT)
@@ -3348,11 +3379,23 @@ func _spawn_box_flight(
 
 func _emit_net_flight(sku: String, n: int, from: Vector2, to: Vector2, duration: float) -> void:
 	_net.emit_net_flight(sku, n, from, to, duration)
+func _toss_actor(toss_player: CharacterBody2D = null) -> CharacterBody2D:
+	if toss_player != null and is_instance_valid(toss_player):
+		return toss_player
+	return _player
+
+
 func _resolve_toss_landing(
-	from: Vector2, dest: Vector2, sku: String, n: int, toss_dir: Vector2
+	from: Vector2,
+	dest: Vector2,
+	sku: String,
+	n: int,
+	toss_dir: Vector2,
+	toss_player: CharacterBody2D = null,
 ) -> void:
 	if n <= 0:
 		return
+	var actor := _toss_actor(toss_player)
 	if toss_dir.length_squared() < 0.0001:
 		_place_dropped_box(dest, sku, n)
 		return
@@ -3360,18 +3403,18 @@ func _resolve_toss_landing(
 	if thief != null:
 		## Thrown box lands at the hit; KO drops stolen goods in place.
 		_place_dropped_box(thief.global_position + Tuning.DROP_FEET_OFFSET, sku, n)
-		if _player and _player.has_method("apply_toss_ko"):
-			_player.call("apply_toss_ko", thief, toss_dir)
+		if actor and actor.has_method("apply_toss_ko"):
+			actor.call("apply_toss_ko", thief, toss_dir)
 		return
 	var guest := _guest_for_toss(from, dest)
 	if guest != null:
-		_resolve_toss_guest(guest, dest, sku, n)
+		_resolve_toss_guest(guest, dest, sku, n, actor)
 		return
 	var shelf := _shelf_for_toss(dest, sku)
 	if shelf == null:
 		var clone := _clone_for_toss(from, dest)
 		if clone != null:
-			_resolve_toss_clone(clone, sku, n)
+			_resolve_toss_clone(clone, sku, n, actor)
 			return
 		_place_dropped_box(dest, sku, n)
 		return
@@ -3381,13 +3424,13 @@ func _resolve_toss_landing(
 		return
 	SfxBus.play("sfx_box_shelf_toss")
 	var left := n - placed
-	if _player:
+	if actor:
 		if left <= 0:
-			_player.log_line.emit(
+			actor.log_line.emit(
 				Loc.t("log.demo.toss_shelved", [Tuning.sku_name(sku), placed])
 			)
 		else:
-			_player.log_line.emit(
+			actor.log_line.emit(
 				Loc.t("log.demo.toss_shelved_drop", [Tuning.sku_name(sku), placed, left])
 			)
 	if left > 0:
@@ -3410,12 +3453,15 @@ func _clone_for_toss(from: Vector2, dest: Vector2) -> Node2D:
 	return best
 
 
-func _resolve_toss_clone(clone: Node2D, sku: String, n: int) -> void:
+func _resolve_toss_clone(
+	clone: Node2D, sku: String, n: int, toss_player: CharacterBody2D = null
+) -> void:
 	if clone.has_method("apply_toss_hit"):
 		clone.call("apply_toss_hit")
 	_place_dropped_box(clone.global_position + Tuning.DROP_FEET_OFFSET, sku, n)
-	if _player:
-		_player.log_line.emit(
+	var actor := _toss_actor(toss_player)
+	if actor:
+		actor.log_line.emit(
 			Loc.t("log.demo.toss_clone", [Tuning.sku_name(sku), n])
 		)
 
@@ -3444,21 +3490,22 @@ func _guest_for_toss(from: Vector2, dest: Vector2) -> Node2D:
 	return best
 
 
-func _resolve_toss_guest(guest: Node2D, dest: Vector2, sku: String, n: int) -> void:
+func _resolve_toss_guest(
+	guest: Node2D, dest: Vector2, sku: String, n: int, toss_player: CharacterBody2D = null
+) -> void:
+	var actor := _toss_actor(toss_player)
 	var before := 0
 	if guest != null and guest.get("shopping") != null:
 		before = int((guest.shopping as Array).size())
 	var taken := 0
 	if guest.has_method("accept_toss_box"):
 		taken = int(guest.call("accept_toss_box", sku, n))
-	var toss_seat := 0
-	if _player != null:
-		toss_seat = int(_player.seat_id)
+	var toss_seat := int(actor.seat_id) if actor != null else 0
 	if taken > 0:
 		var left := n - taken
 		SfxBus.play("sfx_box_hit_guest_ok")
-		if _player:
-			_player.log_line.emit(
+		if actor:
+			actor.log_line.emit(
 				Loc.t("log.demo.toss_guest_ok", [
 					Tuning.sku_name(sku), taken,
 					(Loc.t("log.demo.toss_remain", [left]) if left > 0 else ""),
@@ -3479,8 +3526,8 @@ func _resolve_toss_guest(guest: Node2D, dest: Vector2, sku: String, n: int) -> v
 	SfxBus.play("sfx_box_hit_guest_reject")
 	_place_dropped_box(dest, sku, n)
 	combo_break_personal(toss_seat)
-	if _player:
-		_player.log_line.emit(Loc.t("log.demo.toss_guest_reject"))
+	if actor:
+		actor.log_line.emit(Loc.t("log.demo.toss_guest_reject"))
 
 
 ## Active thief nearest the flight segment / landing within hit radius.
@@ -3530,24 +3577,30 @@ func _sniper_thief_drop_pos(thief: Node2D) -> Vector2:
 
 
 func _resolve_sniper_thief_landing(
-	thief: Node2D, dest: Vector2, sku: String, n: int, toss_dir: Vector2
+	thief: Node2D,
+	dest: Vector2,
+	sku: String,
+	n: int,
+	toss_dir: Vector2,
+	toss_player: CharacterBody2D = null,
 ) -> void:
 	if n <= 0:
 		return
+	var actor := _toss_actor(toss_player)
 	## Thief fled / became uncatchable while the box was in the air.
 	if not thief.has_method("is_active_thief") or not bool(thief.call("is_active_thief")):
 		_place_dropped_box(dest, sku, n)
-		if _player:
-			_player.log_line.emit(
+		if actor:
+			actor.log_line.emit(
 				Loc.t("log.demo.sniper_thief_gone", [Tuning.sku_name(sku), n])
 			)
 		return
 	## Hit lands at the thief; whole throw drops (thief does not take shopping).
 	_place_dropped_box(thief.global_position + Tuning.DROP_FEET_OFFSET, sku, n)
-	if _player and _player.has_method("apply_toss_ko"):
-		_player.call("apply_toss_ko", thief, toss_dir)
-	elif _player:
-		_player.log_line.emit(
+	if actor and actor.has_method("apply_toss_ko"):
+		actor.call("apply_toss_ko", thief, toss_dir)
+	elif actor:
+		actor.log_line.emit(
 			Loc.t("log.demo.sniper_thief_hit", [Tuning.sku_name(sku), n])
 		)
 
@@ -3594,14 +3647,17 @@ func _sniper_guest_drop_pos(guest: Node2D) -> Vector2:
 	return guest.global_position + Tuning.DROP_FEET_OFFSET
 
 
-func _resolve_sniper_guest_landing(guest: Node2D, dest: Vector2, sku: String, n: int) -> void:
+func _resolve_sniper_guest_landing(
+	guest: Node2D, dest: Vector2, sku: String, n: int, toss_player: CharacterBody2D = null
+) -> void:
 	if n <= 0:
 		return
+	var actor := _toss_actor(toss_player)
 	## Guest may have finished shopping while the box was in the air.
 	if not guest.has_method("can_receive_delivery") or not bool(guest.call("can_receive_delivery")) or _guest_wants_sku(guest, sku) <= 0:
 		_place_dropped_box(dest, sku, n)
-		if _player:
-			_player.log_line.emit(
+		if actor:
+			actor.log_line.emit(
 				Loc.t("log.demo.sniper_guest_gone", [Tuning.sku_name(sku), n])
 			)
 		return
@@ -3612,9 +3668,7 @@ func _resolve_sniper_guest_landing(guest: Node2D, dest: Vector2, sku: String, n:
 	if guest.has_method("accept_toss_box"):
 		taken = int(guest.call("accept_toss_box", sku, n))
 	var left := n - taken
-	var toss_seat := 0
-	if _player != null:
-		toss_seat = int(_player.seat_id)
+	var toss_seat := int(actor.seat_id) if actor != null else 0
 	if taken > 0:
 		SfxBus.play("sfx_box_hit_guest_ok")
 		var perfect: bool = before >= 1 and bool(guest.shopping.is_empty())
@@ -3624,17 +3678,17 @@ func _resolve_sniper_guest_landing(guest: Node2D, dest: Vector2, sku: String, n:
 		if perfect:
 			combo_note_perfect(toss_seat)
 		note_deliver(toss_seat, "toss", 1, perfect)
-		if _player:
+		if actor:
 			if left <= 0:
-				_player.log_line.emit(
+				actor.log_line.emit(
 					Loc.t("log.demo.sniper_guest_ok", [Tuning.sku_name(sku), taken])
 				)
 			else:
-				_player.log_line.emit(
+				actor.log_line.emit(
 					Loc.t("log.demo.sniper_guest_partial", [Tuning.sku_name(sku), taken, left])
 				)
-	elif _player:
-		_player.log_line.emit(
+	elif actor:
+		actor.log_line.emit(
 			Loc.t("log.demo.sniper_guest_gone", [Tuning.sku_name(sku), n])
 		)
 	if left > 0:
@@ -3671,26 +3725,29 @@ func _sniper_drop_pos(shelf: Node2D) -> Vector2:
 	return shelf.global_position + Vector2(0.0, 48.0)
 
 
-func _resolve_sniper_landing(shelf: Node2D, dest: Vector2, sku: String, n: int) -> void:
+func _resolve_sniper_landing(
+	shelf: Node2D, dest: Vector2, sku: String, n: int, toss_player: CharacterBody2D = null
+) -> void:
 	if n <= 0:
 		return
+	var actor := _toss_actor(toss_player)
 	var placed := 0
 	if shelf.has_method("can_accept") and bool(shelf.call("can_accept", sku)) and shelf.has_method("add_items"):
 		placed = int(shelf.call("add_items", sku, n))
 	var left := n - placed
 	if placed > 0:
 		SfxBus.play("sfx_box_shelf_toss")
-		if _player:
+		if actor:
 			if left <= 0:
-				_player.log_line.emit(
+				actor.log_line.emit(
 					Loc.t("log.demo.sniper_shelf_ok", [Tuning.sku_name(sku), placed])
 				)
 			else:
-				_player.log_line.emit(
+				actor.log_line.emit(
 					Loc.t("log.demo.sniper_shelf_partial", [Tuning.sku_name(sku), placed, left])
 				)
-	elif _player:
-		_player.log_line.emit(
+	elif actor:
+		actor.log_line.emit(
 			Loc.t("log.demo.sniper_shelf_full", [Tuning.sku_name(sku), n])
 		)
 	if left > 0:
@@ -3947,6 +4004,66 @@ func _flush_pending_prompt_states() -> void:
 	for payload in queued:
 		if payload is Dictionary:
 			_apply_prompt_state_payload(payload)
+
+
+func _broadcast_day_hud_state() -> void:
+	if not SessionService.is_networked() or not SessionService.is_server() or not SessionService.day_started:
+		return
+	SessionService.broadcast_day_hud_state({
+		"ops_rating": ops_rating,
+		"revenue": revenue,
+		"stolen_value": stolen_value,
+		"stolen_count": stolen_count,
+		"served": served,
+		"angry_left": angry_left,
+		"thieves_caught": thieves_caught,
+		"thieves_escaped": thieves_escaped,
+	})
+
+
+func _on_day_hud_state_received(payload: Dictionary) -> void:
+	if not SessionService.is_client():
+		return
+	if _world == null or not is_instance_valid(_world):
+		_pending_day_hud_states.append(payload.duplicate(true))
+		return
+	_apply_day_hud_state_payload(payload)
+
+
+func _flush_pending_day_hud_states() -> void:
+	if _pending_day_hud_states.is_empty():
+		return
+	var queued: Array = _pending_day_hud_states.duplicate(true)
+	_pending_day_hud_states.clear()
+	for payload in queued:
+		if payload is Dictionary:
+			_apply_day_hud_state_payload(payload)
+
+
+func _apply_day_hud_state_payload(payload: Dictionary) -> void:
+	if payload.is_empty():
+		return
+	if payload.has("ops_rating"):
+		ops_rating = int(payload["ops_rating"])
+	if payload.has("revenue"):
+		revenue = int(payload["revenue"])
+	if payload.has("stolen_value"):
+		stolen_value = int(payload["stolen_value"])
+	if payload.has("stolen_count"):
+		stolen_count = int(payload["stolen_count"])
+	if payload.has("served"):
+		served = int(payload["served"])
+	if payload.has("angry_left"):
+		angry_left = int(payload["angry_left"])
+	if payload.has("thieves_caught"):
+		thieves_caught = int(payload["thieves_caught"])
+	if payload.has("thieves_escaped"):
+		thieves_escaped = int(payload["thieves_escaped"])
+	if _tasks != null:
+		_tasks.sync_absolute_for_all_seats("ops_rating", ops_rating)
+		_tasks.sync_absolute_for_all_seats("sales_revenue", revenue)
+		_tasks.sync_absolute_for_all_seats("angry_leave", angry_left)
+	bump_hud()
 
 
 func _apply_prompt_state_payload(payload: Dictionary) -> void:

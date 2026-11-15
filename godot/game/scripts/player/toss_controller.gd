@@ -220,6 +220,7 @@ func launch_piece_toss(
 		dist,
 		Callable(host, "_on_piece_drop_landed"),
 		land_nudge,
+		host,
 	)
 	SfxBus.play("sfx_box_toss")
 
@@ -268,6 +269,8 @@ func drop_top_box(toss_dir: Vector2 = Vector2.ZERO, lock_until_land: bool = true
 			toss_dir,
 			drop_toss_dist(),
 			landed,
+			Vector2.ZERO,
+			host,
 		)
 
 func on_drop_flight_done() -> void:

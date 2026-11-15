@@ -142,6 +142,7 @@ func spawn_dropped_box(
 	_toss_dist: float = -1.0,
 	_on_landed: Callable = Callable(),
 	_land_nudge: Vector2 = Vector2.ZERO,
+	_toss_player: CharacterBody2D = null,
 ) -> void:
 	pass
 

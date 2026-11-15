@@ -10,6 +10,8 @@ var category: String = Tuning.CAT_DRY
 var highlight: int = 0
 var cursor: int = 0
 var picking: bool = false
+## Seat that opened the SKU pick list — menu anchors over that clerk (not game._player).
+var pick_seat: int = -1
 var stock: Dictionary = {}
 var label: Label
 var body: CanvasItem
@@ -102,8 +104,13 @@ func apply_default_sku(sku: String) -> void:
 	_refresh()
 
 
-func begin_pick() -> void:
+func begin_pick(seat_id: int = -1) -> void:
 	picking = true
+	pick_seat = seat_id
+	if pick_seat < 0:
+		var lock = get_node_or_null("/root/InteractLock")
+		if lock != null and lock.has_method("holder_of"):
+			pick_seat = int(lock.holder_of(self))
 	cursor = highlight
 	if label:
 		label.visible = false
@@ -124,6 +131,7 @@ func move_pick(delta_index: int) -> void:
 func commit_pick() -> String:
 	highlight = cursor
 	picking = false
+	pick_seat = -1
 	if label:
 		label.visible = true
 	_refresh()
@@ -134,6 +142,7 @@ func commit_pick() -> String:
 
 func abort_pick() -> void:
 	picking = false
+	pick_seat = -1
 	if label:
 		label.visible = true
 	_refresh()
@@ -178,15 +187,26 @@ func remaining(sku: String) -> int:
 
 
 func _list_anchor() -> Vector2:
-	## Screen position of the clerk. Fall back to this shelf if the round has no player yet.
+	## Screen position of the clerk who opened the list (coop: not always game._player).
 	var fallback := get_global_transform_with_canvas().origin
 	if not is_inside_tree():
 		return fallback
 	var game := get_tree().get_first_node_in_group("game")
-	if game != null:
-		var player = game.get("_player")
-		if player is Node2D and is_instance_valid(player):
-			return (player as Node2D).get_global_transform_with_canvas().origin
+	if game == null:
+		return fallback
+	var player = null
+	if pick_seat >= 0 and game.has_method("_player_for_seat"):
+		player = game.call("_player_for_seat", pick_seat)
+	if player == null:
+		var lock = get_node_or_null("/root/InteractLock")
+		if lock != null and lock.has_method("holder_of"):
+			var holder := int(lock.holder_of(self))
+			if holder >= 0 and game.has_method("_player_for_seat"):
+				player = game.call("_player_for_seat", holder)
+	if player == null:
+		player = game.get("_player")
+	if player is Node2D and is_instance_valid(player):
+		return (player as Node2D).get_global_transform_with_canvas().origin
 	return fallback
 
 

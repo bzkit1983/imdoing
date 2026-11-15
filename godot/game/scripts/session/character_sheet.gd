@@ -201,6 +201,13 @@ func ult_skill() -> Dictionary:
 
 
 func has_flag(flag: String) -> bool:
+	## Match GameState.has_flag: skill dict keys on equipped loadout (e.g. ignore_puddle_slip).
+	## Cached `flags` alone stays empty for networked／guest sheets and would break 凌波微步.
+	for sk in loadout():
+		if sk.is_empty():
+			continue
+		if bool(sk.get(flag, false)):
+			return true
 	return bool(flags.get(flag, false))
 
 
