@@ -53,8 +53,15 @@ var _left_panel: PanelContainer
 @onready var _log: ItemList = $Root/Right/Margin/VBox/Log
 @onready var _banner: Label = $Root/Banner
 @onready var _cast: Label = $Root/CastName
+@onready var _close_dim: ColorRect = $Root/CloseoutDim
 @onready var _close: PanelContainer = $Root/Closeout
-@onready var _close_text: Label = $Root/Closeout/Margin/CloseText
+@onready var _close_tasks_card: PanelContainer = $Root/Closeout/Margin/Columns/TasksCard
+@onready var _close_settle_card: PanelContainer = $Root/Closeout/Margin/Columns/SettleCard
+@onready var _close_tasks_header: Label = $Root/Closeout/Margin/Columns/TasksCard/CardMargin/TasksCol/TasksHeader
+@onready var _close_tasks: Label = $Root/Closeout/Margin/Columns/TasksCard/CardMargin/TasksCol/TasksText
+@onready var _close_settle_header: Label = $Root/Closeout/Margin/Columns/SettleCard/CardMargin/SettleCol/SettleHeader
+@onready var _close_text: Label = $Root/Closeout/Margin/Columns/SettleCard/CardMargin/SettleCol/CloseText
+var _closeout_styled: bool = false
 
 
 func setup(g: Node, p: CharacterBody2D) -> void:
@@ -94,7 +101,8 @@ func setup(g: Node, p: CharacterBody2D) -> void:
 		_log.custom_minimum_size = Vector2(0, 64)
 	_apply_cjk_fonts($Root)
 	get_viewport().size_changed.connect(_on_viewport_resized)
-	_close.visible = false
+	_style_closeout()
+	_set_closeout_visible(false)
 	_cast.modulate.a = 0.0
 	_build_skip()
 	_build_pause()
@@ -427,13 +435,97 @@ func _apply_cjk_fonts(node: Node) -> void:
 		_apply_cjk_fonts(child)
 
 
+func _flat_panel(bg: Color, border: Color, radius: int = 10, border_w: int = 1) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = bg
+	sb.border_color = border
+	sb.set_border_width_all(border_w)
+	sb.set_corner_radius_all(radius)
+	sb.content_margin_left = 0
+	sb.content_margin_right = 0
+	sb.content_margin_top = 0
+	sb.content_margin_bottom = 0
+	return sb
+
+
+func _style_closeout_label(lab: Label, size: int, color: Color, outline: int = 5) -> void:
+	if lab == null:
+		return
+	UiFont.apply_label(lab, size)
+	lab.add_theme_color_override("font_color", color)
+	lab.add_theme_color_override("font_outline_color", Color(0.04, 0.05, 0.06, 1))
+	lab.add_theme_constant_override("outline_size", outline)
+	lab.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+
+func _style_closeout() -> void:
+	if _closeout_styled or _close == null:
+		return
+	_closeout_styled = true
+	## Outer shell — near-opaque so shop floor never bleeds through type.
+	_close.add_theme_stylebox_override(
+		"panel",
+		_flat_panel(Color(0.07, 0.09, 0.10, 0.98), Color(0.42, 0.48, 0.44, 0.95), 14, 2)
+	)
+	if _close_tasks_card:
+		_close_tasks_card.add_theme_stylebox_override(
+			"panel",
+			_flat_panel(Color(0.11, 0.13, 0.14, 1.0), Color(0.28, 0.32, 0.30, 0.85), 10, 1)
+		)
+	if _close_settle_card:
+		_close_settle_card.add_theme_stylebox_override(
+			"panel",
+			_flat_panel(Color(0.12, 0.14, 0.13, 1.0), Color(0.55, 0.48, 0.28, 0.75), 10, 1)
+		)
+	## Headers: warm accent; body: high-contrast cream + outline.
+	_style_closeout_label(_close_tasks_header, UiFont.TITLE, Color(0.96, 0.83, 0.37, 1), 6)
+	_style_closeout_label(_close_settle_header, UiFont.TITLE, Color(0.96, 0.83, 0.37, 1), 6)
+	_style_closeout_label(_close_tasks, UiFont.BODY, Color(0.96, 0.95, 0.92, 1), 5)
+	_style_closeout_label(_close_text, UiFont.BODY, Color(0.96, 0.95, 0.92, 1), 5)
+	if _close_dim:
+		_close_dim.color = Color(0.02, 0.03, 0.04, 0.74)
+		_close_dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_close_dim.z_index = 7
+
+
+func _set_closeout_visible(on: bool) -> void:
+	_style_closeout()
+	if _close_dim:
+		_close_dim.visible = on
+	_close.visible = on
+	## Keep live HUD chrome from fighting the settle card.
+	if on:
+		if _tasks_panel:
+			_tasks_panel.visible = false
+		if _skills_panel:
+			_skills_panel.visible = false
+
+
 func show_closeout() -> void:
-	_close.visible = true
+	_set_closeout_visible(true)
+	if _close_tasks_header:
+		_close_tasks_header.text = Loc.t("settle.tasks_header")
+	if _close_settle_header:
+		_close_settle_header.text = Loc.t("settle.results_header")
+	if _close_tasks:
+		_close_tasks.text = Loc.t("settle.tasks_empty")
 	_close_text.text = Loc.t("settle.hud_legacy", [
 		game.revenue, game.served, game.angry_left,
 		int(game.stolen_count), int(game.stolen_value),
 		int(game.thieves_caught), int(game.thieves_escaped)
 	])
+
+
+## Left = task results; right = day settle body.
+func set_closeout_panels(settle_body: String, tasks_body: String = "") -> void:
+	_set_closeout_visible(true)
+	if _close_tasks_header:
+		_close_tasks_header.text = Loc.t("settle.tasks_header")
+	if _close_settle_header:
+		_close_settle_header.text = Loc.t("settle.results_header")
+	if _close_tasks:
+		_close_tasks.text = tasks_body if tasks_body.strip_edges() != "" else Loc.t("settle.tasks_empty")
+	_close_text.text = settle_body
 
 
 func _process(delta: float) -> void:

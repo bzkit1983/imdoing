@@ -349,8 +349,15 @@ mood.dazed,暈眩…,Dazed…,晕眩…,くらくら…
 mood.thanks_pay,謝謝！去付款,Thanks! Going to pay,谢谢！去付款,ありがとう！会計へ
 mood.thanks_bang,謝謝！,Thanks!,谢谢！,ありがとう！
 mood.reject_item,不想要這貨品！,Don't want this!,不想要这货品！,この商品はいらない！
-settle.tasks_header,任務結算,Task settle,任务结算,タスク決算
-settle.tasks_desc,　%s,  %s,　%s,　%s
+settle.tasks_header,任務結果,Task results,任务结果,タスク結果
+settle.results_header,結算結果,Settle results,结算结果,精算結果
+settle.tasks_empty,本日無任務,No tasks today,本日无任务,本日のタスクなし
+settle.tasks_host_only,（任務結果由店主端結算）,（Task results settle on host）,（任务结果由店主端结算）,（タスク結果はホスト側で精算）
+settle.tasks_row,%s 【%s】　%s　%s,%s [%s]  %s  %s,%s 【%s】　%s　%s,%s 【%s】　%s　%s
+settle.tasks_row_done,%s 【%s】　%s　%s　已完成,%s [%s]  %s  %s  Done,%s 【%s】　%s　%s　已完成,%s 【%s】　%s　%s　完了
+settle.tasks_row_nodesc,%s 【%s】　%s,%s [%s]  %s,%s 【%s】　%s,%s 【%s】　%s
+settle.tasks_row_done_nodesc,%s 【%s】　%s　已完成,%s [%s]  %s  Done,%s 【%s】　%s　已完成,%s 【%s】　%s　完了
+settle.tasks_row_unwired,%s 【%s】（未接線）,%s [%s] (unwired),%s 【%s】（未接线）,%s 【%s】（未接続）
 quest.op_tut_001_a.name,罐頭上架,Shelve cans,罐头上架,缶詰陳列
 quest.op_tut_001_a.desc,本日內將罐頭上架達 12 個。,Shelve 12 cans today.,本日将罐头上架达 12 个。,本日中に缶詰を12個陳列する。
 quest.op_tut_001_b.name,店面清潔,Store cleaning,店面清洁,店内清掃
@@ -373,3 +380,7 @@ quest.op_man_002_b.name,商店評價,Shop rating,商店评价,店舗評価
 quest.op_man_002_b.desc,將商店評價提升至 5 或以上。,Raise shop rating to 5 or higher.,将商店评价提升至 5 或以上。,店舗評価を5以上にする。
 quest.op_rand_generic.name,隨機營運任務,Random ops task,随机营运任务,ランダム営業タスク
 quest.op_rand_generic.desc,完成產生器指定的營運條件（進度見數字）。,Complete the generated ops goal (see progress).,完成生成器指定的营运条件（进度见数字）。,生成された営業条件を達成する（進捗は数値）。
+quest.pack.op_tut_001.name,序章教學包,Prologue tutorial pack,序章教学包,序章チュートリアル
+quest.pack.op_man_001.name,營業額與評級,Revenue & day grade,营业额与评级,売上と当日評価
+quest.pack.op_man_002.name,跨日累計,Cross-day accumulate,跨日累计,日またぎ累計
+quest.pack.op_rand.name,隨機營運包,Random ops pack,随机营运包,ランダム営業パック

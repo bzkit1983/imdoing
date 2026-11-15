@@ -304,6 +304,26 @@ static func _pending_test_pack(menu: CanvasLayer) -> Dictionary:
 			return {}
 
 
+static func _format_task_row(
+	mark: String,
+	name: String,
+	desc: String,
+	prog: String,
+	status: String,
+	unwired: bool,
+) -> String:
+	## Highlight name with 【】; description sits to the right on the same row.
+	if unwired:
+		return Loc.t("prep.tasks.row_unwired", [mark, name])
+	if desc == "":
+		if status == "done":
+			return Loc.t("prep.tasks.row_done_nodesc", [mark, name, prog])
+		return Loc.t("prep.tasks.row_nodesc", [mark, name, prog])
+	if status == "done":
+		return Loc.t("prep.tasks.row_done", [mark, name, desc, prog])
+	return Loc.t("prep.tasks.row", [mark, name, desc, prog])
+
+
 static func _add_pack_task_rows(menu: CanvasLayer, pack: Dictionary, progress_rows: Array = []) -> void:
 	const TaskCatalog = preload("res://scripts/session/task_catalog.gd")
 	const TaskTracker = preload("res://scripts/session/task_tracker.gd")
@@ -331,18 +351,11 @@ static func _add_pack_task_rows(menu: CanvasLayer, pack: Dictionary, progress_ro
 		var unwired := not TaskCatalog.is_wired(String(task.get("metric", "")))
 		var mark := TaskTracker.status_mark(st, unwired)
 		var label := TaskCatalog.display_name(task)
+		var desc := TaskCatalog.display_desc(task)
 		var tgt := int(task.get("target", 0))
 		var op := String(task.get("op", ">="))
 		var prog := TaskTracker.progress_text(op, cur, tgt, st)
-		if unwired:
-			menu._add("%s %s (%s)" % [mark, label, Loc.t("hud.tasks_unwired")], "noop", null)
-		elif st == "done":
-			menu._add(Loc.t("prep.tasks.row_done", [mark, label, prog]), "noop", null)
-		else:
-			menu._add(Loc.t("prep.tasks.row", [mark, label, prog]), "noop", null)
-		var desc := TaskCatalog.display_desc(task)
-		if desc != "":
-			menu._add(Loc.t("prep.tasks.desc_row", [desc]), "noop", null)
+		menu._add(_format_task_row(mark, label, desc, prog, st, unwired), "noop", null)
 
 
 static func _tasks(menu: CanvasLayer) -> void:
@@ -354,7 +367,7 @@ static func _tasks(menu: CanvasLayer) -> void:
 	var mode_label := Loc.t("prep.tasks.mode_off")
 	match mode:
 		"pack":
-			mode_label = Loc.t("prep.tasks.mode_pack", [String(menu.state.task_test_pack_id)])
+			mode_label = Loc.t("prep.tasks.mode_pack", [TaskCatalog.display_pack_name(String(menu.state.task_test_pack_id))])
 		"random":
 			mode_label = Loc.t("prep.tasks.mode_random", [int(menu.state.task_test_seed)])
 	var info := Loc.t("prep.tasks.info", [day_i, mode_label])
@@ -366,7 +379,7 @@ static func _tasks(menu: CanvasLayer) -> void:
 	## Pending test pack (selected in prep; attaches on next open).
 	var pending: Dictionary = _pending_test_pack(menu)
 	if not pending.is_empty():
-		menu._add(Loc.t("prep.tasks.pending_header", [String(pending.get("pack_id", ""))]), "noop", null)
+		menu._add(Loc.t("prep.tasks.pending_header", [TaskCatalog.display_pack_name(pending)]), "noop", null)
 		## Fresh test attach: ignore leftover bag progress／extras.
 		_add_pack_task_rows(menu, pending, [])
 	## Cross-day leftovers only when no test pack is queued.
@@ -383,21 +396,14 @@ static func _tasks(menu: CanvasLayer) -> void:
 			var unwired := st == "unwired" or not TaskCatalog.is_wired(String(task.get("metric", "")))
 			var mark := TaskTracker.status_mark(st, unwired)
 			var label := TaskCatalog.display_name(task)
+			var desc := TaskCatalog.display_desc(task)
 			var prog := TaskTracker.progress_text(
 				String(task.get("op", ">=")),
 				int(row.get("current", 0)),
 				int(task.get("target", 0)),
 				st
 			)
-			if unwired:
-				menu._add("%s %s (%s)" % [mark, label, Loc.t("hud.tasks_unwired")], "noop", null)
-			elif st == "done":
-				menu._add(Loc.t("prep.tasks.row_done", [mark, label, prog]), "noop", null)
-			else:
-				menu._add(Loc.t("prep.tasks.row", [mark, label, prog]), "noop", null)
-			var desc := TaskCatalog.display_desc(task)
-			if desc != "":
-				menu._add(Loc.t("prep.tasks.desc_row", [desc]), "noop", null)
+			menu._add(_format_task_row(mark, label, desc, prog, st, unwired), "noop", null)
 	if pending.is_empty() and extras.is_empty():
 		menu._add(Loc.t("prep.tasks.empty"), "noop", null)
 	menu._add(Loc.t("prep.back"), "go", parent_page("tasks"))
@@ -409,13 +415,14 @@ static func _test_tasks(menu: CanvasLayer) -> void:
 	var mode := String(menu.state.task_test_mode) if "task_test_mode" in menu.state else "off"
 	var pack_id := String(menu.state.task_test_pack_id) if "task_test_pack_id" in menu.state else "OP-TUT-001"
 	var seed := int(menu.state.task_test_seed) if "task_test_seed" in menu.state else 1
-	var info := Loc.t("prep.test_tasks.info", [mode, pack_id, seed])
+	var pack_label := TaskCatalog.display_pack_name(pack_id)
+	var info := Loc.t("prep.test_tasks.info", [mode, pack_label, seed])
 	if menu._msg != "":
 		info = menu._pair(info, menu._msg)
 	menu._info.text = info
 	menu._add(Loc.t("prep.test_tasks.off"), "task_test_off", null)
 	for pid in TaskCatalog.list_test_pack_ids():
-		menu._add(Loc.t("prep.test_tasks.pack", [pid]), "task_test_pack", pid)
+		menu._add(Loc.t("prep.test_tasks.pack", [TaskCatalog.display_pack_name(pid)]), "task_test_pack", pid)
 	menu._add(Loc.t("prep.test_tasks.random", [seed]), "task_test_random", seed)
 	menu._add(Loc.t("prep.test_tasks.reroll"), "task_test_reroll", null)
 	## Show currently selected pack contents immediately after changing selection.
@@ -423,7 +430,7 @@ static func _test_tasks(menu: CanvasLayer) -> void:
 	if pending.is_empty():
 		menu._add(Loc.t("prep.test_tasks.preview_off"), "noop", null)
 	else:
-		menu._add(Loc.t("prep.tasks.pending_header", [String(pending.get("pack_id", ""))]), "noop", null)
+		menu._add(Loc.t("prep.tasks.pending_header", [TaskCatalog.display_pack_name(pending)]), "noop", null)
 		_add_pack_task_rows(menu, pending)
 	menu._add(Loc.t("prep.back"), "go", "hub_sys")
 

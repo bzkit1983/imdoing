@@ -28,7 +28,7 @@ func connect_session() -> void:
 func clear_runtime() -> void:
 	host._net_agents.clear()
 	host._next_agent_id = 1
-	host._agent_xform_tick = 0
+	host._agent_xform_accum = 0.0
 	host._pending_agent_spawns.clear()
 	host._pending_flights.clear()
 	host._pending_agent_states.clear()
@@ -436,4 +436,3 @@ func apply_stock_state_payload(payload: Dictionary) -> void:
 				shelf.call("apply_net_stock", String(row.get("sku", "")), int(row.get("count", 0)))
 	if wh_changed:
 		host.sync_stock()
-

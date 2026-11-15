@@ -1171,6 +1171,7 @@ func _grant_test_money() -> void:
 
 func _set_task_test(mode: String, pack_id: String, seed: int) -> void:
 	const ProductVersion = preload("res://scripts/product_version.gd")
+	const TaskCatalog = preload("res://scripts/session/task_catalog.gd")
 	if not ProductVersion.test_tools_enabled():
 		return
 	state.task_test_mode = mode
@@ -1185,7 +1186,7 @@ func _set_task_test(mode: String, pack_id: String, seed: int) -> void:
 	SfxBus.play("sfx_ui_confirm")
 	match mode:
 		"pack":
-			_msg = Loc.t("prep.test_tasks.set_pack", [state.task_test_pack_id])
+			_msg = Loc.t("prep.test_tasks.set_pack", [TaskCatalog.display_pack_name(state.task_test_pack_id)])
 		"random":
 			_msg = Loc.t("prep.test_tasks.set_random", [state.task_test_seed])
 		_:

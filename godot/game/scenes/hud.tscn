@@ -170,27 +170,88 @@ layout_mode = 2
 autowrap_mode = 3
 text = ""
 
+[node name="CloseoutDim" type="ColorRect" parent="Root"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0.02, 0.03, 0.04, 0.72)
+
 [node name="Closeout" type="PanelContainer" parent="Root"]
 visible = false
+z_index = 8
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -320.0
-offset_top = -140.0
-offset_right = 320.0
-offset_bottom = 140.0
+offset_left = -520.0
+offset_top = -240.0
+offset_right = 520.0
+offset_bottom = 240.0
 
 [node name="Margin" type="MarginContainer" parent="Root/Closeout"]
 layout_mode = 2
-theme_override_constants/margin_left = 20
+theme_override_constants/margin_left = 18
 theme_override_constants/margin_top = 16
-theme_override_constants/margin_right = 20
+theme_override_constants/margin_right = 18
 theme_override_constants/margin_bottom = 16
 
-[node name="CloseText" type="Label" parent="Root/Closeout/Margin"]
+[node name="Columns" type="HBoxContainer" parent="Root/Closeout/Margin"]
 layout_mode = 2
-horizontal_alignment = 1
+theme_override_constants/separation = 16
+
+[node name="TasksCard" type="PanelContainer" parent="Root/Closeout/Margin/Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.0
+
+[node name="CardMargin" type="MarginContainer" parent="Root/Closeout/Margin/Columns/TasksCard"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 12
+
+[node name="TasksCol" type="VBoxContainer" parent="Root/Closeout/Margin/Columns/TasksCard/CardMargin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TasksHeader" type="Label" parent="Root/Closeout/Margin/Columns/TasksCard/CardMargin/TasksCol"]
+layout_mode = 2
+text = "Tasks"
+
+[node name="TasksText" type="Label" parent="Root/Closeout/Margin/Columns/TasksCard/CardMargin/TasksCol"]
+layout_mode = 2
+size_flags_vertical = 3
+autowrap_mode = 3
+text = ""
+
+[node name="SettleCard" type="PanelContainer" parent="Root/Closeout/Margin/Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.15
+
+[node name="CardMargin" type="MarginContainer" parent="Root/Closeout/Margin/Columns/SettleCard"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 12
+
+[node name="SettleCol" type="VBoxContainer" parent="Root/Closeout/Margin/Columns/SettleCard/CardMargin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="SettleHeader" type="Label" parent="Root/Closeout/Margin/Columns/SettleCard/CardMargin/SettleCol"]
+layout_mode = 2
+text = "Settle"
+
+[node name="CloseText" type="Label" parent="Root/Closeout/Margin/Columns/SettleCard/CardMargin/SettleCol"]
+layout_mode = 2
+size_flags_vertical = 3
+autowrap_mode = 3
 text = "Day settled"

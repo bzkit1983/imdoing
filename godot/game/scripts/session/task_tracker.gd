@@ -340,6 +340,7 @@ static func status_mark(status: String, unwired: bool = false) -> String:
 
 
 func closeout_lines(seat: int = 0) -> PackedStringArray:
+	## One line: mark 【name】 desc progress — name highlighted, desc to the right.
 	var lines: PackedStringArray = PackedStringArray()
 	for row_info in hud_lines(seat, 32):
 		var st := String(row_info.get("status", ""))
@@ -348,17 +349,22 @@ func closeout_lines(seat: int = 0) -> PackedStringArray:
 		var label := String(row_info.get("name", ""))
 		if label == "":
 			label = String(row_info.get("id", ""))
+		var desc := String(row_info.get("desc", ""))
 		var cur := int(row_info.get("current", 0))
 		var tgt := int(row_info.get("target", 0))
 		var op := String(row_info.get("op", ">="))
 		var prog := progress_text(op, cur, tgt, st)
-		if st == "done":
-			lines.append("%s %s %s %s" % [mark, label, prog, Loc.t("hud.tasks_done")])
+		if unwired:
+			lines.append(Loc.t("settle.tasks_row_unwired", [mark, label]))
+		elif desc == "":
+			if st == "done":
+				lines.append(Loc.t("settle.tasks_row_done_nodesc", [mark, label, prog]))
+			else:
+				lines.append(Loc.t("settle.tasks_row_nodesc", [mark, label, prog]))
+		elif st == "done":
+			lines.append(Loc.t("settle.tasks_row_done", [mark, label, desc, prog]))
 		else:
-			lines.append("%s %s %s" % [mark, label, prog])
-		var desc := String(row_info.get("desc", ""))
-		if desc != "":
-			lines.append(Loc.t("settle.tasks_desc", [desc]))
+			lines.append(Loc.t("settle.tasks_row", [mark, label, desc, prog]))
 	return lines
 
 

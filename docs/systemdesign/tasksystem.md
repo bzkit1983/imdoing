@@ -96,6 +96,7 @@
 {
   "pack_id": "OP-TUT-001",
   "kind": "ops",
+  "name_key": "quest.pack.op_tut_001.name",
   "tasks": []
 }
 ```
@@ -104,6 +105,7 @@
 | --- | --- |
 | `pack_id` | 組合流水編號 |
 | `kind` | `ops`｜`event`｜`story` |
+| `name_key` | 組合顯示名稱；缺省 `quest.pack.<slug>.name`（Prep 選包／掛載標籤用名稱，不用 id） |
 | `tasks` | 任務列（可空） |
 
 ## Task 形狀

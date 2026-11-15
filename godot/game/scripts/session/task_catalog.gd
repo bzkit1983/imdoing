@@ -129,12 +129,42 @@ static func display_desc(task: Dictionary) -> String:
 	return "" if text == dk else text
 
 
-static func pack(pack_id: String, kind: String, tasks: Array) -> Dictionary:
+static func pack(
+	pack_id: String,
+	kind: String,
+	tasks: Array,
+	name_key: String = "",
+) -> Dictionary:
 	var out_tasks: Array = []
 	for t in tasks:
 		if t is Dictionary:
 			out_tasks.append((t as Dictionary).duplicate(true))
-	return {"pack_id": pack_id, "kind": kind, "tasks": out_tasks}
+	var nk := name_key if name_key != "" else ("quest.pack.%s.name" % quest_slug(pack_id))
+	return {"pack_id": pack_id, "kind": kind, "name_key": nk, "tasks": out_tasks}
+
+
+static func resolve_pack_name_key(pack_or_id: Variant) -> String:
+	if pack_or_id is Dictionary:
+		var d: Dictionary = pack_or_id
+		var nk := String(d.get("name_key", ""))
+		if nk != "":
+			return nk
+		var pid := String(d.get("pack_id", ""))
+		return ("quest.pack.%s.name" % quest_slug(pid)) if pid != "" else ""
+	var id := String(pack_or_id)
+	return ("quest.pack.%s.name" % quest_slug(id)) if id != "" else ""
+
+
+static func display_pack_name(pack_or_id: Variant) -> String:
+	var nk := resolve_pack_name_key(pack_or_id)
+	if nk != "":
+		var text := Loc.t(nk)
+		if text != nk:
+			return text
+	if pack_or_id is Dictionary:
+		return String((pack_or_id as Dictionary).get("pack_id", "?"))
+	var id := String(pack_or_id)
+	return id if id != "" else "?"
 
 
 static func pack_op_tut_001() -> Dictionary:

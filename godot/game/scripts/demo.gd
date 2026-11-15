@@ -1372,11 +1372,11 @@ func _on_settle_payload(payload: Dictionary) -> void:
 			xp_line += "\n" + Loc.t("lobby.client_settle_revenue", [revenue_gain, money_after])
 	else:
 		xp_line = Loc.t("lobby.client_settle_fail")
-	_hud._close_text.text = "\n".join([
+	_hud.set_closeout_panels("\n".join([
 		head,
 		xp_line,
 		Loc.t("lobby.client_settle_hint"),
-	])
+	]), Loc.t("settle.tasks_host_only"))
 
 
 func on_pause_opened() -> void:
@@ -2640,7 +2640,7 @@ func _finish_day() -> void:
 		phase = "closed"
 		if _hud:
 			_hud.show_closeout()
-			_hud._close_text.text = Loc.t("lobby.client_waiting_settle")
+			_hud.set_closeout_panels(Loc.t("lobby.client_waiting_settle"), Loc.t("settle.tasks_host_only"))
 		## Keep _settled false until settle RPC (or Host abort).
 		return
 	_settled = true
@@ -2730,16 +2730,19 @@ func _finish_day() -> void:
 				int(result.get("shop_rating", 0)),
 			]
 		)
-		var task_block := ""
+		var tasks_body := ""
 		if _tasks != null:
 			var tlines: PackedStringArray = _tasks.closeout_lines(0)
 			if not tlines.is_empty():
-				task_block = "\n" + Loc.t("settle.tasks_header") + "\n" + "\n".join(tlines)
-		_hud._close_text.text = DaySettle.closeout_body(
-			head, loss, revenue, state.money, int(result["spent"]), served, angry_left,
-			stolen_count, stolen_value, thieves_caught, thieves_escaped,
-			xp_line, save_line, grade_line
-		) + task_block
+				tasks_body = "\n".join(tlines)
+		_hud.set_closeout_panels(
+			DaySettle.closeout_body(
+				head, loss, revenue, state.money, int(result["spent"]), served, angry_left,
+				stolen_count, stolen_value, thieves_caught, thieves_escaped,
+				xp_line, save_line, grade_line
+			),
+			tasks_body
+		)
 	## Prep will check difficulty suggestion after closeout returns.
 
 

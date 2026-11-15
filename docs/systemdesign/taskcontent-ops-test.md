@@ -8,12 +8,14 @@
 
 - `pack_id`: `OP-TUT-001`
 - `kind`: `ops`
+- `name_key`: `quest.pack.op_tut_001.name`（顯示名：序章教學包）
 - 測試入口：`pack_tutorial_prologue`
 
 ```json
 {
   "pack_id": "OP-TUT-001",
   "kind": "ops",
+  "name_key": "quest.pack.op_tut_001.name",
   "tasks": [
     {
       "id": "OP-TUT-001-A",
@@ -94,14 +96,16 @@
 | E | 成功收銀 3 | 對齊 Alpha LV1 草案 |
 | F | 不滿離開 &lt; 5 | 上限型；測即時 X（可選開啟） |
 
-# OP-MAN-001 — 單條件回歸例（金額／評價）
+# OP-MAN-001 — 營業額與評級
 
-測試入口：`pack_manual_OP-MAN-001`
+- `name_key`: `quest.pack.op_man_001.name`
+- 測試入口：`pack_manual_OP-MAN-001`
 
 ```json
 {
   "pack_id": "OP-MAN-001",
   "kind": "ops",
+  "name_key": "quest.pack.op_man_001.name",
   "tasks": [
     {
       "id": "OP-MAN-001-A",
@@ -129,14 +133,16 @@
 }
 ```
 
-# OP-MAN-002 — 跨日累計例
+# OP-MAN-002 — 跨日累計
 
-測試入口：`pack_manual_OP-MAN-002`
+- `name_key`: `quest.pack.op_man_002.name`
+- 測試入口：`pack_manual_OP-MAN-002`
 
 ```json
 {
   "pack_id": "OP-MAN-002",
   "kind": "ops",
+  "name_key": "quest.pack.op_man_002.name",
   "tasks": [
     {
       "id": "OP-MAN-002-A",
