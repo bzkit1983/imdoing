@@ -2030,7 +2030,7 @@ func _net_host_apply_intents() -> void:
 				p.remote_move = Vector2.ZERO
 			continue
 		p.remote_move = Vector2(float(intent.get("mx", 0.0)), float(intent.get("my", 0.0)))
-		var ult_cast := intent.get("ult_cast", false) == true
+		var ult_cast: bool = intent.get("ult_cast", false) == true
 		## Clear prep before ult=false hold so we do not emit a spurious cancel.
 		if ult_cast:
 			p.ult_prep = false
