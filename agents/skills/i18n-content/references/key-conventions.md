@@ -45,6 +45,9 @@ Smoke: `Loc.set_locale("zh_CN")` / `"ja"` / `"en"` / `"zh_TW"`.
 | `world.*` | shipped | Registers, clerks, shelves, restock points |
 | `settle.*` / `phase.*` | shipped | Day settle / phase labels |
 | `prep.*` `hud.*` `pause.*` `touch.*` | shipped | UI — stay in `strings.csv` |
+| `tut.<lesson>.pN.title`／`.body` | shipped | Tutorial explain pages (`strings.csv`) |
+| `tut.<lesson>.task.name`／`.desc` | shipped | Tutorial forced-step HUD／pause row |
+| `tut.modal.*`／`tut.gate.*`／`pause.tutorial.*` | shipped | Tutorial shell／hard-gate／pause review |
 
 ## Design doc ↔ runtime
 

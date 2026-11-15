@@ -19,6 +19,7 @@ agents/
 | --- | --- | --- |
 | `i18n-content` | [`skills/i18n-content/SKILL.md`](skills/i18n-content/SKILL.md) | Chinese-first design → locale CSV (`zh_TW` + `en` + `zh_CN` + `ja`) for game content |
 | `playerskillvalidator` | [`skills/playerskillvalidator/SKILL.md`](skills/playerskillvalidator/SKILL.md) | Add／update／fix player skills → mandatory conflict／gap／multiplayer／input validation report |
+| `tutorial-content` | [`skills/tutorial-content/SKILL.md`](skills/tutorial-content/SKILL.md) | Design／validate／ship one full tutorial Lesson (pages＋forced steps＋catalog／locale) → Validation Report |
 
 ## Conventions
 

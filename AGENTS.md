@@ -16,6 +16,7 @@ Canonical skills live under [`agents/skills/`](agents/skills/). Index: [`agents/
 | --- | --- |
 | [`agents/skills/i18n-content/SKILL.md`](agents/skills/i18n-content/SKILL.md) | Adding or editing player-visible copy: skill names/blurbs, SKU/furniture names, events, story, HUD/menu strings — even if the task is “write the design in Chinese”. |
 | [`agents/skills/playerskillvalidator/SKILL.md`](agents/skills/playerskillvalidator/SKILL.md) | Adding, updating, or fixing player skills (active／passive／ultimate), COST／loadout, skill Intent／multiplayer cast paths, or skill design conflicts — emit Validation Report before done. |
+| [`agents/skills/tutorial-content/SKILL.md`](agents/skills/tutorial-content/SKILL.md) | Designing, validating, or shipping a full tutorial Lesson (pages／forced steps／triggers／`tut.*` copy／`tutorial_catalog`) — emit Validation Report before done. |
 
 ## i18n quick pointers
 
