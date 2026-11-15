@@ -43,6 +43,15 @@ skill.universal_cannon.name,萬用炮,Universal Cannon,万用炮,万能砲
 skill.universal_cannon.blurb,腳下布置可穿行炮台，FIFO容量12／16／20件、每5／4／3秒射1件；再按取消後CD60秒,Deploy a pass-through turret; FIFO capacity 12/16/20; fires one item every 5/4/3s; cancel to start a 60s INT-scaled cooldown,脚下布置可穿行炮台，FIFO容量12／16／20件、每5／4／3秒射1件；再按取消后CD60秒,足元に通行可能な砲台を設置。FIFO容量12／16／20個、5／4／3秒ごとに1個発射；再押下で解除後CD60秒
 skill.shelf_cannon.name,上架炮,Shelf Cannon,上架炮,陳列砲
 skill.shelf_cannon.blurb,腳下布置可穿行炮台；容量50件；260px內自動補架；LV1／2／3每4／3／2秒射1件；再按取消後CD60秒,Deploy a pass-through turret with 50-item FIFO capacity; automatically restocks compatible shelves within 260px; fires every 4/3/2s by level; cancel to start a 60s INT-scaled cooldown,脚下布置可穿行炮台；容量50件；260px内自动补架；LV1／2／3每4／3／2秒射1件；再按取消后CD60秒,足元に通行可能な砲台を設置。FIFO容量50個、260px以内の棚を自動補充。LV1／2／3は4／3／2秒ごとに1個発射；再押下で解除後CD60秒
+skill.kind_cannon.name,善良的炮,Kindness Cannon,善良的炮,やさしさ砲
+skill.kind_cannon.blurb,腳下佈置薄荷綠炮台，10件FIFO；78px內每12／10／8秒將小偷轉為普通客人；取消後CD90秒（INT縮短）,Deploy a mint-green turret with 10 FIFO rounds; converts a thief within 78px into a regular guest every 12/10/8s; cancel to start a 90s INT-scaled cooldown,脚下布置薄荷绿炮台，10件FIFO；78px内每12／10／8秒将小偷转为普通客人；取消后CD90秒（INT缩短）,足元にミント色の砲台を設置。FIFO弾薬10個、78px以内の泥棒を12／10／8秒ごとに一般客へ変える。解除後CD90秒（INT短縮）
+kind_cannon.deployed,善良的炮已布置,Kindness Cannon deployed,善良的炮已布置,やさしさ砲を設置した
+kind_cannon.cancelled,善良的炮已收起，冷卻開始,Kindness Cannon dismissed; cooldown started,善良的炮已收起，冷却开始,やさしさ砲を撤去。クールダウン開始
+kind_cannon.loaded,已裝入善良的炮 %d 件,Loaded %d into Kindness Cannon,已装入善良的炮 %d 件,やさしさ砲に%d個装填
+kind_cannon.status,善良的炮 玩家%d  彈藥 %d/%d,Kindness Cannon P%d  Ammo %d/%d,善良的炮 玩家%d  弹药 %d/%d,やさしさ砲 プレイヤー%d  弾薬 %d/%d
+settle.kind_cannon_total,善良的炮感化小偷：全隊 %d,Kindness Cannon conversions: team %d,善良的炮感化小偷：全队 %d,やさしさ砲で改心：チーム %d
+settle.kind_cannon_seat,玩家%d：%d,Player %d: %d,玩家%d：%d,プレイヤー%d：%d
+settle.kind_cannon_client,善良的炮感化小偷：你 %d／全隊 %d,Kindness Cannon conversions: you %d / team %d,善良的炮感化小偷：你 %d／全队 %d,やさしさ砲で改心：あなた %d／チーム %d
 skill.self_checkout.name,Self Checkout,Self Checkout,Self Checkout,Self Checkout
 skill.self_checkout.blurb,啟動5身位內機台15秒；每客5／4／3秒自助，真人／NPC優先，尾單收完,Enable nearby registers for 15s within 5 body lengths; 5/4/3s per guest; operators take priority; finish final guest,启动5身位内机台15秒；每客5／4／3秒自助，真人／NPC优先，尾单收完,5体長内のレジを15秒稼働；客1人あたり5／4／3秒でセルフ精算、プレイヤー／NPC優先、最後の客は完了まで
 skill.calm_zone.name,你定少少先,Take a Breather,你定少少先,少し落ち着いて

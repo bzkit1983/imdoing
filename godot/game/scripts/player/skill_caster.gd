@@ -791,6 +791,28 @@ func cast_slot(i: int) -> void:
 		begin_cast_pose(false)
 		host.skill_cast.emit(Loc.t("skill.shelf_cannon.name"), false)
 		return
+	if bool(sk.get("kind_cannon", false)):
+		if not host._round_active():
+			return
+		cancel_must_deliver_aim()
+		cancel_magneto_aim()
+		if is_instance_valid(host._kind_cannon) and not host._kind_cannon.dismissed:
+			host._kind_cannon.dismiss()
+			host._kind_cannon = null
+			host._cd[sid] = Tuning.cd_seconds(90.0, host._int_now())
+			host.log_line.emit(Loc.t("kind_cannon.cancelled"))
+		else:
+			var game = host._game()
+			if game == null:
+				return
+			host._kind_cannon = game.deploy_kind_cannon(host.global_position, int(sk.get("lv", 3)), host.seat_id)
+			if host._kind_cannon == null:
+				return
+			host.log_line.emit(Loc.t("kind_cannon.deployed"))
+		SfxBus.play("sfx_skill_cast")
+		host.begin_cast_pose(false)
+		host.skill_cast.emit(Loc.t("skill.kind_cannon.name"), false)
+		return
 	if bool(sk.get("self_checkout", false)):
 		if not cast_self_checkout(int(sk.get("lv", 3))):
 			return

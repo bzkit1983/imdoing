@@ -83,6 +83,7 @@ static func closeout_body(
 	xp_line: String,
 	save_line: String,
 	grade_line: String = "",
+	extra_line: String = "",
 ) -> String:
 	var body := Loc.t("settle.body", [
 		head, loss_label, revenue, money, spent, served, angry_left,
@@ -91,6 +92,8 @@ static func closeout_body(
 	])
 	if grade_line != "":
 		body += "\n" + grade_line
+	if extra_line != "":
+		body += "\n" + extra_line
 	body += Loc.t("settle.back_hint")
 	return body
 
@@ -133,7 +136,7 @@ static func collect_shelf_floor_pieces(host) -> Dictionary:
 		if c == null or not is_instance_valid(c) or c.is_queued_for_deletion():
 			continue
 		var kind := str(c.get("kind"))
-		if kind in ["universal_cannon", "shelf_cannon"]:
+		if kind in ["universal_cannon", "shelf_cannon", "kind_cannon"]:
 			for item in c.ammo:
 				out[item] = int(out.get(item, 0)) + 1
 			continue
@@ -241,7 +244,7 @@ static func clear_credited_unsold(host) -> void:
 			continue
 		## Mixed world children: String(null) on missing kind aborts the sweep.
 		var kind := str(c.get("kind"))
-		if kind in ["universal_cannon", "shelf_cannon"]:
+		if kind in ["universal_cannon", "shelf_cannon", "kind_cannon"]:
 			c.ammo.clear()
 			c.dismiss()
 			continue

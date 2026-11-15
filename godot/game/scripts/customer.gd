@@ -451,6 +451,56 @@ func is_active_thief() -> bool:
 	return is_thief and state != State.FLEE
 
 
+func apply_kind_cannon_conversion() -> bool:
+	if not is_thief or state == State.FLEE:
+		return false
+	is_thief = false
+	kind = ""
+	is_elite = false
+	elite_lv = 0
+	dissatisfaction = 0.0
+	fight_hp = 100.0
+	fight_left = 0.0
+	_model_id = "customer"
+	_occupy_counted = not net_puppet
+	collision_layer = Tuning.LAYER_CUSTOMERS
+	collision_mask = Tuning.LAYER_WALLS
+	modulate.a = 1.0
+	z_index = 0
+	if _body is AnimatedSprite2D:
+		Vox.play_anim(_body as AnimatedSprite2D, _model_id, "idle", Vector2.DOWN)
+	elif _body is Sprite2D:
+		Vox.apply(_body as Sprite2D, _model_id, 0)
+	if _body != null:
+		_body.modulate = Color.WHITE
+		_shown_tint = Color(0, 0, 0, 0)
+	if _dissat_track != null:
+		_dissat_track.visible = true
+	if _bar != null:
+		_bar.visible = true
+	if _hp_track != null:
+		_hp_track.visible = false
+	if _hp_bar != null:
+		_hp_bar.visible = false
+	if _timer_lab != null:
+		_timer_lab.visible = false
+	_clear_route()
+	_target_shelf = null
+	if state in [State.FIGHT, State.LEAVE, State.RAID]:
+		state = State.SEEK
+	if shopping.is_empty() and state not in [State.TO_CASHIER, State.QUEUE, State.PAYING]:
+		if net_puppet:
+			state = State.TO_CASHIER
+			mood = Loc.t("mood.to_pay")
+		else:
+			_begin_checkout()
+	else:
+		mood = Loc.t("mood.shop")
+	_bump_list()
+	_sync_labels()
+	return true
+
+
 func in_fight() -> bool:
 	return state == State.FIGHT
 

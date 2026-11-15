@@ -29,6 +29,7 @@ signal skill_cast(skill_name: String, is_ult: bool)
 var inventory = InventoryScript.new()
 var _cannon: Node2D
 var _shelf_cannon: Node2D
+var _kind_cannon: Node2D
 var stamina: float = Tuning.stamina_max()
 var facing: Vector2 = Vector2.RIGHT
 var hold_progress: float = 0.0
@@ -1080,7 +1081,7 @@ func _target_detail_fp(node: Node2D) -> String:
 		"dirt":
 			var dname = node.call("type_name") if node.has_method("type_name") else ""
 			tinfo += ":%s" % (str(dname) if dname != null else "")
-		"universal_cannon", "shelf_cannon":
+		"universal_cannon", "shelf_cannon", "kind_cannon":
 			tinfo += ":%s" % str(node.ammo)
 		"drop":
 			tinfo += ":%s:%d" % [_obj_str(node, "sku"), _obj_int(node, "count")]
@@ -1635,7 +1636,7 @@ func _preview_target() -> Node2D:
 
 
 func _release_interact() -> void:
-	if is_instance_valid(_lock_node) and _obj_str(_lock_node, "kind") == "shelf_cannon":
+	if is_instance_valid(_lock_node) and _obj_str(_lock_node, "kind") in ["shelf_cannon", "kind_cannon"]:
 		_interact_release_held()
 	if _restock_aborted:
 		_restock_aborted = false
@@ -1958,7 +1959,7 @@ func _glow_host_now() -> Node2D:
 ## True when pressing interact would start a real action on this node.
 func _interact_available(node: Node2D) -> bool:
 	var kind := _obj_str(node, "kind")
-	if kind in ["universal_cannon", "shelf_cannon"]:
+	if kind in ["universal_cannon", "shelf_cannon", "kind_cannon"]:
 		return node.available_for(self)
 	if kind == "thief":
 		## Carry allowed; goods stay in hand during the fight.
@@ -2056,9 +2057,9 @@ func _tick_action(delta: float) -> void:
 		return
 	_j_time += delta
 	var turret := _usable_turret()
-	if _j_held and is_instance_valid(_lock_node) and _obj_str(_lock_node, "kind") in ["universal_cannon", "shelf_cannon"]:
+	if _j_held and is_instance_valid(_lock_node) and _obj_str(_lock_node, "kind") in ["universal_cannon", "shelf_cannon", "kind_cannon"]:
 		turret = _lock_node as Node2D
-	if is_instance_valid(_lock_node) and _obj_str(_lock_node, "kind") in ["universal_cannon", "shelf_cannon"] and _lock_node != turret:
+	if is_instance_valid(_lock_node) and _obj_str(_lock_node, "kind") in ["universal_cannon", "shelf_cannon", "kind_cannon"] and _lock_node != turret:
 		_interact_release_held()
 		hold_progress = 0.0
 		_pickup_used = false
@@ -3246,14 +3247,32 @@ func _usable_shelf_cannon() -> Node2D:
 	return best
 
 
+func _usable_kind_cannon() -> Node2D:
+	var best: Node2D
+	var best_d := INF
+	for node in interactables:
+		if not is_instance_valid(node) or _obj_str(node, "kind") != "kind_cannon":
+			continue
+		if not node.available_for(self):
+			continue
+		var d := _interact_dist(node)
+		if d >= 0.0 and d < best_d:
+			best = node
+			best_d = d
+	return best
+
+
 func _usable_turret() -> Node2D:
 	var universal := _usable_cannon()
 	var shelf_turret := _usable_shelf_cannon()
-	if universal == null:
-		return shelf_turret
-	if shelf_turret == null:
-		return universal
-	return universal if _interact_dist(universal) <= _interact_dist(shelf_turret) else shelf_turret
+	var kind_turret := _usable_kind_cannon()
+	var best: Node2D = null
+	for turret in [universal, shelf_turret, kind_turret]:
+		if turret == null:
+			continue
+		if best == null or _interact_dist(turret) < _interact_dist(best):
+			best = turret
+	return best
 
 
 func _tick_cannon(delta: float, cannon: Node2D) -> void:
@@ -3268,6 +3287,7 @@ func _tick_cannon(delta: float, cannon: Node2D) -> void:
 		var loaded: int = cannon.load_from(self)
 		_pickup_used = true
 		hold_progress = 0.0
-		var key := "shelf_cannon.loaded" if _obj_str(cannon, "kind") == "shelf_cannon" else "cannon.loaded"
+		var cannon_kind := _obj_str(cannon, "kind")
+		var key := "kind_cannon.loaded" if cannon_kind == "kind_cannon" else ("shelf_cannon.loaded" if cannon_kind == "shelf_cannon" else "cannon.loaded")
 		log_line.emit(Loc.t(key, [loaded]))
 		SfxBus.play("sfx_shelf_stock_done")

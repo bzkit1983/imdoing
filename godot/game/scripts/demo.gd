@@ -45,6 +45,8 @@ var seat_cleaned: Array[int] = [0]
 var seat_served: Array[int] = [0]
 var seat_caught: Array[int] = [0]
 var seat_elite: Array[int] = [0]
+var seat_kind_converted: Array[int] = [0]
+var kind_converted_total: int = 0
 var _combo = null
 var _tasks = null
 var _settled: bool = false
@@ -246,17 +248,20 @@ func _begin_day() -> void:
 	stolen_value = 0
 	thieves_caught = 0
 	thieves_escaped = 0
+	kind_converted_total = 0
 	cleaned = 0
 	var sn := maxi(1, SeatTable.seat_count)
 	seat_cleaned = []
 	seat_served = []
 	seat_caught = []
 	seat_elite = []
+	seat_kind_converted = []
 	for _i in sn:
 		seat_cleaned.append(0)
 		seat_served.append(0)
 		seat_caught.append(0)
 		seat_elite.append(0)
+		seat_kind_converted.append(0)
 	_settled = false
 	_closeout_ready_msec = 0
 	real_time = 0.0
@@ -466,6 +471,14 @@ func _seat_bump(arr: Array, seat: int, n: int) -> void:
 	while arr.size() <= seat:
 		arr.append(0)
 	arr[seat] = int(arr[seat]) + n
+
+
+func kind_cannon_closeout_text(seat_n: int) -> String:
+	var lines := PackedStringArray()
+	lines.append(Loc.t("settle.kind_cannon_total", [kind_converted_total]))
+	for seat in mini(seat_n, seat_kind_converted.size()):
+		lines.append(Loc.t("settle.kind_cannon_seat", [seat + 1, int(seat_kind_converted[seat])]))
+	return "\n".join(lines)
 
 
 func combo_note_qualify(seat: int) -> void:
@@ -1407,6 +1420,13 @@ func _on_settle_payload(payload: Dictionary) -> void:
 	var grade := int(apply.get("grade", payload.get("host_grade", 0)))
 	var revenue_gain := int(apply.get("revenue", payload.get("revenue", 0)))
 	var money_after := int(apply.get("money", 0))
+	var converted_total := int(payload.get("kind_cannon_total", 0))
+	var converted_personal := 0
+	var converted_seat := int(apply.get("seat", -1))
+	var converted_by_seat: Dictionary = payload.get("per_seat", {})
+	if converted_seat >= 0:
+		var personal_row: Dictionary = converted_by_seat.get(converted_seat, converted_by_seat.get(str(converted_seat), {}))
+		converted_personal = int(personal_row.get("kind_cannon_converted", 0))
 	var head := Loc.t("demo.closeout_head")
 	var xp_line: String
 	if ok:
@@ -1418,6 +1438,7 @@ func _on_settle_payload(payload: Dictionary) -> void:
 	_hud.set_closeout_panels("\n".join([
 		head,
 		xp_line,
+		Loc.t("settle.kind_cannon_client", [converted_personal, converted_total]),
 		Loc.t("lobby.client_settle_hint"),
 	]), Loc.t("settle.tasks_host_only"))
 
@@ -2193,6 +2214,22 @@ func _spawn_shelf_cannon_puppet(aid: int, pos: Vector2, payload: Dictionary) -> 
 	_net_agents[aid] = cannon
 
 
+func _spawn_kind_cannon_puppet(aid: int, pos: Vector2, payload: Dictionary) -> void:
+	var cannon: Node2D = preload("res://scripts/kind_cannon.gd").new()
+	cannon.host = self
+	cannon.level = clampi(int(payload.get("level", 3)), 1, 3)
+	cannon.owner_seat = int(payload.get("owner_seat", 0))
+	cannon.net_puppet = true
+	cannon.net_agent_id = aid
+	_world.add_child(cannon)
+	cannon.global_position = pos
+	cannon.apply_net_ammo(int(payload.get("ammo_n", 0)))
+	for player in _players:
+		if player != null and is_instance_valid(player) and not player.interactables.has(cannon):
+			player.interactables.append(cannon)
+	_net_agents[aid] = cannon
+
+
 func _spawn_calm_zone_puppet(aid: int, pos: Vector2, payload: Dictionary) -> void:
 	var zone: Node2D = preload("res://scripts/calm_zone.gd").new()
 	zone.host = self
@@ -2693,6 +2730,7 @@ func _finish_day() -> void:
 	dismiss_shadow_clones()
 	dismiss_universal_cannons()
 	dismiss_shelf_cannons()
+	dismiss_kind_cannons()
 	## Unsold shelf + floor (+ in-flight) pieces → warehouse boxes before save.
 	_return_unsold_to_warehouse()
 	var seat_n := maxi(1, SessionService.open_day_seat_n if SessionService.is_networked() else SeatTable.seat_count)
@@ -2737,13 +2775,17 @@ func _finish_day() -> void:
 						break
 				if not online:
 					continue
-			per_seat[s] = {"shared_xp": shared_xp}
+			per_seat[s] = {
+				"shared_xp": shared_xp,
+				"kind_cannon_converted": int(seat_kind_converted[s]) if s < seat_kind_converted.size() else 0,
+			}
 		SessionService.send_settle_to_clients({
 			"host_grade": grade,
 			"per_seat": per_seat,
 			"shared_xp": shared_xp,
 			## M2.1：每位仍連線訪客本店同等加這筆營業額（非平分）。
 			"revenue": revenue,
+			"kind_cannon_total": kind_converted_total,
 		})
 	elif SessionService.keeps_room_after_settle():
 		## Local coop：日結後進局間大廳（§12.10）。
@@ -2782,7 +2824,7 @@ func _finish_day() -> void:
 			DaySettle.closeout_body(
 				head, loss, revenue, state.money, int(result["spent"]), served, angry_left,
 				stolen_count, stolen_value, thieves_caught, thieves_escaped,
-				xp_line, save_line, grade_line
+				xp_line, save_line, grade_line, kind_cannon_closeout_text(seat_n)
 			),
 			tasks_body
 		)
@@ -3947,6 +3989,31 @@ func deploy_shelf_cannon(at: Vector2, level: int, seat: int) -> Node2D:
 	return cannon
 
 
+func deploy_kind_cannon(at: Vector2, level: int, seat: int) -> Node2D:
+	if _world == null or phase not in ["open", "restock"]:
+		return null
+	if SessionService.is_networked() and SessionService.is_client():
+		return null
+	for child in _world.get_children():
+		if str(child.get("kind")) == "kind_cannon" and child.owner_seat == seat and not child.dismissed:
+			return child
+	var cannon: Node2D = preload("res://scripts/kind_cannon.gd").new()
+	cannon.host = self
+	cannon.level = clampi(level, 1, 3)
+	cannon.owner_seat = seat
+	_world.add_child(cannon)
+	cannon.global_position = at
+	for player in _players:
+		if player != null and is_instance_valid(player) and not player.interactables.has(cannon):
+			player.interactables.append(cannon)
+	_register_net_agent(cannon, "kind_cannon", {
+		"owner_seat": seat,
+		"level": cannon.level,
+		"ammo_n": 0,
+	})
+	return cannon
+
+
 func deploy_calm_zone(at: Vector2, level: int, seat: int) -> Node2D:
 	if _world == null or phase not in ["open", "restock"]:
 		return null
@@ -3992,6 +4059,63 @@ func dismiss_shelf_cannons() -> void:
 	for child in _world.get_children():
 		if str(child.get("kind")) == "shelf_cannon":
 			child.dismiss()
+
+
+func dismiss_kind_cannons() -> void:
+	if _world == null:
+		return
+	for child in _world.get_children():
+		if str(child.get("kind")) == "kind_cannon":
+			child.dismiss()
+
+
+func _resolve_net_kind_conversion(thief: Node) -> void:
+	if thief == null or not is_instance_valid(thief) or not thief.has_method("apply_kind_cannon_conversion"):
+		return
+	if not bool(thief.call("apply_kind_cannon_conversion")):
+		return
+	_thieves.erase(thief)
+	_guest_n += 1
+	_recount_active_thieves()
+	for player in _players:
+		if player == null or not is_instance_valid(player):
+			continue
+		player.interactables.erase(thief)
+		if player.target == thief:
+			if player._fighting:
+				player._end_fight(true)
+			else:
+				player._reset_hold()
+			player.target = null
+	bump_hud()
+
+
+func convert_thief_to_guest(thief: Node2D, seat: int) -> bool:
+	if SessionService.is_networked() and SessionService.is_client():
+		return false
+	if not is_instance_valid(thief) or not thief.has_method("is_active_thief") or not thief.is_active_thief():
+		return false
+	if not thief.has_method("apply_kind_cannon_conversion") or not bool(thief.call("apply_kind_cannon_conversion")):
+		return false
+	_thieves.erase(thief)
+	_guest_n += 1
+	_recount_active_thieves()
+	_seat_bump(seat_kind_converted, seat, 1)
+	kind_converted_total += 1
+	for player in _players:
+		if player == null or not is_instance_valid(player):
+			continue
+		player.interactables.erase(thief)
+		if player.target == thief:
+			if player._fighting:
+				player._end_fight(true)
+			else:
+				player._reset_hold()
+			player.target = null
+	bump_hud()
+	if thief.net_agent_id >= 0 and SessionService.is_networked() and SessionService.is_server():
+		SessionService.broadcast_agent_state({"id": thief.net_agent_id, "kind_converted": true})
+	return true
 
 
 func cannon_hit_thief(thief: Node2D, seat: int, direction: Vector2) -> void:
