@@ -330,8 +330,7 @@ static func _add_pack_task_rows(menu: CanvasLayer, pack: Dictionary, progress_ro
 			st = String(row.get("status", "active"))
 		var unwired := not TaskCatalog.is_wired(String(task.get("metric", "")))
 		var mark := TaskTracker.status_mark(st, unwired)
-		var key := String(task.get("loc_key", ""))
-		var label := Loc.t(key) if key != "" else id
+		var label := TaskCatalog.display_name(task)
 		var tgt := int(task.get("target", 0))
 		var op := String(task.get("op", ">="))
 		var prog := TaskTracker.progress_text(op, cur, tgt, st)
@@ -341,6 +340,9 @@ static func _add_pack_task_rows(menu: CanvasLayer, pack: Dictionary, progress_ro
 			menu._add(Loc.t("prep.tasks.row_done", [mark, label, prog]), "noop", null)
 		else:
 			menu._add(Loc.t("prep.tasks.row", [mark, label, prog]), "noop", null)
+		var desc := TaskCatalog.display_desc(task)
+		if desc != "":
+			menu._add(Loc.t("prep.tasks.desc_row", [desc]), "noop", null)
 
 
 static func _tasks(menu: CanvasLayer) -> void:
@@ -380,8 +382,7 @@ static func _tasks(menu: CanvasLayer) -> void:
 			var st := String(row.get("status", "active"))
 			var unwired := st == "unwired" or not TaskCatalog.is_wired(String(task.get("metric", "")))
 			var mark := TaskTracker.status_mark(st, unwired)
-			var key := String(task.get("loc_key", ""))
-			var label := Loc.t(key) if key != "" else String(task.get("id", ""))
+			var label := TaskCatalog.display_name(task)
 			var prog := TaskTracker.progress_text(
 				String(task.get("op", ">=")),
 				int(row.get("current", 0)),
@@ -394,6 +395,9 @@ static func _tasks(menu: CanvasLayer) -> void:
 				menu._add(Loc.t("prep.tasks.row_done", [mark, label, prog]), "noop", null)
 			else:
 				menu._add(Loc.t("prep.tasks.row", [mark, label, prog]), "noop", null)
+			var desc := TaskCatalog.display_desc(task)
+			if desc != "":
+				menu._add(Loc.t("prep.tasks.desc_row", [desc]), "noop", null)
 	if pending.is_empty() and extras.is_empty():
 		menu._add(Loc.t("prep.tasks.empty"), "noop", null)
 	menu._add(Loc.t("prep.back"), "go", parent_page("tasks"))

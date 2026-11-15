@@ -350,14 +350,26 @@ mood.thanks_pay,謝謝！去付款,Thanks! Going to pay,谢谢！去付款,あ�
 mood.thanks_bang,謝謝！,Thanks!,谢谢！,ありがとう！
 mood.reject_item,不想要這貨品！,Don't want this!,不想要这货品！,この商品はいらない！
 settle.tasks_header,任務結算,Task settle,任务结算,タスク決算
-quest.op_tut_001_a,罐頭上架 12,Shelve cans ×12,罐头上架 12,缶詰を12個陳列
-quest.op_tut_001_b,完成清潔 6,Clean ×6,完成清洁 6,清掃を6回
-quest.op_tut_001_c,總交付 10,Deliver ×10,总交付 10,配達を10回
-quest.op_tut_001_d,完美交付 3,Perfect deliver ×3,完美交付 3,完璧配達を3回
-quest.op_tut_001_e,成功收銀 3,Checkout ×3,成功收银 3,会計を3回
-quest.op_tut_001_f,不滿離開少於 5,Angry leaves <5,不满离开少于 5,怒り退店を5未満に
-quest.op_man_001_a,當日營業額 ≥500,Day revenue ≥500,当日营业额 ≥500,当日売上 ≥500
-quest.op_man_001_b,當日評級 ≥+1,Day grade ≥+1,当日评级 ≥+1,当日評価 ≥+1
-quest.op_man_002_a,3 日內清潔 20,Clean 20 in 3 days,3 日内清洁 20,3日以内に清掃20
-quest.op_man_002_b,商店評價 ≥5,Shop rating ≥5,商店评价 ≥5,店舗評価 ≥5
-quest.op_rand_generic,隨機營運任務,Random ops task,随机营运任务,ランダム営業タスク
+settle.tasks_desc,　%s,  %s,　%s,　%s
+quest.op_tut_001_a.name,罐頭上架,Shelve cans,罐头上架,缶詰陳列
+quest.op_tut_001_a.desc,本日內將罐頭上架達 12 個。,Shelve 12 cans today.,本日将罐头上架达 12 个。,本日中に缶詰を12個陳列する。
+quest.op_tut_001_b.name,店面清潔,Store cleaning,店面清洁,店内清掃
+quest.op_tut_001_b.desc,本日內完成清潔 6 次。,Complete cleaning 6 times today.,本日完成清洁 6 次。,本日中に清掃を6回行う。
+quest.op_tut_001_c.name,交付服務,Guest delivery,交付服务,配達サービス
+quest.op_tut_001_c.desc,本日內成功交付客人共 10 次。,Successfully deliver to guests 10 times today.,本日成功交付客人共 10 次。,本日中に客への配達を10回成功させる。
+quest.op_tut_001_d.name,完美交付,Perfect delivery,完美交付,完璧配達
+quest.op_tut_001_d.desc,本日內一次交清購物清單達 3 次。,Clear a guest list in one go 3 times today.,本日一次交清购物清单达 3 次。,本日中に買い物リストを一度で渡し切るを3回。
+quest.op_tut_001_e.name,收銀台,Checkout,收银台,会計
+quest.op_tut_001_e.desc,本日內成功收銀 3 次。,Complete checkout successfully 3 times today.,本日成功收银 3 次。,本日中に会計を3回成功させる。
+quest.op_tut_001_f.name,客情控管,Guest mood control,客情管控,クレーム抑制
+quest.op_tut_001_f.desc,本日內因不滿離開的客人少於 5 位。,Keep angry leaves under 5 today.,本日因不满离开的客人少于 5 位。,本日中の怒り退店を5未満に抑える。
+quest.op_man_001_a.name,營業額達標,Hit day revenue,营业额达标,売上達成
+quest.op_man_001_a.desc,本日營業額達到 500 或以上。,Reach day revenue of 500 or more.,本日营业额达到 500 或以上。,本日の売上を500以上にする。
+quest.op_man_001_b.name,當日評級,Day grade,当日评级,当日評価
+quest.op_man_001_b.desc,本日結算評級達到 +1 或以上。,Reach day grade +1 or higher.,本日结算评级达到 +1 或以上。,本日の評価を+1以上にする。
+quest.op_man_002_a.name,三日清潔,Three-day cleaning,三日清洁,3日清掃
+quest.op_man_002_a.desc,於 3 個營業日內累計完成清潔 20 次。,Clean 20 times within 3 ops days.,于 3 个营业日内累计完成清洁 20 次。,3営業日以内に清掃を累計20回行う。
+quest.op_man_002_b.name,商店評價,Shop rating,商店评价,店舗評価
+quest.op_man_002_b.desc,將商店評價提升至 5 或以上。,Raise shop rating to 5 or higher.,将商店评价提升至 5 或以上。,店舗評価を5以上にする。
+quest.op_rand_generic.name,隨機營運任務,Random ops task,随机营运任务,ランダム営業タスク
+quest.op_rand_generic.desc,完成產生器指定的營運條件（進度見數字）。,Complete the generated ops goal (see progress).,完成生成器指定的营运条件（进度见数字）。,生成された営業条件を達成する（進捗は数値）。

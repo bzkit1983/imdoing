@@ -30,7 +30,8 @@
       "target": 2,
       "scope": { "type": "day" },
       "filters": { "category": "cold_drink_bottle", "furniture": "restock_shelf" },
-      "loc_key": "quest.ev_heat_001_a",
+      "name_key": "quest.ev_heat_001_a.name",
+      "desc_key": "quest.ev_heat_001_a.desc",
       "rewards": []
     },
     {
@@ -40,7 +41,8 @@
       "target": 20,
       "scope": { "type": "day" },
       "filters": { "sku": "cold_drink_bottle", "mode": "any" },
-      "loc_key": "quest.ev_heat_001_b",
+      "name_key": "quest.ev_heat_001_b.name",
+      "desc_key": "quest.ev_heat_001_b.desc",
       "rewards": []
     }
   ]

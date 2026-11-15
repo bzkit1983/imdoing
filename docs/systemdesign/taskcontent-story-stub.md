@@ -36,7 +36,8 @@
       "target": 3,
       "scope": { "type": "day" },
       "filters": {},
-      "loc_key": "quest.st_prologue_001_a",
+      "name_key": "quest.st_prologue_001_a.name",
+      "desc_key": "quest.st_prologue_001_a.desc",
       "rewards": []
     }
   ],

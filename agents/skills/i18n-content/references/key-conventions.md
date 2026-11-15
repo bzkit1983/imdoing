@@ -35,6 +35,7 @@ Smoke: `Loc.set_locale("zh_CN")` / `"ja"` / `"en"` / `"zh_TW"`.
 | `dirt.<type>` | `dirt.trash` | Dirt type label |
 | `dir.<code>` | `dir.up` | Direction label |
 | `skill_set.default` | `skill_set.default` | printf template with `%d` |
+| `quest.<slug>.name` / `.desc` | `quest.op_tut_001_a.name` | Task title + description |
 | `event.<id>.title` / `.body` | (Beta) | Event cards |
 | `story.<id>.line.<n>` | (Beta) | Narrative lines |
 | `log.player.*` / `log.demo.*` | shipped | Action / toss / skill logs |

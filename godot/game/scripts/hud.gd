@@ -710,8 +710,10 @@ func _tasks_status_text() -> String:
 		var st := String(row.get("status", "active"))
 		var unwired := bool(row.get("unwired", false))
 		var mark := TaskTracker.status_mark(st, unwired)
-		var key := String(row.get("loc_key", ""))
-		var label := Loc.t(key) if key != "" else String(row.get("id", ""))
+		var label := String(row.get("name", ""))
+		if label == "":
+			var key := String(row.get("name_key", row.get("loc_key", "")))
+			label = Loc.t(key) if key != "" else String(row.get("id", ""))
 		if unwired:
 			lines.append("%s %s (%s)" % [mark, label, Loc.t("hud.tasks_unwired")])
 			continue

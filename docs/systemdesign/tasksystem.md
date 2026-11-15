@@ -87,7 +87,7 @@
 
 - 設計、loader、生成器、存檔快照**同一形狀**
 - 測試版可用 GDScript const 填同形（不當第二套欄位模型）；穩定後落到 `res://data/tasks/*.json`
-- 玩家可見文案一律 `Loc` key（`quest.*`），不進數據正文
+- 玩家可見文案一律 `Loc` key（`quest.<slug>.name`／`.desc`），不進數據正文
 - 成就日後复用同一 condition 欄位
 
 ## Pack 形狀
@@ -116,7 +116,8 @@
   "target": 12,
   "scope": { "type": "day" },
   "filters": { "sku": "canned" },
-  "loc_key": "quest.op_tut_001_a",
+  "name_key": "quest.op_tut_001_a.name",
+  "desc_key": "quest.op_tut_001_a.desc",
   "rewards": []
 }
 ```
@@ -129,8 +130,11 @@
 | `target` | 數值目標（級別類可用字串級別名，見評價類） |
 | `scope` | `{ "type": "day" }` 或 `{ "type": "accumulate", "max_days": 3 }`（省略 `max_days`＝無限） |
 | `filters` | 可空；SKU／類別／技能 id／趕賊方式等 |
-| `loc_key` | `quest.*` |
+| `name_key` | 任務名稱（HUD／Prep／結算主列）；缺省 `quest.<slug>.name` |
+| `desc_key` | 任務描述（Prep／結算副列）；缺省 `quest.<slug>.desc` |
 | `rewards` | 可空陣列；Beta 填具體型別 |
+
+顯示規則：HUD 只顯示名稱＋進度；Prep 與日結顯示名稱＋描述。舊存檔若僅有 `loc_key`，runtime 會推成 `.name`／`.desc`。
 
 累計任務開始時可在 runtime 狀態寫入 `started_day`（存檔用，不必進內容定義）。
 

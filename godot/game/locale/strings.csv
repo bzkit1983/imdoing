@@ -466,6 +466,7 @@ prep.tasks.mode_random,隨機 seed %d,Random seed %d,随机 seed %d,ランダム
 prep.tasks.empty,尚無進行中任務,No active tasks,尚无进行中任务,進行中のタスクなし
 prep.tasks.row,%s %s　%s,%s %s  %s,%s %s　%s,%s %s　%s
 prep.tasks.row_done,%s %s　%s　已完成,%s %s  %s  Done,%s %s　%s　已完成,%s %s　%s　完了
+prep.tasks.desc_row,　%s,  %s,　%s,　%s
 prep.test_tasks.title,測試任務,Test tasks,测试任务,テストタスク
 prep.test_tasks.info,模式 %s　包 %s　seed %d,Mode %s · pack %s · seed %d,模式 %s　包 %s　seed %d,モード %s　パック %s　seed %d
 prep.test_tasks.off,關閉測試任務,Turn off test tasks,关闭测试任务,テストタスクをオフ

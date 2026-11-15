@@ -276,7 +276,7 @@ func _cap_ok(op: String, cur: int, target: int) -> bool:
 
 
 func hud_lines(seat: int, max_lines: int = 8) -> Array[Dictionary]:
-	## Each: {id, text_key, current, target, status, unwired}
+	## Each: {id, name_key, desc_key, current, target, status, unwired}
 	var out: Array[Dictionary] = []
 	var key := str(seat)
 	if not bags.has(key):
@@ -288,6 +288,10 @@ func hud_lines(seat: int, max_lines: int = 8) -> Array[Dictionary]:
 		var st := String(row.get("status", "active"))
 		out.append({
 			"id": String(task.get("id", "")),
+			"name_key": TaskCatalog.resolve_name_key(task),
+			"desc_key": TaskCatalog.resolve_desc_key(task),
+			"name": TaskCatalog.display_name(task),
+			"desc": TaskCatalog.display_desc(task),
 			"loc_key": String(task.get("loc_key", "")),
 			"current": int(row.get("current", 0)),
 			"target": int(task.get("target", 0)),
@@ -341,8 +345,9 @@ func closeout_lines(seat: int = 0) -> PackedStringArray:
 		var st := String(row_info.get("status", ""))
 		var unwired := bool(row_info.get("unwired", false))
 		var mark := status_mark(st, unwired)
-		var key := String(row_info.get("loc_key", ""))
-		var label := Loc.t(key) if key != "" else String(row_info.get("id", ""))
+		var label := String(row_info.get("name", ""))
+		if label == "":
+			label = String(row_info.get("id", ""))
 		var cur := int(row_info.get("current", 0))
 		var tgt := int(row_info.get("target", 0))
 		var op := String(row_info.get("op", ">="))
@@ -351,6 +356,9 @@ func closeout_lines(seat: int = 0) -> PackedStringArray:
 			lines.append("%s %s %s %s" % [mark, label, prog, Loc.t("hud.tasks_done")])
 		else:
 			lines.append("%s %s %s" % [mark, label, prog])
+		var desc := String(row_info.get("desc", ""))
+		if desc != "":
+			lines.append(Loc.t("settle.tasks_desc", [desc]))
 	return lines
 
 

@@ -22,7 +22,8 @@
       "target": 12,
       "scope": { "type": "day" },
       "filters": { "sku": "canned" },
-      "loc_key": "quest.op_tut_001_a",
+      "name_key": "quest.op_tut_001_a.name",
+      "desc_key": "quest.op_tut_001_a.desc",
       "rewards": []
     },
     {
@@ -32,7 +33,8 @@
       "target": 6,
       "scope": { "type": "day" },
       "filters": {},
-      "loc_key": "quest.op_tut_001_b",
+      "name_key": "quest.op_tut_001_b.name",
+      "desc_key": "quest.op_tut_001_b.desc",
       "rewards": []
     },
     {
@@ -42,7 +44,8 @@
       "target": 10,
       "scope": { "type": "day" },
       "filters": {},
-      "loc_key": "quest.op_tut_001_c",
+      "name_key": "quest.op_tut_001_c.name",
+      "desc_key": "quest.op_tut_001_c.desc",
       "rewards": []
     },
     {
@@ -52,7 +55,8 @@
       "target": 3,
       "scope": { "type": "day" },
       "filters": {},
-      "loc_key": "quest.op_tut_001_d",
+      "name_key": "quest.op_tut_001_d.name",
+      "desc_key": "quest.op_tut_001_d.desc",
       "rewards": []
     },
     {
@@ -62,7 +66,8 @@
       "target": 3,
       "scope": { "type": "day" },
       "filters": {},
-      "loc_key": "quest.op_tut_001_e",
+      "name_key": "quest.op_tut_001_e.name",
+      "desc_key": "quest.op_tut_001_e.desc",
       "rewards": []
     },
     {
@@ -72,7 +77,8 @@
       "target": 5,
       "scope": { "type": "day" },
       "filters": {},
-      "loc_key": "quest.op_tut_001_f",
+      "name_key": "quest.op_tut_001_f.name",
+      "desc_key": "quest.op_tut_001_f.desc",
       "rewards": []
     }
   ]
@@ -104,7 +110,8 @@
       "target": 500,
       "scope": { "type": "day" },
       "filters": {},
-      "loc_key": "quest.op_man_001_a",
+      "name_key": "quest.op_man_001_a.name",
+      "desc_key": "quest.op_man_001_a.desc",
       "rewards": []
     },
     {
@@ -114,7 +121,8 @@
       "target": 1,
       "scope": { "type": "day" },
       "filters": {},
-      "loc_key": "quest.op_man_001_b",
+      "name_key": "quest.op_man_001_b.name",
+      "desc_key": "quest.op_man_001_b.desc",
       "rewards": []
     }
   ]
@@ -137,7 +145,8 @@
       "target": 20,
       "scope": { "type": "accumulate", "max_days": 3 },
       "filters": {},
-      "loc_key": "quest.op_man_002_a",
+      "name_key": "quest.op_man_002_a.name",
+      "desc_key": "quest.op_man_002_a.desc",
       "rewards": []
     },
     {
@@ -147,7 +156,8 @@
       "target": 5,
       "scope": { "type": "accumulate" },
       "filters": {},
-      "loc_key": "quest.op_man_002_b",
+      "name_key": "quest.op_man_002_b.name",
+      "desc_key": "quest.op_man_002_b.desc",
       "rewards": []
     }
   ]

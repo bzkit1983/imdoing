@@ -46,6 +46,10 @@ static func is_wired(metric: String) -> bool:
 	return metric in WIRED_METRICS
 
 
+static func quest_slug(id: String) -> String:
+	return id.to_lower().replace("-", "_")
+
+
 static func task(
 	id: String,
 	metric: String,
@@ -53,9 +57,13 @@ static func task(
 	target: Variant,
 	scope: Dictionary,
 	filters: Dictionary = {},
-	loc_key: String = "",
+	name_key: String = "",
+	desc_key: String = "",
 	rewards: Array = [],
 ) -> Dictionary:
+	var slug := quest_slug(id)
+	var nk := name_key if name_key != "" else ("quest.%s.name" % slug)
+	var dk := desc_key if desc_key != "" else ("quest.%s.desc" % slug)
 	return {
 		"id": id,
 		"metric": metric,
@@ -63,9 +71,62 @@ static func task(
 		"target": target,
 		"scope": scope.duplicate(true),
 		"filters": filters.duplicate(true),
-		"loc_key": loc_key if loc_key != "" else ("quest.%s" % id.to_lower().replace("-", "_")),
+		"name_key": nk,
+		"desc_key": dk,
 		"rewards": rewards.duplicate(true),
 	}
+
+
+## Resolve display keys; accepts legacy `loc_key` snapshots.
+static func resolve_name_key(task: Dictionary) -> String:
+	var nk := String(task.get("name_key", ""))
+	if nk != "":
+		return nk
+	var loc := String(task.get("loc_key", ""))
+	if loc != "":
+		if loc.ends_with(".name"):
+			return loc
+		if loc.ends_with(".desc"):
+			return loc.trim_suffix(".desc") + ".name"
+		return loc + ".name"
+	var id := String(task.get("id", ""))
+	return ("quest.%s.name" % quest_slug(id)) if id != "" else ""
+
+
+static func resolve_desc_key(task: Dictionary) -> String:
+	var dk := String(task.get("desc_key", ""))
+	if dk != "":
+		return dk
+	var loc := String(task.get("loc_key", ""))
+	if loc != "":
+		if loc.ends_with(".desc"):
+			return loc
+		if loc.ends_with(".name"):
+			return loc.trim_suffix(".name") + ".desc"
+		return loc + ".desc"
+	var id := String(task.get("id", ""))
+	return ("quest.%s.desc" % quest_slug(id)) if id != "" else ""
+
+
+static func display_name(task: Dictionary) -> String:
+	var nk := resolve_name_key(task)
+	if nk != "":
+		var text := Loc.t(nk)
+		if text != nk:
+			return text
+	## Legacy flat quest.* row (pre name/desc split).
+	var loc := String(task.get("loc_key", ""))
+	if loc != "" and not loc.ends_with(".name") and not loc.ends_with(".desc"):
+		return Loc.t(loc)
+	return String(task.get("id", "?"))
+
+
+static func display_desc(task: Dictionary) -> String:
+	var dk := resolve_desc_key(task)
+	if dk == "":
+		return ""
+	var text := Loc.t(dk)
+	return "" if text == dk else text
 
 
 static func pack(pack_id: String, kind: String, tasks: Array) -> Dictionary:
@@ -77,28 +138,28 @@ static func pack(pack_id: String, kind: String, tasks: Array) -> Dictionary:
 
 
 static func pack_op_tut_001() -> Dictionary:
-	## sku id is Tuning "can" (design alias canned).
+	## sku id is Tuning "can" (design alias canned). Keys default to quest.<slug>.name/.desc.
 	return pack("OP-TUT-001", "ops", [
-		task("OP-TUT-001-A", "shelve_count_sku", ">=", 12, {"type": "day"}, {"sku": "can"}, "quest.op_tut_001_a"),
-		task("OP-TUT-001-B", "clean_count", ">=", 6, {"type": "day"}, {}, "quest.op_tut_001_b"),
-		task("OP-TUT-001-C", "deliver_count", ">=", 10, {"type": "day"}, {}, "quest.op_tut_001_c"),
-		task("OP-TUT-001-D", "perfect_deliver_count", ">=", 3, {"type": "day"}, {}, "quest.op_tut_001_d"),
-		task("OP-TUT-001-E", "checkout_count", ">=", 3, {"type": "day"}, {}, "quest.op_tut_001_e"),
-		task("OP-TUT-001-F", "angry_leave", "<", 5, {"type": "day"}, {}, "quest.op_tut_001_f"),
+		task("OP-TUT-001-A", "shelve_count_sku", ">=", 12, {"type": "day"}, {"sku": "can"}),
+		task("OP-TUT-001-B", "clean_count", ">=", 6, {"type": "day"}),
+		task("OP-TUT-001-C", "deliver_count", ">=", 10, {"type": "day"}),
+		task("OP-TUT-001-D", "perfect_deliver_count", ">=", 3, {"type": "day"}),
+		task("OP-TUT-001-E", "checkout_count", ">=", 3, {"type": "day"}),
+		task("OP-TUT-001-F", "angry_leave", "<", 5, {"type": "day"}),
 	])
 
 
 static func pack_op_man_001() -> Dictionary:
 	return pack("OP-MAN-001", "ops", [
-		task("OP-MAN-001-A", "sales_revenue", ">=", 500, {"type": "day"}, {}, "quest.op_man_001_a"),
-		task("OP-MAN-001-B", "day_grade", ">=", 1, {"type": "day"}, {}, "quest.op_man_001_b"),
+		task("OP-MAN-001-A", "sales_revenue", ">=", 500, {"type": "day"}),
+		task("OP-MAN-001-B", "day_grade", ">=", 1, {"type": "day"}),
 	])
 
 
 static func pack_op_man_002() -> Dictionary:
 	return pack("OP-MAN-002", "ops", [
-		task("OP-MAN-002-A", "clean_count", ">=", 20, {"type": "accumulate", "max_days": 3}, {}, "quest.op_man_002_a"),
-		task("OP-MAN-002-B", "shop_rating", ">=", 5, {"type": "accumulate"}, {}, "quest.op_man_002_b"),
+		task("OP-MAN-002-A", "clean_count", ">=", 20, {"type": "accumulate", "max_days": 3}),
+		task("OP-MAN-002-B", "shop_rating", ">=", 5, {"type": "accumulate"}),
 	])
 
 
@@ -197,7 +258,10 @@ static func generate_ops(
 			scope = {"type": "day"}
 			cap_used = true
 		var tid := "OP-RAND-%d-%d" % [use_seed, tasks.size()]
-		tasks.append(task(tid, metric, op, target, scope, filters, "quest.op_rand_generic"))
+		tasks.append(task(
+			tid, metric, op, target, scope, filters,
+			"quest.op_rand_generic.name", "quest.op_rand_generic.desc",
+		))
 		used_keys[key] = true
 	var out := pack("OP-RAND", "ops", tasks)
 	out["seed"] = use_seed
