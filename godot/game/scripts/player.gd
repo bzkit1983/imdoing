@@ -68,6 +68,8 @@ var remote_cancel: bool = false
 var remote_dash: bool = false
 ## Client→Host: one-shot skill hotkey slot (−1 = none). Cleared when intent is built.
 var pending_skill_hotkey: int = -1
+## Client→Host: ultimate completed locally; Host must authority-cast (world FX／agents).
+var pending_ult_cast: bool = false
 ## L-class target currently held via InteractLock (shelf/cashier/restock/…).
 var _lock_node: Node = null
 
@@ -2919,6 +2921,12 @@ func take_pending_skill_hotkey() -> int:
 	var slot := pending_skill_hotkey
 	pending_skill_hotkey = -1
 	return slot
+
+
+func take_pending_ult_cast() -> bool:
+	var cast_now := pending_ult_cast
+	pending_ult_cast = false
+	return cast_now
 
 
 ## TouchPad / external callers: slot 0–4 = skills 1–5 (0 = center; 1–4 = LB/RB/LT/RT).

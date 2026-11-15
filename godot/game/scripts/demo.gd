@@ -1934,6 +1934,9 @@ func _net_client_send_intents() -> void:
 		var hotkey := -1
 		if p.has_method("take_pending_skill_hotkey"):
 			hotkey = int(p.call("take_pending_skill_hotkey"))
+		var ult_cast := false
+		if p.has_method("take_pending_ult_cast"):
+			ult_cast = bool(p.call("take_pending_ult_cast"))
 		SessionService.send_intent(sid, {
 			"mx": mv.x,
 			"my": mv.y,
@@ -1943,6 +1946,7 @@ func _net_client_send_intents() -> void:
 			"skill": p.get("_l_held") == true,
 			"ult": p.get("_u_held") == true,
 			"hotkey": hotkey,
+			"ult_cast": ult_cast,
 		})
 
 
@@ -2026,15 +2030,24 @@ func _net_host_apply_intents() -> void:
 				p.remote_move = Vector2.ZERO
 			continue
 		p.remote_move = Vector2(float(intent.get("mx", 0.0)), float(intent.get("my", 0.0)))
+		var ult_cast := intent.get("ult_cast", false) == true
+		## Clear prep before ult=false hold so we do not emit a spurious cancel.
+		if ult_cast:
+			p.ult_prep = false
+			p.set("_u_held", false)
 		if p.has_method("set_hold"):
 			p.set_hold("interact", intent.get("interact", false) == true)
 			p.set_hold("cancel", intent.get("cancel", false) == true)
 			p.set_hold("dash", intent.get("dash", false) == true)
 			p.set_hold("skill", intent.get("skill", false) == true)
-			p.set_hold("ult", intent.get("ult", false) == true)
+			if not ult_cast:
+				p.set_hold("ult", intent.get("ult", false) == true)
 		var hotkey := int(intent.get("hotkey", -1))
 		if hotkey >= 0 and p.has_method("_try_skill_hotkey"):
 			p.call("_try_skill_hotkey", hotkey)
+		## Client finished ult sequence locally — Host must fire world effect／net visual.
+		if ult_cast and p.has_method("_cast_ultimate"):
+			p.call("_cast_ultimate")
 
 
 func _net_host_broadcast_players() -> void:

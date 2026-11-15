@@ -975,6 +975,13 @@ func cast_ultimate() -> void:
 		host._prompt.active = false
 		return
 	var sid := String(sk.get("id"))
+	## Guard double-fire when Client queues pending_ult_cast and Host also finishes the seq.
+	if host.cd_left(sid) > 0.05:
+		host._prompt.active = false
+		return
+	## Mirror skill hotkeys: Client predicts SFX／pose／CD; Host re-casts for world authority.
+	if host.controls_locally() and SessionService.is_networked() and SessionService.is_client():
+		host.pending_ult_cast = true
 	var lv := int(sk.get("lv", 3))
 	host._cd[sid] = Tuning.cd_seconds(float(sk.get("cd", Skills.ULT_CD)), host._int_now())
 	host._buff_cache_valid = false
