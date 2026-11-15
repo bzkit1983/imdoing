@@ -5,6 +5,10 @@ pause.body_suspend,系統掛起 — 已安全暫停。恢復後按「繼續遊�
 pause.hint,Esc／Start 開關　　W／S 選擇　　A／D 調音量　　J 確定　　; 返回,Esc/Start · W/S select · A/D volume · J confirm · ; back,Esc／Start 开关　　W／S 选择　　A／D 调音量　　J 确定　　; 返回,Esc／Start 切替　　W／S 選択　　A／D 音量　　J 決定　　; 戻る
 pause.hint_touch,右上「暫停」　　−／＋ 調音量　　點選選項,Top-right Pause · −/+ volume · tap options,右上“暂停”　　−／＋ 调音量　　点选选项,右上「一時停止」　　−／＋ 音量　　オプションをタップ
 pause.resume,繼續遊戲,Continue,继续游戏,続ける
+pause.tasks,任務詳情,Task details,任务详情,タスク詳細
+pause.tasks.title,任務詳情,Task details,任务详情,タスク詳細
+pause.tasks.back,返回,Back,返回,戻る
+pause.tasks.empty,目前沒有進行中任務,No active tasks,目前没有进行中任务,進行中のタスクはありません
 pause.sfx_on,音效：開,SFX: On,音效：开,効果音：オン
 pause.sfx_off,音效：關,SFX: Off,音效：关,効果音：オフ
 pause.sfx_volume,音效聲量：%d%%,SFX volume: %d%%,音效声量：%d%%,効果音ボリューム：%d%%
@@ -30,8 +34,7 @@ early.no,繼續營業,Keep open,继续营业,営業を続ける
 hud.banner,,,,
 hud.skip_operate,馬上完成營運,Finish day now,马上完成营运,すぐに営業を完了
 hud.pause,暫停,Pause,暂停,一時停止
-hud.revenue,營業額  $%d  ·  被偷 $%d,Sales  $%d  ·  Stolen $%d,营业额  $%d  ·  被偷 $%d,売上  $%d  ·  盗難 $%d
-hud.ops_rating,營運評價  %d,Ops rating  %d,营运评价  %d,運営評価  %d
+hud.revenue,營業額  $%d\n營運評價  %d  ·  被偷 $%d,Sales  $%d\nOps  %d  ·  Stolen $%d,营业额  $%d\n营运评价  %d  ·  被偷 $%d,売上  $%d\n運営評価  %d  ·  盗難 $%d
 float.rating,%s%d 評價,%s%d rating,%s%d 评价,%s%d 評価
 float.dissat,%s%d 不滿,%s%d dissat,%s%d 不满,%s%d 不満
 hud.guests,在店客人  %d  ·  小偷 %d,Guests  %d  ·  Thieves %d,在店客人  %d  ·  小偷 %d,来客  %d  ·  泥棒 %d
@@ -39,12 +42,17 @@ hud.state,狀態  %s,State  %s,状态  %s,状態  %s
 hud.carry,負重  %d / %d 件,Carry  %d / %d pcs,负重  %d / %d 件,所持  %d / %d 個
 hud.target_none,目標  補貨 / 貨架 / 污物 / 小偷 / 收銀機後方,Target  restock / shelf / dirt / thief / register,目标  补货 / 货架 / 污物 / 小偷 / 收银机后方,対象  補充 / 棚 / 汚れ / 泥棒 / レジ後方
 hud.target_restock,目標  %s補貨 · 輕放執貨 · 長按選貨 [%s],Target  %s restock · tap take · hold pick [%s],目标  %s补货 · 轻放执货 · 长按选货 [%s],対象  %s補充 · タップで取る · 長押しで選ぶ [%s]
+hud.target_restock_compact,目標  補貨 · 輕放執貨 · 長按選貨,Target  restock · tap take · hold pick,目标  补货 · 轻放执货 · 长按选货,対象  補充 · タップで取る · 長押しで選ぶ
 hud.target_cashier,目標  收銀機 · 長按行動再輸方向,Target  register · hold act then move,目标  收银机 · 长按行动再输方向,対象  レジ · 長押し行動のあと方向入力
 hud.target_dirt,目標  %s · 空手長按行動並轉搖桿清潔,Target  %s · empty-handed hold + stick to clean,目标  %s · 空手长按行动并转摇杆清洁,対象  %s · 素手で長押し＋スティックで掃除
+hud.target_dirt_compact,目標  污物 · 空手長按行動並轉搖桿清潔,Target  dirt · empty-handed hold + stick to clean,目标  污物 · 空手长按行动并转摇杆清洁,対象  汚れ · 素手で長押し＋スティックで掃除
 hud.target_drop,目標  掉落 %s ×%d · 輕放撿起,Target  drop %s ×%d · tap to pick up,目标  掉落 %s ×%d · 轻放捡起,対象  落下 %s ×%d · タップで拾う
+hud.target_drop_compact,目標  掉落 ×%d · 輕放撿起,Target  drop ×%d · tap to pick up,目标  掉落 ×%d · 轻放捡起,対象  落下 ×%d · タップで拾う
 hud.target_thief,目標  小偷 · 空手長按抓住後連按行動打擊,Target  thief · hold to grab then mash act,目标  小偷 · 空手长按抓住后连按行动打击,対象  泥棒 · 素手で長押し掴み、行動連打で打撃
 hud.target_guest,目標  客人 · 長按行動交付手上貨,Target  guest · hold act to deliver,目标  客人 · 长按行动交付手上货,対象  客 · 長押し行動で手持ちを渡す
 hud.target_shelf,目標  貨架 · %s,Target  shelf · %s,目标  货架 · %s,対象  棚 · %s
+hud.target_shelf_fill,目標  貨架 · %d/%d,Target  shelf · %d/%d,目标  货架 · %d/%d,対象  棚 · %d/%d
+hud.target_shelf_empty,目標  貨架 · 空 %d,Target  shelf · empty %d,目标  货架 · 空 %d,対象  棚 · 空 %d
 hud.shelf_empty,空架 %d件,Empty %d slots,空架 %d件,空き %d枠
 hud.cat_dry,乾貨,Dry,干货,乾物
 hud.cat_frozen,凍櫃,Frozen,冻柜,冷凍
@@ -306,12 +314,14 @@ cannon.name,萬用炮,Universal Cannon,万用炮,万能砲
 cannon.blurb,腳下布置可穿行炮台；容量12／16／20件；每5／4／3秒射1件；再按取消後CD60秒,Deploy a pass-through turret; FIFO capacity 12/16/20; fires one item every 5/4/3s; cancel to start a 60s INT-scaled cooldown,脚下布置可穿行炮台；容量12／16／20件；每5／4／3秒射1件；再按取消后CD60秒,足元に通行可能な砲台を設置；容量12／16／20個；5／4／3秒ごとに1個発射；再押しで解除後CD60秒
 cannon.empty,無彈藥,Empty,无弹药,弾薬なし
 cannon.status,P%d 萬用炮 %d／%d\n下一發：%s,P%d Cannon %d/%d\nNext: %s,P%d 万用炮 %d／%d\n下一发：%s,P%d 万能砲 %d／%d\n次弾：%s
+cannon.status_compact,P%d  %d／%d,P%d  %d/%d,P%d  %d／%d,P%d  %d／%d
 cannon.cancelled,萬用炮已取消，剩貨落地，開始冷卻,Cannon removed; remaining ammo dropped; cooldown started,万用炮已取消，剩货落地，开始冷却,万能砲を解除、残り弾薬は落下、クールダウン開始
 cannon.deployed,萬用炮已布置；短按取下一發，長按裝貨,Cannon deployed; tap to retrieve next round; hold to load,万用炮已布置；短按取下一发，长按装货,万能砲を設置；短押しで次弾取得、長押しで装填
 cannon.take_failed,無法取貨：炮台空或負重已滿,Cannot retrieve: cannon empty or hands full,无法取货：炮台空或负重已满,取得不可：砲台が空、または所持上限
 cannon.loaded,萬用炮裝入 %d 件,Loaded %d items into cannon,万用炮装入 %d 件,万能砲に %d 個装填
 shelf_cannon.empty,無彈藥,Empty,无弹药,弾薬なし
 shelf_cannon.status,P%d 上架炮 %d／%d\n下一發：%s,P%d Shelf Cannon %d/%d\nNext: %s,P%d 上架炮 %d／%d\n下一发：%s,P%d 陳列砲 %d／%d\n次弾：%s
+shelf_cannon.status_compact,P%d  %d／%d,P%d  %d/%d,P%d  %d／%d,P%d  %d／%d
 shelf_cannon.cancelled,上架炮已取消，剩貨落地，開始冷卻,Shelf Cannon removed; remaining stock dropped; cooldown started,上架炮已取消，剩货落地，开始冷却,陳列砲を解除、残りの在庫は落下、クールダウン開始
 shelf_cannon.deployed,上架炮已布置；長按裝貨,Shelf Cannon deployed; hold to load,上架炮已布置；长按装货,陳列砲を設置；長押しで装填
 shelf_cannon.loaded,上架炮裝入 %d 件,Loaded %d items into Shelf Cannon,上架炮装入 %d 件,陳列砲に %d 個装填

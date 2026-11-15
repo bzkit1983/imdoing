@@ -5,6 +5,18 @@ const Skills = preload("res://scripts/skills.gd")
 const UiFont = preload("res://scripts/ui_font.gd")
 const SkuIcons = preload("res://scripts/sku_icons.gd")
 
+## Ops HUD palette — dark shop plate + warm gold accent (not purple / cream-serif clichés).
+const COL_INK := Color(0.045, 0.055, 0.06, 1.0)
+const COL_PANEL := Color(0.07, 0.09, 0.10, 0.94)
+const COL_PANEL_EDGE := Color(0.42, 0.48, 0.44, 0.65)
+const COL_TEXT := Color(0.97, 0.96, 0.93, 1.0)
+const COL_MUTED := Color(0.78, 0.80, 0.76, 1.0)
+const COL_GOLD := Color(0.96, 0.83, 0.37, 1.0)
+const COL_TEAL := Color(0.42, 0.78, 0.68, 1.0)
+const COL_STAMINA := Color(0.38, 0.82, 0.58, 0.95)
+const COL_STAMINA_LOW := Color(0.92, 0.55, 0.32, 0.95)
+const COL_STAMINA_BG := Color(0.08, 0.10, 0.10, 0.75)
+
 var game: Node
 var player: CharacterBody2D
 var _skip: Button
@@ -31,7 +43,6 @@ var _panes: Array = []
 @onready var _role: Label = $Root/Left/Role
 @onready var _skills: Label = $Root/Left/Skills
 var _combo: Label
-var _ops_rating: Label
 var _stamina_std: ProgressBar
 var _carry_std: Label
 var _carry_icons_std: HBoxContainer
@@ -62,6 +73,7 @@ var _left_panel: PanelContainer
 @onready var _close_settle_header: Label = $Root/Closeout/Margin/Columns/SettleCard/CardMargin/SettleCol/SettleHeader
 @onready var _close_text: Label = $Root/Closeout/Margin/Columns/SettleCard/CardMargin/SettleCol/CloseText
 var _closeout_styled: bool = false
+var _stamina_low_paint: bool = false
 
 
 func setup(g: Node, p: CharacterBody2D) -> void:
@@ -74,7 +86,6 @@ func setup(g: Node, p: CharacterBody2D) -> void:
 	## Icon strip replaces text HudList (P0 ops SKU UI).
 	_hud_list.visible = false
 	_build_combo_label()
-	_build_ops_rating_label()
 	_wrap_left_status_panel()
 	_build_tr_std()
 	_build_bottom_left_panel()
@@ -100,6 +111,8 @@ func setup(g: Node, p: CharacterBody2D) -> void:
 		## Dual seat panes need room; shrink shared log min height.
 		_log.custom_minimum_size = Vector2(0, 64)
 	_apply_cjk_fonts($Root)
+	_style_right_panel()
+	_restyle_ops_labels()
 	get_viewport().size_changed.connect(_on_viewport_resized)
 	_style_closeout()
 	_set_closeout_visible(false)
@@ -243,68 +256,80 @@ func _build_combo_label() -> void:
 	_combo.name = "Combo"
 	_combo.text = Loc.t("hud.combo", [0, 0])
 	var left: VBoxContainer = $Root/Left
-	var skills_i := _skills.get_index()
+	## Sit under guests — action feedback after shop vitals.
 	left.add_child(_combo)
-	left.move_child(_combo, skills_i + 1)
-
-
-func _build_ops_rating_label() -> void:
-	_ops_rating = Label.new()
-	_ops_rating.name = "OpsRating"
-	_ops_rating.text = Loc.t("hud.ops_rating", [50])
-	var left: VBoxContainer = $Root/Left
-	var rev_i := _rev.get_index()
-	left.add_child(_ops_rating)
-	left.move_child(_ops_rating, rev_i + 1)
-	_apply_cjk_fonts(_ops_rating)
+	left.move_child(_combo, _guests.get_index() + 1)
 
 
 func _wrap_left_status_panel() -> void:
-	## Dark plate + outline so clock／revenue／guests stay readable over floor tiles.
+	## Left vitals plate: time → money → floor → combo.
 	var left: VBoxContainer = $Root/Left
 	var root: Control = $Root
 	var idx := left.get_index()
 	root.remove_child(left)
-	_left_panel = _make_hud_panel()
+	_left_panel = _make_hud_panel(COL_TEAL)
 	_left_panel.name = "LeftStatusPanel"
-	_left_panel.position = Vector2(12, 8)
+	_left_panel.position = Vector2(12, 10)
 	left.layout_mode = 2
 	left.offset_left = 0.0
 	left.offset_top = 0.0
 	left.offset_right = 0.0
 	left.offset_bottom = 0.0
-	left.custom_minimum_size = Vector2(360, 0)
+	left.custom_minimum_size = Vector2(300, 0)
+	left.add_theme_constant_override("separation", 5)
+	if _clock:
+		_clock.custom_minimum_size = Vector2(108, 108)
 	_left_panel.add_child(left)
 	root.add_child(_left_panel)
 	root.move_child(_left_panel, idx)
-	for lab in [_time, _phase, _rev, _guests, _store, _role, _combo, _ops_rating]:
-		if lab:
-			_apply_readable_label(lab)
+	_restyle_ops_labels()
+
+
+func _restyle_ops_labels() -> void:
+	## Time primary → phase gold → money → floor muted → combo punch.
+	_style_label(_time, COL_TEXT, UiFont.TITLE, 7)
+	_style_label(_phase, COL_GOLD, UiFont.BODY, 5)
+	_style_label(_rev, COL_TEXT, UiFont.BODY, 6)
+	_style_label(_guests, COL_MUTED, UiFont.WORLD, 5)
+	_style_label(_combo, COL_GOLD, UiFont.BODY, 6)
+	_style_label(_store, COL_MUTED, UiFont.WORLD, 4)
+	_style_label(_role, COL_MUTED, UiFont.WORLD, 4)
+	_style_label(_tasks, COL_TEXT, UiFont.WORLD, 5)
+	_style_label(_skills_std, COL_TEXT, UiFont.WORLD, 5)
+	_style_label(_carry_std, COL_TEXT, UiFont.WORLD, 5)
+
+
+func _style_label(lab: Label, color: Color, size: int = UiFont.BODY, outline: int = 5) -> void:
+	if lab == null:
+		return
+	lab.set_meta("cjk_design", size)
+	UiFont.apply_label(lab, size)
+	lab.add_theme_color_override("font_color", color)
+	lab.add_theme_color_override("font_outline_color", COL_INK)
+	lab.add_theme_constant_override("outline_size", outline)
 
 
 func _apply_readable_label(lab: Label) -> void:
-	lab.add_theme_color_override("font_color", Color(0.98, 0.97, 0.94, 1))
-	lab.add_theme_color_override("font_outline_color", Color(0.04, 0.04, 0.05, 1))
-	lab.add_theme_constant_override("outline_size", 6)
+	_style_label(lab, COL_TEXT, UiFont.BODY, 6)
 
 
 func _build_tr_std() -> void:
-	## Standard stamina + carry — top-right (below pause button).
-	_tr_panel = _make_hud_panel()
+	## Stamina + carry — top-right, tucked under pause.
+	_tr_panel = _make_hud_panel(COL_GOLD)
 	_tr_panel.name = "TopRightStd"
 	_tr_panel.anchor_left = 1.0
 	_tr_panel.anchor_right = 1.0
 	_tr_panel.anchor_top = 0.0
 	_tr_panel.anchor_bottom = 0.0
-	_tr_panel.offset_left = -248.0
+	_tr_panel.offset_left = -236.0
 	_tr_panel.offset_right = -12.0
-	_tr_panel.offset_top = 88.0
+	_tr_panel.offset_top = 92.0
 	_tr_panel.offset_bottom = 200.0
 	_tr_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	_tr_panel.grow_vertical = Control.GROW_DIRECTION_END
 	var vbox := VBoxContainer.new()
 	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	vbox.add_theme_constant_override("separation", 6)
+	vbox.add_theme_constant_override("separation", 8)
 	_tr_panel.add_child(vbox)
 	_stamina_std = ProgressBar.new()
 	_stamina_std.name = "StaminaStd"
@@ -312,19 +337,13 @@ func _build_tr_std() -> void:
 	_stamina_std.show_percentage = false
 	_stamina_std.max_value = 100.0
 	_stamina_std.value = 100.0
-	_stamina_std.custom_minimum_size = Vector2(200, 18)
-	var fill := StyleBoxFlat.new()
-	fill.bg_color = Color(0.35, 0.78, 0.55, 0.95)
-	fill.set_corner_radius_all(4)
-	var bg := StyleBoxFlat.new()
-	bg.bg_color = Color(0.08, 0.1, 0.1, 0.7)
-	bg.set_corner_radius_all(4)
-	_stamina_std.add_theme_stylebox_override("fill", fill)
-	_stamina_std.add_theme_stylebox_override("background", bg)
+	_stamina_std.custom_minimum_size = Vector2(196, 16)
+	_paint_stamina_bar(_stamina_std, 1.0)
 	vbox.add_child(_stamina_std)
 	_carry_std = _make_hud_label("CarryStd")
 	_carry_std.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_carry_std.text = Loc.t("hud.carry", [0, 0])
+	_style_label(_carry_std, COL_TEXT, UiFont.WORLD, 5)
 	vbox.add_child(_carry_std)
 	_carry_icons_std = _make_carry_icons()
 	_carry_icons_std.alignment = BoxContainer.ALIGNMENT_END
@@ -335,16 +354,39 @@ func _build_tr_std() -> void:
 	_fit_tr_panel()
 
 
-func _make_hud_panel() -> PanelContainer:
+func _paint_stamina_bar(bar: ProgressBar, ratio: float) -> void:
+	if bar == null:
+		return
+	var low := ratio <= 0.28
+	if bar == _stamina_std and bar.get_theme_stylebox("fill") != null and low == _stamina_low_paint:
+		return
+	if bar == _stamina_std:
+		_stamina_low_paint = low
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = COL_STAMINA_LOW if low else COL_STAMINA
+	fill.set_corner_radius_all(5)
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = COL_STAMINA_BG
+	bg.set_corner_radius_all(5)
+	bar.add_theme_stylebox_override("fill", fill)
+	bar.add_theme_stylebox_override("background", bg)
+
+
+func _make_hud_panel(accent: Color = Color(0, 0, 0, 0)) -> PanelContainer:
 	var panel := PanelContainer.new()
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.05, 0.06, 0.08, 0.82)
-	sb.set_corner_radius_all(8)
-	sb.content_margin_left = 12
-	sb.content_margin_right = 12
-	sb.content_margin_top = 8
-	sb.content_margin_bottom = 8
+	sb.bg_color = COL_PANEL
+	sb.border_color = COL_PANEL_EDGE
+	sb.set_border_width_all(1)
+	sb.set_corner_radius_all(10)
+	sb.content_margin_left = 14
+	sb.content_margin_right = 14
+	sb.content_margin_top = 10
+	sb.content_margin_bottom = 10
+	if accent.a > 0.01:
+		sb.border_width_left = 3
+		sb.border_color = Color(accent.r, accent.g, accent.b, 0.9)
 	panel.add_theme_stylebox_override("panel", sb)
 	return panel
 
@@ -355,15 +397,13 @@ func _make_hud_label(name: String) -> Label:
 	lab.text = ""
 	lab.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	lab.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	lab.add_theme_color_override("font_color", Color(0.96, 0.95, 0.92, 1))
-	lab.add_theme_color_override("font_outline_color", Color(0.05, 0.05, 0.05, 1))
-	lab.add_theme_constant_override("outline_size", 4)
+	_style_label(lab, COL_TEXT, UiFont.BODY, 5)
 	return lab
 
 
 func _build_bottom_left_panel() -> void:
-	## Tasks — bottom-left. Skills／CD — bottom-right.
-	_tasks_panel = _make_hud_panel()
+	## Tasks — bottom-left (teal). Skills／CD — bottom-right (gold).
+	_tasks_panel = _make_hud_panel(COL_TEAL)
 	_tasks_panel.name = "TasksPanel"
 	_tasks_panel.visible = false
 	_tasks_panel.anchor_left = 0.0
@@ -371,8 +411,8 @@ func _build_bottom_left_panel() -> void:
 	_tasks_panel.anchor_top = 1.0
 	_tasks_panel.anchor_bottom = 1.0
 	_tasks_panel.offset_left = 12.0
-	_tasks_panel.offset_right = 360.0
-	_tasks_panel.offset_top = -48.0
+	_tasks_panel.offset_right = 380.0
+	_tasks_panel.offset_top = -52.0
 	_tasks_panel.offset_bottom = -12.0
 	_tasks_panel.grow_horizontal = Control.GROW_DIRECTION_END
 	_tasks_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
@@ -385,15 +425,15 @@ func _build_bottom_left_panel() -> void:
 	$Root.move_child(_tasks_panel, _banner.get_index())
 	_apply_cjk_fonts(_tasks)
 
-	_skills_panel = _make_hud_panel()
+	_skills_panel = _make_hud_panel(COL_GOLD)
 	_skills_panel.name = "SkillsPanel"
 	_skills_panel.anchor_left = 1.0
 	_skills_panel.anchor_right = 1.0
 	_skills_panel.anchor_top = 1.0
 	_skills_panel.anchor_bottom = 1.0
-	_skills_panel.offset_left = -380.0
+	_skills_panel.offset_left = -400.0
 	_skills_panel.offset_right = -12.0
-	_skills_panel.offset_top = -48.0
+	_skills_panel.offset_top = -52.0
 	_skills_panel.offset_bottom = -12.0
 	_skills_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	_skills_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
@@ -534,6 +574,7 @@ func _process(delta: float) -> void:
 		if _font_debounce <= 0.0:
 			_font_pending = false
 			_apply_cjk_fonts($Root)
+			_restyle_ops_labels()
 	_sync_left()
 	_sync_right()
 	if _skip or _pause_btn:
@@ -576,6 +617,10 @@ func _build_skip() -> void:
 
 func _on_show_dev_hud_changed(_enabled: bool) -> void:
 	_apply_dev_hud_visibility()
+	## Target／carry chrome may include SKU names — rebuild immediately.
+	_left_fp = ""
+	_right_dirty = true
+	_refresh()
 
 
 func _apply_dev_hud_visibility() -> void:
@@ -588,8 +633,6 @@ func _apply_dev_hud_visibility() -> void:
 		_role.visible = show
 	if _skills:
 		_skills.visible = false
-	if _ops_rating:
-		_ops_rating.visible = show
 	if _right:
 		_right.visible = show
 	if _skip:
@@ -612,21 +655,41 @@ func _build_pause() -> void:
 	btn.focus_mode = Control.FOCUS_NONE
 	host.add_child(btn)
 	btn.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	btn.offset_left = -168.0
-	btn.offset_top = 10.0
-	btn.offset_right = -16.0
-	btn.offset_bottom = 78.0
+	btn.offset_left = -156.0
+	btn.offset_top = 12.0
+	btn.offset_right = -12.0
+	btn.offset_bottom = 76.0
 	UiFont.apply_button(btn, 20)
-	var box := StyleBoxFlat.new()
-	box.bg_color = Color("24302a")
-	box.set_corner_radius_all(10)
-	box.border_color = Color("f4d35e")
-	box.set_border_width_all(2)
-	for state_name in ["normal", "hover", "pressed", "focus"]:
-		btn.add_theme_stylebox_override(state_name, box)
-	btn.add_theme_color_override("font_color", Color("f4f1ea"))
+	var normal := StyleBoxFlat.new()
+	normal.bg_color = COL_PANEL
+	normal.border_color = COL_GOLD
+	normal.set_border_width_all(2)
+	normal.set_corner_radius_all(10)
+	normal.content_margin_left = 12
+	normal.content_margin_right = 12
+	var hover := normal.duplicate()
+	hover.bg_color = Color(0.12, 0.15, 0.14, 0.96)
+	var pressed := normal.duplicate()
+	pressed.bg_color = Color(0.05, 0.07, 0.07, 0.98)
+	btn.add_theme_stylebox_override("normal", normal)
+	btn.add_theme_stylebox_override("hover", hover)
+	btn.add_theme_stylebox_override("pressed", pressed)
+	btn.add_theme_stylebox_override("focus", hover)
+	btn.add_theme_color_override("font_color", COL_TEXT)
 	btn.pressed.connect(_on_pause_pressed)
 	_pause_btn = btn
+
+
+func _style_right_panel() -> void:
+	if _right == null:
+		return
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = COL_PANEL
+	sb.set_border_width_all(1)
+	sb.border_width_left = 3
+	sb.border_color = Color(COL_GOLD.r, COL_GOLD.g, COL_GOLD.b, 0.85)
+	sb.set_corner_radius_all(10)
+	_right.add_theme_stylebox_override("panel", sb)
 
 
 func _on_skip_operate() -> void:
@@ -699,9 +762,7 @@ func _sync_left() -> void:
 	_clock.game_hours = hours
 	_time.text = time_txt
 	_phase.text = phase_txt
-	_rev.text = Loc.t("hud.revenue", [rev_n, stolen_n])
-	if _ops_rating:
-		_ops_rating.text = Loc.t("hud.ops_rating", [ops_n])
+	_rev.text = Loc.t("hud.revenue", [rev_n, ops_n, stolen_n])
 	_guests.text = Loc.t("hud.guests", [guests_n, thieves_n])
 	_store.text = store_txt
 	_role.text = role_txt
@@ -711,9 +772,9 @@ func _sync_left() -> void:
 		_skills_panel.visible = skills_txt != ""
 		if skills_txt != "":
 			var skill_lines := skills_txt.count("\n") + 1
-			var sh := float(24 + skill_lines * 22)
+			var sh := float(28 + skill_lines * 24)
 			_skills_panel.offset_bottom = -12.0
-			_skills_panel.offset_top = -12.0 - maxf(sh, 48.0)
+			_skills_panel.offset_top = -12.0 - maxf(sh, 52.0)
 	if _combo:
 		if SeatTable.is_coop():
 			_combo.text = Loc.t("hud.combo_coop", [p1, p2, team])
@@ -725,9 +786,9 @@ func _sync_left() -> void:
 		_tasks_panel.visible = tasks_txt != ""
 		if tasks_txt != "":
 			var task_lines := tasks_txt.count("\n") + 1
-			var th := float(24 + task_lines * 22)
+			var th := float(28 + task_lines * 24)
 			_tasks_panel.offset_bottom = -12.0
-			_tasks_panel.offset_top = -12.0 - maxf(th, 48.0)
+			_tasks_panel.offset_top = -12.0 - maxf(th, 52.0)
 
 
 func _pane_player(pane: Dictionary) -> CharacterBody2D:
@@ -759,6 +820,8 @@ func _sync_stamina_std() -> void:
 	if player.has_method("stamina_max_now"):
 		_stamina_std.max_value = float(player.call("stamina_max_now"))
 	_stamina_std.value = float(player.get("stamina"))
+	var mx := maxf(_stamina_std.max_value, 1.0)
+	_paint_stamina_bar(_stamina_std, _stamina_std.value / mx)
 	_sync_carry_std()
 
 
@@ -779,9 +842,9 @@ func _fit_tr_panel(has_icons: bool = false) -> void:
 	if _tr_panel == null:
 		return
 	## Stamina + carry line + optional icon strip.
-	var h := 72.0 if not has_icons else 128.0
-	_tr_panel.offset_top = 88.0
-	_tr_panel.offset_bottom = 88.0 + h
+	var h := 68.0 if not has_icons else 124.0
+	_tr_panel.offset_top = 92.0
+	_tr_panel.offset_bottom = 92.0 + h
 
 
 func _tasks_status_text() -> String:
@@ -953,30 +1016,40 @@ func _refresh_pane(pane: Dictionary) -> void:
 		## Object.get can return null — Godot 4 String()/int()/bool() reject null.
 		var kind_v = t.get("kind")
 		var kind := str(kind_v) if kind_v != null else ""
+		var show_names := PlatformServices.is_show_dev_hud()
 		match kind:
 			"restock":
-				var cat_name := Loc.t("hud.cat_dry")
-				var cat_v = t.get("category")
-				var cat := str(cat_v) if cat_v != null else ""
-				if cat == Tuning.CAT_FROZEN:
-					cat_name = Loc.t("hud.cat_frozen")
-				elif cat == Tuning.CAT_ICE:
-					cat_name = Loc.t("hud.cat_ice")
-				var pick = t.call("selected_sku") if t.has_method("selected_sku") else ""
-				target_l.text = Loc.t("hud.target_restock", [
-					cat_name,
-					Tuning.sku_name(str(pick) if pick != null else ""),
-				])
+				if show_names:
+					var cat_name := Loc.t("hud.cat_dry")
+					var cat_v = t.get("category")
+					var cat := str(cat_v) if cat_v != null else ""
+					if cat == Tuning.CAT_FROZEN:
+						cat_name = Loc.t("hud.cat_frozen")
+					elif cat == Tuning.CAT_ICE:
+						cat_name = Loc.t("hud.cat_ice")
+					var pick = t.call("selected_sku") if t.has_method("selected_sku") else ""
+					target_l.text = Loc.t("hud.target_restock", [
+						cat_name,
+						Tuning.sku_name(str(pick) if pick != null else ""),
+					])
+				else:
+					target_l.text = Loc.t("hud.target_restock_compact")
 			"cashier":
 				target_l.text = Loc.t("hud.target_cashier")
 			"dirt":
-				var dname = t.call("type_name") if t.has_method("type_name") else ""
-				target_l.text = Loc.t("hud.target_dirt", [str(dname) if dname != null else ""])
+				if show_names:
+					var dname = t.call("type_name") if t.has_method("type_name") else ""
+					target_l.text = Loc.t("hud.target_dirt", [str(dname) if dname != null else ""])
+				else:
+					target_l.text = Loc.t("hud.target_dirt_compact")
 			"drop":
-				target_l.text = Loc.t("hud.target_drop", [
-					Tuning.sku_name(_obj_str(t, "sku")),
-					_obj_int(t, "count"),
-				])
+				if show_names:
+					target_l.text = Loc.t("hud.target_drop", [
+						Tuning.sku_name(_obj_str(t, "sku")),
+						_obj_int(t, "count"),
+					])
+				else:
+					target_l.text = Loc.t("hud.target_drop_compact", [_obj_int(t, "count")])
 			"thief":
 				target_l.text = Loc.t("hud.target_thief")
 			"shelf":
@@ -984,8 +1057,13 @@ func _refresh_pane(pane: Dictionary) -> void:
 				var cap := _obj_int(t, "capacity")
 				if cap <= 0:
 					cap = Tuning.SHELF_CAP
-				var shelf_bit := Loc.t("hud.shelf_empty", [cap]) if sku == "" else "%s %d/%d" % [Tuning.sku_name(sku), _obj_int(t, "count"), cap]
-				target_l.text = Loc.t("hud.target_shelf", [shelf_bit])
+				if show_names:
+					var shelf_bit := Loc.t("hud.shelf_empty", [cap]) if sku == "" else "%s %d/%d" % [Tuning.sku_name(sku), _obj_int(t, "count"), cap]
+					target_l.text = Loc.t("hud.target_shelf", [shelf_bit])
+				elif sku == "":
+					target_l.text = Loc.t("hud.target_shelf_empty", [cap])
+				else:
+					target_l.text = Loc.t("hud.target_shelf_fill", [_obj_int(t, "count"), cap])
 			"", "elite":
 				target_l.text = Loc.t("hud.target_guest")
 			_:
