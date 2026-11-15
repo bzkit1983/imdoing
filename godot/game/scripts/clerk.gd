@@ -19,6 +19,7 @@ var _plan_sku: String = ""
 var _box_sku: String = ""
 var _box_n: int = 0
 var _sprite: CanvasItem
+var _name_lab: Label
 var _model_id: String = "clerk_restock"
 var _job_search_cd: float = 0.0
 var _shown_anim: String = ""
@@ -59,14 +60,23 @@ func setup(game: Node, at: Vector2, job: String, reg: Node2D) -> void:
 	_sprite = Vox.animated(_model_id)
 	_sprite.name = "Body"
 	add_child(_sprite)
-	var lab := Label.new()
-	lab.text = Loc.t("world.clerk.cashier") if role == "cashier" else Loc.t("world.clerk.restock")
-	lab.position = Vector2(-40, -36)
-	UiFont.apply_label(lab, UiFont.WORLD)
-	lab.add_theme_color_override("font_color", Color("d6ecff"))
-	lab.add_theme_color_override("font_outline_color", Color("121212"))
-	lab.add_theme_constant_override("outline_size", 5)
-	add_child(lab)
+	_name_lab = Label.new()
+	_name_lab.text = Loc.t("world.clerk.cashier") if role == "cashier" else Loc.t("world.clerk.restock")
+	_name_lab.position = Vector2(-40, -36)
+	UiFont.apply_label(_name_lab, UiFont.WORLD)
+	_name_lab.add_theme_color_override("font_color", Color("d6ecff"))
+	_name_lab.add_theme_color_override("font_outline_color", Color("121212"))
+	_name_lab.add_theme_constant_override("outline_size", 5)
+	_name_lab.visible = PlatformServices.is_show_dev_hud()
+	add_child(_name_lab)
+
+
+func refresh_dev_labels() -> void:
+	if _name_lab == null:
+		return
+	_name_lab.visible = PlatformServices.is_show_dev_hud()
+	if _name_lab.visible:
+		_name_lab.text = Loc.t("world.clerk.cashier") if role == "cashier" else Loc.t("world.clerk.restock")
 
 
 func _physics_process(delta: float) -> void:

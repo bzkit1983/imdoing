@@ -65,12 +65,21 @@ offset_bottom = 286.0
 focus_mode = 0
 text = "Continue"
 
-[node name="SfxBtn" type="Button" parent="Card"]
+[node name="TasksBtn" type="Button" parent="Card"]
 unique_name_in_owner = true
 offset_left = 36.0
 offset_top = 300.0
 offset_right = 764.0
 offset_bottom = 372.0
+focus_mode = 0
+text = "Task details"
+
+[node name="SfxBtn" type="Button" parent="Card"]
+unique_name_in_owner = true
+offset_left = 36.0
+offset_top = 386.0
+offset_right = 764.0
+offset_bottom = 458.0
 focus_mode = 0
 text = "SFX: On"
 

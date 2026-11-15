@@ -42,7 +42,7 @@ func setup(id: String, n: int) -> void:
 	spr.modulate = tint.lerp(Color.WHITE, 0.4)
 	add_child(spr)
 	var lab := Label.new()
-	lab.text = "%s×%d" % [Tuning.sku_name(id), n]
+	lab.text = _count_label_text(id, n)
 	lab.position = Vector2(-28, -28)
 	UiFont.apply_label(lab, UiFont.WORLD)
 	lab.add_theme_color_override("font_color", Color("fff4c2"))
@@ -75,8 +75,18 @@ func take_count(n: int) -> int:
 	return take
 
 
+func _count_label_text(id: String, n: int) -> String:
+	if PlatformServices.is_show_dev_hud():
+		return "%s×%d" % [Tuning.sku_name(id), n]
+	return Loc.t("world.drop.count", [n])
+
+
+func refresh_dev_labels() -> void:
+	_refresh_label()
+
+
 func _refresh_label() -> void:
 	for c in get_children():
 		if c is Label:
-			c.text = "%s×%d" % [Tuning.sku_name(sku), count]
+			c.text = _count_label_text(sku, count)
 			return

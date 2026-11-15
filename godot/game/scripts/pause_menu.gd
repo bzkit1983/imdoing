@@ -3,18 +3,20 @@ extends CanvasLayer
 ## Opened by Esc / Start / HUD pause button or PlatformServices.pause_menu_requested (suspend).
 
 const UiFont = preload("res://scripts/ui_font.gd")
+const TaskTracker = preload("res://scripts/session/task_tracker.gd")
 
 signal resume_requested
 signal end_day_requested
 
 const FOCUS_RESUME := 0
-const FOCUS_SFX := 1
-const FOCUS_VOL := 2
-const FOCUS_STICK := 3
-const FOCUS_CAMERA := 4
-const FOCUS_LANG := 5
-const FOCUS_END := 6
-const FOCUS_COUNT := 7
+const FOCUS_TASKS := 1
+const FOCUS_SFX := 2
+const FOCUS_VOL := 3
+const FOCUS_STICK := 4
+const FOCUS_CAMERA := 5
+const FOCUS_LANG := 6
+const FOCUS_END := 7
+const FOCUS_COUNT := 8
 
 var game: Node
 var _open: bool = false
@@ -30,12 +32,18 @@ var _lang_pick_codes: Array[String] = []
 var _lang_pick_btns: Array[Button] = []
 var _lang_pick_back: Button = null
 var _lang_pick_root: Control = null
+## Task details sub-mode (below Continue on main list).
+var _tasks_detail: bool = false
+var _tasks_detail_root: Control = null
+var _tasks_detail_back: Button = null
+var _tasks_detail_scroll: ScrollContainer = null
 
 @onready var _shade: ColorRect = %Shade
 @onready var _title: Label = %Title
 @onready var _body: Label = %Body
 @onready var _hint: Label = %Hint
 @onready var _resume_btn: Button = %ResumeBtn
+@onready var _tasks_btn: Button = %TasksBtn
 @onready var _sfx_btn: Button = %SfxBtn
 @onready var _vol_btn: Button = %VolBtn
 @onready var _vol_down: Button = %VolDownBtn
@@ -58,10 +66,14 @@ func setup(host: Node) -> void:
 	_body.add_theme_color_override("font_color", Color("f4f1ea"))
 	UiFont.apply_label(_hint, 20)
 	_hint.add_theme_color_override("font_color", Color("c8c2b4"))
-	for b in [_resume_btn, _sfx_btn, _vol_btn, _vol_down, _vol_up, _stick_btn, _camera_btn, _lang_btn, _end_btn]:
+	for b in [_resume_btn, _tasks_btn, _sfx_btn, _vol_btn, _vol_down, _vol_up, _stick_btn, _camera_btn, _lang_btn, _end_btn]:
+		if b == null:
+			continue
 		UiFont.apply_button(b, 22)
 		b.focus_mode = Control.FOCUS_NONE
 	_resume_btn.pressed.connect(_on_resume)
+	if _tasks_btn:
+		_tasks_btn.pressed.connect(_enter_tasks_detail)
 	_sfx_btn.pressed.connect(_on_sfx_toggle)
 	_vol_btn.pressed.connect(_on_vol_preview)
 	_vol_down.pressed.connect(_on_vol_nudge.bind(-1))
@@ -83,6 +95,9 @@ func setup(host: Node) -> void:
 		PlatformServices.resumed.connect(_on_platform_resumed)
 	if not Loc.locale_changed.is_connected(_on_locale_changed):
 		Loc.locale_changed.connect(_on_locale_changed)
+	if not PlatformServices.show_dev_hud_changed.is_connected(_on_show_dev_hud_changed):
+		PlatformServices.show_dev_hud_changed.connect(_on_show_dev_hud_changed)
+	_refresh_hint_visibility()
 
 
 func is_open() -> bool:
@@ -123,6 +138,7 @@ func open_menu(from_suspend: bool = false) -> void:
 	_focus = FOCUS_RESUME
 	_stick_armed = true
 	_exit_lang_pick(false)
+	_exit_tasks_detail(false)
 	visible = true
 	_refresh_end_day_row()
 	_refresh_copy()
@@ -142,6 +158,7 @@ func close_menu() -> void:
 	if not _open:
 		return
 	_exit_lang_pick(false)
+	_exit_tasks_detail(false)
 	_open = false
 	_from_suspend = false
 	_stick_armed = true
@@ -182,11 +199,13 @@ func _process(_delta: float) -> void:
 		return
 	_stick_armed = false
 	if absf(v.x) > absf(v.y):
-		if not _lang_pick and _focus == FOCUS_VOL:
+		if not _lang_pick and not _tasks_detail and _focus == FOCUS_VOL:
 			_on_vol_nudge(1 if v.x > 0.0 else -1)
 	else:
 		if _lang_pick:
 			_move_lang_pick_focus(1 if v.y > 0.0 else -1)
+		elif _tasks_detail:
+			_scroll_tasks_detail(1 if v.y > 0.0 else -1)
 		else:
 			_move_focus(1 if v.y > 0.0 else -1)
 
@@ -200,6 +219,18 @@ func _refresh_copy() -> void:
 		else:
 			_hint.text = Loc.t("pause.hint")
 		_refresh_lang_pick_labels()
+		_refresh_hint_visibility()
+		return
+	if _tasks_detail:
+		_title.text = Loc.t("pause.tasks.title")
+		_body.text = Loc.t("pause.tasks")
+		if InputMode.show_vj():
+			_hint.text = Loc.t("pause.hint_touch")
+		else:
+			_hint.text = Loc.t("pause.hint")
+		if _tasks_detail_back:
+			_tasks_detail_back.text = Loc.t("pause.tasks.back")
+		_refresh_hint_visibility()
 		return
 	_title.text = Loc.t("pause.title")
 	if _from_suspend:
@@ -211,11 +242,14 @@ func _refresh_copy() -> void:
 	else:
 		_hint.text = Loc.t("pause.hint")
 	_resume_btn.text = Loc.t("pause.resume")
+	if _tasks_btn:
+		_tasks_btn.text = Loc.t("pause.tasks")
 	_end_btn.text = Loc.t("pause.end_day")
 	_refresh_audio_labels()
 	_refresh_stick_row()
 	_refresh_camera_row()
 	_refresh_lang_row()
+	_refresh_hint_visibility()
 
 
 func _refresh_audio_labels() -> void:
@@ -245,6 +279,23 @@ func _on_locale_changed(_code: String) -> void:
 		_paint_focus()
 
 
+func _on_show_dev_hud_changed(_enabled: bool) -> void:
+	_refresh_hint_visibility()
+
+
+func _refresh_hint_visibility() -> void:
+	## Body＋control-hint chrome are for developers; players use the option buttons.
+	var show := PlatformServices.is_show_dev_hud()
+	if _hint:
+		_hint.visible = show
+	if _body:
+		## Keep body visible in language／tasks subpages (they reuse it for context).
+		if _lang_pick or _tasks_detail:
+			_body.visible = true
+		else:
+			_body.visible = show
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if _is_toggle(event):
 		if _open:
@@ -260,6 +311,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if _lang_pick:
 		_lang_pick_input(event)
+		return
+	if _tasks_detail:
+		_tasks_detail_input(event)
 		return
 	var dir := _dir_of(event)
 	if dir == 0:
@@ -364,6 +418,8 @@ func _layout_option_rows() -> void:
 	var header_h := 168.0
 	var rows: Array[Control] = []
 	rows.append(_resume_btn)
+	if _tasks_btn != null and _tasks_btn.visible:
+		rows.append(_tasks_btn)
 	rows.append(_sfx_btn)
 	if _vol_btn != null and _vol_btn.get_parent() is Control:
 		rows.append(_vol_btn.get_parent() as Control)
@@ -422,6 +478,8 @@ func _activate_focus() -> void:
 		FOCUS_RESUME:
 			SfxBus.play("sfx_ui_confirm")
 			_on_resume()
+		FOCUS_TASKS:
+			_enter_tasks_detail()
 		FOCUS_SFX:
 			_on_sfx_toggle()
 		FOCUS_VOL:
@@ -489,6 +547,7 @@ func _on_camera_cycle() -> void:
 func _enter_lang_pick() -> void:
 	if _lang_pick:
 		return
+	_exit_tasks_detail(false)
 	SfxBus.play("sfx_ui_confirm")
 	_lang_pick = true
 	_lang_pick_focus = 0
@@ -503,15 +562,43 @@ func _exit_lang_pick(play_focus: bool) -> void:
 		return
 	_lang_pick = false
 	_clear_lang_pick()
-	_set_main_options_visible(true)
+	if not _tasks_detail:
+		_set_main_options_visible(true)
 	_refresh_copy()
 	_focus = FOCUS_LANG
 	if play_focus:
 		_paint_focus()
 
 
+func _enter_tasks_detail() -> void:
+	if _tasks_detail:
+		return
+	_exit_lang_pick(false)
+	SfxBus.play("sfx_ui_confirm")
+	_tasks_detail = true
+	_set_main_options_visible(false)
+	_build_tasks_detail()
+	_refresh_copy()
+	_paint_focus()
+
+
+func _exit_tasks_detail(play_focus: bool) -> void:
+	if not _tasks_detail and _tasks_detail_root == null:
+		return
+	_tasks_detail = false
+	_clear_tasks_detail()
+	if not _lang_pick:
+		_set_main_options_visible(true)
+	_refresh_copy()
+	_focus = FOCUS_TASKS
+	if play_focus:
+		_paint_focus()
+
+
 func _set_main_options_visible(on: bool) -> void:
 	_resume_btn.visible = on
+	if _tasks_btn:
+		_tasks_btn.visible = on
 	_sfx_btn.visible = on
 	if _vol_btn.get_parent() is Control:
 		(_vol_btn.get_parent() as Control).visible = on
@@ -526,6 +613,137 @@ func _set_main_options_visible(on: bool) -> void:
 		_refresh_end_day_row()
 	else:
 		_end_btn.visible = false
+
+
+func _local_task_seat() -> int:
+	if game == null:
+		return 0
+	var p = game.get("player")
+	if p != null and is_instance_valid(p) and "seat_id" in p:
+		return int(p.seat_id)
+	return 0
+
+
+func _format_pause_task_row(row: Dictionary) -> String:
+	var st := String(row.get("status", "active"))
+	var unwired := bool(row.get("unwired", false))
+	var mark := TaskTracker.status_mark(st, unwired)
+	var name := String(row.get("name", ""))
+	if name == "":
+		name = String(row.get("id", "?"))
+	var desc := String(row.get("desc", ""))
+	var prog := TaskTracker.progress_text(
+		String(row.get("op", ">=")),
+		int(row.get("current", 0)),
+		int(row.get("target", 0)),
+		st
+	)
+	if unwired:
+		return Loc.t("prep.tasks.row_unwired", [mark, name])
+	if desc == "":
+		if st == "done":
+			return Loc.t("prep.tasks.row_done_nodesc", [mark, name, prog])
+		return Loc.t("prep.tasks.row_nodesc", [mark, name, prog])
+	if st == "done":
+		return Loc.t("prep.tasks.row_done", [mark, name, desc, prog])
+	return Loc.t("prep.tasks.row", [mark, name, desc, prog])
+
+
+func _build_tasks_detail() -> void:
+	_clear_tasks_detail()
+	var card := _resume_btn.get_parent()
+	if card == null:
+		return
+	_tasks_detail_root = Control.new()
+	_tasks_detail_root.name = "TasksDetailRoot"
+	_tasks_detail_root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_tasks_detail_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card.add_child(_tasks_detail_root)
+	_tasks_detail_scroll = ScrollContainer.new()
+	_tasks_detail_scroll.offset_left = 36.0
+	_tasks_detail_scroll.offset_right = 764.0
+	_tasks_detail_scroll.offset_top = 214.0
+	_tasks_detail_scroll.offset_bottom = 600.0
+	_tasks_detail_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_tasks_detail_scroll.mouse_filter = Control.MOUSE_FILTER_STOP
+	_tasks_detail_root.add_child(_tasks_detail_scroll)
+	var box := VBoxContainer.new()
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.add_theme_constant_override("separation", 10)
+	box.custom_minimum_size = Vector2(720, 0)
+	_tasks_detail_scroll.add_child(box)
+	var rows: Array = []
+	if game != null and game.has_method("task_hud_lines"):
+		rows = game.task_hud_lines(_local_task_seat())
+	if rows.is_empty():
+		var empty := Label.new()
+		empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		empty.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		empty.text = Loc.t("pause.tasks.empty")
+		UiFont.apply_label(empty, 22)
+		empty.add_theme_color_override("font_color", Color("f4f1ea"))
+		box.add_child(empty)
+	else:
+		for row in rows:
+			if not (row is Dictionary):
+				continue
+			var lab := Label.new()
+			lab.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			lab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			lab.text = _format_pause_task_row(row as Dictionary)
+			UiFont.apply_label(lab, 22)
+			lab.add_theme_color_override("font_color", Color("f4f1ea"))
+			lab.add_theme_color_override("font_outline_color", Color(0.04, 0.05, 0.06, 1))
+			lab.add_theme_constant_override("outline_size", 3)
+			box.add_child(lab)
+	_tasks_detail_back = Button.new()
+	_tasks_detail_back.focus_mode = Control.FOCUS_NONE
+	_tasks_detail_back.offset_left = 36.0
+	_tasks_detail_back.offset_right = 764.0
+	_tasks_detail_back.offset_top = 612.0
+	_tasks_detail_back.offset_bottom = 684.0
+	UiFont.apply_button(_tasks_detail_back, 22)
+	_tasks_detail_back.text = Loc.t("pause.tasks.back")
+	_tasks_detail_back.pressed.connect(func() -> void:
+		SfxBus.play("sfx_ui_cancel")
+		_exit_tasks_detail(true)
+	)
+	_tasks_detail_root.add_child(_tasks_detail_back)
+
+
+func _clear_tasks_detail() -> void:
+	_tasks_detail_back = null
+	_tasks_detail_scroll = null
+	if _tasks_detail_root != null and is_instance_valid(_tasks_detail_root):
+		_tasks_detail_root.queue_free()
+	_tasks_detail_root = null
+
+
+func _scroll_tasks_detail(dir: int) -> void:
+	if _tasks_detail_scroll == null:
+		return
+	var step := 56.0 * float(dir)
+	_tasks_detail_scroll.scroll_vertical = maxi(
+		0,
+		_tasks_detail_scroll.scroll_vertical + int(step)
+	)
+	SfxBus.play("sfx_ui_move")
+
+
+func _tasks_detail_input(event: InputEvent) -> void:
+	var dir := _dir_of(event)
+	if dir == 0:
+		_scroll_tasks_detail(-1)
+		get_viewport().set_input_as_handled()
+	elif dir == 1:
+		_scroll_tasks_detail(1)
+		get_viewport().set_input_as_handled()
+	elif dir == 2 or dir == 3:
+		get_viewport().set_input_as_handled()
+	elif _is_confirm(event) or _is_cancel(event):
+		get_viewport().set_input_as_handled()
+		SfxBus.play("sfx_ui_cancel")
+		_exit_tasks_detail(true)
 
 
 func _build_lang_pick() -> void:
@@ -642,7 +860,13 @@ func _paint_focus() -> void:
 		if _lang_pick_back:
 			_style_btn(_lang_pick_back, _lang_pick_focus == _lang_pick_btns.size())
 		return
+	if _tasks_detail:
+		if _tasks_detail_back:
+			_style_btn(_tasks_detail_back, true)
+		return
 	_style_btn(_resume_btn, _focus == FOCUS_RESUME)
+	if _tasks_btn:
+		_style_btn(_tasks_btn, _focus == FOCUS_TASKS)
 	_style_btn(_sfx_btn, _focus == FOCUS_SFX)
 	var vol_on := _focus == FOCUS_VOL
 	_style_btn(_vol_btn, vol_on)

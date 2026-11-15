@@ -232,7 +232,11 @@ func _draw_sku_list(canvas: CanvasItem) -> void:
 		var tex: Texture2D = SkuIcons.texture(sku)
 		var icon_pos := origin + Vector2(10, row_y + (row - icon_px) * 0.5)
 		canvas.draw_texture_rect(tex, Rect2(icon_pos, Vector2(icon_px, icon_px)), false)
-		var line := Loc.t("world.restock.stock_line", [Tuning.sku_name(sku), remaining(sku)])
+		var line := (
+			Loc.t("world.restock.stock_line", [Tuning.sku_name(sku), remaining(sku)])
+			if PlatformServices.is_show_dev_hud()
+			else Loc.t("world.restock.stock_count", [remaining(sku)])
+		)
 		var text_x := 10.0 + icon_px + 8.0
 		canvas.draw_string(
 			font,
@@ -247,6 +251,7 @@ func _draw_sku_list(canvas: CanvasItem) -> void:
 
 func _refresh() -> void:
 	var sku := selected_sku()
+	var show_names := PlatformServices.is_show_dev_hud()
 	var title := Loc.t("world.restock.dry")
 	if category == Tuning.CAT_FROZEN:
 		title = Loc.t("world.restock.frozen")
@@ -264,12 +269,21 @@ func _refresh() -> void:
 	else:
 		_sku_icon.visible = not picking
 		_sku_icon.texture = SkuIcons.texture(sku)
-		var s := 26.0 / float(SkuIcons.SIZE)
+		## Was 26px logical; double for restock-point readability.
+		var s := 52.0 / float(SkuIcons.SIZE)
 		_sku_icon.scale = Vector2(s, s)
-		_sku_icon.position = Vector2(0, -40)
+		_sku_icon.position = Vector2(0, -48)
 	if label:
 		if sku == "":
-			label.text = Loc.t("world.restock.undeveloped", [title])
-		else:
+			label.text = (
+				Loc.t("world.restock.undeveloped", [title])
+				if show_names
+				else Loc.t("world.restock.undeveloped_only")
+			)
+		elif show_names:
 			## Icon shows SKU; world label is title + stock only (no control hints).
 			label.text = Loc.t("world.restock.count", [title, remaining(sku)])
+		else:
+			label.text = Loc.t("world.restock.count_only", [remaining(sku)])
+	if _list:
+		_list.queue_redraw()

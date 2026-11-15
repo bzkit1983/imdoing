@@ -83,8 +83,11 @@ func refresh() -> void:
 	if is_instance_valid(_visual):
 		_visual.set_ammo(ammo[0] if not ammo.is_empty() else "")
 	if is_instance_valid(_label):
-		var next := Tuning.sku_name(ammo[0]) if not ammo.is_empty() else Loc.t("cannon.empty")
-		_label.text = Loc.t("cannon.status", [owner_seat + 1, ammo.size(), capacity(), next])
+		if PlatformServices.is_show_dev_hud():
+			var next := Tuning.sku_name(ammo[0]) if not ammo.is_empty() else Loc.t("cannon.empty")
+			_label.text = Loc.t("cannon.status", [owner_seat + 1, ammo.size(), capacity(), next])
+		else:
+			_label.text = Loc.t("cannon.status_compact", [owner_seat + 1, ammo.size(), capacity()])
 
 func available_for(player) -> bool:
 	return not dismissed and ((not ammo.is_empty() and player.inventory.count() < player.carry_cap()) or (not player.inventory.is_empty() and ammo.size() < capacity()))

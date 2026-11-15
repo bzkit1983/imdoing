@@ -115,7 +115,9 @@ func walls_and_door() -> void:
 	door.z_index = -4
 	door.position = Vector2(mid, north_y)
 	host._world.add_child(door)
-	caption(Vector2(mid - 28, o.y + 6), Loc.t("world.door"))
+	var door_lab := caption(Vector2(mid - 28, o.y + 6), Loc.t("world.door"))
+	door_lab.visible = PlatformServices.is_show_dev_hud()
+	host._door_caption = door_lab
 
 func restock(r: Rect2, cat: String, default_sku: String = "") -> Node2D:
 	host._obstacles.append(r)

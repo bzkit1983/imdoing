@@ -54,6 +54,7 @@ const CLOSEOUT_HOLD_MSEC := 2000
 var _prep: CanvasLayer
 var _pause: CanvasLayer
 var _world: Node2D
+var _door_caption: Label = null
 var cashiers: Array[Node2D] = []
 ## SKU id → Array of stocked shelves (maintained via shelf.stock_sku_changed).
 var _shelves_by_sku: Dictionary = {}
@@ -172,6 +173,47 @@ func _ready() -> void:
 	add_child(_pause)
 	_pause.setup(self)
 	_pause.end_day_requested.connect(_on_pause_end_day)
+	if not PlatformServices.show_dev_hud_changed.is_connected(_on_show_dev_hud_changed):
+		PlatformServices.show_dev_hud_changed.connect(_on_show_dev_hud_changed)
+
+
+func _on_show_dev_hud_changed(_enabled: bool) -> void:
+	refresh_world_dev_labels()
+
+
+## Toggle object-name chrome instantly when 「顯示開發用資訊」 flips mid-day.
+func refresh_world_dev_labels() -> void:
+	if _door_caption != null and is_instance_valid(_door_caption):
+		_door_caption.visible = PlatformServices.is_show_dev_hud()
+		if _door_caption.visible:
+			_door_caption.text = Loc.t("world.door")
+	for s in shelves:
+		if s != null and is_instance_valid(s) and s.has_method("_refresh"):
+			s.call("_refresh")
+	if _world != null and is_instance_valid(_world):
+		for n in _world.get_children():
+			if n == null or not is_instance_valid(n):
+				continue
+			if n.has_method("refresh_dev_labels"):
+				n.call("refresh_dev_labels")
+			elif n.has_method("_refresh"):
+				n.call("_refresh")
+			elif n.has_method("refresh"):
+				n.call("refresh")
+			elif n.has_method("pull_stock"):
+				n.call("pull_stock")
+	for c in _clerks:
+		if c != null and is_instance_valid(c) and c.has_method("refresh_dev_labels"):
+			c.call("refresh_dev_labels")
+	for d in _dirts:
+		if d != null and is_instance_valid(d) and d.has_method("refresh_dev_labels"):
+			d.call("refresh_dev_labels")
+	if _customers != null and is_instance_valid(_customers):
+		for n in _customers.get_children():
+			if n != null and is_instance_valid(n) and n.has_method("refresh_dev_labels"):
+				n.call("refresh_dev_labels")
+	if _hud != null and _hud.has_method("_refresh"):
+		_hud.call("_refresh")
 
 
 func _begin_day() -> void:
@@ -372,6 +414,7 @@ func _clear_world() -> void:
 	for c in kill:
 		c.queue_free()
 	_world = null
+	_door_caption = null
 	_hud = null
 	shelves.clear()
 	_shelves_by_sku.clear()

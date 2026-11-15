@@ -22,15 +22,18 @@
 | 確定 | `interact`（預設 J／Enter／A） | 點選按鈕 |
 | 返回（繼續） | `cancel`（預設 ;／Backspace／B） | 「繼續遊戲」 |
 
+主畫面說明文（`pause.body`／`pause.body_suspend`）與提示小字（`pause.hint`／`pause.hint_touch`）僅在 **顯示開發用資訊**（`PlatformServices.is_show_dev_hud()`）開啟時顯示。語言／任務詳情子頁仍可顯示其自身說明。
+
 選項：
 
 1. **繼續遊戲** — 解除 `get_tree().paused`，回到店舖  
-2. **音效：開／關** — 靜音事件 SFX（不含 BGM；跨局保留）  
-3. **音效聲量：N%** — 0–100%、每檔 10%；−／＋ 或 A／D；J／點中間可試聽  
-4. **虛擬搖桿：開／關** — 與準備「系統工具」共用 `[ui] virtual_stick`（預設關）。開後只在觸控活躍時顯示；手掣／鍵盤自動隱藏（見 `inputmodes-vj.md`）。Desktop 編輯器亦顯示此列方便預覽  
-5. **鏡頭：正常／稍遠／全地圖** — 循環三種視野（見 `control.md`）。寫入 `user://settings.cfg` → `[ui] camera_view`（`normal`｜`far`｜`overview`，預設 `normal`）。改完繼續即套用，之後營運日沿用。營運中亦可用 Xbox 視圖鍵／鍵盤 `V` 循環（暫停開著時改由本列操作）  
-6. **語言** — 先開「選擇語言」子畫面，再從 `Loc.locales()`／CSV 欄支援列表（`zh_TW`／`en`／`zh_CN`／`ja`）選一項；寫入 `[ui] locale`（預設 `zh_TW`）。主列文案為「語言：%s」，語系名用各語 **endonym**（繁體中文／English／简体中文／日本語，不隨 UI 語系翻譯）。取消／返回不改語系。與準備「系統工具」共用；選定後當頁文案即刷。見 `docs/alpha/i18n.md`  
-7. **結束本日並結算** — 等同 HUD「馬上完成營運」（`skip_operate`）。**線上：僅 Host 機**可觸發；client 無此項或按下無效（`multiplayer.md` §12.6）
+2. **任務詳情** — 子畫面列出本座進行中任務（名稱【】＋描述＋進度／狀態）；返回回到暫停主列。資料來自當日 `task_hud_lines`  
+3. **音效：開／關** — 靜音事件 SFX（不含 BGM；跨局保留）  
+4. **音效聲量：N%** — 0–100%、每檔 10%；−／＋ 或 A／D；J／點中間可試聽  
+5. **虛擬搖桿：開／關** — 與準備「系統工具」共用 `[ui] virtual_stick`（預設關）。開後只在觸控活躍時顯示；手掣／鍵盤自動隱藏（見 `inputmodes-vj.md`）。Desktop 編輯器亦顯示此列方便預覽  
+6. **鏡頭：正常／稍遠／全地圖** — 循環三種視野（見 `control.md`）。寫入 `user://settings.cfg` → `[ui] camera_view`（`normal`｜`far`｜`overview`，預設 `normal`）。改完繼續即套用，之後營運日沿用。營運中亦可用 Xbox 視圖鍵／鍵盤 `V` 循環（暫停開著時改由本列操作）  
+7. **語言** — 先開「選擇語言」子畫面，再從 `Loc.locales()`／CSV 欄支援列表（`zh_TW`／`en`／`zh_CN`／`ja`）選一項；寫入 `[ui] locale`（預設 `zh_TW`）。主列文案為「語言：%s」，語系名用各語 **endonym**（繁體中文／English／简体中文／日本語，不隨 UI 語系翻譯）。取消／返回不改語系。與準備「系統工具」共用；選定後當頁文案即刷。見 `docs/alpha/i18n.md`  
+8. **結束本日並結算** — 等同 HUD「馬上完成營運」（`skip_operate`）。**線上：僅 Host 機**可觸發；client 無此項或按下無效（`multiplayer.md` §12.6）
 
 > 手機 Web 沒有 Esc／Start：用右上「暫停」。系統掛起（切 App／鎖屏）仍會經 `PlatformServices` 自動開暫停選單。
 

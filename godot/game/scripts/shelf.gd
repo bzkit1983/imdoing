@@ -186,18 +186,29 @@ func _refresh() -> void:
 	else:
 		_goods.visible = true
 		_goods.texture = SkuIcons.texture(sku)
-		## ~30px logical icon on shelf face.
-		var s := 30.0 / float(SkuIcons.SIZE)
+		## Was ~30px; double for shelf-face readability.
+		var s := 60.0 / float(SkuIcons.SIZE)
 		_goods.scale = Vector2(s, s)
-		_goods.position = facing * -8.0 + Vector2(0, -34)
-	var kind_name := Loc.t("world.shelf.dry")
-	if category == Tuning.CAT_FROZEN:
-		kind_name = Loc.t("world.shelf.frozen")
-	elif category == Tuning.CAT_ICE:
-		kind_name = Loc.t("world.shelf.ice")
+		_goods.position = facing * -8.0 + Vector2(0, -40)
 	if label:
-		## Name dropped — icon carries SKU identity; keep index + fill.
+		## Dev HUD: kind name + index. Players: fill count only (icon carries SKU).
+		var show_names := PlatformServices.is_show_dev_hud()
 		if sku == "":
-			label.text = Loc.t("world.shelf.empty", [kind_name, shelf_index, capacity])
+			if show_names:
+				var kind_name := Loc.t("world.shelf.dry")
+				if category == Tuning.CAT_FROZEN:
+					kind_name = Loc.t("world.shelf.frozen")
+				elif category == Tuning.CAT_ICE:
+					kind_name = Loc.t("world.shelf.ice")
+				label.text = Loc.t("world.shelf.empty", [kind_name, shelf_index, capacity])
+			else:
+				label.text = Loc.t("world.shelf.empty_only", [capacity])
+		elif show_names:
+			var kind_name2 := Loc.t("world.shelf.dry")
+			if category == Tuning.CAT_FROZEN:
+				kind_name2 = Loc.t("world.shelf.frozen")
+			elif category == Tuning.CAT_ICE:
+				kind_name2 = Loc.t("world.shelf.ice")
+			label.text = "%s %d\n%d/%d" % [kind_name2, shelf_index, count, capacity]
 		else:
-			label.text = "%s %d\n%d/%d" % [kind_name, shelf_index, count, capacity]
+			label.text = Loc.t("world.shelf.fill", [count, capacity])

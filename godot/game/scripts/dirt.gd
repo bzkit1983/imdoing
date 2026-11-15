@@ -32,6 +32,13 @@ var _clean_stage: int = -1
 var _net_clean_fp: String = ""
 
 
+func refresh_dev_labels() -> void:
+	if _label:
+		_label.visible = PlatformServices.is_show_dev_hud()
+		if _label.visible:
+			_label.text = type_name()
+
+
 func setup(dtype: String, size: Vector2) -> void:
 	dirt_type = dtype
 	patch_size = size
@@ -168,6 +175,7 @@ func _build() -> void:
 	_label.add_theme_color_override("font_color", Color("fff4c2"))
 	_label.add_theme_color_override("font_outline_color", Color("121212"))
 	_label.add_theme_constant_override("outline_size", 5)
+	_label.visible = PlatformServices.is_show_dev_hud()
 	add_child(_label)
 	_stick_draw = StickHint.new()
 	## Above the dirt / character head so clean anims stay readable.

@@ -122,15 +122,21 @@ world.clone.label,分身,Clone,分身,分身
 world.door,大門,Door,大门,入口
 world.restock.pick,選貨  ↑↓,Pick SKU  ↑↓,选货  ↑↓,商品選択  ↑↓
 world.restock.stock_line,%s  %d件,%s  %d pcs,%s  %d件,%s  %d個
+world.restock.stock_count,%d件,%d pcs,%d件,%d個
 world.restock.dry,乾貨補貨點,Dry restock point,干货补货点,常温補充ポイント
 world.restock.frozen,凍櫃補貨點,Chiller restock point,冻柜补货点,冷蔵補充ポイント
 world.restock.ice,冰櫃補貨點,Freezer restock point,冰柜补货点,冷凍補充ポイント
 world.restock.undeveloped,%s\n尚未開發,%s\nNot developed,%s\n尚未开发,%s\n未開発
+world.restock.undeveloped_only,尚未開發,Not developed,尚未开发,未開発
 world.restock.count,%s\n%d件,%s\n%d pcs,%s\n%d件,%s\n%d個
+world.restock.count_only,%d件,%d pcs,%d件,%d個
 world.shelf.dry,乾貨架,Dry shelf,干货架,常温棚
 world.shelf.frozen,凍櫃貨架,Chiller shelf,冻柜货架,冷蔵棚
 world.shelf.ice,冰櫃貨架,Freezer shelf,冰柜货架,冷凍棚
 world.shelf.empty,%s %d\n空　%d,%s %d\nEmpty  %d,%s %d\n空　%d,%s %d\n空　%d
+world.shelf.empty_only,空　%d,Empty  %d,空　%d,空　%d
+world.shelf.fill,%d/%d,%d/%d,%d/%d,%d/%d
+world.drop.count,×%d,×%d,×%d,×%d
 world.sheet.default,預設,Default,预设,デフォルト
 world.sheet.guest,訪客,Guest,访客,ゲスト
 world.sheet.line,%s  LV%d  XP%d  色%d  %s,%s  LV%d  XP%d  tint%d  %s,%s  LV%d  XP%d  色%d  %s,%s  LV%d  XP%d  色%d  %s
