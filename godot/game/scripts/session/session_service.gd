@@ -28,6 +28,8 @@ signal carry_state_received(payload: Dictionary)
 signal prompt_state_received(payload: Dictionary)
 ## Host → client day HUD economy (ops_rating／revenue／stolen) absolute snapshot.
 signal day_hud_state_received(payload: Dictionary)
+## Host → client seat skill CD／buff absolute snapshot (HUD chrome).
+signal skill_cd_state_received(payload: Dictionary)
 ## M3 §13.6: Overlay／Friends／cmdline queued a lobby for Prep claim UI.
 signal steam_invite_pending(lobby_id: int)
 
@@ -512,6 +514,15 @@ func broadcast_day_hud_state(payload: Dictionary) -> void:
 	_rpc_day_hud_state.rpc(payload)
 
 
+func broadcast_skill_cd_state(payload: Dictionary) -> void:
+	## 各 seat 技能 CD／buff 絕對快照；Client HUD 只套用。
+	if not is_networked() or not is_server() or not day_started:
+		return
+	if payload.is_empty():
+		return
+	_rpc_skill_cd_state.rpc(payload)
+
+
 func send_settle_to_clients(payload: Dictionary) -> void:
 	if not is_networked() or not is_server():
 		return
@@ -967,6 +978,13 @@ func _rpc_day_hud_state(payload: Dictionary) -> void:
 	if is_server():
 		return
 	day_hud_state_received.emit(payload)
+
+
+@rpc("authority", "reliable")
+func _rpc_skill_cd_state(payload: Dictionary) -> void:
+	if is_server():
+		return
+	skill_cd_state_received.emit(payload)
 
 
 @rpc("authority", "reliable")

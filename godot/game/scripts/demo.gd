@@ -129,6 +129,10 @@ var _pending_carry_states: Array = []
 var _pending_prompt_states: Array = []
 ## Client pending day HUD economy RPCs before world ready.
 var _pending_day_hud_states: Array = []
+## Client pending skill CD／buff RPCs before world ready.
+var _pending_skill_cd_states: Array = []
+## Host fingerprint to throttle skill CD broadcasts.
+var _skill_cd_net_fp: String = ""
 var _dirt_spawn_in: float = Tuning.DIRT_SPAWN_SEC
 var _thief_spawn_in: float = Tuning.THIEF_SPAWN_FIRST
 var _early_open: bool = false
@@ -181,6 +185,8 @@ func _ready() -> void:
 		SessionService.prompt_state_received.connect(_on_prompt_state_received)
 	if not SessionService.day_hud_state_received.is_connected(_on_day_hud_state_received):
 		SessionService.day_hud_state_received.connect(_on_day_hud_state_received)
+	if not SessionService.skill_cd_state_received.is_connected(_on_skill_cd_state_received):
+		SessionService.skill_cd_state_received.connect(_on_skill_cd_state_received)
 	_hook_warehouse_changed()
 	_pause = PauseScene.instantiate()
 	add_child(_pause)
@@ -420,6 +426,7 @@ func _begin_day() -> void:
 			_dump_all_carry()
 			_dump_all_prompt()
 			_broadcast_day_hud_state()
+			_dump_all_skill_cds()
 	else:
 		## Apply spawn／flight／state RPCs that raced ahead of world build (M2.2～M2.9).
 		_flush_pending_agent_spawns()
@@ -429,6 +436,7 @@ func _begin_day() -> void:
 		_flush_pending_carry_states()
 		_flush_pending_prompt_states()
 		_flush_pending_day_hud_states()
+		_flush_pending_skill_cd_states()
 	## Ops tutorial after world／HUD exist (director survives _clear_world).
 	if _tutorial != null and is_instance_valid(_tutorial):
 		_tutorial.call_deferred("consider_ops")
@@ -477,6 +485,8 @@ func _clear_world() -> void:
 	_owned_host_pose.clear()
 	_net_accum = 0.0
 	_agent_xform_accum = 0.0
+	_skill_cd_net_fp = ""
+	_pending_skill_cd_states.clear()
 	_early_open = false
 	_early_latched = false
 	_early_layer = null
@@ -2012,6 +2022,7 @@ func _net_tick_once() -> void:
 		return
 	_net_host_apply_intents()
 	_net_host_broadcast_players()
+	_maybe_broadcast_skill_cds()
 
 
 func _net_client_send_intents() -> void:
@@ -4152,6 +4163,76 @@ func _apply_day_hud_state_payload(payload: Dictionary) -> void:
 		_tasks.sync_absolute_for_all_seats("ops_rating", ops_rating)
 		_tasks.sync_absolute_for_all_seats("sales_revenue", revenue)
 		_tasks.sync_absolute_for_all_seats("angry_leave", angry_left)
+	bump_hud()
+
+
+func _skill_cd_net_fingerprint() -> String:
+	var bits: PackedStringArray = []
+	for p in _players:
+		if p == null or not is_instance_valid(p) or not p.has_method("skill_cd_fp"):
+			continue
+		bits.append(String(p.call("skill_cd_fp")))
+	bits.sort()
+	return "|".join(bits)
+
+
+func _maybe_broadcast_skill_cds() -> void:
+	if not SessionService.is_networked() or not SessionService.is_server() or not SessionService.day_started:
+		return
+	var fp := _skill_cd_net_fingerprint()
+	if fp == _skill_cd_net_fp:
+		return
+	_skill_cd_net_fp = fp
+	_dump_all_skill_cds()
+
+
+func _dump_all_skill_cds() -> void:
+	if not SessionService.is_networked() or not SessionService.is_server() or not SessionService.day_started:
+		return
+	var rows: Array = []
+	for p in _players:
+		if p == null or not is_instance_valid(p) or not p.has_method("skill_cd_net_row"):
+			continue
+		rows.append(p.call("skill_cd_net_row"))
+	if rows.is_empty():
+		return
+	_skill_cd_net_fp = _skill_cd_net_fingerprint()
+	SessionService.broadcast_skill_cd_state({"seats": rows})
+
+
+func _on_skill_cd_state_received(payload: Dictionary) -> void:
+	if not SessionService.is_client():
+		return
+	if _world == null or not is_instance_valid(_world):
+		_pending_skill_cd_states.append(payload.duplicate(true))
+		return
+	_apply_skill_cd_state_payload(payload)
+
+
+func _flush_pending_skill_cd_states() -> void:
+	if _pending_skill_cd_states.is_empty():
+		return
+	var queued: Array = _pending_skill_cd_states.duplicate(true)
+	_pending_skill_cd_states.clear()
+	for payload in queued:
+		if payload is Dictionary:
+			_apply_skill_cd_state_payload(payload)
+
+
+func _apply_skill_cd_state_payload(payload: Dictionary) -> void:
+	var rows = payload.get("seats", [])
+	if not (rows is Array):
+		return
+	for row in rows:
+		if not (row is Dictionary):
+			continue
+		var sid := int(row.get("seat", -1))
+		if sid < 0:
+			continue
+		var p := _player_for_seat(sid)
+		if p == null or not p.has_method("apply_net_skill_cd"):
+			continue
+		p.call("apply_net_skill_cd", row)
 	bump_hud()
 
 

@@ -560,6 +560,65 @@ func buff_left(skill_id: String) -> float:
 	return float(_buffs.get(skill_id, 0.0))
 
 
+## Host → Client absolute CD／buff row (HUD／status chrome).
+func skill_cd_net_row() -> Dictionary:
+	var cds: Dictionary = {}
+	for id in _cd.keys():
+		var left := float(_cd[id])
+		if left > 0.05:
+			cds[String(id)] = left
+	var buffs: Dictionary = {}
+	for id in _buffs.keys():
+		var left := float(_buffs[id])
+		if left > 0.05:
+			buffs[String(id)] = left
+	return {
+		"seat": seat_id,
+		"cd": cds,
+		"buffs": buffs,
+		"senior_cashier_lv": _senior_cashier_lv,
+	}
+
+
+func apply_net_skill_cd(row: Dictionary) -> void:
+	_cd.clear()
+	var cds = row.get("cd", {})
+	if cds is Dictionary:
+		for id in cds.keys():
+			_cd[String(id)] = float(cds[id])
+	_buffs.clear()
+	var buffs = row.get("buffs", {})
+	if buffs is Dictionary:
+		for id in buffs.keys():
+			_buffs[String(id)] = float(buffs[id])
+	_senior_cashier_lv = int(row.get("senior_cashier_lv", 0))
+	if buff_left("sweeping_monk") > 0.05:
+		_sync_monk_tornado(true)
+	else:
+		_sync_monk_tornado(false)
+	_buff_cache_valid = false
+	_cust_speed_q.clear()
+	for id in _buffs.keys():
+		var sid := String(id)
+		var sk: Dictionary = Skills.by_id(sid)
+		if sid == "the_world" or sk.has("customer_move_pct") or sk.has("clock_scale"):
+			_cust_speed_q.append(sid)
+	_hud_dirty = true
+	_emit_stats_if_changed()
+
+
+func skill_cd_fp() -> String:
+	var bits: PackedStringArray = []
+	for id in _cd.keys():
+		bits.append("%s:%.0f" % [String(id), float(_cd[id])])
+	bits.sort()
+	var bb: PackedStringArray = []
+	for id in _buffs.keys():
+		bb.append("%s:%.0f" % [String(id), float(_buffs[id])])
+	bb.sort()
+	return "%d|%s|%s|%d" % [seat_id, ",".join(bits), ",".join(bb), _senior_cashier_lv]
+
+
 ## Thrown boxes / pieces home to the nearest same-SKU shelf.
 func sniper_shelf_active() -> bool:
 	return buff_left("shelf_sniper") > 0.0
