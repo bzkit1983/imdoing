@@ -6,12 +6,16 @@ extends RefCounted
 const Tuning = preload("res://scripts/tuning.gd")
 
 const SIZE := 32
+## Prep ItemList slot — matches SkillIcons.ROW_* / PrepWidgets.LIST_ROW_H.
+const ROW_W := 48
+const ROW_H := 72
 const KIND_MISS := "miss"
 const KIND_OK := "ok"
 const KIND_BAD := "bad"
 
 static var _tex: Dictionary = {}
 static var _badge: Dictionary = {}
+static var _rows: Dictionary = {}
 
 
 static func texture(sku: String) -> Texture2D:
@@ -56,6 +60,35 @@ static func badge_texture(kind: String) -> Texture2D:
 			_draw_cross(img, Color(0.95, 0.35, 0.35, 1.0))
 	var tex := ImageTexture.create_from_image(img)
 	_badge[kind] = tex
+	return tex
+
+
+static func row_texture(sku: String) -> Texture2D:
+	## Icon centered in a list-row slot so ItemList rows stay touch-tall.
+	sku = String(sku)
+	if sku == "":
+		return _blank_row()
+	if _rows.has(sku):
+		return _rows[sku] as Texture2D
+	var src := texture(sku).get_image()
+	var img := Image.create(ROW_W, ROW_H, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	if src != null:
+		var copy := src.duplicate()
+		copy.resize(40, 40, Image.INTERPOLATE_NEAREST)
+		img.blit_rect(copy, Rect2i(0, 0, 40, 40), Vector2i(4, 16))
+	var tex := ImageTexture.create_from_image(img)
+	_rows[sku] = tex
+	return tex
+
+
+static func _blank_row() -> Texture2D:
+	if _rows.has(""):
+		return _rows[""] as Texture2D
+	var img := Image.create(ROW_W, ROW_H, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	var tex := ImageTexture.create_from_image(img)
+	_rows[""] = tex
 	return tex
 
 

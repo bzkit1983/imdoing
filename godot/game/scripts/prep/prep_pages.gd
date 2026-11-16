@@ -8,6 +8,9 @@ const PrepWidgets = preload("res://scripts/prep/prep_widgets.gd")
 const ProductVersion = preload("res://scripts/product_version.gd")
 const SfxCatalog = preload("res://scripts/sfx_catalog.gd")
 const SkillIcons = preload("res://scripts/skill_icons.gd")
+const SkuIcons = preload("res://scripts/sku_icons.gd")
+const FurnitureIcons = preload("res://scripts/furniture_icons.gd")
+const PrepIcons = preload("res://scripts/prep/prep_icons.gd")
 
 
 static func is_hub_page(page: String) -> bool:
@@ -754,12 +757,13 @@ static func _develop(menu: CanvasLayer) -> void:
 	menu._title.text = Loc.t("prep.develop.title")
 	menu._info.text = menu._pair(menu._header(), menu._msg if menu._msg != "" else Loc.t("prep.develop.info"))
 	for sku in Tuning.SELLABLE_SKUS:
+		var icon := SkuIcons.row_texture(sku)
 		if not menu.state.sku_unlocked(sku):
-			menu._add(Loc.t("prep.sku.locked", [Tuning.sku_name(sku), int(Tuning.SKU_UNLOCK_LV[sku])]), "locked_sku", sku)
+			menu._add(Loc.t("prep.sku.locked", [Tuning.sku_name(sku), int(Tuning.SKU_UNLOCK_LV[sku])]), "locked_sku", sku, icon)
 		elif menu.state.developed.has(sku):
-			menu._add(Loc.t("prep.sku.developed", [Tuning.sku_name(sku)]), "noop", sku)
+			menu._add(Loc.t("prep.sku.developed", [Tuning.sku_name(sku)]), "noop", sku, icon)
 		else:
-			menu._add(Loc.t("prep.sku.develop_row", [Tuning.sku_name(sku), int(Tuning.SKU_DEVELOP[sku])]), "dev", sku)
+			menu._add(Loc.t("prep.sku.develop_row", [Tuning.sku_name(sku), int(Tuning.SKU_DEVELOP[sku])]), "dev", sku, icon)
 	menu._add(Loc.t("prep.back"), "go", "hub_goods")
 
 
@@ -774,12 +778,13 @@ static func _buy(menu: CanvasLayer) -> void:
 	menu._title.text = Loc.t("prep.buy.title")
 	menu._info.text = menu._pair(menu._header(), menu._msg if menu._msg != "" else Loc.t("prep.buy.info"))
 	for sku in Tuning.SELLABLE_SKUS:
+		var icon := SkuIcons.row_texture(sku)
 		if not menu.state.sku_unlocked(sku):
-			menu._add(Loc.t("prep.sku.locked", [Tuning.sku_name(sku), int(Tuning.SKU_UNLOCK_LV[sku])]), "locked_sku", sku)
+			menu._add(Loc.t("prep.sku.locked", [Tuning.sku_name(sku), int(Tuning.SKU_UNLOCK_LV[sku])]), "locked_sku", sku, icon)
 		elif not menu.state.developed.has(sku):
-			menu._add(Loc.t("prep.sku.need_dev", [Tuning.sku_name(sku)]), "need_develop", sku)
+			menu._add(Loc.t("prep.sku.need_dev", [Tuning.sku_name(sku)]), "need_develop", sku, icon)
 		elif not menu.state.is_for_sale(sku):
-			menu._add(Loc.t("prep.sku.buy_not_for_sale", [Tuning.sku_name(sku)]), "not_for_sale", sku)
+			menu._add(Loc.t("prep.sku.buy_not_for_sale", [Tuning.sku_name(sku)]), "not_for_sale", sku, icon)
 		else:
 			menu._add(
 				Loc.t("prep.sku.buy_row", [
@@ -790,6 +795,7 @@ static func _buy(menu: CanvasLayer) -> void:
 				]),
 				"qty",
 				sku,
+				icon,
 			)
 	menu._add(Loc.t("prep.back"), "go", "hub_goods")
 
@@ -804,13 +810,16 @@ static func _for_sale(menu: CanvasLayer) -> void:
 		any = true
 		var on: bool = bool(menu.state.is_for_sale(sku))
 		var key := "prep.sku.for_sale_on" if on else "prep.sku.for_sale_off"
-		menu._add(Loc.t(key, [Tuning.sku_name(sku)]), "toggle_sale", sku)
+		menu._add(Loc.t(key, [Tuning.sku_name(sku)]), "toggle_sale", sku, SkuIcons.row_texture(sku))
 	if not any:
 		menu._add(Loc.t("prep.for_sale.empty"), "noop", null)
 	menu._add(Loc.t("prep.back"), "go", "hub_goods")
 
 static func _build_qty(menu: CanvasLayer, total: int) -> void:
 	PrepWidgets.clear(menu._qty_panel)
+	var sku_icon := SkuIcons.make_tex_rect(String(menu._qty_sku), 48)
+	sku_icon.custom_minimum_size = Vector2(48, 48)
+	menu._qty_panel.add_child(sku_icon)
 	var steps := HBoxContainer.new()
 	steps.add_theme_constant_override("separation", 16)
 	steps.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -870,6 +879,18 @@ static func _qty_button(menu: CanvasLayer, text: String, focus_i: int) -> Button
 	return btn
 
 
+static func _prep_row_icon(id: String) -> Texture2D:
+	## Pad PrepIcons (DISPLAY) into SkillIcons-sized list slots.
+	var src := PrepIcons.icon_tex(id).get_image()
+	var img := Image.create(SkuIcons.ROW_W, SkuIcons.ROW_H, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	if src != null:
+		var copy := src.duplicate()
+		copy.resize(40, 40, Image.INTERPOLATE_NEAREST)
+		img.blit_rect(copy, Rect2i(0, 0, 40, 40), Vector2i(4, 16))
+	return ImageTexture.create_from_image(img)
+
+
 static func _furn(menu: CanvasLayer) -> void:
 	menu._title.text = Loc.t("prep.furn.title")
 	var furn_info := Loc.t("prep.furn.info")
@@ -883,15 +904,16 @@ static func _furn(menu: CanvasLayer) -> void:
 		## During open-shop tutorial: only show the allowlisted pieces.
 		if not tut_caps.is_empty() and not tut_caps.has(type):
 			continue
+		var icon := FurnitureIcons.row_texture(type)
 		if not menu.state.furniture_unlocked(type):
-			menu._add(Loc.t("prep.furn.locked_row", [fname, int(spec["unlock"]), int(spec["price"])]), "locked_furn", type)
+			menu._add(Loc.t("prep.furn.locked_row", [fname, int(spec["unlock"]), int(spec["price"])]), "locked_furn", type, icon)
 			continue
 		var owned_n := int(menu.state.owned.get(type, 0))
 		var row_label := Loc.t("prep.furn.buy_row", [fname, int(spec["price"]), owned_n, menu.state.unplaced(type)])
 		if not tut_caps.is_empty() and owned_n >= int(tut_caps[type]):
-			menu._add(Loc.t("tut.prep.restrict.furn_owned_row", [fname, owned_n]), "tut_furn_cap", type)
+			menu._add(Loc.t("tut.prep.restrict.furn_owned_row", [fname, owned_n]), "tut_furn_cap", type, icon)
 		else:
-			menu._add(row_label, "buy_f", type)
+			menu._add(row_label, "buy_f", type, icon)
 	menu._add(Loc.t("prep.back"), "go", "hub_shop")
 
 
@@ -901,11 +923,12 @@ static func _expand(menu: CanvasLayer) -> void:
 		menu.state.shop_scale, menu.state.grid_w, menu.state.grid_h,
 		menu.state.grid_w * menu.state.grid_h, menu.state.area_cap(),
 	])
+	var expand_icon := _prep_row_icon("expand")
 	if menu.state.shop_scale < 3:
 		var nxt: int = int(menu.state.shop_scale) + 1
-		menu._add(Loc.t("prep.expand.row", [nxt, int(menu.state.SCALE_COST[nxt])]), "expand", null)
+		menu._add(Loc.t("prep.expand.row", [nxt, int(menu.state.SCALE_COST[nxt])]), "expand", null, expand_icon)
 	else:
-		menu._add(Loc.t("err.max_scale"), "expand_max", null)
+		menu._add(Loc.t("err.max_scale"), "expand_max", null, expand_icon)
 	menu._add(Loc.t("prep.back"), "go", "hub_shop")
 
 
@@ -941,7 +964,12 @@ static func _layout(menu: CanvasLayer) -> void:
 	for type in menu.state.FURNITURE.keys():
 		var n: int = int(menu.state.unplaced(type))
 		if n > 0:
-			menu._add(Loc.t("prep.layout.drag", [menu.state.furniture_name(type), n]), "hold", type)
+			menu._add(
+				Loc.t("prep.layout.drag", [menu.state.furniture_name(type), n]),
+				"hold",
+				type,
+				FurnitureIcons.row_texture(type),
+			)
 	menu._add(Loc.t("prep.layout.focus_map"), "map_focus", null)
 	menu._add(Loc.t("prep.back"), "go", "hub_shop")
 	## Re-clamp after children. If the rows still exceed 148, drop the list below them.
