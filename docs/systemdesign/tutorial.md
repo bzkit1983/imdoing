@@ -110,9 +110,15 @@ GameState.tutorial_progress: {
 - id `5`；克隆空店開局，資金 **$3000**、LV1；流量緩和同劇本 1。
 - 僅測試工具開啟時出現於劇本列表。
 - 作為教學鏈入口（`scenario == 5`）。
-- 正式首 Lesson：`tut.prep.open_shop`「開店第一步」（準備：空店→可開業；條件 `open_ready`）。
-  - 強制步驟期間 soft-lock：主頁僅「店舖管理」；店舖內僅購入／配置；家具限購 `cashier`／`restock_dry`／`shelf_dry_4` 各 1（`prep_restrict`）。
-  - 營運清潔仍為 stub（`tut.stub.ops_clean`，依賴前者）。
+- 正式 prep 鏈：
+  1. `tut.prep.open_shop`「開店第一步」：重選／進入劇本 5 準備即觸發；條件 `owned_furniture_kinds >= 3`（買齊三件）；soft-lock 僅購入（暫鎖店鋪設計）。
+  2. `tut.prep.shop_layout`「店鋪設計入門」：買齊後**首次進入店鋪設計**觸發；條件 `open_ready`（三件擺進店，位置不限）；Pages 含補貨架長按設預設貨品提示。
+  - 家具限購 `cashier`／`restock_dry`／`shelf_dry_4` 各 1（`prep_restrict`）。
+  - 教學局贈送倉庫 `can`×12，供首次營運執貨。
+- 正式 ops 鏈（`day_index == 0`）：
+  1. `tut.ops.shelve`「貨品上架」：開工即彈（營運第一課）；條件 `shelve_count >= 4`；Pages 含執貨／上架操作；結課彈完成視窗。
+  2. `tut.ops.clean`「清潔入門」：上架完成後且 runtime flag `dirt_present`（污物首次出現）才彈；條件 `clean_count >= 1`。
+  - Lesson 結課統一經完成視窗（`complete_pages` 或預設 `tut.complete.*`）再鏈式下一課。
 
 ## 多人
 

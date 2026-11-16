@@ -141,19 +141,32 @@ func _on_next() -> void:
 	_paint()
 
 
-func _unhandled_input(event: InputEvent) -> void:
+## Use _input (not only unhandled) so ops-day player doesn't steal A first.
+## Ignore JoypadMotion — stick axes spam move_*／ui_* and would blaze through pages.
+func _input(event: InputEvent) -> void:
 	if not visible:
+		return
+	if event is InputEventJoypadMotion:
+		get_viewport().set_input_as_handled()
+		return
+	if event.is_echo() or not event.is_pressed():
+		return
+	if not (event is InputEventKey or event is InputEventJoypadButton):
 		return
 	if event.is_action_pressed("ui_cancel") or event.is_action_pressed("cancel"):
 		if _review:
 			SfxBus.play("sfx_ui_cancel")
 			close_modal(true)
-			get_viewport().set_input_as_handled()
+		get_viewport().set_input_as_handled()
 		return
 	if event.is_action_pressed("ui_left") or event.is_action_pressed("move_left"):
 		_on_prev()
 		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed("ui_right") or event.is_action_pressed("move_right") \
-			or event.is_action_pressed("interact") or event.is_action_pressed("ui_accept"):
+	elif (
+		event.is_action_pressed("ui_right")
+		or event.is_action_pressed("move_right")
+		or event.is_action_pressed("interact")
+		or event.is_action_pressed("ui_accept")
+	):
 		_on_next()
 		get_viewport().set_input_as_handled()

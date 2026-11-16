@@ -416,6 +416,9 @@ func _begin_day() -> void:
 	if not InputMode.clear_virtual_holds.is_connected(_clear_virtual_holds):
 		InputMode.clear_virtual_holds.connect(_clear_virtual_holds)
 	## Clients skip clerk/dirt AI seeds — host owns world agents (§12 / listen-server).
+	if _tutorial != null and is_instance_valid(_tutorial) and _tutorial.has_method("clear_runtime_flags"):
+		## Clear before dirt seed so `dirt_present` is re-armed for this day only.
+		_tutorial.clear_runtime_flags()
 	if SessionService.is_server() or SessionService.is_local_transport():
 		_spawn_clerks()
 		for i in Tuning.dirt_start(_play_easy()):
@@ -3336,6 +3339,8 @@ func _spawn_dirt(r: Rect2, dtype: String) -> void:
 		"sy": r.size.y,
 	})
 	SfxBus.play("sfx_dirt_spawn")
+	if _tutorial != null and is_instance_valid(_tutorial) and _tutorial.has_method("notify_flag"):
+		_tutorial.notify_flag("dirt_present")
 
 
 func _on_dirt_gone(area: Node2D) -> void:

@@ -23,7 +23,16 @@ Bindings for [`../SKILL.md`](../SKILL.md). Other products replace this file only
 | Day host／`note_*`／settle gates | [`godot/game/scripts/demo.gd`](../../../../godot/game/scripts/demo.gd) |
 | Prep open-day gate／consider／`prep_restrict` soft-lock | [`godot/game/scripts/prep_menu.gd`](../../../../godot/game/scripts/prep_menu.gd)、[`prep_pages.gd`](../../../../godot/game/scripts/prep/prep_pages.gd) |
 | Pause「教學」review | [`godot/game/scripts/pause_menu.gd`](../../../../godot/game/scripts/pause_menu.gd) |
-| Scenario 5 | `game_state._scenario_tutorial()`；list in [`prep_pages.gd`](../../../../godot/game/scripts/prep/prep_pages.gd) when `ProductVersion.test_tools_enabled()` |
+| Scenario 5 | `game_state._scenario_tutorial()`（含 `can`×12）；list in [`prep_pages.gd`](../../../../godot/game/scripts/prep/prep_pages.gd) when `ProductVersion.test_tools_enabled()`；prep `open_shop`→`shop_layout`；ops `shelve`→`clean` |
+
+### Triggers
+
+| Field | Meaning |
+| --- | --- |
+| `when` | `scenario`／`day_index`／`flag`／`first_unseen` |
+| `scenario`／`day_index`／`requires_done` | As in [`docs/systemdesign/tutorial.md`](../../../../docs/systemdesign/tutorial.md) |
+| `prep_page` | Optional. Prep Lesson only begins（or re-opens unacked pages）when `consider_prep(page)` matches；active＋`pages_acked` may resume on any prep page |
+| `flag` | Runtime flag via `TutorialDirector.notify_flag`（e.g. `dirt_present` from `demo._spawn_dirt`）；cleared each ops day start／`reset_runtime` |
 
 ## Conditions (axis C)
 

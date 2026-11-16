@@ -897,6 +897,14 @@ func _input(event: InputEvent) -> void:
 		return
 	if not controls_locally():
 		return
+	## Let TutorialModal own A／方向 while explain pages are up.
+	var game_freeze = _game()
+	if (
+		game_freeze != null
+		and game_freeze.has_method("tutorial_freezes_play")
+		and bool(game_freeze.tutorial_freezes_play())
+	):
+		return
 	if not Controls.event_for_seat(event, seat_id):
 		return
 	# Early-close dialog and closeout own confirm / cancel.

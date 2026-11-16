@@ -60,6 +60,10 @@ var _layout_act_long: bool = false
 var _layout_cancel_held: bool = false
 var _layout_cancel_time: float = 0.0
 var _layout_cancel_long: bool = false
+## Mouse long-press on a placed restock → default SKU picker (M&K ops tip).
+var _layout_mouse_sku_armed: bool = false
+var _layout_mouse_sku_time: float = 0.0
+var _layout_mouse_sku_hit: int = -1
 ## ≥0 while choosing default_sku for placed[index].
 var _sku_pick_i: int = -1
 var _sku_pick_cursor: int = 0
@@ -207,7 +211,7 @@ func _notify_tutorial_prep() -> void:
 		return
 	tut.setup(state)
 	if _page == "home" or _page == "layout" or PrepPages.is_hub_page(_page):
-		tut.consider_prep()
+		tut.consider_prep(_page)
 	else:
 		tut.notify_prep_state_changed()
 
@@ -421,11 +425,13 @@ func _show_page(page: String) -> void:
 		_cancel_sku_pick(false)
 		_cancel_drag()
 		_layout_act_held = false
+		_clear_mouse_sku_arm()
 	else:
 		_layout_focus = "map"
 		_on_size_btns = false
 		_cancel_sku_pick(false)
 		_layout_act_held = false
+		_clear_mouse_sku_arm()
 		_cursor.x = clampi(_cursor.x, 0, maxi(0, state.grid_w - 1))
 		_cursor.y = clampi(_cursor.y, 0, maxi(0, state.grid_h - 1))
 	if page == "stats":
@@ -979,10 +985,19 @@ func _activate() -> void:
 	var arg = row["arg"]
 	match action:
 		"sc":
+			## apply_scenario clears tutorial_progress; Director must drop stale forced state.
+			var tut_sc := _tutorial()
+			if tut_sc != null and tut_sc.has_method("reset_runtime"):
+				tut_sc.reset_runtime()
 			state.apply_scenario(int(arg))
+			if tut_sc != null:
+				tut_sc.setup(state)
 			_msg = ""
 			_show_page("home")
 		"wipe_save":
+			var tut_wipe := _tutorial()
+			if tut_wipe != null and tut_wipe.has_method("reset_runtime"):
+				tut_wipe.reset_runtime()
 			state.delete_save()
 			_guest_store = null
 			_guest_slot_index = -1
@@ -1936,6 +1951,26 @@ func _process(_delta: float) -> void:
 			_layout_act_held = false
 			_layout_act_time = 0.0
 			_layout_act_long = false
+	if _layout_mouse_sku_armed and _page == "layout":
+		if (
+			Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+			and not _drag_moved
+			and _sku_pick_i < 0
+		):
+			_layout_mouse_sku_time += _delta
+			if _layout_mouse_sku_time >= Tuning.SKU_PICK_HOLD:
+				if _layout_mouse_sku_hit >= 0 and _layout_mouse_sku_hit < state.placed.size():
+					var it: Dictionary = state.placed[_layout_mouse_sku_hit]
+					_cursor = Vector2i(int(it.get("x", 0)), int(it.get("y", 0)))
+					_layout_focus = "map"
+					_hold_type = ""
+					if _try_begin_restock_sku_pick():
+						## Swallow the eventual release so short-click recall does not fire.
+						_cancel_drag()
+						_swallow_click = true
+				_clear_mouse_sku_arm()
+		else:
+			_clear_mouse_sku_arm()
 	if _layout_cancel_held and _page == "layout":
 		if _hold_type == "" or not _hold_from_map:
 			_layout_cancel_held = false
@@ -2246,6 +2281,26 @@ func _input(event: InputEvent) -> void:
 		return
 	if not visible or _page != "layout" or _dlg_open or state == null:
 		return
+	## Default-SKU picker (M&K): wheel cycles, LMB confirms, RMB cancels.
+	if _sku_pick_i >= 0 and event is InputEventMouseButton:
+		var pick_mb := event as InputEventMouseButton
+		if not pick_mb.pressed:
+			return
+		match pick_mb.button_index:
+			MOUSE_BUTTON_WHEEL_UP:
+				_nudge_sku_pick(-1)
+				get_viewport().set_input_as_handled()
+			MOUSE_BUTTON_WHEEL_DOWN:
+				_nudge_sku_pick(1)
+				get_viewport().set_input_as_handled()
+			MOUSE_BUTTON_LEFT:
+				_commit_sku_pick()
+				get_viewport().set_input_as_handled()
+			MOUSE_BUTTON_RIGHT:
+				_cancel_sku_pick(true)
+				_refresh()
+				get_viewport().set_input_as_handled()
+		return
 	if event is InputEventMouseButton and (event as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT:
 		var mb := event as InputEventMouseButton
 		if mb.pressed:
@@ -2256,6 +2311,7 @@ func _input(event: InputEvent) -> void:
 		var mm := event as InputEventMouseMotion
 		if mm.position.distance_to(_drag_press) >= 6.0:
 			_drag_moved = true
+			_clear_mouse_sku_arm()
 		if _drag_moved:
 			_track_drag(mm.position)
 			get_viewport().set_input_as_handled()
@@ -2263,6 +2319,7 @@ func _input(event: InputEvent) -> void:
 
 func _press_layout(screen: Vector2) -> void:
 	_cancel_drag()
+	_clear_mouse_sku_arm()
 	var grid_local := _to_local(_grid, screen)
 	if Rect2(Vector2.ZERO, _grid.size).has_point(grid_local):
 		var cell := _cell_of(grid_local)
@@ -2277,6 +2334,11 @@ func _press_layout(screen: Vector2) -> void:
 			_drag_press = screen
 			_drag_inside = true
 			_cursor = Vector2i(int(it["x"]), int(it["y"]))
+			## Arm mouse long-press → restock default SKU (short click still recalls).
+			if state.is_restock_type(String(it.get("type", ""))):
+				_layout_mouse_sku_armed = true
+				_layout_mouse_sku_time = 0.0
+				_layout_mouse_sku_hit = hit
 			get_viewport().set_input_as_handled()
 		return
 	var list_local := _to_local(_list, screen)
@@ -2297,6 +2359,7 @@ func _press_layout(screen: Vector2) -> void:
 
 
 func _release_layout(screen: Vector2) -> void:
+	_clear_mouse_sku_arm()
 	if not _drag_on:
 		return
 	var from := _drag_from
@@ -2564,6 +2627,12 @@ func _refresh_look_preview(skin_id: String) -> void:
 	_look_preview_spr.modulate = tint_col
 	Vox.play_anim(_look_preview_spr, sid, "idle", Vector2(0, 1))
 	_look_preview_root.add_child(_look_preview_spr)
+
+
+func _clear_mouse_sku_arm() -> void:
+	_layout_mouse_sku_armed = false
+	_layout_mouse_sku_time = 0.0
+	_layout_mouse_sku_hit = -1
 
 
 func _try_begin_restock_sku_pick() -> bool:
