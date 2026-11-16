@@ -121,86 +121,120 @@ def cyl_z(m: vb.Model, cx, cy, z0, z1, r, color: str) -> None:
 
 
 def person(kind: str) -> vb.Model:
-    """A-pose NPC inside the student envelope. Hands and feet sit in anim regions."""
+    """Chibi NPC in the student envelope, matching player_alt3 proportions.
+
+    Head is about 40% of the height. Arms stick straight out. Feet and the
+    outer hands sit in the walk-cycle boxes; the crotch gap stays empty.
+    """
     m = vb.Model(*CHAR)
     r = regions()
     shirt = {
         "customer": "customer",
         "thief": "thief",
         "clerk_cashier": "clerk",
-        "clerk_restock": "clerk_stock",
+        "clerk_restock": "white",
     }[kind]
     dark = {
         "customer": "customer_dark",
         "thief": "hood",
         "clerk_cashier": "clerk_dark",
-        "clerk_restock": "player_dark",
+        "clerk_restock": "clerk_stock",
     }[kind]
-    hair = "hood" if kind == "thief" else ("hair" if kind == "clerk_cashier" else "hair_brown")
+    bottoms = "hood" if kind == "thief" else "pants"
+    hair = {
+        "customer": "hair_brown",
+        "thief": "hood",
+        "clerk_cashier": "hair",
+        "clerk_restock": "hair_brown",
+    }[kind]
+    collar = {
+        "customer": "can",
+        "thief": "thief",
+        "clerk_cashier": "white",
+        "clerk_restock": "clerk_stock",
+    }[kind]
 
-    # Legs: only inside the swing boxes, gap between them stays empty below the hips.
-    fill(m, 24, 16, 0, 36, 28, 7, "shoe")
-    fill(m, 54, 16, 0, 66, 28, 7, "shoe")
-    fill(m, 26, 17, 6, 34, 27, r["leg_z_max"], "pants")
-    fill(m, 56, 17, 6, 64, 27, r["leg_z_max"], "pants")
-    # Hips sit above leg_z_max so they bob with the torso instead of a third leg.
-    fill(m, 24, 15, 40, 66, 29, 52, "pants")
-    shell(m, 30, 12, 50, 60, 31, 94, shirt, 3)
-    fill(m, 30, 12, 50, 34, 31, 94, dark)
-    fill(m, 56, 12, 50, 60, 31, 94, dark)
-    fill(m, 40, 26, 70, 50, 31, 86, "white")  # front placket
-    # Neck and head.
-    fill(m, 40, 16, 90, 50, 28, 104, "skin")
-    ball(m, 45, 22, 114, 13, 11, 14, "skin")
-    # Hair or hood over the crown and back, then restore the face.
-    ball(m, 45, 18, 120, 14, 12, 12, hair)
-    fill(m, 32, 14, 118, 58, 24, 129, hair)
+    # Chunky shoes, tall socks, a short bit of skin. Stay inside the swing boxes.
+    fill(m, 23, 15, 0, 37, 33, 6, "shoe")
+    fill(m, 53, 15, 0, 67, 33, 6, "shoe")
+    fill(m, 23, 15, 6, 37, 33, 20, "white")
+    fill(m, 53, 15, 6, 67, 33, 20, "white")
+    fill(m, 26, 17, 16, 35, 28, 32, "white")
+    fill(m, 55, 17, 16, 64, 28, 32, "white")
+    fill(m, 27, 18, 28, 34, 27, r["leg_z_max"], "skin")
+    fill(m, 56, 18, 28, 63, 27, r["leg_z_max"], "skin")
+    # Shorts start above the leg box so they bob with the torso.
+    fill(m, 28, 14, 40, 62, 30, 56, bottoms)
+    fill(m, 32, 26, 50, 58, 32, 56, bottoms)
+    # Short shirt. The head, not the torso, carries the silhouette.
+    fill(m, 32, 14, 54, 58, 30, 78, shirt)
+    fill(m, 34, 28, 56, 56, 32, 76, shirt)
+    # V-shaped collar, same read as the student scarf.
+    fill(m, 38, 28, 70, 52, 33, 78, collar)
+    fill(m, 41, 30, 64, 49, 34, 74, collar)
+    fill(m, 43, 31, 60, 47, 34, 68, collar)
+    fill(m, 40, 18, 74, 50, 28, 84, "skin")
+
+    # Arms straight out. Outer hands cover the walk-cycle hand band (z 46–52).
+    fill(m, 10, 16, 48, 32, 26, 66, shirt)
+    fill(m, 58, 16, 48, 80, 26, 66, shirt)
+    fill(m, 18, 15, 50, 30, 27, 68, collar)
+    fill(m, 60, 15, 50, 72, 27, 68, collar)
+    fill(m, 0, 16, r["arm_z0"], r["arm_l_xmax"], 26, 66, "skin")
+    fill(m, r["arm_r_xmin"], 16, r["arm_z0"], 89, 26, 66, "skin")
+
+    # Oversized hair mass, then a flat face on +Y.
+    ball(m, 45, 16, 106, 23, 16, 22, hair)
+    fill(m, 22, 4, 88, 68, 32, 127, hair)
+    fill(m, 26, 0, 96, 34, 16, 112, hair)
+    fill(m, 56, 0, 96, 64, 16, 112, hair)
+    hair_idx = vb.COLOR_INDEX[hair]
     for (x, y, z), idx in list(m.cells.items()):
-        if idx == vb.COLOR_INDEX[hair] and y >= 26 and 104 <= z <= 122 and 34 <= x <= 56:
-            m.cells[(x, y, z)] = vb.COLOR_INDEX["skin"]
-    # Eyes, brows, mouth on the front.
-    fill(m, 38, 30, 112, 42, 33, 116, "white")
-    fill(m, 48, 30, 112, 52, 33, 116, "white")
-    fill(m, 39, 31, 113, 41, 33, 115, "eye")
-    fill(m, 49, 31, 113, 51, 33, 115, "eye")
-    fill(m, 37, 30, 117, 43, 32, 119, hair)
-    fill(m, 47, 30, 117, 53, 32, 119, hair)
-    fill(m, 42, 31, 107, 48, 33, 109, "skin_shade")
-
-    # Shoulders bridge the torso to the arm slabs. They stay outside the arm
-    # x-range, so the walk cycle swings the hands and not the chest.
-    fill(m, r["arm_l_xmax"] + 1, 14, 60, 32, 29, 80, shirt)
-    fill(m, 58, 14, 60, r["arm_r_xmin"] - 1, 29, 80, shirt)
-    # Arms in the swing slabs (A-pose: separated from the torso).
-    ax1 = r["arm_r_xmin"] + 8
-    fill(m, 0, 15, 50, r["arm_l_xmax"], 27, r["arm_z1"] - 2, shirt)
-    fill(m, r["arm_r_xmin"], 15, 50, ax1, 27, r["arm_z1"] - 2, shirt)
-    fill(m, 0, 16, r["arm_z0"], r["arm_l_xmax"], 26, 52, "skin")
-    fill(m, r["arm_r_xmin"], 16, r["arm_z0"], ax1, 26, 52, "skin")
-    # Short sleeves stay on the arm voxels so they swing together.
-    fill(m, 0, 15, 64, r["arm_l_xmax"], 27, r["arm_z1"], dark)
-    fill(m, r["arm_r_xmin"], 15, 64, ax1, 27, r["arm_z1"], dark)
+        if idx != hair_idx:
+            continue
+        dx = (x + 0.5 - 45) / 24.0
+        dz = (z + 0.5 - 108) / 22.0
+        if z >= 100 and dx * dx + dz * dz > 1.02:
+            del m.cells[(x, y, z)]
+    fill(m, 30, 26, 90, 60, 39, 116, "skin")
+    fill(m, 34, 30, 112, 56, 39, 120, "skin")
+    # Bangs leave a forehead, then cover the crown.
+    fill(m, 28, 24, 116, 62, 36, 128, hair)
+    fill(m, 32, 28, 114, 40, 38, 122, hair)
+    fill(m, 50, 28, 114, 58, 38, 122, hair)
+    # Large dark eyes and a small mouth.
+    fill(m, 34, 36, 102, 42, 39, 112, "eye")
+    fill(m, 48, 36, 102, 56, 39, 112, "eye")
+    fill(m, 35, 38, 108, 37, 39, 110, "white")
+    fill(m, 49, 38, 108, 51, 39, 110, "white")
+    fill(m, 42, 37, 94, 48, 39, 96, "skin_shade")
+    # Ears.
+    fill(m, 28, 20, 98, 32, 28, 108, "skin")
+    fill(m, 58, 20, 98, 62, 28, 108, "skin")
 
     if kind == "customer":
-        # Bag hangs beside the hip, outside both arm and leg boxes.
-        fill(m, 10, 8, 52, 20, 18, 86, "customer_dark")
-        fill(m, 12, 10, 78, 18, 16, 84, "white")
-        fill(m, 14, 18, 70, 16, 28, 90, "customer_dark")
+        # Bag beside the hip, outside the arm and leg swing boxes.
+        fill(m, 12, 6, 48, 22, 16, 78, "customer_dark")
+        fill(m, 14, 8, 70, 20, 14, 76, "white")
+        fill(m, 16, 14, 62, 20, 22, 78, "customer_dark")
     elif kind == "thief":
-        fill(m, 34, 28, 112, 56, 34, 118, "hood")
-        fill(m, 38, 32, 113, 42, 34, 116, "white")
-        fill(m, 48, 32, 113, 52, 34, 116, "white")
-        fill(m, 39, 33, 114, 41, 34, 115, "eye")
-        fill(m, 49, 33, 114, 51, 34, 115, "eye")
+        # Hood rim and mask. Eyes stay visible.
+        fill(m, 26, 22, 86, 64, 36, 96, "hood")
+        fill(m, 32, 34, 90, 58, 39, 100, "hood")
+        fill(m, 34, 36, 102, 42, 39, 112, "white")
+        fill(m, 48, 36, 102, 56, 39, 112, "white")
+        fill(m, 36, 38, 104, 40, 39, 110, "eye")
+        fill(m, 50, 38, 104, 54, 39, 110, "eye")
     elif kind == "clerk_cashier":
-        fill(m, 42, 30, 72, 52, 33, 84, "white")
-        fill(m, 46, 32, 76, 48, 33, 80, "screen_on")
-        fill(m, 34, 18, 122, 56, 30, 129, "clerk")
+        fill(m, 36, 30, 66, 54, 34, 76, "white")
+        fill(m, 42, 33, 68, 48, 34, 74, "screen_on")
+        fill(m, 30, 10, 118, 60, 32, 129, "clerk")
+        fill(m, 28, 28, 114, 62, 38, 120, "clerk_dark")
     elif kind == "clerk_restock":
-        fill(m, 34, 28, 54, 56, 33, 90, "white")
-        fill(m, 64, 4, 40, 74, 14, 62, "cardboard")
-        fill(m, 66, 6, 58, 72, 12, 61, "tape")
-        fill(m, 36, 16, 122, 54, 28, 129, "clerk_stock")
+        fill(m, 34, 28, 52, 56, 34, 74, "clerk_stock")
+        fill(m, 40, 32, 58, 50, 34, 70, "white")
+        fill(m, 32, 8, 118, 58, 30, 129, "clerk_stock")
+        fill(m, 30, 26, 114, 60, 36, 120, "clerk_stock")
     return m
 
 
@@ -528,10 +562,10 @@ def vomit() -> vb.Model:
 
 
 MODELS = {
-    "customer": ("客人", lambda: person("customer"), "v1.5 中期稿。紫衣、側袋。包絡對齊學生。"),
-    "thief": ("小偷", lambda: person("thief"), "v1.5 中期稿。兜帽和面罩。"),
-    "clerk_cashier": ("收銀店員", lambda: person("clerk_cashier"), "v1.5 中期稿。藍衣、白牌。"),
-    "clerk_restock": ("補貨店員", lambda: person("clerk_restock"), "v1.5 中期稿。綠圍裙、側箱。"),
+    "customer": ("客人", lambda: person("customer"), "v1.5 Q 版。大頭短身、紫衣側袋。"),
+    "thief": ("小偷", lambda: person("thief"), "v1.5 Q 版。兜帽面罩，頭身比對齊學生。"),
+    "clerk_cashier": ("收銀店員", lambda: person("clerk_cashier"), "v1.5 Q 版。藍衣白牌、平頂帽。"),
+    "clerk_restock": ("補貨店員", lambda: person("clerk_restock"), "v1.5 Q 版。綠圍裙、工作帽。"),
     "register": ("收銀機", register, "v1.5 中期稿。櫃檯加螢幕。佔格不變。"),
     "restock_dry": ("乾貨補貨架", lambda: restock("can"), "v1.5：256×96×144，畫面高度對齊貨架。佔格仍 2×2。"),
     "restock_frozen": ("凍櫃補貨架", lambda: restock("drink"), "v1.5：同一座較矮倉庫架，箱色用凍飲色。"),
