@@ -12,6 +12,7 @@ signal hold_changed(action: String, pressed: bool)
 signal skill_hotkey(slot: int)
 
 const UiFont = preload("res://scripts/ui_font.gd")
+const SkillIcons = preload("res://scripts/skill_icons.gd")
 
 ## --- Right-cluster layout (multiples of `_core`) ---
 ## 行動位置有兩層：
@@ -35,6 +36,9 @@ const LAYOUT_FAN_ANG: Array[float] = [
 const LAYOUT_ULT_R := 2.5
 const LAYOUT_ULT_ANG := -1.6
 
+var _skill_buttons: Array[Button] = []
+var _ult_button: Button
+var _icon_fp := ""
 var _stick_touch := -1
 var _knob: Panel
 var _base: Control
@@ -179,9 +183,11 @@ func _build_right_cluster(root: Control) -> void:
 		var s: Vector2 = it["s"]
 		var tl := origin + c - s * 0.5
 		if it["kind"] == "face":
-			_face_btn(cluster, tl, String(it["action"]), String(it["cap"]), it["tint"], s)
+			var face := _face_btn(cluster, tl, String(it["action"]), String(it["cap"]), it["tint"], s)
+			if String(it["action"]) == "ult":
+				_ult_button = face
 		else:
-			_skill_btn(cluster, tl, int(it["slot"]), String(it["cap"]), it["tint"])
+			_skill_buttons.append(_skill_btn(cluster, tl, int(it["slot"]), String(it["cap"]), it["tint"]))
 
 
 func _circle_panel(pos: Vector2, size: Vector2, fill: Color, border: Color) -> Panel:
@@ -202,7 +208,7 @@ func _circle_panel(pos: Vector2, size: Vector2, fill: Color, border: Color) -> P
 	return p
 
 
-func _face_btn(parent: Control, pos: Vector2, action: String, caption: String, tint: Color, size: Vector2) -> void:
+func _face_btn(parent: Control, pos: Vector2, action: String, caption: String, tint: Color, size: Vector2) -> Button:
 	var b := Button.new()
 	b.position = pos
 	b.size = size
@@ -221,9 +227,10 @@ func _face_btn(parent: Control, pos: Vector2, action: String, caption: String, t
 	b.button_down.connect(_emit_hold.bind(action, true))
 	b.button_up.connect(_emit_hold.bind(action, false))
 	parent.add_child(b)
+	return b
 
 
-func _skill_btn(parent: Control, pos: Vector2, slot: int, caption: String, tint: Color) -> void:
+func _skill_btn(parent: Control, pos: Vector2, slot: int, caption: String, tint: Color) -> Button:
 	var size := Vector2(_skill, _skill)
 	var b := Button.new()
 	b.position = pos
@@ -240,7 +247,9 @@ func _skill_btn(parent: Control, pos: Vector2, slot: int, caption: String, tint:
 	b.add_theme_stylebox_override("pressed", _btn_style(tint.lightened(0.2), 1.0, size))
 	b.add_theme_stylebox_override("focus", idle)
 	b.pressed.connect(func() -> void: skill_hotkey.emit(slot))
+	b.expand_icon = true
 	parent.add_child(b)
+	return b
 
 
 func _btn_style(fill: Color, alpha: float, size: Vector2) -> StyleBoxFlat:
@@ -255,6 +264,35 @@ func _btn_style(fill: Color, alpha: float, size: Vector2) -> StyleBoxFlat:
 	s.border_color = Color(1, 1, 1, 0.35)
 	s.set_content_margin_all(6)
 	return s
+
+
+func _process(_delta: float) -> void:
+	if not visible:
+		return
+	var demo := get_parent()
+	if demo == null:
+		return
+	var p = demo.get("_player")
+	if p == null or not p.has_method("_loadout"):
+		return
+	var slots: Array = p.call("_loadout")
+	var ult: Dictionary = p.call("_ult_sk") if p.has_method("_ult_sk") else {}
+	var bits := PackedStringArray()
+	for sk in slots:
+		bits.append(String(sk.get("id", "")) if sk is Dictionary else "")
+	bits.append(String(ult.get("id", "")))
+	var fp := "|".join(bits)
+	if fp == _icon_fp:
+		return
+	_icon_fp = fp
+	for i in _skill_buttons.size():
+		var sid := bits[i] if i < bits.size() else ""
+		var btn := _skill_buttons[i]
+		btn.icon = SkillIcons.texture(sid) if sid != "" else null
+	if _ult_button != null:
+		var uid := String(ult.get("id", ""))
+		_ult_button.icon = SkillIcons.texture(uid) if uid != "" else null
+		_ult_button.expand_icon = uid != ""
 
 
 func _emit_hold(action: String, pressed: bool) -> void:

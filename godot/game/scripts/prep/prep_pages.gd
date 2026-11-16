@@ -7,6 +7,7 @@ const UiFont = preload("res://scripts/ui_font.gd")
 const PrepWidgets = preload("res://scripts/prep/prep_widgets.gd")
 const ProductVersion = preload("res://scripts/product_version.gd")
 const SfxCatalog = preload("res://scripts/sfx_catalog.gd")
+const SkillIcons = preload("res://scripts/skill_icons.gd")
 
 
 static func is_hub_page(page: String) -> bool:
@@ -42,16 +43,21 @@ static func parent_page(page: String) -> String:
 
 
 static func apply_panel_layout(menu: CanvasLayer) -> void:
-	menu._info.position = Vector2(24, 72)
-	menu._info.size = Vector2(976, 76)
-	menu._info.clip_contents = false
+	var margin := PrepWidgets.MARGIN
+	var info_top := PrepWidgets.INFO_TOP
+	var info_h := PrepWidgets.INFO_H
+	var content_top := PrepWidgets.CONTENT_TOP
+	var content_bottom := PrepWidgets.CONTENT_BOTTOM
+	var content_w := PrepWidgets.CONTENT_W
+	menu._info.position = Vector2(margin, info_top)
+	_lock_info(menu, PrepWidgets.INFO_W, info_h)
 	var qty_on: bool = menu._page == "buy" and menu._qty_sku != ""
 	var hub := is_hub_page(menu._page)
 	menu._grid.visible = menu._page == "layout"
 	menu._stats_panel.visible = menu._page == "stats"
 	menu._size_panel.visible = menu._page == "layout"
 	menu._qty_panel.visible = qty_on
-	menu._list.visible = not qty_on and not hub
+	menu._list.visible = not qty_on and not hub and menu._page != "stats"
 	if menu._hub_panel:
 		menu._hub_panel.visible = hub
 	if menu._open_bar:
@@ -60,56 +66,59 @@ static func apply_panel_layout(menu: CanvasLayer) -> void:
 		menu._diff_bar.visible = menu._page == "home" and ProductVersion.test_tools_enabled()
 	if menu._back_btn:
 		menu._back_btn.visible = menu._page != "scenario" and menu._page != "home"
+	if menu._card:
+		var show_card: bool = hub or menu._page == "layout" or menu._page == "stats" or menu._page == "look"
+		menu._card.visible = show_card
+		menu._card.position = Vector2(16, content_top - 8)
+		menu._card.size = Vector2(1248, content_bottom - content_top + 16)
+	menu._list.z_index = 1
 	if menu._page == "stats":
-		menu._list.position = Vector2(24, 430)
-		menu._list.size = Vector2(1232, 220)
-		menu._list.z_index = 2
+		menu._stats_panel.position = Vector2(margin, content_top)
+		menu._stats_panel.size = Vector2(760, content_bottom - content_top)
 	elif menu._page == "layout":
-		## Compact size strip (2×44 rows + area + gaps) then furniture list below — no overlap.
-		var size_top := 156.0
+		## Size strip, furniture list, then the map. Three rectangles, no overlap.
 		var size_h := 148.0
-		var gap := 10.0
-		menu._size_panel.position = Vector2(24, size_top)
-		menu._size_panel.size = Vector2(520, size_h)
-		menu._size_panel.custom_minimum_size = Vector2(520, size_h)
+		var gap := 8.0
+		menu._size_panel.position = Vector2(margin, content_top)
+		menu._size_panel.size = Vector2(500, size_h)
+		menu._size_panel.custom_minimum_size = Vector2(500, size_h)
 		menu._size_panel.clip_contents = true
-		menu._list.z_index = 0
-		menu._list.position = Vector2(24, size_top + size_h + gap)
-		menu._list.size = Vector2(520, 668.0 - (size_top + size_h + gap))
+		var list_top := content_top + size_h + gap
+		menu._list.position = Vector2(margin, list_top)
+		menu._list.size = Vector2(500, content_bottom - list_top)
+		menu._grid.position = Vector2(548, content_top)
+		menu._grid.size = Vector2(700, content_bottom - content_top)
+	elif qty_on:
+		menu._qty_panel.position = Vector2(margin, content_top)
+		menu._qty_panel.size = Vector2(1000, content_bottom - content_top)
 	elif hub:
-		menu._list.z_index = 0
+		pass
+	elif menu._page == "confirm":
+		var tall := 232.0
+		_lock_info(menu, PrepWidgets.INFO_W, tall)
+		var list_top := info_top + tall + 8.0
+		menu._list.position = Vector2(margin, list_top)
+		menu._list.size = Vector2(content_w, maxf(160.0, content_bottom - list_top))
+	elif menu._page == "lobby" or menu._page == "lan_join" or menu._page == "steam_join":
+		## Seat rows / join hints are multi-line — keep list below info (no overlap).
+		_layout_lobby_panels(menu, 6)
+	elif menu._page == "look":
+		_lock_info(menu, 720, info_h)
+		menu._list.position = Vector2(margin, content_top)
+		menu._list.size = Vector2(720, content_bottom - content_top)
 	else:
-		menu._list.z_index = 0
-		if menu._page == "confirm":
-			menu._info.position = Vector2(24, 72)
-			menu._info.size = Vector2(980, 220)
-			menu._info.clip_contents = true
-			menu._list.position = Vector2(24, 300)
-			menu._list.size = Vector2(1232, 350)
-		elif menu._page == "lobby" or menu._page == "lan_join" or menu._page == "steam_join":
-			## Seat rows / join hints are multi-line — keep list below info (no overlap).
-			_layout_lobby_panels(menu, 6)
-		elif menu._page == "look":
-			menu._info.position = Vector2(24, 72)
-			menu._info.size = Vector2(760, 76)
-			menu._list.position = Vector2(24, 168)
-			menu._list.size = Vector2(760, 430)
-		else:
-			menu._info.position = Vector2(24, 72)
-			menu._info.size = Vector2(976, 76)
-			menu._list.position = Vector2(24, 168)
-			menu._list.size = Vector2(1232, 430)
+		menu._list.position = Vector2(margin, content_top)
+		menu._list.size = Vector2(content_w, content_bottom - content_top)
 
 
 static func _layout_lobby_panels(menu: CanvasLayer, line_n: int) -> void:
 	## Push ItemList under multi-line lobby／join info so ready buttons never cover seat rows.
 	var lines := maxi(1, line_n)
 	var line_h := 34.0
-	var info_h := clampf(float(lines) * line_h + 16.0, 120.0, 300.0)
-	var info_top := 72.0
-	menu._info.position = Vector2(24, info_top)
-	menu._info.size = Vector2(1232, info_h)
-	menu._info.clip_contents = true
+	var info_h := clampf(float(lines) * line_h + 16.0, 120.0, 280.0)
+	var info_top := PrepWidgets.INFO_TOP
+	menu._info.position = Vector2(PrepWidgets.MARGIN, info_top)
+	_lock_info(menu, PrepWidgets.INFO_W, info_h)
 	var gap := 12.0
 	var list_top := info_top + info_h + gap
 	## Join pages place a LineEdit between info and list (hidden for Steam invite path).
@@ -117,17 +126,29 @@ static func _layout_lobby_panels(menu: CanvasLayer, line_n: int) -> void:
 		var edit_top := info_top + info_h + 8.0
 		var edit_visible := false
 		if menu._page == "lan_join" and menu._lan_addr_edit != null and menu._lan_addr_edit.visible:
-			menu._lan_addr_edit.position = Vector2(24, edit_top)
+			menu._lan_addr_edit.position = Vector2(PrepWidgets.MARGIN, edit_top)
 			menu._lan_addr_edit.size = Vector2(480, 40)
 			edit_visible = true
 		if menu._page == "steam_join" and menu._steam_lobby_edit != null and menu._steam_lobby_edit.visible:
-			menu._steam_lobby_edit.position = Vector2(24, edit_top)
+			menu._steam_lobby_edit.position = Vector2(PrepWidgets.MARGIN, edit_top)
 			menu._steam_lobby_edit.size = Vector2(480, 40)
 			edit_visible = true
 		if edit_visible:
 			list_top = edit_top + 48.0
-	menu._list.position = Vector2(24, list_top)
-	menu._list.size = Vector2(1232, maxf(160.0, 668.0 - list_top))
+	menu._list.position = Vector2(PrepWidgets.MARGIN, list_top)
+	menu._list.size = Vector2(PrepWidgets.CONTENT_W, maxf(160.0, PrepWidgets.CONTENT_BOTTOM - list_top))
+
+
+static func _lock_info(menu: CanvasLayer, width: float, height: float) -> void:
+	## Label minimum size follows the full paragraph. Cap the lines first, then
+	## the box, so the blurb cannot grow into the list or the back button.
+	var lines := maxi(1, int(floor(height / 36.0)))
+	menu._info.max_lines_visible = lines
+	menu._info.clip_text = true
+	menu._info.clip_contents = true
+	menu._info.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	menu._info.custom_minimum_size = Vector2(width, 0)
+	menu._info.size = Vector2(width, height)
 
 
 static func fill(menu: CanvasLayer, page: String) -> void:
@@ -207,8 +228,10 @@ static func fill_skill_pick(menu: CanvasLayer, slot_i: int) -> void:
 	if menu._open_bar:
 		menu._open_bar.visible = false
 	menu._list.visible = true
-	menu._list.position = Vector2(24, 168)
-	menu._list.size = Vector2(1232, 430)
+	menu._info.position = Vector2(PrepWidgets.MARGIN, PrepWidgets.INFO_TOP)
+	_lock_info(menu, PrepWidgets.INFO_W, PrepWidgets.INFO_H)
+	menu._list.position = Vector2(PrepWidgets.MARGIN, PrepWidgets.CONTENT_TOP)
+	menu._list.size = Vector2(PrepWidgets.CONTENT_W, PrepWidgets.CONTENT_BOTTOM - PrepWidgets.CONTENT_TOP)
 	menu._rows.clear()
 	menu._list.clear()
 	menu._title.text = Loc.t("prep.skill_pick.title")
@@ -224,6 +247,7 @@ static func fill_skill_pick(menu: CanvasLayer, slot_i: int) -> void:
 	## ACTIVES/PASSIVES/ULTS are mechanical-only; name/blurb live in locale via localize().
 	for raw in pool:
 		var sk: Dictionary = Skills.localize(raw)
+		var pick_id := String(sk.get("id", ""))
 		menu._add(
 			"%s　%s　COST%d　%s" % [
 				_kind_label(String(sk.get("kind", ""))),
@@ -232,7 +256,8 @@ static func fill_skill_pick(menu: CanvasLayer, slot_i: int) -> void:
 				String(sk.get("blurb", "")),
 			],
 			"equip",
-			[slot_i, String(sk.get("id", ""))],
+			[slot_i, pick_id],
+			SkillIcons.row_texture(pick_id),
 		)
 	menu._add(Loc.t("prep.skill_pick.unequip"), "unequip", slot_i)
 	menu._add(Loc.t("prep.back"), "go", "skill_set")
@@ -684,7 +709,7 @@ static func _skill_set(menu: CanvasLayer) -> void:
 			kind = _kind_label(String(sk.get("kind"))) + "　"
 			if Skills.prep_picks_level(sk):
 				skill_name = "%s　LV%d" % [skill_name, menu.state.skill_level_of(i, id)]
-		menu._add(Loc.t("prep.skill_set.slot", [s + 1, kind, skill_name]), "pick_slot", s)
+		menu._add(Loc.t("prep.skill_set.slot", [s + 1, kind, skill_name]), "pick_slot", s, SkillIcons.row_texture(id))
 	for sid in set_slots:
 		var level_id := String(sid)
 		if level_id == "":
@@ -693,7 +718,8 @@ static func _skill_set(menu: CanvasLayer) -> void:
 		if not Skills.prep_picks_level(level_sk):
 			continue
 		menu._add(Loc.t("prep.skill.level_row", [String(level_sk.get("name")), menu.state.skill_level_of(i, level_id)]), "cycle_skill_lv", level_id)
-	menu._add(Loc.t("prep.skill_set.ult", [_ult_label(menu.state.ult_of(i))]), "pick_slot", 5)
+	var ult_sk: Dictionary = menu.state.ult_of(i)
+	menu._add(Loc.t("prep.skill_set.ult", [_ult_label(ult_sk)]), "pick_slot", 5, SkillIcons.row_texture(String(ult_sk.get("id", ""))))
 	menu._add(Loc.t("prep.back"), "go", "skills")
 
 
@@ -918,11 +944,24 @@ static func _layout(menu: CanvasLayer) -> void:
 			menu._add(Loc.t("prep.layout.drag", [menu.state.furniture_name(type), n]), "hold", type)
 	menu._add(Loc.t("prep.layout.focus_map"), "map_focus", null)
 	menu._add(Loc.t("prep.back"), "go", "hub_shop")
-	## Re-clamp after children (VBox min-size must not push into the ItemList).
-	menu._size_panel.custom_minimum_size = Vector2(520, 148)
-	menu._size_panel.size = Vector2(520, 148)
+	## Re-clamp after children. If the rows still exceed 148, drop the list below them.
+	var size_h := maxf(148.0, menu._size_panel.get_combined_minimum_size().y)
+	size_h = minf(size_h, PrepWidgets.CONTENT_BOTTOM - PrepWidgets.CONTENT_TOP - 168.0)
+	menu._size_panel.custom_minimum_size = Vector2(500, size_h)
+	menu._size_panel.size = Vector2(500, size_h)
 	menu._size_panel.clip_contents = true
+	var list_top := PrepWidgets.CONTENT_TOP + size_h + 8.0
+	menu._list.position = Vector2(PrepWidgets.MARGIN, list_top)
+	menu._list.size = Vector2(500, maxf(120.0, PrepWidgets.CONTENT_BOTTOM - list_top))
 	menu._grid.queue_redraw()
+
+
+static func _compact_step(text: String, on: bool, cb: Callable, tall: float) -> Button:
+	var btn := PrepWidgets.step_button(text, on, cb, tall, 72.0)
+	btn.add_theme_font_size_override("font_size", UiFont.px(20))
+	btn.custom_minimum_size = Vector2(72, tall)
+	btn.clip_text = true
+	return btn
 
 
 static func _add_size_row(menu: CanvasLayer, title: String, axis: String, value: int, row: int) -> void:
@@ -934,19 +973,17 @@ static func _add_size_row(menu: CanvasLayer, title: String, axis: String, value:
 	var lab := PrepWidgets.name_label("%s  %d" % [title, value], 160, ROW_H)
 	UiFont.apply_label(lab, 24)
 	line.add_child(lab)
-	line.add_child(PrepWidgets.step_button(
+	line.add_child(_compact_step(
 		"+",
 		menu._on_size_btns and menu._size_row == row and menu._size_side == 1,
 		menu._on_size_pressed.bind(axis, 1, row),
-		ROW_H,
-		72.0
+		ROW_H
 	))
-	line.add_child(PrepWidgets.step_button(
+	line.add_child(_compact_step(
 		"-",
 		menu._on_size_btns and menu._size_row == row and menu._size_side == -1,
 		menu._on_size_pressed.bind(axis, -1, row),
-		ROW_H,
-		72.0
+		ROW_H
 	))
 	menu._size_panel.add_child(line)
 

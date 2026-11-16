@@ -21,6 +21,22 @@ const LIST_ROW_H := 72
 const LIST_V_SEP := 14
 const STEP_BTN_H := 84.0
 const STEP_BTN_W := 96.0
+## Page grid. Info stays left of the back button. Content starts under that band.
+const MARGIN := 24.0
+const INFO_TOP := 80.0
+const INFO_H := 72.0
+const INFO_W := 1000.0
+const CONTENT_TOP := 164.0
+const CONTENT_BOTTOM := 700.0
+const CONTENT_W := 1232.0
+const COL_BG := Color("121816")
+const COL_CARD := Color("1c2822")
+const COL_CARD_ON := Color("24362c")
+const COL_INK := Color("f4f1ea")
+const COL_GOLD := Color("f4d35e")
+const COL_GOLD_HOT := Color("ffe08a")
+const COL_LINE := Color("3d5246")
+const COL_INK_DIM := Color("1c241f")
 
 static var _list_spacer: ImageTexture
 
@@ -33,6 +49,31 @@ static func clear(node: Node) -> void:
 		var c := node.get_child(0)
 		node.remove_child(c)
 		c.queue_free()
+
+
+static func paint_list(list: ItemList) -> void:
+	var panel := StyleBoxFlat.new()
+	panel.bg_color = COL_CARD
+	panel.border_color = COL_LINE
+	panel.set_border_width_all(1)
+	panel.set_corner_radius_all(12)
+	panel.set_content_margin_all(8)
+	var selected := StyleBoxFlat.new()
+	selected.bg_color = COL_GOLD
+	selected.set_corner_radius_all(8)
+	selected.set_content_margin_all(4)
+	var hovered := StyleBoxFlat.new()
+	hovered.bg_color = COL_CARD_ON
+	hovered.border_color = COL_GOLD
+	hovered.set_border_width_all(1)
+	hovered.set_corner_radius_all(8)
+	list.add_theme_stylebox_override("panel", panel)
+	list.add_theme_stylebox_override("selected", selected)
+	list.add_theme_stylebox_override("hovered", hovered)
+	list.add_theme_stylebox_override("focus", selected)
+	list.add_theme_color_override("font_color", COL_INK)
+	list.add_theme_color_override("font_selected_color", COL_INK_DIM)
+	list.add_theme_color_override("font_hovered_color", COL_GOLD)
 
 
 static func list_row_spacer() -> Texture2D:
@@ -52,7 +93,7 @@ static func name_label(text: String, width: float, tall: float = 84.0) -> Label:
 	lab.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	lab.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	UiFont.apply_label(lab, PREP_BTN)
-	lab.add_theme_color_override("font_color", Color("f4f1ea"))
+	lab.add_theme_color_override("font_color", COL_INK)
 	lab.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return lab
 
@@ -69,21 +110,23 @@ static func bare_button(text: String, wide: float, tall: float) -> Button:
 
 static func paint_btn(btn: Button, on: bool) -> void:
 	var bg := StyleBoxFlat.new()
-	bg.bg_color = Color("f4d35e") if on else Color("24302a")
+	bg.bg_color = COL_GOLD if on else COL_CARD
 	bg.set_corner_radius_all(10)
+	bg.border_color = COL_GOLD if on else COL_LINE
+	bg.set_border_width_all(2)
 	btn.add_theme_stylebox_override("normal", bg)
 	btn.add_theme_stylebox_override("hover", bg)
 	btn.add_theme_stylebox_override("pressed", bg)
 	btn.add_theme_stylebox_override("focus", bg)
-	var col := Color("1c241f") if on else Color("f4f1ea")
+	var col := COL_INK_DIM if on else COL_INK
 	btn.add_theme_color_override("font_color", col)
-	btn.add_theme_color_override("font_hover_color", Color("1c241f") if on else Color("f4d35e"))
-	btn.add_theme_color_override("font_pressed_color", Color("1c241f"))
+	btn.add_theme_color_override("font_hover_color", COL_INK_DIM if on else COL_GOLD)
+	btn.add_theme_color_override("font_pressed_color", COL_INK_DIM)
 
 
 static func paint_open_main(btn: Button, on: bool) -> void:
 	var bg := StyleBoxFlat.new()
-	bg.bg_color = Color("ffe08a") if on else Color("f4d35e")
+	bg.bg_color = COL_GOLD_HOT if on else COL_GOLD
 	bg.set_corner_radius_all(16)
 	btn.add_theme_stylebox_override("normal", bg)
 	btn.add_theme_stylebox_override("hover", bg)
@@ -96,19 +139,18 @@ static func paint_open_main(btn: Button, on: bool) -> void:
 
 static func paint_choice(btn: Button, selected: bool, focused: bool) -> void:
 	var bg := StyleBoxFlat.new()
-	bg.bg_color = Color("f4d35e") if selected else Color("24302a")
+	bg.bg_color = COL_GOLD if selected else COL_CARD
 	bg.set_corner_radius_all(10)
-	if focused:
-		bg.border_color = Color("1c241f") if selected else Color("f4d35e")
-		bg.set_border_width_all(3)
+	bg.border_color = COL_INK_DIM if selected else COL_LINE
+	bg.set_border_width_all(3 if focused else 1)
 	btn.add_theme_stylebox_override("normal", bg)
 	btn.add_theme_stylebox_override("hover", bg)
 	btn.add_theme_stylebox_override("pressed", bg)
 	btn.add_theme_stylebox_override("focus", bg)
-	var col := Color("1c241f") if selected else Color("f4f1ea")
+	var col := COL_INK_DIM if selected else COL_INK
 	btn.add_theme_color_override("font_color", col)
-	btn.add_theme_color_override("font_hover_color", Color("1c241f") if selected else Color("f4d35e"))
-	btn.add_theme_color_override("font_pressed_color", Color("1c241f"))
+	btn.add_theme_color_override("font_hover_color", COL_INK_DIM if selected else COL_GOLD)
+	btn.add_theme_color_override("font_pressed_color", COL_INK_DIM)
 
 
 static func paint_open_elite(btn: Button, on: bool) -> void:
@@ -184,13 +226,17 @@ static func paint_hub_surface(btn: Button, on: bool, locked: bool, row: bool) ->
 	var bg := StyleBoxFlat.new()
 	if locked:
 		bg.bg_color = Color("1a221e")
+		bg.border_color = Color("2a3830")
+		bg.set_border_width_all(1)
 	elif on:
-		bg.bg_color = Color("2c3a32")
-		bg.border_color = Color("f4d35e")
-		bg.set_border_width_all(2)
+		bg.bg_color = COL_CARD_ON
+		bg.border_color = COL_GOLD
+		bg.set_border_width_all(3)
 	else:
-		bg.bg_color = Color("1e2a24")
-	bg.set_corner_radius_all(10 if not row else 8)
+		bg.bg_color = COL_CARD
+		bg.border_color = COL_LINE
+		bg.set_border_width_all(1)
+	bg.set_corner_radius_all(12 if not row else 10)
 	bg.content_margin_left = 12
 	bg.content_margin_right = 12
 	bg.content_margin_top = 6

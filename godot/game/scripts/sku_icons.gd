@@ -1,6 +1,7 @@
 extends RefCounted
-## Programmatic SKU silhouettes (v1). Swap textures later without changing call sites.
-## Contract: docs/systemdesign/ops-sku-icon-ui.md
+## SKU icons. Prefer art/ui/sku/<id>.png (v1.5 product drawings). Procedural
+## silhouettes remain the fallback when a file is missing.
+## Contract: docs/systemdesign/ops-sku-icon-ui.md and art-interim-v1.5.md
 
 const Tuning = preload("res://scripts/tuning.gd")
 
@@ -17,6 +18,15 @@ static func texture(sku: String) -> Texture2D:
 	sku = String(sku)
 	if _tex.has(sku):
 		return _tex[sku]
+	var path := "res://art/ui/sku/%s.png" % sku
+	if FileAccess.file_exists(path):
+		var loaded := Image.new()
+		if loaded.load(path) == OK:
+			if loaded.get_width() != SIZE or loaded.get_height() != SIZE:
+				loaded.resize(SIZE, SIZE, Image.INTERPOLATE_NEAREST)
+			var from_file := ImageTexture.create_from_image(loaded)
+			_tex[sku] = from_file
+			return from_file
 	var img := Image.create(SIZE, SIZE, false, Image.FORMAT_RGBA8)
 	img.fill(Color(0, 0, 0, 0))
 	var col: Color = Tuning.SKU_COLOR.get(sku, Color(0.85, 0.85, 0.85))

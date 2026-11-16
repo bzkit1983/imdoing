@@ -32,7 +32,7 @@ need("func _toss_top_piece" in PLAYER and "_toss.toss_top_piece" in PLAYER, "pla
 need("func _list_anchor" in RESTOCK, "restock list anchors near the player")
 need("get_visible_rect" in RESTOCK, "restock list clamps into the viewport")
 need("40.0 if i == 0 else 32.0" in CUSTOMER, "guest list icons enlarged")
-need("30.0 / float(SkuIcons.SIZE)" in SHELF, "shelf face icon enlarged")
+need("60.0 / float(SkuIcons.SIZE)" in SHELF, "shelf face icon enlarged")
 
 if errs:
     print("FAIL")

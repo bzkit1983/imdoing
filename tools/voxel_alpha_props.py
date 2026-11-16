@@ -72,45 +72,78 @@ def _save_model(name: str, model: vb.Model, facing: int, anchors: dict, pal: lis
 
 
 def _shelf_model(cat: str, fill: int) -> vb.Model:
-    """fill 0 empty … 3 full. Goods stack height grows with fill."""
-    body, trim, goods = SHELF_COLORS[cat]
-    m = vb.Model(14, 10, 16)
-    # Cabinet
-    m.fill(1, 2, 0, 12, 8, 2, body)
-    m.fill(1, 2, 3, 12, 8, 10, trim)
-    m.fill(1, 2, 11, 12, 8, 12, body)
-    # Posts
-    m.fill(1, 2, 0, 2, 3, 12, body)
-    m.fill(11, 2, 0, 12, 3, 12, body)
+    """fill 0 empty cabinet … 3 goods on every board. Uses the v1.5 shelf mesh."""
+    import voxel_interim_v15 as interim
+
+    path = vs.SRC / f"shelf_{cat}.vox"
+    size, cells, _palette = vs.read_vox(path)
+    m = vb.Model(*size)
+    m.cells = dict(cells)
     if fill <= 0:
         return m
-    # Goods rows: 1→low, 2→mid, 3→top shelf packed
-    rows = min(fill, 3)
+    goods = {
+        "dry": ("can", "snack", "cup"),
+        "frozen": ("drink", "milk", "soda"),
+        "ice": ("icecream", "meat", "rice"),
+    }[cat]
+    rows = min(fill + 1, len(interim.SHELF_BOARDS)) if fill < 3 else len(interim.SHELF_BOARDS)
+    # fill 1 → bottom board, 2 → two boards, 3 → every board.
+    if fill == 1:
+        rows = 1
+    elif fill == 2:
+        rows = 2
+    else:
+        rows = len(interim.SHELF_BOARDS)
+    slots = (24, 84, 144, 204)
     for ri in range(rows):
-        z0 = 3 + ri * 3
-        z1 = z0 + 1
-        m.fill(3, 3, z0, 10, 7, z1, goods)
-        # Speckle SKU colors
-        for x in range(3, 11, 2):
-            m.set(x, 5, z1, "player" if ri % 2 == 0 else "can")
+        z = interim.SHELF_BOARDS[ri] + 4
+        for si, ox in enumerate(slots):
+            _blit_good(m, goods[(ri + si) % len(goods)], ox, 22, z, 22)
     return m
 
 
+def _blit_good(m: vb.Model, good_id: str, ox: int, oy: int, oz: int, target_h: int) -> None:
+    """Stamp a scaled copy of the same good mesh used for the UI icon."""
+    path = vs.SRC / f"{good_id}.vox"
+    size, cells, _palette = vs.read_vox(path)
+    gsx, gsy, gsz = size
+    scale = target_h / float(max(gsz, 1))
+    sx, sy, sz = m.size
+    for (x, y, z), idx in cells.items():
+        nx = ox + int(x * scale)
+        ny = oy + int((y - gsy * 0.35) * scale)
+        nz = oz + int(z * scale)
+        if 0 <= nx < sx and 0 <= ny < sy and 0 <= nz < sz:
+            m.cells[(nx, ny, nz)] = idx
+
+
 def _dirt_clean_model(dirt: str, stage: int) -> vb.Model:
-    """stage 0 solid → 2 nearly gone."""
-    m = vb.Model(10, 10, 4)
-    colors = {
-        "trash": ("trash", "wood_dark"),
-        "puddle": ("puddle", "glass"),
-        "vomit": ("vomit", "customer_dark"),
-    }
-    c0, c1 = colors[dirt]
-    # Shrink footprint + height by stage
-    inset = stage
-    z_top = max(0, 2 - stage)
-    m.fill(1 + inset, 1 + inset, 0, 8 - inset, 8 - inset, z_top, c0)
-    if stage == 0:
-        m.fill(3, 3, z_top, 6, 6, z_top, c1)
+    """stage 0 = full v1.5 dirt mesh → 2 nearly gone."""
+    path = vs.SRC / f"{dirt}.vox"
+    size, cells, _palette = vs.read_vox(path)
+    m = vb.Model(*size)
+    m.cells = dict(cells)
+    if stage <= 0:
+        return m
+    sx, sy, sz = size
+    cx, cy = (sx - 1) * 0.5, (sy - 1) * 0.5
+    # Keep the denser core; peel outer voxels and flatten height.
+    max_r = max(sx, sy) * 0.5
+    keep_r = max_r * (0.72 if stage == 1 else 0.42)
+    z_cap = max(1, int(sz * (0.7 if stage == 1 else 0.35)) - 1)
+    kept = {}
+    for (x, y, z), idx in m.cells.items():
+        if z > z_cap:
+            continue
+        dx = x - cx
+        dy = y - cy
+        if dx * dx + dy * dy > keep_r * keep_r:
+            continue
+        # Stage 2 also drops a checker of remaining voxels.
+        if stage >= 2 and ((x + y + z) % 3) == 0:
+            continue
+        kept[(x, y, z)] = idx
+    m.cells = kept
     return m
 
 

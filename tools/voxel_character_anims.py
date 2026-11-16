@@ -104,6 +104,12 @@ def _walk_carry_frames() -> list[dict]:
 
 CUSTOMER_IDS = ["customer", "customer_hurry", "customer_slow"]
 
+# Pace variants share the customer mesh and only swap shirt colors.
+RECOLOR_FROM = {
+    "customer_hurry": ("customer", {"customer": "soda", "customer_dark": "thief"}),
+    "customer_slow": ("customer", {"customer": "clerk", "customer_dark": "clerk_dark"}),
+}
+
 ANIMS: dict[str, dict] = {
     # Shared locomotion
     "idle": {"frames": [{"bob": 0}, {"bob": 1}], "fps": 2, "chars": "all"},
@@ -232,11 +238,23 @@ def _clamp(v: int, lo: int, hi: int) -> int:
 
 
 def _load_designer(char_id: str):
-    """Return (size, cells, palette) from art/src/{id}.vox, or None."""
+    """Return (size, cells, palette) from art/src/{id}.vox, or a recolor of customer."""
     path = SRC / f"{char_id}.vox"
-    if not path.exists():
+    if path.exists():
+        return vs.read_vox(path)
+    spec = RECOLOR_FROM.get(char_id)
+    if spec is None:
         return None
-    return vs.read_vox(path)
+    base_id, mapping = spec
+    base_path = SRC / f"{base_id}.vox"
+    if not base_path.exists():
+        return None
+    size, cells, palette = vs.read_vox(base_path)
+    idx_map = {
+        vb.COLOR_INDEX[src]: vb.COLOR_INDEX[dst] for src, dst in mapping.items()
+    }
+    recolored = {pos: idx_map.get(idx, idx) for pos, idx in cells.items()}
+    return size, recolored, palette
 
 
 def _mv_frame_path(char_id: str, anim: str, facing: int, frame: int) -> Path:
@@ -497,8 +515,17 @@ def bake() -> dict:
         "sources": {},
     }
     written = 0
+    id_filter = vs.bake_id_filter()
+    prev_manifest = {}
+    if MANIFEST_PATH.exists():
+        try:
+            prev_manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            prev_manifest = {}
 
     for char_id, kit in CHARS.items():
+        if id_filter is not None and char_id not in id_filter:
+            continue
         designer = _load_designer(char_id)
         source = "procedural"
         if designer is not None:
@@ -538,6 +565,13 @@ def bake() -> dict:
                     _write_frame(anchors, name, rsize, rcells, pal)
                     written += 1
         manifest["characters"][char_id] = char_anims
+
+    if id_filter is not None:
+        for key in ("characters", "sources"):
+            prev = prev_manifest.get(key, {})
+            if isinstance(prev, dict):
+                for cid, payload in prev.items():
+                    manifest[key].setdefault(cid, payload)
 
     anchors_path.write_text(json.dumps(anchors, indent=2) + "\n", encoding="utf-8")
     MANIFEST_PATH.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
