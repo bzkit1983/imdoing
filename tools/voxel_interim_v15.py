@@ -402,9 +402,13 @@ def _rice() -> vb.Model:
 
 
 def floor_tile() -> vb.Model:
-    """One CELL of shop floor: flat solid fill, no grout or wear marks."""
+    """One CELL of shop floor: solid fill with quiet grout only."""
     m = vb.Model(128, 128, 8)
     fill(m, 0, 0, 0, 127, 127, 2, "floor")
+    # 32px boards → 4×4 tiles inside one cell. No checker or scuffs.
+    for i in range(0, 128, 32):
+        fill(m, i, 0, 0, min(i + 1, 127), 127, 2, "floor_line")
+        fill(m, 0, i, 0, 127, min(i + 1, 127), 2, "floor_line")
     return m
 
 
@@ -553,7 +557,7 @@ MODELS = {
     "icecream": ("雪糕", _icecream, "v1.5 中期稿。甜筒雙球。"),
     "meat": ("凍肉", _meat, "v1.5 中期稿。托盤。"),
     "rice": ("叮叮飯", _rice, "v1.5 中期稿。微波盒。"),
-    "floor_tile": ("地磚", floor_tile, "v1.5 中期稿。128² 一格，淨色無磚縫。"),
+    "floor_tile": ("地磚", floor_tile, "v1.5 中期稿。128² 一格，淨色加磚縫。"),
     "wall": ("牆", wall, "v1.5 中期稿。踢腳線與分縫；佔格不變。"),
     "trash": ("垃圾", trash, "v1.5 中期稿。紙箱、袋子、罐子可分。"),
     "puddle": ("水漬", puddle, "v1.5 中期稿。不規則水漬加高光。"),
