@@ -74,10 +74,10 @@ static func _category(type: String) -> String:
 
 
 static func _fit_square(src: Image) -> Texture2D:
-	var copy := src.duplicate()
+	var copy: Image = src.duplicate()
 	## Keep aspect: letterbox into SIZE×SIZE.
-	var tw := copy.get_width()
-	var th := copy.get_height()
+	var tw: int = copy.get_width()
+	var th: int = copy.get_height()
 	if tw <= 0 or th <= 0:
 		return _procedural("")
 	var scale := minf(float(SIZE) / float(tw), float(SIZE) / float(th))

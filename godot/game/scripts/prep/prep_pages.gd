@@ -297,9 +297,16 @@ static func _home(menu: CanvasLayer) -> void:
 	if in_room:
 		menu._info.text = menu._pair(menu._header(), Loc.t("lobby.between_day_home"))
 	elif tut_lock:
+		var home_hint_key := "tut.prep.restrict.home_hint"
+		var tut_node = menu._tutorial() if menu.has_method("_tutorial") else null
+		if tut_node != null and tut_node.has_method("prep_restrict"):
+			var r: Dictionary = tut_node.prep_restrict()
+			var override := String(r.get("home_hint_key", ""))
+			if override != "":
+				home_hint_key = override
 		menu._info.text = menu._pair(
 			menu._header(),
-			menu._msg if menu._msg != "" else Loc.t("tut.prep.restrict.home_hint")
+			menu._msg if menu._msg != "" else Loc.t(home_hint_key)
 		)
 	else:
 		menu._info.text = menu._pair(menu._header(), menu._msg if menu._msg != "" else menu._home_info())
@@ -555,10 +562,22 @@ static func _hub_char(menu: CanvasLayer) -> void:
 static func _hub_goods(menu: CanvasLayer) -> void:
 	menu._hub_cols = 1
 	menu._title.text = Loc.t("prep.hub.goods")
-	menu._info.text = menu._pair(menu._header(), Loc.t("prep.hub.goods_info"))
-	menu._add_hub(Loc.t("prep.home.develop"), "go", "develop", "develop")
-	menu._add_hub(Loc.t("prep.home.buy"), "go", "buy", "buy")
-	menu._add_hub(Loc.t("prep.home.for_sale"), "go", "for_sale", "for_sale")
+	var goods_info := Loc.t("prep.hub.goods_info")
+	if menu.tutorial_prep_restricts():
+		goods_info = Loc.t("tut.prep.restrict.goods_hint")
+	menu._info.text = menu._pair(menu._header(), goods_info)
+	menu._add_hub(
+		Loc.t("prep.home.develop"), "go", "develop", "develop",
+		menu.tutorial_goods_hub_locked("develop")
+	)
+	menu._add_hub(
+		Loc.t("prep.home.buy"), "go", "buy", "buy",
+		menu.tutorial_goods_hub_locked("buy")
+	)
+	menu._add_hub(
+		Loc.t("prep.home.for_sale"), "go", "for_sale", "for_sale",
+		menu.tutorial_goods_hub_locked("for_sale")
+	)
 	menu._rebuild_hub_tiles()
 
 
@@ -569,7 +588,14 @@ static func _hub_shop(menu: CanvasLayer) -> void:
 		menu.state.shop_scale, menu.state.grid_w, menu.state.grid_h,
 	])
 	if menu.tutorial_prep_restricts():
-		shop_info = Loc.t("tut.prep.restrict.shop_hint")
+		var shop_hint_key := "tut.prep.restrict.shop_hint"
+		var tut_node = menu._tutorial() if menu.has_method("_tutorial") else null
+		if tut_node != null and tut_node.has_method("prep_restrict"):
+			var r: Dictionary = tut_node.prep_restrict()
+			var override := String(r.get("shop_hint_key", ""))
+			if override != "":
+				shop_hint_key = override
+		shop_info = Loc.t(shop_hint_key)
 	menu._info.text = menu._pair(menu._header(), shop_info)
 	menu._add_hub(
 		Loc.t("prep.home.furn"), "go", "furn", "furn",

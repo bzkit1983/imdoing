@@ -111,13 +111,16 @@ GameState.tutorial_progress: {
 - 僅測試工具開啟時出現於劇本列表。
 - 作為教學鏈入口（`scenario == 5`）。
 - 正式 prep 鏈：
-  1. `tut.prep.open_shop`「開店第一步」：重選／進入劇本 5 準備即觸發；條件 `owned_furniture_kinds >= 3`（買齊三件）；soft-lock 僅購入（暫鎖店鋪設計）。
-  2. `tut.prep.shop_layout`「店鋪設計入門」：買齊後**首次進入店鋪設計**觸發；條件 `open_ready`（三件擺進店，位置不限）；Pages 含補貨架長按設預設貨品提示。
+  1. `tut.prep.open_shop`「開店第一步」：重選／進入劇本 5 準備即觸發；條件 `owned_furniture_kinds >= 3`（買齊三件）；soft-lock 僅購入商店物品。
+  2. `tut.prep.buy_stock`「採購入門」：購入完成後鏈式觸發；條件 `stock_pieces(can) >= 99`；soft-lock 只准貨品管理→採購；不開局贈罐。
+  3. `tut.prep.shop_layout`「店鋪設計入門」：採購完成後鏈式觸發；條件 `open_ready`（三件擺進店，位置不限）；soft-lock **只准店鋪設計**（鎖購入／擴張）；Pages 含補貨架長按設預設貨品提示。
   - 家具限購 `cashier`／`restock_dry`／`shelf_dry_4` 各 1（`prep_restrict`）。
-  - 教學局贈送倉庫 `can`×12，供首次營運執貨。
 - 正式 ops 鏈（`day_index == 0`）：
-  1. `tut.ops.shelve`「貨品上架」：開工即彈（營運第一課）；條件 `shelve_count >= 4`；Pages 含執貨／上架操作；結課彈完成視窗。
-  2. `tut.ops.clean`「清潔入門」：上架完成後且 runtime flag `dirt_present`（污物首次出現）才彈；條件 `clean_count >= 1`。
+  1. `tut.ops.shelve`「貨品上架」：開工即彈（`requires_done` 店鋪設計課）；條件 `shelve_count >= 4`；Pages 含執貨／上架操作；結課彈完成視窗。
+  2. `tut.ops.clean`「清潔入門」：上架完成後才開始生成污物；runtime flag `dirt_present`（污物首次出現）才彈；條件 `clean_count >= 1`。上架課完成前不生成污物。
+  3. `tut.ops.checkout`「收銀入門」：清潔完成後鏈式觸發；條件 `checkout_count >= 2`（玩家座收銀；店員代收不計）；Pages 含方向指令／環形計；結課彈完成視窗。收銀結課前不生成小偷。
+  4. `tut.ops.thief`「捉小偷」：收銀結課後強制刷一隻（flag `thief_present`）；條件 `thief_caught >= 1`（近戰／衝刺／丟貨皆可）；逃走（`record_stolen`）後立刻再刷練習隻。
+  5. `tut.ops.empty_shelf`「空貨架提示」（純 tip）：收銀完成後、首次貨架由有貨變空（flag `shelf_empty`）彈講解；`steps` 為空＝看完即 done、不硬閘結算。
   - Lesson 結課統一經完成視窗（`complete_pages` 或預設 `tut.complete.*`）再鏈式下一課。
 
 ## 多人
@@ -128,7 +131,7 @@ GameState.tutorial_progress: {
 
 | 檔 | 職責 |
 | --- | --- |
-| `tutorial_catalog.gd` | Lesson 定義（含 stub） |
+| `tutorial_catalog.gd` | Lesson 定義（劇本 5 正式鏈） |
 | `tutorial_director.gd` | 觸發、步驟、硬閘、metric、HUD 行 |
 | `tutorial_modal.gd` | 分頁講解視窗 |
 | `game_state.gd` | `tutorial_progress` 存讀 API |

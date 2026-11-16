@@ -452,6 +452,16 @@ func _complete_lesson() -> void:
 	_metrics.clear()
 	gate_changed.emit()
 	progress_changed.emit()
+	## After shelve, allow dirt so clean can trigger on dirt_present.
+	if id == "tut.ops.shelve":
+		var host := get_parent()
+		if host != null and host.has_method("seed_dirt_if_tutorial_allows"):
+			host.call_deferred("seed_dirt_if_tutorial_allows")
+	## After checkout, seed a thief so catch lesson can arm on thief_present.
+	if id == "tut.ops.checkout":
+		var host2 := get_parent()
+		if host2 != null and host2.has_method("seed_thief_for_tutorial"):
+			host2.call_deferred("seed_thief_for_tutorial")
 	## Celebration modal before chaining the next lesson.
 	_show_complete_modal(complete_pages if complete_pages is Array else [])
 
@@ -511,6 +521,17 @@ func _current_for_condition(cond: Dictionary) -> int:
 				return 0
 			var blocks: PackedStringArray = state.open_blockers()
 			return 1 if blocks.is_empty() else 0
+		"stock_pieces":
+			## Warehouse pieces for filters.sku (prep buy lessons).
+			if state == null:
+				return 0
+			var filters = cond.get("filters", {})
+			var sku := ""
+			if filters is Dictionary:
+				sku = String(filters.get("sku", ""))
+			if sku == "":
+				return 0
+			return int(state.stock.get(sku, 0))
 		_:
 			return int(_metrics.get(metric, 0))
 

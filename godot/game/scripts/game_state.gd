@@ -177,11 +177,10 @@ func _scenario_new() -> void:
 
 
 ## Test-only tutorial campaign: empty shop like new game, $3000 (tutorial.md).
-## Starter can stock so first-ops shelve lesson can take from restock.
+## Can stock comes from prep buy-stock lesson (no free gift).
 func _scenario_tutorial() -> void:
 	_scenario_new()
 	money = 3000
-	stock["can"] = 12
 
 
 func is_intro_scenario() -> bool:

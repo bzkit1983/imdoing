@@ -189,6 +189,11 @@ func tutorial_shop_hub_locked(hub_key: String) -> bool:
 	return tut != null and bool(tut.prep_hub_target_locked(hub_key, "shop_hub_allow"))
 
 
+func tutorial_goods_hub_locked(hub_key: String) -> bool:
+	var tut := _tutorial()
+	return tut != null and bool(tut.prep_hub_target_locked(hub_key, "goods_hub_allow"))
+
+
 func tutorial_furniture_caps() -> Dictionary:
 	var tut := _tutorial()
 	if tut == null:

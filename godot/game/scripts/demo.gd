@@ -1260,6 +1260,8 @@ func random_shelf_stand() -> Vector2:
 
 
 func spawn_dirt_at(at: Vector2, dtype: String) -> bool:
+	if _tutorial_blocks_dirt_spawn():
+		return false
 	if _dirts.size() >= Tuning.DIRT_CAP:
 		return false
 	var size := Tuning.DIRT_SIZE
@@ -2475,6 +2477,10 @@ func _unindex_shelf_sku(sku: String, shelf: Node) -> void:
 
 func _on_shelf_stock_sku_changed(shelf: Node, old_sku: String, new_sku: String) -> void:
 	_world_build.on_shelf_stock_sku_changed(shelf, old_sku, new_sku)
+	## Stocked → empty: tip lesson flag (S5 after checkout).
+	if old_sku != "" and new_sku == "":
+		if _tutorial != null and is_instance_valid(_tutorial) and _tutorial.has_method("notify_flag"):
+			_tutorial.notify_flag("shelf_empty")
 
 func _index_empty_shelf(shelf: Node) -> void:
 	_world_build.index_empty_shelf(shelf)
@@ -2626,6 +2632,15 @@ func record_stolen(items: Array) -> void:
 	bump_hud()
 	var delta := pieces * RatingRules.N2_STOLEN_PIECE + RatingRules.N3_THIEF_ESCAPE
 	apply_ops_rating(delta, _player)
+	## Catch tutorial: respawn another thief immediately after escape.
+	if (
+		_tutorial != null
+		and is_instance_valid(_tutorial)
+		and _tutorial.has_method("active_lesson_id")
+		and String(_tutorial.active_lesson_id()) == "tut.ops.thief"
+		and bool(_tutorial.has_forced_step())
+	):
+		call_deferred("seed_thief_for_tutorial")
 
 
 func record_caught(seat: int = 0, method: String = "any") -> void:
@@ -2647,6 +2662,8 @@ func record_caught(seat: int = 0, method: String = "any") -> void:
 				_tasks.note_metric(seat, "thief_caught_melee", 1)
 			"dash":
 				_tasks.note_metric(seat, "thief_caught_dash", 1)
+	if _tutorial != null and is_instance_valid(_tutorial):
+		_tutorial.note_metric("thief_caught", 1)
 
 
 func apply_ops_rating(delta: int, actor: Node2D = null) -> void:
@@ -2745,6 +2762,10 @@ func _on_paid(
 			_tasks.note_metric(seat, "checkout_count", 1)
 			if perfect:
 				_tasks.note_metric(seat, "checkout_perfect", 1)
+			if _tutorial != null:
+				_tutorial.note_metric("checkout_count", 1)
+				if perfect:
+					_tutorial.note_metric("checkout_perfect", 1)
 		bump_hud()
 	_broadcast_day_hud_state()
 	if _player != null:
@@ -3180,10 +3201,28 @@ func _play_elite_zoom(c: Node) -> void:
 	_try_play_elite_zoom()
 
 
-func _spawn_thief() -> void:
+## Scenario 5: no thieves until checkout tutorial is done.
+func _tutorial_blocks_thief_spawn() -> bool:
+	if state == null or int(state.scenario) != 5:
+		return false
+	return state.tutorial_status("tut.ops.checkout") != "done"
+
+
+## After checkout lesson (or escape during catch lesson): force one thief in.
+func seed_thief_for_tutorial() -> void:
+	if _tutorial_blocks_thief_spawn():
+		return
+	if not (SessionService.is_server() or SessionService.is_local_transport()):
+		return
+	_spawn_thief(true)
+
+
+func _spawn_thief(force: bool = false) -> void:
+	if _tutorial_blocks_thief_spawn():
+		return
 	if state.sellable().is_empty():
 		return
-	if randf() > thief_appear_rate():
+	if not force and randf() > thief_appear_rate():
 		return
 	if thief_count() >= Tuning.THIEF_CAP:
 		return
@@ -3203,6 +3242,8 @@ func _spawn_thief() -> void:
 	SfxBus.play("sfx_thief_spawn")
 	if _player:
 		_player.log_line.emit(Loc.t("demo.thief_enter"))
+	if _tutorial != null and is_instance_valid(_tutorial) and _tutorial.has_method("notify_flag"):
+		_tutorial.notify_flag("thief_present")
 
 
 func _floor() -> void:
@@ -3284,7 +3325,24 @@ func _rebuild_dirt_block_cells() -> void:
 			_mark_dirt_rect_cells(Rect2(d.global_position - Tuning.DIRT_SIZE * 0.5, Tuning.DIRT_SIZE), true)
 
 
+## Scenario 5: no dirt until shelve lesson is done (clean lesson waits on dirt_present).
+func _tutorial_blocks_dirt_spawn() -> bool:
+	if state == null or int(state.scenario) != 5:
+		return false
+	return state.tutorial_status("tut.ops.shelve") != "done"
+
+
+## Called after shelve tutorial completes so clean can arm on first dirt.
+func seed_dirt_if_tutorial_allows() -> void:
+	if _tutorial_blocks_dirt_spawn():
+		return
+	if SessionService.is_server() or SessionService.is_local_transport():
+		_try_spawn_dirt()
+
+
 func _try_spawn_dirt() -> void:
+	if _tutorial_blocks_dirt_spawn():
+		return
 	if _dirts.size() >= Tuning.DIRT_CAP:
 		return
 	if _dirt_block_cells.is_empty() and not _obstacles.is_empty():

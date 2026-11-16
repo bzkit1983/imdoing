@@ -5,9 +5,13 @@ extends RefCounted
 static func all_lessons() -> Array[Dictionary]:
 	return [
 		_prep_open_shop(),
+		_prep_buy_stock(),
 		_prep_shop_layout(),
 		_ops_shelve(),
 		_ops_clean(),
+		_ops_checkout(),
+		_ops_thief(),
+		_ops_empty_shelf(),
 	]
 
 
@@ -81,11 +85,12 @@ static func _prep_open_shop() -> Dictionary:
 			"name_key": "tut.prep.open_shop.task.name",
 			"desc_key": "tut.prep.open_shop.task.desc",
 		},
-		## 購入階段：先開放購入；店鋪設計等買齊後再進下一課。
+		## 購入階段：先開放購入；採購／店鋪設計等買齊後再進下一課。
 		"prep_restrict": {
 			"home_hub_allow": ["hub_shop"],
 			"shop_hub_allow": ["furn"],
 			"pages_allow": ["home", "hub_shop", "furn"],
+			"shop_hint_key": "tut.prep.restrict.shop_hint_furn",
 			"furniture_owned_cap": {
 				"cashier": 1,
 				"restock_dry": 1,
@@ -95,7 +100,41 @@ static func _prep_open_shop() -> Dictionary:
 	}
 
 
-## Scenario 5：買齊後首次進店鋪設計 → 把三件擺進店（位置不限）。
+## Scenario 5：購入家具後 → 採購罐頭 99 件進倉庫。
+static func _prep_buy_stock() -> Dictionary:
+	return {
+		"id": "tut.prep.buy_stock",
+		"phase": "prep",
+		"trigger": {
+			"when": "scenario",
+			"scenario": 5,
+			"requires_done": ["tut.prep.open_shop"],
+		},
+		"pages": [
+			_page("tut.prep.buy_stock.p1.title", "tut.prep.buy_stock.p1.body"),
+			_page("tut.prep.buy_stock.p2.title", "tut.prep.buy_stock.p2.body"),
+			_page("tut.prep.buy_stock.p3.title", "tut.prep.buy_stock.p3.body"),
+		],
+		"steps": [
+			_step("tut.prep.buy_stock.s1", 1, "stock_pieces", ">=", 99, "", {"sku": "can"}),
+		],
+		"ops_task": {
+			"name_key": "tut.prep.buy_stock.task.name",
+			"desc_key": "tut.prep.buy_stock.task.desc",
+		},
+		"complete_pages": [
+			_page("tut.prep.buy_stock.done.title", "tut.prep.buy_stock.done.body"),
+		],
+		"prep_restrict": {
+			"home_hub_allow": ["hub_goods"],
+			"goods_hub_allow": ["buy"],
+			"pages_allow": ["home", "hub_goods", "buy"],
+			"home_hint_key": "tut.prep.restrict.home_hint_buy",
+		},
+	}
+
+
+## Scenario 5：採購完成後鏈式觸發 → 只准店鋪設計，把三件擺進店。
 static func _prep_shop_layout() -> Dictionary:
 	return {
 		"id": "tut.prep.shop_layout",
@@ -103,8 +142,7 @@ static func _prep_shop_layout() -> Dictionary:
 		"trigger": {
 			"when": "scenario",
 			"scenario": 5,
-			"prep_page": "layout",
-			"requires_done": ["tut.prep.open_shop"],
+			"requires_done": ["tut.prep.buy_stock"],
 		},
 		"pages": [
 			_page("tut.prep.shop_layout.p1.title", "tut.prep.shop_layout.p1.body"),
@@ -121,8 +159,10 @@ static func _prep_shop_layout() -> Dictionary:
 		},
 		"prep_restrict": {
 			"home_hub_allow": ["hub_shop"],
-			"shop_hub_allow": ["furn", "layout"],
-			"pages_allow": ["home", "hub_shop", "furn", "layout"],
+			"shop_hub_allow": ["layout"],
+			"pages_allow": ["home", "hub_shop", "layout"],
+			"home_hint_key": "tut.prep.restrict.home_hint_layout",
+			"shop_hint_key": "tut.prep.restrict.shop_hint",
 			"furniture_owned_cap": {
 				"cashier": 1,
 				"restock_dry": 1,
@@ -186,4 +226,91 @@ static func _ops_clean() -> Dictionary:
 			"name_key": "tut.ops.clean.task.name",
 			"desc_key": "tut.ops.clean.task.desc",
 		},
+	}
+
+
+## Scenario 5：清潔完成後 → 收銀台收錢兩次。
+static func _ops_checkout() -> Dictionary:
+	return {
+		"id": "tut.ops.checkout",
+		"phase": "ops",
+		"trigger": {
+			"when": "scenario",
+			"scenario": 5,
+			"day_index": 0,
+			"requires_done": ["tut.ops.clean"],
+		},
+		"pages": [
+			_page("tut.ops.checkout.p1.title", "tut.ops.checkout.p1.body"),
+			_page("tut.ops.checkout.p2.title", "tut.ops.checkout.p2.body"),
+			_page("tut.ops.checkout.p3.title", "tut.ops.checkout.p3.body"),
+		],
+		"steps": [
+			_step("tut.ops.checkout.s1", 1, "checkout_count", ">=", 2, ""),
+		],
+		"ops_task": {
+			"name_key": "tut.ops.checkout.task.name",
+			"desc_key": "tut.ops.checkout.task.desc",
+		},
+		"complete_pages": [
+			_page("tut.ops.checkout.done.title", "tut.ops.checkout.done.body"),
+		],
+	}
+
+
+## Scenario 5：收銀完成後小偷進場 → 捉住一次。
+static func _ops_thief() -> Dictionary:
+	return {
+		"id": "tut.ops.thief",
+		"phase": "ops",
+		"trigger": {
+			"when": "flag",
+			"flag": "thief_present",
+			"scenario": 5,
+			"day_index": 0,
+			"requires_done": ["tut.ops.checkout"],
+		},
+		"pages": [
+			_page("tut.ops.thief.p1.title", "tut.ops.thief.p1.body"),
+			_page("tut.ops.thief.p2.title", "tut.ops.thief.p2.body"),
+			_page("tut.ops.thief.p3.title", "tut.ops.thief.p3.body"),
+		],
+		"steps": [
+			_step("tut.ops.thief.s1", 1, "thief_caught", ">=", 1, ""),
+		],
+		"ops_task": {
+			"name_key": "tut.ops.thief.task.name",
+			"desc_key": "tut.ops.thief.task.desc",
+		},
+		"complete_pages": [
+			_page("tut.ops.thief.done.title", "tut.ops.thief.done.body"),
+		],
+	}
+
+
+## Scenario 5：收銀後首次貨架被清空 → 純提示（無強制練習）。
+static func _ops_empty_shelf() -> Dictionary:
+	return {
+		"id": "tut.ops.empty_shelf",
+		"phase": "ops",
+		"trigger": {
+			"when": "flag",
+			"flag": "shelf_empty",
+			"scenario": 5,
+			"day_index": 0,
+			"requires_done": ["tut.ops.checkout"],
+		},
+		"pages": [
+			_page("tut.ops.empty_shelf.p1.title", "tut.ops.empty_shelf.p1.body"),
+			_page("tut.ops.empty_shelf.p2.title", "tut.ops.empty_shelf.p2.body"),
+		],
+		## Tip: empty steps → pages ack completes the lesson (no settle hard-gate).
+		"steps": [],
+		"ops_task": {
+			"name_key": "tut.ops.empty_shelf.task.name",
+			"desc_key": "tut.ops.empty_shelf.task.desc",
+		},
+		"complete_pages": [
+			_page("tut.ops.empty_shelf.done.title", "tut.ops.empty_shelf.done.body"),
+		],
 	}

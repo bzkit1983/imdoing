@@ -31,8 +31,8 @@ tut.prep.open_shop.p1.title,開店第一步,First step: open shop,开店第一�
 tut.prep.open_shop.p1.body,空店不能直接營業。這一步只開放「店舖管理」；先到「購入商店物品」買齊三件基本商店物品。,An empty shop cannot open yet. Only Shop is available — buy the three starter pieces under Buy furniture.,空店不能直接营业。这一步只开放“店铺管理”；先到“购入商店物品”买齐三件基本商店物品。,空の店ではすぐ営業できません。この段階では「店舗管理」だけ使えます。「店舗アイテム購入」で基本3つを揃えましょう。
 tut.prep.open_shop.p2.title,只買這三件,Buy only these three,只买这三件,この3つだけ購入
 tut.prep.open_shop.p2.body,各買一件：收銀機、乾貨補貨架、乾貨類貨架（4件）。其他商店物品與選單功能暫時停用。,"Buy one each: cashier, dry restock rack, dry shelf (4). Other shop items and menus stay off for now.",各买一件：收银机、干货补货架、干货类货架（4件）。其他商店物品与选单功能暂时停用。,それぞれ1つ：レジ、常温補充棚、常温棚（4個）。他の店舗アイテムとメニューはしばらく使えません。
-tut.prep.open_shop.p3.title,買齊後去設計,Buy then layout,买齐后去设计,揃えたらデザインへ
-tut.prep.open_shop.p3.body,三件都買好後，再到「店鋪設計」放置；本步只要求購入完成。,"After all three are bought, go to Layout to place them. This step only needs the purchases.",三件都买好后，再到“店铺设计”放置；本步只要求购入完成。,3つ買い終えたら「店舗デザイン」で配置します。この手順は購入完了だけでOKです。
+tut.prep.open_shop.p3.title,買齊後去採購,Buy then stock up,买齐后去采购,揃えたら仕入れへ
+tut.prep.open_shop.p3.body,三件都買好後，再到「貨品管理 → 採購貨品」買進倉庫；本步只要求購入商店物品完成。,"After all three are bought, go to Goods → Buy stock. This step only needs the furniture purchases.",三件都买好后，再到“货品管理 → 采购货品”买进仓库；本步只要求购入商店物品完成。,3つ買い終えたら「商品管理 → 仕入れ」へ。この手順は店舗アイテム購入完了だけでOKです。
 tut.prep.open_shop.task.name,購入基本商店物品,Buy basic shop pieces,购入基本商店物品,基本の店舗アイテムを購入
 tut.prep.open_shop.task.desc,購入：收銀機、乾貨補貨架、乾貨貨架（4件）各一件。,"Buy one each: cashier, dry restock, dry shelf (4).",购入：收银台、干货补货架、干货货架（4件）各一件。,購入：レジ・常温補充棚・常温棚（4個）を各1つ。
 tut.prep.shop_layout.p1.title,店鋪設計入門,Shop layout basics,店铺设计入门,店舗デザイン入門
@@ -45,9 +45,23 @@ tut.prep.shop_layout.p4.title,擺好即可開業,Then open the day,摆好即可�
 tut.prep.shop_layout.p4.body,三件都放到店裡後即可開業，完成本教學。,"Once all three are in the shop, open the day to finish this lesson.",三件都放到店里后即可开业，完成本教学。,3つを店内に置けたら営業開始でこのチュートリアル完了です。
 tut.prep.shop_layout.task.name,配置基本商店物件,Place basic shop pieces,配置基本商店物件,基本の店舗アイテムを配置
 tut.prep.shop_layout.task.desc,把收銀台、乾貨補貨架、乾貨貨架（4件）擺進店（位置不限）。,"Place cashier, dry restock, and dry shelf (4) in the shop (anywhere).",把收银台、干货补货架、干货货架（4件）摆进店（位置不限）。,レジ・常温補充棚・常温棚（4個）を店内へ配置（位置自由）。
-tut.prep.restrict.hub,教學進行中，此功能暫時停用。請先到「店舖管理」完成步驟。,Unavailable during the tutorial — use Shop to finish the step.,教学进行中，此功能暂时停用。请先到“店铺管理”完成步骤。,チュートリアル中はこの機能を使えません。「店舗管理」で手順を進めてください。
-tut.prep.restrict.home_hint,開店教學：只能進入「店舖管理」。先購入三件，再到店鋪設計放置後再開業。,"Shop tutorial: only Shop is open. Buy the three pieces, then place them in Layout before opening.",开店教学：只能进入“店铺管理”。先购入三件，再到店铺设计放置后再开业。,開店教程：「店舗管理」だけ。先に3つ購入→店舗デザインで配置→営業開始。
-tut.prep.restrict.shop_hint,先「購入商店物品」；買齊後用「店鋪設計」放置。擴張暫時停用。,Buy furniture first; after that use Layout to place. Expand is off for now.,先“购入商店物品”；买齐后用“店铺设计”放置。扩张暂时停用。,先に「店舗アイテム購入」。揃えたら「店舗デザイン」で配置。拡張はオフです。
+tut.prep.buy_stock.p1.title,採購入門,Stock purchase basics,采购入门,仕入れ入門
+tut.prep.buy_stock.p1.body,營業前要先把貨買進倉庫。這一步只開放「貨品管理 → 採購貨品」。,"Before opening, buy goods into the warehouse. Only Goods → Buy stock is available this step.",营业前要先把货买进仓库。这一步只开放“货品管理 → 采购货品”。,営業前に倉庫へ商品を仕入れます。この手順では「商品管理 → 仕入れ」だけ使えます。
+tut.prep.buy_stock.p2.title,買罐頭,Buy cans,买罐头,缶詰を買う
+tut.prep.buy_stock.p2.body,選「罐頭」，把數量調到 99 件後確認購入（一次可買到 99）。,"Pick Cans, set quantity to 99, then confirm (you can buy up to 99 at once).",选“罐头”，把数量调到 99 件后确认购入（一次可买到 99）。,「缶詰」を選び、数量を99にして購入確定（一度に99まで買えます）。
+tut.prep.buy_stock.p3.title,開始練習,Start practice,开始练习,練習を始める
+tut.prep.buy_stock.p3.body,倉庫罐頭滿 99 件後進入下一步；其他選單暫時停用。,"Fill warehouse cans to 99 to continue. Other menus stay locked.",仓库罐头满 99 件后进入下一步；其他选单暂时停用。,倉庫の缶詰が99個になると次へ進めます。他のメニューは一時オフです。
+tut.prep.buy_stock.task.name,教學：採購罐頭 99 件,Tutorial: buy 99 cans,教学：采购罐头 99 件,チュートリアル：缶詰99個を仕入れ
+tut.prep.buy_stock.task.desc,倉庫罐頭湊滿 99 件。,Reach 99 cans in the warehouse.,仓库罐头凑满 99 件。,倉庫の缶詰を99個にする。
+tut.prep.buy_stock.done.title,採購教學完成,Stock purchase complete,采购教学完成,仕入れチュートリアル完了
+tut.prep.buy_stock.done.body,倉庫已有 99 件罐頭。接下來到「店鋪設計」放置商店物品。,"You have 99 cans in stock. Next, place your shop pieces in Layout.",仓库已有 99 件罐头。接下来到“店铺设计”放置商店物品。,倉庫に缶詰が99個あります。次は「店舗デザイン」で配置しましょう。
+tut.prep.restrict.hub,教學進行中，此功能暫時停用。請先完成目前的教學步驟。,Unavailable during the tutorial — finish the current tutorial step first.,教学进行中，此功能暂时停用。请先完成目前的教学步骤。,チュートリアル中はこの機能を使えません。今の手順を先に完了してください。
+tut.prep.restrict.home_hint,開店教學：只能進入「店舖管理」。先購入三件基本商店物品。,"Shop tutorial: only Shop is open. Buy the three basic shop pieces first.",开店教学：只能进入“店铺管理”。先购入三件基本商店物品。,開店教程：「店舗管理」だけ。まず基本の店舗アイテム3つを購入。
+tut.prep.restrict.home_hint_buy,採購教學：只能進入「貨品管理」。到「採購貨品」買滿 99 件罐頭。,"Buy tutorial: only Goods is open. Buy 99 cans under Buy stock.",采购教学：只能进入“货品管理”。到“采购货品”买满 99 件罐头。,仕入れ教程：「商品管理」だけ。「仕入れ」で缶詰を99個買う。
+tut.prep.restrict.home_hint_layout,店鋪設計教學：只能進入「店舖管理 → 店鋪設計」。把三件擺進店後再開業。,"Layout tutorial: only Shop → Layout is open. Place the three pieces, then open.",店铺设计教学：只能进入“店铺管理 → 店铺设计”。把三件摆进店后再开业。,店舗デザイン教程：「店舗管理 → 店舗デザイン」だけ。3つを配置してから営業開始。
+tut.prep.restrict.goods_hint,教學中只能「採購貨品」。開發貨品與可售開關暫時停用。,Only Buy stock is available during this tutorial. Develop and For sale stay off.,教学中只能“采购货品”。开发货品与可售开关暂时停用。,このチュートリアルでは「仕入れ」だけ。開発と販売設定はオフです。
+tut.prep.restrict.shop_hint,教學中請用「店鋪設計」放置商店物品。購入與擴張暫時停用。,Use Layout to place shop pieces. Buy furniture and Expand stay off for now.,教学中请用“店铺设计”放置商店物品。购入与扩张暂时停用。,チュートリアル中は「店舗デザイン」で配置。購入と拡張はオフです。
+tut.prep.restrict.shop_hint_furn,先「購入商店物品」買齊三件。店鋪設計與擴張暫時停用。,"Buy the three pieces under Buy furniture first. Layout and Expand stay off for now.",先“购入商店物品”买齐三件。店铺设计与扩张暂时停用。,先に「店舗アイテム購入」で3つ揃える。店舗デザインと拡張はオフです。
 tut.prep.restrict.furn_hint,只能各買一件：收銀機、乾貨補貨架、乾貨類貨架（4件）。,"Buy one each: cashier, dry restock rack, dry shelf (4).",只能各买一件：收银机、干货补货架、干货类货架（4件）。,それぞれ1つまで：レジ、常温補充棚、常温棚（4個）。
 tut.prep.restrict.furn_denied,教學中只能購買指定的商店物品。,Only the listed shop items can be bought during this tutorial.,教学中只能购买指定的商店物品。,このチュートリアルでは指定の店舗アイテムだけ購入できます。
 tut.prep.restrict.furn_cap,這件已買夠教學所需數量。,You already bought enough of this for the tutorial.,这件已买够教学所需数量。,このアイテムはチュートリアル分すでに購入済みです。
@@ -72,6 +86,34 @@ tut.ops.clean.p3.title,開始練習,Start practice,开始练习,練習を始め�
 tut.ops.clean.p3.body,清掉至少 1 團污物；完成前不能結算本日。,"Clean at least 1 dirt pile. You cannot settle until this is done.",清掉至少 1 团污物；完成前不能结算本日。,汚れを1つ以上掃除。完了まで精算できません。
 tut.ops.clean.task.name,教學：清潔 1 次,Tutorial: clean once,教学：清洁 1 次,チュートリアル：1回掃除
 tut.ops.clean.task.desc,清掉至少 1 團污物。,Clean at least 1 dirt pile.,清掉至少 1 团污物。,汚れを1つ以上掃除する。
+tut.ops.checkout.p1.title,收銀入門,Checkout basics,收银入门,レジ入門
+tut.ops.checkout.p1.body,客人取齊貨後會排隊，你要對準收銀台、長按行動開始收銀。,"After guests finish shopping they queue — face the register and hold Act to start checkout.",客人取齐货后会排队，你要对准收银台、长按行动开始收银。,客が買い終えると列に並びます。レジに向けて行動を長押しし、会計を始めましょう。
+tut.ops.checkout.p2.title,方向指令,Direction prompts,方向指令,方向入力
+tut.ops.checkout.p2.body,頭頂出現方向串：手制／鍵盤用方向輸入，錯了可重新輸入。指令完成後長按填滿環形計才算收完。,"Arrows appear above you: enter them with the pad/keyboard; wrong inputs can be retried. After the sequence, hold Act to fill the ring and finish.",头顶出现方向串：手制／键盘用方向输入，错了可重新输入。指令完成后长按填满环形计才算收完。,頭上に方向の列が出ます。パッド／キーボードで入力し、間違えてもやり直せます。列が終わったら行動を長押ししてリングを満タンにすると会計完了です。
+tut.ops.checkout.p3.title,開始練習,Start practice,开始练习,練習を始める
+tut.ops.checkout.p3.body,完成 2 次收銀前不能結算。,You cannot settle until you finish 2 checkouts.,完成 2 次收银前不能结算。,会計を2回終えるまで精算できません。
+tut.ops.checkout.task.name,教學：收銀 2 次,Tutorial: checkout twice,教学：收银 2 次,チュートリアル：会計2回
+tut.ops.checkout.task.desc,完成 2 次收銀。,Complete 2 checkouts.,完成 2 次收银。,会計を2回完了する。
+tut.ops.checkout.done.title,收銀教學完成,Checkout tutorial complete,收银教学完成,会計チュートリアル完了
+tut.ops.checkout.done.body,已完成 2 次收銀。可以繼續營業。,"You finished 2 checkouts. You can keep running the shop.",已完成 2 次收银。可以继续营业。,会計を2回終えました。営業を続けられます。
+tut.ops.thief.p1.title,小偷出現,A thief appears,小偷出现,泥棒が出現
+tut.ops.thief.p1.body,店裡出現小偷；他會偷貨後不結帳就走。,"A thief is in the shop — they steal goods and leave without paying.",店里出现小偷；他会偷货后不结账就走。,店に泥棒がいます。商品を盗むと会計せずに出ていきます。
+tut.ops.thief.p2.title,怎麼捉,How to catch,怎么捉,捕まえ方
+tut.ops.thief.p2.body,近身長按行動抓住後連按打倒；也可衝刺撞飛或方向丟貨砸中。,"Close in, hold Act to grab, then mash Act to KO. You can also dash into them or toss goods at them.",近身长按行动抓住后连按打倒；也可冲刺撞飞或方向丢货砸中。,近づいて行動を長押しで掴み、連打でKO。ダッシュで飛ばす、方向投げで当てることもできます。
+tut.ops.thief.p3.title,開始練習,Start practice,开始练习,練習を始める
+tut.ops.thief.p3.body,成功捉住 1 次前不能結算；若溜走會再出現一隻供練習。,"Catch 1 thief before you can settle. If one escapes, another will spawn for practice.",成功捉住 1 次前不能结算；若溜走会再出现一只供练习。,1回捕まえるまで精算できません。逃げられたら練習用にもう1人出ます。
+tut.ops.thief.task.name,教學：捉住小偷 1 次,Tutorial: catch 1 thief,教学：捉住小偷 1 次,チュートリアル：泥棒を1回捕まえる
+tut.ops.thief.task.desc,成功捉住 1 名小偷。,Successfully catch 1 thief.,成功捉住 1 名小偷。,泥棒を1人捕まえる。
+tut.ops.thief.done.title,捉賊教學完成,Thief tutorial complete,捉贼教学完成,泥棒チュートリアル完了
+tut.ops.thief.done.body,已捉住小偷。可以繼續營業。,"You caught a thief. You can keep running the shop.",已捉住小偷。可以继续营业。,泥棒を捕まえました。営業を続けられます。
+tut.ops.empty_shelf.p1.title,空貨架,Empty shelf,空货架,空の棚
+tut.ops.empty_shelf.p1.body,貨架被清空後，客人可能找不到要的貨，不滿會上升。,"When a shelf is empty, guests may fail to find what they want and grow unhappy.",货架被清空后，客人可能找不到要的货，不满会上升。,棚が空になると、客が欲しい商品を見つけられず不満が上がることがあります。
+tut.ops.empty_shelf.p2.title,保持貨源,Keep stocked,保持货源,在庫を保つ
+tut.ops.empty_shelf.p2.body,記得從補貨架執貨、再上架，經常保持貨源充足。,"Take from restock racks and shelve again — keep the shelves stocked.",记得从补货架执货、再上架，经常保持货源充足。,補充棚で取荷して陳列し、棚の在庫をこまめに保ちましょう。
+tut.ops.empty_shelf.task.name,教學提示：空貨架,Tip: empty shelf,教学提示：空货架,ヒント：空の棚
+tut.ops.empty_shelf.task.desc,空貨架會令客人找不到貨而不滿。,Empty shelves make guests miss items and grow unhappy.,空货架会令客人找不到货而不满。,空の棚だと客が商品を見つけられず不満になります。
+tut.ops.empty_shelf.done.title,提示完成,Tip complete,提示完成,ヒント完了
+tut.ops.empty_shelf.done.body,繼續保持貨架有貨吧。,Keep those shelves stocked.,继续保持货架有货吧。,棚の在庫を保ち続けましょう。
 pause.sfx_on,音效：開,SFX: On,音效：开,効果音：オン
 pause.sfx_off,音效：關,SFX: Off,音效：关,効果音：オフ
 pause.sfx_volume,音效聲量：%d%%,SFX volume: %d%%,音效声量：%d%%,効果音ボリューム：%d%%
