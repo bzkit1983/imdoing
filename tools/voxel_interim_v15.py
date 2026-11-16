@@ -341,25 +341,26 @@ def _can() -> vb.Model:
 
 
 def _snack() -> vb.Model:
-    m = vb.Model(64, 64, 64)
-    # Soft wide bag. Top is a zigzag crimp, not a gable.
-    fill(m, 8, 18, 10, 55, 46, 40, "snack")
-    fill(m, 4, 24, 16, 59, 40, 36, "snack")
-    fill(m, 14, 22, 8, 50, 42, 16, "snack")
+    """Soft bag. The zigzag crimp is the front silhouette, not a hidden top."""
+    m = vb.Model(64, 64, 72)
+    fill(m, 8, 16, 8, 55, 46, 40, "snack")
+    fill(m, 12, 20, 4, 51, 44, 16, "snack")
     for i, x in enumerate(range(6, 58, 6)):
-        z1 = 52 if i % 2 == 0 else 44
-        fill(m, x, 26, 40, x + 4, 38, z1, "white" if i % 2 == 0 else "snack")
-    fill(m, 24, 40, 22, 40, 48, 32, "white")
+        z1 = 66 if i % 2 == 0 else 46
+        fill(m, x, 42, 36, x + 5, 58, z1, "white" if i % 2 == 0 else "snack")
+    fill(m, 22, 50, 16, 42, 58, 32, "white")
     return m
 
 
 def _cup() -> vb.Model:
+    """Tapered cup, wide white dome, colored band on the front."""
     m = vb.Model(64, 64, 80)
-    # Noodle cup: paper body, wide lid, horizontal label. No dots that read as a face.
-    cyl_z(m, 32, 32, 0, 48, 18, "cup")
-    cyl_z(m, 32, 32, 46, 62, 22, "cap")
-    cyl_z(m, 32, 32, 18, 34, 19, "rice")
-    fill(m, 20, 46, 20, 44, 54, 32, "snack")
+    for z in range(0, 48):
+        rad = 12 + int(10 * z / 47)
+        cyl_z(m, 32, 32, z, z, rad, "cup")
+    cyl_z(m, 32, 32, 44, 58, 24, "cap")
+    ball(m, 32, 34, 62, 20, 18, 12, "cap")
+    fill(m, 18, 48, 22, 46, 58, 34, "rice")
     return m
 
 
@@ -384,8 +385,9 @@ def _milk() -> vb.Model:
         half = max(4, int(18 * (1.0 - t)))
         fill(m, 32 - half, 16, z, 32 + half, 48, z, "milk")
     fill(m, 30, 16, 64, 34, 48, 88, "milk_band")
-    fill(m, 50, 26, 34, 62, 42, 50, "milk")
-    fill(m, 56, 28, 38, 63, 40, 48, "cap")
+    # Spout sticks out of the front so the icon matches the world mesh.
+    fill(m, 36, 48, 28, 52, 62, 46, "milk")
+    fill(m, 40, 56, 32, 50, 63, 42, "cap")
     return m
 
 
@@ -415,23 +417,25 @@ def _icecream() -> vb.Model:
 
 
 def _meat() -> vb.Model:
+    """White tray, two round cuts, a film band across the front."""
     m = vb.Model(80, 64, 32)
     fill(m, 4, 8, 0, 75, 55, 8, "white")
-    fill(m, 10, 14, 8, 70, 50, 20, "meat")
-    fill(m, 18, 20, 18, 40, 36, 26, "meat")
-    fill(m, 44, 22, 16, 66, 42, 24, "skin_shade")
-    fill(m, 8, 48, 10, 72, 54, 14, "glass")
+    fill(m, 6, 10, 6, 74, 54, 10, "white")
+    ball(m, 28, 32, 16, 14, 12, 8, "meat")
+    ball(m, 52, 32, 15, 12, 11, 7, "skin_shade")
+    fill(m, 8, 48, 12, 72, 56, 16, "glass")
     return m
 
 
 def _rice() -> vb.Model:
-    m = vb.Model(80, 64, 32)
-    shell(m, 4, 6, 0, 75, 57, 28, "rice", 3)
-    fill(m, 10, 12, 16, 36, 50, 26, "snack")
-    fill(m, 42, 12, 16, 68, 50, 26, "can")
-    # Microwave triangle on the lid.
-    for i in range(10):
-        fill(m, 36 - i, 52, 26 + i // 3, 44 + i, 58, 27 + i // 3, "white")
+    """Split tray with a microwave peak on the front."""
+    m = vb.Model(80, 64, 40)
+    shell(m, 4, 6, 0, 75, 56, 28, "rice", 3)
+    fill(m, 8, 48, 6, 36, 58, 26, "snack")
+    fill(m, 42, 48, 6, 70, 58, 26, "can")
+    fill(m, 36, 48, 6, 42, 58, 26, "rice")
+    for i in range(12):
+        fill(m, 40 - i, 50, 26 + i, 40 + i, 60, 27 + i, "white")
     return m
 
 
@@ -582,21 +586,121 @@ MODELS = {
         "v1.5 中期稿。有頂蓋。",
     ),
     "box": ("貨箱", _goods_box, "v1.5 中期稿。紙箱加膠帶。"),
-    "can": ("罐頭", _can, "v1.5 中期稿。金屬圓罐。"),
-    "snack": ("零食", _snack, "v1.5 中期稿。軟袋，鋸齒封口。"),
-    "cup": ("杯麵", _cup, "v1.5 中期稿。有蓋的杯。"),
-    "drink": ("支裝凍飲", _drink, "v1.5 中期稿。細長瓶子。"),
-    "milk": ("牛奶", _milk, "v1.5 中期稿。屋脊紙盒加倒出口。"),
-    "soda": ("汽水", _soda, "v1.5 中期稿。高罐加拉環。"),
-    "icecream": ("雪糕", _icecream, "v1.5 中期稿。甜筒雙球。"),
-    "meat": ("凍肉", _meat, "v1.5 中期稿。托盤。"),
-    "rice": ("叮叮飯", _rice, "v1.5 中期稿。微波盒。"),
+    "can": ("罐頭", _can, "v1.5：圓罐。正面剪影即 UI／貨架圖。"),
+    "snack": ("零食", _snack, "v1.5：鋸齒軟袋。正面剪影即 UI／貨架圖。"),
+    "cup": ("杯麵", _cup, "v1.5：闊蓋杯。正面剪影即 UI／貨架圖。"),
+    "drink": ("支裝凍飲", _drink, "v1.5：細長瓶。正面剪影即 UI／貨架圖。"),
+    "milk": ("牛奶", _milk, "v1.5：屋脊盒加前倒出口。正面剪影即 UI／貨架圖。"),
+    "soda": ("汽水", _soda, "v1.5：高罐拉環。正面剪影即 UI／貨架圖。"),
+    "icecream": ("雪糕", _icecream, "v1.5：甜筒雙球。正面剪影即 UI／貨架圖。"),
+    "meat": ("凍肉", _meat, "v1.5：托盤兩塊。正面剪影即 UI／貨架圖。"),
+    "rice": ("叮叮飯", _rice, "v1.5：雙格微波盒。正面剪影即 UI／貨架圖。"),
     "floor_tile": ("地磚", floor_tile, "v1.5 中期稿。128² 一格，淨色加磚縫。"),
     "wall": ("牆", wall, "v1.5 中期稿。踢腳線與分縫；佔格不變。"),
     "trash": ("垃圾", trash, "v1.5 中期稿。紙箱、袋子、罐子可分。"),
     "puddle": ("水漬", puddle, "v1.5 中期稿。不規則水漬加高光。"),
     "vomit": ("嘔吐物", vomit, "v1.5 中期稿。比水漬厚、顏色分開。"),
 }
+
+
+SKU_IDS = ("can", "snack", "cup", "drink", "milk", "soda", "icecream", "meat", "rice")
+SKU_DIR = ROOT / "godot" / "game" / "art" / "ui" / "sku"
+
+
+def _palette() -> list:
+    pal = [(0, 0, 0)] * 256
+    for i, (_name, rgb) in enumerate(vb.PALETTE):
+        pal[i] = rgb
+    return pal
+
+
+def front_icon(model: vb.Model, n: int = 64) -> list:
+    """Nearest orthographic front (+Y) of a good, centered in an n×n icon."""
+    pal = _palette()
+    best: dict[tuple[int, int], int] = {}
+    for (x, y, z), idx in model.cells.items():
+        key = (x, z)
+        prev = best.get(key)
+        if prev is None or y >= prev[0]:
+            best[key] = (y, idx)
+    xs = [x for x, _z in best]
+    zs = [z for _x, z in best]
+    minx, maxx = min(xs), max(xs)
+    minz, maxz = min(zs), max(zs)
+    fw, fh = maxx - minx + 1, maxz - minz + 1
+    margin = 4
+    scale = min((n - margin * 2) / fw, (n - margin * 2) / fh)
+    sw, sh = max(1, int(fw * scale)), max(1, int(fh * scale))
+    ox, oy = (n - sw) // 2, (n - sh) // 2
+    img = [(0, 0, 0, 0)] * (n * n)
+    for py in range(sh):
+        for px in range(sw):
+            sx = min(maxx, minx + int(px / scale))
+            sz = max(minz, maxz - int(py / scale))
+            hit = best.get((sx, sz))
+            if hit is None:
+                continue
+            r, g, b = pal[hit[1] - 1]
+            img[(oy + py) * n + (ox + px)] = (r, g, b, 255)
+    ink = (20, 16, 14, 255)
+    out = list(img)
+    for y in range(n):
+        for x in range(n):
+            if img[y * n + x][3] != 0:
+                continue
+            for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < n and 0 <= ny < n and img[ny * n + nx][3] != 0:
+                    out[y * n + x] = ink
+                    break
+    return out
+
+
+def _check_sku_icons(icons: dict[str, list]) -> None:
+    """Same 32px grayscale bar as tools/ui_interim_v15.py."""
+
+    def luma16(px: list, n: int) -> list[float]:
+        step = 8
+        out = []
+        for gy in range(4):
+            for gx in range(4):
+                acc = 0.0
+                count = 0
+                for y in range(gy * step, (gy + 1) * step, 2):
+                    for x in range(gx * step, (gx + 1) * step, 2):
+                        r, g, b, a = px[y * n + x]
+                        if a < 20:
+                            continue
+                        acc += 0.3 * r + 0.59 * g + 0.11 * b
+                        count += 1
+                out.append(0.0 if count == 0 else acc / count)
+        return out
+
+    grids = {k: luma16(px, 64) for k, px in icons.items()}
+    worst = ("", "", 1e9)
+    snack_milk = 0.0
+    ids = list(grids)
+    for i, a in enumerate(ids):
+        for b in ids[i + 1 :]:
+            dist = sum(abs(x - y) for x, y in zip(grids[a], grids[b]))
+            if dist < worst[2]:
+                worst = (a, b, dist)
+            if {a, b} == {"snack", "milk"}:
+                snack_milk = dist
+    print(f"sku grayscale closest {worst[0]}/{worst[1]} L1={worst[2]:.1f} snack-milk={snack_milk:.1f}")
+    if snack_milk < 80 or worst[2] < 40:
+        raise SystemExit("SKU icons are too similar at 32px grayscale")
+
+
+def write_sku_icons(models: dict[str, vb.Model]) -> None:
+    SKU_DIR.mkdir(parents=True, exist_ok=True)
+    icons = {}
+    for sid in SKU_IDS:
+        img = front_icon(models[sid])
+        vs.save_png(SKU_DIR / f"{sid}.png", 64, 64, img)
+        icons[sid] = img
+    _check_sku_icons(icons)
+    print(f"sku icons {len(icons)} → {SKU_DIR}")
 
 
 def patch_catalog(stats: dict[str, tuple]) -> None:
@@ -616,8 +720,10 @@ def patch_catalog(stats: dict[str, tuple]) -> None:
 def main() -> None:
     SRC.mkdir(parents=True, exist_ok=True)
     stats = {}
+    built: dict[str, vb.Model] = {}
     for mid, (_name, builder, note) in MODELS.items():
         model = builder()
+        built[mid] = model
         if mid in ("customer", "thief", "clerk_cashier", "clerk_restock"):
             audit_person(model, mid)
         if model.size[0] > 256 or model.size[1] > 256 or model.size[2] > 256:
@@ -626,6 +732,7 @@ def main() -> None:
         vb.write_vox(path, model)
         stats[mid] = (model.size, len(model.cells), note)
         print(f"wrote {mid} {model.size} voxels={len(model.cells)}")
+    write_sku_icons(built)
     patch_catalog(stats)
     print(f"catalog {CATALOG}")
 

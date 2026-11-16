@@ -364,13 +364,9 @@ def check_sku(icons: dict[str, Icon]) -> None:
 
 
 def main() -> None:
-    sku_icons = {}
-    for sid, fn in SKU.items():
-        icon = fn()
-        icon.outline()
-        icon.save(SKU_DIR / f"{sid}.png")
-        sku_icons[sid] = icon
-    check_sku(sku_icons)
+    # SKU pngs are the front of the world mesh. Regenerating them here would
+    # split the shelf icon from the voxel. See voxel_interim_v15.write_sku_icons.
+    print("sku icons owned by voxel_interim_v15 (front of the world mesh)")
     for sid, ops in skill_ops().items():
         icon = _draw(64, ops)
         icon.outline()

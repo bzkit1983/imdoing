@@ -33,9 +33,9 @@
 
 ## 圖示
 
-- 貨品：`godot/game/art/ui/sku/<id>.png`，64×64，透明底，主體置中。邏輯顯示仍約 28–32px。`SkuIcons.texture` 讀檔，缺檔才退回程式剪影。色相跟 `Tuning.SKU_COLOR`。高亮用外框，不用 `modulate` 改圖本色。
+- 九種貨的世界模型、UI 小圖、貨架正面圖是同一正面剪影。UI 圖由該貨的體素正面最近鄰縮成 `godot/game/art/ui/sku/<id>.png`（64×64）。貨架正面與清單走 `SkuIcons.texture`。架上的貨是同一座模型縮小，不是色塊。
+- 邏輯顯示仍約 28–32px。缺檔才退回程式剪影。高亮用外框，不用 `modulate` 改圖本色。
 - 九種貨必須在 28px、去色後兩兩可分。零食是軟袋鋸齒封口，牛奶是屋脊紙盒加倒出口。
-- 世界體素貨品畫同一個物件。
 - 技能臨時圖：`godot/game/art/ui/skill/<id>.png`。圓形選單、觸控鍵、右下 HUD、準備回合技能列共用。名稱文字保留。
 - 準備主畫面圖塊：`godot/game/art/ui/prep/<id>.png`。
 - 圖內不寫字。檔名用 id。

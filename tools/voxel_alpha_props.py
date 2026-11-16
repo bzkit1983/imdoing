@@ -94,14 +94,27 @@ def _shelf_model(cat: str, fill: int) -> vb.Model:
         rows = 2
     else:
         rows = len(interim.SHELF_BOARDS)
+    slots = (24, 84, 144, 204)
     for ri in range(rows):
-        z = interim.SHELF_BOARDS[ri] + 5
-        color = goods[ri % len(goods)]
-        m.fill(28, 20, z, 70, 40, z + 14, color)
-        m.fill(84, 20, z, 126, 40, z + 14, goods[(ri + 1) % len(goods)])
-        m.fill(140, 20, z, 182, 40, z + 14, color)
-        m.fill(196, 20, z, 230, 40, z + 12, goods[(ri + 2) % len(goods)])
+        z = interim.SHELF_BOARDS[ri] + 4
+        for si, ox in enumerate(slots):
+            _blit_good(m, goods[(ri + si) % len(goods)], ox, 22, z, 22)
     return m
+
+
+def _blit_good(m: vb.Model, good_id: str, ox: int, oy: int, oz: int, target_h: int) -> None:
+    """Stamp a scaled copy of the same good mesh used for the UI icon."""
+    path = vs.SRC / f"{good_id}.vox"
+    size, cells, _palette = vs.read_vox(path)
+    gsx, gsy, gsz = size
+    scale = target_h / float(max(gsz, 1))
+    sx, sy, sz = m.size
+    for (x, y, z), idx in cells.items():
+        nx = ox + int(x * scale)
+        ny = oy + int((y - gsy * 0.35) * scale)
+        nz = oz + int(z * scale)
+        if 0 <= nx < sx and 0 <= ny < sy and 0 <= nz < sz:
+            m.cells[(nx, ny, nz)] = idx
 
 
 def _dirt_clean_model(dirt: str, stage: int) -> vb.Model:
