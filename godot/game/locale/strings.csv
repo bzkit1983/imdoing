@@ -106,6 +106,26 @@ tut.ops.thief.task.name,教學：捉住小偷 1 次,Tutorial: catch 1 thief,教�
 tut.ops.thief.task.desc,成功捉住 1 名小偷。,Successfully catch 1 thief.,成功捉住 1 名小偷。,泥棒を1人捕まえる。
 tut.ops.thief.done.title,捉賊教學完成,Thief tutorial complete,捉贼教学完成,泥棒チュートリアル完了
 tut.ops.thief.done.body,已捉住小偷。可以繼續營業。,"You caught a thief. You can keep running the shop.",已捉住小偷。可以继续营业。,泥棒を捕まえました。営業を続けられます。
+tut.ops.deliver.p1.title,購物清單,Shopping list,购物清单,買い物リスト
+tut.ops.deliver.p1.body,客人頭頂有待取貨品圖示；要交的是清單上還缺的貨。,"Guests show needed items above their heads — deliver what their list still needs.",客人头顶有待取货品图示；要交的是清单上还缺的货。,客の頭上に欲しい商品アイコンが出ます。リストで足りない分を渡しましょう。
+tut.ops.deliver.p2.title,怎麼交付,How to deliver,怎么交付,渡し方
+tut.ops.deliver.p2.body,從貨架／補貨架取貨後：對準客人長按行動親手交付；或方向丟掉（一件／一箱）砸中客人交貨。,"After taking stock: hold Act facing a guest to hand-deliver, or toss goods (1 piece / a box) into them.",从货架／补货架取货后：对准客人长按行动亲手交付；或方向丢掉（一件／一箱）砸中客人交货。,棚／補充棚で取荷したら、客に向けて行動長押しで手渡し。または方向投げ（1個／1箱）で当てて渡します。
+tut.ops.deliver.p3.title,開始練習,Start practice,开始练习,練習を始める
+tut.ops.deliver.p3.body,成功交付 3 次前不能結算（親手或投擲都算）。,"Deliver successfully 3 times before you can settle (hand or toss both count).",成功交付 3 次前不能结算（亲手或投掷都算）。,成功して3回渡すまで精算できません（手渡し／投げどちらもOK）。
+tut.ops.deliver.task.name,教學：交付客人 3 次,Tutorial: deliver 3 times,教学：交付客人 3 次,チュートリアル：客へ3回渡す
+tut.ops.deliver.task.desc,成功向客人交付 3 次。,Successfully deliver to guests 3 times.,成功向客人交付 3 次。,客へ成功して3回渡す。
+tut.ops.deliver.done.title,交付教學完成,Delivery tutorial complete,交付教学完成,受け渡しチュートリアル完了
+tut.ops.deliver.done.body,已交付 3 次。可以繼續營業。,"You delivered 3 times. You can keep running the shop.",已交付 3 次。可以继续营业。,3回渡せました。営業を続けられます。
+tut.ops.finish_day.p1.title,自由營業,Run freely,自由营业,自由営業
+tut.ops.finish_day.p1.body,基本操作都學過了。接下來自由把今天做到結算。,"You've learned the basics. Run the rest of today freely until you settle.",基本操作都学过了。接下来自由把今天做到结算。,基本操作は学びました。あとは自由に今日を精算まで進めましょう。
+tut.ops.finish_day.p2.title,怎麼結束,How to end the day,怎么结束,営業の終わり方
+tut.ops.finish_day.p2.body,可等到時段結束，或用暫停／HUD「結束本日並結算」。,"Wait for closing time, or use Pause / HUD “End day & settle”.",可等到时段结束，或用暂停／HUD“结束本日并结算”。,時間まで待つか、一時停止／HUDの「本日を終了して精算」でもOKです。
+tut.ops.finish_day.p3.title,開始練習,Start practice,开始练习,練習を始める
+tut.ops.finish_day.p3.body,完成本日結算即完成本課（結算不會被教學擋住）。,"Settle today to finish this lesson (settle is not blocked by the tutorial).",完成本日结算即完成本课（结算不会被教学挡住）。,本日を精算すればこのチュートリアル完了です（精算はブロックされません）。
+tut.ops.finish_day.task.name,教學：完成今日結算,Tutorial: settle today,教学：完成今日结算,チュートリアル：本日を精算
+tut.ops.finish_day.task.desc,自由營業到結算完成本日。,Run freely until you settle the day.,自由营业到结算完成本日。,自由に営業して本日を精算する。
+tut.ops.finish_day.done.title,一日營運教學完成,Day complete,一日营运教学完成,一日営業チュートリアル完了
+tut.ops.finish_day.done.body,已完成今日結算。開局教學到此告一段落。,"You settled the day. The opening tutorial chain is complete.",已完成今日结算。开局教学到此告一段落。,本日の精算が完了。開店チュートリアルは一段落です。
 tut.ops.empty_shelf.p1.title,空貨架,Empty shelf,空货架,空の棚
 tut.ops.empty_shelf.p1.body,貨架被清空後，客人可能找不到要的貨，不滿會上升。,"When a shelf is empty, guests may fail to find what they want and grow unhappy.",货架被清空后，客人可能找不到要的货，不满会上升。,棚が空になると、客が欲しい商品を見つけられず不満が上がることがあります。
 tut.ops.empty_shelf.p2.title,保持貨源,Keep stocked,保持货源,在庫を保つ

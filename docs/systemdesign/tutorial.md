@@ -120,7 +120,9 @@ GameState.tutorial_progress: {
   2. `tut.ops.clean`「清潔入門」：上架完成後才開始生成污物；runtime flag `dirt_present`（污物首次出現）才彈；條件 `clean_count >= 1`。上架課完成前不生成污物。
   3. `tut.ops.checkout`「收銀入門」：清潔完成後鏈式觸發；條件 `checkout_count >= 2`（玩家座收銀；店員代收不計）；Pages 含方向指令／環形計；結課彈完成視窗。收銀結課前不生成小偷。
   4. `tut.ops.thief`「捉小偷」：收銀結課後強制刷一隻（flag `thief_present`）；條件 `thief_caught >= 1`（近戰／衝刺／丟貨皆可）；逃走（`record_stolen`）後立刻再刷練習隻。
-  5. `tut.ops.empty_shelf`「空貨架提示」（純 tip）：收銀完成後、首次貨架由有貨變空（flag `shelf_empty`）彈講解；`steps` 為空＝看完即 done、不硬閘結算。
+  5. `tut.ops.deliver`「客人交付」：捉賊結課後鏈式；Pages 含購物清單／親手與投擲交付；條件 `deliver_count >= 3`。
+  6. `tut.ops.finish_day`「完成一日營運」：交付結課後鏈式；講解後自由營業；條件 `day_settled >= 1`；`allow_settle: true`（本課不擋結算）。
+  7. `tut.ops.empty_shelf`「空貨架提示」（純 tip）：收銀完成後、首次貨架由有貨變空（flag `shelf_empty`）彈講解；`steps` 為空＝看完即 done、不硬閘結算。
   - Lesson 結課統一經完成視窗（`complete_pages` 或預設 `tut.complete.*`）再鏈式下一課。
 
 ## 多人

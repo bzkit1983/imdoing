@@ -2973,6 +2973,8 @@ func _finish_day() -> void:
 		return
 	_settled = true
 	_closeout_ready_msec = Time.get_ticks_msec() + CLOSEOUT_HOLD_MSEC
+	if _tutorial != null and is_instance_valid(_tutorial):
+		_tutorial.note_metric("day_settled", 1)
 	SfxBus.play("sfx_phase_close")
 	## Clones drop held boxes onto the floor before unsold collect, then vanish.
 	dismiss_shadow_clones()

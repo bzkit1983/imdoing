@@ -23,7 +23,7 @@ Bindings for [`../SKILL.md`](../SKILL.md). Other products replace this file only
 | Day host／`note_*`／settle gates | [`godot/game/scripts/demo.gd`](../../../../godot/game/scripts/demo.gd) |
 | Prep open-day gate／consider／`prep_restrict` soft-lock | [`godot/game/scripts/prep_menu.gd`](../../../../godot/game/scripts/prep_menu.gd)、[`prep_pages.gd`](../../../../godot/game/scripts/prep/prep_pages.gd) |
 | Pause「教學」review | [`godot/game/scripts/pause_menu.gd`](../../../../godot/game/scripts/pause_menu.gd) |
-| Scenario 5 | `game_state._scenario_tutorial()`（無開局贈罐；採購課買 `can`×99）；list in [`prep_pages.gd`](../../../../godot/game/scripts/prep/prep_pages.gd) when `ProductVersion.test_tools_enabled()`；prep `open_shop`→`buy_stock`→`shop_layout`；ops `shelve`→`clean`→`checkout`→`thief`＋tip `empty_shelf` |
+| Scenario 5 | `game_state._scenario_tutorial()`（無開局贈罐；採購課買 `can`×99）；list in [`prep_pages.gd`](../../../../godot/game/scripts/prep/prep_pages.gd) when `ProductVersion.test_tools_enabled()`；prep `open_shop`→`buy_stock`→`shop_layout`；ops `shelve`→`clean`→`checkout`→`thief`→`deliver`→`finish_day`＋tip `empty_shelf` |
 
 ### Triggers
 
@@ -50,8 +50,8 @@ Any other Prep metric = Fail until Director evaluates it.
 
 ### Ops metrics
 
-- Must appear in `TaskCatalog.WIRED_METRICS` ([`task_catalog.gd`](../../../../godot/game/scripts/session/task_catalog.gd)).
-- Progress must reach Director via `demo.note_*` → `_tutorial.note_metric`／`sync_metric_absolute` (already wired for common paths such as `clean_count`, `shelve_count`, `deliver_count`; verify the metric you need).
+- Must appear in `TaskCatalog.WIRED_METRICS` ([`task_catalog.gd`](../../../../godot/game/scripts/session/task_catalog.gd)), **or** be a tutorial-only metric noted only via `_tutorial.note_metric`（e.g. `day_settled` from Host `_finish_day`）.
+- Progress must reach Director via `demo.note_*` → `_tutorial.note_metric`／`sync_metric_absolute` (already wired for common paths such as `clean_count`, `shelve_count`, `deliver_count`, `checkout_count`, `thief_caught`; verify the metric you need).
 - Do **not** attach formal Lessons through `task_test_mode` or `OP-TUT-*` packs.
 
 ### Ops
@@ -78,7 +78,7 @@ Handoff: [`agents/skills/i18n-content/SKILL.md`](../../i18n-content/SKILL.md). S
 | Phase | Blocked while forced step active |
 | --- | --- |
 | Prep | Start day（含大廳 Host 開工） |
-| Ops | Settle／early close／test skip operate |
+| Ops | Settle／early close／test skip operate — **except** lessons with `allow_settle: true`（e.g. `tut.ops.finish_day`） |
 
 Review／重溫: pages only, never forced.
 

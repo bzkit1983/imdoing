@@ -11,6 +11,8 @@ static func all_lessons() -> Array[Dictionary]:
 		_ops_clean(),
 		_ops_checkout(),
 		_ops_thief(),
+		_ops_deliver(),
+		_ops_finish_day(),
 		_ops_empty_shelf(),
 	]
 
@@ -285,6 +287,66 @@ static func _ops_thief() -> Dictionary:
 		"complete_pages": [
 			_page("tut.ops.thief.done.title", "tut.ops.thief.done.body"),
 		],
+	}
+
+
+## Scenario 5：捉賊完成後 → 交付客人三次。
+static func _ops_deliver() -> Dictionary:
+	return {
+		"id": "tut.ops.deliver",
+		"phase": "ops",
+		"trigger": {
+			"when": "scenario",
+			"scenario": 5,
+			"day_index": 0,
+			"requires_done": ["tut.ops.thief"],
+		},
+		"pages": [
+			_page("tut.ops.deliver.p1.title", "tut.ops.deliver.p1.body"),
+			_page("tut.ops.deliver.p2.title", "tut.ops.deliver.p2.body"),
+			_page("tut.ops.deliver.p3.title", "tut.ops.deliver.p3.body"),
+		],
+		"steps": [
+			_step("tut.ops.deliver.s1", 1, "deliver_count", ">=", 3, ""),
+		],
+		"ops_task": {
+			"name_key": "tut.ops.deliver.task.name",
+			"desc_key": "tut.ops.deliver.task.desc",
+		},
+		"complete_pages": [
+			_page("tut.ops.deliver.done.title", "tut.ops.deliver.done.body"),
+		],
+	}
+
+
+## Scenario 5：交付完成後 → 自由營業直到本日結算。
+static func _ops_finish_day() -> Dictionary:
+	return {
+		"id": "tut.ops.finish_day",
+		"phase": "ops",
+		"trigger": {
+			"when": "scenario",
+			"scenario": 5,
+			"day_index": 0,
+			"requires_done": ["tut.ops.deliver"],
+		},
+		"pages": [
+			_page("tut.ops.finish_day.p1.title", "tut.ops.finish_day.p1.body"),
+			_page("tut.ops.finish_day.p2.title", "tut.ops.finish_day.p2.body"),
+			_page("tut.ops.finish_day.p3.title", "tut.ops.finish_day.p3.body"),
+		],
+		"steps": [
+			_step("tut.ops.finish_day.s1", 1, "day_settled", ">=", 1, ""),
+		],
+		"ops_task": {
+			"name_key": "tut.ops.finish_day.task.name",
+			"desc_key": "tut.ops.finish_day.task.desc",
+		},
+		"complete_pages": [
+			_page("tut.ops.finish_day.done.title", "tut.ops.finish_day.done.body"),
+		],
+		## Must not hard-gate settle — completing the day is the step.
+		"allow_settle": true,
 	}
 
 

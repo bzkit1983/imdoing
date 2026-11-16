@@ -88,7 +88,12 @@ func blocks_open_day() -> bool:
 
 
 func blocks_settle() -> bool:
-	return has_forced_step() and (_phase == "ops" or String(_lesson.get("phase", "")) in ["ops", "either"])
+	if not has_forced_step():
+		return false
+	## Finish-day style lessons must allow settle to complete their own step.
+	if bool(_lesson.get("allow_settle", false)):
+		return false
+	return _phase == "ops" or String(_lesson.get("phase", "")) in ["ops", "either"]
 
 
 ## Prep soft-lock dict while a forced prep step is active; empty = no restrict.
