@@ -105,20 +105,32 @@ def _shelf_model(cat: str, fill: int) -> vb.Model:
 
 
 def _dirt_clean_model(dirt: str, stage: int) -> vb.Model:
-    """stage 0 solid → 2 nearly gone."""
-    m = vb.Model(10, 10, 4)
-    colors = {
-        "trash": ("trash", "wood_dark"),
-        "puddle": ("puddle", "glass"),
-        "vomit": ("vomit", "customer_dark"),
-    }
-    c0, c1 = colors[dirt]
-    # Shrink footprint + height by stage
-    inset = stage
-    z_top = max(0, 2 - stage)
-    m.fill(1 + inset, 1 + inset, 0, 8 - inset, 8 - inset, z_top, c0)
-    if stage == 0:
-        m.fill(3, 3, z_top, 6, 6, z_top, c1)
+    """stage 0 = full v1.5 dirt mesh → 2 nearly gone."""
+    path = vs.SRC / f"{dirt}.vox"
+    size, cells, _palette = vs.read_vox(path)
+    m = vb.Model(*size)
+    m.cells = dict(cells)
+    if stage <= 0:
+        return m
+    sx, sy, sz = size
+    cx, cy = (sx - 1) * 0.5, (sy - 1) * 0.5
+    # Keep the denser core; peel outer voxels and flatten height.
+    max_r = max(sx, sy) * 0.5
+    keep_r = max_r * (0.72 if stage == 1 else 0.42)
+    z_cap = max(1, int(sz * (0.7 if stage == 1 else 0.35)) - 1)
+    kept = {}
+    for (x, y, z), idx in m.cells.items():
+        if z > z_cap:
+            continue
+        dx = x - cx
+        dy = y - cy
+        if dx * dx + dy * dy > keep_r * keep_r:
+            continue
+        # Stage 2 also drops a checker of remaining voxels.
+        if stage >= 2 and ((x + y + z) % 3) == 0:
+            continue
+        kept[(x, y, z)] = idx
+    m.cells = kept
     return m
 
 

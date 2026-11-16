@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""v1.5 interim voxel pass: NPCs, restock height, shelves, register, goods.
+"""v1.5 interim voxel pass: NPCs, restock, shelves, register, goods, floor, wall, dirt.
 
 Writes godot/game/art/src/<id>.vox and patches catalog size/voxel counts.
-Does not touch player skins, floor, wall, door, or dirt.
+Does not touch player skins or door.
 Limb boxes match tools/voxel_character_anims.py (12×10×20 scaled by sx/12, sz/20).
 
 See docs/systemdesign/art-interim-v1.5.md.
@@ -401,6 +401,147 @@ def _rice() -> vb.Model:
     return m
 
 
+def floor_tile() -> vb.Model:
+    """One CELL of shop floor: 128² with readable grout and light wear."""
+    m = vb.Model(128, 128, 8)
+    fill(m, 0, 0, 0, 127, 127, 2, "floor")
+    # 32px boards → 4×4 tiles inside one cell; dark grout on the seams.
+    for i in range(0, 128, 32):
+        fill(m, i, 0, 0, min(i + 1, 127), 127, 2, "floor_line")
+        fill(m, 0, i, 0, 127, min(i + 1, 127), 2, "floor_line")
+    # Soft checker so neighbouring cells still read as tiles when repeated.
+    for ty in range(0, 128, 32):
+        for tx in range(0, 128, 32):
+            if ((tx // 32) + (ty // 32)) % 2 == 0:
+                fill(m, tx + 4, ty + 4, 2, tx + 28, ty + 28, 3, "floor")
+            else:
+                fill(m, tx + 6, ty + 6, 2, tx + 26, ty + 26, 2, "tape")
+            # Tiny scuffs / rubber marks.
+            fill(m, tx + 10, ty + 18, 3, tx + 14, ty + 20, 3, "floor_line")
+            fill(m, tx + 20, ty + 8, 3, tx + 22, ty + 12, 3, "wood")
+    # Outer cell edge stays darker so the grid reads under furniture.
+    fill(m, 0, 0, 0, 127, 0, 3, "floor_line")
+    fill(m, 0, 0, 0, 0, 127, 3, "floor_line")
+    fill(m, 0, 127, 0, 127, 127, 3, "floor_line")
+    fill(m, 127, 0, 0, 127, 127, 3, "floor_line")
+    return m
+
+
+def wall() -> vb.Model:
+    """One-cell wall segment with baseboard, panel grooves, and crown."""
+    m = vb.Model(128, 16, 128)
+    fill(m, 0, 0, 0, 127, 15, 127, "wall")
+    # Lighter face wash so the wall is not a flat brown slab.
+    fill(m, 0, 12, 8, 127, 15, 118, "wood")
+    # Vertical panel seams every 24 voxels.
+    for x in range(12, 128, 24):
+        fill(m, x, 13, 10, x + 1, 15, 116, "wall")
+        fill(m, x + 2, 14, 14, x + 3, 15, 40, "wood_dark")
+    # Baseboard + top crown.
+    fill(m, 0, 0, 0, 127, 15, 10, "wood_dark")
+    fill(m, 0, 10, 8, 127, 15, 14, "wood")
+    fill(m, 0, 0, 118, 127, 15, 127, "wood_dark")
+    fill(m, 0, 10, 112, 127, 15, 118, "wood")
+    # Mid rail.
+    fill(m, 0, 12, 58, 127, 15, 66, "wood_dark")
+    fill(m, 4, 14, 60, 124, 15, 64, "metal")
+    # Occasional wall socket / notice plate.
+    fill(m, 88, 14, 28, 104, 15, 42, "white")
+    fill(m, 92, 15, 32, 100, 15, 38, "screen")
+    fill(m, 20, 14, 78, 44, 15, 102, "tape")
+    fill(m, 24, 15, 84, 40, 15, 96, "can")
+    return m
+
+
+def trash() -> vb.Model:
+    """Readable litter pile: bag, can, carton, paper."""
+    m = vb.Model(112, 96, 48)
+    # Ground shadow smear.
+    fill(m, 10, 12, 0, 100, 84, 1, "wood_dark")
+    # Crushed cardboard box.
+    shell(m, 18, 20, 0, 70, 62, 22, "cardboard", 2)
+    fill(m, 28, 28, 20, 60, 52, 23, "tape")
+    fill(m, 22, 24, 6, 36, 40, 16, "wood_dark")
+    # Soft snack bag.
+    fill(m, 58, 30, 2, 96, 58, 18, "snack")
+    fill(m, 62, 34, 16, 92, 54, 24, "white")
+    fill(m, 66, 36, 18, 88, 50, 22, "snack")
+    for i, x in enumerate(range(60, 94, 6)):
+        fill(m, x, 38, 20, x + 3, 48, 26 if i % 2 == 0 else 22, "white")
+    # Knocked soda can on its side.
+    cyl_z(m, 34, 72, 2, 14, 8, "soda")
+    fill(m, 26, 64, 8, 42, 80, 12, "soda")
+    fill(m, 28, 66, 10, 40, 78, 12, "white")
+    # Paper wad + bottle.
+    ball(m, 82, 70, 8, 12, 10, 6, "white")
+    fill(m, 74, 64, 2, 90, 78, 4, "trash")
+    cyl_z(m, 88, 24, 0, 28, 6, "drink")
+    fill(m, 84, 20, 26, 92, 28, 32, "white")
+    # Loose peel / rind scrap.
+    fill(m, 12, 48, 2, 28, 66, 8, "trash")
+    fill(m, 14, 50, 6, 24, 60, 10, "cone")
+    return m
+
+
+def puddle() -> vb.Model:
+    """Irregular wet patch with edge and highlight."""
+    m = vb.Model(128, 112, 8)
+    # Layered irregular discs instead of a rectangle.
+    blobs = [
+        (64, 56, 42, 34),
+        (40, 48, 28, 22),
+        (88, 62, 30, 24),
+        (58, 78, 26, 18),
+        (70, 34, 24, 16),
+    ]
+    for cx, cy, rx, ry in blobs:
+        ball(m, cx, cy, 1, rx, ry, 1.2, "puddle")
+    # Darker rim.
+    for (x, y, z), idx in list(m.cells.items()):
+        if idx != vb.COLOR_INDEX["puddle"]:
+            continue
+        edge = False
+        for dx, dy in ((-2, 0), (2, 0), (0, -2), (0, 2)):
+            if (x + dx, y + dy, z) not in m.cells:
+                edge = True
+                break
+        if edge:
+            m.cells[(x, y, z)] = vb.COLOR_INDEX["shelf_frozen"]
+    # Specular streak.
+    fill(m, 48, 40, 2, 78, 48, 2, "glass")
+    fill(m, 54, 42, 2, 72, 46, 3, "white")
+    fill(m, 60, 60, 2, 70, 66, 2, "glass")
+    return m
+
+
+def vomit() -> vb.Model:
+    """Thicker sick splat, distinct from the blue puddle."""
+    m = vb.Model(112, 96, 16)
+    blobs = [
+        (56, 48, 34, 28, 2.5),
+        (36, 40, 20, 16, 2.0),
+        (78, 54, 22, 18, 2.2),
+        (52, 68, 18, 14, 1.8),
+        (64, 30, 16, 12, 1.6),
+    ]
+    for cx, cy, rx, ry, rz in blobs:
+        ball(m, cx, cy, 2, rx, ry, rz, "vomit")
+    # Chunks / texture.
+    ball(m, 48, 44, 5, 6, 5, 3, "snack")
+    ball(m, 68, 52, 6, 5, 4, 3, "cone")
+    ball(m, 58, 36, 4, 4, 4, 2, "customer_dark")
+    fill(m, 42, 58, 3, 54, 70, 5, "snack")
+    # Darker rim so it separates from floor.
+    for (x, y, z), idx in list(m.cells.items()):
+        if idx != vb.COLOR_INDEX["vomit"] or z > 1:
+            continue
+        for dx, dy in ((-2, 0), (2, 0), (0, -2), (0, 2)):
+            if (x + dx, y + dy, z) not in m.cells:
+                m.cells[(x, y, z)] = vb.COLOR_INDEX["wood_dark"]
+                break
+    return m
+
+
 MODELS = {
     "customer": ("客人", lambda: person("customer"), "v1.5 中期稿。紫衣、側袋。包絡對齊學生。"),
     "thief": ("小偷", lambda: person("thief"), "v1.5 中期稿。兜帽和面罩。"),
@@ -431,6 +572,11 @@ MODELS = {
     "icecream": ("雪糕", _icecream, "v1.5 中期稿。甜筒雙球。"),
     "meat": ("凍肉", _meat, "v1.5 中期稿。托盤。"),
     "rice": ("叮叮飯", _rice, "v1.5 中期稿。微波盒。"),
+    "floor_tile": ("地磚", floor_tile, "v1.5 中期稿。128² 一格，磚縫可辨。"),
+    "wall": ("牆", wall, "v1.5 中期稿。踢腳線與分縫；佔格不變。"),
+    "trash": ("垃圾", trash, "v1.5 中期稿。紙箱、袋子、罐子可分。"),
+    "puddle": ("水漬", puddle, "v1.5 中期稿。不規則水漬加高光。"),
+    "vomit": ("嘔吐物", vomit, "v1.5 中期稿。比水漬厚、顏色分開。"),
 }
 
 

@@ -7912,67 +7912,67 @@
     "hires": true
   },
   "trash_clean_0_0": {
-    "ax": 20.0,
-    "ay": 36.0,
-    "fw": 40.0,
-    "fh": 40.0,
-    "hires": false
+    "ax": 28.0,
+    "ay": 48.0,
+    "fw": 56.0,
+    "fh": 48.0,
+    "hires": true
   },
   "trash_clean_1_0": {
-    "ax": 20.0,
-    "ay": 36.0,
-    "fw": 40.0,
-    "fh": 40.0,
-    "hires": false
+    "ax": 28.0,
+    "ay": 48.0,
+    "fw": 56.0,
+    "fh": 48.0,
+    "hires": true
   },
   "trash_clean_2_0": {
-    "ax": 20.0,
-    "ay": 36.0,
-    "fw": 40.0,
-    "fh": 40.0,
-    "hires": false
+    "ax": 28.0,
+    "ay": 48.0,
+    "fw": 56.0,
+    "fh": 48.0,
+    "hires": true
   },
   "puddle_clean_0_0": {
-    "ax": 20.0,
-    "ay": 36.0,
-    "fw": 40.0,
-    "fh": 40.0,
-    "hires": false
+    "ax": 32.0,
+    "ay": 32.0,
+    "fw": 64.0,
+    "fh": 56.0,
+    "hires": true
   },
   "puddle_clean_1_0": {
-    "ax": 20.0,
-    "ay": 36.0,
-    "fw": 40.0,
-    "fh": 40.0,
-    "hires": false
+    "ax": 32.0,
+    "ay": 32.0,
+    "fw": 64.0,
+    "fh": 56.0,
+    "hires": true
   },
   "puddle_clean_2_0": {
-    "ax": 20.0,
-    "ay": 36.0,
-    "fw": 40.0,
-    "fh": 40.0,
-    "hires": false
+    "ax": 32.0,
+    "ay": 32.0,
+    "fw": 64.0,
+    "fh": 56.0,
+    "hires": true
   },
   "vomit_clean_0_0": {
-    "ax": 20.0,
-    "ay": 36.0,
-    "fw": 40.0,
-    "fh": 40.0,
-    "hires": false
+    "ax": 28.0,
+    "ay": 32.0,
+    "fw": 56.0,
+    "fh": 48.0,
+    "hires": true
   },
   "vomit_clean_1_0": {
-    "ax": 20.0,
-    "ay": 36.0,
-    "fw": 40.0,
-    "fh": 40.0,
-    "hires": false
+    "ax": 28.0,
+    "ay": 32.0,
+    "fw": 56.0,
+    "fh": 48.0,
+    "hires": true
   },
   "vomit_clean_2_0": {
-    "ax": 20.0,
-    "ay": 36.0,
-    "fw": 40.0,
-    "fh": 40.0,
-    "hires": false
+    "ax": 28.0,
+    "ay": 32.0,
+    "fw": 56.0,
+    "fh": 48.0,
+    "hires": true
   },
   "fx_suck_0": {
     "ax": 12,
