@@ -402,28 +402,9 @@ def _rice() -> vb.Model:
 
 
 def floor_tile() -> vb.Model:
-    """One CELL of shop floor: 128² with readable grout and light wear."""
+    """One CELL of shop floor: flat solid fill, no grout or wear marks."""
     m = vb.Model(128, 128, 8)
     fill(m, 0, 0, 0, 127, 127, 2, "floor")
-    # 32px boards → 4×4 tiles inside one cell; dark grout on the seams.
-    for i in range(0, 128, 32):
-        fill(m, i, 0, 0, min(i + 1, 127), 127, 2, "floor_line")
-        fill(m, 0, i, 0, 127, min(i + 1, 127), 2, "floor_line")
-    # Soft checker so neighbouring cells still read as tiles when repeated.
-    for ty in range(0, 128, 32):
-        for tx in range(0, 128, 32):
-            if ((tx // 32) + (ty // 32)) % 2 == 0:
-                fill(m, tx + 4, ty + 4, 2, tx + 28, ty + 28, 3, "floor")
-            else:
-                fill(m, tx + 6, ty + 6, 2, tx + 26, ty + 26, 2, "tape")
-            # Tiny scuffs / rubber marks.
-            fill(m, tx + 10, ty + 18, 3, tx + 14, ty + 20, 3, "floor_line")
-            fill(m, tx + 20, ty + 8, 3, tx + 22, ty + 12, 3, "wood")
-    # Outer cell edge stays darker so the grid reads under furniture.
-    fill(m, 0, 0, 0, 127, 0, 3, "floor_line")
-    fill(m, 0, 0, 0, 0, 127, 3, "floor_line")
-    fill(m, 0, 127, 0, 127, 127, 3, "floor_line")
-    fill(m, 127, 0, 0, 127, 127, 3, "floor_line")
     return m
 
 
@@ -572,7 +553,7 @@ MODELS = {
     "icecream": ("雪糕", _icecream, "v1.5 中期稿。甜筒雙球。"),
     "meat": ("凍肉", _meat, "v1.5 中期稿。托盤。"),
     "rice": ("叮叮飯", _rice, "v1.5 中期稿。微波盒。"),
-    "floor_tile": ("地磚", floor_tile, "v1.5 中期稿。128² 一格，磚縫可辨。"),
+    "floor_tile": ("地磚", floor_tile, "v1.5 中期稿。128² 一格，淨色無磚縫。"),
     "wall": ("牆", wall, "v1.5 中期稿。踢腳線與分縫；佔格不變。"),
     "trash": ("垃圾", trash, "v1.5 中期稿。紙箱、袋子、罐子可分。"),
     "puddle": ("水漬", puddle, "v1.5 中期稿。不規則水漬加高光。"),
