@@ -4,6 +4,7 @@ const Tuning = preload("res://scripts/tuning.gd")
 const Skills = preload("res://scripts/skills.gd")
 const UiFont = preload("res://scripts/ui_font.gd")
 const SkuIcons = preload("res://scripts/sku_icons.gd")
+const SkillIcons = preload("res://scripts/skill_icons.gd")
 
 ## Ops HUD palette — dark shop plate + warm gold accent (not purple / cream-serif clichés).
 const COL_INK := Color(0.045, 0.055, 0.06, 1.0)
@@ -49,6 +50,8 @@ var _carry_icons_std: HBoxContainer
 var _carry_std_fp: String = ""
 var _tr_panel: PanelContainer
 var _skills_std: Label
+var _skills_icons: HBoxContainer
+var _skills_icon_fp := ""
 var _skills_panel: PanelContainer
 var _tasks: Label
 var _tasks_panel: PanelContainer
@@ -440,9 +443,18 @@ func _build_bottom_left_panel() -> void:
 	var s_margin := MarginContainer.new()
 	s_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_skills_panel.add_child(s_margin)
+	var s_box := VBoxContainer.new()
+	s_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	s_margin.add_child(s_box)
+	_skills_icons = HBoxContainer.new()
+	_skills_icons.name = "SkillIcons"
+	_skills_icons.alignment = BoxContainer.ALIGNMENT_END
+	_skills_icons.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_skills_icons.add_theme_constant_override("separation", 4)
+	s_box.add_child(_skills_icons)
 	_skills_std = _make_hud_label("SkillsStd")
 	_skills_std.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	s_margin.add_child(_skills_std)
+	s_box.add_child(_skills_std)
 	$Root.add_child(_skills_panel)
 	$Root.move_child(_skills_panel, _banner.get_index())
 	_apply_cjk_fonts(_skills_std)
@@ -733,6 +745,7 @@ func _sync_left() -> void:
 	var rev := int(game.get("hud_rev")) if game.get("hud_rev") != null else 0
 	## Stamina updates every frame; other left chrome is fingerprint-gated.
 	_sync_stamina_std()
+	_sync_skill_icons(player)
 	var skills_txt := _skill_cd_text_all()
 	var skills_shown := _skills_std.text if _skills_std else ""
 	if rev == _left_hud_rev and hour_bucket == _left_hour_bucket and skills_txt == skills_shown:
@@ -772,7 +785,7 @@ func _sync_left() -> void:
 		_skills_panel.visible = skills_txt != ""
 		if skills_txt != "":
 			var skill_lines := skills_txt.count("\n") + 1
-			var sh := float(28 + skill_lines * 24)
+			var sh := float(28 + skill_lines * 24 + 36)
 			_skills_panel.offset_bottom = -12.0
 			_skills_panel.offset_top = -12.0 - maxf(sh, 52.0)
 	if _combo:
@@ -888,6 +901,34 @@ func _sync_right() -> void:
 		return
 	_right_dirty = false
 	_refresh()
+
+
+func _sync_skill_icons(p: CharacterBody2D) -> void:
+	if _skills_icons == null or p == null:
+		return
+	var equipped: Array = p.call("_loadout") if p.has_method("_loadout") else []
+	var ult: Dictionary = p.call("_ult_sk") if p.has_method("_ult_sk") else {}
+	var ids: PackedStringArray = []
+	for sk in equipped:
+		ids.append(String(sk.get("id", "")) if sk is Dictionary else "")
+	ids.append(String(ult.get("id", "")))
+	var fp := "|".join(ids)
+	if fp == _skills_icon_fp:
+		return
+	_skills_icon_fp = fp
+	for child in _skills_icons.get_children():
+		child.queue_free()
+	for sid in ids:
+		if sid == "":
+			continue
+		var tr := TextureRect.new()
+		tr.texture = SkillIcons.texture(sid)
+		tr.custom_minimum_size = Vector2(28, 28)
+		tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		tr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_skills_icons.add_child(tr)
 
 
 func _skill_cd_label(cd: float) -> String:

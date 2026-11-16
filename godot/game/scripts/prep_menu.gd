@@ -7,6 +7,7 @@ const Skills = preload("res://scripts/skills.gd")
 const UiFont = preload("res://scripts/ui_font.gd")
 const StateScript = preload("res://scripts/game_state.gd")
 const PrepWidgets = preload("res://scripts/prep/prep_widgets.gd")
+const SkillIcons = preload("res://scripts/skill_icons.gd")
 const PrepPages = preload("res://scripts/prep/prep_pages.gd")
 const PrepGridView = preload("res://scripts/prep/prep_grid_view.gd")
 const ProductVersion = preload("res://scripts/product_version.gd")
@@ -79,6 +80,7 @@ var _drag_press := Vector2.ZERO
 var _msg: String = ""
 var _list: ItemList
 var _back_btn: Button
+var _card: ColorRect
 var _hub_panel: GridContainer
 var _open_bar: HBoxContainer
 var _open_main: Button
@@ -306,6 +308,7 @@ func _bind_nodes() -> void:
 	_info = %Info
 	_list = %List
 	_back_btn = %BackBtn
+	_card = get_node_or_null("%ContentCard") as ColorRect
 	_hub_panel = %HubPanel
 	_open_bar = %OpenBar
 	_open_main = %OpenMain
@@ -334,22 +337,25 @@ func _bind_nodes() -> void:
 	_dlg_yes.pressed.connect(_on_dlg_yes)
 	_dlg_no.pressed.connect(_on_dlg_no)
 	UiFont.apply_label(_title, PREP_TITLE)
-	_title.add_theme_color_override("font_color", Color("f4d35e"))
+	_title.add_theme_color_override("font_color", PrepWidgets.COL_GOLD)
 	UiFont.apply_label(_info, PREP_INFO)
-	_info.add_theme_color_override("font_color", Color("f4f1ea"))
+	_info.add_theme_color_override("font_color", Color("d7e0d8"))
 	_list.add_theme_font_override("font", UiFont.font())
 	_list.add_theme_font_size_override("font_size", UiFont.px(PREP_LIST))
 	_list.add_theme_constant_override("v_separation", PrepWidgets.LIST_V_SEP)
 	_list.add_theme_constant_override("icon_margin", 10)
-	_list.fixed_icon_size = Vector2i(8, PrepWidgets.LIST_ROW_H)
-	_list.add_theme_color_override("font_color", Color("f4f1ea"))
-	_list.add_theme_color_override("font_selected_color", Color("1c241f"))
-	_list.add_theme_color_override("font_hovered_color", Color("f4d35e"))
+	_list.fixed_icon_size = Vector2i(SkillIcons.ROW_W, PrepWidgets.LIST_ROW_H)
+	PrepWidgets.paint_list(_list)
 	var bar := _list.get_v_scroll_bar()
 	bar.custom_minimum_size = Vector2(44, 0)
 	PrepWidgets.paint_btn(_back_btn, true)
-	UiFont.apply_button(_back_btn, PrepWidgets.PREP_BTN)
+	UiFont.apply_button(_back_btn, 22)
+	## px_btn doubles and the hit box then covers the content band. Keep this one in the info row.
+	_back_btn.add_theme_font_size_override("font_size", UiFont.px(22))
+	_back_btn.clip_text = true
 	_back_btn.custom_minimum_size = Vector2(200, 52)
+	_back_btn.position = Vector2(1040, 92)
+	_back_btn.size = Vector2(200, 52)
 	## Bottom control dump was cluttering every prep page; layout tips live in page info.
 	if %Hint:
 		%Hint.visible = false
@@ -527,10 +533,11 @@ func _home_info() -> String:
 	return Loc.t("prep.home.info_rating", [shop_r, support_r, hist_n])
 
 
-func _add(label: String, action: String, arg = null) -> void:
+func _add(label: String, action: String, arg = null, icon: Texture2D = null) -> void:
 	_rows.append({"label": label, "action": action, "arg": arg, "icon": "", "locked": false, "tag": ""})
 	if _list.visible:
-		_list.add_item(label, PrepWidgets.list_row_spacer())
+		var tex: Texture2D = icon if icon != null else PrepWidgets.list_row_spacer()
+		_list.add_item(label, tex)
 
 
 func _add_hub(label: String, action: String, arg = null, icon: String = "", locked: bool = false, tag: String = "") -> void:
@@ -603,7 +610,7 @@ func _layout_hub_chrome() -> void:
 	## Cap to 720p usable area and shrink rows if needed so sys tools aren't clipped.
 	if _hub_panel == null:
 		return
-	var top := 156.0
+	var top := PrepWidgets.CONTENT_TOP
 	var gap := 10.0
 	var screen_bottom := 700.0
 	var cols := maxi(1, _hub_cols)
@@ -2577,7 +2584,7 @@ func _ensure_look_preview() -> void:
 		return
 	_look_preview_root = Node2D.new()
 	_look_preview_root.name = "LookPreview"
-	_look_preview_root.position = Vector2(980, 220)
+	_look_preview_root.position = Vector2(860, 280)
 	_look_preview_root.z_index = 5
 	add_child(_look_preview_root)
 	_look_preview_spr = null

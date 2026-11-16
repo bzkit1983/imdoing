@@ -1,0 +1,45 @@
+# 中期美術（v1.5.0）
+
+- 狀態：測試期可讀、可整套換皮。這一版不是最終美術定案。
+- 工程活線：`godot/game`。高解析度合約見 `docs/alpha/voxel-hires-scale-plan.md`。貨品圖示契約見 `ops-sku-icon-ui.md`。
+- 產品字串：`v1.5.0`。存檔格式不升（`SAVE_VERSION` 維持 4）。Git tag `v1.5.0` 在合併進 `main` 之後打，功能分支本身不打 tag。
+
+## 範圍
+
+重做非玩家模型、補貨架高度、貨品與技能小圖示、準備回合每一頁的排版與配色。
+
+保持不動：
+
+- 玩家四套造型（`player`、`player_alt1`、`player_alt2`、`player_alt3`）。`player_alt3`（玩家·學生）是密度與剪影基準。
+- `GameState.CELL = 64`、傢俬佔格、角色碰撞 26×26、店員碰撞 22×22。
+- 技能數值、距離、COST、施放路徑。
+- 地板、牆、門、污物。
+
+## 體素
+
+- 軸向：Magica X 右、Y 前、Z 上。腳在 z=0。角色臉朝 +Y。姿勢是雙手離身的 A-pose。
+- 角色包絡 **90×40×130**。走路仍用 `tools/voxel_character_anims.py` 的肢體分區（由 12×10×20 按 `sx/12`、`sz/20` 放大）。新手、腳必須落在分區裡。
+- 烘圖：`PX=1`，再 `DISPLAY_SCALE=0.5`，cartoon 描邊。角色螢幕寬維持約 45px。
+- 調色盤用 `godot/game/art/catalog.json`。客人、小偷、收銀員、補貨員靠服裝剪影分開。
+- `customer_hurry`、`customer_slow` 沿用客人網格，只換衣色。
+- 貨架包絡維持 **256×128×144**。容量 4／8／12／24 共用同一座模型。
+- 補貨架包絡 **256×96×144**。Z 與貨架同為 144。X 與貨架同寬，讓 `Vox.fit` 進 2×2 格時縮放約為 1，畫面上的高度才不會高過貨架。佔格與碰撞仍是 2×2。乾貨、凍飲、冰品只差箱色。
+
+生成腳本：`tools/voxel_interim_v15.py`（寫入 `godot/game/art/src/`，不跑會覆寫全庫的 `voxel_blockout.py`）。
+
+## 圖示
+
+- 貨品：`godot/game/art/ui/sku/<id>.png`，64×64，透明底，主體置中。邏輯顯示仍約 28–32px。`SkuIcons.texture` 讀檔，缺檔才退回程式剪影。色相跟 `Tuning.SKU_COLOR`。高亮用外框，不用 `modulate` 改圖本色。
+- 九種貨必須在 28px、去色後兩兩可分。零食是軟袋鋸齒封口，牛奶是屋脊紙盒加倒出口。
+- 世界體素貨品畫同一個物件。
+- 技能臨時圖：`godot/game/art/ui/skill/<id>.png`。圓形選單、觸控鍵、右下 HUD、準備回合技能列共用。名稱文字保留。
+- 準備主畫面圖塊：`godot/game/art/ui/prep/<id>.png`。
+- 圖內不寫字。檔名用 id。
+
+## 準備回合
+
+殼層仍是 `prep_menu.tscn`。頁面 id、流程、教學鎖、手掣與鍵盤操作不變。
+
+版心：頂列標題、其下說明（右側留給返回）、中段內容、底部動作。間距 8px。列表、說明、數量、店舖設計的尺寸列與地圖各佔一塊，不相交。720 高度內不裁切。
+
+配色沿用深底與金色重點，卡片、焦點環、列表選取收在 `prep_widgets.gd`。

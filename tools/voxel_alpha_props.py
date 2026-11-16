@@ -72,27 +72,35 @@ def _save_model(name: str, model: vb.Model, facing: int, anchors: dict, pal: lis
 
 
 def _shelf_model(cat: str, fill: int) -> vb.Model:
-    """fill 0 empty … 3 full. Goods stack height grows with fill."""
-    body, trim, goods = SHELF_COLORS[cat]
-    m = vb.Model(14, 10, 16)
-    # Cabinet
-    m.fill(1, 2, 0, 12, 8, 2, body)
-    m.fill(1, 2, 3, 12, 8, 10, trim)
-    m.fill(1, 2, 11, 12, 8, 12, body)
-    # Posts
-    m.fill(1, 2, 0, 2, 3, 12, body)
-    m.fill(11, 2, 0, 12, 3, 12, body)
+    """fill 0 empty cabinet … 3 goods on every board. Uses the v1.5 shelf mesh."""
+    import voxel_interim_v15 as interim
+
+    path = vs.SRC / f"shelf_{cat}.vox"
+    size, cells, _palette = vs.read_vox(path)
+    m = vb.Model(*size)
+    m.cells = dict(cells)
     if fill <= 0:
         return m
-    # Goods rows: 1→low, 2→mid, 3→top shelf packed
-    rows = min(fill, 3)
+    goods = {
+        "dry": ("can", "snack", "cup"),
+        "frozen": ("drink", "milk", "soda"),
+        "ice": ("icecream", "meat", "rice"),
+    }[cat]
+    rows = min(fill + 1, len(interim.SHELF_BOARDS)) if fill < 3 else len(interim.SHELF_BOARDS)
+    # fill 1 → bottom board, 2 → two boards, 3 → every board.
+    if fill == 1:
+        rows = 1
+    elif fill == 2:
+        rows = 2
+    else:
+        rows = len(interim.SHELF_BOARDS)
     for ri in range(rows):
-        z0 = 3 + ri * 3
-        z1 = z0 + 1
-        m.fill(3, 3, z0, 10, 7, z1, goods)
-        # Speckle SKU colors
-        for x in range(3, 11, 2):
-            m.set(x, 5, z1, "player" if ri % 2 == 0 else "can")
+        z = interim.SHELF_BOARDS[ri] + 5
+        color = goods[ri % len(goods)]
+        m.fill(28, 20, z, 70, 40, z + 14, color)
+        m.fill(84, 20, z, 126, 40, z + 14, goods[(ri + 1) % len(goods)])
+        m.fill(140, 20, z, 182, 40, z + 14, color)
+        m.fill(196, 20, z, 230, 40, z + 12, goods[(ri + 2) % len(goods)])
     return m
 
 

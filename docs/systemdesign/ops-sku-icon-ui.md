@@ -203,4 +203,6 @@
 
 正稿替換：只換 `SkuIcons.texture` 載入路徑（見 §8），勿改 sku id。
 
+**v1.5.0：** 具象貨品圖在 `godot/game/art/ui/sku/<id>.png`（64×64）。`SkuIcons.texture` 讀檔，缺檔才用本檔描述的程式剪影。風格與驗收見 `art-interim-v1.5.md`。
+
 相關玩法不變：尋貨、丟掉交付、不滿度規則仍以 `customer.md`／`playeraction.md` 為準。

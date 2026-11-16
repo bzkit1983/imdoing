@@ -8,7 +8,7 @@ Repository for game project
 
 **Coding agents（任何工具）：** 先讀根目錄 [`AGENTS.md`](AGENTS.md)；多語言內容流程見 [`agents/skills/i18n-content/SKILL.md`](agents/skills/i18n-content/SKILL.md)。
 
-**產品版：** `v1.4.0`（全單位改「件」；見 [`VERSION`](VERSION)、[`docs/versioning.md`](docs/versioning.md)；上一錨點 `v1.3.0`）  
+**產品版：** `v1.5.0`（中期美術；見 [`VERSION`](VERSION)、[`docs/versioning.md`](docs/versioning.md)、[`docs/systemdesign/art-interim-v1.5.md`](docs/systemdesign/art-interim-v1.5.md)；上一錨點 `v1.4.0`）  
 **網頁試玩：** https://bzkit1983.github.io/imdoing/play/
 
 技術評估（可持續／效能／遊戲設計／平台；現行）：[`docs/alpha/tech-review-v0.2.md`](docs/alpha/tech-review-v0.2.md) · 前一輪：[`tech-review-v0.1.md`](docs/alpha/tech-review-v0.1.md)
