@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Preview-only shading compare: cartoon vs classic vs outline_only.
 
-Does not bake godot/game/art/sprites or change the default VOXEL_SHADING.
 Writes PNGs under /opt/cursor/artifacts (and optional --out).
+Game bake default is outline_only; this tool still renders all three for QA.
 """
 
 from __future__ import annotations
@@ -18,18 +18,10 @@ sys.path.insert(0, str(ROOT / "tools"))
 
 import voxel_sprites as vs  # noqa: E402
 
-SHADING_OUTLINE_ONLY = {
-    "top": 1.08,
-    "front": 0.78,
-    "side": 0.62,
-    "posterize": 0,
-    "outline": True,
-}
-
 VARIANTS = {
     "cartoon": vs.SHADING_CARTOON,
     "classic": vs.SHADING_CLASSIC,
-    "outline_only": SHADING_OUTLINE_ONLY,
+    "outline_only": vs.SHADING_OUTLINE_ONLY,
 }
 
 DEFAULT_IDS = ("player_alt3", "customer")

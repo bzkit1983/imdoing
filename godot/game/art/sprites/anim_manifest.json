@@ -20,118 +20,6 @@
   ],
   "facings": 16,
   "characters": {
-    "customer": {
-      "idle": {
-        "frames": 2,
-        "fps": 2
-      },
-      "walk": {
-        "frames": 4,
-        "fps": 8
-      },
-      "angry": {
-        "frames": 3,
-        "fps": 5
-      },
-      "leave": {
-        "frames": 4,
-        "fps": 8
-      }
-    },
-    "customer_hurry": {
-      "idle": {
-        "frames": 2,
-        "fps": 2
-      },
-      "walk": {
-        "frames": 4,
-        "fps": 8
-      },
-      "angry": {
-        "frames": 3,
-        "fps": 5
-      },
-      "leave": {
-        "frames": 4,
-        "fps": 8
-      }
-    },
-    "customer_slow": {
-      "idle": {
-        "frames": 2,
-        "fps": 2
-      },
-      "walk": {
-        "frames": 4,
-        "fps": 8
-      },
-      "angry": {
-        "frames": 3,
-        "fps": 5
-      },
-      "leave": {
-        "frames": 4,
-        "fps": 8
-      }
-    },
-    "thief": {
-      "idle": {
-        "frames": 2,
-        "fps": 2
-      },
-      "walk": {
-        "frames": 4,
-        "fps": 8
-      },
-      "fight": {
-        "frames": 4,
-        "fps": 12
-      },
-      "leave": {
-        "frames": 4,
-        "fps": 8
-      },
-      "fly": {
-        "frames": 4,
-        "fps": 12
-      }
-    },
-    "clerk_cashier": {
-      "idle": {
-        "frames": 2,
-        "fps": 2
-      },
-      "walk": {
-        "frames": 4,
-        "fps": 8
-      },
-      "checkout": {
-        "frames": 3,
-        "fps": 6
-      },
-      "walk_carry": {
-        "frames": 4,
-        "fps": 8
-      }
-    },
-    "clerk_restock": {
-      "idle": {
-        "frames": 2,
-        "fps": 2
-      },
-      "walk": {
-        "frames": 4,
-        "fps": 8
-      },
-      "restock": {
-        "frames": 3,
-        "fps": 6
-      },
-      "walk_carry": {
-        "frames": 4,
-        "fps": 8
-      }
-    },
     "player": {
       "idle": {
         "frames": 2,
@@ -347,18 +235,130 @@
         "frames": 2,
         "fps": 6
       }
+    },
+    "customer": {
+      "idle": {
+        "frames": 2,
+        "fps": 2
+      },
+      "walk": {
+        "frames": 4,
+        "fps": 8
+      },
+      "angry": {
+        "frames": 3,
+        "fps": 5
+      },
+      "leave": {
+        "frames": 4,
+        "fps": 8
+      }
+    },
+    "customer_hurry": {
+      "idle": {
+        "frames": 2,
+        "fps": 2
+      },
+      "walk": {
+        "frames": 4,
+        "fps": 8
+      },
+      "angry": {
+        "frames": 3,
+        "fps": 5
+      },
+      "leave": {
+        "frames": 4,
+        "fps": 8
+      }
+    },
+    "customer_slow": {
+      "idle": {
+        "frames": 2,
+        "fps": 2
+      },
+      "walk": {
+        "frames": 4,
+        "fps": 8
+      },
+      "angry": {
+        "frames": 3,
+        "fps": 5
+      },
+      "leave": {
+        "frames": 4,
+        "fps": 8
+      }
+    },
+    "thief": {
+      "idle": {
+        "frames": 2,
+        "fps": 2
+      },
+      "walk": {
+        "frames": 4,
+        "fps": 8
+      },
+      "fight": {
+        "frames": 4,
+        "fps": 12
+      },
+      "leave": {
+        "frames": 4,
+        "fps": 8
+      },
+      "fly": {
+        "frames": 4,
+        "fps": 12
+      }
+    },
+    "clerk_cashier": {
+      "idle": {
+        "frames": 2,
+        "fps": 2
+      },
+      "walk": {
+        "frames": 4,
+        "fps": 8
+      },
+      "checkout": {
+        "frames": 3,
+        "fps": 6
+      },
+      "walk_carry": {
+        "frames": 4,
+        "fps": 8
+      }
+    },
+    "clerk_restock": {
+      "idle": {
+        "frames": 2,
+        "fps": 2
+      },
+      "walk": {
+        "frames": 4,
+        "fps": 8
+      },
+      "restock": {
+        "frames": 3,
+        "fps": 6
+      },
+      "walk_carry": {
+        "frames": 4,
+        "fps": 8
+      }
     }
   },
   "sources": {
+    "player": "designer_vox",
+    "player_alt1": "designer_vox",
+    "player_alt2": "designer_vox",
+    "player_alt3": "designer_vox",
     "customer": "designer_vox",
     "customer_hurry": "designer_vox",
     "customer_slow": "designer_vox",
     "thief": "designer_vox",
     "clerk_cashier": "designer_vox",
-    "clerk_restock": "designer_vox",
-    "player": "designer_vox",
-    "player_alt1": "designer_vox",
-    "player_alt2": "designer_vox",
-    "player_alt3": "designer_vox"
+    "clerk_restock": "designer_vox"
   }
 }
