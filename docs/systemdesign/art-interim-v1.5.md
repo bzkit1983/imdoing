@@ -20,7 +20,7 @@
 - 軸向：Magica X 右、Y 前、Z 上。腳在 z=0。角色臉朝 +Y。
 - 非玩家角色對齊 `player_alt3` 的 Q 版：頭約佔身高四成、身子短、雙手平伸。玩家四套造型不改。
 - 角色包絡 **90×40×130**。走路仍用 `tools/voxel_character_anims.py` 的肢體分區（由 12×10×20 按 `sx/12`、`sz/20` 放大）。手、腳必須落在分區裡。
-- 烘圖：`PX=1`，再 `DISPLAY_SCALE=0.5`，cartoon 描邊。角色螢幕寬維持約 45px。
+- 烘圖：`PX=1`，再 `DISPLAY_SCALE=0.5`，outline_only（墨線、無 RGB 階調）。角色螢幕寬維持約 45px。
 - 調色盤用 `godot/game/art/catalog.json`。客人、小偷、收銀員、補貨員靠服裝剪影分開。
 - `customer_hurry`、`customer_slow` 沿用客人網格，只換衣色。
 - 貨架包絡維持 **256×128×144**。容量 4／8／12／24 共用同一座模型。
