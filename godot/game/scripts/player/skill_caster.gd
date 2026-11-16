@@ -116,6 +116,11 @@ func cast_must_deliver(lv: int) -> bool:
 	if plan.is_empty():
 		host.log_line.emit(Loc.t("log.player.must_fail_match"))
 		return false
+	## Client: validation-only predict; Host Intent re-casts for inventory／guest authority.
+	if _net_client_predicting():
+		host.log_line.emit(Loc.t("log.player.must_n", [plan.size()]))
+		host._deliver_pose_left = 0.4
+		return true
 	var total := 0
 	var vfx: Array = []
 	var touched: Array = []
@@ -273,6 +278,13 @@ func cast_summon_guest(lv: int) -> bool:
 	if game == null:
 		host.log_line.emit(Loc.t("log.player.summon_fail"))
 		return false
+	## Client: predict success in open phase; Host spawns guests.
+	if _net_client_predicting():
+		if String(game.get("phase")) != "open":
+			host.log_line.emit(Loc.t("log.player.summon_fail_phase"))
+			return false
+		host.log_line.emit(Loc.t("log.player.summon_n", [want]))
+		return true
 	var n := int(game.cast_summon_guest(want))
 	if n <= 0:
 		host.log_line.emit(Loc.t("log.player.summon_fail_phase"))
@@ -349,6 +361,13 @@ func finish_magneto_aim() -> void:
 
 ## Absorb landed drops in radius until carry_cap. Always "succeeds" for CD (0 pieces ok).
 func cast_magneto(lv: int) -> void:
+	## Client: VFX／banner only — Host absorbs drops and syncs carry.
+	if _net_client_predicting():
+		var game_p = host._game()
+		if game_p != null:
+			game_p.play_skill_banner(Loc.t("log.player.magneto_n", [0]))
+		host.log_line.emit(Loc.t("log.player.magneto_n", [0]))
+		return
 	var range_px := Skills.magneto_range(lv)
 	var range_sq := range_px * range_px
 	var piles: Array = []
@@ -448,8 +467,10 @@ func cast_self_checkout(level: int) -> bool:
 	if game != null:
 		for reg in game.get("cashiers"):
 			if is_instance_valid(reg) and host.global_position.distance_squared_to(reg.global_position) <= pow(5.0 * Tuning.BODY_LENGTH, 2):
-				reg.activate_self_checkout(game, level, host.seat_id)
 				count += 1
+				## Client predicts ring only; Host activates the registers.
+				if not _net_client_predicting():
+					reg.activate_self_checkout(game, level, host.seat_id)
 	if count == 0:
 		host.log_line.emit(Loc.t("self_checkout.no_register"))
 	else:
@@ -485,6 +506,10 @@ func cast_harvest_chives(lv: int) -> bool:
 		host._interact_release(reg)
 		host.log_line.emit(Loc.t("log.player.chives_fail"))
 		return false
+	## Client: lock check only; Host pays the queue.
+	if _net_client_predicting():
+		host._interact_release(reg)
+		return true
 	var n := int(game.cast_harvest_chives(reg, want))
 	host._interact_release(reg)
 	if n <= 0:
@@ -515,6 +540,13 @@ func cast_force_sell(lv: int) -> bool:
 	if not host._interact_try(guest):
 		host.log_line.emit(Loc.t("log.player.force_busy"))
 		return false
+	## Client: predict pose／log; Host mutates inventory／cart via Intent.
+	if _net_client_predicting():
+		var pred_n := mini(Skills.force_sell_count(lv), host.inventory.count())
+		host._interact_release(guest)
+		host.log_line.emit(Loc.t("log.player.force_n", [pred_n]))
+		host._deliver_pose_left = 0.4
+		return pred_n > 0
 	var before := int((guest.shopping as Array).size()) if guest.get("shopping") != null else 0
 	var n = mini(Skills.force_sell_count(lv), host.inventory.count())
 	var pieces: Array[String] = host.inventory.pop_trailing(n)
@@ -547,6 +579,7 @@ func on_skill_hold(pressed: bool) -> void:
 			return
 		## Second skill press confirms range preview skills.
 		if host._must_deliver_aim:
+			## Client predicts; Host remote mirrors this hold edge as authority (no extra pending).
 			finish_must_deliver_aim()
 			host._skill_release_ignore = true
 			return
@@ -570,6 +603,10 @@ func on_skill_hold(pressed: bool) -> void:
 	if not host._l_held:
 		return
 	if host.skill_menu_open:
+		## Host remote: Client already sent pending_skill_hotkey — do not dual-confirm.
+		if SessionService.is_networked() and SessionService.is_server() and not host.controls_locally():
+			close_skill_menu()
+			return
 		if not host._skill_latch:
 			sync_hold_aim()
 		confirm_skill(host._skill_aim)
@@ -635,8 +672,21 @@ func set_skill_aim(slot: int) -> void:
 		host._menu.call("set_aim", slot)
 	SfxBus.play("sfx_skill_menu_move")
 
+## Client → Host: menu confirm, hotkey, and aim-finish all share this Intent slot.
+func _queue_client_skill_intent(slot: int) -> void:
+	if host.controls_locally() and SessionService.is_networked() and SessionService.is_client():
+		host.pending_skill_hotkey = clampi(slot, 0, 4)
+
+
+## True while a networked Client is predicting cast presentation (Host owns world).
+func _net_client_predicting() -> bool:
+	return SessionService.is_networked() and SessionService.is_client()
+
+
 func confirm_skill(slot: int) -> void:
 	close_skill_menu()
+	## Latch D-pad／hold-confirm must Intent the same way as hotkeys (M2.5).
+	_queue_client_skill_intent(slot)
 	cast_slot(slot)
 	host._move_locked_until_neutral = true
 	host.velocity = Vector2.ZERO
@@ -647,15 +697,14 @@ func try_skill_hotkey(slot: int) -> void:
 		return
 	if host.ult_prep or host._elite_focus_left > 0.0:
 		return
+	## Aim confirm also needs Host authority — queue before finish.
+	_queue_client_skill_intent(slot)
 	if host._must_deliver_aim:
 		finish_must_deliver_aim()
 		return
 	if host._magneto_aim:
 		finish_magneto_aim()
 		return
-	## Queue for Host sim when this seat is piloted on a LAN client.
-	if host.controls_locally() and SessionService.is_networked() and SessionService.is_client():
-		host.pending_skill_hotkey = clampi(slot, 0, 4)
 	confirm_skill(slot)
 
 func close_skill_menu() -> void:
@@ -757,6 +806,9 @@ func cast_slot(i: int) -> void:
 			host._cannon = null
 			host._cd[sid] = Tuning.cd_seconds(60.0, host._int_now())
 			host.log_line.emit(Loc.t("cannon.cancelled"))
+		elif _net_client_predicting():
+			## Host deploys＋net-spawns; Client predicts cast chrome.
+			host.log_line.emit(Loc.t("cannon.deployed"))
 		else:
 			var game = host._game()
 			if game == null:
@@ -779,6 +831,8 @@ func cast_slot(i: int) -> void:
 			host._shelf_cannon = null
 			host._cd[sid] = Tuning.cd_seconds(60.0, host._int_now())
 			host.log_line.emit(Loc.t("shelf_cannon.cancelled"))
+		elif _net_client_predicting():
+			host.log_line.emit(Loc.t("shelf_cannon.deployed"))
 		else:
 			var game = host._game()
 			if game == null:
@@ -801,6 +855,8 @@ func cast_slot(i: int) -> void:
 			host._kind_cannon = null
 			host._cd[sid] = Tuning.cd_seconds(90.0, host._int_now())
 			host.log_line.emit(Loc.t("kind_cannon.cancelled"))
+		elif _net_client_predicting():
+			host.log_line.emit(Loc.t("kind_cannon.deployed"))
 		else:
 			var game = host._game()
 			if game == null:
@@ -933,20 +989,27 @@ func cast_slot(i: int) -> void:
 		host._enqueue_cust_speed(sid)
 	if sk.has("soothe_keep"):
 		var game = host._game()
-		if game:
+		## Client: SFX only — Host soothes guests.
+		if game and not _net_client_predicting():
 			game.soothe_all(float(sk.get("soothe_keep")))
 		SfxBus.play("sfx_skill_soothe")
 	else:
 		if bool(sk.get("dark_side", false)):
 			var game = host._game()
-			if game:
-				game.cast_dark_side(int(sk.get("lv", 3)))
+			if game and not _net_client_predicting():
+				game.cast_dark_side(int(sk.get("lv", 3)), host.seat_id)
 		elif bool(sk.get("shadow_clone", false)):
 			var clone_host = host._game()
-			if clone_host:
-				clone_host.cast_shadow_clone(int(sk.get("lv", 3)))
+			if clone_host and not _net_client_predicting():
+				clone_host.cast_shadow_clone(int(sk.get("lv", 3)), host.seat_id)
 		elif bool(sk.get("sweeping_monk", false)):
-			host._activate_sweeping_monk()
+			## Buff already set; dirt clear is Host-only (Client keeps tornado VFX).
+			if not _net_client_predicting():
+				host._activate_sweeping_monk()
+			else:
+				host._sick_left = 0.0
+				if host.has_method("_sync_monk_tornado"):
+					host._sync_monk_tornado(true)
 			SfxBus.play("sfx_skill_sweeping_monk")
 		else:
 			SfxBus.play("sfx_skill_cast")
@@ -986,8 +1049,9 @@ func cast_ultimate() -> void:
 	host._cd[sid] = Tuning.cd_seconds(float(sk.get("cd", Skills.ULT_CD)), host._int_now())
 	host._buff_cache_valid = false
 	var game = host._game()
+	var predict := _net_client_predicting()
 	if sid == "fundraise":
-		if game:
+		if game and not predict:
 			game.cast_fundraise(lv)
 		SfxBus.play("sfx_ult_fundraise")
 		host.log_line.emit(Loc.t("log.player.ult_fundraise", [lv]))
@@ -997,7 +1061,7 @@ func cast_ultimate() -> void:
 		host._prompt.active = false
 		return
 	if sid == "close_gate":
-		if game:
+		if game and not predict:
 			game.cast_close_gate()
 		SfxBus.play("sfx_ult_close_gate")
 		host.log_line.emit(Loc.t("log.player.ult_close_gate"))
@@ -1018,7 +1082,10 @@ func cast_ultimate() -> void:
 		return
 	if sid == "guest_dusk":
 		var dusk_ok := false
-		if game:
+		if predict:
+			## Host owns dusk timer／spawns; Client predicts buff chrome in open phase.
+			dusk_ok = game != null and String(game.get("phase")) == "open"
+		elif game:
 			dusk_ok = bool(game.cast_guest_dusk())
 		if dusk_ok:
 			host._buffs[sid] = Skills.GUEST_DUSK_DURATION

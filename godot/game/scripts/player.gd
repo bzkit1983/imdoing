@@ -2610,6 +2610,9 @@ func _tick_sweeping_monk(delta: float) -> void:
 
 
 func _clear_dirt_in_monk_range() -> void:
+	## Host authority — Client only shows tornado; dirt despawns via net agents.
+	if SessionService.is_networked() and SessionService.is_client():
+		return
 	var g := _game()
 	if g == null:
 		return

@@ -360,11 +360,11 @@ func show_stolen_banner() -> void:
 	pass
 
 
-func cast_dark_side(_level: int) -> void:
+func cast_dark_side(_level: int, _seat: int = -1) -> void:
 	pass
 
 
-func cast_shadow_clone(_level: int) -> void:
+func cast_shadow_clone(_level: int, _seat: int = -1) -> void:
 	pass
 
 

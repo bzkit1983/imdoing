@@ -559,7 +559,11 @@ func combo_team() -> int:
 
 
 func yes_my_lord_on() -> bool:
-	return _player != null and _player.buff_left("yes_my_lord") > 0.05
+	## Any seated clerk with the buff (coop: not only game._player).
+	for p in _players:
+		if p != null and is_instance_valid(p) and p.buff_left("yes_my_lord") > 0.05:
+			return true
+	return false
 
 
 ## Force-release checkout command UI.
@@ -616,6 +620,8 @@ func nearest_stocked_shelf(from: Vector2) -> Node2D:
 
 
 func cast_fundraise(level: int) -> void:
+	if SessionService.is_networked() and SessionService.is_client():
+		return
 	if _customers == null:
 		return
 	var picked: Array = Fundraise.choose(_customers.get_children(), level)
@@ -632,6 +638,8 @@ func cast_fundraise(level: int) -> void:
 
 ## 割韭菜: cash up to `max_n` QUEUE/PAYING on one register (queue order). Returns how many paid.
 func cast_harvest_chives(reg: Node, max_n: int) -> int:
+	if SessionService.is_networked() and SessionService.is_client():
+		return 0
 	if reg == null or not is_instance_valid(reg) or max_n <= 0:
 		return 0
 	if str(reg.get("kind")) != "cashier":
@@ -675,6 +683,8 @@ func play_skill_banner(text: String) -> void:
 
 ## Instant summon at door; ignore guest_cap. Returns how many guests spawned.
 func cast_summon_guest(n: int) -> int:
+	if SessionService.is_networked() and SessionService.is_client():
+		return 0
 	if phase != "open" or n <= 0:
 		return 0
 	var spawned := 0
@@ -690,6 +700,8 @@ func cast_summon_guest(n: int) -> int:
 
 func cast_guest_dusk() -> bool:
 	## 諸客的黃昏: 30 real seconds, up to 15 successful guest entries (ignore cap).
+	if SessionService.is_networked() and SessionService.is_client():
+		return phase == "open"
 	if phase != "open":
 		clear_guest_dusk()
 		return false
@@ -707,6 +719,8 @@ func clear_guest_dusk() -> void:
 
 func cast_close_gate() -> void:
 	## 落閘放狗：有貨清 shopping 排隊；空車離店；小偷掉贓離店（不計逃走）。
+	if SessionService.is_networked() and SessionService.is_client():
+		return
 	if _customers == null:
 		return
 	var queued := 0
@@ -857,7 +871,34 @@ func dirt_spawn_interval() -> float:
 
 
 func thief_appear_rate() -> float:
-	return Tuning.thief_rate(state.thief_spawn_rate(), _play_easy())
+	## Shop-wide haki: any seated loadout with thief_rate applies (design: 全店效果).
+	var rate := _seat_thief_rate()
+	return Tuning.thief_rate(rate, _play_easy())
+
+
+func _seat_thief_rate() -> float:
+	var best := 1.0
+	var found := false
+	for p in _players:
+		if p == null or not is_instance_valid(p):
+			continue
+		var stats = p.get("stats")
+		if stats == null:
+			continue
+		if stats.has_method("thief_spawn_rate"):
+			var r := float(stats.call("thief_spawn_rate"))
+			best = minf(best, r)
+			found = true
+			continue
+		## CharacterSheet: scan loadout for thief_rate.
+		if stats.has_method("loadout"):
+			for sk in stats.loadout():
+				if sk is Dictionary and sk.has("thief_rate"):
+					best = minf(best, float(sk["thief_rate"]))
+					found = true
+	if found:
+		return best
+	return state.thief_spawn_rate() if state != null else 1.0
 
 
 func _play_easy() -> bool:
@@ -865,10 +906,21 @@ func _play_easy() -> bool:
 
 
 func queue_dissat_blocked() -> bool:
-	return state.has_flag("no_queue_dissat")
+	## Shop-wide cold_smile: any seated clerk with the flag.
+	for p in _players:
+		if p == null or not is_instance_valid(p):
+			continue
+		if p.has_method("_has_flag") and bool(p.call("_has_flag", "no_queue_dissat")):
+			return true
+		var stats = p.get("stats")
+		if stats != null and stats.has_method("has_flag") and bool(stats.has_flag("no_queue_dissat")):
+			return true
+	return state != null and state.has_flag("no_queue_dissat")
 
 
 func soothe_all(keep: float) -> void:
+	if SessionService.is_networked() and SessionService.is_client():
+		return
 	if _customers == null:
 		return
 	for c in _customers.get_children():
@@ -876,9 +928,12 @@ func soothe_all(keep: float) -> void:
 			c.call("apply_soothe", keep)
 
 
-func cast_dark_side(level: int) -> void:
+func cast_dark_side(level: int, seat: int = -1) -> void:
+	if SessionService.is_networked() and SessionService.is_client():
+		return
 	if _customers == null:
 		return
+	var caster := _seat_actor(seat) if seat >= 0 else _player
 	var need := DarkSide.draft_count(level)
 	var locked = _checkout_locked_guest()
 	var pool: Array = []
@@ -897,7 +952,7 @@ func cast_dark_side(level: int) -> void:
 		cashiers,
 		_hired_cashier_registers(),
 		_temp_cashier_registers(),
-		_dark_side_player_pos(),
+		_caster_pos(caster),
 		_player_lock_register(),
 	)
 	var jobs: Dictionary = DarkSide.plan(drafted, rolls, empties)
@@ -905,22 +960,25 @@ func cast_dark_side(level: int) -> void:
 		var row: Dictionary = jobs[c]
 		var reg = row.get("register", null)
 		c.call("begin_temp_clerk", String(row.get("role", "restock")), reg)
-	if _player and _player.has_signal("log_line"):
-		_player.log_line.emit(Loc.t("log.demo.dark_side", [drafted.size()]))
+	if caster != null and caster.has_signal("log_line"):
+		caster.log_line.emit(Loc.t("log.demo.dark_side", [drafted.size()]))
 
 
-func cast_shadow_clone(level: int) -> void:
+func cast_shadow_clone(level: int, seat: int = -1) -> void:
+	if SessionService.is_networked() and SessionService.is_client():
+		return
 	dismiss_shadow_clones()
+	var caster := _seat_actor(seat) if seat >= 0 else _player
 	var need := ShadowCloneCast.clone_count(level)
 	var snap := {}
-	if _player != null and _player.has_method("clone_snapshot"):
-		snap = _player.call("clone_snapshot")
+	if caster != null and caster.has_method("clone_snapshot"):
+		snap = caster.call("clone_snapshot")
 	var facing := Vector2.RIGHT
-	if _player != null:
-		facing = Vector2(_player.get("facing"))
-	var origin := _dark_side_player_pos()
+	if caster != null:
+		facing = Vector2(caster.get("facing"))
+	var origin := _caster_pos(caster)
 	var spots: Array = ShadowCloneCast.spawn_positions(
-		origin, facing, need, _obstacles, _clone_spawn_people()
+		origin, facing, need, _obstacles, _clone_spawn_people_for(caster)
 	)
 	var drafted: Array = []
 	for i in need:
@@ -953,8 +1011,8 @@ func cast_shadow_clone(level: int) -> void:
 			"role": role,
 			"skin_id": skin,
 		})
-	if _player and _player.has_signal("log_line"):
-		_player.log_line.emit(Loc.t("log.demo.shadow_clone", [drafted.size()]))
+	if caster != null and caster.has_signal("log_line"):
+		caster.log_line.emit(Loc.t("log.demo.shadow_clone", [drafted.size()]))
 
 
 func dismiss_shadow_clones() -> void:
@@ -980,9 +1038,17 @@ func shadow_clones() -> Array:
 
 
 func _clone_spawn_people() -> Array:
+	return _clone_spawn_people_for(_player)
+
+
+func _clone_spawn_people_for(caster: Node2D) -> Array:
 	var people: Array = []
-	if _player != null and is_instance_valid(_player):
-		people.append(_player.global_position)
+	if caster != null and is_instance_valid(caster):
+		people.append(caster.global_position)
+	for p in _players:
+		if p == null or not is_instance_valid(p) or p == caster:
+			continue
+		people.append(p.global_position)
 	if _world != null:
 		for c in _world.get_children():
 			if c == null or not is_instance_valid(c):
@@ -1061,9 +1127,13 @@ func _temp_cashier_registers() -> Array:
 
 
 func _dark_side_player_pos() -> Vector2:
-	if _player == null:
+	return _caster_pos(_player)
+
+
+func _caster_pos(caster: Node2D) -> Vector2:
+	if caster == null or not is_instance_valid(caster):
 		return Vector2(1.0e8, 1.0e8)
-	return _player.global_position
+	return caster.global_position
 
 
 func _player_lock_register():
@@ -1830,15 +1900,31 @@ func _hide_early_dialog() -> void:
 func world_delta(delta: float) -> float:
 	if _early_open:
 		return 0.0
-	if _player == null:
-		return delta
-	return delta * float(_player.get("clock_scale"))
+	## the_world: strongest freeze wins (min clock_scale across seats).
+	var scale := 1.0
+	var any := false
+	for p in _players:
+		if p == null or not is_instance_valid(p):
+			continue
+		any = true
+		scale = minf(scale, float(p.get("clock_scale")))
+	if not any and _player != null:
+		scale = float(_player.get("clock_scale"))
+	return delta * scale
 
 
 func customer_move_mult() -> float:
-	if _player == null:
-		return 1.0
-	return float(_player.get("customer_move_mult"))
+	## metal_rush: strongest speed-up wins (max mult across seats).
+	var mult := 1.0
+	var any := false
+	for p in _players:
+		if p == null or not is_instance_valid(p):
+			continue
+		any = true
+		mult = maxf(mult, float(p.get("customer_move_mult")))
+	if not any and _player != null:
+		return float(_player.get("customer_move_mult"))
+	return mult
 
 
 func _process(delta: float) -> void:
@@ -2660,6 +2746,9 @@ func _on_paid(
 
 
 func _seat_actor(seat: int) -> Node2D:
+	var by_id := _player_for_seat(seat)
+	if by_id != null:
+		return by_id
 	if seat >= 0 and seat < _players.size():
 		var p: CharacterBody2D = _players[seat]
 		if p != null and is_instance_valid(p):
@@ -4157,6 +4246,8 @@ func _caption(pos: Vector2, text: String) -> Label:
 func deploy_universal_cannon(at: Vector2, level: int, seat: int) -> Node2D:
 	if _world == null or phase not in ["open", "restock"]:
 		return null
+	if SessionService.is_networked() and SessionService.is_client():
+		return null
 	# Defensive ownership gate in addition to the player's runtime reference.
 	for child in _world.get_children():
 		if str(child.get("kind")) == "universal_cannon" and child.owner_seat == seat and not child.dismissed:
@@ -4181,6 +4272,8 @@ func deploy_universal_cannon(at: Vector2, level: int, seat: int) -> Node2D:
 
 func deploy_shelf_cannon(at: Vector2, level: int, seat: int) -> Node2D:
 	if _world == null or phase not in ["open", "restock"]:
+		return null
+	if SessionService.is_networked() and SessionService.is_client():
 		return null
 	for child in _world.get_children():
 		if str(child.get("kind")) == "shelf_cannon" and child.owner_seat == seat and not child.dismissed:
