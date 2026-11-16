@@ -13,7 +13,8 @@ Auto: model with max(sx,sy,sz) >= HIRES_DIM_MIN uses hi-res path; else legacy.
 Facing (characters, 16-way): 0 south … 15 SSW (22.5° steps).
 Facing (furniture, 4-way): 0 south, 1 east, 2 north, 3 west — same as legacy.
 
-Shading: VOXEL_SHADING=classic|cartoon (default cartoon). See docs/alpha/voxel-cartoon-shading.md.
+Shading: VOXEL_SHADING=classic|cartoon|outline_only (default outline_only).
+See docs/alpha/voxel-cartoon-shading.md.
 Filter ids: VOXEL_BAKE_IDS=player,shelf_dry (comma-separated; empty = all).
 
 Frozen Alpha art stays in godot/alpha_v0_1/art/ — do not point this tool there.
@@ -60,18 +61,32 @@ SHADING_CARTOON = {
     "posterize": 4,
     "outline": True,
 }
+## Default: silhouette ink without RGB posterize (keeps skin / palette fidelity).
+SHADING_OUTLINE_ONLY = {
+    "top": 1.08,
+    "front": 0.78,
+    "side": 0.62,
+    "posterize": 0,
+    "outline": True,
+}
 OUTLINE_RGBA = (26, 26, 26, 255)
+
+_SHADING_TABLE = {
+    "classic": SHADING_CLASSIC,
+    "cartoon": SHADING_CARTOON,
+    "outline_only": SHADING_OUTLINE_ONLY,
+}
 
 
 def shading_mode() -> str:
-    raw = os.environ.get("VOXEL_SHADING", "cartoon").strip().lower()
-    if raw in ("classic", "cartoon"):
+    raw = os.environ.get("VOXEL_SHADING", "outline_only").strip().lower()
+    if raw in _SHADING_TABLE:
         return raw
-    return "cartoon"
+    return "outline_only"
 
 
 def shading_params() -> dict:
-    return SHADING_CLASSIC if shading_mode() == "classic" else SHADING_CARTOON
+    return dict(_SHADING_TABLE[shading_mode()])
 
 
 def bake_id_filter() -> set[str] | None:
