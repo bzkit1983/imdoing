@@ -212,7 +212,7 @@ func apply_fight_fail_player() -> void:
 	host._stun_pending = Tuning.FIGHT_DOWN_SEC
 	var g = host._game()
 	if g != null:
-		g.note_fight_fail(self)
+		g.note_fight_fail(host)
 
 func end_fight(_won: bool) -> void:
 	if is_instance_valid(host.target):
@@ -237,4 +237,3 @@ func end_fight(_won: bool) -> void:
 	var game = host._game()
 	if game != null:
 		game.notify_camera_priority_idle()
-
