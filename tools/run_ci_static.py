@@ -28,6 +28,7 @@ GODOT_REQUIRED = {
     "test_skill_cast.py",
     "test_skill_scenario.py",
     "test_thief_sniper.py",
+    "test_voxel_canvas_outline.py",
     "test_xbox_pad.py",
 }
 
