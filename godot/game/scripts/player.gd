@@ -137,8 +137,9 @@ var _cd: Dictionary = {}
 var _buffs: Dictionary = {}
 var _cust_speed_q: Array[String] = []
 var _cardinal_armed: bool = true
-## After skill/ult/restock/checkout dir mode, ignore move until stick/keys go neutral
-## so releasing the menu on a held WASD key does not start walking.
+## After skill/ult/restock-pick/checkout dir mode, ignore move until stick/keys go
+## neutral so releasing the menu on a held WASD key does not start walking.
+## Short-tap restock pulls do not arm this (see `_in_dir_mode` / `_move_axis`).
 var _move_locked_until_neutral: bool = false
 var _passive_checkout_prefill_lv: int = 0
 var _restock_picking: bool = false
@@ -899,11 +900,13 @@ func _cleaning() -> bool:
 
 
 func _in_dir_mode() -> bool:
+	## Restock SKU list is covered by `_restock_picking` only. Holding Interact on a
+	## restock point for a short-tap pull must NOT count as dir mode — otherwise
+	## `_move_locked_until_neutral` arms and held WASD/stick cannot walk until release.
 	if ult_prep or skill_menu_open or _restock_picking or _l_held or _u_held:
 		return true
 	if _j_held and is_instance_valid(target):
-		var kind := _obj_str(target, "kind")
-		if kind == "cashier" or kind == "restock":
+		if _obj_str(target, "kind") == "cashier":
 			return true
 	elif _j_held and target != null:
 		target = null
@@ -1406,6 +1409,15 @@ func _move_axis() -> Vector2:
 	if _elite_focus_left > 0.0:
 		return Vector2.ZERO
 	if _stun_left > 0.0 or _slip_left > 0.0 or _fighting or _shelving() or _cleaning():
+		return Vector2.ZERO
+	## Charging restock SKU list (before `_restock_picking`): freeze walk but do not
+	## arm the neutral latch — short-tap pulls while holding a direction must resume.
+	if (
+		_j_held
+		and not _restock_picking
+		and is_instance_valid(target)
+		and _obj_str(target, "kind") == "restock"
+	):
 		return Vector2.ZERO
 	if _in_dir_mode():
 		## Arm latch: skill menu / ult / checkout / restock pick consume move_* .
