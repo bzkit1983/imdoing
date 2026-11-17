@@ -220,6 +220,12 @@ const DISSAT_MISS := 18.0
 const DISSAT_QUEUE_PER_SEC := 100.0 / 15.0
 const DISSAT_DIRT_PER_SEC := 8.0
 const CUSTOMER_ARRIVE_DIST := 40.0
+## Must stay below cashier `slot_gap` (48): otherwise a one-slot advance is
+## already "arrived" and queued guests never step forward after dequeue.
+const QUEUE_SLOT_ARRIVE_DIST := 14.0
+## Within this range of the assigned slot, walk straight (no A*) so queue
+## compacting cannot detour around register solids toward another cashier.
+const QUEUE_DIRECT_FOLLOW_DIST := 120.0
 const CUSTOMER_SHELF_REACH := 80.0
 ## EliteCustomer（麻煩客人）— see docs/systemdesign/elitecustomer.md
 const ELITE_SPAWN_CHANCE_MIN := 0.01

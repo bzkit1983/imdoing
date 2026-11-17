@@ -531,7 +531,12 @@ func is_at_register() -> bool:
 	if reg.front_customer() != self:
 		return false
 	var slot: Vector2 = reg.slot_position(0)
-	return global_position.distance_to(slot) <= Tuning.CUSTOMER_ARRIVE_DIST + 6.0
+	## Must stay below one full slot_gap so the guest still standing on old
+	## slot-1 cannot pay — but after queue compact snap, front is on slot 0.
+	var gap := 48.0
+	if reg.get("slot_gap") != null:
+		gap = maxf(8.0, float(reg.slot_gap))
+	return global_position.distance_to(slot) <= gap * 0.45
 
 
 func _physics_process(delta: float) -> void:
@@ -601,7 +606,10 @@ func _physics_process(delta: float) -> void:
 		State.TO_CASHIER:
 			if _reg() == null:
 				_leave(false)
-			elif _follow_to(_reg().slot_position(_queue_index_guess()), delta):
+			elif _follow_checkout_slot(
+				_reg().slot_position(_queue_index_guess()),
+				delta,
+			):
 				state = State.QUEUE
 				_clear_route()
 		State.QUEUE:
@@ -773,7 +781,8 @@ func _tick_queue(delta: float, td: float) -> void:
 	var idx := _resolve_queue_idx(reg)
 	_queue_idx = idx
 	var slot: Vector2 = reg.slot_position(idx)
-	if _follow_to(slot, delta):
+	## Stay aligned to stand (cashier.dequeue already snaps on compact).
+	if _follow_queue_slot(slot, delta):
 		velocity = Vector2.ZERO
 	var blocked := _game and bool(_game.queue_dissat_blocked())
 	if not is_thief and not blocked:
@@ -788,7 +797,11 @@ func _resolve_queue_idx(reg: Node) -> int:
 		return _queue_idx
 	var idx := int(reg.call("queue_index_of", self)) if reg.has_method("queue_index_of") else int(q.find(self))
 	if idx < 0:
-		return int(q.size())
+		## Dropped from array without state reset — rejoin this register.
+		reg.enqueue(self)
+		idx = int(reg.call("queue_index_of", self)) if reg.has_method("queue_index_of") else int(reg.queue.find(self))
+		if idx < 0:
+			return maxi(0, int(reg.queue.size()) - 1)
 	return idx
 
 
@@ -799,8 +812,42 @@ func _queue_index_guess() -> int:
 	return _resolve_queue_idx(reg)
 
 
-func _follow_to(pos: Vector2, delta: float) -> bool:
-	var arrive_sq := Tuning.CUSTOMER_ARRIVE_DIST * Tuning.CUSTOMER_ARRIVE_DIST
+## Walk straight to a checkout slot (no A*). Used for queue compacting and near-lane approach.
+func _follow_queue_slot(pos: Vector2, delta: float) -> bool:
+	var arrive_sq := Tuning.QUEUE_SLOT_ARRIVE_DIST * Tuning.QUEUE_SLOT_ARRIVE_DIST
+	if global_position.distance_squared_to(pos) <= arrive_sq:
+		velocity = Vector2.ZERO
+		return true
+	var to := pos - global_position
+	if to.length_squared() < 1.0:
+		velocity = Vector2.ZERO
+		return true
+	var spd := Tuning.WALK_SPEED * Tuning.agi_mult(Tuning.CUSTOMER_AGI) * _pace_speed
+	if not temp_clerk:
+		spd *= float(_game.customer_move_mult())
+	if on_dirt() and state != State.LEAVE and not is_thief:
+		spd *= Tuning.DIRT_MULT
+	if spd <= 0.01:
+		velocity = Vector2.ZERO
+		return false
+	spd = maxf(Tuning.SPEED_FLOOR, spd)
+	velocity = to.normalized() * spd
+	move_and_slide()
+	return false
+
+
+## Approach assigned checkout slot: A* from afar, then straight shuffle when near.
+func _follow_checkout_slot(pos: Vector2, delta: float) -> bool:
+	var direct_sq := Tuning.QUEUE_DIRECT_FOLLOW_DIST * Tuning.QUEUE_DIRECT_FOLLOW_DIST
+	if global_position.distance_squared_to(pos) <= direct_sq:
+		_clear_route()
+		return _follow_queue_slot(pos, delta)
+	return _follow_to(pos, delta, Tuning.QUEUE_SLOT_ARRIVE_DIST)
+
+
+func _follow_to(pos: Vector2, delta: float, arrive_dist: float = -1.0) -> bool:
+	var arrive := arrive_dist if arrive_dist > 0.0 else Tuning.CUSTOMER_ARRIVE_DIST
+	var arrive_sq := arrive * arrive
 	if global_position.distance_squared_to(pos) <= arrive_sq:
 		velocity = Vector2.ZERO
 		return true

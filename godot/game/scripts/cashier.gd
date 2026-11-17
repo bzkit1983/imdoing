@@ -6,7 +6,9 @@ var kind: String = "cashier"
 var queue: Array = []
 var label: Label
 var front_offset := Vector2(0, -78)
-var slot_gap := 34.0
+## Keep above Tuning.CUSTOMER_ARRIVE_DIST so a one-slot advance is never
+## already "arrived", and so is_at_register cannot fire from the old slot.
+var slot_gap := 48.0
 var facing := Vector2.UP
 var register_index: int = 0
 var _label_n: int = -1
@@ -54,6 +56,9 @@ func dequeue(customer) -> void:
 	if customer == _self_customer:
 		_clear_self_customer()
 	queue.erase(customer)
+	## Snap remaining guests onto their new stands immediately so the new front
+	## is ready to pay without waiting on customer AI / physics / A*.
+	_compact_queue_stands()
 	_refresh_label()
 
 
@@ -63,6 +68,25 @@ func queue_index_of(customer) -> int:
 
 func slot_position(index: int) -> Vector2:
 	return global_position + front_offset + facing * slot_gap * float(index)
+
+
+func _compact_queue_stands() -> void:
+	const CustomerScript = preload("res://scripts/customer.gd")
+	for i in queue.size():
+		var c = queue[i]
+		if c == null or not is_instance_valid(c):
+			continue
+		if c.get("_queue_idx") != null:
+			c.set("_queue_idx", i)
+		var st := int(c.get("state")) if c.get("state") != null else -1
+		## Walkers keep approaching the updated slot; lined-up guests snap now.
+		if st != CustomerScript.State.QUEUE and st != CustomerScript.State.PAYING:
+			continue
+		c.global_position = slot_position(i)
+		if c.get("velocity") != null:
+			c.set("velocity", Vector2.ZERO)
+		if c.has_method("_clear_route"):
+			c.call("_clear_route")
 
 
 func back_position() -> Vector2:
