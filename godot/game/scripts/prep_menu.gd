@@ -87,6 +87,7 @@ var _hub_panel: GridContainer
 var _open_bar: HBoxContainer
 var _open_main: Button
 var _open_elite: Button
+var _open_random: Button
 var _diff_bar: HBoxContainer
 var _diff_easy: Button
 var _diff_normal: Button
@@ -107,7 +108,7 @@ var _size_side: int = 1
 var _on_size_btns: bool = false
 var _qty_panel: VBoxContainer
 var _hub_cols: int = 3
-var _open_focus: int = -1 ## -1 tiles · 10 difficulty · 0 open main · 1 elite
+var _open_focus: int = -1 ## -1 tiles · 10 difficulty · 0 open main · 1 elite · 2 random
 var _shade: ColorRect
 var _box: Control
 var _dlg_title: Label
@@ -366,6 +367,7 @@ func _bind_nodes() -> void:
 		hub_bar.custom_minimum_size = Vector2(44, 0)
 	_open_main = %OpenMain
 	_open_elite = %OpenElite
+	_open_random = %OpenRandom
 	_diff_bar = %DiffBar
 	_diff_easy = %DiffEasy
 	_diff_normal = %DiffNormal
@@ -385,6 +387,7 @@ func _bind_nodes() -> void:
 	_back_btn.button_down.connect(_on_back_button)
 	_open_main.pressed.connect(_on_open_main_pressed)
 	_open_elite.pressed.connect(_on_open_elite_pressed)
+	_open_random.pressed.connect(_on_open_random_pressed)
 	_diff_easy.pressed.connect(_on_diff_easy_pressed)
 	_diff_normal.pressed.connect(_on_diff_normal_pressed)
 	_dlg_yes.pressed.connect(_on_dlg_yes)
@@ -420,15 +423,25 @@ func _bind_nodes() -> void:
 	_apply_chrome_button_font(_diff_easy, 26)
 	_apply_chrome_button_font(_diff_normal, 26)
 	_apply_chrome_button_font(_open_main, 26)
-	_apply_chrome_button_font(_open_elite, 20)
+	_apply_chrome_button_font(_open_elite, 18)
+	_apply_chrome_button_font(_open_random, 18)
 	_diff_easy.custom_minimum_size = Vector2(0, PrepWidgets.DIFF_H)
 	_diff_normal.custom_minimum_size = Vector2(0, PrepWidgets.DIFF_H)
 	_open_main.custom_minimum_size = Vector2(0, PrepWidgets.OPEN_MAIN_H)
 	_open_elite.custom_minimum_size = Vector2(0, PrepWidgets.OPEN_ELITE_H)
+	_open_random.custom_minimum_size = Vector2(0, PrepWidgets.OPEN_ELITE_H)
 	_open_main.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_open_elite.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_open_random.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_open_main.size_flags_stretch_ratio = 1.15
+	_open_elite.size_flags_stretch_ratio = 1.0
+	_open_random.size_flags_stretch_ratio = 1.0
+	_open_main.clip_text = true
+	_open_elite.clip_text = true
+	_open_random.clip_text = true
 	PrepWidgets.paint_open_main(_open_main, false)
 	PrepWidgets.paint_open_elite(_open_elite, false)
+	PrepWidgets.paint_open_random(_open_random, false)
 	_paint_diff()
 	UiFont.apply_label(_dlg_title, PREP_TITLE)
 	_dlg_title.add_theme_color_override("font_color", Color("f4d35e"))
@@ -513,6 +526,8 @@ func _refresh_chrome_copy() -> void:
 		_open_main.text = Loc.t("prep.home.open")
 	if _open_elite:
 		_open_elite.text = Loc.t("prep.home.elite_test")
+	if _open_random:
+		_open_random.text = Loc.t("prep.home.random_tasks")
 	if %DiffLabel:
 		%DiffLabel.text = Loc.t("prep.difficulty.label")
 	if _diff_easy:
@@ -644,13 +659,20 @@ func _setup_open_bar() -> void:
 	if _open_bar == null:
 		return
 	_refresh_chrome_copy()
-	_open_elite.visible = ProductVersion.test_tools_enabled()
+	var tools_on := ProductVersion.test_tools_enabled()
+	_open_elite.visible = tools_on
+	if _open_random:
+		_open_random.visible = tools_on
 	_sync_diff_from_demo()
 	_open_main.custom_minimum_size = Vector2(0, PrepWidgets.OPEN_MAIN_H)
 	_open_elite.custom_minimum_size = Vector2(0, PrepWidgets.OPEN_ELITE_H)
+	if _open_random:
+		_open_random.custom_minimum_size = Vector2(0, PrepWidgets.OPEN_ELITE_H)
 	## Keep open bar from eating vertical space above the tiles.
 	_open_main.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_open_elite.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	if _open_random:
+		_open_random.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_paint_open_selection()
 	_layout_hub_chrome()
 
@@ -751,6 +773,8 @@ func _paint_open_selection() -> void:
 		return
 	PrepWidgets.paint_open_main(_open_main, _page == "home" and _open_focus == 0)
 	PrepWidgets.paint_open_elite(_open_elite, _page == "home" and _open_focus == 1)
+	if _open_random:
+		PrepWidgets.paint_open_random(_open_random, _page == "home" and _open_focus == 2)
 	_paint_diff()
 
 
@@ -856,6 +880,29 @@ func _on_open_elite_pressed() -> void:
 	_open_focus = 1
 	_paint_open_selection()
 	_show_page("elite_test")
+
+
+func _on_open_random_pressed() -> void:
+	if _dlg_open or _swallow_click or _confirm_latch or _building:
+		return
+	if tutorial_prep_restricts():
+		_popup_info(Loc.t("tut.gate.title"), Loc.t("tut.prep.restrict.hub"))
+		return
+	if not ProductVersion.test_tools_enabled():
+		return
+	_open_focus = 2
+	_paint_open_selection()
+	_index = 0
+	if demo != null and demo.has_method("clear_elite_test"):
+		demo.call("clear_elite_test")
+	var seed := int(Time.get_ticks_msec()) % 100000 + 1
+	var pack_id := String(state.task_test_pack_id) if state != null else ""
+	_set_task_test("random", pack_id, seed)
+	var blocks := state.open_blockers()
+	if blocks.is_empty():
+		_show_page("confirm")
+	else:
+		_popup_info(Loc.t("prep.msg.cant_open"), "\n".join(blocks))
 
 
 func _activate_locked_row(row: Dictionary) -> void:
@@ -1055,6 +1102,9 @@ func _activate() -> void:
 		return
 	if _page == "home" and _open_focus == 1:
 		_on_open_elite_pressed()
+		return
+	if _page == "home" and _open_focus == 2:
+		_on_open_random_pressed()
 		return
 	if _page == "layout" and (_layout_focus == "map" or _hold_type != ""):
 		try_place()
@@ -2272,8 +2322,17 @@ func _move_hub(x: int, y: int) -> void:
 			SfxBus.play("sfx_ui_move")
 			_paint_hub_selection()
 			return
-		if x != 0 and _open_elite.visible:
-			_open_focus = 1 if x > 0 else 0
+		if x != 0:
+			var opts: Array[int] = [0]
+			if _open_elite != null and _open_elite.visible:
+				opts.append(1)
+			if _open_random != null and _open_random.visible:
+				opts.append(2)
+			var at := opts.find(_open_focus)
+			if at < 0:
+				at = 0
+			var next := posmod(at + (1 if x > 0 else -1), opts.size())
+			_open_focus = opts[next]
 			SfxBus.play("sfx_ui_move")
 			_paint_open_selection()
 		return

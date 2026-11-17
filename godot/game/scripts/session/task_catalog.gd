@@ -2,6 +2,8 @@ extends RefCounted
 ## Ops / event / story task packs as serializable Dictionaries (tasksystem.md).
 ## Temporary GDScript source; same shape as future res://data/tasks/*.json.
 
+const Tuning = preload("res://scripts/tuning.gd")
+
 ## Metrics wired in this MVP (generator prefers these).
 const WIRED_METRICS: Array[String] = [
 	"shelve_count",
@@ -108,7 +110,61 @@ static func resolve_desc_key(task: Dictionary) -> String:
 	return ("quest.%s.desc" % quest_slug(id)) if id != "" else ""
 
 
+static func _is_generated_ops(task: Dictionary) -> bool:
+	var id := String(task.get("id", ""))
+	if id.begins_with("OP-RAND-"):
+		return true
+	var nk := String(task.get("name_key", ""))
+	var dk := String(task.get("desc_key", ""))
+	return nk == "quest.op_rand_generic.name" or dk == "quest.op_rand_generic.desc"
+
+
+static func _metric_action(metric: String, op: String, target: int, filters: Dictionary) -> String:
+	var is_cap := op == "<" or op == "<="
+	var kind := "cap" if is_cap else "floor"
+	var key := "quest.metric.%s.%s" % [metric, kind]
+	var tmpl := Loc.t(key)
+	if tmpl == key:
+		## Fallback: raw metric + target so QA still sees the condition.
+		return "%s %s %d" % [metric, op, target]
+	var sku := String(filters.get("sku", ""))
+	if sku != "" and "%s" in tmpl:
+		return Loc.t(key, [Tuning.sku_name(sku), target])
+	return Loc.t(key, [target])
+
+
+static func _generated_display_name(task: Dictionary) -> String:
+	var metric := String(task.get("metric", ""))
+	var filters: Dictionary = task.get("filters", {})
+	var sku := String(filters.get("sku", "")) if filters is Dictionary else ""
+	var key := "quest.metric.%s.name" % metric
+	var tmpl := Loc.t(key)
+	if tmpl == key:
+		return metric if metric != "" else String(task.get("id", "?"))
+	if sku != "" and "%s" in tmpl:
+		return Loc.t(key, [Tuning.sku_name(sku)])
+	return tmpl
+
+
+static func _generated_display_desc(task: Dictionary) -> String:
+	var metric := String(task.get("metric", ""))
+	var op := String(task.get("op", ">="))
+	var target := int(task.get("target", 0))
+	var filters: Dictionary = task.get("filters", {}) if task.get("filters", {}) is Dictionary else {}
+	var action := _metric_action(metric, op, target, filters)
+	var scope: Dictionary = task.get("scope", {}) if task.get("scope", {}) is Dictionary else {}
+	var stype := String(scope.get("type", "day"))
+	if stype == "accumulate":
+		var max_days := int(scope.get("max_days", 0))
+		if max_days > 0:
+			return Loc.t("quest.op_rand.scope.acc_days", [max_days, action])
+		return Loc.t("quest.op_rand.scope.acc", [action])
+	return Loc.t("quest.op_rand.scope.day", [action])
+
+
 static func display_name(task: Dictionary) -> String:
+	if _is_generated_ops(task):
+		return _generated_display_name(task)
 	var nk := resolve_name_key(task)
 	if nk != "":
 		var text := Loc.t(nk)
@@ -122,6 +178,8 @@ static func display_name(task: Dictionary) -> String:
 
 
 static func display_desc(task: Dictionary) -> String:
+	if _is_generated_ops(task):
+		return _generated_display_desc(task)
 	var dk := resolve_desc_key(task)
 	if dk == "":
 		return ""

@@ -395,6 +395,45 @@ quest.op_man_002_b.name,商店評價,Shop rating,商店评价,店舗評価
 quest.op_man_002_b.desc,將商店評價提升至 5 或以上。,Raise shop rating to 5 or higher.,将商店评价提升至 5 或以上。,店舗評価を5以上にする。
 quest.op_rand_generic.name,隨機營運任務,Random ops task,随机营运任务,ランダム営業タスク
 quest.op_rand_generic.desc,完成產生器指定的營運條件（進度見數字）。,Complete the generated ops goal (see progress).,完成生成器指定的营运条件（进度见数字）。,生成された営業条件を達成する（進捗は数値）。
+quest.op_rand.scope.day,本日內%s。,%s today.,本日%s。,本日中に%s。
+quest.op_rand.scope.acc_days,於 %d 個營業日內累計%s。,"Within %d ops days: %s.",于 %d 个营业日内累计%s。,%d営業日以内に累計%s。
+quest.op_rand.scope.acc,累計%s。,"Over time: %s.",累计%s。,累計で%s。
+quest.metric.clean_count.name,店面清潔,Store cleaning,店面清洁,店内清掃
+quest.metric.clean_count.floor,完成清潔 %d 次,complete cleaning %d times,完成清洁 %d 次,清掃を%d回行う
+quest.metric.deliver_count.name,交付服務,Guest delivery,交付服务,配達サービス
+quest.metric.deliver_count.floor,成功交付客人共 %d 次,successfully deliver to guests %d times,成功交付客人共 %d 次,客への配達を%d回成功させる
+quest.metric.perfect_deliver_count.name,完美交付,Perfect delivery,完美交付,完璧配達
+quest.metric.perfect_deliver_count.floor,一次交清購物清單達 %d 次,clear a guest list in one go %d times,一次交清购物清单达 %d 次,買い物リストを一度で渡し切るを%d回
+quest.metric.hand_deliver_count.name,親手交付,Hand delivery,亲手交付,手渡し配達
+quest.metric.hand_deliver_count.floor,親手交付客人共 %d 次,hand-deliver to guests %d times,亲手交付客人共 %d 次,客へ手渡し配達を%d回
+quest.metric.checkout_count.name,收銀台,Checkout,收银台,会計
+quest.metric.checkout_count.floor,成功收銀 %d 次,complete checkout successfully %d times,成功收银 %d 次,会計を%d回成功させる
+quest.metric.checkout_perfect.name,完美收銀,Perfect checkout,完美收银,完璧会計
+quest.metric.checkout_perfect.floor,完美收銀 %d 次,complete perfect checkout %d times,完美收银 %d 次,完璧会計を%d回
+quest.metric.shelve_count.name,商品上架,Shelve goods,商品上架,商品陳列
+quest.metric.shelve_count.floor,將商品上架達 %d 個,shelve %d goods,将商品上架达 %d 个,商品を%d個陳列する
+quest.metric.shelve_count_sku.name,%s上架,Shelve %s,%s上架,%s陳列
+quest.metric.shelve_count_sku.floor,將%s上架達 %d 個,shelve %s to %d,将%s上架达 %d 个,%sを%d個陳列する
+quest.metric.sales_revenue.name,營業額達標,Hit day revenue,营业额达标,売上達成
+quest.metric.sales_revenue.floor,營業額達到 %d 或以上,reach revenue of %d or more,营业额达到 %d 或以上,売上を%d以上にする
+quest.metric.thief_caught.name,抓小偷,Catch thieves,抓小偷,泥棒捕獲
+quest.metric.thief_caught.floor,抓到小偷 %d 次,catch thieves %d times,抓到小偷 %d 次,泥棒を%d回捕まえる
+quest.metric.angry_leave.name,客情控管,Guest mood control,客情管控,クレーム抑制
+quest.metric.angry_leave.cap,因不滿離開的客人少於 %d 位,keep angry leaves under %d,因不满离开的客人少于 %d 位,怒り退店を%d未満に抑える
+quest.metric.wrong_deliver.name,交付準確,Accurate delivery,交付准确,誤配抑制
+quest.metric.wrong_deliver.cap,交付錯誤少於 %d 次,keep wrong deliveries under %d,交付错误少于 %d 次,誤配を%d回未満に抑える
+quest.metric.ops_rating.name,營運評分,Ops rating,营运评分,営業スコア
+quest.metric.ops_rating.floor,營運評分達到 %d 或以上,reach ops rating %d or higher,营运评分达到 %d 或以上,営業スコアを%d以上にする
+quest.metric.day_grade.name,當日評級,Day grade,当日评级,当日評価
+quest.metric.day_grade.floor,結算評級達到 ＋%d 或以上,reach day grade ＋%d or higher,结算评级达到 ＋%d 或以上,評価を＋%d以上にする
+quest.metric.shop_rating.name,商店評價,Shop rating,商店评价,店舗評価
+quest.metric.shop_rating.floor,商店評價提升至 %d 或以上,raise shop rating to %d or higher,商店评价提升至 %d 或以上,店舗評価を%d以上にする
+quest.metric.dash_knock_guest.name,衝撞控管,Dash knock control,冲撞管控,ダッシュ接触抑制
+quest.metric.dash_knock_guest.cap,衝撞客人少於 %d 次,keep dash-knocks under %d,冲撞客人少于 %d 次,ダッシュ接触を%d回未満に抑える
+quest.metric.dirt_affect_count.name,污物影響,Dirt impact,污物影响,汚れ影響
+quest.metric.dirt_affect_count.cap,污物影響客人少於 %d 次,keep dirt impacts under %d,污物影响客人少于 %d 次,汚れ影響を%d回未満に抑える
+quest.metric.sold_count.name,銷售件數,Items sold,销售件数,販売個数
+quest.metric.sold_count.floor,售出商品共 %d 件,sell %d items,售出商品共 %d 件,商品を%d個販売する
 quest.pack.op_tut_001.name,序章教學包,Prologue tutorial pack,序章教学包,序章チュートリアル
 quest.pack.op_man_001.name,營業額與評級,Revenue & day grade,营业额与评级,売上と当日評価
 quest.pack.op_man_002.name,跨日累計,Cross-day accumulate,跨日累计,日またぎ累計

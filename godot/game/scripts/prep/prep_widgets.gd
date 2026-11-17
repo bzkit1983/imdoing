@@ -169,6 +169,21 @@ static func paint_open_elite(btn: Button, on: bool) -> void:
 	btn.add_theme_color_override("font_pressed_color", Color("f3d6ef"))
 
 
+static func paint_open_random(btn: Button, on: bool) -> void:
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color("2a4a52") if on else Color("1e343a")
+	bg.set_corner_radius_all(16)
+	bg.border_color = Color("4a7a82")
+	bg.set_border_width_all(2)
+	btn.add_theme_stylebox_override("normal", bg)
+	btn.add_theme_stylebox_override("hover", bg)
+	btn.add_theme_stylebox_override("pressed", bg)
+	btn.add_theme_stylebox_override("focus", bg)
+	btn.add_theme_color_override("font_color", Color("d6eef3"))
+	btn.add_theme_color_override("font_hover_color", Color("ffffff"))
+	btn.add_theme_color_override("font_pressed_color", Color("d6eef3"))
+
+
 static func step_button(text: String, on: bool, cb: Callable, tall: float = STEP_BTN_H, wide: float = STEP_BTN_W) -> Button:
 	var btn := bare_button(text, wide, tall)
 	paint_btn(btn, on)

@@ -378,7 +378,9 @@ prep.home.layout,店舖設計,Layout,店铺设计,店舗設計
 prep.home.clerks,店員　%d 人,Clerks · %d,店员　%d 人,店員　%d 人
 prep.home.open,開始營運,Open shop,开始营运,営業開始
 prep.home.elite_test,開始營運（麻煩客人模式）,Open shop (elite guest test),开始营运（麻烦客人模式）,営業開始（面倒な客モード）
+prep.home.random_tasks,開始營運（隨機任務）,Open shop (random tasks),开始营运（随机任务）,営業開始（ランダムタスク）
 prep.home.test_money,增加資金,Add funds,增加资金,資金を増やす
+prep.random_tasks.confirm_note,【測試】隨機營運任務（seed %d）,【Test】Random ops tasks (seed %d),【测试】随机营运任务（seed %d）,【テスト】ランダム営業タスク（seed %d）
 prep.elite_test.title,麻煩客人模式（測試）,Elite guest test,麻烦客人模式（测试）,面倒な客モード（テスト）
 prep.elite_test.info,選等級後進入確認開店。此模式保證至少出現一名麻煩客人；其後進店約 40% 再出。混合 LV 每次抽 1–6。,Pick a level then confirm. Guarantees ≥1 elite; ~40% chance after. Mixed rolls LV1–6 each time.,选等级后进入确认开店。此模式保证至少出现一名麻烦客人；其后进店约 40% 再出。混合 LV 每次抽 1–6。,レベルを選んで開店確認へ。このモードでは必ず1人以上の面倒な客が出現。以降の入店は約40%。混合LVは毎回1–6を抽選。
 prep.elite_test.lv,麻煩客人 LV%d,Elite guest LV%d,麻烦客人 LV%d,面倒な客 LV%d

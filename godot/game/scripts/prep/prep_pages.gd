@@ -357,10 +357,12 @@ static func _home(menu: CanvasLayer) -> void:
 			menu._diff_bar.visible = false
 	else:
 		menu._setup_open_bar()
-		## Tutorial soft-lock: hide elite／difficulty chrome outside the lesson path.
+		## Tutorial soft-lock: hide elite／random／difficulty chrome outside the lesson path.
 		if tut_lock:
 			if menu._open_elite:
 				menu._open_elite.visible = false
+			if menu._open_random:
+				menu._open_random.visible = false
 			if menu._diff_bar:
 				menu._diff_bar.visible = false
 			menu._layout_hub_chrome()
@@ -1125,6 +1127,8 @@ static func _confirm(menu: CanvasLayer) -> void:
 	if menu.demo != null and bool(menu.demo.get("elite_test_active")):
 		var mode := String(menu.demo.call("elite_test_label"))
 		info += "\n" + Loc.t("prep.elite_test.confirm_note", [mode])
+	if "task_test_mode" in menu.state and String(menu.state.task_test_mode) == "random":
+		info += "\n" + Loc.t("prep.random_tasks.confirm_note", [int(menu.state.task_test_seed)])
 	if ProductVersion.test_tools_enabled() and menu.demo != null and menu.demo.has_method("play_is_easy"):
 		var easy := bool(menu.demo.call("play_is_easy"))
 		info += "\n" + Loc.t("prep.difficulty.confirm_easy" if easy else "prep.difficulty.confirm_normal")
