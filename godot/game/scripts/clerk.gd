@@ -6,6 +6,7 @@ var _checkout_customer: Node
 const Tuning = preload("res://scripts/tuning.gd")
 const UiFont = preload("res://scripts/ui_font.gd")
 const Vox = preload("res://scripts/voxel_sprite.gd")
+const BoxFaceplate = preload("res://scripts/box_faceplate.gd")
 
 var role: String = "restock"
 var register: Node2D
@@ -151,8 +152,11 @@ func _tick_restock(delta: float) -> void:
 			_box_sku = ""
 			_plan_sku = ""
 			_shelf = null
+			_refresh_held_carton()
 		elif placed == 0:
 			_drop_box()
+		else:
+			_refresh_held_carton()
 		return
 	## Idle: throttle job search. Active plan: keep walking every frame (do not
 	## sit on _job_search_cd or the clerk freezes between search ticks).
@@ -186,6 +190,7 @@ func _tick_restock(delta: float) -> void:
 	_box_sku = _plan_sku
 	_box_n = n
 	_timer = 0.0
+	_refresh_held_carton()
 	SfxBus.play("sfx_clerk_pull")
 	_clear_path()
 
@@ -297,6 +302,11 @@ func _drop_box() -> void:
 	_plan_sku = ""
 	_shelf = null
 	_timer = 0.0
+	_refresh_held_carton()
+
+
+func _refresh_held_carton() -> void:
+	BoxFaceplate.sync_held_carton(self, _box_sku, _box_n)
 
 
 func _follow(pos: Vector2, delta: float) -> bool:

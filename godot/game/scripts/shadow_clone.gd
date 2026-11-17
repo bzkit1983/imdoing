@@ -8,6 +8,7 @@ const UiFont = preload("res://scripts/ui_font.gd")
 const Vox = preload("res://scripts/voxel_sprite.gd")
 const ShadowCloneCast = preload("res://scripts/shadow_clone_cast.gd")
 const FxBurst = preload("res://scripts/fx_burst.gd")
+const BoxFaceplate = preload("res://scripts/box_faceplate.gd")
 
 var is_shadow_clone: bool = true
 var role: String = ""
@@ -222,8 +223,11 @@ func _tick_restock(delta: float) -> void:
 			_box_sku = ""
 			_plan_sku = ""
 			_shelf = null
+			_refresh_held_carton()
 		elif placed == 0:
 			_drop_box()
+		else:
+			_refresh_held_carton()
 		return
 	if _plan_sku == "" or _shelf == null or not is_instance_valid(_shelf):
 		_job_search_cd -= delta
@@ -255,6 +259,7 @@ func _tick_restock(delta: float) -> void:
 	_box_sku = _plan_sku
 	_box_n = n
 	_timer = 0.0
+	_refresh_held_carton()
 	SfxBus.play("sfx_clerk_pull")
 	_clear_path()
 
@@ -337,6 +342,10 @@ func _clear_plan() -> void:
 	_shelf = null
 
 
+func _refresh_held_carton() -> void:
+	BoxFaceplate.sync_held_carton(self, _box_sku, _box_n)
+
+
 func _drop_box() -> void:
 	var n := _box_n
 	var sku := _box_sku
@@ -345,6 +354,7 @@ func _drop_box() -> void:
 	_plan_sku = ""
 	_shelf = null
 	_timer = 0.0
+	_refresh_held_carton()
 	if n <= 0 or sku == "" or _game == null:
 		return
 	var piles: Array = [{"sku": sku, "n": n}]

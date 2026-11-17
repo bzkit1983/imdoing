@@ -2,6 +2,7 @@ extends Node2D
 
 const Tuning = preload("res://scripts/tuning.gd")
 const Vox = preload("res://scripts/voxel_sprite.gd")
+const BoxFaceplate = preload("res://scripts/box_faceplate.gd")
 
 var inventory
 var _drawn_rev: int = -1
@@ -37,8 +38,12 @@ func _draw() -> void:
 	var dw := bw * s
 	var dh := bh * s
 	var boxes: Array = inventory.boxes()
+	var top_i := boxes.size() - 1
 	for i in boxes.size():
 		var box: Dictionary = boxes[i]
-		var col: Color = Tuning.SKU_COLOR.get(String(box["id"]), Color.WHITE)
+		var sku := String(box["id"])
 		var y := -36.0 - float(i) * (dh * 0.8)
-		draw_texture_rect(tex, Rect2(Vector2(-dw * 0.5, y), Vector2(dw, dh)), false, col.lerp(Color.WHITE, 0.35))
+		var rect := Rect2(Vector2(-dw * 0.5, y), Vector2(dw, dh))
+		draw_texture_rect(tex, rect, false, BoxFaceplate.carton_tint(sku))
+		var emphasize := i == top_i
+		BoxFaceplate.draw_carton_face(self, sku, rect, BoxFaceplate.HELD_ICON_PX, emphasize)

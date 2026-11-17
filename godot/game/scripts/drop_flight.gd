@@ -4,6 +4,7 @@ extends Node2D
 
 const Tuning = preload("res://scripts/tuning.gd")
 const Vox = preload("res://scripts/voxel_sprite.gd")
+const BoxFaceplate = preload("res://scripts/box_faceplate.gd")
 
 signal finished
 
@@ -13,6 +14,7 @@ var sku: String = ""
 var count: int = 0
 
 var _spr: Sprite2D
+var _face: Node2D
 var _trail: Line2D
 var _elapsed: float = 0.0
 var _duration: float = Tuning.DROP_FLIGHT_SEC
@@ -60,8 +62,10 @@ func setup(
 		_spr = Vox.sprite("box", 0)
 		_spr.scale = Vector2(0.65, 0.65)
 		add_child(_spr)
-	var tint: Color = Tuning.SKU_COLOR.get(id, Color.WHITE)
-	_spr.modulate = tint.lerp(Color.WHITE, 0.35)
+	_spr.modulate = BoxFaceplate.carton_tint(id)
+	if _face != null and is_instance_valid(_face):
+		_face.queue_free()
+	_face = BoxFaceplate.attach_carton_face(self, id, BoxFaceplate.FLOOR_ICON_PX, Vector2(0.0, -2.0))
 	global_position = from
 	set_process(true)
 

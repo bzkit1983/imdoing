@@ -3,6 +3,7 @@ extends Area2D
 const Tuning = preload("res://scripts/tuning.gd")
 const UiFont = preload("res://scripts/ui_font.gd")
 const Vox = preload("res://scripts/voxel_sprite.gd")
+const BoxFaceplate = preload("res://scripts/box_faceplate.gd")
 
 var kind: String = "drop"
 var sku: String = ""
@@ -38,12 +39,13 @@ func setup(id: String, n: int) -> void:
 	var spr := Vox.sprite("box", 0)
 	## Fit dropped box near legacy ~0.65 of 32px (~21px wide).
 	Vox.fit(spr, Vector2(24, 22))
-	var tint: Color = Tuning.SKU_COLOR.get(id, Color.WHITE)
-	spr.modulate = tint.lerp(Color.WHITE, 0.4)
+	spr.modulate = BoxFaceplate.carton_tint(id)
 	add_child(spr)
+	BoxFaceplate.attach_carton_face(self, id, BoxFaceplate.FLOOR_ICON_PX, Vector2(0.0, -2.0))
 	var lab := Label.new()
 	lab.text = _count_label_text(id, n)
 	lab.position = Vector2(-28, -28)
+	lab.z_index = 3
 	UiFont.apply_label(lab, UiFont.WORLD)
 	lab.add_theme_color_override("font_color", Color("fff4c2"))
 	lab.add_theme_color_override("font_outline_color", Color("121212"))

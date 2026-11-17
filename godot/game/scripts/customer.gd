@@ -5,6 +5,7 @@ var _checkout_customer: Node
 const Tuning = preload("res://scripts/tuning.gd")
 const UiFont = preload("res://scripts/ui_font.gd")
 const Vox = preload("res://scripts/voxel_sprite.gd")
+const BoxFaceplate = preload("res://scripts/box_faceplate.gd")
 const SkuIcons = preload("res://scripts/sku_icons.gd")
 const SkuPopup = preload("res://scripts/sku_popup.gd")
 
@@ -1205,6 +1206,7 @@ func begin_temp_clerk(job: String, reg: Node2D = null) -> void:
 	_temp_clear_plan()
 	_temp_box_n = 0
 	_temp_box_sku = ""
+	_refresh_temp_held_carton()
 	state = State.TEMP
 	mood = Loc.t("mood.temp_cashier") if temp_role == "cashier" else Loc.t("mood.temp_restock")
 	_target_shelf = null
@@ -1359,8 +1361,11 @@ func _tick_temp_restock(delta: float) -> void:
 			_temp_box_sku = ""
 			_temp_plan_sku = ""
 			_temp_shelf = null
+			_refresh_temp_held_carton()
 		elif placed == 0:
 			_drop_temp_box()
+		else:
+			_refresh_temp_held_carton()
 		return
 	if _temp_plan_sku == "" or _temp_shelf == null or not is_instance_valid(_temp_shelf):
 		_temp_job_cd -= delta
@@ -1400,6 +1405,7 @@ func _tick_temp_restock(delta: float) -> void:
 	_temp_box_sku = _temp_plan_sku
 	_temp_box_n = n_t
 	_temp_work = 0.0
+	_refresh_temp_held_carton()
 	SfxBus.play("sfx_clerk_pull")
 	_clear_route()
 
@@ -1481,6 +1487,10 @@ func _temp_clear_plan() -> void:
 	_temp_shelf = null
 
 
+func _refresh_temp_held_carton() -> void:
+	BoxFaceplate.sync_held_carton(self, _temp_box_sku, _temp_box_n)
+
+
 func _drop_temp_box() -> void:
 	var n := _temp_box_n
 	var sku := _temp_box_sku
@@ -1489,6 +1499,7 @@ func _drop_temp_box() -> void:
 	_temp_plan_sku = ""
 	_temp_shelf = null
 	_temp_work = 0.0
+	_refresh_temp_held_carton()
 	if n <= 0 or sku == "" or _game == null:
 		return
 	var piles: Array = [{"sku": sku, "n": n}]
