@@ -74,7 +74,7 @@ func combo_team() -> int:
 	return 0
 
 
-func record_caught(_seat: int = 0, _method: String = "any") -> void:
+func record_caught(_seat: int = 0, _method: String = "any", _actor_override: Node2D = null) -> void:
 	pass
 
 

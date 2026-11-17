@@ -125,6 +125,7 @@ skill.three_volley.blurb,全店掃射三波：立即／2／4秒開火；客人�
 world.cashier.status,收銀機 %d\n排隊 %d 人,Register %d\nQueue %d,收银机 %d\n排队 %d 人,レジ %d\n列 %d 人
 world.clerk.cashier,店員收銀,Clerk checkout,店员收银,店員レジ
 world.clerk.restock,店員補貨,Clerk restock,店员补货,店員補充
+world.clerk.security,店員保安,Clerk security,店员保安,店員警備
 world.clone.cashier,分身收銀,Clone checkout,分身收银,分身レジ
 world.clone.restock,分身補貨,Clone restock,分身补货,分身補充
 world.clone.label,分身,Clone,分身,分身

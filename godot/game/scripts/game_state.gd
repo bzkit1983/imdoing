@@ -761,7 +761,14 @@ func fire(index: int) -> void:
 func cycle_role(index: int) -> void:
 	if index < 0 or index >= clerks.size():
 		return
-	clerks[index]["role"] = "cashier" if String(clerks[index]["role"]) == "restock" else "restock"
+	## restock → cashier → security → restock
+	match String(clerks[index]["role"]):
+		"restock":
+			clerks[index]["role"] = "cashier"
+		"cashier":
+			clerks[index]["role"] = "security"
+		_:
+			clerks[index]["role"] = "restock"
 
 
 func cycle_register(index: int) -> void:
@@ -1334,7 +1341,7 @@ func from_dict(data: Dictionary) -> String:
 			if not (c is Dictionary):
 				continue
 			var role := String(c.get("role", "restock"))
-			if role != "cashier" and role != "restock":
+			if role != "cashier" and role != "restock" and role != "security":
 				role = "restock"
 			clerks.append({"role": role, "register": maxi(0, int(c.get("register", 0)))})
 	var loaded_slots: Array[String] = ["", "", "", "", ""]

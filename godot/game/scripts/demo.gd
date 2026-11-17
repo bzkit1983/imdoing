@@ -2689,18 +2689,24 @@ func record_stolen(items: Array) -> void:
 		call_deferred("seed_thief_for_tutorial")
 
 
-func record_caught(seat: int = 0, method: String = "any") -> void:
-	var actor := _seat_actor(seat)
+func record_caught(seat: int = 0, method: String = "any", actor_override: Node2D = null) -> void:
+	## seat < 0: NPC / store catch (e.g. security guard) — day tally + rating only.
+	var actor: Node2D = actor_override
+	if actor == null and seat >= 0:
+		actor = _seat_actor(seat)
 	var FloatText = preload("res://scripts/ui/float_text.gd")
-	if actor != null:
+	if seat >= 0 and actor != null:
 		FloatText.spawn_xp(actor, StateScript.XP_CATCH)
 	if SessionService.is_networked() and SessionService.is_client():
 		apply_ops_rating(RatingRules.P3_CATCH, actor)
 		return
 	thieves_caught += 1
-	_seat_bump(seat_caught, seat, 1)
+	if seat >= 0:
+		_seat_bump(seat_caught, seat, 1)
 	bump_hud()
 	apply_ops_rating(RatingRules.P3_CATCH, actor)
+	if seat < 0:
+		return
 	if _tasks != null:
 		_tasks.note_metric(seat, "thief_caught", 1)
 		match String(method):

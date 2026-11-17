@@ -136,6 +136,7 @@ CHAR_WAY = {
     "thief",
     "clerk_cashier",
     "clerk_restock",
+    "clerk_security",
 }
 ## Back-compat alias for older callers / docs.
 EIGHT_WAY = CHAR_WAY

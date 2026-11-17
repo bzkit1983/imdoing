@@ -74,6 +74,7 @@ CHARS = {
     "thief": dict(shirt="thief", shirt_dark="hood", hair="hair", hood=True, mask=True),
     "clerk_cashier": dict(shirt="clerk", shirt_dark="clerk_dark", hair="hair", badge=True),
     "clerk_restock": dict(shirt="clerk_stock", shirt_dark="player_dark", hair="hair_brown"),
+    "clerk_security": dict(shirt="pants", shirt_dark="hood", hair="hair", badge=True),
 }
 
 # anim -> list of pose dicts (one per frame)
@@ -152,7 +153,7 @@ ANIMS: dict[str, dict] = {
             {"arm_l_y": 2, "arm_r_y": 2, "arm_l_z": 1, "arm_r_z": 1, "lean": 1},
         ],
         "fps": 12,
-        "chars": list(PLAYER_IDS) + ["thief"],
+        "chars": list(PLAYER_IDS) + ["thief", "clerk_security"],
     },
     # button / card tap
     "checkout": {

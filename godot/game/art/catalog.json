@@ -535,6 +535,18 @@
           ],
           "voxels": 117037,
           "note": "v1.5 Q 版。綠圍裙、工作帽。"
+        },
+        {
+          "id": "clerk_security",
+          "name": "保安員",
+          "file": "clerk_security.vox",
+          "size": [
+            90,
+            40,
+            130
+          ],
+          "voxels": 117767,
+          "note": "v1.5 Q 版。深色制服、鴨舌帽、胸前金徽。"
         }
       ]
     },

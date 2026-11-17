@@ -1112,9 +1112,15 @@ static func _clerks(menu: CanvasLayer) -> void:
 	menu._add(Loc.t("prep.hire.recruit"), "hire", null)
 	for i in menu.state.clerks.size():
 		var c: Dictionary = menu.state.clerks[i]
-		var role := Loc.t("prep.role.cashier") if String(c["role"]) == "cashier" else Loc.t("prep.role.restock")
+		var role_id := String(c["role"])
+		var role := Loc.t("prep.role.restock")
+		match role_id:
+			"cashier":
+				role = Loc.t("prep.role.cashier")
+			"security":
+				role = Loc.t("prep.role.security")
 		menu._add(Loc.t("prep.hire.clerk_row", [i + 1, role, int(c["register"]) + 1]), "role", i)
-		if String(c["role"]) == "cashier":
+		if role_id == "cashier":
 			menu._add(Loc.t("prep.hire.reassign"), "reg", i)
 		menu._add(Loc.t("prep.hire.fire", [(i + 1)]), "fire", i)
 	menu._add(Loc.t("prep.back"), "go", parent_page("clerks"))

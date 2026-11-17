@@ -24,6 +24,12 @@ var _name_lab: Label
 var _model_id: String = "clerk_restock"
 var _job_search_cd: float = 0.0
 var _shown_anim: String = ""
+## Security patrol / chase.
+var _patrol_i: int = 0
+var _patrol_pts: PackedVector2Array = PackedVector2Array()
+var _chase_target: Node2D = null
+var _catch_cd: float = 0.0
+var _fight_flash: float = 0.0
 ## M2.2 LAN presentation puppet.
 var net_agent_id: int = -1
 var net_puppet: bool = false
@@ -57,12 +63,18 @@ func setup(game: Node, at: Vector2, job: String, reg: Node2D) -> void:
 	rect.size = Vector2(22, 22)
 	shape.shape = rect
 	add_child(shape)
-	_model_id = "clerk_cashier" if role == "cashier" else "clerk_restock"
+	match role:
+		"cashier":
+			_model_id = "clerk_cashier"
+		"security":
+			_model_id = "clerk_security"
+		_:
+			_model_id = "clerk_restock"
 	_sprite = Vox.animated(_model_id)
 	_sprite.name = "Body"
 	add_child(_sprite)
 	_name_lab = Label.new()
-	_name_lab.text = Loc.t("world.clerk.cashier") if role == "cashier" else Loc.t("world.clerk.restock")
+	_name_lab.text = _role_label()
 	_name_lab.position = Vector2(-40, -36)
 	UiFont.apply_label(_name_lab, UiFont.WORLD)
 	_name_lab.add_theme_color_override("font_color", Color("d6ecff"))
@@ -72,12 +84,22 @@ func setup(game: Node, at: Vector2, job: String, reg: Node2D) -> void:
 	add_child(_name_lab)
 
 
+func _role_label() -> String:
+	match role:
+		"cashier":
+			return Loc.t("world.clerk.cashier")
+		"security":
+			return Loc.t("world.clerk.security")
+		_:
+			return Loc.t("world.clerk.restock")
+
+
 func refresh_dev_labels() -> void:
 	if _name_lab == null:
 		return
 	_name_lab.visible = PlatformServices.is_show_dev_hud()
 	if _name_lab.visible:
-		_name_lab.text = Loc.t("world.clerk.cashier") if role == "cashier" else Loc.t("world.clerk.restock")
+		_name_lab.text = _role_label()
 
 
 func _physics_process(delta: float) -> void:
@@ -91,18 +113,124 @@ func _physics_process(delta: float) -> void:
 		velocity = Vector2.ZERO
 		_sync_visual("idle", Vector2.DOWN)
 		return
-	if role == "cashier":
-		_tick_cashier(delta)
-	else:
-		_tick_restock(delta)
+	match role:
+		"cashier":
+			_tick_cashier(delta)
+		"security":
+			_tick_security(delta)
+		_:
+			_tick_restock(delta)
 	if velocity.length() <= 8.0:
 		var face := Vector2.UP if role == "cashier" else Vector2.DOWN
 		if role == "cashier" and _timer > 0.0:
 			_sync_visual("checkout", face)
 		elif role == "restock" and _box_n > 0:
 			_sync_visual("restock", face)
+		elif role == "security" and _fight_flash > 0.0:
+			_sync_visual("fight", face)
 		else:
 			_sync_visual("idle", face)
+
+
+func _tick_security(delta: float) -> void:
+	_catch_cd = maxf(0.0, _catch_cd - delta)
+	_fight_flash = maxf(0.0, _fight_flash - delta)
+	if not _chase_target_valid(_chase_target):
+		_chase_target = _nearest_catchable_thief()
+	if _chase_target != null:
+		_tick_security_chase(delta)
+		return
+	_tick_security_patrol(delta)
+
+
+func _tick_security_patrol(delta: float) -> void:
+	_ensure_patrol_pts()
+	if _patrol_pts.is_empty():
+		velocity = Vector2.ZERO
+		return
+	_patrol_i = posmod(_patrol_i, _patrol_pts.size())
+	var goal: Vector2 = _patrol_pts[_patrol_i]
+	if _follow(goal, delta):
+		_patrol_i = posmod(_patrol_i + 1, _patrol_pts.size())
+		_clear_path()
+
+
+func _tick_security_chase(delta: float) -> void:
+	var target: Node2D = _chase_target
+	if not _chase_target_valid(target):
+		_chase_target = null
+		_clear_path()
+		return
+	var catch_sq := Tuning.SECURITY_CATCH_PX * Tuning.SECURITY_CATCH_PX
+	if global_position.distance_squared_to(target.global_position) <= catch_sq:
+		_try_catch_thief(target)
+		return
+	_follow(target.global_position, delta, Tuning.SECURITY_CHASE_SPEED_MULT)
+
+
+func _ensure_patrol_pts() -> void:
+	if not _patrol_pts.is_empty():
+		return
+	if _game == null:
+		return
+	var origin: Vector2 = _game.FLOOR_ORIGIN
+	var size: Vector2 = _game.FLOOR_SIZE
+	var inset := 72.0
+	_patrol_pts = PackedVector2Array([
+		origin + Vector2(inset, inset),
+		origin + Vector2(size.x - inset, inset),
+		origin + Vector2(size.x - inset, size.y - inset),
+		origin + Vector2(inset, size.y - inset),
+	])
+
+
+func _nearest_catchable_thief() -> Node2D:
+	if _game == null or not _game.has_method("thieves"):
+		return null
+	var detect_sq := Tuning.SECURITY_DETECT_PX * Tuning.SECURITY_DETECT_PX
+	var best: Node2D = null
+	var best_d := detect_sq
+	for t in _game.thieves():
+		if not _chase_target_valid(t):
+			continue
+		var d := global_position.distance_squared_to(t.global_position)
+		if d <= best_d:
+			best = t
+			best_d = d
+	return best
+
+
+func _chase_target_valid(t: Node2D) -> bool:
+	if t == null or not is_instance_valid(t):
+		return false
+	if not t.has_method("is_active_thief") or not bool(t.call("is_active_thief")):
+		return false
+	## Skip thieves already in a player fight / locked by a seat.
+	if t.has_method("in_fight") and bool(t.call("in_fight")):
+		return false
+	var lock = get_node_or_null("/root/InteractLock")
+	if lock != null and int(lock.call("holder_of", t)) >= 0:
+		return false
+	return true
+
+
+func _try_catch_thief(t: Node2D) -> void:
+	if _catch_cd > 0.0 or not _chase_target_valid(t):
+		_chase_target = null
+		return
+	var dir := t.global_position - global_position
+	if dir.length_squared() < 0.01:
+		dir = Vector2.RIGHT
+	else:
+		dir = dir.normalized()
+	t.call("dash_knock_away", dir)
+	_game.record_caught(-1, "guard", self)
+	SfxBus.play("sfx_thief_dash_out")
+	_catch_cd = Tuning.SECURITY_CATCH_COOLDOWN_SEC
+	_fight_flash = 0.35
+	_chase_target = null
+	_clear_path()
+	_sync_visual("fight", dir)
 
 
 func _tick_cashier(delta: float) -> void:
@@ -309,7 +437,7 @@ func _refresh_held_carton() -> void:
 	BoxFaceplate.sync_held_carton(self, _box_sku, _box_n)
 
 
-func _follow(pos: Vector2, delta: float) -> bool:
+func _follow(pos: Vector2, delta: float, speed_mult: float = 1.0) -> bool:
 	var arrive_sq := 36.0 * 36.0
 	if global_position.distance_squared_to(pos) <= arrive_sq:
 		velocity = Vector2.ZERO
@@ -330,10 +458,14 @@ func _follow(pos: Vector2, delta: float) -> bool:
 	var to := next - global_position
 	if to.length_squared() < 1.0:
 		return global_position.distance_squared_to(pos) <= arrive_sq
-	var spd := Tuning.WALK_SPEED * Tuning.agi_mult(10)
+	var spd := Tuning.WALK_SPEED * Tuning.agi_mult(10) * maxf(speed_mult, 0.01)
 	spd *= float(_game.customer_move_mult())
 	velocity = to.normalized() * maxf(spd, 1.0)
-	var walk_anim := "walk_carry" if _box_n > 0 and Vox.has_anim(_model_id, "walk_carry") else "walk"
+	var walk_anim := "walk"
+	if _fight_flash > 0.0 and Vox.has_anim(_model_id, "fight"):
+		walk_anim = "fight"
+	elif _box_n > 0 and Vox.has_anim(_model_id, "walk_carry"):
+		walk_anim = "walk_carry"
 	_sync_visual(walk_anim, velocity)
 	move_and_slide()
 	return false
