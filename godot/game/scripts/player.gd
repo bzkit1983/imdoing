@@ -2960,7 +2960,7 @@ func _finish_checkout(cust) -> void:
 
 
 func _spawn_dollar() -> void:
-	SfxBus.play("sfx_checkout_cash_pop")
+	SfxBus.play("sfx_checkout_cash_pop2")
 	var lab := Label.new()
 	lab.text = "$"
 	lab.position = Vector2(-6, -90)
