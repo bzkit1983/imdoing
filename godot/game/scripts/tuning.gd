@@ -180,6 +180,9 @@ const SECURITY_CATCH_PX := 36.0
 const SECURITY_CATCH_COOLDOWN_SEC := 0.6
 ## Slightly faster than AGI-10 walk while chasing.
 const SECURITY_CHASE_SPEED_MULT := 1.25
+## Cleaner clerk: detect / arrive radii (scrub uses clean_seconds(10)).
+const CLEANER_DETECT_PX := 160.0
+const CLEANER_ARRIVE_PX := 36.0
 const SKU_PICK_HOLD := 0.18
 const RESTOCK_SECONDS_AT_10 := 2.0
 const RESTOCK_SECONDS_AT_50 := 0.2

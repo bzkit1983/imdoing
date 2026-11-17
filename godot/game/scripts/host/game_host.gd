@@ -102,7 +102,7 @@ func record_stolen(_items: Array) -> void:
 	pass
 
 
-func note_clean(_seat: int = 0) -> void:
+func note_clean(_seat: int = 0, _actor_override: Node2D = null) -> void:
 	pass
 
 

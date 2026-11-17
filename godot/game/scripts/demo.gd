@@ -514,19 +514,25 @@ func _on_tutorial_progress() -> void:
 	bump_hud()
 
 
-func note_clean(seat: int = 0) -> void:
+func note_clean(seat: int = 0, actor_override: Node2D = null) -> void:
+	## seat < 0: NPC / store clean (e.g. cleaner clerk) — day tally + rating only.
 	cleaned += 1
-	_seat_bump(seat_cleaned, seat, 1)
+	var actor: Node2D = actor_override
+	if actor == null and seat >= 0:
+		actor = _seat_actor(seat)
 	var FloatText = preload("res://scripts/ui/float_text.gd")
-	var actor := _seat_actor(seat)
-	if actor != null:
-		FloatText.spawn_xp(actor, StateScript.XP_CLEAN)
+	if seat >= 0:
+		_seat_bump(seat_cleaned, seat, 1)
+		if actor != null:
+			FloatText.spawn_xp(actor, StateScript.XP_CLEAN)
 	apply_ops_rating(RatingRules.P4_CLEAN, actor)
+	bump_hud()
+	if seat < 0:
+		return
 	if _tasks != null:
 		_tasks.note_metric(seat, "clean_count", 1)
 	if _tutorial != null:
 		_tutorial.note_metric("clean_count", 1)
-	bump_hud()
 
 
 func _seat_bump(arr: Array, seat: int, n: int) -> void:
@@ -2589,6 +2595,18 @@ func thieves() -> Array[Node2D]:
 			continue
 		i += 1
 	return _thieves
+
+
+func dirts() -> Array[Node2D]:
+	## Prune stale dirt refs lazily for cleaner AI / scans.
+	var i := 0
+	while i < _dirts.size():
+		var d: Node2D = _dirts[i]
+		if d == null or not is_instance_valid(d):
+			_dirts.remove_at(i)
+			continue
+		i += 1
+	return _dirts
 
 
 func register_customer(c: Node) -> void:

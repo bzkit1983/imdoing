@@ -134,6 +134,7 @@ def person(kind: str) -> vb.Model:
         "clerk_cashier": "clerk",
         "clerk_restock": "white",
         "clerk_security": "pants",
+        "clerk_cleaner": "white",
     }[kind]
     dark = {
         "customer": "customer_dark",
@@ -141,6 +142,7 @@ def person(kind: str) -> vb.Model:
         "clerk_cashier": "clerk_dark",
         "clerk_restock": "clerk_stock",
         "clerk_security": "hood",
+        "clerk_cleaner": "snack",
     }[kind]
     bottoms = "hood" if kind == "thief" else "pants"
     hair = {
@@ -149,6 +151,7 @@ def person(kind: str) -> vb.Model:
         "clerk_cashier": "hair",
         "clerk_restock": "hair_brown",
         "clerk_security": "hair",
+        "clerk_cleaner": "hair_brown",
     }[kind]
     collar = {
         "customer": "can",
@@ -156,6 +159,7 @@ def person(kind: str) -> vb.Model:
         "clerk_cashier": "white",
         "clerk_restock": "clerk_stock",
         "clerk_security": "metal",
+        "clerk_cleaner": "snack",
     }[kind]
 
     # Chunky shoes, tall socks, a short bit of skin. Stay inside the swing boxes.
@@ -246,6 +250,16 @@ def person(kind: str) -> vb.Model:
         fill(m, 28, 8, 118, 62, 34, 129, "hood")
         fill(m, 26, 26, 114, 64, 38, 122, "hood")
         fill(m, 34, 30, 124, 56, 36, 129, "metal")
+    elif kind == "clerk_cleaner":
+        # Yellow vest + mop held beside the right arm (distinct from restock apron).
+        fill(m, 34, 28, 54, 56, 34, 78, "snack")
+        fill(m, 40, 32, 58, 50, 34, 72, "white")
+        fill(m, 32, 8, 118, 58, 30, 129, "snack")
+        fill(m, 30, 26, 114, 60, 36, 120, "snack")
+        # Mop handle + head outside the arm swing box.
+        fill(m, 78, 18, 20, 84, 24, 90, "wood")
+        fill(m, 74, 14, 12, 88, 28, 24, "metal")
+        fill(m, 76, 16, 8, 86, 26, 14, "white")
     return m
 
 
@@ -582,6 +596,7 @@ MODELS = {
     "clerk_cashier": ("收銀店員", lambda: person("clerk_cashier"), "v1.5 Q 版。藍衣白牌、平頂帽。"),
     "clerk_restock": ("補貨店員", lambda: person("clerk_restock"), "v1.5 Q 版。綠圍裙、工作帽。"),
     "clerk_security": ("保安員", lambda: person("clerk_security"), "v1.5 Q 版。深色制服、鴨舌帽、胸前金徽。"),
+    "clerk_cleaner": ("清潔工", lambda: person("clerk_cleaner"), "v1.5 Q 版。黃背心、工作帽、側持拖把。"),
     "register": ("收銀機", register, "v1.5 中期稿。櫃檯加螢幕。佔格不變。"),
     "restock_dry": ("乾貨補貨架", lambda: restock("can"), "v1.5：256×96×144，畫面高度對齊貨架。佔格仍 2×2。"),
     "restock_frozen": ("凍櫃補貨架", lambda: restock("drink"), "v1.5：同一座較矮倉庫架，箱色用凍飲色。"),
@@ -736,7 +751,7 @@ def main() -> None:
     for mid, (_name, builder, note) in MODELS.items():
         model = builder()
         built[mid] = model
-        if mid in ("customer", "thief", "clerk_cashier", "clerk_restock", "clerk_security"):
+        if mid in ("customer", "thief", "clerk_cashier", "clerk_restock", "clerk_security", "clerk_cleaner"):
             audit_person(model, mid)
         if model.size[0] > 256 or model.size[1] > 256 or model.size[2] > 256:
             raise SystemExit(f"{mid} exceeds byte voxel coords {model.size}")

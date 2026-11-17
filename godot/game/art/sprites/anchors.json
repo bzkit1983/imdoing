@@ -30689,5 +30689,1237 @@
     "fw": 43.5,
     "fh": 31.5,
     "hires": true
+  },
+  "clerk_cleaner_0": {
+    "ax": 22.5,
+    "ay": 75.0,
+    "fw": 45.0,
+    "fh": 20.0,
+    "hires": true
+  },
+  "clerk_cleaner_1": {
+    "ax": 21.75,
+    "ay": 77.5,
+    "fw": 43.5,
+    "fh": 25.0,
+    "hires": true
+  },
+  "clerk_cleaner_2": {
+    "ax": 18.0,
+    "ay": 83.0,
+    "fw": 36.0,
+    "fh": 36.0,
+    "hires": true
+  },
+  "clerk_cleaner_3": {
+    "ax": 12.75,
+    "ay": 86.75,
+    "fw": 25.5,
+    "fh": 43.5,
+    "hires": true
+  },
+  "clerk_cleaner_4": {
+    "ax": 10.0,
+    "ay": 87.5,
+    "fw": 20.0,
+    "fh": 45.0,
+    "hires": true
+  },
+  "clerk_cleaner_5": {
+    "ax": 12.5,
+    "ay": 86.75,
+    "fw": 25.0,
+    "fh": 43.5,
+    "hires": true
+  },
+  "clerk_cleaner_6": {
+    "ax": 18.0,
+    "ay": 83.0,
+    "fw": 36.0,
+    "fh": 36.0,
+    "hires": true
+  },
+  "clerk_cleaner_7": {
+    "ax": 21.75,
+    "ay": 77.75,
+    "fw": 43.5,
+    "fh": 25.5,
+    "hires": true
+  },
+  "clerk_cleaner_8": {
+    "ax": 22.5,
+    "ay": 75.0,
+    "fw": 45.0,
+    "fh": 20.0,
+    "hires": true
+  },
+  "clerk_cleaner_9": {
+    "ax": 21.75,
+    "ay": 77.5,
+    "fw": 43.5,
+    "fh": 25.0,
+    "hires": true
+  },
+  "clerk_cleaner_10": {
+    "ax": 18.0,
+    "ay": 83.0,
+    "fw": 36.0,
+    "fh": 36.0,
+    "hires": true
+  },
+  "clerk_cleaner_11": {
+    "ax": 12.75,
+    "ay": 86.75,
+    "fw": 25.5,
+    "fh": 43.5,
+    "hires": true
+  },
+  "clerk_cleaner_12": {
+    "ax": 10.0,
+    "ay": 87.5,
+    "fw": 20.0,
+    "fh": 45.0,
+    "hires": true
+  },
+  "clerk_cleaner_13": {
+    "ax": 12.5,
+    "ay": 86.75,
+    "fw": 25.0,
+    "fh": 43.5,
+    "hires": true
+  },
+  "clerk_cleaner_14": {
+    "ax": 18.0,
+    "ay": 83.0,
+    "fw": 36.0,
+    "fh": 36.0,
+    "hires": true
+  },
+  "clerk_cleaner_15": {
+    "ax": 21.75,
+    "ay": 77.75,
+    "fw": 43.5,
+    "fh": 25.5,
+    "hires": true
+  },
+  "clerk_cleaner_idle_0_0": {
+    "ax": 22.5,
+    "ay": 75.0,
+    "fw": 45.0,
+    "fh": 20.0,
+    "hires": true
+  },
+  "clerk_cleaner_idle_1_0": {
+    "ax": 21.75,
+    "ay": 77.5,
+    "fw": 43.5,
+    "fh": 25.0,
+    "hires": true
+  },
+  "clerk_cleaner_idle_2_0": {
+    "ax": 18.0,
+    "ay": 83.0,
+    "fw": 36.0,
+    "fh": 36.0,
+    "hires": true
+  },
+  "clerk_cleaner_idle_3_0": {
+    "ax": 12.75,
+    "ay": 86.75,
+    "fw": 25.5,
+    "fh": 43.5,
+    "hires": true
+  },
+  "clerk_cleaner_idle_4_0": {
+    "ax": 10.0,
+    "ay": 87.5,
+    "fw": 20.0,
+    "fh": 45.0,
+    "hires": true
+  },
+  "clerk_cleaner_idle_5_0": {
+    "ax": 12.5,
+    "ay": 86.75,
+    "fw": 25.0,
+    "fh": 43.5,
+    "hires": true
+  },
+  "clerk_cleaner_idle_6_0": {
+    "ax": 18.0,
+    "ay": 83.0,
+    "fw": 36.0,
+    "fh": 36.0,
+    "hires": true
+  },
+  "clerk_cleaner_idle_7_0": {
+    "ax": 21.75,
+    "ay": 77.75,
+    "fw": 43.5,
+    "fh": 25.5,
+    "hires": true
+  },
+  "clerk_cleaner_idle_8_0": {
+    "ax": 22.5,
+    "ay": 75.0,
+    "fw": 45.0,
+    "fh": 20.0,
+    "hires": true
+  },
+  "clerk_cleaner_idle_9_0": {
+    "ax": 21.75,
+    "ay": 77.5,
+    "fw": 43.5,
+    "fh": 25.0,
+    "hires": true
+  },
+  "clerk_cleaner_idle_10_0": {
+    "ax": 18.0,
+    "ay": 83.0,
+    "fw": 36.0,
+    "fh": 36.0,
+    "hires": true
+  },
+  "clerk_cleaner_idle_11_0": {
+    "ax": 12.75,
+    "ay": 86.75,
+    "fw": 25.5,
+    "fh": 43.5,
+    "hires": true
+  },
+  "clerk_cleaner_idle_12_0": {
+    "ax": 10.0,
+    "ay": 87.5,
+    "fw": 20.0,
+    "fh": 45.0,
+    "hires": true
+  },
+  "clerk_cleaner_idle_13_0": {
+    "ax": 12.5,
+    "ay": 86.75,
+    "fw": 25.0,
+    "fh": 43.5,
+    "hires": true
+  },
+  "clerk_cleaner_idle_14_0": {
+    "ax": 18.0,
+    "ay": 83.0,
+    "fw": 36.0,
+    "fh": 36.0,
+    "hires": true
+  },
+  "clerk_cleaner_idle_15_0": {
+    "ax": 21.75,
+    "ay": 77.75,
+    "fw": 43.5,
+    "fh": 25.5,
+    "hires": true
+  },
+  "clerk_cleaner_idle_0_1": {
+    "ax": 22.5,
+    "ay": 78.5,
+    "fw": 45.0,
+    "fh": 21.0,
+    "hires": true
+  },
+  "clerk_cleaner_idle_1_1": {
+    "ax": 21.75,
+    "ay": 80.5,
+    "fw": 43.5,
+    "fh": 25.0,
+    "hires": true
+  },
+  "clerk_cleaner_idle_2_1": {
+    "ax": 18.0,
+    "ay": 86.0,
+    "fw": 36.0,
+    "fh": 36.0,
+    "hires": true
+  },
+  "clerk_cleaner_idle_3_1": {
+    "ax": 12.75,
+    "ay": 89.75,
+    "fw": 25.5,
+    "fh": 43.5,
+    "hires": true
+  },
+  "clerk_cleaner_idle_4_1": {
+    "ax": 10.5,
+    "ay": 90.5,
+    "fw": 21.0,
+    "fh": 45.0,
+    "hires": true
+  },
+  "clerk_cleaner_idle_5_1": {
+    "ax": 12.5,
+    "ay": 89.75,
+    "fw": 25.0,
+    "fh": 43.5,
+    "hires": true
+  },
+  "clerk_cleaner_idle_6_1": {
+    "ax": 18.0,
+    "ay": 86.0,
+    "fw": 36.0,
+    "fh": 36.0,
+    "hires": true
+  },
+  "clerk_cleaner_idle_7_1": {
+    "ax": 21.75,
+    "ay": 80.75,
+    "fw": 43.5,
+    "fh": 25.5,
+    "hires": true
+  },
+  "clerk_cleaner_idle_8_1": {
+    "ax": 22.5,
+    "ay": 78.5,
+    "fw": 45.0,
+    "fh": 21.0,
+    "hires": true
+  },
+  "clerk_cleaner_idle_9_1": {
+    "ax": 21.75,
+    "ay": 80.5,
+    "fw": 43.5,
+    "fh": 25.0,
+    "hires": true
+  },
+  "clerk_cleaner_idle_10_1": {
+    "ax": 18.0,
+    "ay": 86.0,
+    "fw": 36.0,
+    "fh": 36.0,
+    "hires": true
+  },
+  "clerk_cleaner_idle_11_1": {
+    "ax": 12.75,
+    "ay": 89.75,
+    "fw": 25.5,
+    "fh": 43.5,
+    "hires": true
+  },
+  "clerk_cleaner_idle_12_1": {
+    "ax": 10.5,
+    "ay": 90.5,
+    "fw": 21.0,
+    "fh": 45.0,
+    "hires": true
+  },
+  "clerk_cleaner_idle_13_1": {
+    "ax": 12.5,
+    "ay": 89.75,
+    "fw": 25.0,
+    "fh": 43.5,
+    "hires": true
+  },
+  "clerk_cleaner_idle_14_1": {
+    "ax": 18.0,
+    "ay": 86.0,
+    "fw": 36.0,
+    "fh": 36.0,
+    "hires": true
+  },
+  "clerk_cleaner_idle_15_1": {
+    "ax": 21.75,
+    "ay": 80.75,
+    "fw": 43.5,
+    "fh": 25.5,
+    "hires": true
+  },
+  "clerk_cleaner_walk_0_0": {
+    "ax": 22.5,
+    "ay": 75.5,
+    "fw": 45.0,
+    "fh": 21.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_1_0": {
+    "ax": 23.25,
+    "ay": 78.75,
+    "fw": 46.5,
+    "fh": 27.5,
+    "hires": true
+  },
+  "clerk_cleaner_walk_2_0": {
+    "ax": 20.5,
+    "ay": 81.5,
+    "fw": 41.0,
+    "fh": 33.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_3_0": {
+    "ax": 14.75,
+    "ay": 86.0,
+    "fw": 29.5,
+    "fh": 42.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_4_0": {
+    "ax": 10.5,
+    "ay": 87.5,
+    "fw": 21.0,
+    "fh": 45.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_5_0": {
+    "ax": 13.75,
+    "ay": 88.25,
+    "fw": 27.5,
+    "fh": 46.5,
+    "hires": true
+  },
+  "clerk_cleaner_walk_6_0": {
+    "ax": 16.5,
+    "ay": 85.5,
+    "fw": 33.0,
+    "fh": 41.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_7_0": {
+    "ax": 21.0,
+    "ay": 79.75,
+    "fw": 42.0,
+    "fh": 29.5,
+    "hires": true
+  },
+  "clerk_cleaner_walk_8_0": {
+    "ax": 22.5,
+    "ay": 75.5,
+    "fw": 45.0,
+    "fh": 21.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_9_0": {
+    "ax": 23.25,
+    "ay": 78.75,
+    "fw": 46.5,
+    "fh": 27.5,
+    "hires": true
+  },
+  "clerk_cleaner_walk_10_0": {
+    "ax": 20.5,
+    "ay": 81.5,
+    "fw": 41.0,
+    "fh": 33.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_11_0": {
+    "ax": 14.75,
+    "ay": 86.0,
+    "fw": 29.5,
+    "fh": 42.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_12_0": {
+    "ax": 10.5,
+    "ay": 87.5,
+    "fw": 21.0,
+    "fh": 45.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_13_0": {
+    "ax": 13.75,
+    "ay": 88.25,
+    "fw": 27.5,
+    "fh": 46.5,
+    "hires": true
+  },
+  "clerk_cleaner_walk_14_0": {
+    "ax": 16.5,
+    "ay": 85.5,
+    "fw": 33.0,
+    "fh": 41.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_15_0": {
+    "ax": 21.0,
+    "ay": 79.75,
+    "fw": 42.0,
+    "fh": 29.5,
+    "hires": true
+  },
+  "clerk_cleaner_walk_0_1": {
+    "ax": 22.5,
+    "ay": 78.5,
+    "fw": 45.0,
+    "fh": 21.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_1_1": {
+    "ax": 21.75,
+    "ay": 80.5,
+    "fw": 43.5,
+    "fh": 25.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_2_1": {
+    "ax": 18.0,
+    "ay": 86.0,
+    "fw": 36.0,
+    "fh": 36.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_3_1": {
+    "ax": 12.75,
+    "ay": 89.75,
+    "fw": 25.5,
+    "fh": 43.5,
+    "hires": true
+  },
+  "clerk_cleaner_walk_4_1": {
+    "ax": 10.5,
+    "ay": 90.5,
+    "fw": 21.0,
+    "fh": 45.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_5_1": {
+    "ax": 12.5,
+    "ay": 89.75,
+    "fw": 25.0,
+    "fh": 43.5,
+    "hires": true
+  },
+  "clerk_cleaner_walk_6_1": {
+    "ax": 18.0,
+    "ay": 86.0,
+    "fw": 36.0,
+    "fh": 36.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_7_1": {
+    "ax": 21.75,
+    "ay": 80.75,
+    "fw": 43.5,
+    "fh": 25.5,
+    "hires": true
+  },
+  "clerk_cleaner_walk_8_1": {
+    "ax": 22.5,
+    "ay": 78.5,
+    "fw": 45.0,
+    "fh": 21.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_9_1": {
+    "ax": 21.75,
+    "ay": 80.5,
+    "fw": 43.5,
+    "fh": 25.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_10_1": {
+    "ax": 18.0,
+    "ay": 86.0,
+    "fw": 36.0,
+    "fh": 36.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_11_1": {
+    "ax": 12.75,
+    "ay": 89.75,
+    "fw": 25.5,
+    "fh": 43.5,
+    "hires": true
+  },
+  "clerk_cleaner_walk_12_1": {
+    "ax": 10.5,
+    "ay": 90.5,
+    "fw": 21.0,
+    "fh": 45.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_13_1": {
+    "ax": 12.5,
+    "ay": 89.75,
+    "fw": 25.0,
+    "fh": 43.5,
+    "hires": true
+  },
+  "clerk_cleaner_walk_14_1": {
+    "ax": 18.0,
+    "ay": 86.0,
+    "fw": 36.0,
+    "fh": 36.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_15_1": {
+    "ax": 21.75,
+    "ay": 80.75,
+    "fw": 43.5,
+    "fh": 25.5,
+    "hires": true
+  },
+  "clerk_cleaner_walk_0_2": {
+    "ax": 22.5,
+    "ay": 75.5,
+    "fw": 45.0,
+    "fh": 21.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_1_2": {
+    "ax": 21.0,
+    "ay": 79.75,
+    "fw": 42.0,
+    "fh": 29.5,
+    "hires": true
+  },
+  "clerk_cleaner_walk_2_2": {
+    "ax": 16.5,
+    "ay": 85.5,
+    "fw": 33.0,
+    "fh": 41.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_3_2": {
+    "ax": 13.75,
+    "ay": 88.25,
+    "fw": 27.5,
+    "fh": 46.5,
+    "hires": true
+  },
+  "clerk_cleaner_walk_4_2": {
+    "ax": 10.5,
+    "ay": 87.5,
+    "fw": 21.0,
+    "fh": 45.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_5_2": {
+    "ax": 14.75,
+    "ay": 86.0,
+    "fw": 29.5,
+    "fh": 42.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_6_2": {
+    "ax": 20.5,
+    "ay": 81.5,
+    "fw": 41.0,
+    "fh": 33.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_7_2": {
+    "ax": 23.25,
+    "ay": 78.75,
+    "fw": 46.5,
+    "fh": 27.5,
+    "hires": true
+  },
+  "clerk_cleaner_walk_8_2": {
+    "ax": 22.5,
+    "ay": 75.5,
+    "fw": 45.0,
+    "fh": 21.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_9_2": {
+    "ax": 21.0,
+    "ay": 79.75,
+    "fw": 42.0,
+    "fh": 29.5,
+    "hires": true
+  },
+  "clerk_cleaner_walk_10_2": {
+    "ax": 16.5,
+    "ay": 85.5,
+    "fw": 33.0,
+    "fh": 41.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_11_2": {
+    "ax": 13.75,
+    "ay": 88.25,
+    "fw": 27.5,
+    "fh": 46.5,
+    "hires": true
+  },
+  "clerk_cleaner_walk_12_2": {
+    "ax": 10.5,
+    "ay": 87.5,
+    "fw": 21.0,
+    "fh": 45.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_13_2": {
+    "ax": 14.75,
+    "ay": 86.0,
+    "fw": 29.5,
+    "fh": 42.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_14_2": {
+    "ax": 20.5,
+    "ay": 81.5,
+    "fw": 41.0,
+    "fh": 33.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_15_2": {
+    "ax": 23.25,
+    "ay": 78.75,
+    "fw": 46.5,
+    "fh": 27.5,
+    "hires": true
+  },
+  "clerk_cleaner_walk_0_3": {
+    "ax": 22.5,
+    "ay": 78.5,
+    "fw": 45.0,
+    "fh": 21.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_1_3": {
+    "ax": 21.75,
+    "ay": 80.5,
+    "fw": 43.5,
+    "fh": 25.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_2_3": {
+    "ax": 18.0,
+    "ay": 86.0,
+    "fw": 36.0,
+    "fh": 36.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_3_3": {
+    "ax": 12.75,
+    "ay": 89.75,
+    "fw": 25.5,
+    "fh": 43.5,
+    "hires": true
+  },
+  "clerk_cleaner_walk_4_3": {
+    "ax": 10.5,
+    "ay": 90.5,
+    "fw": 21.0,
+    "fh": 45.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_5_3": {
+    "ax": 12.5,
+    "ay": 89.75,
+    "fw": 25.0,
+    "fh": 43.5,
+    "hires": true
+  },
+  "clerk_cleaner_walk_6_3": {
+    "ax": 18.0,
+    "ay": 86.0,
+    "fw": 36.0,
+    "fh": 36.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_7_3": {
+    "ax": 21.75,
+    "ay": 80.75,
+    "fw": 43.5,
+    "fh": 25.5,
+    "hires": true
+  },
+  "clerk_cleaner_walk_8_3": {
+    "ax": 22.5,
+    "ay": 78.5,
+    "fw": 45.0,
+    "fh": 21.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_9_3": {
+    "ax": 21.75,
+    "ay": 80.5,
+    "fw": 43.5,
+    "fh": 25.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_10_3": {
+    "ax": 18.0,
+    "ay": 86.0,
+    "fw": 36.0,
+    "fh": 36.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_11_3": {
+    "ax": 12.75,
+    "ay": 89.75,
+    "fw": 25.5,
+    "fh": 43.5,
+    "hires": true
+  },
+  "clerk_cleaner_walk_12_3": {
+    "ax": 10.5,
+    "ay": 90.5,
+    "fw": 21.0,
+    "fh": 45.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_13_3": {
+    "ax": 12.5,
+    "ay": 89.75,
+    "fw": 25.0,
+    "fh": 43.5,
+    "hires": true
+  },
+  "clerk_cleaner_walk_14_3": {
+    "ax": 18.0,
+    "ay": 86.0,
+    "fw": 36.0,
+    "fh": 36.0,
+    "hires": true
+  },
+  "clerk_cleaner_walk_15_3": {
+    "ax": 21.75,
+    "ay": 80.75,
+    "fw": 43.5,
+    "fh": 25.5,
+    "hires": true
+  },
+  "clerk_cleaner_clean_0_0": {
+    "ax": 22.5,
+    "ay": 77.5,
+    "fw": 45.0,
+    "fh": 25.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_1_0": {
+    "ax": 23.25,
+    "ay": 78.5,
+    "fw": 46.5,
+    "fh": 27.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_2_0": {
+    "ax": 20.5,
+    "ay": 84.25,
+    "fw": 41.0,
+    "fh": 38.5,
+    "hires": true
+  },
+  "clerk_cleaner_clean_3_0": {
+    "ax": 15.75,
+    "ay": 87.5,
+    "fw": 31.5,
+    "fh": 45.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_4_0": {
+    "ax": 12.5,
+    "ay": 87.5,
+    "fw": 25.0,
+    "fh": 45.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_5_0": {
+    "ax": 13.5,
+    "ay": 88.25,
+    "fw": 27.0,
+    "fh": 46.5,
+    "hires": true
+  },
+  "clerk_cleaner_clean_6_0": {
+    "ax": 19.25,
+    "ay": 85.5,
+    "fw": 38.5,
+    "fh": 41.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_7_0": {
+    "ax": 22.5,
+    "ay": 80.75,
+    "fw": 45.0,
+    "fh": 31.5,
+    "hires": true
+  },
+  "clerk_cleaner_clean_8_0": {
+    "ax": 22.5,
+    "ay": 77.5,
+    "fw": 45.0,
+    "fh": 25.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_9_0": {
+    "ax": 23.25,
+    "ay": 78.5,
+    "fw": 46.5,
+    "fh": 27.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_10_0": {
+    "ax": 20.5,
+    "ay": 84.25,
+    "fw": 41.0,
+    "fh": 38.5,
+    "hires": true
+  },
+  "clerk_cleaner_clean_11_0": {
+    "ax": 15.75,
+    "ay": 87.5,
+    "fw": 31.5,
+    "fh": 45.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_12_0": {
+    "ax": 12.5,
+    "ay": 87.5,
+    "fw": 25.0,
+    "fh": 45.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_13_0": {
+    "ax": 13.5,
+    "ay": 88.25,
+    "fw": 27.0,
+    "fh": 46.5,
+    "hires": true
+  },
+  "clerk_cleaner_clean_14_0": {
+    "ax": 19.25,
+    "ay": 85.5,
+    "fw": 38.5,
+    "fh": 41.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_15_0": {
+    "ax": 22.5,
+    "ay": 80.75,
+    "fw": 45.0,
+    "fh": 31.5,
+    "hires": true
+  },
+  "clerk_cleaner_clean_0_1": {
+    "ax": 22.5,
+    "ay": 77.5,
+    "fw": 45.0,
+    "fh": 25.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_1_1": {
+    "ax": 22.5,
+    "ay": 78.5,
+    "fw": 45.0,
+    "fh": 27.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_2_1": {
+    "ax": 19.25,
+    "ay": 84.25,
+    "fw": 38.5,
+    "fh": 38.5,
+    "hires": true
+  },
+  "clerk_cleaner_clean_3_1": {
+    "ax": 14.25,
+    "ay": 87.5,
+    "fw": 28.5,
+    "fh": 45.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_4_1": {
+    "ax": 12.5,
+    "ay": 87.5,
+    "fw": 25.0,
+    "fh": 45.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_5_1": {
+    "ax": 13.5,
+    "ay": 87.5,
+    "fw": 27.0,
+    "fh": 45.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_6_1": {
+    "ax": 19.25,
+    "ay": 84.25,
+    "fw": 38.5,
+    "fh": 38.5,
+    "hires": true
+  },
+  "clerk_cleaner_clean_7_1": {
+    "ax": 22.5,
+    "ay": 79.25,
+    "fw": 45.0,
+    "fh": 28.5,
+    "hires": true
+  },
+  "clerk_cleaner_clean_8_1": {
+    "ax": 22.5,
+    "ay": 77.5,
+    "fw": 45.0,
+    "fh": 25.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_9_1": {
+    "ax": 22.5,
+    "ay": 78.5,
+    "fw": 45.0,
+    "fh": 27.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_10_1": {
+    "ax": 19.25,
+    "ay": 84.25,
+    "fw": 38.5,
+    "fh": 38.5,
+    "hires": true
+  },
+  "clerk_cleaner_clean_11_1": {
+    "ax": 14.25,
+    "ay": 87.5,
+    "fw": 28.5,
+    "fh": 45.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_12_1": {
+    "ax": 12.5,
+    "ay": 87.5,
+    "fw": 25.0,
+    "fh": 45.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_13_1": {
+    "ax": 13.5,
+    "ay": 87.5,
+    "fw": 27.0,
+    "fh": 45.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_14_1": {
+    "ax": 19.25,
+    "ay": 84.25,
+    "fw": 38.5,
+    "fh": 38.5,
+    "hires": true
+  },
+  "clerk_cleaner_clean_15_1": {
+    "ax": 22.5,
+    "ay": 79.25,
+    "fw": 45.0,
+    "fh": 28.5,
+    "hires": true
+  },
+  "clerk_cleaner_clean_0_2": {
+    "ax": 22.5,
+    "ay": 80.5,
+    "fw": 45.0,
+    "fh": 25.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_1_2": {
+    "ax": 21.75,
+    "ay": 81.5,
+    "fw": 43.5,
+    "fh": 27.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_2_2": {
+    "ax": 17.75,
+    "ay": 87.25,
+    "fw": 35.5,
+    "fh": 38.5,
+    "hires": true
+  },
+  "clerk_cleaner_clean_3_2": {
+    "ax": 12.5,
+    "ay": 90.5,
+    "fw": 25.0,
+    "fh": 45.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_4_2": {
+    "ax": 12.5,
+    "ay": 90.5,
+    "fw": 25.0,
+    "fh": 45.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_5_2": {
+    "ax": 13.5,
+    "ay": 89.75,
+    "fw": 27.0,
+    "fh": 43.5,
+    "hires": true
+  },
+  "clerk_cleaner_clean_6_2": {
+    "ax": 19.25,
+    "ay": 85.75,
+    "fw": 38.5,
+    "fh": 35.5,
+    "hires": true
+  },
+  "clerk_cleaner_clean_7_2": {
+    "ax": 22.5,
+    "ay": 80.5,
+    "fw": 45.0,
+    "fh": 25.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_8_2": {
+    "ax": 22.5,
+    "ay": 80.5,
+    "fw": 45.0,
+    "fh": 25.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_9_2": {
+    "ax": 21.75,
+    "ay": 81.5,
+    "fw": 43.5,
+    "fh": 27.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_10_2": {
+    "ax": 17.75,
+    "ay": 87.25,
+    "fw": 35.5,
+    "fh": 38.5,
+    "hires": true
+  },
+  "clerk_cleaner_clean_11_2": {
+    "ax": 12.5,
+    "ay": 90.5,
+    "fw": 25.0,
+    "fh": 45.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_12_2": {
+    "ax": 12.5,
+    "ay": 90.5,
+    "fw": 25.0,
+    "fh": 45.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_13_2": {
+    "ax": 13.5,
+    "ay": 89.75,
+    "fw": 27.0,
+    "fh": 43.5,
+    "hires": true
+  },
+  "clerk_cleaner_clean_14_2": {
+    "ax": 19.25,
+    "ay": 85.75,
+    "fw": 38.5,
+    "fh": 35.5,
+    "hires": true
+  },
+  "clerk_cleaner_clean_15_2": {
+    "ax": 22.5,
+    "ay": 80.5,
+    "fw": 45.0,
+    "fh": 25.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_0_3": {
+    "ax": 22.5,
+    "ay": 77.5,
+    "fw": 45.0,
+    "fh": 25.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_1_3": {
+    "ax": 23.25,
+    "ay": 78.5,
+    "fw": 46.5,
+    "fh": 27.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_2_3": {
+    "ax": 20.5,
+    "ay": 84.25,
+    "fw": 41.0,
+    "fh": 38.5,
+    "hires": true
+  },
+  "clerk_cleaner_clean_3_3": {
+    "ax": 15.75,
+    "ay": 87.5,
+    "fw": 31.5,
+    "fh": 45.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_4_3": {
+    "ax": 12.5,
+    "ay": 87.5,
+    "fw": 25.0,
+    "fh": 45.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_5_3": {
+    "ax": 13.5,
+    "ay": 88.25,
+    "fw": 27.0,
+    "fh": 46.5,
+    "hires": true
+  },
+  "clerk_cleaner_clean_6_3": {
+    "ax": 19.25,
+    "ay": 85.5,
+    "fw": 38.5,
+    "fh": 41.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_7_3": {
+    "ax": 22.5,
+    "ay": 80.75,
+    "fw": 45.0,
+    "fh": 31.5,
+    "hires": true
+  },
+  "clerk_cleaner_clean_8_3": {
+    "ax": 22.5,
+    "ay": 77.5,
+    "fw": 45.0,
+    "fh": 25.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_9_3": {
+    "ax": 23.25,
+    "ay": 78.5,
+    "fw": 46.5,
+    "fh": 27.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_10_3": {
+    "ax": 20.5,
+    "ay": 84.25,
+    "fw": 41.0,
+    "fh": 38.5,
+    "hires": true
+  },
+  "clerk_cleaner_clean_11_3": {
+    "ax": 15.75,
+    "ay": 87.5,
+    "fw": 31.5,
+    "fh": 45.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_12_3": {
+    "ax": 12.5,
+    "ay": 87.5,
+    "fw": 25.0,
+    "fh": 45.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_13_3": {
+    "ax": 13.5,
+    "ay": 88.25,
+    "fw": 27.0,
+    "fh": 46.5,
+    "hires": true
+  },
+  "clerk_cleaner_clean_14_3": {
+    "ax": 19.25,
+    "ay": 85.5,
+    "fw": 38.5,
+    "fh": 41.0,
+    "hires": true
+  },
+  "clerk_cleaner_clean_15_3": {
+    "ax": 22.5,
+    "ay": 80.75,
+    "fw": 45.0,
+    "fh": 31.5,
+    "hires": true
   }
 }

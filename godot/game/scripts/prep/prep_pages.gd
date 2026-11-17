@@ -1119,6 +1119,8 @@ static func _clerks(menu: CanvasLayer) -> void:
 				role = Loc.t("prep.role.cashier")
 			"security":
 				role = Loc.t("prep.role.security")
+			"cleaner":
+				role = Loc.t("prep.role.cleaner")
 		menu._add(Loc.t("prep.hire.clerk_row", [i + 1, role, int(c["register"]) + 1]), "role", i)
 		if role_id == "cashier":
 			menu._add(Loc.t("prep.hire.reassign"), "reg", i)

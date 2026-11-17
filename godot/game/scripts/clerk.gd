@@ -30,6 +30,10 @@ var _patrol_pts: PackedVector2Array = PackedVector2Array()
 var _chase_target: Node2D = null
 var _catch_cd: float = 0.0
 var _fight_flash: float = 0.0
+## Cleaner approach / scrub.
+var _clean_target: Node2D = null
+var _scrub_timer: float = 0.0
+var _scrubbing: bool = false
 ## M2.2 LAN presentation puppet.
 var net_agent_id: int = -1
 var net_puppet: bool = false
@@ -68,6 +72,8 @@ func setup(game: Node, at: Vector2, job: String, reg: Node2D) -> void:
 			_model_id = "clerk_cashier"
 		"security":
 			_model_id = "clerk_security"
+		"cleaner":
+			_model_id = "clerk_cleaner"
 		_:
 			_model_id = "clerk_restock"
 	_sprite = Vox.animated(_model_id)
@@ -90,6 +96,8 @@ func _role_label() -> String:
 			return Loc.t("world.clerk.cashier")
 		"security":
 			return Loc.t("world.clerk.security")
+		"cleaner":
+			return Loc.t("world.clerk.cleaner")
 		_:
 			return Loc.t("world.clerk.restock")
 
@@ -118,6 +126,8 @@ func _physics_process(delta: float) -> void:
 			_tick_cashier(delta)
 		"security":
 			_tick_security(delta)
+		"cleaner":
+			_tick_cleaner(delta)
 		_:
 			_tick_restock(delta)
 	if velocity.length() <= 8.0:
@@ -128,6 +138,8 @@ func _physics_process(delta: float) -> void:
 			_sync_visual("restock", face)
 		elif role == "security" and _fight_flash > 0.0:
 			_sync_visual("fight", face)
+		elif role == "cleaner" and _scrubbing:
+			_sync_visual("clean", face)
 		else:
 			_sync_visual("idle", face)
 
@@ -231,6 +243,98 @@ func _try_catch_thief(t: Node2D) -> void:
 	_chase_target = null
 	_clear_path()
 	_sync_visual("fight", dir)
+
+
+func _tick_cleaner(delta: float) -> void:
+	if _scrubbing:
+		_tick_cleaner_scrub(delta)
+		return
+	if not _clean_target_valid(_clean_target):
+		_clean_target = _nearest_cleanable_dirt()
+	if _clean_target != null:
+		_tick_cleaner_approach(delta)
+		return
+	_tick_security_patrol(delta)
+
+
+func _tick_cleaner_approach(delta: float) -> void:
+	var target: Node2D = _clean_target
+	if not _clean_target_valid(target):
+		_abort_clean_target()
+		return
+	var arrive_sq := Tuning.CLEANER_ARRIVE_PX * Tuning.CLEANER_ARRIVE_PX
+	if global_position.distance_squared_to(target.global_position) <= arrive_sq:
+		velocity = Vector2.ZERO
+		_scrubbing = true
+		_scrub_timer = 0.0
+		_clear_path()
+		_tick_cleaner_scrub(delta)
+		return
+	_follow(target.global_position, delta)
+
+
+func _tick_cleaner_scrub(delta: float) -> void:
+	var target: Node2D = _clean_target
+	if not _clean_target_valid(target):
+		_abort_clean_target()
+		return
+	velocity = Vector2.ZERO
+	var need := Tuning.clean_seconds(10)
+	_scrub_timer += delta
+	var meter := clampf((_scrub_timer / maxf(need, 0.05)) * 100.0, 0.0, 100.0)
+	if target.has_method("set_cleaning"):
+		target.call("set_cleaning", true, Vector2.RIGHT.rotated(_scrub_timer * 4.0), meter, -1)
+	_sync_visual("clean", Vector2.DOWN)
+	if _scrub_timer < need:
+		return
+	if target.has_method("set_cleaning"):
+		target.call("set_cleaning", false, Vector2.ZERO, 100.0, -1)
+	target.queue_free()
+	_game.note_clean(-1, self)
+	_scrubbing = false
+	_scrub_timer = 0.0
+	_clean_target = null
+	_clear_path()
+
+
+func _nearest_cleanable_dirt() -> Node2D:
+	if _game == null or not _game.has_method("dirts"):
+		return null
+	var detect_sq := Tuning.CLEANER_DETECT_PX * Tuning.CLEANER_DETECT_PX
+	var best: Node2D = null
+	var best_d := detect_sq
+	for d in _game.dirts():
+		if not _clean_target_valid(d):
+			continue
+		var dist := global_position.distance_squared_to(d.global_position)
+		if dist <= best_d:
+			best = d
+			best_d = dist
+	return best
+
+
+func _clean_target_valid(d: Node2D) -> bool:
+	if d == null or not is_instance_valid(d):
+		return false
+	if String(d.get("kind")) != "dirt":
+		return false
+	## Player already scrubbing this patch — do not steal.
+	if int(d.get("clean_seat")) >= 0:
+		return false
+	var lock = get_node_or_null("/root/InteractLock")
+	if lock != null and int(lock.call("holder_of", d)) >= 0:
+		return false
+	return true
+
+
+func _abort_clean_target() -> void:
+	if _scrubbing and _clean_target != null and is_instance_valid(_clean_target):
+		if _clean_target.has_method("set_cleaning"):
+			_clean_target.call("set_cleaning", false, Vector2.ZERO, 0.0, -1)
+	_scrubbing = false
+	_scrub_timer = 0.0
+	_clean_target = null
+	_clear_path()
 
 
 func _tick_cashier(delta: float) -> void:

@@ -648,6 +648,7 @@ prep.hire.recruit,召募,Hire,召募,募集
 prep.role.cashier,收銀,Checkout,收银,レジ
 prep.role.restock,補貨,Restock,补货,補充
 prep.role.security,保安,Security,保安,警備
+prep.role.cleaner,清潔,Cleaner,清洁,清掃
 prep.hire.clerk_row,店員%d　%s　收銀機 %d　（確定切崗位）,Clerk %d  %s  reg %d  (confirm swap),店员%d　%s　收银机 %d　（确定切岗位）,店員%d　%s　レジ %d　（確定で役割切替）
 prep.hire.reassign,　改派收銀機,  Reassign register,　改派收银机,　レジを再割当
 prep.hire.fire,　解僱店員%d,  Fire clerk %d,　解雇店员%d,　店員%dを解雇

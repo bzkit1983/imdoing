@@ -20,6 +20,20 @@
   ],
   "facings": 16,
   "characters": {
+    "clerk_cleaner": {
+      "idle": {
+        "frames": 2,
+        "fps": 2
+      },
+      "walk": {
+        "frames": 4,
+        "fps": 8
+      },
+      "clean": {
+        "frames": 4,
+        "fps": 8
+      }
+    },
     "clerk_security": {
       "idle": {
         "frames": 2,
@@ -364,6 +378,7 @@
     }
   },
   "sources": {
+    "clerk_cleaner": "designer_vox",
     "clerk_security": "designer_vox",
     "player": "designer_vox",
     "player_alt1": "designer_vox",

@@ -31,7 +31,8 @@
 清潔計由0開始, 每次動搖會增加計量, 到100完成.
 增加幅度按AGI數值大小決定, AGI數值越大增加得越快。
 對齊 `playerstats.md`：全力轉搖桿時，AGI 10 約 5 秒滿計、AGI 50 約 1 秒，中間線性。放手重置。持貨亦可清潔，清潔中貨留在手上。
-清潔只有玩家做（空手或持貨皆可）。正式店員、Dark Side 臨時員工、多重影分身都不做清潔。分身若施放時裝備了凌波微步，走污物的豁免與玩家相同；否則踩污物仍減速。見 `clerksystem.md`、`darkside.md`、`shadowclone.md`。
+清潔主要由玩家做（空手或持貨皆可）。Dark Side 臨時員工、多重影分身都不做清潔。分身若施放時裝備了凌波微步，走污物的豁免與玩家相同；否則踩污物仍減速。見 `clerksystem.md`、`darkside.md`、`shadowclone.md`。
+**雇員清潔工**（正式崗位 `cleaner`，見 `clerksystem.md`）營業中巡邏並自動清理污物：以 AGI 10 計時填滿清潔計（不需搖桿），顯示污物藍色計。計入全日清潔數與營運評價（`note_clean` seat `< 0`），**不**計入玩家 seat 的清潔 XP／任務／教學 metric。玩家正在清同一污物時清潔工不介入。
 主動技 **掃地僧**（`sweeping_monk`）：跟身龍捲持續清 3 身位內三類污物（計清潔數／XP）；期間免疫污物且不能手動清潔。見 `playeractiveskills.md`。
 **清潔期間不顯示**角色黃色長按 Loading Circle（上架／收銀用那種）；只保留污物上的藍色計＋搖桿，避免雙圈重疊。
 生成頻率、同時上限、三類不滿／氣力數字以各 Demo scope 為準。長線數字留待 Beta，見 `docs/beta/design.md`。測試版難度「簡易」把生成間隔加倍、開場污物改為 1 團；同時上限不變。見 `storepreparationphase.md`。

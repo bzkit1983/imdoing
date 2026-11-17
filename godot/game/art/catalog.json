@@ -547,6 +547,18 @@
           ],
           "voxels": 117767,
           "note": "v1.5 Q 版。深色制服、鴨舌帽、胸前金徽。"
+        },
+        {
+          "id": "clerk_cleaner",
+          "name": "清潔工",
+          "file": "clerk_cleaner.vox",
+          "size": [
+            90,
+            40,
+            130
+          ],
+          "voxels": 122715,
+          "note": "v1.5 Q 版。黃背心、工作帽、側持拖把。"
         }
       ]
     },

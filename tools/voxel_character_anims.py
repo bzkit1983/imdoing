@@ -75,6 +75,7 @@ CHARS = {
     "clerk_cashier": dict(shirt="clerk", shirt_dark="clerk_dark", hair="hair", badge=True),
     "clerk_restock": dict(shirt="clerk_stock", shirt_dark="player_dark", hair="hair_brown"),
     "clerk_security": dict(shirt="pants", shirt_dark="hood", hair="hair", badge=True),
+    "clerk_cleaner": dict(shirt="white", shirt_dark="snack", hair="hair_brown"),
 }
 
 # anim -> list of pose dicts (one per frame)
@@ -142,7 +143,7 @@ ANIMS: dict[str, dict] = {
             {"arm_r_z": -4, "arm_r_y": 2, "lean": 1, "bob": 0},
         ],
         "fps": 8,
-        "chars": list(PLAYER_IDS),
+        "chars": list(PLAYER_IDS) + ["clerk_cleaner"],
     },
     # grab → punch rhythm
     "fight": {
