@@ -22,11 +22,12 @@ const LIST_V_SEP := 14
 const STEP_BTN_H := 84.0
 const STEP_BTN_W := 96.0
 ## Page grid. Info stays left of the back button. Content starts under that band.
+## INFO_H fits prep.header (2 lines) + page blurb (1 line).
 const MARGIN := 24.0
 const INFO_TOP := 80.0
-const INFO_H := 72.0
+const INFO_H := 120.0
 const INFO_W := 1000.0
-const CONTENT_TOP := 164.0
+const CONTENT_TOP := 212.0
 const CONTENT_BOTTOM := 700.0
 const CONTENT_W := 1232.0
 const COL_BG := Color("121816")

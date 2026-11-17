@@ -21,7 +21,7 @@ unique_name_in_owner = true
 visible = false
 mouse_filter = 2
 offset_left = 16.0
-offset_top = 156.0
+offset_top = 204.0
 offset_right = 1264.0
 offset_bottom = 708.0
 color = Color(0.109804, 0.156863, 0.133333, 1)
@@ -42,9 +42,9 @@ text_overrun_behavior = 3
 [node name="Info" type="Label" parent="."]
 unique_name_in_owner = true
 offset_left = 24.0
-offset_top = 72.0
+offset_top = 80.0
 offset_right = 1000.0
-offset_bottom = 148.0
+offset_bottom = 200.0
 mouse_filter = 2
 theme_override_colors/font_color = Color(0.956863, 0.945098, 0.917647, 1)
 theme_override_font_sizes/font_size = 26
@@ -54,9 +54,9 @@ autowrap_mode = 3
 [node name="List" type="ItemList" parent="."]
 unique_name_in_owner = true
 offset_left = 24.0
-offset_top = 168.0
+offset_top = 212.0
 offset_right = 1256.0
-offset_bottom = 598.0
+offset_bottom = 700.0
 focus_mode = 0
 theme_override_colors/font_color = Color(0.956863, 0.945098, 0.917647, 1)
 theme_override_colors/font_hovered_color = Color(0.956863, 0.827451, 0.368627, 1)
@@ -66,14 +66,21 @@ theme_override_font_sizes/font_size = 34
 allow_reselect = true
 text_overrun_behavior = 3
 
-[node name="HubPanel" type="GridContainer" parent="."]
+[node name="HubScroll" type="ScrollContainer" parent="."]
 unique_name_in_owner = true
 visible = false
-clip_contents = false
+clip_contents = true
 offset_left = 24.0
-offset_top = 156.0
+offset_top = 212.0
 offset_right = 1256.0
 offset_bottom = 700.0
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 1
+
+[node name="HubPanel" type="GridContainer" parent="HubScroll"]
+unique_name_in_owner = true
+clip_contents = false
+size_flags_horizontal = 3
 theme_override_constants/h_separation = 10
 theme_override_constants/v_separation = 10
 columns = 3
