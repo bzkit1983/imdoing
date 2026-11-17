@@ -4,7 +4,7 @@ const Tuning = preload("res://scripts/tuning.gd")
 const Skills = preload("res://scripts/skills.gd")
 const UiFont = preload("res://scripts/ui_font.gd")
 const SkuIcons = preload("res://scripts/sku_icons.gd")
-const SkillIcons = preload("res://scripts/skill_icons.gd")
+const SkillHudChip = preload("res://scripts/ui/skill_hud_chip.gd")
 
 ## Ops HUD palette — dark shop plate + warm gold accent (not purple / cream-serif clichés).
 const COL_INK := Color(0.045, 0.055, 0.06, 1.0)
@@ -27,9 +27,7 @@ var _right_dirty: bool = true
 var _skip_running: bool = false
 var _font_debounce: float = 0.0
 var _font_pending: bool = false
-var _skills_cd_fp: String = ""
-var _skills_cd_txt: String = ""
-## Skip rebuilding store/role when game hud_rev + clock bucket + skill fp unchanged.
+## Skip rebuilding store/role when game hud_rev + clock bucket unchanged.
 var _left_hud_rev: int = -1
 var _left_hour_bucket: int = -1
 ## Per-seat right panes: {player, title, state, stamina, carry, icons, target, progress, icons_fp}.
@@ -49,9 +47,8 @@ var _carry_std: Label
 var _carry_icons_std: HBoxContainer
 var _carry_std_fp: String = ""
 var _tr_panel: PanelContainer
-var _skills_std: Label
-var _skills_icons: HBoxContainer
-var _skills_icon_fp := ""
+var _skills_list: VBoxContainer
+var _skills_chip_fp := ""
 var _skills_panel: PanelContainer
 var _tasks: Label
 var _tasks_panel: PanelContainer
@@ -298,7 +295,6 @@ func _restyle_ops_labels() -> void:
 	_style_label(_store, COL_MUTED, UiFont.WORLD, 4)
 	_style_label(_role, COL_MUTED, UiFont.WORLD, 4)
 	_style_label(_tasks, COL_TEXT, UiFont.WORLD, 5)
-	_style_label(_skills_std, COL_TEXT, UiFont.WORLD, 5)
 	_style_label(_carry_std, COL_TEXT, UiFont.WORLD, 5)
 
 
@@ -434,7 +430,7 @@ func _build_bottom_left_panel() -> void:
 	_skills_panel.anchor_right = 1.0
 	_skills_panel.anchor_top = 1.0
 	_skills_panel.anchor_bottom = 1.0
-	_skills_panel.offset_left = -400.0
+	_skills_panel.offset_left = -280.0
 	_skills_panel.offset_right = -12.0
 	_skills_panel.offset_top = -52.0
 	_skills_panel.offset_bottom = -12.0
@@ -442,22 +438,19 @@ func _build_bottom_left_panel() -> void:
 	_skills_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	var s_margin := MarginContainer.new()
 	s_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	s_margin.add_theme_constant_override("margin_left", 8)
+	s_margin.add_theme_constant_override("margin_right", 8)
+	s_margin.add_theme_constant_override("margin_top", 6)
+	s_margin.add_theme_constant_override("margin_bottom", 6)
 	_skills_panel.add_child(s_margin)
-	var s_box := VBoxContainer.new()
-	s_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	s_margin.add_child(s_box)
-	_skills_icons = HBoxContainer.new()
-	_skills_icons.name = "SkillIcons"
-	_skills_icons.alignment = BoxContainer.ALIGNMENT_END
-	_skills_icons.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_skills_icons.add_theme_constant_override("separation", 4)
-	s_box.add_child(_skills_icons)
-	_skills_std = _make_hud_label("SkillsStd")
-	_skills_std.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	s_box.add_child(_skills_std)
+	_skills_list = VBoxContainer.new()
+	_skills_list.name = "SkillList"
+	_skills_list.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_skills_list.alignment = BoxContainer.ALIGNMENT_END
+	_skills_list.add_theme_constant_override("separation", 4)
+	s_margin.add_child(_skills_list)
 	$Root.add_child(_skills_panel)
 	$Root.move_child(_skills_panel, _banner.get_index())
-	_apply_cjk_fonts(_skills_std)
 
 
 func _mark_right_dirty() -> void:
@@ -743,12 +736,10 @@ func _sync_left() -> void:
 	## ~1 game-minute buckets so the clock label still ticks without full rebuild spam.
 	var hour_bucket := int(floor(hours * 60.0))
 	var rev := int(game.get("hud_rev")) if game.get("hud_rev") != null else 0
-	## Stamina updates every frame; other left chrome is fingerprint-gated.
+	## Stamina + skill chips update every frame; other left chrome is fingerprint-gated.
 	_sync_stamina_std()
-	_sync_skill_icons(player)
-	var skills_txt := _skill_cd_text_all()
-	var skills_shown := _skills_std.text if _skills_std else ""
-	if rev == _left_hud_rev and hour_bucket == _left_hour_bucket and skills_txt == skills_shown:
+	_sync_skill_hud()
+	if rev == _left_hud_rev and hour_bucket == _left_hour_bucket:
 		return
 	_left_hud_rev = rev
 	_left_hour_bucket = hour_bucket
@@ -765,9 +756,9 @@ func _sync_left() -> void:
 	var team := int(game.combo_team())
 	var ops_n := int(game.get("ops_rating")) if game.get("ops_rating") != null else 50
 	var tasks_txt := _tasks_status_text()
-	var fp := "%s|%s|%d|%d|%d|%d|%s|%s|%s|%d|%d|%d|%d|%d|%d|%s" % [
+	var fp := "%s|%s|%d|%d|%d|%d|%s|%s|%d|%d|%d|%d|%d|%d|%s" % [
 		time_txt, phase_txt, rev_n, stolen_n, guests_n, thieves_n,
-		store_txt, role_txt, skills_txt, p1, p2, team, rev, hour_bucket, ops_n, tasks_txt,
+		store_txt, role_txt, p1, p2, team, rev, hour_bucket, ops_n, tasks_txt,
 	]
 	if fp == _left_fp:
 		return
@@ -779,15 +770,6 @@ func _sync_left() -> void:
 	_guests.text = Loc.t("hud.guests", [guests_n, thieves_n])
 	_store.text = store_txt
 	_role.text = role_txt
-	if _skills_std:
-		_skills_std.text = skills_txt
-	if _skills_panel:
-		_skills_panel.visible = skills_txt != ""
-		if skills_txt != "":
-			var skill_lines := skills_txt.count("\n") + 1
-			var sh := float(28 + skill_lines * 24 + 36)
-			_skills_panel.offset_bottom = -12.0
-			_skills_panel.offset_top = -12.0 - maxf(sh, 52.0)
 	if _combo:
 		if SeatTable.is_coop():
 			_combo.text = Loc.t("hud.combo_coop", [p1, p2, team])
@@ -903,124 +885,127 @@ func _sync_right() -> void:
 	_refresh()
 
 
-func _sync_skill_icons(p: CharacterBody2D) -> void:
-	if _skills_icons == null or p == null:
+func _sync_skill_hud() -> void:
+	if _skills_list == null or _skills_panel == null:
 		return
-	var equipped: Array = p.call("_loadout") if p.has_method("_loadout") else []
-	var ult: Dictionary = p.call("_ult_sk") if p.has_method("_ult_sk") else {}
+	var entries: Array = _skill_hud_entries()
 	var ids: PackedStringArray = []
-	for sk in equipped:
-		ids.append(String(sk.get("id", "")) if sk is Dictionary else "")
-	ids.append(String(ult.get("id", "")))
+	for e in entries:
+		ids.append(String(e.get("id", "")))
 	var fp := "|".join(ids)
-	if fp == _skills_icon_fp:
-		return
-	_skills_icon_fp = fp
-	for child in _skills_icons.get_children():
-		child.queue_free()
-	for sid in ids:
-		if sid == "":
-			continue
-		var tr := TextureRect.new()
-		tr.texture = SkillIcons.texture(sid)
-		tr.custom_minimum_size = Vector2(28, 28)
-		tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		tr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_skills_icons.add_child(tr)
+	if fp != _skills_chip_fp:
+		_skills_chip_fp = fp
+		while _skills_list.get_child_count() > 0:
+			var old: Node = _skills_list.get_child(0)
+			_skills_list.remove_child(old)
+			old.free()
+		for e in entries:
+			var chip = SkillHudChip.new()
+			_skills_list.add_child(chip)
+			chip.setup(String(e["id"]), String(e["name"]), String(e["kind"]))
+	var chips := _skills_list.get_children()
+	var n := mini(chips.size(), entries.size())
+	for i in n:
+		var chip2 = chips[i]
+		var e2: Dictionary = entries[i]
+		if chip2.has_method("set_timers"):
+			chip2.call(
+				"set_timers",
+				float(e2.get("cd_left", 0.0)),
+				float(e2.get("cd_max", 0.0)),
+				float(e2.get("buff_left", 0.0)),
+				float(e2.get("buff_max", 0.0)),
+			)
+	var show := entries.size() > 0
+	_skills_panel.visible = show
+	if show:
+		var rows := entries.size()
+		var sh := float(12 + rows * 40)
+		_skills_panel.offset_bottom = -12.0
+		_skills_panel.offset_top = -12.0 - maxf(sh, 52.0)
 
 
-func _skill_cd_label(cd: float) -> String:
-	## Match cast gate (cd > 0.05). Never show "CD 0" while not ready — ceil whole seconds.
-	if cd <= 0.05:
-		return Loc.t("hud.skill.ready")
-	return "CD %d" % maxi(1, int(ceil(cd)))
-
-
-func _skill_cd_fp_bit(cd: float) -> String:
-	## Ready bit must flip when crossing 0.05 even if 0.25s snap stays at 0.00.
-	if cd <= 0.05:
-		return "R"
-	return "%.2f" % snappedf(cd, 0.25)
-
-
-func _skill_cd_text_all() -> String:
+func _skill_hud_entries() -> Array:
+	var out: Array = []
 	if _panes.size() <= 1:
-		return _skill_cd_text_for(player, "")
-	var blocks: PackedStringArray = []
+		_append_skill_hud_entries(out, player, "")
+		return out
 	for pane in _panes:
 		var p := _pane_player(pane)
 		if p == null:
 			continue
 		var seat := int(p.get("seat_id")) + 1
-		blocks.append(_skill_cd_text_for(p, "P%d " % seat))
-	var joined := "\n".join(blocks)
-	## Keep left fingerprint path simple via shared cache key.
-	if joined == _skills_cd_txt:
-		return _skills_cd_txt
-	_skills_cd_fp = joined
-	_skills_cd_txt = joined
-	return _skills_cd_txt
+		_append_skill_hud_entries(out, p, "P%d " % seat)
+	return out
 
 
-func _skill_cd_text_for(p: CharacterBody2D, prefix: String) -> String:
+func _append_skill_hud_entries(out: Array, p: CharacterBody2D, prefix: String) -> void:
 	if p == null:
-		return ""
+		return
 	var equipped: Array = []
 	if p.has_method("_loadout"):
 		equipped = p.call("_loadout")
 	else:
 		for raw in Skills.EQUIPPED:
 			equipped.append(Skills.localize(raw))
-	var bits: PackedStringArray = []
-	for i in equipped.size():
-		var sk: Dictionary = equipped[i]
-		if sk.is_empty():
-			bits.append("%d:-" % i)
+	for sk in equipped:
+		if not (sk is Dictionary) or (sk as Dictionary).is_empty():
 			continue
-		var sid := String(sk.get("id"))
-		if String(sk.get("kind")) == "passive":
-			bits.append("%d:P" % i)
-		else:
-			bits.append("%d:%s" % [i, _skill_cd_fp_bit(float(p.call("cd_left", sid)))])
+		var row := _skill_hud_entry_from(p, sk as Dictionary, prefix)
+		if not row.is_empty():
+			out.append(row)
 	var ult: Dictionary = (
 		p.call("_ult_sk") if p.has_method("_ult_sk") else Skills.localize(Skills.ULTIMATE)
 	)
-	var ult_id := String(ult.get("id", ""))
-	if ult_id == "":
-		bits.append("U:-")
-	else:
-		bits.append("U:%s" % _skill_cd_fp_bit(float(p.call("cd_left", ult_id))))
-	var fp := prefix + "|".join(bits)
-	## Solo path keeps old cache; coop rebuilds each left sync via _skill_cd_text_all.
-	if prefix == "" and fp == _skills_cd_fp:
-		return _skills_cd_txt
-	if prefix == "":
-		_skills_cd_fp = fp
-	var lines: PackedStringArray = []
-	if prefix != "":
-		lines.append(prefix.strip_edges())
-	for i in equipped.size():
-		var sk2: Dictionary = equipped[i]
-		if sk2.is_empty():
-			lines.append(Loc.t("hud.skill.empty", [i + 1]))
-			continue
-		var name := String(sk2.get("name"))
-		if String(sk2.get("kind")) == "passive":
-			lines.append(Loc.t("hud.skill.passive", [i + 1, name]))
-		else:
-			var cd := float(p.call("cd_left", String(sk2.get("id"))))
-			lines.append("%d %s  %s" % [i + 1, name, _skill_cd_label(cd)])
-	if ult_id == "":
-		lines.append(Loc.t("hud.ult.empty"))
-	else:
-		var ucd := float(p.call("cd_left", ult_id))
-		lines.append(Loc.t("hud.ult.line", [String(ult.get("name")), _skill_cd_label(ucd)]))
-	var txt := "\n".join(lines)
-	if prefix == "":
-		_skills_cd_txt = txt
-	return txt
+	if not ult.is_empty() and String(ult.get("id", "")) != "":
+		var urow := _skill_hud_entry_from(p, ult, prefix)
+		if not urow.is_empty():
+			out.append(urow)
+
+
+func _skill_hud_entry_from(p: CharacterBody2D, sk: Dictionary, prefix: String) -> Dictionary:
+	var sid := String(sk.get("id", ""))
+	if sid == "":
+		return {}
+	var kind := String(sk.get("kind", "active"))
+	var nm := String(sk.get("name", ""))
+	if nm == "":
+		nm = Loc.t("skill.%s.name" % sid)
+	var cd_left := 0.0
+	var buff_left := 0.0
+	if p.has_method("cd_left"):
+		cd_left = float(p.call("cd_left", sid))
+	if p.has_method("buff_left"):
+		buff_left = float(p.call("buff_left", sid))
+	var cd_max := maxf(float(sk.get("cd", 0.0)), cd_left)
+	var buff_max := _skill_buff_max(sk, buff_left)
+	return {
+		"id": sid,
+		"name": prefix + nm,
+		"kind": kind,
+		"cd_left": cd_left,
+		"cd_max": cd_max,
+		"buff_left": buff_left,
+		"buff_max": buff_max,
+	}
+
+
+func _skill_buff_max(sk: Dictionary, buff_left: float) -> float:
+	var sid := String(sk.get("id", ""))
+	var lv := int(sk.get("lv", 3))
+	var catalog := float(sk.get("duration", 0.0))
+	match sid:
+		"dasher":
+			catalog = float(Skills.dasher_seconds(lv))
+		"hoop_ace":
+			catalog = float(Skills.hoop_ace_seconds(lv))
+		"senior_cashier":
+			catalog = float(Skills.senior_cashier_seconds(lv))
+		"sweeping_monk":
+			catalog = float(Skills.sweeping_monk_seconds(lv))
+		"guest_dusk":
+			catalog = float(Skills.GUEST_DUSK_DURATION)
+	return maxf(catalog, buff_left)
 
 
 func _refresh() -> void:
