@@ -915,8 +915,8 @@ func loadout() -> Array[Dictionary]:
 	return out
 
 
-## Dark Side / Shadow Clone / Dasher / Senior Cashier / Hoop Ace pick LV on the prep page.
-## Missing choice means LV3. Other skills keep the catalog level.
+## Dark Side / Shadow Clone / Dasher / Senior Cashier / Checkout Rush / Checkout Speed /
+## Hoop Ace（等）pick LV on the prep page. Missing choice means LV3.
 func skill_level_of(set_i: int, skill_id: String) -> int:
 	var sk := Skills.by_id(skill_id)
 	var fallback := 3 if Skills.prep_picks_level(sk) else int(sk.get("lv", 1))

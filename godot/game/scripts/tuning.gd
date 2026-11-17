@@ -304,8 +304,62 @@ static func int_for_effects(int_stat: int = INT) -> int:
 
 
 static func checkout_seconds(int_stat: int = INT) -> float:
+	## Legacy NPC pacing helper; player checkout no longer uses Loading Circle.
 	var a := float(int_for_effects(int_stat))
 	return CHECKOUT_SECONDS_AT_10 + (CHECKOUT_SECONDS_AT_50 - CHECKOUT_SECONDS_AT_10) * (a - 10.0) / 40.0
+
+
+## INT milestones → fewer checkout arrows (effect cap 50; allocate higher freely).
+static func checkout_int_cmd_reduce(int_stat: int = INT) -> int:
+	var a := int_for_effects(int_stat)
+	var reduce := 0
+	if a >= 20:
+		reduce += 2
+	if a >= 30:
+		reduce += 1
+	if a >= 40:
+		reduce += 1
+	if a >= 50:
+		reduce += 1
+	return reduce
+
+
+const CHECKOUT_CMD_FLOOR := 2
+
+
+static func checkout_command_count(item_count: int, int_stat: int = INT) -> int:
+	return maxi(CHECKOUT_CMD_FLOOR, command_count(item_count) - checkout_int_cmd_reduce(int_stat))
+
+
+## INT revenue bonus on personal checkout (0.0 … 0.20 at effect cap).
+static func checkout_int_revenue_bonus(int_stat: int = INT) -> float:
+	var a := int_for_effects(int_stat)
+	if a >= 50:
+		return 0.20
+	if a >= 40:
+		return 0.15
+	if a >= 30:
+		return 0.10
+	if a >= 20:
+		return 0.05
+	return 0.0
+
+
+const CHECKOUT_PERFECT_REVENUE_MULT := 1.05
+
+
+static func checkout_perfect_revenue_mult() -> float:
+	return CHECKOUT_PERFECT_REVENUE_MULT
+
+
+## Apply INT + optional rush % then Perfect mult. `rush_bonus` is additive with INT %.
+static func checkout_revenue_amount(base: int, int_stat: int, perfect: bool, rush_bonus: float = 0.0) -> int:
+	if base <= 0:
+		return 0
+	var mult := 1.0 + checkout_int_revenue_bonus(int_stat) + maxf(0.0, rush_bonus)
+	if perfect:
+		mult *= checkout_perfect_revenue_mult()
+	return maxi(0, int(round(float(base) * mult)))
 
 
 static func cd_rate(int_stat: int = INT) -> float:
@@ -345,16 +399,11 @@ static func skus_for(category: String) -> Array[String]:
 	return DRY_SKUS
 
 
+## Base checkout arrow count from cart size (before INT reduce / floor).
 static func command_count(item_count: int) -> int:
-	if item_count <= 2:
-		return 1
 	if item_count <= 5:
-		return 2
-	if item_count <= 8:
-		return 3
-	if item_count <= 10:
-		return 4
-	return 5
+		return 7
+	return 8
 
 
 static func hit_damage(str_stat: int = STR) -> float:

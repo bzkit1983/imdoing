@@ -38,6 +38,10 @@ func thieves() -> Array[Node2D]:
 	return []
 
 
+func dirts() -> Array[Node2D]:
+	return []
+
+
 func shadow_clones() -> Array:
 	return []
 

@@ -197,7 +197,7 @@ func _ensure_patrol_pts() -> void:
 
 
 func _nearest_catchable_thief() -> Node2D:
-	if _game == null or not _game.has_method("thieves"):
+	if _game == null:
 		return null
 	var detect_sq := Tuning.SECURITY_DETECT_PX * Tuning.SECURITY_DETECT_PX
 	var best: Node2D = null
@@ -352,9 +352,7 @@ func _tick_cashier(delta: float) -> void:
 		_timer = 0.0
 		_checkout_customer = cust
 	register.operator_checkout()
-	_timer += delta
-	if _timer < Tuning.checkout_seconds(10):
-		return
+	## Instant pay — no Loading Circle (player checkout retune).
 	_timer = 0.0
 	var amount: int = int(cust.call("payout_total")) if cust.has_method("payout_total") else int(cust.call("cart_total"))
 	var from_elite: bool = cust.get("is_elite") == true

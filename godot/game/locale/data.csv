@@ -38,7 +38,7 @@ skill.carry_boost.blurb,負重 +240 件，20 秒,Carry +240 pieces for 20s,负�
 skill.move_boost.name,無人可以喺我前面,Nobody Gets Ahead,无人可以喺我前面,誰も前には出させない
 skill.move_boost.blurb,移速 +60%，20 秒,Move speed +60% for 20s,移速 +60%，20 秒,移動速度 +60%、20 秒
 skill.checkout_rush.name,人肉數錢機,Human Cash Machine,人肉数钱机,人間レジスター
-skill.checkout_rush.blurb,收銀 +60%，20 秒,Checkout +60% for 20s,收银 +60%，20 秒,レジ速度 +60%、20 秒
+skill.checkout_rush.blurb,期間親收營業額 +15／+25／+40%，20 秒。準備頁選 LV1／2／3，沒選預設 LV3,Personal checkout revenue +15/+25/+40% for 20s. Prep picks LV1/2/3 (default LV3),期间亲收营业额 +15／+25／+40%，20 秒。准备页选 LV1／2／3，没选预设 LV3,期間の会計売上 +15／+25／+40%、20秒。準備画面で LV1／2／3 を選択、未選択時は LV3
 skill.universal_cannon.name,萬用炮,Universal Cannon,万用炮,万能砲
 skill.universal_cannon.blurb,腳下布置可穿行炮台，FIFO容量12／16／20件、每5／4／3秒射1件；再按取消後CD60秒,Deploy a pass-through turret; FIFO capacity 12/16/20; fires one item every 5/4/3s; cancel to start a 60s INT-scaled cooldown,脚下布置可穿行炮台，FIFO容量12／16／20件、每5／4／3秒射1件；再按取消后CD60秒,足元に通行可能な砲台を設置。FIFO容量12／16／20個、5／4／3秒ごとに1個発射；再押下で解除後CD60秒
 skill.shelf_cannon.name,上架炮,Shelf Cannon,上架炮,陳列砲
@@ -57,7 +57,7 @@ skill.self_checkout.blurb,啟動5身位內機台15秒；每客5／4／3秒自助
 skill.calm_zone.name,你定少少先,Take a Breather,你定少少先,少し落ち着いて
 skill.calm_zone.blurb,定點安撫15秒；LV1／2／3半徑5／7／10身位，每秒減怒2／3／4,"Place a 15s calm zone; LV1/2/3 radius 5/7/10 body lengths, reducing dissatisfaction by 2/3/4 per second",定点安抚15秒；LV1／2／3半径5／7／10身位，每秒减怒2／3／4,15秒間その場に落ち着きゾーンを設置；LV1／2／3の範囲は5／7／10体長、毎秒不満を2／3／4減少
 skill.senior_cashier.name,資深收銀員,Senior Cashier,资深收银员,ベテランレジ係
-skill.senior_cashier.blurb,減指令次數／LV3免指令且Circle×0.5。準備頁選 LV1／2／3，沒選預設 LV3,Fewer command inputs; LV3 skips commands and Circle×0.5. Prep picks LV1/2/3 (default LV3),减指令次数／LV3免指令且Circle×0.5。准备页选 LV1／2／3，没选预设 LV3,コマンド回数減少／LV3はコマンド不要かつCircle×0.5。準備画面で LV1／2／3 を選択、未選択時は LV3
+skill.senior_cashier.blurb,期間親收後有機率／必定一併收佇列下一位 QUEUE／PAYING 並離店（40／70／100%）。準備頁選 LV1／2／3，沒選預設 LV3,"While active: chance/always also check out next QUEUE/PAYING guest in line who then leaves (40/70/100%). Prep picks LV1/2/3 (default LV3)",期间亲收后有机率／必定一并收队列下一位 QUEUE／PAYING 并离店（40／70／100%）。准备页选 LV1／2／3，没选预设 LV3,発動中は列の次の QUEUE／PAYING 客を確率／必ず同時会計して退店（40／70／100%）。準備画面で LV1／2／3 を選択、未選択時は LV3
 skill.instant_restock.name,瞬間補貨,Instant Restock,瞬间补货,瞬間補充
 skill.instant_restock.blurb,上架瞬間完成，20 秒,Restock completes instantly for 20s,上架瞬间完成，20 秒,陳列が瞬時に完了、20 秒
 skill.soothe.name,安撫,Soothe,安抚,なだめる
@@ -97,7 +97,7 @@ skill.carry_passive.blurb,負重 +80 件,Carry +80 pieces,负重 +80 件,所持 
 skill.move_passive.name,移動速度增加,Move Speed Up,移动速度增加,移動速度増加
 skill.move_passive.blurb,移速 +20%,Move speed +20%,移速 +20%,移動速度 +20%
 skill.checkout_speed.name,收銀速度增加,Checkout Speed Up,收银速度增加,レジ速度増加
-skill.checkout_speed.blurb,收銀 +20%,Checkout +20%,收银 +20%,レジ速度 +20%
+skill.checkout_speed.blurb,Perfect 親收後下一客略過頭 1／1／2 格，頭上只顯示餘下。準備頁選 LV1／2／3，沒選預設 LV3,"After a Perfect checkout, next guest skips first 1/1/2 arrows (only remainder shown). Prep picks LV1/2/3 (default LV3)",Perfect 亲收后下一客略过头 1／1／2 格，头上只显示余下。准备页选 LV1／2／3，没选预设 LV3,Perfect会計後、次の客は先頭1／1／2コマンドを省略し残りのみ表示。準備画面で LV1／2／3 を選択、未選択時は LV3
 skill.restock_speed.name,上架速度增加,Restock Speed Up,上架速度增加,陳列速度増加
 skill.restock_speed.blurb,上架 +20%,Restock +20%,上架 +20%,陳列 +20%
 skill.quick_swallow.name,快吞轟,Quick Swallow,快吞轰,クイックスワロー
@@ -296,10 +296,12 @@ log.player.monk_clear,掃地僧清除 — %s,Sweeping Monk cleared — %s,扫地
 log.player.register_busy,收銀機使用中,Register busy,收银机使用中,レジ使用中
 log.player.guest_en_route,客人還在前往收銀機，請等到隊伍前端,Guest still walking to register; wait for queue head,客人还在前往收银机，请等到队伍前端,客はまだレジへ移動中。列の先頭まで待って
 log.player.no_guest_at_register,收銀機前沒有客人,No guest at register,收银机前没有客人,レジ前に客がいない
-log.player.senior_skip,資深收銀員 — 略過指令，直接 Loading Circle（購物 %d 件）,"Senior Cashier — skip commands, Loading Circle (%d items)",资深收银员 — 略过指令，直接 Loading Circle（购物 %d 件）,シニアキャッシャー — 指令スキップ、Loading Circle へ（買い物 %d 点）
+log.player.senior_skip,資深收銀員 — 略過指令（購物 %d 件）,"Senior Cashier — skip commands (%d items)",资深收银员 — 略过指令（购物 %d 件）,シニアキャッシャー — 指令スキップ（買い物 %d 点）
 log.player.checkout_cmds,收銀指令 %d 次（購物 %d 件）,Checkout commands ×%d (%d items),收银指令 %d 次（购物 %d 件）,会計指令 %d 回（買い物 %d 点）
-log.player.cmds_done,指令完成 — 維持長按出現 Loading Circle,Commands done — hold for Loading Circle,指令完成 — 维持长按出现 Loading Circle,指令完了 — 長押しで Loading Circle
-log.player.cmds_fail,指令錯誤 × 同一串重來,Wrong input × restart sequence,指令错误 × 同一串重来,指令ミス × 同じ並びからやり直し
+log.player.cmds_done,指令完成 — 入帳,Commands done — checkout,指令完成 — 入账,指令完了 — 会計
+log.player.senior_dual,資深連收 — $%d,Senior dual checkout — $%d,资深连收 — $%d,シニア連会計 — $%d
+log.player.checkout_prefill,略過頭 %d 格（只顯示餘下）,Skip first %d commands (show remainder),略过头 %d 格（只显示余下）,先頭%d個を省略（残りのみ表示）
+log.player.cmds_fail,指令錯誤 × 還原完整串重來,Wrong input × restore full sequence,指令错误 × 还原完整串重来,指令ミス × 完全な並びに戻してやり直し
 log.player.elite_pay,麻煩客人收銀  +$%d（雙倍）,Elite checkout  +$%d (double),麻烦客人收银  +$%d（双倍）,エリート会計  +$%d（倍額）
 log.player.pay_done,收銀完成  +$%d,Checkout done  +$%d,收银完成  +$%d,会計完了  +$%d
 log.player.cant_skill,現在不能發動技能,Cannot cast skills now,现在不能发动技能,今はスキルを発動できない
@@ -322,7 +324,7 @@ log.player.ult_dusk_closed,奧義 諸客的黃昏 — 非營業時段無效,Ulti
 log.player.ult_three_volley,奧義 三段火槍陣 — 三排開火,Ultimate Three Volley Fire — three ranks firing,奥义 三段火枪阵 — 三排开火,奥義 三段銃陣 — 三列一斉射撃
 log.player.ult_lord,奧義 Yes! My Lord! LV%d — 客人搶購 %.0f 秒,Ultimate Yes! My Lord! LV%d — rush %.0fs,奥义 Yes! My Lord! LV%d — 客人抢购 %.0f 秒,奥義 Yes! My Lord! LV%d — 客の買い急ぎ %.0f 秒
 log.player.ult_world,奧義 %s LV%d — 時停,Ultimate %s LV%d — time stop,奥义 %s LV%d — 时停,奥義 %s LV%d — 時止め
-log.player.cmd_reset,放手 — 指令與 Circle 重置,Release — commands and Circle reset,放手 — 指令与 Circle 重置,離した — 指令と Circle をリセット
+log.player.cmd_reset,放手 — 指令重置,Release — commands reset,放手 — 指令重置,離した — 指令をリセット
 log.player.crowd_say,唔該借借⋯,Excuse me…,唔该借借⋯,すみません、通してください…
 log.player.hands_empty,手上沒有貨,Hands empty,手上没有货,手に商品がない
 log.player.toss_fly,丟掉 %s ×%d — 往%s飛出（可砸小偷／同款貨架上架）,Toss %s ×%d — flying %s (thief/shelf),丢掉 %s ×%d — 往%s飞出（可砸小偷／同款货架上架）,投げる %s ×%d — %sへ飛んだ（泥棒／同種棚に陳列可）

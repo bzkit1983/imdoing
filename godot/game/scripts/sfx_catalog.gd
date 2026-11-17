@@ -47,7 +47,7 @@ const ENTRIES: Array[Dictionary] = [
 	{"id": "sfx_box_sku_open", "priority": "P1", "path": "res://audio/sfx/sfx_box_sku_open.wav", "group": "box", "trigger": "補貨點長按打開 SKU 清單"},
 	{"id": "sfx_checkout_clerk", "priority": "P1", "path": "res://audio/sfx/sfx_checkout_clerk.wav", "group": "checkout", "trigger": "店員自動收銀完成（舊檔；活線改用 cash_pop2；Dark Side／影分身同）"},
 	{"id": "sfx_checkout_enter", "priority": "P1", "path": "res://audio/sfx/sfx_checkout_enter.wav", "group": "checkout", "trigger": "進入收銀指令模式（隊首就緒）"},
-	{"id": "sfx_checkout_seq_done", "priority": "P1", "path": "res://audio/sfx/sfx_checkout_seq_done.wav", "group": "checkout", "trigger": "指令串全部正確 → Circle 出現"},
+	{"id": "sfx_checkout_seq_done", "priority": "P1", "path": "res://audio/sfx/sfx_checkout_seq_done.wav", "group": "checkout", "trigger": "指令串全部正確 → 即入帳"},
 	{"id": "sfx_clean_start", "priority": "P1", "path": "res://audio/sfx/sfx_clean_start.wav", "group": "clean", "trigger": "開始對污物填清潔計"},
 	{"id": "sfx_early_close_ask", "priority": "P1", "path": "res://audio/sfx/sfx_early_close_ask.wav", "group": "early", "trigger": "提早關店詢問彈出"},
 	{"id": "sfx_guest_angry_leave", "priority": "P1", "path": "res://audio/sfx/sfx_guest_angry_leave.wav", "group": "guest", "trigger": "不滿滿 100 生氣離開"},

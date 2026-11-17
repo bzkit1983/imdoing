@@ -52,6 +52,12 @@ var _checkout_had_miss: bool = false
 var _net_prompt_fp: String = ""
 ## Cast level while `senior_cashier` buff is up (0 = inactive).
 var _senior_cashier_lv: int = 0
+## Cast level while `checkout_rush` buff is up (0 = inactive).
+var _checkout_rush_lv: int = 0
+## Pending Perfect-chain prefill arrows for the next personal checkout (0 = none).
+var _checkout_prefill_charge: int = 0
+## Lightweight grade hook for future rhythm FX (`perfect` / `ok`).
+var _last_checkout_grade: String = ""
 var skill_menu_open: bool = false
 var ult_prep: bool = false
 var stick_axis: Vector2 = Vector2.ZERO
@@ -134,7 +140,7 @@ var _cardinal_armed: bool = true
 ## After skill/ult/restock/checkout dir mode, ignore move until stick/keys go neutral
 ## so releasing the menu on a held WASD key does not start walking.
 var _move_locked_until_neutral: bool = false
-var _passive_checkout_pct: float = 0.0
+var _passive_checkout_prefill_lv: int = 0
 var _restock_picking: bool = false
 var _restock_hold: float = 0.0
 var _restock_aborted: bool = false
@@ -375,14 +381,13 @@ func _has_flag(flag: String) -> bool:
 func clone_snapshot() -> Dictionary:
 	var move_pct := 0.0
 	var restock_pct := 0.0
-	var checkout_pct := 0.0
 	var wave := false
 	for sk in _loadout():
 		if str(sk.get("kind", "")) != "passive":
 			continue
 		move_pct += float(sk.get("move_pct", 0.0))
 		restock_pct += float(sk.get("restock_pct", 0.0))
-		checkout_pct += float(sk.get("checkout_pct", 0.0))
+		## checkout_speed is Perfect-prefill only — clones have no arrow QTE.
 		if bool(sk.get("ignore_dirt_slow", false)):
 			wave = true
 	return {
@@ -391,18 +396,20 @@ func clone_snapshot() -> Dictionary:
 		"int": _stat_base("int"),
 		"move_pct": move_pct,
 		"restock_pct": restock_pct,
-		"checkout_pct": checkout_pct,
+		"checkout_pct": 0.0,
 		"wave_step": wave,
 		"skin_id": appearance_skin_id(),
 	}
 
 
 func _refresh_passive_checkout() -> void:
-	_passive_checkout_pct = 0.0
+	_passive_checkout_prefill_lv = 0
 	for sk in _loadout():
 		## Godot 4.7: String(null) errors — empty loadout slots omit "kind".
-		if str(sk.get("kind", "")) == "passive":
-			_passive_checkout_pct += float(sk.get("checkout_pct", 0.0))
+		if str(sk.get("kind", "")) != "passive":
+			continue
+		if bool(sk.get("checkout_prefill", false)) or str(sk.get("id", "")) == "checkout_speed":
+			_passive_checkout_prefill_lv = maxi(_passive_checkout_prefill_lv, int(sk.get("lv", 3)))
 
 
 func bind_visuals(body: CanvasItem, arrow: Polygon2D) -> void:
@@ -532,24 +539,25 @@ func restock_seconds_now() -> float:
 	return maxf(base, 0.05)
 
 
+## Legacy helper — player checkout no longer uses Loading Circle.
 func checkout_seconds_now() -> float:
+	return 0.05
+
+
+func _checkout_rush_bonus_now() -> float:
+	if buff_left("checkout_rush") <= 0.05:
+		return 0.0
+	var lv := _checkout_rush_lv
+	if lv <= 0:
+		lv = 3
+	return Skills.checkout_rush_revenue_pct(lv)
+
+
+func _checkout_prefill_n_equipped() -> int:
 	_refresh_passive_checkout()
-	var sec := Tuning.checkout_seconds(_int_now())
-	var rate := 1.0
-	if _passive_checkout_pct > 0.0:
-		rate *= 1.0 + _passive_checkout_pct
-	for sk in _loadout():
-		## Godot 4.7: String(null) errors on empty loadout slots → default return 0 → instant checkout.
-		var sid := str(sk.get("id", ""))
-		if str(sk.get("kind", "")) != "active" or not _buffs.has(sid):
-			continue
-		if sk.has("checkout_pct"):
-			rate *= 1.0 + float(sk.get("checkout_pct"))
-	var out := sec / rate
-	## 資深收銀員 LV3：Circle ×0.5（可與人肉數錢機等疊乘之後再砍）。
-	if _senior_cashier_lv_now() >= 3:
-		out *= 0.5
-	return maxf(out, 0.05)
+	if _passive_checkout_prefill_lv <= 0:
+		return 0
+	return Skills.checkout_speed_prefill(_passive_checkout_prefill_lv)
 
 
 func cd_left(skill_id: String) -> float:
@@ -577,6 +585,8 @@ func skill_cd_net_row() -> Dictionary:
 		"cd": cds,
 		"buffs": buffs,
 		"senior_cashier_lv": _senior_cashier_lv,
+		"checkout_rush_lv": _checkout_rush_lv,
+		"checkout_prefill": _checkout_prefill_charge,
 	}
 
 
@@ -592,6 +602,8 @@ func apply_net_skill_cd(row: Dictionary) -> void:
 		for id in buffs.keys():
 			_buffs[String(id)] = float(buffs[id])
 	_senior_cashier_lv = int(row.get("senior_cashier_lv", 0))
+	_checkout_rush_lv = int(row.get("checkout_rush_lv", 0))
+	_checkout_prefill_charge = int(row.get("checkout_prefill", _checkout_prefill_charge))
 	if buff_left("sweeping_monk") > 0.05:
 		_sync_monk_tornado(true)
 	else:
@@ -616,7 +628,9 @@ func skill_cd_fp() -> String:
 	for id in _buffs.keys():
 		bb.append("%s:%.0f" % [String(id), float(_buffs[id])])
 	bb.sort()
-	return "%d|%s|%s|%d" % [seat_id, ",".join(bits), ",".join(bb), _senior_cashier_lv]
+	return "%d|%s|%s|%d|%d|%d" % [
+		seat_id, ",".join(bits), ",".join(bb), _senior_cashier_lv, _checkout_rush_lv, _checkout_prefill_charge
+	]
 
 
 ## Thrown boxes / pieces home to the nearest same-SKU shelf.
@@ -670,6 +684,8 @@ func role_status_text() -> String:
 		bits.append("Dasher %.0fs" % _buffs["dasher"])
 	if _buffs.has("senior_cashier"):
 		bits.append(Loc.t("hud.status.senior", [_buffs["senior_cashier"]]))
+	if _buffs.has("checkout_rush"):
+		bits.append(Loc.t("hud.status.checkout_rush", [_buffs["checkout_rush"]]))
 	if _buffs.has("hoop_ace"):
 		bits.append(Loc.t("hud.status.hoop", [_buffs["hoop_ace"]]))
 	if _buffs.has("sweeping_monk"):
@@ -680,8 +696,10 @@ func role_status_text() -> String:
 		bits.append(Loc.t("hud.status.fighting"))
 	if _stun_left > 0.0:
 		bits.append(Loc.t("hud.status.down", [_stun_left]))
-	if _passive_checkout_pct > 0.0:
-		bits.append(Loc.t("hud.status.checkout_pct", [(_passive_checkout_pct * 100.0)]))
+	if _checkout_prefill_charge > 0:
+		bits.append(Loc.t("hud.status.checkout_prefill", [_checkout_prefill_charge]))
+	elif _checkout_prefill_n_equipped() > 0:
+		bits.append(Loc.t("hud.status.checkout_prefill_ready", [_checkout_prefill_n_equipped()]))
 	return Loc.t("hud.status.prefix_role") + " ".join(bits)
 
 
@@ -1351,6 +1369,8 @@ func _tick_buffs(delta: float) -> void:
 			SfxBus.play("sfx_ult_the_world_end")
 		if id == "senior_cashier":
 			_senior_cashier_lv = 0
+		if id == "checkout_rush":
+			_checkout_rush_lv = 0
 		if id == "sweeping_monk":
 			_sync_monk_tornado(false)
 		_buffs.erase(id)
@@ -2802,7 +2822,7 @@ func _clear_clean_hint() -> void:
 		target.call("set_cleaning", false, Vector2.ZERO, hold_progress * 100.0, seat_id)
 
 
-func _tick_cashier(delta: float) -> void:
+func _tick_cashier(_delta: float) -> void:
 	if not is_instance_valid(target):
 		return
 	## A4 L — register through whole payment / cancel.
@@ -2825,15 +2845,12 @@ func _tick_cashier(delta: float) -> void:
 	_prompt.active = true
 	_prompt.sequence = cust.checkout_seq
 	_prompt.index = seq_index
+	## No Loading Circle — last correct arrow (or full prefill) pays immediately.
+	hold_progress = 0.0
 	if not seq_done:
 		_request_prompt_broadcast()
 		return
-	var csec := checkout_seconds_now()
-	hold_progress = minf(1.0, hold_progress + delta / csec)
-	if hold_progress >= 1.0:
-		_finish_checkout(cust)
-	else:
-		_request_prompt_broadcast()
+	_finish_checkout(cust)
 
 
 func _senior_cashier_lv_now() -> int:
@@ -2844,33 +2861,44 @@ func _senior_cashier_lv_now() -> int:
 
 func _ensure_seq(cust) -> void:
 	if cust.checkout_seq.is_empty():
-		## LV3 skip leaves seq empty but marks init so we do not re-roll each frame.
-		if cust.has_meta("checkout_seq_init") and bool(cust.get_meta("checkout_seq_init")):
-			seq_done = true
-			cust.begin_paying()
-			return
 		## Client LAN: wait for Host absolute seq — never dual-randi (M2.9).
 		if SessionService.is_networked() and SessionService.is_client():
 			return
-		var n := Tuning.command_count(cust.cart.size())
-		n = Skills.senior_cashier_command_count(n, _senior_cashier_lv_now())
+		var n := Tuning.checkout_command_count(cust.cart.size(), _int_now())
 		cust.set_meta("checkout_seq_init", true)
 		seq_index = 0
 		_checkout_had_miss = false
-		if n <= 0:
-			cust.checkout_seq = []
-			seq_done = true
-			SfxBus.play("sfx_checkout_enter")
-			SfxBus.play("sfx_checkout_seq_done")
-			log_line.emit(Loc.t("log.player.senior_skip", [cust.cart.size()]))
-		else:
-			var seq: Array[int] = []
-			for i in n:
-				seq.append(randi() % 4)
-			cust.checkout_seq = seq
-			seq_done = false
-			SfxBus.play("sfx_checkout_enter")
-			log_line.emit(Loc.t("log.player.checkout_cmds", [n, cust.cart.size()]))
+		var seq: Array[int] = []
+		for i in n:
+			seq.append(randi() % 4)
+		cust.checkout_seq = seq
+		seq_done = false
+		SfxBus.play("sfx_checkout_enter")
+		log_line.emit(Loc.t("log.player.checkout_cmds", [n, cust.cart.size()]))
+		## Perfect-chain prefill: drop first N arrows (only remainder shown); keep full for miss restore.
+		var pref := mini(_checkout_prefill_charge, seq.size())
+		_checkout_prefill_charge = 0
+		seq_index = 0
+		if cust.has_meta("checkout_seq_full"):
+			cust.remove_meta("checkout_seq_full")
+		if cust.has_meta("checkout_seq_trimmed"):
+			cust.remove_meta("checkout_seq_trimmed")
+		if pref > 0:
+			var full_copy: Array = []
+			for d in seq:
+				full_copy.append(int(d))
+			cust.set_meta("checkout_seq_full", full_copy)
+			cust.set_meta("checkout_seq_trimmed", true)
+			var remain: Array[int] = []
+			for i in range(pref, seq.size()):
+				remain.append(int(seq[i]))
+			cust.checkout_seq = remain
+			if remain.is_empty():
+				seq_done = true
+				SfxBus.play("sfx_checkout_seq_done")
+				log_line.emit(Loc.t("log.player.cmds_done"))
+			else:
+				log_line.emit(Loc.t("log.player.checkout_prefill", [pref]))
 		if cust.has_method("broadcast_checkout_seq_state"):
 			cust.call("broadcast_checkout_seq_state")
 		## prompt_state 由 _tick_cashier 在寫入 _prompt.sequence 後再廣播。
@@ -2921,19 +2949,37 @@ func _try_command(dir: int) -> void:
 			log_line.emit(Loc.t("log.player.cmds_done"))
 	else:
 		_checkout_had_miss = true
-		_prompt.fail_at = seq_index
+		## Prefill miss: restore full arrow string so trimmed cmds reappear; chain ends (no Perfect).
+		if cust.has_meta("checkout_seq_trimmed") and bool(cust.get_meta("checkout_seq_trimmed")):
+			var full = cust.get_meta("checkout_seq_full")
+			if full is Array and full.size() > cust.checkout_seq.size():
+				var restored: Array[int] = []
+				for d in full:
+					restored.append(int(d))
+				cust.checkout_seq = restored
+				if cust.has_method("broadcast_checkout_seq_state"):
+					cust.call("broadcast_checkout_seq_state")
+			cust.set_meta("checkout_seq_trimmed", false)
+		_prompt.fail_at = 0
 		seq_index = 0
 		SfxBus.play("sfx_checkout_dir_fail")
 		log_line.emit(Loc.t("log.player.cmds_fail"))
 	if _prompt:
+		_prompt.sequence = cust.checkout_seq
 		_prompt.index = seq_index
 	_request_prompt_broadcast(true)
 
 
 func _finish_checkout(cust) -> void:
-	var amount: int = int(cust.call("payout_total")) if cust.has_method("payout_total") else int(cust.call("cart_total"))
+	var reg = target
+	## Peek dual target before primary leaves the queue (index 1 = next in line).
+	var dual_guest = _peek_senior_dual_guest(reg, cust)
+	var base: int = int(cust.call("payout_total")) if cust.has_method("payout_total") else int(cust.call("cart_total"))
 	var from_elite: bool = cust.get("is_elite") == true
 	var perfect := not _checkout_had_miss
+	## Grade hook for future rhythm FX (Good/Great/Perfect visuals).
+	_last_checkout_grade = "perfect" if perfect else "ok"
+	var amount := Tuning.checkout_revenue_amount(base, _int_now(), perfect, _checkout_rush_bonus_now())
 	## paid signal → demo._on_paid; pass elite via game helper when connected.
 	var game := _game()
 	if game != null:
@@ -2948,15 +2994,76 @@ func _finish_checkout(cust) -> void:
 		log_line.emit(Loc.t("log.player.pay_done", [amount]))
 	_spawn_dollar()
 	cust.finish_paid()
-	if target:
-		target.dequeue(cust)
-		_interact_release(target)
+	if reg and is_instance_valid(reg) and reg.has_method("dequeue"):
+		reg.dequeue(cust)
+	## Perfect-chain: arm next-guest prefill (one layer; non-Perfect clears).
+	if perfect:
+		_checkout_prefill_charge = _checkout_prefill_n_equipped()
+	else:
+		_checkout_prefill_charge = 0
+	## Senior dual-pay: settle the guest captured before primary left.
+	_try_senior_dual_checkout(reg, dual_guest)
+	if reg:
+		_interact_release(reg)
 	seq_index = 0
 	seq_done = false
 	hold_progress = 0.0
 	_prompt.active = false
 	_prompt.fail_at = -1
 	_request_prompt_broadcast(true)
+
+
+## Next QUEUE／PAYING guest behind `primary` at this register (not TO_CASHIER).
+func _peek_senior_dual_guest(reg, primary) -> Node:
+	if reg == null or not is_instance_valid(reg):
+		return null
+	var q = reg.get("queue")
+	if q == null or not (q is Array) or q.size() < 2:
+		return null
+	var nxt = q[1]
+	if nxt == null or not is_instance_valid(nxt) or nxt == primary:
+		return null
+	var st := int(nxt.get("state"))
+	const CustomerScript = preload("res://scripts/customer.gd")
+	if st != CustomerScript.State.QUEUE and st != CustomerScript.State.PAYING:
+		return null
+	return nxt
+
+
+## While senior_cashier is up, optionally pay the peeked dual guest (no Perfect).
+func _try_senior_dual_checkout(reg, nxt) -> void:
+	var lv := _senior_cashier_lv_now()
+	if lv <= 0:
+		return
+	if SessionService.is_networked() and SessionService.is_client():
+		return
+	if nxt == null or not is_instance_valid(nxt):
+		return
+	var st := int(nxt.get("state"))
+	const CustomerScript = preload("res://scripts/customer.gd")
+	if st == CustomerScript.State.LEAVE or st == CustomerScript.State.FLEE:
+		return
+	if st != CustomerScript.State.QUEUE and st != CustomerScript.State.PAYING:
+		return
+	var proc := Skills.senior_cashier_dual_proc(lv)
+	if proc < 1.0 and randf() > proc:
+		return
+	var base: int = int(nxt.call("payout_total")) if nxt.has_method("payout_total") else int(nxt.call("cart_total"))
+	var from_elite: bool = nxt.get("is_elite") == true
+	## Dual guest: INT + rush money OK; never Perfect ×1.05 / perfect rating.
+	var amount := Tuning.checkout_revenue_amount(base, _int_now(), false, _checkout_rush_bonus_now())
+	var game := _game()
+	if game != null:
+		game._on_paid(amount, from_elite, seat_id, self, false)
+	else:
+		paid.emit(amount)
+	SfxBus.play("sfx_checkout_cash_pop2")
+	log_line.emit(Loc.t("log.player.senior_dual", [amount]))
+	_spawn_dollar()
+	if nxt.has_method("finish_paid"):
+		nxt.finish_paid()
+	if reg != null and is_instance_valid(reg) and reg.has_method("dequeue"):
+		reg.dequeue(nxt)
 
 
 func _spawn_dollar() -> void:

@@ -193,7 +193,7 @@ tut.ops.clean.task.desc,清掉至少 1 團污物。,Clean at least 1 dirt pile.,
 tut.ops.checkout.p1.title,收銀入門,Checkout basics,收银入门,レジ入門
 tut.ops.checkout.p1.body,客人取齊貨後會排隊，你要對準收銀台、長按行動開始收銀。,"After guests finish shopping they queue — face the register and hold Act to start checkout.",客人取齐货后会排队，你要对准收银台、长按行动开始收银。,客が買い終えると列に並びます。レジに向けて行動を長押しし、会計を始めましょう。
 tut.ops.checkout.p2.title,方向指令,Direction prompts,方向指令,方向入力
-tut.ops.checkout.p2.body,頭頂出現方向串：手制／鍵盤用方向輸入，錯了可重新輸入。指令完成後長按填滿環形計才算收完。,"Arrows appear above you: enter them with the pad/keyboard; wrong inputs can be retried. After the sequence, hold Act to fill the ring and finish.",头顶出现方向串：手制／键盘用方向输入，错了可重新输入。指令完成后长按填满环形计才算收完。,頭上に方向の列が出ます。パッド／キーボードで入力し、間違えてもやり直せます。列が終わったら行動を長押ししてリングを満タンにすると会計完了です。
+tut.ops.checkout.p2.body,頭頂出現方向串：手制／鍵盤用方向輸入，錯了可重新輸入。全部正確後即完成收銀。,"Arrows appear above you: enter them with the pad/keyboard; wrong inputs can be retried. Finish the sequence to complete checkout.",头顶出现方向串：手制／键盘用方向输入，错了可重新输入。全部正确后即完成收银。,頭上に方向の列が出ます。パッド／キーボードで入力し、間違えてもやり直せます。すべて正解で会計完了です。
 tut.ops.checkout.p3.title,開始練習,Start practice,开始练习,練習を始める
 tut.ops.checkout.p3.body,完成 2 次收銀前不能結算。,You cannot settle until you finish 2 checkouts.,完成 2 次收银前不能结算。,会計を2回終えるまで精算できません。
 tut.ops.checkout.task.name,教學：收銀 2 次,Tutorial: checkout twice,教学：收银 2 次,チュートリアル：会計2回
@@ -723,6 +723,9 @@ hud.status.sick,嘔吐物 −30%% %.0fs,Vomit −30%% %.0fs,呕吐物 −30%% %.
 hud.status.fighting,打擊中,Fighting,打击中,戦闘中
 hud.status.down,倒地 %.0fs,Down %.0fs,倒地 %.0fs,ダウン %.0fs
 hud.status.checkout_pct,收銀+%.0f%%,Checkout+%.0f%%,收银+%.0f%%,レジ+%.0f%%
+hud.status.checkout_rush,人肉數錢機 %.0fs,Cash Machine %.0fs,人肉数钱机 %.0fs,人間レジ %.0fs
+hud.status.checkout_prefill,預填待用 ×%d,Prefill ready ×%d,预填待用 ×%d,事前入力待ち ×%d
+hud.status.checkout_prefill_ready,Perfect連鎖 %d,Perfect chain %d,Perfect连锁 %d,Perfect連鎖 %d
 hud.move.stun,暈眩,Stunned,晕眩,気絶
 hud.move.slip,滑倒,Slipping,滑倒,滑倒
 hud.move.toss,丟貨,Tossing,丢货,投げる
