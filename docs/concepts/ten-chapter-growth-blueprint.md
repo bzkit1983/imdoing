@@ -4,7 +4,9 @@
 > 本文僅供腦力激盪與節奏感討論。**不得**視為產品路線圖、實作規格、或對 `docs/systemdesign/*`／`docs/beta/*`／`godot/game` 的變更指示。  
 > 章節主題只寫**方向**，不固定世界名。數字皆為概念假設，可整表推翻。
 
-配套視覺：Cursor Canvas「十章成長概念藍圖」（分元素進程圖 + 整合路線圖）。
+配套視覺：
+- Cursor Canvas「十章成長概念藍圖」（分元素進程圖 + 整合路線圖；需 Cursor）
+- 離線分享版：[ten-chapter-growth-blueprint.html](./ten-chapter-growth-blueprint.html)（純 HTML，無 Cursor 亦可開）
 
 ---
 
