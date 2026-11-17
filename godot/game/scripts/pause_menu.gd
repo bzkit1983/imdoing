@@ -4,6 +4,7 @@ extends CanvasLayer
 
 const UiFont = preload("res://scripts/ui_font.gd")
 const TaskTracker = preload("res://scripts/session/task_tracker.gd")
+const BgmBusScript = preload("res://scripts/bgm_bus.gd")
 
 signal resume_requested
 signal end_day_requested
@@ -13,11 +14,13 @@ const FOCUS_TASKS := 1
 const FOCUS_TUTORIAL := 2
 const FOCUS_SFX := 3
 const FOCUS_VOL := 4
-const FOCUS_STICK := 5
-const FOCUS_CAMERA := 6
-const FOCUS_LANG := 7
-const FOCUS_END := 8
-const FOCUS_COUNT := 9
+const FOCUS_BGM := 5
+const FOCUS_BGM_VOL := 6
+const FOCUS_STICK := 7
+const FOCUS_CAMERA := 8
+const FOCUS_LANG := 9
+const FOCUS_END := 10
+const FOCUS_COUNT := 11
 
 const TutorialCatalog = preload("res://scripts/tutorial/tutorial_catalog.gd")
 
@@ -60,6 +63,10 @@ var _tut_review_scroll: ScrollContainer = null
 @onready var _vol_btn: Button = %VolBtn
 @onready var _vol_down: Button = %VolDownBtn
 @onready var _vol_up: Button = %VolUpBtn
+@onready var _bgm_btn: Button = %BgmBtn
+@onready var _bgm_vol_btn: Button = %BgmVolBtn
+@onready var _bgm_vol_down: Button = %BgmVolDownBtn
+@onready var _bgm_vol_up: Button = %BgmVolUpBtn
 @onready var _stick_btn: Button = %StickBtn
 @onready var _camera_btn: Button = %CameraBtn
 @onready var _lang_btn: Button = %LangBtn
@@ -78,7 +85,11 @@ func setup(host: Node) -> void:
 	_body.add_theme_color_override("font_color", Color("f4f1ea"))
 	UiFont.apply_label(_hint, 20)
 	_hint.add_theme_color_override("font_color", Color("c8c2b4"))
-	for b in [_resume_btn, _tasks_btn, _tutorial_btn, _sfx_btn, _vol_btn, _vol_down, _vol_up, _stick_btn, _camera_btn, _lang_btn, _end_btn]:
+	for b in [
+		_resume_btn, _tasks_btn, _tutorial_btn, _sfx_btn, _vol_btn, _vol_down, _vol_up,
+		_bgm_btn, _bgm_vol_btn, _bgm_vol_down, _bgm_vol_up,
+		_stick_btn, _camera_btn, _lang_btn, _end_btn,
+	]:
 		if b == null:
 			continue
 		UiFont.apply_button(b, 22)
@@ -92,6 +103,14 @@ func setup(host: Node) -> void:
 	_vol_btn.pressed.connect(_on_vol_preview)
 	_vol_down.pressed.connect(_on_vol_nudge.bind(-1))
 	_vol_up.pressed.connect(_on_vol_nudge.bind(1))
+	if _bgm_btn:
+		_bgm_btn.pressed.connect(_on_bgm_toggle)
+	if _bgm_vol_btn:
+		_bgm_vol_btn.pressed.connect(_on_bgm_vol_preview)
+	if _bgm_vol_down:
+		_bgm_vol_down.pressed.connect(_on_bgm_vol_nudge.bind(-1))
+	if _bgm_vol_up:
+		_bgm_vol_up.pressed.connect(_on_bgm_vol_nudge.bind(1))
 	_stick_btn.pressed.connect(_on_stick_toggle)
 	_camera_btn.pressed.connect(_on_camera_cycle)
 	_lang_btn.pressed.connect(_enter_lang_pick)
@@ -215,8 +234,11 @@ func _process(_delta: float) -> void:
 		return
 	_stick_armed = false
 	if absf(v.x) > absf(v.y):
-		if not _lang_pick and not _tasks_detail and _focus == FOCUS_VOL:
-			_on_vol_nudge(1 if v.x > 0.0 else -1)
+		if not _lang_pick and not _tasks_detail:
+			if _focus == FOCUS_VOL:
+				_on_vol_nudge(1 if v.x > 0.0 else -1)
+			elif _focus == FOCUS_BGM_VOL:
+				_on_bgm_vol_nudge(1 if v.x > 0.0 else -1)
 	else:
 		if _lang_pick:
 			_move_lang_pick_focus(1 if v.y > 0.0 else -1)
@@ -286,6 +308,11 @@ func _refresh_audio_labels() -> void:
 		_sfx_btn.text = Loc.t("pause.sfx_off") if SfxBus.is_muted() else Loc.t("pause.sfx_on")
 	if _vol_btn:
 		_vol_btn.text = Loc.t("pause.sfx_volume", [SfxBus.volume_percent()])
+	var bgm := BgmBusScript.bus()
+	if _bgm_btn and bgm:
+		_bgm_btn.text = Loc.t("pause.bgm_off") if bgm.is_muted() else Loc.t("pause.bgm_on")
+	if _bgm_vol_btn and bgm:
+		_bgm_vol_btn.text = Loc.t("pause.bgm_volume", [bgm.volume_percent()])
 
 
 func _on_platform_pause_requested() -> void:
@@ -357,10 +384,14 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif dir == 2:
 		if _focus == FOCUS_VOL:
 			_on_vol_nudge(-1)
+		elif _focus == FOCUS_BGM_VOL:
+			_on_bgm_vol_nudge(-1)
 		get_viewport().set_input_as_handled()
 	elif dir == 3:
 		if _focus == FOCUS_VOL:
 			_on_vol_nudge(1)
+		elif _focus == FOCUS_BGM_VOL:
+			_on_bgm_vol_nudge(1)
 		get_viewport().set_input_as_handled()
 	elif _is_confirm(event):
 		get_viewport().set_input_as_handled()
@@ -457,6 +488,10 @@ func _layout_option_rows() -> void:
 	rows.append(_sfx_btn)
 	if _vol_btn != null and _vol_btn.get_parent() is Control:
 		rows.append(_vol_btn.get_parent() as Control)
+	if _bgm_btn != null and _bgm_btn.visible:
+		rows.append(_bgm_btn)
+	if _bgm_vol_btn != null and _bgm_vol_btn.get_parent() is Control:
+		rows.append(_bgm_vol_btn.get_parent() as Control)
 	if _stick_btn != null and _stick_btn.visible:
 		rows.append(_stick_btn)
 	if _camera_btn != null and _camera_btn.visible:
@@ -483,7 +518,9 @@ func _layout_option_rows() -> void:
 		row.offset_top = y
 		row.offset_bottom = y + row_h
 		## Volume row children fill the row height.
-		if row == _vol_btn.get_parent():
+		var vol_parent := _vol_btn.get_parent() if _vol_btn else null
+		var bgm_vol_parent := _bgm_vol_btn.get_parent() if _bgm_vol_btn else null
+		if row == vol_parent or row == bgm_vol_parent:
 			for child in row.get_children():
 				if child is Button:
 					(child as Button).offset_top = 0.0
@@ -520,6 +557,10 @@ func _activate_focus() -> void:
 			_on_sfx_toggle()
 		FOCUS_VOL:
 			_on_vol_preview()
+		FOCUS_BGM:
+			_on_bgm_toggle()
+		FOCUS_BGM_VOL:
+			_on_bgm_vol_preview()
 		FOCUS_STICK:
 			_on_stick_toggle()
 		FOCUS_CAMERA:
@@ -559,6 +600,41 @@ func _on_vol_preview() -> void:
 	## J / tap center: sample current level (audible even if muted).
 	SfxBus.play("sfx_ui_confirm", 1.0, NAN, true)
 	_focus = FOCUS_VOL
+	_paint_focus()
+
+
+func _on_bgm_toggle() -> void:
+	var bgm := BgmBusScript.bus()
+	if bgm == null:
+		return
+	if bgm.is_muted():
+		bgm.set_muted(false)
+		SfxBus.play("sfx_ui_confirm")
+	else:
+		SfxBus.play("sfx_ui_confirm")
+		bgm.set_muted(true)
+	_refresh_audio_labels()
+	_paint_focus()
+
+
+func _on_bgm_vol_nudge(steps: int) -> void:
+	var bgm := BgmBusScript.bus()
+	if bgm == null:
+		return
+	bgm.nudge_volume(steps)
+	bgm.preview_volume()
+	SfxBus.play("sfx_ui_move", 1.0, NAN, true)
+	_refresh_audio_labels()
+	_focus = FOCUS_BGM_VOL
+	_paint_focus()
+
+
+func _on_bgm_vol_preview() -> void:
+	var bgm := BgmBusScript.bus()
+	if bgm:
+		bgm.preview_volume()
+	SfxBus.play("sfx_ui_confirm", 1.0, NAN, true)
+	_focus = FOCUS_BGM_VOL
 	_paint_focus()
 
 
@@ -669,6 +745,10 @@ func _set_main_options_visible(on: bool) -> void:
 	_sfx_btn.visible = on
 	if _vol_btn.get_parent() is Control:
 		(_vol_btn.get_parent() as Control).visible = on
+	if _bgm_btn:
+		_bgm_btn.visible = on
+	if _bgm_vol_btn and _bgm_vol_btn.get_parent() is Control:
+		(_bgm_vol_btn.get_parent() as Control).visible = on
 	if _stick_btn:
 		_stick_btn.visible = on and _stick_row_visible()
 	if _camera_btn:
@@ -1097,6 +1177,15 @@ func _paint_focus() -> void:
 	_style_btn(_vol_btn, vol_on)
 	_style_btn(_vol_down, vol_on)
 	_style_btn(_vol_up, vol_on)
+	if _bgm_btn:
+		_style_btn(_bgm_btn, _focus == FOCUS_BGM)
+	var bgm_vol_on := _focus == FOCUS_BGM_VOL
+	if _bgm_vol_btn:
+		_style_btn(_bgm_vol_btn, bgm_vol_on)
+	if _bgm_vol_down:
+		_style_btn(_bgm_vol_down, bgm_vol_on)
+	if _bgm_vol_up:
+		_style_btn(_bgm_vol_up, bgm_vol_on)
 	if _stick_btn and _stick_btn.visible:
 		_style_btn(_stick_btn, _focus == FOCUS_STICK)
 	if _camera_btn:

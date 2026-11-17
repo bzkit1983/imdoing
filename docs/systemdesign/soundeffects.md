@@ -170,7 +170,7 @@
 
 ## 明確不在本表
 
-- BGM、店內環境床、天氣層
+- BGM（另見 **`bgm.md`**）、店內環境床、天氣層
 - 語音對白長句（頭頂「謝謝！」等可用極短 VO 或純 SFX；長 VO 另表）
 - 平台系統音（系統通知、成就）
 
@@ -180,5 +180,5 @@
 - 補貨：`replenishmentsystem.md` · 收銀：`cashiersystem.md` · 清潔：`cleaningsystem.md`
 - 小偷：`thiefsystem.md` · 客人：`customer.md` · 店員：`clerksystem.md`
 - 技能：`playeractiveskills.md` · 奧義：`playerultimateskills.md` · 多重影分身：`shadowclone.md`
-- 回合：`storeoperationphase.md` · 準備：`storepreparationphase.md` · 暫停：`pausemenu.md`
+- 回合：`storeoperationphase.md` · 準備：`storepreparationphase.md` · 暫停：`pausemenu.md` · BGM：`bgm.md`
 - 動畫插座（視覺對齊）：`docs/alpha/animation-v1.0.md`；plan 註明本階段原不做音效：`docs/alpha/plan.md`

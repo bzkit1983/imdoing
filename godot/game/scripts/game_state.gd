@@ -317,13 +317,13 @@ func _scenario_skill() -> void:
 		stock[sku] = 50 * Tuning.BOX_SIZE
 	for type in FURNITURE.keys():
 		owned[type] = 2
-	# Door is cells (8,0) and (9,0). Cashiers sit on that row, one cell away.
-	_place("cashier", 6, 0, 0)
-	_place("cashier", 10, 0, 0)
-	_place("restock_frozen", 0, 2, 0)
-	_place("restock_frozen", 0, 5, 0)
-	_place("restock_dry", 16, 2, 0)
-	_place("restock_dry", 16, 5, 0)
+	# Door is cells (8,0) and (9,0). Cashiers one row below, one cell away.
+	_place("cashier", 6, 1, 0)
+	_place("cashier", 10, 1, 0)
+	_place("restock_frozen", 0, 2, 0, "milk")
+	_place("restock_frozen", 0, 5, 0, "drink")
+	_place("restock_dry", 16, 2, 0, "snack")
+	_place("restock_dry", 16, 5, 0, "can")
 	_place("shelf_frozen_12", 4, 3, 0)
 	_place("shelf_frozen_12", 4, 6, 0)
 	_place("shelf_dry_12", 12, 3, 0)

@@ -24,6 +24,7 @@ PlatformServices="*res://scripts/platform_services.gd"
 InputMode="*res://scripts/input_mode.gd"
 Loc="*res://scripts/loc.gd"
 SfxBus="*res://scripts/sfx_bus.gd"
+BgmBus="*res://scripts/bgm_bus.gd"
 SeatTable="*res://scripts/session/seat_table.gd"
 InteractLock="*res://scripts/session/interact_lock.gd"
 SessionService="*res://scripts/session/session_service.gd"
@@ -40,12 +41,6 @@ window/handheld/orientation=4
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/godotsteam/plugin.cfg")
-
-[steam]
-
-initialization/app_data/app_id=480
-initialization/processes/embed_callbacks=true
-initialization/processes/initialize_on_startup=false
 
 [gui]
 
@@ -73,3 +68,8 @@ renderer/rendering_method.mobile="gl_compatibility"
 textures/vram_compression/import_s3tc_bptc=true
 textures/vram_compression/import_etc2_astc=true
 environment/defaults/default_clear_color=Color(0.11, 0.14, 0.13, 1)
+
+[steam]
+
+initialization/app_data/app_id=480
+initialization/processes/embed_callbacks=true

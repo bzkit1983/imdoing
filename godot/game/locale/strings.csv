@@ -273,6 +273,9 @@ tut.ops.empty_shelf.done.body,繼續保持貨架有貨吧。,Keep those shelves 
 pause.sfx_on,音效：開,SFX: On,音效：开,効果音：オン
 pause.sfx_off,音效：關,SFX: Off,音效：关,効果音：オフ
 pause.sfx_volume,音效聲量：%d%%,SFX volume: %d%%,音效声量：%d%%,効果音ボリューム：%d%%
+pause.bgm_on,背景音樂：開,BGM: On,背景音乐：开,BGM：オン
+pause.bgm_off,背景音樂：關,BGM: Off,背景音乐：关,BGM：オフ
+pause.bgm_volume,背景音樂聲量：%d%%,BGM volume: %d%%,背景音乐声量：%d%%,BGMボリューム：%d%%
 pause.end_day,結束本日並結算,End day & settle,结束本日并结算,本日を終了して精算
 pause.virtual_stick_on,觸控搖桿：開,Touch stick: On,触控摇杆：开,タッチスティック：オン
 pause.virtual_stick_off,觸控搖桿：關,Touch stick: Off,触控摇杆：关,タッチスティック：オフ
@@ -351,6 +354,9 @@ prep.rating.day_ago,%d 日前,%d day(s) ago,%d 日前,%d 日前
 prep.rating.row,%s　第 %d 日　%s（評級 %+d）,%s · Day %d · %s (grade %+d),%s　第 %d 日　%s（评级 %+d）,%s　第 %d 日　%s（評級 %+d）
 prep.sys.virtual_stick_on,觸控搖桿：開,Touch stick: On,触控摇杆：开,タッチスティック：オン
 prep.sys.virtual_stick_off,觸控搖桿：關,Touch stick: Off,触控摇杆：关,タッチスティック：オフ
+prep.sys.bgm_on,背景音樂：開,BGM: On,背景音乐：开,BGM：オン
+prep.sys.bgm_off,背景音樂：關,BGM: Off,背景音乐：关,BGM：オフ
+prep.sys.bgm_volume,背景音樂聲量：%d%%,BGM volume: %d%%,背景音乐声量：%d%%,BGMボリューム：%d%%
 prep.sys.language,語言：%s,Language: %s,语言：%s,言語：%s
 prep.locale.title,選擇語言,Choose language,选择语言,言語を選ぶ
 prep.locale.info,選取介面語言。目前：%s,Pick the UI language. Current: %s,选取界面语言。目前：%s,UI言語を選びます。現在：%s

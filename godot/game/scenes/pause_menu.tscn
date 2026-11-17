@@ -127,6 +127,50 @@ offset_bottom = 72.0
 focus_mode = 0
 text = "+"
 
+[node name="BgmBtn" type="Button" parent="Card"]
+unique_name_in_owner = true
+offset_left = 36.0
+offset_top = 472.0
+offset_right = 764.0
+offset_bottom = 544.0
+focus_mode = 0
+text = "BGM: On"
+
+[node name="BgmVolRow" type="Control" parent="Card"]
+unique_name_in_owner = true
+offset_left = 36.0
+offset_top = 386.0
+offset_right = 764.0
+offset_bottom = 458.0
+mouse_filter = 0
+
+[node name="BgmVolDownBtn" type="Button" parent="Card/BgmVolRow"]
+unique_name_in_owner = true
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 88.0
+offset_bottom = 72.0
+focus_mode = 0
+text = "−"
+
+[node name="BgmVolBtn" type="Button" parent="Card/BgmVolRow"]
+unique_name_in_owner = true
+offset_left = 100.0
+offset_top = 0.0
+offset_right = 628.0
+offset_bottom = 72.0
+focus_mode = 0
+text = "BGM volume: 100%"
+
+[node name="BgmVolUpBtn" type="Button" parent="Card/BgmVolRow"]
+unique_name_in_owner = true
+offset_left = 640.0
+offset_top = 0.0
+offset_right = 728.0
+offset_bottom = 72.0
+focus_mode = 0
+text = "+"
+
 [node name="StickBtn" type="Button" parent="Card"]
 unique_name_in_owner = true
 offset_left = 36.0

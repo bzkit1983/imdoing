@@ -15,6 +15,7 @@ const SkinCatalog = preload("res://scripts/session/skin_catalog.gd")
 const CharacterSheet = preload("res://scripts/session/character_sheet.gd")
 const Vox = preload("res://scripts/voxel_sprite.gd")
 const RatingRules = preload("res://scripts/session/rating_rules.gd")
+const BgmBusScript = preload("res://scripts/bgm_bus.gd")
 
 const PREP_TITLE := PrepWidgets.PREP_TITLE
 const PREP_INFO := PrepWidgets.PREP_INFO
@@ -1309,6 +1310,10 @@ func _activate() -> void:
 			_toggle_virtual_stick()
 		"toggle_dev_hud":
 			_toggle_dev_hud()
+		"toggle_bgm":
+			_toggle_bgm()
+		"nudge_bgm_volume":
+			_nudge_bgm_volume(int(arg) if arg != null else 0)
 		"set_locale":
 			_set_locale(String(arg))
 		"play_sfx":
@@ -1331,6 +1336,33 @@ func _toggle_dev_hud() -> void:
 	var on := PlatformServices.toggle_show_dev_hud()
 	SfxBus.play("sfx_ui_confirm")
 	_msg = Loc.t("prep.sys.dev_hud_on" if on else "prep.sys.dev_hud_off")
+	_refresh()
+
+
+func _toggle_bgm() -> void:
+	var bgm := BgmBusScript.bus()
+	if bgm == null:
+		return
+	var muted: bool = bgm.toggle_muted()
+	SfxBus.play("sfx_ui_confirm")
+	_msg = Loc.t("prep.sys.bgm_off" if muted else "prep.sys.bgm_on")
+	_refresh()
+
+
+func _nudge_bgm_volume(steps: int) -> void:
+	var bgm := BgmBusScript.bus()
+	if bgm == null:
+		return
+	if steps == 0:
+		bgm.preview_volume()
+		SfxBus.play("sfx_ui_confirm", 1.0, NAN, true)
+		_msg = Loc.t("prep.sys.bgm_volume", [bgm.volume_percent()])
+		_refresh()
+		return
+	bgm.nudge_volume(steps)
+	bgm.preview_volume()
+	SfxBus.play("sfx_ui_move", 1.0, NAN, true)
+	_msg = Loc.t("prep.sys.bgm_volume", [bgm.volume_percent()])
 	_refresh()
 
 
@@ -2243,6 +2275,12 @@ func _move_hub(x: int, y: int) -> void:
 				return
 			next = posmod(cand, n)
 	else:
+		## BGM volume row: A／D（左右）調音量，不換列。
+		if x != 0 and _index >= 0 and _index < n:
+			var row: Dictionary = _rows[_index]
+			if String(row.get("action", "")) == "nudge_bgm_volume":
+				_nudge_bgm_volume(1 if x > 0 else -1)
+				return
 		if y < 0 or x < 0:
 			next = posmod(_index - 1, n)
 		elif y > 0 or x > 0:

@@ -28,6 +28,7 @@ const FloorTilesScript = preload("res://scripts/floor_tiles.gd")
 const ProductVersion = preload("res://scripts/product_version.gd")
 const DaySettle = preload("res://scripts/host/day_settle.gd")
 const WorldBuildScript = preload("res://scripts/host/world_build.gd")
+const BgmBusScript = preload("res://scripts/bgm_bus.gd")
 const NetWorldScript = preload("res://scripts/host/net_world.gd")
 const NetPresentationScript = preload("res://scripts/session/net_presentation.gd")
 const TaskCatalog = preload("res://scripts/session/task_catalog.gd")
@@ -194,6 +195,9 @@ func _ready() -> void:
 	_pause.end_day_requested.connect(_on_pause_end_day)
 	if not PlatformServices.show_dev_hud_changed.is_connected(_on_show_dev_hud_changed):
 		PlatformServices.show_dev_hud_changed.connect(_on_show_dev_hud_changed)
+	var bgm := BgmBusScript.bus()
+	if bgm:
+		bgm.play_prep()
 
 
 func tutorial() -> Node:
@@ -315,6 +319,9 @@ func _begin_day() -> void:
 		il.clear()
 	_sfx_phase = "restock"
 	SfxBus.play("sfx_phase_restock")
+	var bgm_op := BgmBusScript.bus()
+	if bgm_op:
+		bgm_op.play_operation(true)
 	_spawn_in = 2.0
 	clear_guest_dusk()
 	_clear_three_volley()
@@ -1385,6 +1392,9 @@ func _return_to_prep() -> void:
 		_prep._show_page("home")
 		if _prep.has_method("maybe_offer_difficulty_prompt"):
 			_prep.call("maybe_offer_difficulty_prompt")
+	var bgm_prep := BgmBusScript.bus()
+	if bgm_prep:
+		bgm_prep.play_prep()
 
 
 func _reload_local_save_for_prep(settled_ok: bool = false) -> void:
@@ -2270,7 +2280,8 @@ func _spawn_customer_puppet(aid: int, thief: bool, pos: Vector2, payload: Dictio
 	## setup marks occupy for guests but we never register_customer — clear the flag only.
 	if not thief:
 		c._occupy_counted = false
-	if bool(payload.get("elite", false)):
+	var puppet_elite := bool(payload.get("elite", false))
+	if puppet_elite:
 		c.call("become_elite", int(payload.get("elite_lv", 1)))
 	var model := String(payload.get("model", ""))
 	if model != "":
@@ -2286,6 +2297,10 @@ func _spawn_customer_puppet(aid: int, thief: bool, pos: Vector2, payload: Dictio
 			bool(payload.get("checkout_init", false)),
 		)
 	_net_agents[aid] = c
+	if puppet_elite:
+		announce_elite_customer(c)
+		## Puppets skip register_customer — still clear elite BGM on despawn.
+		c.tree_exiting.connect(func() -> void: _refresh_elite_bgm(c))
 	if thief:
 		_add_interactable(c)
 		c.tree_exiting.connect(func() -> void: _remove_interactable(c))
@@ -2608,6 +2623,7 @@ func note_thief_active_changed() -> void:
 func _on_customer_exiting(c: Node) -> void:
 	if c == null:
 		return
+	var was_elite: bool = c.get("is_elite") == true
 	if c.get("is_thief"):
 		_thieves.erase(c)
 		_recount_active_thieves()
@@ -2616,6 +2632,27 @@ func _on_customer_exiting(c: Node) -> void:
 		if c.has_method("occupies_store") and bool(c.call("occupies_store")):
 			_guest_n = maxi(0, _guest_n - 1)
 			bump_hud()
+	if was_elite:
+		_refresh_elite_bgm(c)
+
+
+func _count_live_elites(exclude: Node = null) -> int:
+	if _customers == null or not is_instance_valid(_customers):
+		return 0
+	var n := 0
+	for child in _customers.get_children():
+		if child == null or not is_instance_valid(child) or child == exclude:
+			continue
+		if child.get("is_elite") == true:
+			n += 1
+	return n
+
+
+func _refresh_elite_bgm(exclude: Node = null) -> void:
+	if _count_live_elites(exclude) <= 0:
+		var bgm := BgmBusScript.bus()
+		if bgm:
+			bgm.exit_elite_if_clear()
 
 
 func _recount_active_thieves() -> void:
@@ -3202,6 +3239,9 @@ func announce_elite_customer(c: Node) -> void:
 	)
 	if _player:
 		_player.log_line.emit(Loc.t("demo.elite_banner"))
+	var bgm_elite := BgmBusScript.bus()
+	if bgm_elite:
+		bgm_elite.enter_elite()
 	queue_elite_zoom(c)
 
 

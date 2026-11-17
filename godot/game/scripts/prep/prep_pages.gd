@@ -11,6 +11,7 @@ const SkillIcons = preload("res://scripts/skill_icons.gd")
 const SkuIcons = preload("res://scripts/sku_icons.gd")
 const FurnitureIcons = preload("res://scripts/furniture_icons.gd")
 const PrepIcons = preload("res://scripts/prep/prep_icons.gd")
+const BgmBusScript = preload("res://scripts/bgm_bus.gd")
 
 
 static func is_hub_page(page: String) -> bool:
@@ -638,6 +639,21 @@ static func _hub_sys(menu: CanvasLayer) -> void:
 		"toggle_virtual_stick",
 		null,
 		"stick"
+	)
+	var bgm := BgmBusScript.bus()
+	var bgm_on: bool = bgm != null and not bgm.is_muted()
+	menu._add_hub(
+		Loc.t("prep.sys.bgm_on" if bgm_on else "prep.sys.bgm_off"),
+		"toggle_bgm",
+		null,
+		"bgm"
+	)
+	var bgm_pct: int = bgm.volume_percent() if bgm else 100
+	menu._add_hub(
+		Loc.t("prep.sys.bgm_volume", [bgm_pct]),
+		"nudge_bgm_volume",
+		0,
+		"bgm_vol"
 	)
 	var dev_on := PlatformServices.is_show_dev_hud()
 	menu._add_hub(
