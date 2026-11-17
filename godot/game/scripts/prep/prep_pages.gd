@@ -62,8 +62,12 @@ static func apply_panel_layout(menu: CanvasLayer) -> void:
 	menu._size_panel.visible = menu._page == "layout"
 	menu._qty_panel.visible = qty_on
 	menu._list.visible = not qty_on and not hub and menu._page != "stats"
-	if menu._hub_panel:
+	if menu._hub_scroll:
+		menu._hub_scroll.visible = hub
+	elif menu._hub_panel:
 		menu._hub_panel.visible = hub
+	if menu._hub_panel and menu._hub_scroll:
+		menu._hub_panel.visible = true
 	if menu._open_bar:
 		menu._open_bar.visible = menu._page == "home"
 	if menu._diff_bar:
@@ -146,11 +150,13 @@ static func _layout_lobby_panels(menu: CanvasLayer, line_n: int) -> void:
 static func _lock_info(menu: CanvasLayer, width: float, height: float) -> void:
 	## Label minimum size follows the full paragraph. Cap the lines first, then
 	## the box, so the blurb cannot grow into the list or the back button.
+	## Prefer wrap over ellipsis so prep.header's two lines stay readable.
 	var lines := maxi(1, int(floor(height / 36.0)))
 	menu._info.max_lines_visible = lines
 	menu._info.clip_text = true
 	menu._info.clip_contents = true
-	menu._info.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	menu._info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	menu._info.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	menu._info.custom_minimum_size = Vector2(width, 0)
 	menu._info.size = Vector2(width, height)
 

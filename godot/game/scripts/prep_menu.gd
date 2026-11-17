@@ -82,6 +82,7 @@ var _msg: String = ""
 var _list: ItemList
 var _back_btn: Button
 var _card: ColorRect
+var _hub_scroll: ScrollContainer
 var _hub_panel: GridContainer
 var _open_bar: HBoxContainer
 var _open_main: Button
@@ -357,8 +358,12 @@ func _bind_nodes() -> void:
 	_list = %List
 	_back_btn = %BackBtn
 	_card = get_node_or_null("%ContentCard") as ColorRect
+	_hub_scroll = get_node_or_null("%HubScroll") as ScrollContainer
 	_hub_panel = %HubPanel
 	_open_bar = %OpenBar
+	if _hub_scroll != null:
+		var hub_bar := _hub_scroll.get_v_scroll_bar()
+		hub_bar.custom_minimum_size = Vector2(44, 0)
 	_open_main = %OpenMain
 	_open_elite = %OpenElite
 	_diff_bar = %DiffBar
@@ -605,6 +610,8 @@ func _rebuild_hub_tiles() -> void:
 	PrepWidgets.clear(_hub_panel)
 	_hub_panel.columns = maxi(1, _hub_cols)
 	_hub_panel.clip_contents = false
+	if _hub_scroll != null:
+		_hub_scroll.scroll_vertical = 0
 	var as_rows := _hub_cols <= 1
 	for i in _rows.size():
 		var row: Dictionary = _rows[i]
@@ -654,13 +661,13 @@ func _apply_chrome_button_font(btn: Button, size: int) -> void:
 
 
 func _layout_hub_chrome() -> void:
-	## Pack hub to content height; stack diff + open strictly below (never overlap tiles).
-	## Cap to 720p usable area and shrink rows if needed so sys tools aren't clipped.
+	## HubScroll fills the band above a bottom-pinned home footer (diff／open).
+	## Never shrink cells — overflow scrolls inside HubScroll.
 	if _hub_panel == null:
 		return
 	var top := PrepWidgets.CONTENT_TOP
 	var gap := 10.0
-	var screen_bottom := 700.0
+	var screen_bottom := PrepWidgets.CONTENT_BOTTOM
 	var cols := maxi(1, _hub_cols)
 	var n := maxi(1, _rows.size())
 	var row_n := int(ceil(float(n) / float(cols)))
@@ -669,43 +676,57 @@ func _layout_hub_chrome() -> void:
 		var c0 := _hub_panel.get_child(0) as Control
 		if c0 != null:
 			cell_h = maxf(cell_h, c0.get_combined_minimum_size().y)
-	## Reserve chrome under hub on home so diff／open never sit on icons.
-	var reserve := 0.0
-	if _page == "home" and _open_bar != null:
-		reserve = PrepWidgets.OPEN_MAIN_H + 12.0
-		if _diff_bar != null and _diff_bar.visible:
-			reserve += PrepWidgets.DIFF_H + 10.0
-	var avail := maxf(120.0, screen_bottom - top - reserve)
-	var hub_h := float(row_n) * cell_h + float(maxi(0, row_n - 1)) * gap
-	if hub_h > avail and row_n > 0:
-		var fit_cell := (avail - float(maxi(0, row_n - 1)) * gap) / float(row_n)
-		cell_h = maxf(44.0, fit_cell)
-		for child in _hub_panel.get_children():
-			if child is Control:
-				var c := child as Control
-				var ms := c.custom_minimum_size
-				ms.y = cell_h
-				c.custom_minimum_size = ms
-		hub_h = float(row_n) * cell_h + float(maxi(0, row_n - 1)) * gap
-	hub_h = minf(hub_h, avail)
-	_hub_panel.position = Vector2(24, top)
-	_hub_panel.size = Vector2(1232, hub_h)
-	## Clip on home so oversized tile icons cannot paint over diff／open.
-	_hub_panel.clip_contents = _page == "home"
+	for child in _hub_panel.get_children():
+		if child is Control:
+			var c := child as Control
+			var ms := c.custom_minimum_size
+			ms.y = cell_h
+			c.custom_minimum_size = ms
 	_hub_panel.add_theme_constant_override("h_separation", int(gap))
 	_hub_panel.add_theme_constant_override("v_separation", int(gap))
-	if _open_bar == null or _page != "home":
-		return
-	var y := top + hub_h + 12.0
-	if _diff_bar != null and _diff_bar.visible:
-		var diff_h := PrepWidgets.DIFF_H
-		_diff_bar.position = Vector2(24, y)
-		_diff_bar.size = Vector2(1232, diff_h)
-		_diff_bar.clip_contents = true
-		y += diff_h + 10.0
-	_open_bar.position = Vector2(24, y)
-	_open_bar.size = Vector2(1232, PrepWidgets.OPEN_MAIN_H)
-	_open_bar.clip_contents = true
+	var content_h := float(row_n) * cell_h + float(maxi(0, row_n - 1)) * gap
+	## Pin home footer from the bottom so tiles never cover diff／open.
+	var footer_top := screen_bottom
+	if _page == "home" and _open_bar != null:
+		footer_top -= PrepWidgets.OPEN_MAIN_H
+		_open_bar.position = Vector2(24, footer_top)
+		_open_bar.size = Vector2(1232, PrepWidgets.OPEN_MAIN_H)
+		_open_bar.clip_contents = true
+		footer_top -= 12.0
+		if _diff_bar != null and _diff_bar.visible:
+			footer_top -= PrepWidgets.DIFF_H
+			_diff_bar.position = Vector2(24, footer_top)
+			_diff_bar.size = Vector2(1232, PrepWidgets.DIFF_H)
+			_diff_bar.clip_contents = true
+			footer_top -= 10.0
+	var avail := maxf(120.0, footer_top - top)
+	_place_hub_viewport(Vector2(24, top), Vector2(1232, avail), content_h, true)
+	_hub_panel.clip_contents = false
+
+
+func _place_hub_viewport(pos: Vector2, view_size: Vector2, content_h: float, scroll: bool) -> void:
+	## Drive ScrollContainer via custom_minimum_size only — do not force child.size.y
+	## (that fights Godot 4 layout and can zero out scroll range).
+	if _hub_scroll != null:
+		_hub_scroll.position = pos
+		_hub_scroll.size = view_size
+		_hub_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		var need_scroll := scroll and content_h > view_size.y + 0.5
+		_hub_scroll.vertical_scroll_mode = (
+			ScrollContainer.SCROLL_MODE_AUTO if need_scroll else ScrollContainer.SCROLL_MODE_DISABLED
+		)
+		_hub_scroll.clip_contents = true
+		_hub_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_hub_panel.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		_hub_panel.custom_minimum_size = Vector2(0, content_h)
+		## Width follows the viewport; height comes from minimum size for scrolling.
+		_hub_panel.reset_size()
+		if not need_scroll:
+			_hub_scroll.scroll_vertical = 0
+	else:
+		_hub_panel.position = pos
+		_hub_panel.size = Vector2(view_size.x, minf(content_h, view_size.y))
+		_hub_panel.custom_minimum_size = Vector2(0, 0)
 
 
 func _paint_hub_selection() -> void:
@@ -720,6 +741,8 @@ func _paint_hub_selection() -> void:
 		var locked := bool(row.get("locked", false))
 		var on := i == _index and _open_focus < 0
 		PrepWidgets.paint_hub_surface(btn, on, locked, as_rows)
+		if on and _hub_scroll != null:
+			_hub_scroll.ensure_control_visible(btn)
 	_paint_open_selection()
 
 

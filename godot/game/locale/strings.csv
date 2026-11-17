@@ -334,7 +334,7 @@ prep.scenario.s2,劇本2　LV5　資金 $10000　店規模 2　1 名店員,Scena
 prep.scenario.s3,劇本3　LV10　資金 $99999　三圍 30　店規模 3　2 名店員,Scenario 3 · LV10 · $99999 · stats 30 · scale 3 · 2 clerks,剧本3　LV10　资金 $99999　三围 30　店规模 3　2 名店员,シナリオ3　LV10　資金 $99999　三能力 30　店規模 3　店員 2名
 prep.scenario.s4,劇本4　技能測試　LV10　三圍20　$99999　規模3　18×10,Scenario 4 · Skill test · LV10 · stats 20 · $99999 · scale 3 · 18×10,剧本4　技能测试　LV10　三围20　$99999　规模3　18×10,シナリオ4　スキルテスト　LV10　三能力20　$99999　規模3　18×10
 prep.home.title,營運準備,Prep,营运准备,営業準備
-prep.header,資金 $%d　LV%d　%s　STR%d AGI%d INT%d　點數 %d　商店評價 %d　支援別店 %d,Cash $%d · LV%d · %s · STR%d AGI%d INT%d · Pts %d · Shop rating %d · Support %d,资金 $%d　LV%d　%s　STR%d AGI%d INT%d　点数 %d　商店评价 %d　支援别店 %d,資金 $%d　LV%d　%s　STR%d AGI%d INT%d　ポイント %d　店舗評価 %d　支援評価 %d
+prep.header,資金 $%d　LV%d　%s\nSTR%d AGI%d INT%d　點數 %d　商店評價 %d　支援別店 %d,Cash $%d · LV%d · %s\nSTR%d AGI%d INT%d · Pts %d · Shop rating %d · Support %d,资金 $%d　LV%d　%s\nSTR%d AGI%d INT%d　点数 %d　商店评价 %d　支援别店 %d,資金 $%d　LV%d　%s\nSTR%d AGI%d INT%d　ポイント %d　店舗評価 %d　支援評価 %d
 prep.home.info_rating,商店評價 %d　支援別店評價 %d　已記錄 %d 日。選「評價記錄」可連續查看近況。,Shop rating %d · support-other-shops %d · %d days logged. Open Rating history to browse.,商店评价 %d　支援别店评价 %d　已记录 %d 日。选“评价记录”可连续查看近况。,店舗評価 %d　他店支援評価 %d　記録 %d 日。「評価記録」で近況を連続閲覧できます。
 prep.hub.char,角色整備,Character,角色整备,キャラ整備
 prep.hub.char_info,能力、技能與外觀,Stats · skills · look,能力、技能与外观,能力・スキル・外見
