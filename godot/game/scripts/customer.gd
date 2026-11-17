@@ -383,7 +383,17 @@ func finish_paid() -> void:
 	if not cart.is_empty():
 		cart.clear()
 		_bump_list()
+	checkout_seq.clear()
+	if has_meta("checkout_seq_init"):
+		remove_meta("checkout_seq_init")
+	if has_meta("checkout_seq_full"):
+		remove_meta("checkout_seq_full")
+	if has_meta("checkout_seq_trimmed"):
+		remove_meta("checkout_seq_trimmed")
 	_leave(false)
+	## Drop register ref so a glitch back to QUEUE cannot re-enqueue via _tick_queue.
+	register = null
+	_queue_idx = -1
 
 
 ## 落閘放狗：空車被趕離；有貨清 shopping 去排隊（已在隊則保留）。回傳 "leave" | "queue" | "skip"。
@@ -1326,9 +1336,7 @@ func _tick_temp_cashier(delta: float) -> void:
 		_temp_work = 0.0
 		_checkout_customer = cust
 	reg.operator_checkout()
-	_temp_work += delta
-	if _temp_work < Tuning.checkout_seconds(10):
-		return
+	## Instant pay — no Loading Circle (player checkout retune).
 	_temp_work = 0.0
 	var amount: int = int(cust.call("payout_total")) if cust.has_method("payout_total") else int(cust.call("cart_total"))
 	var from_elite: bool = cust.get("is_elite") == true

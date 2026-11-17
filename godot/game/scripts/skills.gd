@@ -48,7 +48,7 @@ const EQUIPPED: Array[Dictionary] = [
 		"id": "checkout_speed",
 		"kind": "passive",
 		"lv": 3,
-		"checkout_pct": 0.20,
+		"checkout_prefill": true,
 	},
 	{
 		"id": "instant_restock",
@@ -127,7 +127,7 @@ static func catalog() -> Array[Dictionary]:
 const ACTIVES: Array[Dictionary] = [
 	{"id": "carry_boost", "kind": "active", "lv": 3, "cost": 1, "carry_add": 240, "duration": ACTIVE_DURATION, "cd": ACTIVE_CD},
 	{"id": "move_boost", "kind": "active", "lv": 3, "cost": 1, "move_pct": 0.60, "duration": ACTIVE_DURATION, "cd": ACTIVE_CD},
-	{"id": "checkout_rush", "kind": "active", "lv": 3, "cost": 1, "checkout_pct": 0.60, "duration": ACTIVE_DURATION, "cd": ACTIVE_CD},
+	{"id": "checkout_rush", "kind": "active", "lv": 3, "cost": 1, "checkout_revenue": true, "duration": ACTIVE_DURATION, "cd": ACTIVE_CD},
 	{"id": "universal_cannon", "kind": "active", "lv": 3, "cost": 2, "universal_cannon": true, "cd": 60.0},
 	{"id": "shelf_cannon", "kind": "active", "lv": 3, "cost": 2, "shelf_cannon": true, "cd": 60.0},
 	{"id": "kind_cannon", "kind": "active", "lv": 3, "cost": 2, "kind_cannon": true, "cd": 90.0},
@@ -156,7 +156,7 @@ const ACTIVES: Array[Dictionary] = [
 const PASSIVES: Array[Dictionary] = [
 	{"id": "carry_passive", "kind": "passive", "lv": 3, "cost": 1, "carry_add": 80},
 	{"id": "move_passive", "kind": "passive", "lv": 3, "cost": 1, "move_pct": 0.20},
-	{"id": "checkout_speed", "kind": "passive", "lv": 3, "cost": 1, "checkout_pct": 0.20},
+	{"id": "checkout_speed", "kind": "passive", "lv": 3, "cost": 1, "checkout_prefill": true},
 	{"id": "restock_speed", "kind": "passive", "lv": 3, "cost": 1, "restock_pct": 0.20},
 	{"id": "quick_swallow", "kind": "passive", "lv": 3, "cost": 2, "quick_swallow": true},
 	{"id": "polite_dash", "kind": "passive", "lv": 1, "cost": 2, "polite_dash": true},
@@ -204,6 +204,8 @@ static func prep_picks_level(sk: Dictionary) -> bool:
 		or bool(sk.get("self_checkout", false))
 		or bool(sk.get("calm_zone", false))
 		or bool(sk.get("senior_cashier", false))
+		or bool(sk.get("checkout_revenue", false))
+		or bool(sk.get("checkout_prefill", false))
 		or bool(sk.get("hoop_ace", false))
 		or bool(sk.get("force_sell", false))
 		or bool(sk.get("must_deliver", false))
@@ -352,14 +354,38 @@ static func must_deliver_max_guests(lv: int) -> int:
 			return 4
 
 
-## Apply LV1/2 keep ratios; LV3 → 0 (skip commands). lv≤0 = no buff.
-static func senior_cashier_command_count(base: int, lv: int) -> int:
-	if lv <= 0:
-		return base
-	if lv >= 3:
-		return 0
-	var keep := 0.7 if lv == 1 else 0.4
-	return maxi(1, int(ceil(float(base) * keep)))
+## Legacy no-op: senior no longer reduces arrow count (dual-pay instead).
+static func senior_cashier_command_count(base: int, _lv: int) -> int:
+	return base
+
+
+## Dual-checkout proc while senior_cashier buff is up (next ready guest).
+static func senior_cashier_dual_proc(lv: int) -> float:
+	match lv:
+		1:
+			return 0.40
+		2:
+			return 0.70
+		_:
+			return 1.0
+
+
+## 人肉數錢機: personal checkout revenue bonus while buffed.
+static func checkout_rush_revenue_pct(lv: int) -> float:
+	match lv:
+		1:
+			return 0.15
+		2:
+			return 0.25
+		_:
+			return 0.40
+
+
+## 收銀速度增加: Perfect → next guest pre-completed arrow count.
+static func checkout_speed_prefill(lv: int) -> int:
+	if lv <= 2:
+		return 1
+	return 2
 
 
 static func restock_circle_mult(lv: int) -> float:

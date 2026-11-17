@@ -248,9 +248,7 @@ func _tick_cashier(delta: float) -> void:
 		_timer = 0.0
 		_checkout_customer = cust
 	register.operator_checkout()
-	_timer += delta
-	if _timer < Tuning.checkout_seconds(10):
-		return
+	## Instant pay — no Loading Circle (player checkout retune).
 	_timer = 0.0
 	var amount: int = int(cust.call("payout_total")) if cust.has_method("payout_total") else int(cust.call("cart_total"))
 	var from_elite: bool = cust.get("is_elite") == true

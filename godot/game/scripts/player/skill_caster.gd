@@ -978,6 +978,9 @@ func cast_slot(i: int) -> void:
 	elif bool(sk.get("senior_cashier", false)):
 		host._senior_cashier_lv = int(sk.get("lv", 3))
 		host._buffs[sid] = Skills.senior_cashier_seconds(host._senior_cashier_lv)
+	elif bool(sk.get("checkout_revenue", false)) or sid == "checkout_rush":
+		host._checkout_rush_lv = int(sk.get("lv", 3))
+		host._buffs[sid] = float(sk.get("duration", Skills.ACTIVE_DURATION))
 	elif bool(sk.get("sweeping_monk", false)):
 		host._buffs[sid] = Skills.sweeping_monk_seconds(int(sk.get("lv", 3)))
 	elif bool(sk.get("dark_side", false)) or bool(sk.get("shadow_clone", false)):

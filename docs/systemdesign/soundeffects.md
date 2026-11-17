@@ -54,8 +54,8 @@
 | `sfx_checkout_enter` | 進入收銀指令模式（隊首就緒） | 收銀機就緒 | P1 | `cashiersystem.md` |
 | `sfx_checkout_dir_ok` | 單一方向指令正確 | 輕快 tick／鍵 | P0 | `cashiersystem.md` |
 | `sfx_checkout_dir_fail` | 方向錯誤（整串重置） | 錯誤 buzz＋X | P0 | `cashiersystem.md` |
-| `sfx_checkout_seq_done` | 指令串全部正確 → Circle 出現 | 小成功 chime | P1 | `cashiersystem.md` |
-| `sfx_checkout_circle_done` | Circle 填滿、完成收銀 | 收銀鈴／錢匣 | P0 | `cashiersystem.md` |
+| `sfx_checkout_seq_done` | 指令串全部正確（隨即入帳） | 小成功 chime | P1 | `cashiersystem.md` |
+| `sfx_checkout_circle_done` | 完成收銀入帳（沿用舊 id） | 收銀鈴／錢匣 | P0 | `cashiersystem.md` |
 | `sfx_checkout_cash_pop2` | 完成後彈出 $ 圖示；店員／Dark Side 臨時收銀／影分身自動收銀完成同 | 硬幣／錢音 | P0 | `cashiersystem.md`／`clerksystem.md`／`shadowclone.md` |
 | `sfx_checkout_release_reset` | 收銀中放手重置指令 | 短取消 | P2 | `cashiersystem.md` |
 
