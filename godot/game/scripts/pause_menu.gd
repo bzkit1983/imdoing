@@ -350,6 +350,8 @@ func _refresh_hint_visibility() -> void:
 			_body.visible = true
 		else:
 			_body.visible = show
+	if _open and not _lang_pick and not _tasks_detail and not _tut_review:
+		_layout_option_rows()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -465,7 +467,7 @@ func _refresh_lang_row() -> void:
 
 
 func _layout_option_rows() -> void:
-	## Fit all main options inside the 720p card (old fixed Y pushed End day off-screen).
+	## Fit all main options inside the 720p card without overlapping the header.
 	if _resume_btn == null or _end_btn == null:
 		return
 	var card := _resume_btn.get_parent() as Control
@@ -477,8 +479,7 @@ func _layout_option_rows() -> void:
 	card.offset_top = card_top
 	card.offset_bottom = card_bottom
 	var inner_h := card_bottom - card_top
-	## Header block (title／body／hint) stays compact; pack buttons below.
-	var header_h := 168.0
+	var header_h := _layout_header_block()
 	var rows: Array[Control] = []
 	rows.append(_resume_btn)
 	if _tasks_btn != null and _tasks_btn.visible:
@@ -503,29 +504,82 @@ func _layout_option_rows() -> void:
 	var n := rows.size()
 	if n <= 0:
 		return
-	var gap := 6.0
-	var avail := maxf(120.0, inner_h - header_h - 12.0)
-	var row_h := minf(56.0, (avail - gap * float(n - 1)) / float(n))
-	row_h = maxf(40.0, row_h)
-	var y := header_h
-	## If still overflowing, shrink header a bit.
+	var gap := 4.0
+	var bottom_pad := 8.0
+	var y0 := header_h
+	var avail := maxf(80.0, inner_h - y0 - bottom_pad)
+	var row_h := (avail - gap * float(n - 1)) / float(n)
+	row_h = clampf(row_h, 28.0, 52.0)
+	## If clamped min still overflows, pull start up under the title only.
 	var need := row_h * float(n) + gap * float(n - 1)
-	if y + need > inner_h - 8.0:
-		y = maxf(120.0, inner_h - 8.0 - need)
+	if y0 + need > inner_h - bottom_pad:
+		y0 = maxf(64.0, inner_h - bottom_pad - need)
+		avail = maxf(80.0, inner_h - y0 - bottom_pad)
+		row_h = clampf((avail - gap * float(n - 1)) / float(n), 26.0, 52.0)
+	var font_px := 22 if row_h >= 40.0 else (18 if row_h >= 32.0 else 16)
+	var y := y0
+	var vol_parent := _vol_btn.get_parent() if _vol_btn else null
+	var bgm_vol_parent := _bgm_vol_btn.get_parent() if _bgm_vol_btn else null
 	for row in rows:
 		row.offset_left = 36.0
 		row.offset_right = 764.0
 		row.offset_top = y
 		row.offset_bottom = y + row_h
-		## Volume row children fill the row height.
-		var vol_parent := _vol_btn.get_parent() if _vol_btn else null
-		var bgm_vol_parent := _bgm_vol_btn.get_parent() if _bgm_vol_btn else null
+		if row is Button:
+			UiFont.apply_button(row as Button, font_px)
 		if row == vol_parent or row == bgm_vol_parent:
-			for child in row.get_children():
-				if child is Button:
-					(child as Button).offset_top = 0.0
-					(child as Button).offset_bottom = row_h
+			_layout_volume_row(row, row_h, font_px)
 		y += row_h + gap
+
+
+## Pack title／optional body／hint; returns Y where option rows may start.
+func _layout_header_block() -> float:
+	var y := 12.0
+	if _title:
+		_title.offset_left = 36.0
+		_title.offset_right = 764.0
+		_title.offset_top = y
+		_title.offset_bottom = y + 44.0
+		y = _title.offset_bottom + 6.0
+	if _body != null and _body.visible:
+		_body.offset_left = 36.0
+		_body.offset_right = 764.0
+		_body.offset_top = y
+		_body.offset_bottom = y + 56.0
+		y = _body.offset_bottom + 4.0
+	if _hint != null and _hint.visible:
+		_hint.offset_left = 36.0
+		_hint.offset_right = 764.0
+		_hint.offset_top = y
+		_hint.offset_bottom = y + 28.0
+		y = _hint.offset_bottom + 8.0
+	else:
+		y += 4.0
+	return y
+
+
+func _layout_volume_row(row: Control, row_h: float, font_px: int) -> void:
+	var row_w := 728.0
+	var side_w := minf(88.0, row_h + 20.0)
+	var gap_x := 12.0
+	var mid_left := side_w + gap_x
+	var mid_right := row_w - side_w - gap_x
+	for child in row.get_children():
+		if not child is Button:
+			continue
+		var b := child as Button
+		UiFont.apply_button(b, font_px)
+		b.offset_top = 0.0
+		b.offset_bottom = row_h
+		if b == _vol_down or b == _bgm_vol_down:
+			b.offset_left = 0.0
+			b.offset_right = side_w
+		elif b == _vol_up or b == _bgm_vol_up:
+			b.offset_left = row_w - side_w
+			b.offset_right = row_w
+		else:
+			b.offset_left = mid_left
+			b.offset_right = mid_right
 
 
 func _move_focus(delta: int) -> void:
