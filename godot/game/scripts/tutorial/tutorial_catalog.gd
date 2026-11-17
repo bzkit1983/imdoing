@@ -7,12 +7,22 @@ static func all_lessons() -> Array[Dictionary]:
 		_prep_open_shop(),
 		_prep_buy_stock(),
 		_prep_shop_layout(),
+		_prep_allocate_stats(),
+		_prep_equip_skills(),
+		_prep_develop_goods(),
+		_prep_buy_new_goods(),
+		_prep_buy_new_furn(),
+		_prep_layout_expand(),
+		_prep_buy_cashier(),
+		_prep_hire_clerk(),
 		_ops_shelve(),
 		_ops_clean(),
 		_ops_checkout(),
 		_ops_thief(),
 		_ops_deliver(),
 		_ops_finish_day(),
+		_ops_use_skills(),
+		_ops_rating(),
 		_ops_empty_shelf(),
 	]
 
@@ -170,6 +180,311 @@ static func _prep_shop_layout() -> Dictionary:
 				"restock_dry": 1,
 				"shelf_dry_4": 1,
 			},
+		},
+	}
+
+
+## Scenario 5：第一日結算回 prep → 配點（保證 LV2；花完 unspent）。
+static func _prep_allocate_stats() -> Dictionary:
+	return {
+		"id": "tut.prep.allocate_stats",
+		"phase": "prep",
+		"trigger": {
+			"when": "scenario",
+			"scenario": 5,
+			"requires_done": ["tut.ops.finish_day"],
+		},
+		"pages": [
+			_page("tut.prep.allocate_stats.p1.title", "tut.prep.allocate_stats.p1.body"),
+			_page("tut.prep.allocate_stats.p2.title", "tut.prep.allocate_stats.p2.body"),
+			_page("tut.prep.allocate_stats.p3.title", "tut.prep.allocate_stats.p3.body"),
+			_page("tut.prep.allocate_stats.p4.title", "tut.prep.allocate_stats.p4.body"),
+			_page("tut.prep.allocate_stats.p5.title", "tut.prep.allocate_stats.p5.body"),
+		],
+		"steps": [
+			_step("tut.prep.allocate_stats.s1", 1, "unspent", "==", 0, ""),
+		],
+		"ops_task": {
+			"name_key": "tut.prep.allocate_stats.task.name",
+			"desc_key": "tut.prep.allocate_stats.task.desc",
+		},
+		"complete_pages": [
+			_page("tut.prep.allocate_stats.done.title", "tut.prep.allocate_stats.done.body"),
+		],
+		"prep_restrict": {
+			"home_hub_allow": ["hub_char"],
+			"char_hub_allow": ["stats"],
+			"pages_allow": ["home", "hub_char", "stats"],
+			"home_hint_key": "tut.prep.restrict.home_hint_stats",
+		},
+	}
+
+
+## Scenario 5：配點完成後 → 裝備技能（任意改一次組合）。
+static func _prep_equip_skills() -> Dictionary:
+	return {
+		"id": "tut.prep.equip_skills",
+		"phase": "prep",
+		"trigger": {
+			"when": "scenario",
+			"scenario": 5,
+			"requires_done": ["tut.prep.allocate_stats"],
+		},
+		"pages": [
+			_page("tut.prep.equip_skills.p1.title", "tut.prep.equip_skills.p1.body"),
+			_page("tut.prep.equip_skills.p2.title", "tut.prep.equip_skills.p2.body"),
+			_page("tut.prep.equip_skills.p3.title", "tut.prep.equip_skills.p3.body"),
+			_page("tut.prep.equip_skills.p4.title", "tut.prep.equip_skills.p4.body"),
+		],
+		"steps": [
+			_step("tut.prep.equip_skills.s1", 1, "loadout_changed", ">=", 1, ""),
+		],
+		"ops_task": {
+			"name_key": "tut.prep.equip_skills.task.name",
+			"desc_key": "tut.prep.equip_skills.task.desc",
+		},
+		"complete_pages": [
+			_page("tut.prep.equip_skills.done.title", "tut.prep.equip_skills.done.body"),
+		],
+		"prep_restrict": {
+			"home_hub_allow": ["hub_char"],
+			"char_hub_allow": ["skills"],
+			"pages_allow": ["home", "hub_char", "skills", "skill_set", "skill_pick"],
+			"home_hint_key": "tut.prep.restrict.home_hint_skills",
+		},
+	}
+
+
+## Scenario 5：use_skills 結算回 prep → 開發零食＋支裝凍飲（LV4）。
+static func _prep_develop_goods() -> Dictionary:
+	return {
+		"id": "tut.prep.develop_goods",
+		"phase": "prep",
+		"trigger": {
+			"when": "scenario",
+			"scenario": 5,
+			"requires_done": ["tut.ops.use_skills"],
+		},
+		"pages": [
+			_page("tut.prep.develop_goods.p1.title", "tut.prep.develop_goods.p1.body"),
+			_page("tut.prep.develop_goods.p2.title", "tut.prep.develop_goods.p2.body"),
+			_page("tut.prep.develop_goods.p3.title", "tut.prep.develop_goods.p3.body"),
+		],
+		"steps": [
+			_step("tut.prep.develop_goods.s1", 1, "developed_has", ">=", 1, "tut.prep.develop_goods.s2", {"sku": "snack"}),
+			_step("tut.prep.develop_goods.s2", 2, "developed_has", ">=", 1, "", {"sku": "drink"}),
+		],
+		"ops_task": {
+			"name_key": "tut.prep.develop_goods.task.name",
+			"desc_key": "tut.prep.develop_goods.task.desc",
+		},
+		"complete_pages": [
+			_page("tut.prep.develop_goods.done.title", "tut.prep.develop_goods.done.body"),
+		],
+		"prep_restrict": {
+			"home_hub_allow": ["hub_goods"],
+			"goods_hub_allow": ["develop"],
+			"pages_allow": ["home", "hub_goods", "develop"],
+			"home_hint_key": "tut.prep.restrict.home_hint_develop",
+			"goods_hint_key": "tut.prep.restrict.goods_hint_develop",
+			"goods_sku_allow": ["snack", "drink"],
+		},
+	}
+
+
+## Scenario 5：開發完成後 → 採購零食＋支裝凍飲（罐頭可選）。
+static func _prep_buy_new_goods() -> Dictionary:
+	return {
+		"id": "tut.prep.buy_new_goods",
+		"phase": "prep",
+		"trigger": {
+			"when": "scenario",
+			"scenario": 5,
+			"requires_done": ["tut.prep.develop_goods"],
+		},
+		"pages": [
+			_page("tut.prep.buy_new_goods.p1.title", "tut.prep.buy_new_goods.p1.body"),
+			_page("tut.prep.buy_new_goods.p2.title", "tut.prep.buy_new_goods.p2.body"),
+			_page("tut.prep.buy_new_goods.p3.title", "tut.prep.buy_new_goods.p3.body"),
+		],
+		"steps": [
+			_step("tut.prep.buy_new_goods.s1", 1, "stock_pieces", ">=", 4, "tut.prep.buy_new_goods.s2", {"sku": "snack"}),
+			_step("tut.prep.buy_new_goods.s2", 2, "stock_pieces", ">=", 4, "", {"sku": "drink"}),
+		],
+		"ops_task": {
+			"name_key": "tut.prep.buy_new_goods.task.name",
+			"desc_key": "tut.prep.buy_new_goods.task.desc",
+		},
+		"complete_pages": [
+			_page("tut.prep.buy_new_goods.done.title", "tut.prep.buy_new_goods.done.body"),
+		],
+		"prep_restrict": {
+			"home_hub_allow": ["hub_goods"],
+			"goods_hub_allow": ["buy"],
+			"pages_allow": ["home", "hub_goods", "buy"],
+			"home_hint_key": "tut.prep.restrict.home_hint_buy_new",
+			"goods_hint_key": "tut.prep.restrict.goods_hint_buy_new",
+			"goods_sku_allow": ["can", "snack", "drink"],
+		},
+	}
+
+
+## Scenario 5：採購後 → 再買乾／凍櫃貨架與補貨架。
+static func _prep_buy_new_furn() -> Dictionary:
+	return {
+		"id": "tut.prep.buy_new_furn",
+		"phase": "prep",
+		"trigger": {
+			"when": "scenario",
+			"scenario": 5,
+			"requires_done": ["tut.prep.buy_new_goods"],
+		},
+		"pages": [
+			_page("tut.prep.buy_new_furn.p1.title", "tut.prep.buy_new_furn.p1.body"),
+			_page("tut.prep.buy_new_furn.p2.title", "tut.prep.buy_new_furn.p2.body"),
+			_page("tut.prep.buy_new_furn.p3.title", "tut.prep.buy_new_furn.p3.body"),
+		],
+		"steps": [
+			_step("tut.prep.buy_new_furn.s1", 1, "owned_qty", ">=", 1, "tut.prep.buy_new_furn.s2", {"type": "restock_frozen"}),
+			_step("tut.prep.buy_new_furn.s2", 2, "owned_qty", ">=", 1, "tut.prep.buy_new_furn.s3", {"type": "shelf_frozen_4"}),
+			_step("tut.prep.buy_new_furn.s3", 3, "owned_qty", ">=", 2, "tut.prep.buy_new_furn.s4", {"type": "restock_dry"}),
+			_step("tut.prep.buy_new_furn.s4", 4, "owned_qty", ">=", 2, "", {"type": "shelf_dry_4"}),
+		],
+		"ops_task": {
+			"name_key": "tut.prep.buy_new_furn.task.name",
+			"desc_key": "tut.prep.buy_new_furn.task.desc",
+		},
+		"complete_pages": [
+			_page("tut.prep.buy_new_furn.done.title", "tut.prep.buy_new_furn.done.body"),
+		],
+		"prep_restrict": {
+			"home_hub_allow": ["hub_shop"],
+			"shop_hub_allow": ["furn"],
+			"pages_allow": ["home", "hub_shop", "furn"],
+			"home_hint_key": "tut.prep.restrict.home_hint_furn_expand",
+			"shop_hint_key": "tut.prep.restrict.shop_hint_furn_expand",
+			"furn_hint_key": "tut.prep.restrict.furn_hint_expand",
+			"furniture_owned_cap": {
+				"cashier": 1,
+				"restock_dry": 2,
+				"restock_frozen": 1,
+				"shelf_dry_4": 2,
+				"shelf_frozen_4": 1,
+			},
+		},
+	}
+
+
+## Scenario 5：評價日後 → 買並擺第二台收銀機（開課升規模 2）。
+static func _prep_buy_cashier() -> Dictionary:
+	return {
+		"id": "tut.prep.buy_cashier",
+		"phase": "prep",
+		"trigger": {
+			"when": "scenario",
+			"scenario": 5,
+			"requires_done": ["tut.ops.rating"],
+		},
+		"pages": [
+			_page("tut.prep.buy_cashier.p1.title", "tut.prep.buy_cashier.p1.body"),
+			_page("tut.prep.buy_cashier.p2.title", "tut.prep.buy_cashier.p2.body"),
+			_page("tut.prep.buy_cashier.p3.title", "tut.prep.buy_cashier.p3.body"),
+		],
+		"steps": [
+			_step("tut.prep.buy_cashier.s1", 1, "owned_qty", ">=", 2, "tut.prep.buy_cashier.s2", {"type": "cashier"}),
+			_step("tut.prep.buy_cashier.s2", 2, "cashier_count", ">=", 2, ""),
+		],
+		"ops_task": {
+			"name_key": "tut.prep.buy_cashier.task.name",
+			"desc_key": "tut.prep.buy_cashier.task.desc",
+		},
+		"complete_pages": [
+			_page("tut.prep.buy_cashier.done.title", "tut.prep.buy_cashier.done.body"),
+		],
+		"prep_restrict": {
+			"home_hub_allow": ["hub_shop"],
+			"shop_hub_allow": ["furn", "layout"],
+			"pages_allow": ["home", "hub_shop", "furn", "layout"],
+			"home_hint_key": "tut.prep.restrict.home_hint_buy_cashier",
+			"shop_hint_key": "tut.prep.restrict.shop_hint_buy_cashier",
+			"furn_hint_key": "tut.prep.restrict.furn_hint_buy_cashier",
+			"furniture_owned_cap": {
+				"cashier": 2,
+				"restock_dry": 2,
+				"restock_frozen": 1,
+				"shelf_dry_4": 2,
+				"shelf_frozen_4": 1,
+			},
+		},
+	}
+
+
+## Scenario 5：第二台收銀機後 → 招募一名店員；教學鏈結束。
+static func _prep_hire_clerk() -> Dictionary:
+	return {
+		"id": "tut.prep.hire_clerk",
+		"phase": "prep",
+		"trigger": {
+			"when": "scenario",
+			"scenario": 5,
+			"requires_done": ["tut.prep.buy_cashier"],
+		},
+		"pages": [
+			_page("tut.prep.hire_clerk.p1.title", "tut.prep.hire_clerk.p1.body"),
+			_page("tut.prep.hire_clerk.p2.title", "tut.prep.hire_clerk.p2.body"),
+			_page("tut.prep.hire_clerk.p3.title", "tut.prep.hire_clerk.p3.body"),
+			_page("tut.prep.hire_clerk.p4.title", "tut.prep.hire_clerk.p4.body"),
+		],
+		"steps": [
+			_step("tut.prep.hire_clerk.s1", 1, "clerk_count", ">=", 1, ""),
+		],
+		"ops_task": {
+			"name_key": "tut.prep.hire_clerk.task.name",
+			"desc_key": "tut.prep.hire_clerk.task.desc",
+		},
+		"complete_pages": [
+			_page("tut.prep.hire_clerk.done.title", "tut.prep.hire_clerk.done.body"),
+		],
+		"prep_restrict": {
+			"home_hub_allow": ["clerks"],
+			"pages_allow": ["home", "clerks"],
+			"home_hint_key": "tut.prep.restrict.home_hint_clerks",
+		},
+	}
+
+
+## Scenario 5：購入後 → 擺齊新家具並設互異補貨預設。
+static func _prep_layout_expand() -> Dictionary:
+	return {
+		"id": "tut.prep.layout_expand",
+		"phase": "prep",
+		"trigger": {
+			"when": "scenario",
+			"scenario": 5,
+			"requires_done": ["tut.prep.buy_new_furn"],
+		},
+		"pages": [
+			_page("tut.prep.layout_expand.p1.title", "tut.prep.layout_expand.p1.body"),
+			_page("tut.prep.layout_expand.p2.title", "tut.prep.layout_expand.p2.body"),
+			_page("tut.prep.layout_expand.p3.title", "tut.prep.layout_expand.p3.body"),
+		],
+		"steps": [
+			_step("tut.prep.layout_expand.s1", 1, "unplaced_qty", "==", 0, "tut.prep.layout_expand.s2"),
+			_step("tut.prep.layout_expand.s2", 2, "restock_defaults_distinct", ">=", 1, ""),
+		],
+		"ops_task": {
+			"name_key": "tut.prep.layout_expand.task.name",
+			"desc_key": "tut.prep.layout_expand.task.desc",
+		},
+		"complete_pages": [
+			_page("tut.prep.layout_expand.done.title", "tut.prep.layout_expand.done.body"),
+		],
+		"prep_restrict": {
+			"home_hub_allow": ["hub_shop"],
+			"shop_hub_allow": ["layout"],
+			"pages_allow": ["home", "hub_shop", "layout"],
+			"home_hint_key": "tut.prep.restrict.home_hint_layout_expand",
+			"shop_hint_key": "tut.prep.restrict.shop_hint",
 		},
 	}
 
@@ -346,6 +661,76 @@ static func _ops_finish_day() -> Dictionary:
 			_page("tut.ops.finish_day.done.title", "tut.ops.finish_day.done.body"),
 		],
 		## Must not hard-gate settle — completing the day is the step.
+		"allow_settle": true,
+	}
+
+
+## Scenario 5：第二日營運 → 主動 5 次＋奧義 1 次後自由營業。
+static func _ops_use_skills() -> Dictionary:
+	return {
+		"id": "tut.ops.use_skills",
+		"phase": "ops",
+		"trigger": {
+			"when": "scenario",
+			"scenario": 5,
+			"day_index": 1,
+			"requires_done": ["tut.prep.equip_skills"],
+		},
+		"pages": [
+			_page("tut.ops.use_skills.p1.title", "tut.ops.use_skills.p1.body"),
+			_page("tut.ops.use_skills.p2.title", "tut.ops.use_skills.p2.body"),
+			_page("tut.ops.use_skills.p3.title", "tut.ops.use_skills.p3.body"),
+			_page("tut.ops.use_skills.p4.title", "tut.ops.use_skills.p4.body"),
+		],
+		"steps": [
+			_step("tut.ops.use_skills.s1", 1, "skill_cast", ">=", 5, "tut.ops.use_skills.s2"),
+			_step("tut.ops.use_skills.s2", 2, "ult_cast", ">=", 1, ""),
+		],
+		"ops_task": {
+			"name_key": "tut.ops.use_skills.task.name",
+			"desc_key": "tut.ops.use_skills.task.desc",
+		},
+		"complete_pages": [
+			_page("tut.ops.use_skills.done.title", "tut.ops.use_skills.done.body"),
+		],
+	}
+
+
+## Scenario 5：開發商品鏈後第三日 → 評價點數＋OP-TUT-001 練習；結算即結課。
+static func _ops_rating() -> Dictionary:
+	return {
+		"id": "tut.ops.rating",
+		"phase": "ops",
+		"trigger": {
+			"when": "scenario",
+			"scenario": 5,
+			"day_index": 2,
+			"requires_done": ["tut.prep.layout_expand"],
+		},
+		"pages": [
+			_page("tut.ops.rating.p1.title", "tut.ops.rating.p1.body"),
+			_page("tut.ops.rating.p2.title", "tut.ops.rating.p2.body"),
+			_page("tut.ops.rating.p3.title", "tut.ops.rating.p3.body"),
+			_page("tut.ops.rating.p4.title", "tut.ops.rating.p4.body"),
+			_page("tut.ops.rating.p5.title", "tut.ops.rating.p5.body"),
+			_page("tut.ops.rating.p6.title", "tut.ops.rating.p6.body"),
+		],
+		## First guest during this lesson → interrupt tip (not a separate Lesson).
+		"perfect_deliver_pages": [
+			_page("tut.ops.rating.perfect.p1.title", "tut.ops.rating.perfect.p1.body"),
+			_page("tut.ops.rating.perfect.p2.title", "tut.ops.rating.perfect.p2.body"),
+		],
+		"steps": [
+			_step("tut.ops.rating.s1", 1, "day_settled", ">=", 1, ""),
+		],
+		"ops_task": {
+			"name_key": "tut.ops.rating.task.name",
+			"desc_key": "tut.ops.rating.task.desc",
+		},
+		"complete_pages": [
+			_page("tut.ops.rating.done.title", "tut.ops.rating.done.body"),
+		],
+		## Practice pack is soft; settle anytime completes the lesson.
 		"allow_settle": true,
 	}
 

@@ -53,4 +53,4 @@
 | 多人 M2 LAN／ENet | **`docs/systemdesign/multiplayer.md`** §12 | **首刀～M2.9 已交**：含 **收銀指令 UI**（`checkout_seq` `agent_state`；`prompt_state` RPC；`apply_net_checkout_prompt`；client 禁雙重 randi） |
 | 多人 M3 Steam | **`docs/systemdesign/multiplayer.md`** §13 | **§13.4 已驗收**（2026-11-11）。GodotSteam 4.24；`host_with_lobby`／`connect_to_lobby`；雙帳邀請進混合房＋開日／日結。正式 App ID／Cloud／成就可後補 |
 
-仍缺（非 §6）：BGM／完整設定頁、技能演出鎖輸入、正式 App ID／Cloud／成就、M4 Web——見 `docs/alpha/design.md`、`multiplayer.md` §13／§15。事件 SFX 音量已在暫停選單。prep UI 已拆為 `scenes/prep_menu.tscn` + `scripts/prep/`。**教學框架**已落地（`docs/systemdesign/tutorial.md`）；劇本 5 開局鏈已有 prep 購入家具／採購罐頭／店鋪設計與 ops 上架／清潔／收銀／捉小偷／客人交付／完成一日／空貨架提示，後續課另表。
+仍缺（非 §6）：BGM／完整設定頁、技能演出鎖輸入、正式 App ID／Cloud／成就、M4 Web——見 `docs/alpha/design.md`、`multiplayer.md` §13／§15。事件 SFX 音量已在暫停選單。prep UI 已拆為 `scenes/prep_menu.tscn` + `scripts/prep/`。**教學框架**已落地（`docs/systemdesign/tutorial.md`）；劇本 5 開局鏈已有 prep 購入家具／採購罐頭／店鋪設計／角色能力配點／裝備技能／開發商品／採購新貨／擴充商店物品／擴充店鋪設計／第二台收銀機／招募店員（教學鏈終點）與 ops 上架／清潔／收銀／捉小偷／客人交付／完成一日／空貨架提示／第二日使用技能／第三日評價點數（OP-TUT-001 練習＋完美交付 tip）。

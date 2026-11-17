@@ -107,7 +107,7 @@ GameState.tutorial_progress: {
 
 ## 劇本 5
 
-- id `5`；克隆空店開局，資金 **$3000**、LV1；流量緩和同劇本 1。
+- id `5`；克隆空店開局，資金 **$3000**、LV1；五組技能預設全空（無主動／無奧義）；**必定簡易**（存檔 `difficulty=easy`＋測試版營運難度鎖 Easy）；流量緩和同劇本 1。
 - 僅測試工具開啟時出現於劇本列表。
 - 作為教學鏈入口（`scenario == 5`）。
 - 正式 prep 鏈：
@@ -115,6 +115,14 @@ GameState.tutorial_progress: {
   2. `tut.prep.buy_stock`「採購入門」：購入完成後鏈式觸發；條件 `stock_pieces(can) >= 99`；soft-lock 只准貨品管理→採購；不開局贈罐。
   3. `tut.prep.shop_layout`「店鋪設計入門」：採購完成後鏈式觸發；條件 `open_ready`（三件擺進店，位置不限）；soft-lock **只准店鋪設計**（鎖購入／擴張）；Pages 含補貨架長按設預設貨品提示。
   - 家具限購 `cashier`／`restock_dry`／`shelf_dry_4` 各 1（`prep_restrict`）。
+  4. `tut.prep.allocate_stats`「角色能力」：`tut.ops.finish_day` 結課回 prep 後觸發；開課若未 LV2 則強制加 EXP 升到 LV2；條件 `unspent == 0`；soft-lock 僅角色整備→角色能力；擋開業至花完點數。
+  5. `tut.prep.equip_skills`「裝備技能」：配點結課後鏈式；講解 COST／五格＋奧義／五組（建議先用第 1 組）；條件 `loadout_changed >= 1`（開課指紋對照，任意改一次即可）；soft-lock 僅角色整備→裝備技能。
+  6. `tut.prep.develop_goods`「開發商品」：`tut.ops.use_skills` 結課結算回 prep 後觸發；開課若未 LV4 則 `ensure_min_level(4)`；資金不足則 `ensure_min_money(3000)`；確認開發／採購／購入時若仍不夠則 `subsidize_for_cost` 補差額；步驟 `developed_has(snack)` → `developed_has(drink)`；soft-lock 僅貨品管理→開發；`goods_sku_allow: [snack, drink]`。
+  7. `tut.prep.buy_new_goods`「採購新貨」：開發結課後鏈式；步驟 `stock_pieces(snack)>=4` → `stock_pieces(drink)>=4`；soft-lock 僅採購；`goods_sku_allow: [can, snack, drink]`（罐頭可選）；同鏈購入資助。
+  8. `tut.prep.buy_new_furn`「擴充商店物品」：採購結課後鏈式；步驟 `owned_qty` 達 `restock_frozen≥1`／`shelf_frozen_4≥1`／`restock_dry≥2`／`shelf_dry_4≥2`；soft-lock 僅購入；`furniture_owned_cap` 含 cashier×1 鎖死；同鏈購入資助。
+  9. `tut.prep.layout_expand`「擴充店鋪設計」：購入結課後鏈式；步驟 `unplaced_qty==0` → `restock_defaults_distinct≥1`；soft-lock 僅店鋪設計；完成後可開新一輪營運。
+  10. `tut.prep.buy_cashier`「第二台收銀機」：`tut.ops.rating` 結課結算回 prep 後觸發；開課 `ensure_min_shop_scale(2)`＋`ensure_min_money(1000)`；步驟 `owned_qty(cashier)>=2` → `cashier_count>=2`；soft-lock 購入＋店鋪設計；`furniture_owned_cap` cashier×2；購入資助。
+  11. `tut.prep.hire_clerk`「招募店員」：收銀機課後鏈式；步驟 `clerk_count>=1`；soft-lock 僅員工管理；完成後**劇本 5 教學鏈結束**，可自由準備／營運。
 - 正式 ops 鏈（`day_index == 0`）：
   1. `tut.ops.shelve`「貨品上架」：開工即彈（`requires_done` 店鋪設計課）；條件 `shelve_count >= 4`；Pages 含執貨／上架操作；結課彈完成視窗。
   2. `tut.ops.clean`「清潔入門」：上架完成後才開始生成污物；runtime flag `dirt_present`（污物首次出現）才彈；條件 `clean_count >= 1`。上架課完成前不生成污物。
@@ -123,6 +131,10 @@ GameState.tutorial_progress: {
   5. `tut.ops.deliver`「客人交付」：捉賊結課後鏈式；Pages 含購物清單／親手與投擲交付；條件 `deliver_count >= 3`。
   6. `tut.ops.finish_day`「完成一日營運」：交付結課後鏈式；講解後自由營業；條件 `day_settled >= 1`；`allow_settle: true`（本課不擋結算）。
   7. `tut.ops.empty_shelf`「空貨架提示」（純 tip）：收銀完成後、首次貨架由有貨變空（flag `shelf_empty`）彈講解；`steps` 為空＝看完即 done、不硬閘結算。
+- 正式 ops 鏈（`day_index == 1`）：
+  1. `tut.ops.use_skills`「使用技能」：`tut.prep.equip_skills` 完成後第二日開工觸發；Pages 含主動選單／被動自動／奧義方向串；步驟 `skill_cast >= 5` → `ult_cast >= 1`；結課前擋結算，結課後自由營業至打烊。
+- 正式 ops 鏈（`day_index == 2`）：
+  1. `tut.ops.rating`「評價點數」：`tut.prep.layout_expand` 完成後第三日開工觸發；Pages 講當日營運評價／商店評價／評級帶／正負 Δ／本日練習；開課後 soft-attach `OP-TUT-001` 作練習（不改 `task_test_mode`）；首個一般客人進店插播完美交付 tip；條件 `day_settled >= 1`；`allow_settle: true`（練習未完成也可結算結課）。
   - Lesson 結課統一經完成視窗（`complete_pages` 或預設 `tut.complete.*`）再鏈式下一課。
 
 ## 多人

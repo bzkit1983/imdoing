@@ -20,6 +20,7 @@ var _busy_modal: bool = false
 var _review_only: bool = false
 var _metrics: Dictionary = {} ## metric → int (ops deltas this forced step)
 var _runtime_flags: Dictionary = {} ## flag id → true (ops triggers; cleared per day／reset)
+var _loadout_baseline: String = "" ## equip_skills: fingerprint at lesson start
 
 
 func _ready() -> void:
@@ -44,6 +45,7 @@ func reset_runtime() -> void:
 	_step_current = 0
 	_metrics.clear()
 	_runtime_flags.clear()
+	_loadout_baseline = ""
 	_busy_modal = false
 	_review_only = false
 	gate_changed.emit()
@@ -61,6 +63,9 @@ func notify_flag(flag: String) -> void:
 		return
 	_runtime_flags[flag] = true
 	if _phase != "ops":
+		return
+	## Rating lesson: first guest → perfect-deliver tip while forced step stays active.
+	if _try_rating_perfect_deliver_tip(flag):
 		return
 	if _busy_modal or has_forced_step():
 		return
@@ -150,6 +155,24 @@ func furniture_buy_cap(type: String) -> int:
 	if caps is Dictionary and caps.has(type):
 		return int(caps[type])
 	return -1
+
+
+## Empty allowlist = no SKU soft-lock. Otherwise only listed skus may develop／buy.
+func goods_sku_allowed(sku: String) -> bool:
+	var r := prep_restrict()
+	if r.is_empty():
+		return true
+	var allow = r.get("goods_sku_allow", [])
+	if not (allow is Array) or allow.is_empty():
+		return true
+	return allow.has(sku)
+
+
+## Empty = allowed. Otherwise a Loc key reason.
+func goods_sku_block_reason(sku: String) -> String:
+	if goods_sku_allowed(sku):
+		return ""
+	return "tut.prep.restrict.sku_denied"
 
 
 func active_lesson_id() -> String:
@@ -301,6 +324,8 @@ func _resume_lesson(lesson: Dictionary) -> void:
 	_lesson = lesson.duplicate(true)
 	_metrics.clear()
 	var id := active_lesson_id()
+	_ensure_lesson_prereqs(id)
+	_capture_equip_skills_baseline(id, false)
 	var row: Dictionary = state.tutorial_row(id)
 	_pages_acked = bool(row.get("pages_acked", false))
 	if not _pages_acked:
@@ -367,11 +392,13 @@ func _begin_lesson(lesson: Dictionary) -> void:
 	_step_current = 0
 	_metrics.clear()
 	var id := active_lesson_id()
+	_ensure_lesson_prereqs(id)
 	state.set_tutorial_row(id, {
 		"status": "active",
 		"step_id": "",
 		"pages_acked": false,
 	})
+	_capture_equip_skills_baseline(id, true)
 	_busy_modal = true
 	_ensure_modal()
 	if not _modal.finished.is_connected(_on_pages_finished):
@@ -414,8 +441,67 @@ func _activate_step(step: Dictionary) -> void:
 	row["step_id"] = String(_step.get("id", ""))
 	row["pages_acked"] = true
 	state.set_tutorial_row(id, row)
+	_maybe_attach_rating_practice_pack(id)
 	## Prep may already satisfy (e.g. furniture placed before reading).
 	_eval_active_step()
+	## Guest may have entered during explain pages — tip once forced step is live.
+	if bool(_runtime_flags.get("guest_present", false)):
+		_try_rating_perfect_deliver_tip("guest_present")
+	gate_changed.emit()
+	progress_changed.emit()
+
+
+## tut.ops.rating: soft-attach OP-TUT-001 for HUD practice (not task_test_mode).
+func _maybe_attach_rating_practice_pack(id: String) -> void:
+	if id != "tut.ops.rating":
+		return
+	var host := get_parent()
+	if host != null and host.has_method("attach_tutorial_practice_pack"):
+		host.attach_tutorial_practice_pack("OP-TUT-001")
+
+
+## During tut.ops.rating forced step: one-shot perfect-deliver tip on first guest.
+func _try_rating_perfect_deliver_tip(flag: String) -> bool:
+	if flag != "guest_present":
+		return false
+	if active_lesson_id() != "tut.ops.rating":
+		return false
+	if not has_forced_step() or _busy_modal or _review_only:
+		return false
+	if state == null:
+		return false
+	var row: Dictionary = state.tutorial_row("tut.ops.rating")
+	if bool(row.get("perfect_deliver_tip_acked", false)):
+		return false
+	var tip_pages = _lesson.get("perfect_deliver_pages", [])
+	if not (tip_pages is Array) or tip_pages.is_empty():
+		return false
+	_show_perfect_deliver_tip(tip_pages)
+	return true
+
+
+func _show_perfect_deliver_tip(pages: Array) -> void:
+	_busy_modal = true
+	_ensure_modal()
+	_disconnect_modal_signals()
+	if not _modal.finished.is_connected(_on_perfect_deliver_tip_acked):
+		_modal.finished.connect(_on_perfect_deliver_tip_acked)
+	if not _modal.cancelled.is_connected(_on_perfect_deliver_tip_acked):
+		_modal.cancelled.connect(_on_perfect_deliver_tip_acked)
+	## review=true → last button is「關閉」; does not complete the lesson.
+	_modal.open_pages(pages, true)
+
+
+func _on_perfect_deliver_tip_acked() -> void:
+	_disconnect_modal_signals()
+	_busy_modal = false
+	if state != null and active_lesson_id() == "tut.ops.rating":
+		var row: Dictionary = state.tutorial_row("tut.ops.rating")
+		row["perfect_deliver_tip_acked"] = true
+		row["status"] = "active"
+		row["pages_acked"] = true
+		row["step_id"] = String(_step.get("id", ""))
+		state.set_tutorial_row("tut.ops.rating", row)
 	gate_changed.emit()
 	progress_changed.emit()
 
@@ -455,6 +541,7 @@ func _complete_lesson() -> void:
 	_forced = false
 	_pages_acked = false
 	_metrics.clear()
+	_loadout_baseline = ""
 	gate_changed.emit()
 	progress_changed.emit()
 	## After shelve, allow dirt so clean can trigger on dirt_present.
@@ -498,6 +585,111 @@ func _on_complete_acked() -> void:
 		call_deferred("consider_ops")
 
 
+## Prep chains that auto top-up cash so a purchase／develop can complete.
+const PURCHASE_SUBSIDY_LESSONS := [
+	"tut.prep.develop_goods",
+	"tut.prep.buy_new_goods",
+	"tut.prep.buy_new_furn",
+	"tut.prep.buy_cashier",
+]
+
+
+func purchase_subsidy_active() -> bool:
+	if not has_forced_step():
+		return false
+	return active_lesson_id() in PURCHASE_SUBSIDY_LESSONS
+
+
+## If subsidy is active and cash is short, grant the difference. Returns amount granted.
+func subsidize_for_cost(cost: int) -> int:
+	if not purchase_subsidy_active() or state == null:
+		return 0
+	cost = maxi(0, cost)
+	if state.money >= cost:
+		return 0
+	if state.has_method("ensure_min_money"):
+		return int(state.ensure_min_money(cost))
+	var granted := cost - int(state.money)
+	state.money = cost
+	return granted
+
+
+## Lesson-start seeds so unlock／budget gates match the teachable surface.
+func _ensure_lesson_prereqs(id: String) -> void:
+	if state == null:
+		return
+	## allocate_stats: LV2 (+ unspent) so spend-all is teachable.
+	if id == "tut.prep.allocate_stats":
+		if state.has_method("ensure_min_level"):
+			state.ensure_min_level(2)
+		return
+	## develop_goods: LV4 unlocks snack／drink／凍櫃家具；資金不足則補到 $3000.
+	if id == "tut.prep.develop_goods":
+		if state.has_method("ensure_min_level"):
+			state.ensure_min_level(4)
+		if state.has_method("ensure_min_money"):
+			state.ensure_min_money(3000)
+		return
+	## buy_cashier: scale 2 so HIRE_CAP allows 1 clerk；cash for second cashier.
+	if id == "tut.prep.buy_cashier":
+		if state.has_method("ensure_min_shop_scale"):
+			state.ensure_min_shop_scale(2)
+		if state.has_method("ensure_min_money"):
+			state.ensure_min_money(1000)
+
+
+## tut.prep.equip_skills: snapshot loadout so any edit can complete the step.
+func _capture_equip_skills_baseline(id: String, force: bool) -> void:
+	if id != "tut.prep.equip_skills":
+		return
+	if state == null:
+		return
+	if not force:
+		var row: Dictionary = state.tutorial_row(id)
+		var saved := String(row.get("loadout_baseline", ""))
+		if saved != "":
+			_loadout_baseline = saved
+			return
+	_loadout_baseline = _skill_loadout_fingerprint()
+	var row2: Dictionary = state.tutorial_row(id)
+	row2["loadout_baseline"] = _loadout_baseline
+	state.set_tutorial_row(id, row2)
+
+
+func _skill_loadout_fingerprint() -> String:
+	if state == null:
+		return ""
+	var sets_out: Array = []
+	var raw_sets = state.skill_sets
+	if raw_sets is Array:
+		for pack in raw_sets:
+			if not (pack is Dictionary):
+				continue
+			var p: Dictionary = pack
+			var slots_out: Array = []
+			var slots = p.get("slots", [])
+			if slots is Array:
+				for s in slots:
+					slots_out.append(String(s))
+			var levels_out: Dictionary = {}
+			var levels = p.get("levels", {})
+			if levels is Dictionary:
+				var keys: Array = levels.keys()
+				keys.sort()
+				for k in keys:
+					levels_out[String(k)] = int(levels[k])
+			sets_out.append({
+				"name": String(p.get("name", "")),
+				"slots": slots_out,
+				"ult_id": String(p.get("ult_id", "")),
+				"levels": levels_out,
+			})
+	return JSON.stringify({
+		"index": int(state.skill_set_index),
+		"sets": sets_out,
+	})
+
+
 func _condition_met(cond: Dictionary) -> bool:
 	var cur := _current_for_condition(cond)
 	var target := int(cond.get("target", 0))
@@ -520,6 +712,10 @@ func _current_for_condition(cond: Dictionary) -> int:
 			if state == null or not state.has_method("cashier_count"):
 				return 0
 			return int(state.cashier_count())
+		"clerk_count":
+			if state == null:
+				return 0
+			return state.clerks.size()
 		"open_ready":
 			## 1 when GameState.open_blockers() is empty (can start the day).
 			if state == null or not state.has_method("open_blockers"):
@@ -537,6 +733,69 @@ func _current_for_condition(cond: Dictionary) -> int:
 			if sku == "":
 				return 0
 			return int(state.stock.get(sku, 0))
+		"unspent":
+			if state == null:
+				return 0
+			return int(state.unspent)
+		"loadout_changed":
+			## 1 when skill_sets／skill_set_index differ from lesson-start fingerprint.
+			if state == null or _loadout_baseline == "":
+				return 0
+			return 1 if _skill_loadout_fingerprint() != _loadout_baseline else 0
+		"developed_has":
+			## 1 when filters.sku is in state.developed.
+			if state == null:
+				return 0
+			var dev_filters = cond.get("filters", {})
+			var dev_sku := ""
+			if dev_filters is Dictionary:
+				dev_sku = String(dev_filters.get("sku", ""))
+			if dev_sku == "":
+				return 0
+			return 1 if state.developed.has(dev_sku) else 0
+		"owned_qty":
+			## Owned furniture count for filters.type.
+			if state == null:
+				return 0
+			var own_filters = cond.get("filters", {})
+			var own_type := ""
+			if own_filters is Dictionary:
+				own_type = String(own_filters.get("type", ""))
+			if own_type == "":
+				return 0
+			return int(state.owned.get(own_type, 0))
+		"unplaced_qty":
+			## Owned−placed for filters.type, or sum of all owned types when no filter.
+			if state == null or not state.has_method("unplaced"):
+				return 0
+			var up_filters = cond.get("filters", {})
+			var up_type := ""
+			if up_filters is Dictionary:
+				up_type = String(up_filters.get("type", ""))
+			if up_type != "":
+				return int(state.unplaced(up_type))
+			var total_up := 0
+			for t in state.owned.keys():
+				total_up += int(state.unplaced(String(t)))
+			return total_up
+		"restock_defaults_distinct":
+			## 1 when every placed restock has a non-empty default_sku and all are unique.
+			if state == null or not state.has_method("is_restock_type"):
+				return 0
+			var seen_defs: Dictionary = {}
+			var any_restock := false
+			for it in state.placed:
+				if not (it is Dictionary):
+					continue
+				var rt := String(it.get("type", ""))
+				if not state.is_restock_type(rt):
+					continue
+				any_restock = true
+				var def := String(it.get("default_sku", ""))
+				if def == "" or seen_defs.has(def):
+					return 0
+				seen_defs[def] = true
+			return 1 if any_restock else 0
 		_:
 			return int(_metrics.get(metric, 0))
 
@@ -591,3 +850,7 @@ func _disconnect_modal_signals() -> void:
 		_modal.finished.disconnect(_on_complete_acked)
 	if _modal.cancelled.is_connected(_on_complete_acked):
 		_modal.cancelled.disconnect(_on_complete_acked)
+	if _modal.finished.is_connected(_on_perfect_deliver_tip_acked):
+		_modal.finished.disconnect(_on_perfect_deliver_tip_acked)
+	if _modal.cancelled.is_connected(_on_perfect_deliver_tip_acked):
+		_modal.cancelled.disconnect(_on_perfect_deliver_tip_acked)

@@ -56,16 +56,120 @@ tut.prep.buy_stock.task.desc,倉庫罐頭湊滿 99 件。,Reach 99 cans in the w
 tut.prep.buy_stock.done.title,採購教學完成,Stock purchase complete,采购教学完成,仕入れチュートリアル完了
 tut.prep.buy_stock.done.body,倉庫已有 99 件罐頭。接下來到「店鋪設計」放置商店物品。,"You have 99 cans in stock. Next, place your shop pieces in Layout.",仓库已有 99 件罐头。接下来到“店铺设计”放置商店物品。,倉庫に缶詰が99個あります。次は「店舗デザイン」で配置しましょう。
 tut.prep.restrict.hub,教學進行中，此功能暫時停用。請先完成目前的教學步驟。,Unavailable during the tutorial — finish the current tutorial step first.,教学进行中，此功能暂时停用。请先完成目前的教学步骤。,チュートリアル中はこの機能を使えません。今の手順を先に完了してください。
+tut.prep.restrict.diff_easy_only,教學模式固定為簡易難度。,Tutorial mode is locked to Easy.,教学模式固定为简易难度。,チュートリアルモードは簡易固定です。
 tut.prep.restrict.home_hint,開店教學：只能進入「店舖管理」。先購入三件基本商店物品。,"Shop tutorial: only Shop is open. Buy the three basic shop pieces first.",开店教学：只能进入“店铺管理”。先购入三件基本商店物品。,開店教程：「店舗管理」だけ。まず基本の店舗アイテム3つを購入。
 tut.prep.restrict.home_hint_buy,採購教學：只能進入「貨品管理」。到「採購貨品」買滿 99 件罐頭。,"Buy tutorial: only Goods is open. Buy 99 cans under Buy stock.",采购教学：只能进入“货品管理”。到“采购货品”买满 99 件罐头。,仕入れ教程：「商品管理」だけ。「仕入れ」で缶詰を99個買う。
 tut.prep.restrict.home_hint_layout,店鋪設計教學：只能進入「店舖管理 → 店鋪設計」。把三件擺進店後再開業。,"Layout tutorial: only Shop → Layout is open. Place the three pieces, then open.",店铺设计教学：只能进入“店铺管理 → 店铺设计”。把三件摆进店后再开业。,店舗デザイン教程：「店舗管理 → 店舗デザイン」だけ。3つを配置してから営業開始。
+tut.prep.restrict.home_hint_stats,能力教學：只能進入「角色整備 → 角色能力」。把未分配點數花完才能開業。,"Stats tutorial: only Character → Stats is open. Spend all unspent points before opening.",能力教学：只能进入“角色整备 → 角色能力”。把未分配点数花完才能开业。,能力教程：「キャラ整備 → キャラ能力」だけ。未配分ポイントを使い切ってから営業開始。
+tut.prep.restrict.home_hint_skills,技能教學：只能進入「角色整備 → 裝備技能」。任意調整組合後才能開業。,"Skills tutorial: only Character → Skills is open. Edit a loadout before opening.",技能教学：只能进入“角色整备 → 装备技能”。任意调整组合后才能开业。,スキル教程：「キャラ整備 → スキル装備」だけ。組み合わせを一度変更してから営業開始。
+tut.prep.allocate_stats.p1.title,升級與配點,Level up & allocate,升级与配点,レベルアップと配点
+tut.prep.allocate_stats.p1.body,第一日結束後可以升級。未分配點數請到「角色整備 → 角色能力」加點。,"After day 1 you can level up. Spend unspent points under Character → Stats.",第一日结束后可以升级。未分配点数请到“角色整备 → 角色能力”加点。,1日目終了後にレベルアップできます。未配分ポイントは「キャラ整備 → キャラ能力」で振りましょう。
+tut.prep.allocate_stats.p2.title,STR,STR,STR,STR
+tut.prep.allocate_stats.p2.body,STR 提高負重上限、氣力（奔跑／衝刺），以及打擊每下扣血。,"STR raises carry limit, stamina (run/dash), and melee damage per hit.",STR 提高负重上限、气力（奔跑／冲刺），以及打击每下扣血。,STRは所持上限・気力（走行／ダッシュ）・打撃1発のダメージを上げます。
+tut.prep.allocate_stats.p3.title,AGI,AGI,AGI,AGI
+tut.prep.allocate_stats.p3.body,AGI 提高移動速度，以及清潔與上架的行動速度。,"AGI raises move speed and clean / shelve action speed.",AGI 提高移动速度，以及清洁与上架的行动速度。,AGIは移動速度と清掃・陳列の行動速度を上げます。
+tut.prep.allocate_stats.p4.title,INT,INT,INT,INT
+tut.prep.allocate_stats.p4.body,INT 加快技能冷卻回復，並加快收銀行動速度。,"INT speeds skill cooldown recovery and checkout action speed.",INT 加快技能冷却回复，并加快收银行动速度。,INTはスキルCD回復とレジ行動速度を上げます。
+tut.prep.allocate_stats.p5.title,開始練習,Start practice,开始练习,練習を始める
+tut.prep.allocate_stats.p5.body,必須把未分配點數全部分配完才能開業（重置後仍須再花完）。,"Spend every unspent point before you can open (resetting means you must spend again).",必须把未分配点数全部分配完才能开业（重置后仍须再花完）。,未配分ポイントを使い切るまで営業開始できません（リセット後も再度振り切る必要あり）。
+tut.prep.allocate_stats.task.name,教學：分配能力點,Tutorial: allocate stats,教学：分配能力点,チュートリアル：能力ポイント配分
+tut.prep.allocate_stats.task.desc,把未分配點數全部加到 STR／AGI／INT。,Spend all unspent points on STR / AGI / INT.,把未分配点数全部加到 STR／AGI／INT。,未配分ポイントをすべて STR／AGI／INT に振る。
+tut.prep.allocate_stats.done.title,能力配點完成,Stats allocated,能力配点完成,能力配点完了
+tut.prep.allocate_stats.done.body,點數已分配完。可以繼續準備並開業。,"Points are allocated. You can keep preparing and open the day.",点数已分配完。可以继续准备并开业。,ポイントを振り終えました。準備を続けて営業開始できます。
+tut.prep.equip_skills.p1.title,技能組合,Skill loadouts,技能组合,スキル組み合わせ
+tut.prep.equip_skills.p1.body,準備時可在「角色整備 → 裝備技能」設定組合；營運開始後不能再改。,"In prep, set loadouts under Character → Skills. You cannot change them after the day starts.",准备时可在“角色整备 → 装备技能”设定组合；营运开始后不能再改。,準備では「キャラ整備 → スキル装備」で組み合わせを設定。営業開始後は変更できません。
+tut.prep.equip_skills.p2.title,COST 與格位,COST & slots,COST 与格位,COSTと枠
+tut.prep.equip_skills.p2.body,一般技能 COST 合計最多 5；五格是施放位置。奧義另有一格，不佔 COST。,"Active/passive COST sums to at most 5 across five cast slots. Ultimate is a separate slot and costs 0 COST.",一般技能 COST 合计最多 5；五格是施放位置。奥义另有一格，不占 COST。,通常スキルのCOST合計は最大5。5枠は発動位置。奥義は別枠でCOSTを使いません。
+tut.prep.equip_skills.p3.title,五組與建議,Five sets tip,五组与建议,5セットのすすめ
+tut.prep.equip_skills.p3.body,可存五組並在開業前選用一組。新手建議先編／用第 1 組即可，不限裝哪招。,"You can save five sets and pick one before opening. Beginners can just edit / use set 1 — any skills are fine.",可存五组并在开业前选用一组。新手建议先编／用第 1 组即可，不限装哪招。,5セット保存でき、営業前に1つ選ぶ。初心者は第1セットだけ編集／使用でOK。中身は自由。
+tut.prep.equip_skills.p4.title,開始練習,Start practice,开始练习,練習を始める
+tut.prep.equip_skills.p4.body,任意調整組合一次（換一招、卸下一招等）後，才能開業進入下一輪營運。,"Edit a loadout once (swap or unequip a skill, etc.), then you can open for the next day.",任意调整组合一次（换一招、卸下一招等）后，才能开业进入下一轮营运。,組み合わせを一度変更（入れ替え／外す等）すれば、次の営業日を開始できます。
+tut.prep.equip_skills.task.name,教學：調整技能組合,Tutorial: edit a skill set,教学：调整技能组合,チュートリアル：スキル組み合わせを変更
+tut.prep.equip_skills.task.desc,任意調整技能組合一次。,Make any change to a skill loadout.,任意调整技能组合一次。,スキル組み合わせを一度変更する。
+tut.prep.equip_skills.done.title,技能裝備教學完成,Skills tutorial complete,技能装备教学完成,スキル装備チュートリアル完了
+tut.prep.equip_skills.done.body,已調整過組合。可以開業進入下一輪營運。,"You edited a loadout. You can open for the next day of ops.",已调整过组合。可以开业进入下一轮营运。,組み合わせを変更しました。次の営業を開始できます。
+tut.prep.develop_goods.p1.title,開發商品,Develop goods,开发商品,商品開発
+tut.prep.develop_goods.p1.body,第二日結算後，到「貨品管理 → 開發貨品」解鎖新商品。本課只開放開發。,"After day-2 settle, use Goods → Develop to unlock new SKUs. Only Develop is open this step.",第二日结算后，到“货品管理 → 开发货品”解锁新商品。本课只开放开发。,2日目精算後は「商品管理 → 開発」で新商品を解禁。この手順では開発だけ使えます。
+tut.prep.develop_goods.p2.title,零食與凍飲,Snack and drink,零食与冻饮,スナックと冷蔵飲料
+tut.prep.develop_goods.p2.body,請開發「零食」與「支裝凍飲」。其他貨品暫時鎖死；等級不足時教學會先幫你升到可開發等級。,"Develop Snack and Bottled drink. Other SKUs stay locked; if your level is too low, the tutorial raises it first.",请开发“零食”与“支装冻饮”。其他货品暂时锁死；等级不足时教学会先帮你升到可开发等级。,「スナック」と「ボトル冷蔵飲料」を開発。他はロック。レベル不足ならチュートリアルが先に上げます。
+tut.prep.develop_goods.p3.title,開始練習,Start practice,开始练习,練習を始める
+tut.prep.develop_goods.p3.body,兩種都開發完才可繼續；完成前不能開業。,"Finish developing both before you continue. You cannot open until this is done.",两种都开发完才可继续；完成前不能开业。,両方の開発が終わるまで次へ進めず、営業開始もできません。
+tut.prep.develop_goods.task.name,教學：開發零食與凍飲,Tutorial: develop snack & drink,教学：开发零食与冻饮,チュートリアル：スナックと冷蔵飲料を開発
+tut.prep.develop_goods.task.desc,開發零食與支裝凍飲。,Develop snack and bottled drink.,开发零食与支装冻饮。,スナックとボトル冷蔵飲料を開発する。
+tut.prep.develop_goods.done.title,開發教學完成,Develop tutorial complete,开发教学完成,開発チュートリアル完了
+tut.prep.develop_goods.done.body,已解鎖零食與支裝凍飲。接下來採購進倉庫。,"Snack and bottled drink are unlocked. Next, buy them into the warehouse.",已解锁零食与支装冻饮。接下来采购进仓库。,スナックとボトル冷蔵飲料を解禁しました。次は倉庫へ仕入れます。
+tut.prep.buy_new_goods.p1.title,採購新貨,Buy new stock,采购新货,新商品を仕入れ
+tut.prep.buy_new_goods.p1.body,到「貨品管理 → 採購貨品」把剛開發的貨買進倉庫。本課只開放採購。,"Use Goods → Buy stock to warehouse the new SKUs. Only Buy is open this step.",到“货品管理 → 采购货品”把刚开发的货买进仓库。本课只开放采购。,「商品管理 → 仕入れ」で新商品を倉庫へ。この手順では仕入れだけ使えます。
+tut.prep.buy_new_goods.p2.title,必買與可選,Required and optional,必买与可选,必須と任意
+tut.prep.buy_new_goods.p2.body,必須採購「零食」與「支裝凍飲」各至少 4 件（一箱）。「罐頭」也可再買，但不強制。,"Buy at least 4 pieces each of Snack and Bottled drink (one box). Cans are optional.",必须采购“零食”与“支装冻饮”各至少 4 件（一箱）。“罐头”也可再买，但不强制。,「スナック」と「ボトル冷蔵飲料」を各4個以上（1箱）。缶詰は追加可・任意。
+tut.prep.buy_new_goods.p3.title,開始練習,Start practice,开始练习,練習を始める
+tut.prep.buy_new_goods.p3.body,零食與凍飲倉庫各滿 4 件後進入下一步；其他選單暫時停用。,"Reach 4 snack and 4 drink in the warehouse to continue. Other menus stay locked.",零食与冻饮仓库各满 4 件后进入下一步；其他选单暂时停用。,倉庫のスナックと冷蔵飲料が各4個になると次へ。他のメニューは一時オフです。
+tut.prep.buy_new_goods.task.name,教學：採購零食與凍飲,Tutorial: buy snack & drink,教学：采购零食与冻饮,チュートリアル：スナックと冷蔵飲料を仕入れ
+tut.prep.buy_new_goods.task.desc,倉庫零食與支裝凍飲各滿 4 件。,Reach 4 snack and 4 drink in stock.,仓库零食与支装冻饮各满 4 件。,倉庫のスナックと冷蔵飲料を各4個にする。
+tut.prep.buy_new_goods.done.title,新貨採購完成,New stock purchase complete,新货采购完成,新商品の仕入れ完了
+tut.prep.buy_new_goods.done.body,倉庫已有零食與凍飲。接下來到「購入商店物品」擴充貨架與補貨架。,"Snack and drink are in stock. Next, buy more shelves and restock racks.",仓库已有零食与冻饮。接下来到“购入商店物品”扩充货架与补货架。,スナックと冷蔵飲料が倉庫にあります。次は棚と補充棚を追加購入します。
+tut.prep.buy_new_furn.p1.title,擴充商店物品,Expand shop furniture,扩充商店物品,店舗アイテムを拡充
+tut.prep.buy_new_furn.p1.body,到「店舖管理 → 購入商店物品」再買乾貨與凍櫃設備。本課只開放購入。,"Use Shop → Buy furniture for more dry and chiller gear. Only Buy furniture is open.",到“店铺管理 → 购入商店物品”再买干货与冻柜设备。本课只开放购入。,「店舗管理 → 店舗アイテム購入」で常温と冷蔵の設備を追加。購入だけ使えます。
+tut.prep.buy_new_furn.p2.title,要買齊的四件,Buy these four,要买齐的四件,揃える4つ
+tut.prep.buy_new_furn.p2.body,再買：乾貨類貨架（4件）×1、凍櫃類貨架（4件）×1、乾貨補貨架×1、凍櫃補貨架×1。其他家具暫時鎖死。,"Buy one more dry shelf (4), one chiller shelf (4), one dry restock rack, and one chiller restock rack. Other furniture stays locked.",再买：干货类货架（4件）×1、冻柜类货架（4件）×1、干货补货架×1、冻柜补货架×1。其他家具暂时锁死。,追加：常温棚（4）×1、冷蔵棚（4）×1、常温補充棚×1、冷蔵補充棚×1。他はロック。
+tut.prep.buy_new_furn.p3.title,開始練習,Start practice,开始练习,練習を始める
+tut.prep.buy_new_furn.p3.body,四件都買齊後進入下一步；完成前不能開業。,"Buy all four pieces to continue. You cannot open until this is done.",四件都买齐后进入下一步；完成前不能开业。,4つ揃うまで次へ進めず、営業開始もできません。
+tut.prep.buy_new_furn.task.name,教學：購入乾／凍櫃設備,Tutorial: buy dry & chiller gear,教学：购入干／冻柜设备,チュートリアル：常温／冷蔵設備を購入
+tut.prep.buy_new_furn.task.desc,買齊第二組乾貨架／補貨架與凍櫃貨架／補貨架。,Own a second dry shelf/restock and chiller shelf/restock.,买齐第二组干货架／补货架与冻柜货架／补货架。,常温棚／補充棚の2つ目と冷蔵棚／補充棚を揃える。
+tut.prep.buy_new_furn.done.title,商店物品擴充完成,Furniture expand complete,商店物品扩充完成,店舗アイテム拡充完了
+tut.prep.buy_new_furn.done.body,新貨架與補貨架已購入。接下來到「店鋪設計」擺放並設預設貨品。,"New shelves and restock racks are owned. Next, place them in Layout and set defaults.",新货架与补货架已购入。接下来到“店铺设计”摆放并设预设货品。,新しい棚と補充棚を購入しました。次は配置して既定商品を設定します。
+tut.prep.layout_expand.p1.title,擺放新設備,Place new gear,摆放新设备,新設備を配置
+tut.prep.layout_expand.p1.body,到「店舖管理 → 店鋪設計」把剛買的貨架與補貨架全部擺進店。本課只開放店鋪設計。,"Use Shop → Layout to place every newly bought shelf and restock rack. Only Layout is open.",到“店铺管理 → 店铺设计”把刚买的货架与补货架全部摆进店。本课只开放店铺设计。,「店舗管理 → 店舗デザイン」で新規の棚と補充棚をすべて配置。店舗デザインだけ使えます。
+tut.prep.layout_expand.p2.title,補貨架預設要不同,Distinct restock defaults,补货架预设要不同,補充棚の既定は別々に
+tut.prep.layout_expand.p2.body,每座補貨架都要設預設貨品，且彼此不可相同（例如乾貨架分設罐頭／零食，凍櫃設支裝凍飲）。,"Every restock rack needs a default SKU, and all defaults must differ (e.g. cans vs snack on dry, drink on chiller).",每座补货架都要设预设货品，且彼此不可相同（例如干货架分设罐头／零食，冻柜设支装冻饮）。,各補充棚に既定商品を設定し、すべて別SKUに（例：常温は缶詰とスナック、冷蔵はボトル飲料）。
+tut.prep.layout_expand.p3.title,開始練習,Start practice,开始练习,練習を始める
+tut.prep.layout_expand.p3.body,全部家具擺好、補貨預設互異後完成本課，即可開新一輪營運。,"Place all furniture and set distinct restock defaults to finish, then open a new ops day.",全部家具摆好、补货预设互异后完成本课，即可开新一轮营运。,すべて配置し既定を別々にすれば完了。次の営業日を開始できます。
+tut.prep.layout_expand.task.name,教學：擺放並設補貨預設,Tutorial: place & set restock defaults,教学：摆放并设补货预设,チュートリアル：配置と補充既定
+tut.prep.layout_expand.task.desc,擺齊未放置家具，並讓每座補貨架預設貨品互異。,Place all unplaced furniture; give each restock rack a unique default SKU.,摆齐未放置家具，并让每座补货架预设货品互异。,未配置をすべて置き、各補充棚の既定SKUを別々にする。
+tut.prep.layout_expand.done.title,擴充店鋪設計完成,Layout expand complete,扩充店铺设计完成,店舗デザイン拡充完了
+tut.prep.layout_expand.done.body,新設備已擺好且補貨預設互異。可以開業進入新一輪營運。,"New gear is placed with distinct restock defaults. You can open a new ops day.",新设备已摆好且补货预设互异。可以开业进入新一轮营运。,新設備を配置し既定も別々です。次の営業を開始できます。
+tut.prep.buy_cashier.p1.title,第二台收銀機,Second cashier,第二台收银机,2台目のレジ
+tut.prep.buy_cashier.p1.body,店員人數不能超過已放置的收銀機。多買一台才能多請人幫忙收銀或補貨。教學已把店舖升到可請 1 名店員的規模。,"Clerk count cannot exceed placed cashiers. Buy another register to hire help. The tutorial already raised shop scale so you can hire 1 clerk.",店员人数不能超过已放置的收银机。多买一台才能多请人帮忙收银或补货。教学已把店铺升到可请 1 名店员的规模。,店員数は設置済みレジ以下。もう1台買うと雇えます。チュートリアルで規模を1人雇える状態に上げ済みです。
+tut.prep.buy_cashier.p2.title,購入收銀機,Buy a cashier,购入收银机,レジを購入
+tut.prep.buy_cashier.p2.body,到「店舖管理 → 購入商店物品」再買一台收銀機（$1000）。其他家具暫時鎖死。,"Use Shop → Buy furniture to buy one more cashier ($1000). Other furniture stays locked.",到“店铺管理 → 购入商店物品”再买一台收银机（$1000）。其他家具暂时锁死。,「店舗管理 → 店舗アイテム購入」でもう1台レジ（$1000）。他の家具はロックです。
+tut.prep.buy_cashier.p3.title,擺進店,Place it,摆进店,店に置く
+tut.prep.buy_cashier.p3.body,買完到「店鋪設計」把第二台收銀機擺進店。兩台都放置後才能招募店員。,"Then open Layout and place the second cashier. Both must be placed before you can hire.",买完到“店铺设计”把第二台收银机摆进店。两台都放置后才能招募店员。,購入後は「店舗デザイン」で2台目を配置。両方置いてから店員を雇えます。
+tut.prep.buy_cashier.task.name,教學：購入並放置第二台收銀機,Tutorial: buy & place 2nd cashier,教学：购入并放置第二台收银机,チュートリアル：2台目レジを購入・配置
+tut.prep.buy_cashier.task.desc,買一台收銀機並擺進店（共兩台已放置）。,Own and place two cashiers.,买一台收银机并摆进店（共两台已放置）。,レジを追加購入し、2台とも設置する。
+tut.prep.buy_cashier.done.title,收銀機擴充完成,Second cashier ready,收银机扩充完成,レジ拡充完了
+tut.prep.buy_cashier.done.body,已有兩台放置中的收銀機。接下來招募一名店員。,"Two cashiers are placed. Next, hire one clerk.",已有两台放置中的收银机。接下来招募一名店员。,レジが2台設置済み。次は店員を1人雇いましょう。
+tut.prep.hire_clerk.p1.title,招募店員,Hire a clerk,招募店员,店員を雇う
+tut.prep.hire_clerk.p1.body,店員可代為補貨或收銀，讓你專心做其他事。每位店員每天開工扣日薪 $100。,"Clerks can restock or run a register so you can focus elsewhere. Each clerk costs $100 wages when the day starts.",店员可代为补货或收银，让你专心做其他事。每位店员每天开工扣日薪 $100。,店員は補充やレジを担当し、あなたは他に集中できます。開店時に日給$100が引かれます。
+tut.prep.hire_clerk.p2.title,人數上限,Headcount caps,人数上限,人数上限
+tut.prep.hire_clerk.p2.body,店舖規模決定最多請幾人；實際人數還不能超過已放置的收銀機數。,"Shop scale sets the max hires; you also cannot exceed placed cashiers.",店铺规模决定最多请几人；实际人数还不能超过已放置的收银机数。,店舗規模が雇える上限。設置済みレジ数も超えられません。
+tut.prep.hire_clerk.p3.title,怎麼招募,How to hire,怎么招募,雇い方
+tut.prep.hire_clerk.p3.body,到「員工管理」按「招募店員」。新人預設補貨崗位，之後可改成收銀並指定機台。,"Open Staff and tap Hire clerk. New hires default to restock; you can switch them to cashier and pick a register.",到“员工管理”按“招募店员”。新人预设补货岗位，之后可改成收银并指定机台。,「スタッフ」で「店員を雇う」。初期は補充担当。後からレジ担当と台番号を変更できます。
+tut.prep.hire_clerk.p4.title,完成本課,Finish this lesson,完成本课,この課を完了
+tut.prep.hire_clerk.p4.body,必定招募一名店員完成本課。之後教學模式結束，可以自由遊玩。,"Hire one clerk to finish. After this, the tutorial campaign ends and you can play freely.",必定招募一名店员完成本课。之后教学模式结束，可以自由游玩。,店員を1人雇えば完了。これでチュートリアル終了、自由に遊べます。
+tut.prep.hire_clerk.task.name,教學：招募一名店員,Tutorial: hire one clerk,教学：招募一名店员,チュートリアル：店員を1人雇う
+tut.prep.hire_clerk.task.desc,招募至少一名店員。,Hire at least one clerk.,招募至少一名店员。,店員を1人以上雇う。
+tut.prep.hire_clerk.done.title,店員教學完成,Clerk tutorial complete,店员教学完成,店員チュートリアル完了
+tut.prep.hire_clerk.done.body,已招募店員。劇本 5 教學鏈結束——之後可自由準備與營運。,"You hired a clerk. Scenario 5's tutorial chain is done — prep and ops are free now.",已招募店员。剧本 5 教学链结束——之后可自由准备与营运。,店員を雇いました。シナリオ5のチュートリアルは終了。以後は自由に準備・営業できます。
 tut.prep.restrict.goods_hint,教學中只能「採購貨品」。開發貨品與可售開關暫時停用。,Only Buy stock is available during this tutorial. Develop and For sale stay off.,教学中只能“采购货品”。开发货品与可售开关暂时停用。,このチュートリアルでは「仕入れ」だけ。開発と販売設定はオフです。
+tut.prep.restrict.goods_hint_develop,教學中只能「開發貨品」。採購與可售開關暫時停用。,Only Develop is available during this tutorial. Buy stock and For sale stay off.,教学中只能“开发货品”。采购与可售开关暂时停用。,このチュートリアルでは「開発」だけ。仕入れと販売設定はオフです。
+tut.prep.restrict.goods_hint_buy_new,教學中只能「採購貨品」。請買零食與支裝凍飲（罐頭可選）。,Only Buy stock is open. Buy snack and bottled drink (cans optional).,教学中只能“采购货品”。请买零食与支装冻饮（罐头可选）。,このチュートリアルでは「仕入れ」だけ。スナックと冷蔵飲料を買う（缶詰は任意）。
 tut.prep.restrict.shop_hint,教學中請用「店鋪設計」放置商店物品。購入與擴張暫時停用。,Use Layout to place shop pieces. Buy furniture and Expand stay off for now.,教学中请用“店铺设计”放置商店物品。购入与扩张暂时停用。,チュートリアル中は「店舗デザイン」で配置。購入と拡張はオフです。
 tut.prep.restrict.shop_hint_furn,先「購入商店物品」買齊三件。店鋪設計與擴張暫時停用。,"Buy the three pieces under Buy furniture first. Layout and Expand stay off for now.",先“购入商店物品”买齐三件。店铺设计与扩张暂时停用。,先に「店舗アイテム購入」で3つ揃える。店舗デザインと拡張はオフです。
+tut.prep.restrict.shop_hint_furn_expand,先「購入商店物品」買齊乾／凍櫃貨架與補貨架。店鋪設計與擴張暫時停用。,"Buy the dry/chiller shelves and restock racks first. Layout and Expand stay off.",先“购入商店物品”买齐干／冻柜货架与补货架。店铺设计与扩张暂时停用。,先に常温／冷蔵の棚と補充棚を購入。店舗デザインと拡張はオフです。
 tut.prep.restrict.furn_hint,只能各買一件：收銀機、乾貨補貨架、乾貨類貨架（4件）。,"Buy one each: cashier, dry restock rack, dry shelf (4).",只能各买一件：收银机、干货补货架、干货类货架（4件）。,それぞれ1つまで：レジ、常温補充棚、常温棚（4個）。
+tut.prep.restrict.furn_hint_expand,再買：乾貨架（4）×1、凍櫃貨架（4）×1、乾貨補貨架×1、凍櫃補貨架×1。,"Buy: dry shelf (4)×1, chiller shelf (4)×1, dry restock×1, chiller restock×1.",再买：干货架（4）×1、冻柜货架（4）×1、干货补货架×1、冻柜补货架×1。,追加：常温棚（4）×1、冷蔵棚（4）×1、常温補充棚×1、冷蔵補充棚×1。
 tut.prep.restrict.furn_denied,教學中只能購買指定的商店物品。,Only the listed shop items can be bought during this tutorial.,教学中只能购买指定的商店物品。,このチュートリアルでは指定の店舗アイテムだけ購入できます。
 tut.prep.restrict.furn_cap,這件已買夠教學所需數量。,You already bought enough of this for the tutorial.,这件已买够教学所需数量。,このアイテムはチュートリアル分すでに購入済みです。
 tut.prep.restrict.furn_owned_row,%s　已購入 %d（教學上限）,%s  owned %d (tutorial cap),%s　已购入 %d（教学上限）,%s　所持 %d（チュートリアル上限）
+tut.prep.restrict.sku_denied,教學中只能操作指定的貨品。,Only the listed goods can be used during this tutorial.,教学中只能操作指定的货品。,このチュートリアルでは指定の商品だけ操作できます。
+tut.prep.restrict.home_hint_develop,開發教學：只能進入「貨品管理 → 開發貨品」。先開發零食與支裝凍飲。,"Develop tutorial: only Goods → Develop is open. Develop snack and bottled drink first.",开发教学：只能进入“货品管理 → 开发货品”。先开发零食与支装冻饮。,開発教程：「商品管理 → 開発」だけ。まずスナックと冷蔵飲料を開発。
+tut.prep.restrict.home_hint_buy_new,新貨採購：只能進入「貨品管理 → 採購貨品」。買齊零食與支裝凍飲。,"New-stock tutorial: only Goods → Buy is open. Buy snack and bottled drink.",新货采购：只能进入“货品管理 → 采购货品”。买齐零食与支装冻饮。,新仕入れ教程：「商品管理 → 仕入れ」だけ。スナックと冷蔵飲料を買う。
+tut.prep.restrict.home_hint_furn_expand,擴充購入：只能進入「店舖管理 → 購入商店物品」。買齊乾／凍櫃貨架與補貨架。,"Expand-buy tutorial: only Shop → Buy furniture is open. Buy dry/chiller shelves and restock racks.",扩充购入：只能进入“店铺管理 → 购入商店物品”。买齐干／冻柜货架与补货架。,拡充購入教程：「店舗管理 → 店舗アイテム購入」だけ。常温／冷蔵の棚と補充棚を揃える。
+tut.prep.restrict.home_hint_layout_expand,擴充設計：只能進入「店舖管理 → 店鋪設計」。擺齊新家具並設互異補貨預設。,"Expand-layout tutorial: only Shop → Layout is open. Place new gear and set distinct restock defaults.",扩充设计：只能进入“店铺管理 → 店铺设计”。摆齐新家具并设互异补货预设。,拡充デザイン教程：「店舗管理 → 店舗デザイン」だけ。新設備を置き既定を別々に。
+tut.prep.restrict.home_hint_buy_cashier,收銀機教學：只能進入「店舖管理」。先購入並放置第二台收銀機。,"Cashier tutorial: only Shop is open. Buy and place a second cashier.",收银机教学：只能进入“店铺管理”。先购入并放置第二台收银机。,レジ教程：「店舗管理」だけ。2台目のレジを購入して設置。
+tut.prep.restrict.shop_hint_buy_cashier,先買第二台收銀機，再到店鋪設計擺放。擴張暫時停用。,"Buy the second cashier, then place it in Layout. Expand stays off.",先买第二台收银机，再到店铺设计摆放。扩张暂时停用。,先に2台目レジを購入し、店舗デザインで配置。拡張はオフです。
+tut.prep.restrict.furn_hint_buy_cashier,再買一台收銀機（教學上限 2）。其他商店物品已鎖。,"Buy one more cashier (tutorial cap 2). Other shop items stay locked.",再买一台收银机（教学上限 2）。其他商店物品已锁。,レジをもう1台（上限2）。他の店舗アイテムはロック。
+tut.prep.restrict.home_hint_clerks,店員教學：只能進入「員工管理」。招募一名店員完成本課。,"Clerk tutorial: only Staff is open. Hire one clerk to finish.",店员教学：只能进入“员工管理”。招募一名店员完成本课。,店員教程：「スタッフ」だけ。店員を1人雇って完了。
 tut.ops.shelve.p1.title,貨品上架,Stock the shelves,货品上架,商品を陳列
 tut.ops.shelve.p1.body,第一次營運：先到補貨架執貨，再到貨架上架。上架滿 4 件即可完成本課。,"First ops day: take goods from a restock rack, then shelve them. Shelve 4 pieces to finish.",第一次营运：先到补货架执货，再到货架上架。上架满 4 件即可完成本课。,初回営業：補充棚で取荷→陳列棚へ。4個陳列すれば完了です。
 tut.ops.shelve.p2.title,補貨架執貨,Take from restock,补货架执货,補充棚で取荷
@@ -126,6 +230,38 @@ tut.ops.finish_day.task.name,教學：完成今日結算,Tutorial: settle today,
 tut.ops.finish_day.task.desc,自由營業到結算完成本日。,Run freely until you settle the day.,自由营业到结算完成本日。,自由に営業して本日を精算する。
 tut.ops.finish_day.done.title,一日營運教學完成,Day complete,一日营运教学完成,一日営業チュートリアル完了
 tut.ops.finish_day.done.body,已完成今日結算。開局教學到此告一段落。,"You settled the day. The opening tutorial chain is complete.",已完成今日结算。开局教学到此告一段落。,本日の精算が完了。開店チュートリアルは一段落です。
+tut.ops.use_skills.p1.title,主動技能,Active skills,主动技能,アクティブスキル
+tut.ops.use_skills.p1.body,短按或長按技能鍵（鍵盤 L／手制 Y）開五格選單；用方向選格後發動。只有主動技能可以施放。,"Tap or hold Skill (keyboard L / pad Y) to open the five-slot menu; pick a slot with directions to cast. Only actives can be cast.",短按或长按技能键（键盘 L／手制 Y）开五格选单；用方向选格后发动。只有主动技能可以施放。,スキルキー（キーボードL／パッドY）短押し／長押しで5枠メニュー。方向で枠を選んで発動。発動できるのはアクティブのみ。
+tut.ops.use_skills.p2.title,被動技能,Passive skills,被动技能,パッシブスキル
+tut.ops.use_skills.p2.body,被動技能裝備後在營運中自動生效；選單上較暗，按了也不會發動。,"Passives apply automatically during ops once equipped. They look dimmer in the menu and cannot be cast.",被动技能装备后在营运中自动生效；选单上较暗，按了也不会发动。,パッシブは装備すれば営業中に自動で効く。メニューでは暗め表示で、押しても発動しません。
+tut.ops.use_skills.p3.title,奧義,Ultimate,奥义,奥義
+tut.ops.use_skills.p3.body,長按奧義鍵（鍵盤 U／觸控奧義；手制 LT+RT 同按），頭頂出現方向串後依序輸入。放手取消；錯一步從頭。,"Hold Ult (keyboard U / touch Ult; pad LT+RT together). Enter the arrow sequence above your head. Release to cancel; a wrong step restarts.",长按奥义键（键盘 U／触控奥义；手制 LT+RT 同按），头顶出现方向串后依序输入。放手取消；错一步从头。,奥義キー長押し（キーボードU／タッチ奥義；パッドはLT+RT同時）。頭上の矢印を順に入力。離すとキャンセル、ミスで最初から。
+tut.ops.use_skills.p4.title,開始練習,Start practice,开始练习,練習を始める
+tut.ops.use_skills.p4.body,先成功施放主動技能 5 次，再施放奧義 1 次。完成後可自由營業到結算。,"Cast active skills 5 times, then cast your ultimate once. After that, run freely until you settle.",先成功施放主动技能 5 次，再施放奥义 1 次。完成后可自由营业到结算。,まずアクティブを5回成功させ、次に奥義を1回。完了後は精算まで自由に営業できます。
+tut.ops.use_skills.task.name,教學：主動 5 次＋奧義 1 次,Tutorial: 5 actives + 1 ultimate,教学：主动 5 次＋奥义 1 次,チュートリアル：アクティブ5回＋奥義1回
+tut.ops.use_skills.task.desc,成功施放主動技能 5 次，再成功施放奧義技能 1 次。,Successfully cast active skills 5 times, then cast an ultimate skill once.,成功施放主动技能 5 次，再成功施放奥义技能 1 次。,アクティブスキルを5回成功させ、続けて奥義スキルを1回発動する。
+tut.ops.use_skills.done.title,技能施放教學完成,Skill cast tutorial complete,技能施放教学完成,スキル発動チュートリアル完了
+tut.ops.use_skills.done.body,已練過主動與奧義。可以自由營業到結算。,"You've practiced actives and an ultimate. Run freely until you settle.",已练过主动与奥义。可以自由营业到结算。,アクティブと奥義を練習しました。精算まで自由に営業できます。
+tut.ops.rating.p1.title,當日營運評價,Day ops rating,当日营运评价,本日の運営評価
+tut.ops.rating.p1.body,每次開店會把營運點重設為 50。表現良好會提升評價值；行為當下就會加減，並在 HUD「營運評價」與飄字顯示。,"Each open day resets ops points to 50. Good play raises the score; actions add or subtract instantly on the HUD Ops line and as float text.",每次开店会把营运点重设为 50。表现良好会提升评价值；行为当下就会加减，并在 HUD“营运评价”与飘字显示。,開店のたびに運営点は50にリセット。良いプレイで上がり、行動のたびにHUD「運営評価」とフロートで加減されます。
+tut.ops.rating.p2.title,商店評價,Shop rating,商店评价,店舗評価
+tut.ops.rating.p2.body,結算後依當日最終營運點評出 −3…+3，再加到商店評價（下限 0）。商店評價是長期紀錄，不是可花的貨幣。,"At settle, final ops points become a −3…+3 grade added to shop rating (floor 0). Shop rating is a long-term record, not spendable cash.",结算后依当日最终营运点评出 −3…+3，再加到商店评价（下限 0）。商店评价是长期纪录，不是可花的货币。,精算後、最終運営点から−3…+3の評級が店舗評価に加算（下限0）。店舗評価は長期記録で、使える通貨ではありません。
+tut.ops.rating.p3.title,日結評級帶,Day-end grade bands,日结评级带,精算の評級帯
+tut.ops.rating.p3.body,"最終營運點 → 文案 → 評級：\n＜0　你還在嗎？　−3\n0–20　超負評　−2\n21–40　負評　−1\n41–60　普通　0\n61–80　好評　＋1\n81–100　大獲好評　＋2\n＞100　超好評　＋3","Final ops → label → grade:\n<0 Still there? −3\n0–20 Terrible −2\n21–40 Poor −1\n41–60 Average 0\n61–80 Good +1\n81–100 Great +2\n>100 Outstanding +3","最终营运点 → 文案 → 评级：\n＜0　你还在吗？　−3\n0–20　超负评　−2\n21–40　负评　−1\n41–60　普通　0\n61–80　好评　＋1\n81–100　大获好评　＋2\n＞100　超好评　＋3","最終運営点 → 文言 → 評級：\n＜0　まだいる？　−3\n0–20　超低評価　−2\n21–40　低評価　−1\n41–60　普通　0\n61–80　好評　＋1\n81–100　大好評　＋2\n＞100　超好評　＋3"
+tut.ops.rating.p4.title,正面加減,Positive deltas,正面加减,プラス要因
+tut.ops.rating.p4.body,主要正面：完美／普通收銀、收完麻煩客、抓住小偷、成功清潔、COMBO 達成。,"Main gains: perfect/normal checkout, finishing an elite guest, catching a thief, cleaning dirt, and landing a COMBO.",主要正面：完美／普通收银、收完麻烦客、抓住小偷、成功清洁、COMBO 达成。,主なプラス：完璧／通常レジ、面倒客の会計、泥棒確保、掃除成功、COMBO達成。
+tut.ops.rating.p5.title,負面加減,Negative deltas,负面加减,マイナス要因
+tut.ops.rating.p5.body,主要負面：客人生氣離店、被偷、小偷逃走、交錯／丟錯貨、衝刺撞倒一般客人、打鬥失敗倒地。,"Main losses: angry leave, theft, thief escape, wrong delivery, dashing into a normal guest, and getting knocked down in a fight.",主要负面：客人生气离店、被偷、小偷逃走、交错／丢错货、冲刺撞倒一般客人、打斗失败倒地。,主なマイナス：怒り退店、盗難、泥棒逃走、誤配達、通常客へのダッシュ衝突、喧嘩で倒される。
+tut.ops.rating.p6.title,本日練習,Today's practice,本日练习,本日の練習
+tut.ops.rating.p6.body,今日會掛上序章測試包任務當練習。做不完也可以結算——結算即完成本課。,"Today's prologue practice tasks are attached. You can settle even if unfinished — settling completes this lesson.",今日会挂上序章测试包任务当练习。做不完也可以结算——结算即完成本课。,本日は序章テストパックを練習用に付けます。未完了でも精算でき、精算で本課完了です。
+tut.ops.rating.task.name,教學：評價與結算,Tutorial: rating & settle,教学：评价与结算,チュートリアル：評価と精算
+tut.ops.rating.task.desc,練習任務可做可不做；本日結算即可完成。,Practice tasks are optional; settle the day to finish.,练习任务可做可不做；本日结算即可完成。,練習タスクは任意。本日精算で完了。
+tut.ops.rating.done.title,評價教學完成,Rating tutorial complete,评价教学完成,評価チュートリアル完了
+tut.ops.rating.done.body,已看過評價規則並完成本日結算。之後可在準備選單查看評價記錄。,"You've seen the rating rules and settled the day. Check Rating history in prep anytime.",已看过评价规则并完成本日结算。之后可在准备选单查看评价记录。,評価ルールを確認し本日精算済み。準備メニューの評価記録でいつでも確認できます。
+tut.ops.rating.perfect.p1.title,完美交付,Perfect delivery,完美交付,完璧配達
+tut.ops.rating.perfect.p1.body,完美交付＝一次就把該客人整張購物清單交清（件數 ≥1 即可）。親手或投擲都可以。,"Perfect delivery = clear that guest's whole shopping list in one go (1+ items is enough). Hand-off or toss both count.",完美交付＝一次就把该客人整张购物清单交清（件数 ≥1 即可）。亲手或投掷都可以。,完璧配達＝その客の買い物リストを一度で渡し切る（1個以上でOK）。手渡し／投擲どちらも可。
+tut.ops.rating.perfect.p2.title,練習提示,Practice tip,练习提示,練習ヒント
+tut.ops.rating.perfect.p2.body,完美交付會大幅減不滿、該筆結帳營收加成，並計入 COMBO／評價。本日練習任務也有「完美交付」目標。,"It cuts anger a lot, boosts that checkout's revenue, and counts for COMBO/rating. Today's practice pack also tracks perfect deliveries.",完美交付会大幅减不满、该笔结账营收加成，并计入 COMBO／评价。本日练习任务也有“完美交付”目标。,不满が大きく下がり、その会計の売上が増え、COMBO／評価にも入ります。本日の練習にも完璧配達の目標があります。
 tut.ops.empty_shelf.p1.title,空貨架,Empty shelf,空货架,空の棚
 tut.ops.empty_shelf.p1.body,貨架被清空後，客人可能找不到要的貨，不滿會上升。,"When a shelf is empty, guests may fail to find what they want and grow unhappy.",货架被清空后，客人可能找不到要的货，不满会上升。,棚が空になると、客が欲しい商品を見つけられず不満が上がることがあります。
 tut.ops.empty_shelf.p2.title,保持貨源,Keep stocked,保持货源,在庫を保つ

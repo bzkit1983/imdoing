@@ -553,9 +553,18 @@ static func _hub_char(menu: CanvasLayer) -> void:
 	menu._hub_cols = 1
 	menu._title.text = Loc.t("prep.hub.char")
 	menu._info.text = menu._pair(menu._header(), Loc.t("prep.hub.char_info"))
-	menu._add_hub(Loc.t("prep.home.stats"), "go", "stats", "stats")
-	menu._add_hub(Loc.t("prep.home.skills_short"), "go", "skills", "skills")
-	menu._add_hub(Loc.t("prep.home.look"), "go", "look", "look")
+	menu._add_hub(
+		Loc.t("prep.home.stats"), "go", "stats", "stats",
+		menu.tutorial_char_hub_locked("stats")
+	)
+	menu._add_hub(
+		Loc.t("prep.home.skills_short"), "go", "skills", "skills",
+		menu.tutorial_char_hub_locked("skills")
+	)
+	menu._add_hub(
+		Loc.t("prep.home.look"), "go", "look", "look",
+		menu.tutorial_char_hub_locked("look")
+	)
 	menu._rebuild_hub_tiles()
 
 
@@ -564,7 +573,14 @@ static func _hub_goods(menu: CanvasLayer) -> void:
 	menu._title.text = Loc.t("prep.hub.goods")
 	var goods_info := Loc.t("prep.hub.goods_info")
 	if menu.tutorial_prep_restricts():
-		goods_info = Loc.t("tut.prep.restrict.goods_hint")
+		var goods_hint_key := "tut.prep.restrict.goods_hint"
+		var tut_node = menu._tutorial() if menu.has_method("_tutorial") else null
+		if tut_node != null and tut_node.has_method("prep_restrict"):
+			var r: Dictionary = tut_node.prep_restrict()
+			var override := String(r.get("goods_hint_key", ""))
+			if override != "":
+				goods_hint_key = override
+		goods_info = Loc.t(goods_hint_key)
 	menu._info.text = menu._pair(menu._header(), goods_info)
 	menu._add_hub(
 		Loc.t("prep.home.develop"), "go", "develop", "develop",
@@ -781,8 +797,15 @@ static func _ult_label(sk: Dictionary) -> String:
 
 static func _develop(menu: CanvasLayer) -> void:
 	menu._title.text = Loc.t("prep.develop.title")
-	menu._info.text = menu._pair(menu._header(), menu._msg if menu._msg != "" else Loc.t("prep.develop.info"))
+	var develop_info := Loc.t("prep.develop.info")
+	if menu.tutorial_prep_restricts() and menu.tutorial_goods_sku_restricts():
+		develop_info = Loc.t("tut.prep.restrict.goods_hint_develop")
+	menu._info.text = menu._pair(menu._header(), menu._msg if menu._msg != "" else develop_info)
+	var sku_lock: bool = menu.tutorial_goods_sku_restricts()
 	for sku in Tuning.SELLABLE_SKUS:
+		## Develop tutorial: only show allowlisted SKUs.
+		if sku_lock and not menu.tutorial_goods_sku_allowed(sku):
+			continue
 		var icon := SkuIcons.row_texture(sku)
 		if not menu.state.sku_unlocked(sku):
 			menu._add(Loc.t("prep.sku.locked", [Tuning.sku_name(sku), int(Tuning.SKU_UNLOCK_LV[sku])]), "locked_sku", sku, icon)
@@ -794,6 +817,10 @@ static func _develop(menu: CanvasLayer) -> void:
 
 
 static func _buy(menu: CanvasLayer) -> void:
+	var sku_lock: bool = menu.tutorial_goods_sku_restricts()
+	## Drop qty picker if the active tutorial no longer allows that SKU.
+	if menu._qty_sku != "" and sku_lock and not menu.tutorial_goods_sku_allowed(menu._qty_sku):
+		menu._qty_sku = ""
 	if menu._qty_sku != "":
 		var name := Tuning.sku_name(menu._qty_sku)
 		var each := Tuning.sku_piece_price_label(menu._qty_sku)
@@ -802,8 +829,14 @@ static func _buy(menu: CanvasLayer) -> void:
 		_build_qty(menu, Tuning.cost_for_pieces(menu._qty_sku, menu._qty_boxes))
 		return
 	menu._title.text = Loc.t("prep.buy.title")
-	menu._info.text = menu._pair(menu._header(), menu._msg if menu._msg != "" else Loc.t("prep.buy.info"))
+	var buy_info := Loc.t("prep.buy.info")
+	if menu.tutorial_prep_restricts() and sku_lock:
+		buy_info = Loc.t("tut.prep.restrict.goods_hint_buy_new")
+	menu._info.text = menu._pair(menu._header(), menu._msg if menu._msg != "" else buy_info)
 	for sku in Tuning.SELLABLE_SKUS:
+		## Buy tutorial: only show allowlisted SKUs.
+		if sku_lock and not menu.tutorial_goods_sku_allowed(sku):
+			continue
 		var icon := SkuIcons.row_texture(sku)
 		if not menu.state.sku_unlocked(sku):
 			menu._add(Loc.t("prep.sku.locked", [Tuning.sku_name(sku), int(Tuning.SKU_UNLOCK_LV[sku])]), "locked_sku", sku, icon)
@@ -921,7 +954,14 @@ static func _furn(menu: CanvasLayer) -> void:
 	menu._title.text = Loc.t("prep.furn.title")
 	var furn_info := Loc.t("prep.furn.info")
 	if menu.tutorial_prep_restricts():
-		furn_info = Loc.t("tut.prep.restrict.furn_hint")
+		var furn_hint_key := "tut.prep.restrict.furn_hint"
+		var tut_node = menu._tutorial() if menu.has_method("_tutorial") else null
+		if tut_node != null and tut_node.has_method("prep_restrict"):
+			var r: Dictionary = tut_node.prep_restrict()
+			var override := String(r.get("furn_hint_key", ""))
+			if override != "":
+				furn_hint_key = override
+		furn_info = Loc.t(furn_hint_key)
 	menu._info.text = menu._pair(menu._header(), menu._msg if menu._msg != "" else furn_info)
 	var tut_caps: Dictionary = menu.tutorial_furniture_caps()
 	for type in menu.state.FURNITURE.keys():

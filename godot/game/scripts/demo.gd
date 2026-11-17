@@ -868,6 +868,10 @@ func customer_list_bounds() -> Vector2i:
 
 
 func set_play_difficulty(id: String) -> void:
+	## Scenario 5 tutorial always runs Easy.
+	if state != null and int(state.scenario) == 5:
+		play_difficulty = "easy"
+		return
 	play_difficulty = "easy" if id == "easy" else "normal"
 
 
@@ -915,7 +919,12 @@ func _seat_thief_rate() -> float:
 
 
 func _play_easy() -> bool:
-	return ProductVersion.test_tools_enabled() and play_difficulty == "easy"
+	if not ProductVersion.test_tools_enabled():
+		return false
+	## Scenario 5: locked to Easy regardless of the prep toggle.
+	if state != null and int(state.scenario) == 5:
+		return true
+	return play_difficulty == "easy"
 
 
 func queue_dissat_blocked() -> bool:
@@ -2850,12 +2859,18 @@ func note_deliver(seat: int, mode: String, n: int = 1, perfect: bool = false) ->
 
 
 func note_skill_cast(seat: int, skill_id: String, is_ult: bool) -> void:
-	if _tasks == null or not _is_player_seat(seat):
+	if not _is_player_seat(seat):
 		return
-	if is_ult:
-		_tasks.note_metric(seat, "ult_cast", 1, {"skill_id": skill_id})
-	else:
-		_tasks.note_metric(seat, "skill_cast", 1, {"skill_id": skill_id})
+	if _tasks != null:
+		if is_ult:
+			_tasks.note_metric(seat, "ult_cast", 1, {"skill_id": skill_id})
+		else:
+			_tasks.note_metric(seat, "skill_cast", 1, {"skill_id": skill_id})
+	if _tutorial != null and is_instance_valid(_tutorial):
+		if is_ult:
+			_tutorial.note_metric("ult_cast", 1, {"skill_id": skill_id})
+		else:
+			_tutorial.note_metric("skill_cast", 1, {"skill_id": skill_id})
 	bump_hud()
 
 
@@ -3154,7 +3169,27 @@ func _spawn_customer(ignore_cap: bool = false) -> bool:
 		cust_extra["checkout_init"] = true
 	_register_net_agent(c, "customer", cust_extra)
 	SfxBus.play("sfx_guest_enter")
+	## Rating tutorial tip arms on first normal／elite guest (not thieves).
+	if _tutorial != null and is_instance_valid(_tutorial) and _tutorial.has_method("notify_flag"):
+		_tutorial.notify_flag("guest_present")
 	return true
+
+
+## Soft-attach a task pack for tutorial practice HUD (does not set task_test_mode).
+func attach_tutorial_practice_pack(pack_id: String) -> void:
+	if pack_id == "" or _tasks == null:
+		return
+	var pack: Dictionary = TaskCatalog.pack_by_id(pack_id)
+	if pack.is_empty():
+		return
+	var seats: Array = []
+	for s in SeatTable.seat_ids():
+		seats.append(int(s))
+	if seats.is_empty():
+		seats.append(0)
+	var day_i := int(state.day_index) if state != null else 0
+	_tasks.attach_pack(pack, seats, day_i)
+	bump_hud()
 
 
 func announce_elite_customer(c: Node) -> void:

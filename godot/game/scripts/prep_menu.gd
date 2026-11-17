@@ -194,6 +194,11 @@ func tutorial_goods_hub_locked(hub_key: String) -> bool:
 	return tut != null and bool(tut.prep_hub_target_locked(hub_key, "goods_hub_allow"))
 
 
+func tutorial_char_hub_locked(hub_key: String) -> bool:
+	var tut := _tutorial()
+	return tut != null and bool(tut.prep_hub_target_locked(hub_key, "char_hub_allow"))
+
+
 func tutorial_furniture_caps() -> Dictionary:
 	var tut := _tutorial()
 	if tut == null:
@@ -208,6 +213,43 @@ func tutorial_furniture_buy_block(type: String) -> String:
 	if tut == null or not tut.has_method("furniture_buy_block_reason"):
 		return ""
 	return String(tut.furniture_buy_block_reason(type))
+
+
+## True when goods_sku_allow is active (non-empty). Used to hide non-allowlisted rows.
+func tutorial_goods_sku_restricts() -> bool:
+	var tut := _tutorial()
+	if tut == null:
+		return false
+	var r: Dictionary = tut.prep_restrict()
+	var allow = r.get("goods_sku_allow", [])
+	return allow is Array and not allow.is_empty()
+
+
+func tutorial_goods_sku_allowed(sku: String) -> bool:
+	var tut := _tutorial()
+	if tut == null or not tut.has_method("goods_sku_allowed"):
+		return true
+	return bool(tut.goods_sku_allowed(sku))
+
+
+func tutorial_goods_sku_block(sku: String) -> String:
+	var tut := _tutorial()
+	if tut == null or not tut.has_method("goods_sku_block_reason"):
+		return ""
+	return String(tut.goods_sku_block_reason(sku))
+
+
+## Develop-goods chain: funds shortfalls are topped up on confirm instead of blocking.
+func tutorial_purchase_subsidy_active() -> bool:
+	var tut := _tutorial()
+	return tut != null and tut.has_method("purchase_subsidy_active") and bool(tut.purchase_subsidy_active())
+
+
+func tutorial_subsidize_for_cost(cost: int) -> int:
+	var tut := _tutorial()
+	if tut == null or not tut.has_method("subsidize_for_cost"):
+		return 0
+	return int(tut.subsidize_for_cost(cost))
 
 
 func _notify_tutorial_prep() -> void:
@@ -722,6 +764,9 @@ func _diff_on() -> bool:
 
 
 func _sync_diff_from_demo() -> void:
+	## Keep Scenario 5 locked to Easy in the chrome.
+	if state != null and int(state.scenario) == 5 and demo != null and demo.has_method("set_play_difficulty"):
+		demo.call("set_play_difficulty", "easy")
 	var easy := false
 	if demo != null and demo.has_method("play_is_easy"):
 		easy = bool(demo.call("play_is_easy"))
@@ -732,6 +777,15 @@ func _sync_diff_from_demo() -> void:
 func _choose_difficulty(easy: bool) -> void:
 	if tutorial_prep_restricts():
 		_popup_info(Loc.t("tut.gate.title"), Loc.t("tut.prep.restrict.hub"))
+		return
+	## Scenario 5 is always Easy; block switching to Normal.
+	if state != null and int(state.scenario) == 5:
+		if not easy:
+			_popup_info(Loc.t("tut.gate.title"), Loc.t("tut.prep.restrict.diff_easy_only"))
+		if demo != null and demo.has_method("set_play_difficulty"):
+			demo.call("set_play_difficulty", "easy")
+		_diff_cursor = 0
+		_paint_diff()
 		return
 	if demo != null and demo.has_method("set_play_difficulty"):
 		demo.call("set_play_difficulty", "easy" if easy else "normal")
@@ -1004,6 +1058,9 @@ func _activate() -> void:
 			state.apply_scenario(int(arg))
 			if tut_sc != null:
 				tut_sc.setup(state)
+			## Scenario 5 always Easy for the test play-difficulty toggle.
+			if int(arg) == 5 and demo != null and demo.has_method("set_play_difficulty"):
+				demo.call("set_play_difficulty", "easy")
 			_msg = ""
 			_show_page("home")
 		"wipe_save":
@@ -1593,6 +1650,10 @@ func _funds_line(what: String, price: int) -> String:
 
 func _ask_develop(sku: String) -> void:
 	var name := Tuning.sku_name(sku)
+	var tut_sku := tutorial_goods_sku_block(sku)
+	if tut_sku != "":
+		_popup_info(Loc.t("tut.gate.title"), Loc.t(tut_sku, [name]))
+		return
 	if not state.sku_unlocked(sku):
 		_popup_info(Loc.t("prep.msg.locked_title"), _locked_sku_body(sku))
 		return
@@ -1600,7 +1661,7 @@ func _ask_develop(sku: String) -> void:
 		_popup_info(Loc.t("prep.msg.cant_develop"), Loc.t("prep.msg.already_dev_buy", [name]))
 		return
 	var fee := int(Tuning.SKU_DEVELOP.get(sku, 0))
-	if state.money < fee:
+	if state.money < fee and not tutorial_purchase_subsidy_active():
 		_popup_info(Loc.t("err.funds"), _funds_line(Loc.t("prep.msg.develop_what", [name]), fee))
 		return
 	_popup_confirm(Loc.t("prep.msg.confirm_title"), Loc.t("prep.msg.develop_ask", [name, fee]), {"action": "dev", "sku": sku})
@@ -1609,6 +1670,10 @@ func _ask_develop(sku: String) -> void:
 func _ask_buy() -> void:
 	var name := Tuning.sku_name(_qty_sku)
 	var pieces := _qty_boxes
+	var tut_sku := tutorial_goods_sku_block(_qty_sku)
+	if tut_sku != "":
+		_popup_info(Loc.t("tut.gate.title"), Loc.t(tut_sku, [name]))
+		return
 	if not state.developed.has(_qty_sku):
 		_popup_info(Loc.t("prep.msg.locked_title"), Loc.t("prep.msg.need_dev_buy", [name]))
 		return
@@ -1616,7 +1681,7 @@ func _ask_buy() -> void:
 		_popup_info(Loc.t("prep.locked_title"), Loc.t("prep.buy.not_for_sale", [name]))
 		return
 	var cost := Tuning.cost_for_pieces(_qty_sku, pieces)
-	if state.money < cost:
+	if state.money < cost and not tutorial_purchase_subsidy_active():
 		_popup_info(Loc.t("err.funds"), _funds_line(Loc.t("prep.msg.buy_what", [name, pieces]), cost))
 		return
 	_popup_confirm(Loc.t("prep.msg.confirm_title"), Loc.t("prep.msg.buy_ask", [name, pieces, cost]), {"action": "buy", "sku": _qty_sku, "boxes": pieces})
@@ -1644,7 +1709,7 @@ func _ask_furniture(type: String) -> void:
 		_popup_locked_furn(type)
 		return
 	var price := int(spec["price"])
-	if state.money < price:
+	if state.money < price and not tutorial_purchase_subsidy_active():
 		_popup_info(Loc.t("err.funds"), _funds_line(Loc.t("prep.msg.furn_what", [name]), price))
 		return
 	_popup_confirm(Loc.t("prep.msg.confirm_title"), Loc.t("prep.msg.furn_ask", [name, price]), {"action": "furn", "type": type})
@@ -1691,6 +1756,7 @@ func _run_pending(pending: Dictionary) -> void:
 	match String(pending.get("action", "")):
 		"dev":
 			var sku := String(pending["sku"])
+			tutorial_subsidize_for_cost(int(Tuning.SKU_DEVELOP.get(sku, 0)))
 			var msg := state.develop(sku)
 			if msg != "":
 				_popup_info(Loc.t("prep.msg.cant_develop"), msg)
@@ -1701,6 +1767,7 @@ func _run_pending(pending: Dictionary) -> void:
 		"buy":
 			var sku2 := String(pending["sku"])
 			var boxes := int(pending["boxes"])
+			tutorial_subsidize_for_cost(Tuning.cost_for_pieces(sku2, boxes))
 			var msg2 := state.buy_stock(sku2, boxes)
 			if msg2 != "":
 				_popup_info(Loc.t("prep.msg.cant_buy"), msg2)
@@ -1715,6 +1782,8 @@ func _run_pending(pending: Dictionary) -> void:
 			if tut_block != "":
 				_popup_info(Loc.t("tut.gate.title"), Loc.t(tut_block, [state.furniture_name(type)]))
 				return
+			var furn_price := int(state.FURNITURE[type]["price"])
+			tutorial_subsidize_for_cost(furn_price)
 			var msg3 := state.buy_furniture(type)
 			if msg3 != "":
 				_popup_info(Loc.t("prep.msg.cant_buy_furn"), msg3)
@@ -1749,6 +1818,9 @@ func _popup_confirm(title: String, body: String, pending: Dictionary) -> void:
 ## After closeout → home: suggest difficulty change on 3-day grade streak.
 func maybe_offer_difficulty_prompt() -> void:
 	if state == null or _dlg_open:
+		return
+	## Scenario 5 stays Easy — no difficulty nudge prompts.
+	if int(state.scenario) == 5:
 		return
 	var sug := RatingRules.difficulty_suggestion(state.rating_history)
 	if sug == "":
@@ -1793,7 +1865,7 @@ func _apply_difficulty_prompt(pending: Dictionary, accepted: bool) -> void:
 	var key := String(pending.get("streak_key", ""))
 	if key != "":
 		state.difficulty_prompt_acked = key
-	if accepted:
+	if accepted and int(state.scenario) != 5:
 		var nxt := String(pending.get("next", ""))
 		if nxt == "":
 			nxt = RatingRules.nudge_difficulty(
@@ -1801,6 +1873,8 @@ func _apply_difficulty_prompt(pending: Dictionary, accepted: bool) -> void:
 			)
 		state.difficulty = RatingRules.normalize_difficulty(nxt)
 		_msg = Loc.t("rating.diff.title") + " → " + _diff_label(state.difficulty)
+	elif int(state.scenario) == 5:
+		state.difficulty = RatingRules.DIFF_EASY
 	state.save_to_disk()
 	_refresh()
 

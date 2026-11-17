@@ -178,9 +178,13 @@ func _scenario_new() -> void:
 
 ## Test-only tutorial campaign: empty shop like new game, $3000 (tutorial.md).
 ## Can stock comes from prep buy-stock lesson (no free gift).
+## Skill loadouts start empty so equip-skills lesson teaches from a blank slate.
+## Always 簡易（persist difficulty + prep play difficulty forced in demo／prep_menu）.
 func _scenario_tutorial() -> void:
 	_scenario_new()
 	money = 3000
+	difficulty = RatingRules.DIFF_EASY
+	_install_blank_skill_sets()
 
 
 func is_intro_scenario() -> bool:
@@ -375,6 +379,45 @@ func _xp_need(target_lv: int) -> int:
 		9: return 5000
 		10: return 6000
 		_: return 0
+
+
+## Grant EXP as needed and level up until `level >= min_lv` (cap 10). Returns levels gained.
+func ensure_min_level(min_lv: int) -> int:
+	min_lv = clampi(min_lv, 1, 10)
+	var ups := 0
+	while level < min_lv:
+		var need := _xp_need(level + 1)
+		if need <= 0:
+			break
+		if xp < need:
+			xp = need
+		xp -= need
+		level += 1
+		unspent += 5
+		ups += 1
+	return ups
+
+
+## Top up cash until `money >= min_amount`. Returns the amount granted.
+func ensure_min_money(min_amount: int) -> int:
+	min_amount = maxi(0, min_amount)
+	if money >= min_amount:
+		return 0
+	var granted := min_amount - money
+	money = min_amount
+	return granted
+
+
+## Raise shop_scale／grid to min_scale without charging SCALE_COST. Returns steps raised.
+func ensure_min_shop_scale(min_scale: int) -> int:
+	min_scale = clampi(min_scale, 1, 3)
+	var ups := 0
+	while shop_scale < min_scale:
+		shop_scale += 1
+		grid_w = int(SCALE_MAX[shop_scale])
+		grid_h = int(SCALE_MAX[shop_scale])
+		ups += 1
+	return ups
 
 
 func spend_point(stat: String, delta: int) -> String:
@@ -1319,6 +1362,9 @@ func from_dict(data: Dictionary) -> String:
 		while rating_history.size() > RatingRules.HISTORY_MAX:
 			rating_history.remove_at(0)
 	difficulty = RatingRules.normalize_difficulty(String(data.get("difficulty", RatingRules.DIFF_NORMAL)))
+	## Scenario 5 tutorial is always Easy.
+	if scenario == 5:
+		difficulty = RatingRules.DIFF_EASY
 	last_ops_rating = int(data.get("last_ops_rating", RatingRules.OPS_START))
 	last_grade = clampi(int(data.get("last_grade", 0)), -3, 3)
 	difficulty_prompt_acked = String(data.get("difficulty_prompt_acked", ""))
@@ -1356,6 +1402,15 @@ func _install_new_game_sets() -> void:
 	skill_sets.clear()
 	skill_sets.append(_make_set(default_skill_set_name(0), _default_slot_ids(), "the_world"))
 	for i in range(1, SKILL_SET_COUNT):
+		skill_sets.append(_make_set(default_skill_set_name(i), _blank_slot_ids(), ""))
+	skill_set_index = 0
+	_mirror_selected()
+
+
+## Scenario 5: all five sets blank (no actives, no ultimate).
+func _install_blank_skill_sets() -> void:
+	skill_sets.clear()
+	for i in range(SKILL_SET_COUNT):
 		skill_sets.append(_make_set(default_skill_set_name(i), _blank_slot_ids(), ""))
 	skill_set_index = 0
 	_mirror_selected()
