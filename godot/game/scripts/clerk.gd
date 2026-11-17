@@ -185,7 +185,7 @@ func _ensure_patrol_pts() -> void:
 
 
 func _nearest_catchable_thief() -> Node2D:
-	if _game == null or not _game.has_method("thieves"):
+	if _game == null:
 		return null
 	var detect_sq := Tuning.SECURITY_DETECT_PX * Tuning.SECURITY_DETECT_PX
 	var best: Node2D = null
