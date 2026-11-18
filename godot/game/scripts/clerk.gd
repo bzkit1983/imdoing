@@ -298,7 +298,7 @@ func _tick_cleaner_scrub(delta: float) -> void:
 
 
 func _nearest_cleanable_dirt() -> Node2D:
-	if _game == null or not _game.has_method("dirts"):
+	if _game == null:
 		return null
 	var detect_sq := Tuning.CLEANER_DETECT_PX * Tuning.CLEANER_DETECT_PX
 	var best: Node2D = null

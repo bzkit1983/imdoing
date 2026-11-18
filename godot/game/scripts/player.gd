@@ -2972,7 +2972,7 @@ func _try_use_ops_bag_slot(slot: int) -> bool:
 	if id == "":
 		return true
 	var game := _game()
-	if game == null or not game.has_method("use_ops_item"):
+	if game == null:
 		return true
 	if SessionService.is_networked() and SessionService.is_client():
 		pending_ops_bag_slot = slot
@@ -2981,7 +2981,7 @@ func _try_use_ops_bag_slot(slot: int) -> bool:
 		ops_bag[slot] = ""
 		stats_changed.emit()
 		return true
-	if bool(game.call("use_ops_item", seat_id, slot)):
+	if bool(game.use_ops_item(seat_id, slot)):
 		stats_changed.emit()
 	return true
 
