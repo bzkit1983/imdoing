@@ -312,6 +312,8 @@ hud.target_dirt,目標  %s · 空手長按行動並轉搖桿清潔,Target  %s ·
 hud.target_dirt_compact,目標  污物 · 空手長按行動並轉搖桿清潔,Target  dirt · empty-handed hold + stick to clean,目标  污物 · 空手长按行动并转摇杆清洁,対象  汚れ · 素手で長押し＋スティックで掃除
 hud.target_drop,目標  掉落 %s ×%d · 輕放撿起,Target  drop %s ×%d · tap to pick up,目标  掉落 %s ×%d · 轻放捡起,対象  落下 %s ×%d · タップで拾う
 hud.target_drop_compact,目標  掉落 ×%d · 輕放撿起,Target  drop ×%d · tap to pick up,目标  掉落 ×%d · 轻放捡起,対象  落下 ×%d · タップで拾う
+hud.target_ops_item,目標  道具 %s · 輕放撿起,Target  item %s · tap to pick up,目标  道具 %s · 轻放捡起,対象  アイテム %s · タップで拾う
+hud.target_ops_item_compact,目標  道具 · 輕放撿起,Target  item · tap to pick up,目标  道具 · 轻放捡起,対象  アイテム · タップで拾う
 hud.target_thief,目標  小偷 · 空手長按抓住後連按行動打擊,Target  thief · hold to grab then mash act,目标  小偷 · 空手长按抓住后连按行动打击,対象  泥棒 · 素手で長押し掴み、行動連打で打撃
 hud.target_guest,目標  客人 · 長按行動交付手上貨,Target  guest · hold act to deliver,目标  客人 · 长按行动交付手上货,対象  客 · 長押し行動で手持ちを渡す
 hud.target_shelf,目標  貨架 · %s,Target  shelf · %s,目标  货架 · %s,対象  棚 · %s
@@ -771,3 +773,7 @@ prep.tasks.active_header,進行中（跨日）,In progress (cross-day),进行中
 prep.test_tasks.preview_off,目前未選測試包,No test pack selected,目前未选测试包,テストパック未選択
 prep.sys.dev_hud_on,顯示開發用資訊：開,Show developer HUD: On,显示开发用资讯：开,開発用HUD表示：オン
 prep.sys.dev_hud_off,顯示開發用資訊：關,Show developer HUD: Off,显示开发用资讯：关,開発用HUD表示：オフ
+log.player.ops_item_pickup,撿起道具：%s,Picked up item: %s,捡起道具：%s,アイテムを拾った：%s
+log.player.ops_bag_full,道具袋已滿,Item bag is full,道具袋已满,アイテム袋がいっぱいです
+log.player.ops_item_busy,這件道具有人在撿,Someone is picking up that item,这件道具有人在捡,そのアイテムは拾い中です
+log.ops_item.used,使用了%s,Used %s,使用了%s,%sを使った

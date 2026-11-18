@@ -13,6 +13,8 @@ const DarkSide = preload("res://scripts/dark_side.gd")
 const ShadowCloneCast = preload("res://scripts/shadow_clone_cast.gd")
 const ShadowCloneScript = preload("res://scripts/shadow_clone.gd")
 const DirtScript = preload("res://scripts/dirt.gd")
+const OpsItemPickupScript = preload("res://scripts/ops_item_pickup.gd")
+const OpsItems = preload("res://scripts/ops_items.gd")
 const DroppedBoxScript = preload("res://scripts/dropped_box.gd")
 const DropFlightScript = preload("res://scripts/drop_flight.gd")
 const CashierScript = preload("res://scripts/cashier.gd")
@@ -105,6 +107,8 @@ const COOP_SOFT_MIN_PEN := 2.0
 var _customers: Node2D
 var _hud: CanvasLayer
 var _dirts: Array[Node2D] = []
+var _ops_items: Array[Node2D] = []
+var _ops_item_spawn_in: float = OpsItems.SPAWN_FIRST_SEC
 var _clerks: Array[Node2D] = []
 ## M2.2: Host agent_id → node; client puppets share the same map.
 var _net_agents: Dictionary = {}
@@ -327,6 +331,8 @@ func _begin_day() -> void:
 	_clear_three_volley()
 	_dirt_spawn_in = dirt_spawn_interval()
 	_thief_spawn_in = state.thief_spawn_first()
+	_ops_item_spawn_in = OpsItems.SPAWN_FIRST_SEC
+	_ops_items.clear()
 	FLOOR_SIZE = Vector2(state.grid_w, state.grid_h) * StateScript.CELL
 	_world = Node2D.new()
 	_world.name = "World"
@@ -484,6 +490,7 @@ func _clear_world() -> void:
 	_active_thief_n = 0
 	cashiers.clear()
 	_dirts.clear()
+	_ops_items.clear()
 	_clerks.clear()
 	_net.clear_runtime()
 	_obstacles.clear()
@@ -1879,25 +1886,25 @@ func _style_early_btn(btn: Button, on: bool) -> void:
 
 
 func _early_input(event: InputEvent) -> void:
-	var press := false
 	if event.is_echo():
 		get_viewport().set_input_as_handled()
 		return
+	var early_dir := Controls.dir_from_event(event)
 	if not (
-		event.is_action(Controls.MOVE_LEFT)
-		or event.is_action(Controls.MOVE_RIGHT)
+		early_dir == 2
+		or early_dir == 3
 		or event.is_action(Controls.INTERACT)
 		or event.is_action(Controls.CANCEL)
 	):
 		return
-	press = event.is_pressed()
+	var press := event.is_pressed()
 	get_viewport().set_input_as_handled()
 	if not press:
 		return
-	if event.is_action_pressed(Controls.MOVE_LEFT):
+	if early_dir == 2:
 		_early_focus = 0
 		_paint_early_focus()
-	elif event.is_action_pressed(Controls.MOVE_RIGHT):
+	elif early_dir == 3:
 		_early_focus = 1
 		_paint_early_focus()
 	elif event.is_action_pressed(Controls.INTERACT):
@@ -2023,6 +2030,11 @@ func _process(delta: float) -> void:
 		if _dirt_spawn_in <= 0.0:
 			_try_spawn_dirt()
 			_dirt_spawn_in = dirt_spawn_interval()
+		if phase == "open":
+			_ops_item_spawn_in -= world_delta(delta)
+			if _ops_item_spawn_in <= 0.0:
+				_try_spawn_ops_item()
+				_ops_item_spawn_in = randf_range(OpsItems.SPAWN_EVERY_MIN, OpsItems.SPAWN_EVERY_MAX)
 
 
 func _net_tick_intents_and_sync(delta: float) -> void:
@@ -2066,6 +2078,9 @@ func _net_client_send_intents() -> void:
 		var hotkey := -1
 		if p.has_method("take_pending_skill_hotkey"):
 			hotkey = int(p.call("take_pending_skill_hotkey"))
+		var bag_slot := -1
+		if p.has_method("take_pending_ops_bag_slot"):
+			bag_slot = int(p.call("take_pending_ops_bag_slot"))
 		var ult_cast := false
 		if p.has_method("take_pending_ult_cast"):
 			ult_cast = bool(p.call("take_pending_ult_cast"))
@@ -2078,6 +2093,7 @@ func _net_client_send_intents() -> void:
 			"skill": p.get("_l_held") == true,
 			"ult": p.get("_u_held") == true,
 			"hotkey": hotkey,
+			"bag_slot": bag_slot,
 			"ult_cast": ult_cast,
 		})
 
@@ -2177,6 +2193,9 @@ func _net_host_apply_intents() -> void:
 		var hotkey := int(intent.get("hotkey", -1))
 		if hotkey >= 0 and p.has_method("_try_skill_hotkey"):
 			p.call("_try_skill_hotkey", hotkey)
+		var bag_slot := int(intent.get("bag_slot", -1))
+		if bag_slot >= 0:
+			use_ops_item(sid3, bag_slot)
 		## Client finished ult sequence locally — Host must fire world effect／net visual.
 		if ult_cast and p.has_method("_cast_ultimate"):
 			p.call("_cast_ultimate")
@@ -2340,6 +2359,26 @@ func _spawn_dirt_puppet(aid: int, pos: Vector2, payload: Dictionary) -> void:
 	_net_agents[aid] = area
 	area.tree_exiting.connect(func() -> void:
 		_dirts.erase(area)
+		_remove_interactable(area)
+		_net_agents.erase(aid)
+	)
+
+
+func _spawn_ops_item_puppet(aid: int, pos: Vector2, payload: Dictionary) -> void:
+	var item_id := String(payload.get("item_id", ""))
+	if item_id == "" or not OpsItems.is_known(item_id):
+		return
+	var area: Area2D = OpsItemPickupScript.new()
+	area.setup(item_id)
+	area.global_position = pos
+	area.net_puppet = true
+	area.net_agent_id = aid
+	_world.add_child(area)
+	_ops_items.append(area)
+	_add_interactable(area)
+	_net_agents[aid] = area
+	area.tree_exiting.connect(func() -> void:
+		_ops_items.erase(area)
 		_remove_interactable(area)
 		_net_agents.erase(aid)
 	)
@@ -3042,12 +3081,14 @@ func _finish_day() -> void:
 	## Clients wait for Host settle RPC (_on_settle_payload); do not invent a local shop settle.
 	if SessionService.is_client():
 		phase = "closed"
+		clear_ops_items_world()
 		if _hud:
 			_hud.show_closeout()
 			_hud.set_closeout_panels(Loc.t("lobby.client_waiting_settle"), Loc.t("settle.tasks_host_only"))
 		## Keep _settled false until settle RPC (or Host abort).
 		return
 	_settled = true
+	clear_ops_items_world()
 	_closeout_ready_msec = Time.get_ticks_msec() + CLOSEOUT_HOLD_MSEC
 	if _tutorial != null and is_instance_valid(_tutorial):
 		_tutorial.note_metric("day_settled", 1)
@@ -3507,6 +3548,151 @@ func _on_dirt_gone(area: Node2D) -> void:
 		_mark_dirt_rect_cells(Rect2(area.global_position - Tuning.DIRT_SIZE * 0.5, Tuning.DIRT_SIZE), false)
 	_dirts.erase(area)
 	_remove_interactable(area)
+
+
+func _try_spawn_ops_item() -> void:
+	if OpsItems.unlocked_count() <= 0:
+		return
+	_prune_ops_items()
+	if _ops_items.size() >= OpsItems.SPAWN_CAP:
+		return
+	var size := OpsItems.PICKUP_SIZE
+	for _i in 12:
+		var origin := FLOOR_ORIGIN + Vector2(
+			randf_range(36.0, FLOOR_SIZE.x - size.x - 36.0),
+			randf_range(48.0, FLOOR_SIZE.y - size.y - 48.0)
+		)
+		var r := Rect2(origin, size)
+		if _blocked_rect(r):
+			continue
+		_spawn_ops_item(r.position + r.size * 0.5, OpsItems.random_id())
+		return
+
+
+func _spawn_ops_item(pos: Vector2, item_id: String) -> void:
+	var area: Area2D = OpsItemPickupScript.new()
+	area.setup(item_id)
+	area.global_position = pos
+	_world.add_child(area)
+	_ops_items.append(area)
+	_add_interactable(area)
+	area.tree_exiting.connect(_on_ops_item_gone.bind(area))
+	_register_net_agent(area, "ops_item", {"item_id": item_id})
+
+
+func _on_ops_item_gone(area: Node2D) -> void:
+	_ops_items.erase(area)
+	_remove_interactable(area)
+
+
+func _prune_ops_items() -> void:
+	var keep: Array[Node2D] = []
+	for n in _ops_items:
+		if n != null and is_instance_valid(n):
+			keep.append(n)
+	_ops_items = keep
+
+
+func clear_ops_items_world() -> void:
+	_prune_ops_items()
+	for n in _ops_items.duplicate():
+		if n != null and is_instance_valid(n):
+			n.queue_free()
+	_ops_items.clear()
+	for p in _players:
+		if p != null and is_instance_valid(p) and p.has_method("clear_ops_bag"):
+			p.clear_ops_bag()
+	_ops_item_spawn_in = OpsItems.SPAWN_FIRST_SEC
+
+
+## Host: consume bag slot and apply bomb. Returns true if consumed.
+func use_ops_item(seat: int, slot: int) -> bool:
+	if SessionService.is_networked() and SessionService.is_client():
+		return false
+	var actor := _seat_actor(seat)
+	if actor == null or not actor.has_method("ops_bag_ids"):
+		return false
+	var bag: Array = actor.ops_bag_ids()
+	if slot < 0 or slot >= bag.size():
+		return false
+	var id := String(bag[slot])
+	if id == "" or not OpsItems.is_known(id):
+		return false
+	match id:
+		OpsItems.COMFORT_BOMB:
+			_use_comfort_bomb(seat, actor)
+		OpsItems.CLEAN_BOMB:
+			_use_clean_bomb(seat, actor)
+		OpsItems.VILLAIN_BOMB:
+			_use_villain_bomb(seat, actor)
+		_:
+			return false
+	if actor.ops_bag.size() > slot:
+		actor.ops_bag[slot] = ""
+	if actor.has_signal("stats_changed"):
+		actor.stats_changed.emit()
+	return true
+
+
+func _use_comfort_bomb(_seat: int, actor: Node2D) -> void:
+	soothe_all(0.0)
+	_play_ops_bomb_flash(Loc.t("ops_item.comfort_bomb.name"), Color(1.0, 0.75, 0.85, 0.7))
+	if _customers != null:
+		## `_customers` also parents float_text siblings — only touch real guests.
+		for c in _customers.get_children():
+			if c == null or not is_instance_valid(c):
+				continue
+			if not (c is CustomerScript):
+				continue
+			var guest := c as CustomerScript
+			if guest.is_thief or guest.temp_clerk:
+				continue
+			if guest.state == CustomerScript.State.LEAVE or guest.state == CustomerScript.State.FLEE:
+				continue
+			guest.mood = Loc.t("mood.ops_happy")
+	if actor != null and actor.has_signal("log_line"):
+		actor.log_line.emit(Loc.t("log.ops_item.used", [OpsItems.display_name(OpsItems.COMFORT_BOMB)]))
+
+
+func _use_clean_bomb(seat: int, actor: Node2D) -> void:
+	_play_ops_bomb_flash(Loc.t("ops_item.clean_bomb.name"), Color(0.55, 0.9, 1.0, 0.7))
+	var snapshot: Array = _dirts.duplicate()
+	var FxBurst = preload("res://scripts/fx_burst.gd")
+	for d in snapshot:
+		if d == null or not is_instance_valid(d):
+			continue
+		FxBurst.spawn(self, "clean_spark", d.global_position)
+		note_clean(seat, actor)
+		d.queue_free()
+	if actor != null and actor.has_signal("log_line"):
+		actor.log_line.emit(Loc.t("log.ops_item.used", [OpsItems.display_name(OpsItems.CLEAN_BOMB)]))
+
+
+func _use_villain_bomb(seat: int, actor: Node2D) -> void:
+	_play_ops_bomb_flash(Loc.t("ops_item.villain_bomb.name"), Color(1.0, 0.45, 0.35, 0.75))
+	if _customers == null:
+		return
+	var thieves: Array = []
+	for c in _customers.get_children():
+		if c != null and is_instance_valid(c) and c.has_method("is_active_thief") and bool(c.call("is_active_thief")):
+			thieves.append(c)
+	if not thieves.is_empty():
+		play_ko_banner()
+	for t in thieves:
+		var dir := Vector2.RIGHT
+		if actor != null:
+			dir = (t.global_position - actor.global_position).normalized()
+			if dir.length_squared() < 0.01:
+				dir = Vector2.RIGHT
+		if t.has_method("ko_box_hit_and_flee"):
+			t.call("ko_box_hit_and_flee", dir)
+		record_caught(seat, "ops_item", actor)
+	if actor != null and actor.has_signal("log_line"):
+		actor.log_line.emit(Loc.t("log.ops_item.used", [OpsItems.display_name(OpsItems.VILLAIN_BOMB)]))
+
+
+func _play_ops_bomb_flash(title: String, flash_color: Color) -> void:
+	_play_banner_flash(title, Color(1.0, 0.98, 0.9, 1.0), 72, flash_color, 0.85)
 
 
 func _add_interactable(node: Node2D) -> void:

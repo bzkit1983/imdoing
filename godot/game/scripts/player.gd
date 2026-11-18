@@ -17,6 +17,7 @@ const TossControllerScript = preload("res://scripts/player/toss_controller.gd")
 const FightControllerScript = preload("res://scripts/player/fight_controller.gd")
 const SkillCasterScript = preload("res://scripts/player/skill_caster.gd")
 const CustomerScript = preload("res://scripts/customer.gd")
+const OpsItems = preload("res://scripts/ops_items.gd")
 
 signal stats_changed
 
@@ -27,6 +28,8 @@ signal paid(amount: int)
 signal skill_cast(skill_name: String, is_ult: bool)
 
 var inventory = InventoryScript.new()
+## Per-seat ops item bag (up to 4). Strings = ops_item ids; "" = empty.
+var ops_bag: Array[String] = OpsItems.empty_bag()
 var _cannon: Node2D
 var _shelf_cannon: Node2D
 var _kind_cannon: Node2D
@@ -74,6 +77,8 @@ var remote_cancel: bool = false
 var remote_dash: bool = false
 ## Client→Host: one-shot skill hotkey slot (−1 = none). Cleared when intent is built.
 var pending_skill_hotkey: int = -1
+## Client→Host: one-shot ops bag slot (−1 = none). Cleared when intent is built.
+var pending_ops_bag_slot: int = -1
 ## Client→Host: ultimate completed locally; Host must authority-cast (world FX／agents).
 var pending_ult_cast: bool = false
 ## L-class target currently held via InteractLock (shelf/cashier/restock/…).
@@ -934,6 +939,7 @@ func _input(event: InputEvent) -> void:
 	if not _round_active() and (event.is_action(Controls.INTERACT) or event.is_action(Controls.CANCEL)):
 		return
 	# Discrete directions only here; analog stick uses _poll_stick_cardinal.
+	# Mode-steal: while command mode open, D-PAD / bag_slot feeds QTEs (not bag use).
 	if _in_dir_mode() and event.is_pressed() and (
 		event is InputEventKey or event is InputEventJoypadButton
 	):
@@ -942,6 +948,12 @@ func _input(event: InputEvent) -> void:
 			_try_dir(dir)
 			get_viewport().set_input_as_handled()
 			return
+	if event.is_pressed() and (event is InputEventKey or event is InputEventJoypadButton):
+		var bag_slot := Controls.bag_slot_from_event(event)
+		if bag_slot >= 0:
+			if _try_use_ops_bag_slot(bag_slot):
+				get_viewport().set_input_as_handled()
+				return
 	for action in Controls.HOLD_ACTIONS:
 		if event.is_action(action) and (event is InputEventKey or event is InputEventJoypadButton):
 			if action == Controls.SKILL and event.is_pressed():
@@ -1395,7 +1407,8 @@ func _tick_buffs(delta: float) -> void:
 
 
 func _wiggle_axis() -> Vector2:
-	var v := _move_vector() + stick_axis
+	## Clean: left stick / touch only (D-PAD is bag — opsitems.md).
+	var v := stick_axis + _joy_stick_vector()
 	if v.length_squared() > 1.0:
 		v = v.normalized()
 	return v
@@ -1732,6 +1745,9 @@ func _preview_target() -> Node2D:
 	var restock := _nearest_kind("restock")
 	if restock != null:
 		return restock
+	var ops := _nearest_kind("ops_item")
+	if ops != null:
+		return ops
 	var drop := _nearest_kind("drop")
 	if drop != null:
 		return drop
@@ -1769,7 +1785,7 @@ func _release_interact() -> void:
 	_restock_hold = 0.0
 
 
-## Tap: thief (already grabbed), else one piece off a stocked shelf, else a restock box, else a floor box.
+## Tap: thief (already grabbed), else one piece off a stocked shelf, else a restock box, else ops item / floor box.
 func _do_short_interact() -> void:
 	var turret := _usable_turret()
 	if turret != null:
@@ -1789,6 +1805,12 @@ func _do_short_interact() -> void:
 		target = restock
 		_pickup_used = false
 		_try_pickup()
+		return
+	var ops := _nearest_kind("ops_item")
+	if ops != null:
+		target = ops
+		_pickup_used = false
+		_tick_ops_item()
 		return
 	var drop := _nearest_kind("drop")
 	if drop != null:
@@ -2084,6 +2106,8 @@ func _interact_available(node: Node2D) -> bool:
 	if kind == "drop":
 		var n := _obj_int(node, "count")
 		return n > 0 and inventory.count() + n <= carry_cap()
+	if kind == "ops_item":
+		return OpsItems.first_empty_slot(ops_bag) >= 0 and String(node.get("item_id")) != ""
 	if kind == "dirt":
 		## Carry allowed; goods stay in hand while cleaning.
 		return true
@@ -2134,6 +2158,8 @@ func _glow_span(node: Node2D) -> Vector2:
 		span = Vector2(168.0, 140.0)
 	elif kind == "drop":
 		span = Vector2(120.0, 120.0)
+	elif kind == "ops_item":
+		span = Vector2(96.0, 96.0)
 	return span * GLOW_SPAN_SCALE
 
 
@@ -2822,6 +2848,107 @@ func _tick_drop() -> void:
 	_interact_release(target)
 
 
+func _tick_ops_item() -> void:
+	if _pickup_used:
+		return
+	_pickup_used = true
+	if not is_instance_valid(target) or _obj_str(target, "kind") != "ops_item":
+		return
+	## A9 L — floor ops item.
+	if not _interact_try(target):
+		log_line.emit(Loc.t("log.player.ops_item_busy"))
+		return
+	var slot := OpsItems.first_empty_slot(ops_bag)
+	if slot < 0:
+		log_line.emit(Loc.t("log.player.ops_bag_full"))
+		_interact_release(target)
+		return
+	var id := String(target.call("take"))
+	_interact_release(target)
+	if id == "" or not OpsItems.is_known(id):
+		return
+	_ensure_ops_bag()
+	ops_bag[slot] = id
+	SfxBus.play("sfx_box_pickup_floor")
+	log_line.emit(Loc.t("log.player.ops_item_pickup", [OpsItems.display_name(id)]))
+	stats_changed.emit()
+
+
+func _ensure_ops_bag() -> void:
+	if ops_bag.size() < OpsItems.SLOT_COUNT:
+		while ops_bag.size() < OpsItems.SLOT_COUNT:
+			ops_bag.append("")
+
+
+func ops_bag_ids() -> Array[String]:
+	_ensure_ops_bag()
+	var out: Array[String] = []
+	for i in OpsItems.unlocked_count():
+		out.append(String(ops_bag[i]) if i < ops_bag.size() else "")
+	return out
+
+
+func clear_ops_bag() -> void:
+	ops_bag = OpsItems.empty_bag()
+	stats_changed.emit()
+
+
+func _bag_use_suppressed() -> bool:
+	if _asking_early():
+		return true
+	if not _round_active():
+		return true
+	if _in_dir_mode():
+		return true
+	if _fighting or _cleaning() or _shelving():
+		return true
+	if _cancel_held or _cancel_drop_ready or _drop_flight_lock or _piece_drop_lock:
+		return true
+	if _stun_left > 0.0 or _slip_left > 0.0 or _elite_focus_left > 0.0:
+		return true
+	## Restock hotkeys 1–3 own the digit keys while facing restock.
+	if (
+		is_instance_valid(target)
+		and _obj_str(target, "kind") == "restock"
+		and (_restock_picking or _j_held)
+	):
+		return true
+	return false
+
+
+## slot: 0 up, 1 right, 2 down, 3 left. Returns true if the press was consumed.
+func _try_use_ops_bag_slot(slot: int) -> bool:
+	if _bag_use_suppressed():
+		return false
+	## Facing restock: let 1–3 fall through to restock hotkeys (handled later).
+	if (
+		is_instance_valid(target)
+		and _obj_str(target, "kind") == "restock"
+		and slot >= 0
+		and slot <= 2
+	):
+		return false
+	_ensure_ops_bag()
+	if slot < 0 or slot >= OpsItems.unlocked_count():
+		return true
+	var id := String(ops_bag[slot]) if slot < ops_bag.size() else ""
+	if id == "":
+		return true
+	var game := _game()
+	if game == null or not game.has_method("use_ops_item"):
+		return true
+	if SessionService.is_networked() and SessionService.is_client():
+		pending_ops_bag_slot = slot
+		## Optimistic clear for HUD; Host is authority for world effects.
+		_ensure_ops_bag()
+		ops_bag[slot] = ""
+		stats_changed.emit()
+		return true
+	if bool(game.call("use_ops_item", seat_id, slot)):
+		stats_changed.emit()
+	return true
+
+
 func _clear_clean_hint() -> void:
 	## Only release dirt THIS seat was cleaning. Never blanket-clear contacts —
 	## in coop that wiped the other player's loading cycle when they walked on.
@@ -3118,6 +3245,12 @@ func take_pending_skill_hotkey() -> int:
 	return slot
 
 
+func take_pending_ops_bag_slot() -> int:
+	var slot := pending_ops_bag_slot
+	pending_ops_bag_slot = -1
+	return slot
+
+
 func take_pending_ult_cast() -> bool:
 	var cast_now := pending_ult_cast
 	pending_ult_cast = false
@@ -3321,23 +3454,28 @@ func _handle_hotkey_actions(event: InputEvent) -> void:
 		_try_skill_hotkey(2)
 		get_viewport().set_input_as_handled()
 		return
-	if target == null or _obj_str(target, "kind") != "restock":
-		return
-	if event.is_action_pressed(Controls.RESTOCK_PREV):
-		target.call("cycle", -1)
-		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed(Controls.RESTOCK_NEXT):
-		target.call("cycle", 1)
-		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed(Controls.RESTOCK_SLOT_1):
-		target.call("set_highlight", 0)
-		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed(Controls.RESTOCK_SLOT_2):
-		target.call("set_highlight", 1)
-		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed(Controls.RESTOCK_SLOT_3):
-		target.call("set_highlight", 2)
-		get_viewport().set_input_as_handled()
+	## Restock 1–3 wins over bag keys while facing a restock point.
+	if target != null and _obj_str(target, "kind") == "restock":
+		if event.is_action_pressed(Controls.RESTOCK_PREV):
+			target.call("cycle", -1)
+			get_viewport().set_input_as_handled()
+			return
+		if event.is_action_pressed(Controls.RESTOCK_NEXT):
+			target.call("cycle", 1)
+			get_viewport().set_input_as_handled()
+			return
+		if event.is_action_pressed(Controls.RESTOCK_SLOT_1):
+			target.call("set_highlight", 0)
+			get_viewport().set_input_as_handled()
+			return
+		if event.is_action_pressed(Controls.RESTOCK_SLOT_2):
+			target.call("set_highlight", 1)
+			get_viewport().set_input_as_handled()
+			return
+		if event.is_action_pressed(Controls.RESTOCK_SLOT_3):
+			target.call("set_highlight", 2)
+			get_viewport().set_input_as_handled()
+			return
 
 
 func _visual_anim() -> String:

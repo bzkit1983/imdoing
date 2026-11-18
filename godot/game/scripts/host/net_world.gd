@@ -91,7 +91,7 @@ func collect_agent_transforms() -> Array:
 			continue
 		## Static presentation agents — pose fixed after spawn (M2.3).
 		var kind := String(n.get("kind")) if n.get("kind") != null else ""
-		if kind in ["drop", "dirt", "universal_cannon", "shelf_cannon", "kind_cannon", "calm_zone", "three_volley"]:
+		if kind in ["drop", "dirt", "ops_item", "universal_cannon", "shelf_cannon", "kind_cannon", "calm_zone", "three_volley"]:
 			continue
 		var fx := 0.0
 		var fy := 1.0
@@ -166,6 +166,8 @@ func apply_agent_spawn_payload(payload: Dictionary) -> void:
 			host._spawn_clerk_puppet(aid, pos, payload)
 		"dirt":
 			host._spawn_dirt_puppet(aid, pos, payload)
+		"ops_item":
+			host._spawn_ops_item_puppet(aid, pos, payload)
 		"drop":
 			host._spawn_drop_puppet(aid, pos, payload)
 		"shadow_clone":

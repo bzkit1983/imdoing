@@ -159,12 +159,18 @@ func _input(event: InputEvent) -> void:
 			close_modal(true)
 		get_viewport().set_input_as_handled()
 		return
-	if event.is_action_pressed("ui_left") or event.is_action_pressed("move_left"):
+	## D-PAD is on bag_slot_* in ops; still accept it here for page flip.
+	if (
+		event.is_action_pressed("ui_left")
+		or event.is_action_pressed("move_left")
+		or event.is_action_pressed("bag_slot_left")
+	):
 		_on_prev()
 		get_viewport().set_input_as_handled()
 	elif (
 		event.is_action_pressed("ui_right")
 		or event.is_action_pressed("move_right")
+		or event.is_action_pressed("bag_slot_right")
 		or event.is_action_pressed("interact")
 		or event.is_action_pressed("ui_accept")
 	):

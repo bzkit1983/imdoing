@@ -179,6 +179,10 @@ func soothe_all(_keep: float) -> void:
 	pass
 
 
+func use_ops_item(_seat: int, _slot: int) -> bool:
+	return false
+
+
 func play_skill_banner(_text: String) -> void:
 	pass
 

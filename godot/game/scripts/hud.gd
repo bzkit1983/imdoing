@@ -5,6 +5,8 @@ const Skills = preload("res://scripts/skills.gd")
 const UiFont = preload("res://scripts/ui_font.gd")
 const SkuIcons = preload("res://scripts/sku_icons.gd")
 const SkillHudChip = preload("res://scripts/ui/skill_hud_chip.gd")
+const OpsItems = preload("res://scripts/ops_items.gd")
+const OpsItemIcons = preload("res://scripts/ops_item_icons.gd")
 
 ## Ops HUD palette — dark shop plate + warm gold accent (not purple / cream-serif clichés).
 const COL_INK := Color(0.045, 0.055, 0.06, 1.0)
@@ -50,6 +52,9 @@ var _tr_panel: PanelContainer
 var _skills_list: VBoxContainer
 var _skills_chip_fp := ""
 var _skills_panel: PanelContainer
+var _bag_panel: Control
+var _bag_slots: Array = [] ## TextureRect ×4: up, right, down, left
+var _bag_fp := ""
 var _tasks: Label
 var _tasks_panel: PanelContainer
 var _left_panel: PanelContainer
@@ -451,6 +456,57 @@ func _build_bottom_left_panel() -> void:
 	s_margin.add_child(_skills_list)
 	$Root.add_child(_skills_panel)
 	$Root.move_child(_skills_panel, _banner.get_index())
+	_build_bag_cross()
+
+
+func _build_bag_cross() -> void:
+	## Cross of 4 slots immediately left of the skills panel.
+	_bag_panel = Control.new()
+	_bag_panel.name = "OpsBagCross"
+	_bag_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_bag_panel.anchor_left = 1.0
+	_bag_panel.anchor_right = 1.0
+	_bag_panel.anchor_top = 1.0
+	_bag_panel.anchor_bottom = 1.0
+	_bag_panel.offset_left = -400.0
+	_bag_panel.offset_right = -292.0
+	_bag_panel.offset_top = -120.0
+	_bag_panel.offset_bottom = -12.0
+	_bag_slots.clear()
+	var cell := 36.0
+	var gap := 4.0
+	var positions := [
+		Vector2(cell + gap, 0.0), ## up
+		Vector2((cell + gap) * 2.0, cell + gap), ## right
+		Vector2(cell + gap, (cell + gap) * 2.0), ## down
+		Vector2(0.0, cell + gap), ## left
+	]
+	for i in 4:
+		var plate := Panel.new()
+		plate.position = positions[i]
+		plate.size = Vector2(cell, cell)
+		plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = Color(0.07, 0.09, 0.10, 0.96)
+		sb.set_corner_radius_all(7)
+		sb.set_border_width_all(1)
+		sb.border_color = Color(0.32, 0.36, 0.34, 0.90)
+		plate.add_theme_stylebox_override("panel", sb)
+		var icon := TextureRect.new()
+		icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		icon.offset_left = 4
+		icon.offset_top = 4
+		icon.offset_right = -4
+		icon.offset_bottom = -4
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		plate.add_child(icon)
+		_bag_panel.add_child(plate)
+		_bag_slots.append(icon)
+	$Root.add_child(_bag_panel)
+	$Root.move_child(_bag_panel, _banner.get_index())
 
 
 func _mark_right_dirty() -> void:
@@ -544,6 +600,8 @@ func _set_closeout_visible(on: bool) -> void:
 			_tasks_panel.visible = false
 		if _skills_panel:
 			_skills_panel.visible = false
+		if _bag_panel:
+			_bag_panel.visible = false
 
 
 func show_closeout() -> void:
@@ -736,9 +794,10 @@ func _sync_left() -> void:
 	## ~1 game-minute buckets so the clock label still ticks without full rebuild spam.
 	var hour_bucket := int(floor(hours * 60.0))
 	var rev := int(game.get("hud_rev")) if game.get("hud_rev") != null else 0
-	## Stamina + skill chips update every frame; other left chrome is fingerprint-gated.
+	## Stamina + skill chips + bag cross update every frame; other left chrome is fingerprint-gated.
 	_sync_stamina_std()
 	_sync_skill_hud()
+	_sync_bag_hud()
 	if rev == _left_hud_rev and hour_bucket == _left_hour_bucket:
 		return
 	_left_hud_rev = rev
@@ -925,6 +984,34 @@ func _sync_skill_hud() -> void:
 		_skills_panel.offset_top = -12.0 - maxf(sh, 52.0)
 
 
+func _sync_bag_hud() -> void:
+	if _bag_panel == null or _bag_slots.is_empty():
+		return
+	var running := game != null and (String(game.phase) == "restock" or String(game.phase) == "open")
+	var unlocked := OpsItems.unlocked_count()
+	_bag_panel.visible = running and unlocked > 0 and not _close.visible
+	if not _bag_panel.visible:
+		return
+	var bag: Array[String] = []
+	if player != null and player.has_method("ops_bag_ids"):
+		bag = player.ops_bag_ids()
+	var parts: PackedStringArray = []
+	for i in 4:
+		var id := String(bag[i]) if i < bag.size() else ""
+		if i >= unlocked:
+			id = ""
+		parts.append(id)
+		var icon: TextureRect = _bag_slots[i]
+		if id == "":
+			icon.texture = null
+			icon.modulate = Color(1, 1, 1, 0.35)
+		else:
+			icon.texture = OpsItemIcons.texture(id)
+			icon.modulate = Color(1, 1, 1, 1)
+	var fp := "|".join(parts)
+	_bag_fp = fp
+
+
 func _skill_hud_entries() -> Array:
 	var out: Array = []
 	if _panes.size() <= 1:
@@ -1076,6 +1163,14 @@ func _refresh_pane(pane: Dictionary) -> void:
 					])
 				else:
 					target_l.text = Loc.t("hud.target_drop_compact", [_obj_int(t, "count")])
+			"ops_item":
+				## Always show item name — types are hard to tell apart from the floor sprite alone.
+				var oid_v = t.get("item_id")
+				var oid := str(oid_v) if oid_v != null else ""
+				if oid != "":
+					target_l.text = Loc.t("hud.target_ops_item", [Loc.t("ops_item.%s.name" % oid)])
+				else:
+					target_l.text = Loc.t("hud.target_ops_item_compact")
 			"thief":
 				target_l.text = Loc.t("hud.target_thief")
 			"shelf":

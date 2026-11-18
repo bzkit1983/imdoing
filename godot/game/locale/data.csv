@@ -442,3 +442,10 @@ quest.pack.op_tut_001.name,序章教學包,Prologue tutorial pack,序章教学�
 quest.pack.op_man_001.name,營業額與評級,Revenue & day grade,营业额与评级,売上と当日評価
 quest.pack.op_man_002.name,跨日累計,Cross-day accumulate,跨日累计,日またぎ累計
 quest.pack.op_rand.name,隨機營運包,Random ops pack,随机营运包,ランダム営業パック
+ops_item.comfort_bomb.name,安慰炸彈,Comfort Bomb,安慰炸弹,なぐさめ爆弾
+ops_item.comfort_bomb.blurb,全店客人不滿歸零（已離店不拉回）,Clear all guest dissatisfaction (leaving guests stay gone),全店客人不满归零（已离店不拉回）,店内の客の不満を全消去（退店中は戻さない）
+ops_item.clean_bomb.name,清潔炸彈,Clean Bomb,清洁炸弹,清掃爆弾
+ops_item.clean_bomb.blurb,全店污物清除（每團結算清潔評價）,Clear all dirt (each pile grants clean rating),全店污物清除（每团结算清洁评价）,店内の汚れを全消去（1つごとに清掃評価）
+ops_item.villain_bomb.name,壞人炸彈,Villain Bomb,坏人炸弹,悪人爆弾
+ops_item.villain_bomb.blurb,全店小偷趕走（每名算抓住）,Blow away all thieves (each counts as a catch),全店小偷赶走（每名算抓住）,店内の泥棒を吹き飛ばす（1人ごとに捕獲扱い）
+mood.ops_happy,開心！,Happy!,开心！,うれしい！

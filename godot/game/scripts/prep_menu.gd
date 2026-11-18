@@ -2079,13 +2079,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if not event.is_pressed() or event is InputEventJoypadMotion:
 		return
-	if event.is_action_pressed(Controls.MOVE_UP):
+	## D-PAD lives on bag_slot_* (ops); prep UI still accepts it via dir_from_event.
+	var prep_dir := Controls.dir_from_event(event)
+	if prep_dir == 0:
 		_move(0, -1)
-	elif event.is_action_pressed(Controls.MOVE_DOWN):
+	elif prep_dir == 1:
 		_move(0, 1)
-	elif event.is_action_pressed(Controls.MOVE_LEFT):
+	elif prep_dir == 2:
 		_move(-1, 0)
-	elif event.is_action_pressed(Controls.MOVE_RIGHT):
+	elif prep_dir == 3:
 		_move(1, 0)
 	elif event.is_action_pressed(Controls.INTERACT):
 		if _sku_pick_i >= 0:
@@ -2114,9 +2116,10 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _dialog_action(event: InputEvent) -> void:
-	if event.is_action_pressed(Controls.MOVE_LEFT):
+	var d := Controls.dir_from_event(event)
+	if d == 2:
 		_dialog_move(-1, 0)
-	elif event.is_action_pressed(Controls.MOVE_RIGHT):
+	elif d == 3:
 		_dialog_move(1, 0)
 	elif event.is_action_pressed(Controls.INTERACT):
 		_dialog_accept()

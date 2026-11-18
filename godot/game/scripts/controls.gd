@@ -27,8 +27,17 @@ const RESTOCK_NEXT := "restock_next"
 const RESTOCK_SLOT_1 := "restock_slot_1"
 const RESTOCK_SLOT_2 := "restock_slot_2"
 const RESTOCK_SLOT_3 := "restock_slot_3"
+## Ops item bag (D-PAD / keys 1–4). Cross: up / right / down / left.
+const BAG_SLOT_UP := "bag_slot_up"
+const BAG_SLOT_RIGHT := "bag_slot_right"
+const BAG_SLOT_DOWN := "bag_slot_down"
+const BAG_SLOT_LEFT := "bag_slot_left"
 ## Cycle shop camera framing (normal / far / overview). Xbox View = JOY_BUTTON_BACK.
 const CAMERA_VIEW := "camera_view"
+
+const BAG_SLOT_ACTIONS: Array[String] = [
+	BAG_SLOT_UP, BAG_SLOT_RIGHT, BAG_SLOT_DOWN, BAG_SLOT_LEFT,
+]
 
 ## Analog trigger "pressed" threshold (Xbox LT/RT), after normalize to 0..1.
 const TRIGGER_DEADZONE := 0.5
@@ -56,24 +65,21 @@ func _enter_tree() -> void:
 
 
 func ensure_actions() -> void:
+	## Ops loco: keyboard + left stick only. D-PAD → bag_slot_* (see opsitems.md).
 	_ensure_action(MOVE_UP, MOVE_DEADZONE, [
 		_key(KEY_W), _key(KEY_UP),
-		_joy_btn(JOY_BUTTON_DPAD_UP),
 		_joy_axis(JOY_AXIS_LEFT_Y, -1.0),
 	])
 	_ensure_action(MOVE_DOWN, MOVE_DEADZONE, [
 		_key(KEY_S), _key(KEY_DOWN),
-		_joy_btn(JOY_BUTTON_DPAD_DOWN),
 		_joy_axis(JOY_AXIS_LEFT_Y, 1.0),
 	])
 	_ensure_action(MOVE_LEFT, MOVE_DEADZONE, [
 		_key(KEY_A), _key(KEY_LEFT),
-		_joy_btn(JOY_BUTTON_DPAD_LEFT),
 		_joy_axis(JOY_AXIS_LEFT_X, -1.0),
 	])
 	_ensure_action(MOVE_RIGHT, MOVE_DEADZONE, [
 		_key(KEY_D), _key(KEY_RIGHT),
-		_joy_btn(JOY_BUTTON_DPAD_RIGHT),
 		_joy_axis(JOY_AXIS_LEFT_X, 1.0),
 	])
 	_ensure_action(INTERACT, 0.5, [_key(KEY_J), _key(KEY_ENTER), _joy_btn(JOY_BUTTON_A)])
@@ -88,6 +94,7 @@ func ensure_actions() -> void:
 	_ensure_action(SKILL_2, 0.5, [_joy_btn(JOY_BUTTON_LEFT_SHOULDER)])
 	_ensure_action(SKILL_3, 0.5, [_joy_btn(JOY_BUTTON_RIGHT_SHOULDER)])
 	_migrate_xbox_skill_bindings()
+	_migrate_move_dpad_to_bag()
 	## Prep layout rotate — same physical defaults as dash (contexts do not overlap).
 	_ensure_action(ROTATE, 0.5, [_key(KEY_K), _key(KEY_X), _joy_btn(JOY_BUTTON_X)])
 	_ensure_action(RESTOCK_PREV, 0.5, [_key(KEY_Q)])
@@ -95,6 +102,10 @@ func ensure_actions() -> void:
 	_ensure_action(RESTOCK_SLOT_1, 0.5, [_key(KEY_1)])
 	_ensure_action(RESTOCK_SLOT_2, 0.5, [_key(KEY_2)])
 	_ensure_action(RESTOCK_SLOT_3, 0.5, [_key(KEY_3)])
+	_ensure_action(BAG_SLOT_UP, 0.5, [_key(KEY_1), _joy_btn(JOY_BUTTON_DPAD_UP)])
+	_ensure_action(BAG_SLOT_RIGHT, 0.5, [_key(KEY_2), _joy_btn(JOY_BUTTON_DPAD_RIGHT)])
+	_ensure_action(BAG_SLOT_DOWN, 0.5, [_key(KEY_3), _joy_btn(JOY_BUTTON_DPAD_DOWN)])
+	_ensure_action(BAG_SLOT_LEFT, 0.5, [_key(KEY_4), _joy_btn(JOY_BUTTON_DPAD_LEFT)])
 	_ensure_action(CAMERA_VIEW, 0.5, [_key(KEY_V), _joy_btn(JOY_BUTTON_BACK)])
 
 
@@ -110,7 +121,6 @@ func move_vector_for(seat: int) -> Vector2:
 	var joy := SeatTable.joy_device_for_seat(seat)
 	if joy >= 0:
 		v += _stick_on_device(joy, JOY_AXIS_LEFT_X, JOY_AXIS_LEFT_Y)
-		v += _dpad_on_device(joy)
 	if SeatTable.keyboard_owns_seat(seat):
 		v += _keyboard_move_vector()
 	## Same deadzone as Input.get_vector / solo path — raw axes drift otherwise.
@@ -271,27 +281,69 @@ func _best_stick_vector(axis_x: JoyAxis, axis_y: JoyAxis) -> Vector2:
 	return best
 
 
-## Checkout / skill-menu cardinal: 0 up, 1 down, 2 left, 3 right. -1 if none.
+## Checkout / skill-menu / prep cardinal: 0 up, 1 down, 2 left, 3 right. -1 if none.
+## Joypad D-PAD (bag_slot_*) is included for mode-steal / UI nav. Keyboard 1–4 are NOT
+## treated as directions (those keys are bag-only in ops; prep uses WASD／arrows).
 func dir_just_pressed() -> int:
-	if Input.is_action_just_pressed(MOVE_UP):
+	if Input.is_action_just_pressed(MOVE_UP) or _bag_dpad_just_pressed(BAG_SLOT_UP):
 		return 0
-	if Input.is_action_just_pressed(MOVE_DOWN):
+	if Input.is_action_just_pressed(MOVE_DOWN) or _bag_dpad_just_pressed(BAG_SLOT_DOWN):
 		return 1
-	if Input.is_action_just_pressed(MOVE_LEFT):
+	if Input.is_action_just_pressed(MOVE_LEFT) or _bag_dpad_just_pressed(BAG_SLOT_LEFT):
 		return 2
-	if Input.is_action_just_pressed(MOVE_RIGHT):
+	if Input.is_action_just_pressed(MOVE_RIGHT) or _bag_dpad_just_pressed(BAG_SLOT_RIGHT):
 		return 3
 	return -1
 
 
 func dir_from_event(event: InputEvent) -> int:
-	if event.is_action_pressed(MOVE_UP):
+	if event.is_action_pressed(MOVE_UP) or _bag_dpad_event(event, BAG_SLOT_UP):
 		return 0
-	if event.is_action_pressed(MOVE_DOWN):
+	if event.is_action_pressed(MOVE_DOWN) or _bag_dpad_event(event, BAG_SLOT_DOWN):
 		return 1
-	if event.is_action_pressed(MOVE_LEFT):
+	if event.is_action_pressed(MOVE_LEFT) or _bag_dpad_event(event, BAG_SLOT_LEFT):
 		return 2
-	if event.is_action_pressed(MOVE_RIGHT):
+	if event.is_action_pressed(MOVE_RIGHT) or _bag_dpad_event(event, BAG_SLOT_RIGHT):
+		return 3
+	return -1
+
+
+func _bag_dpad_just_pressed(action: String) -> bool:
+	## Only joypad edges — ignore keyboard digit bindings on bag_slot_*.
+	if not Input.is_action_just_pressed(action):
+		return false
+	for device in Input.get_connected_joypads():
+		match action:
+			BAG_SLOT_UP:
+				if Input.is_joy_button_pressed(device, JOY_BUTTON_DPAD_UP):
+					return true
+			BAG_SLOT_DOWN:
+				if Input.is_joy_button_pressed(device, JOY_BUTTON_DPAD_DOWN):
+					return true
+			BAG_SLOT_LEFT:
+				if Input.is_joy_button_pressed(device, JOY_BUTTON_DPAD_LEFT):
+					return true
+			BAG_SLOT_RIGHT:
+				if Input.is_joy_button_pressed(device, JOY_BUTTON_DPAD_RIGHT):
+					return true
+	return false
+
+
+func _bag_dpad_event(event: InputEvent, action: String) -> bool:
+	if not (event is InputEventJoypadButton):
+		return false
+	return event.is_action_pressed(action)
+
+
+## Bag cross index: 0 up, 1 right, 2 down, 3 left. -1 if none.
+func bag_slot_from_event(event: InputEvent) -> int:
+	if event.is_action_pressed(BAG_SLOT_UP):
+		return 0
+	if event.is_action_pressed(BAG_SLOT_RIGHT):
+		return 1
+	if event.is_action_pressed(BAG_SLOT_DOWN):
+		return 2
+	if event.is_action_pressed(BAG_SLOT_LEFT):
 		return 3
 	return -1
 
@@ -312,6 +364,22 @@ func _ensure_action(action: String, deadzone: float, events: Array) -> void:
 		if ev is InputEventJoypadButton or ev is InputEventJoypadMotion:
 			if ev.device != JOY_ALL_DEVICES:
 				ev.device = JOY_ALL_DEVICES
+
+
+## Strip legacy D-PAD from move_* so ops loco is stick/keys only.
+func _migrate_move_dpad_to_bag() -> void:
+	var dpad_btns: Array[int] = [
+		JOY_BUTTON_DPAD_UP, JOY_BUTTON_DPAD_DOWN, JOY_BUTTON_DPAD_LEFT, JOY_BUTTON_DPAD_RIGHT,
+	]
+	for action in MOVE_ACTIONS:
+		if not InputMap.has_action(action):
+			continue
+		var drop: Array[InputEvent] = []
+		for ev in InputMap.action_get_events(action):
+			if ev is InputEventJoypadButton and int(ev.button_index) in dpad_btns:
+				drop.append(ev)
+		for ev2 in drop:
+			InputMap.action_erase_event(action, ev2)
 
 
 ## RB used to be ult; now RB=skill3 and Xbox ult is LT+RT. Fix saved Project Settings.
