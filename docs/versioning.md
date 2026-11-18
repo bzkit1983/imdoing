@@ -8,6 +8,12 @@
 
 **目錄裡的 Alpha 凍結當文物；Git tag 當發布錨點；程式只養一個活專案 `godot/game`（自 v1.0 起）。**
 
+## Early Access／現行產品範圍（2026-11-18）
+
+- **範圍內：** 可連線的動作經營**日循環**（準備 → 補貨 → 營運 → 結算）、技能、評價、教學框架、中期美術、Steam／LAN／本機多人（至 M3）。
+- **範圍外（EA 不做；留 Beta／之後）：** 失敗／過關／提早關店**敘事層**、完整事件／劇情表、技能解鎖表、長線流量定稿。可重玩當日與資金保留仍依現有結算規則。
+- 對照：[`docs/alpha/design.md`](alpha/design.md)、[`docs/alpha/tech-review-v0.2.md`](alpha/tech-review-v0.2.md) H3、[`docs/beta/design.md`](beta/design.md)。
+
 ## 現在的產品版
 
 | | |

@@ -7,6 +7,7 @@
 - 音效設定：`SfxBus`（`user://settings.cfg` → `[audio] sfx_muted`、`sfx_volume`）
 - 背景音樂：`BgmBus`（同檔 `[audio] bgm_muted`、`bgm_volume`；規則見 `bgm.md`）
 - UI 偏好：`PlatformServices`（同檔 `[ui] virtual_stick`、`camera_view`、`locale`）
+- **完整設定頁（H2 仍開）：** 上列音量／語言／鏡頭／搖桿已在暫停主列＋準備系統工具；收成單一「設定」殼的驗收見 [`docs/alpha/steam-productization.md`](../alpha/steam-productization.md)
 
 ## 何時可開
 

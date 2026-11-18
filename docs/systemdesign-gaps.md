@@ -1,6 +1,6 @@
 # 長線設計文件缺口
 
-- 對照日：2026-11-09（含 v1.1.0 拍板＋v1.2.0 客人交付／技能組／三招狙擊手／Dark Side／多重影分身設計 #63–#117；多人 **M1 本機雙人已落地**，M2 連線尚未實作；對齊至 main tip）
+- 對照日：2026-11-18（含 v1.1.0 拍板＋v1.2.0 客人交付／技能組／三招狙擊手／Dark Side／多重影分身設計 #63–#117；多人 **M1～M2.9 已落地**；**M3 Steam 大廳已驗收**（2026-11-11）；下一步正式 App ID／Cloud／成就與 **M4** Web；對齊至 main tip）
 - 範圍：只讀 `docs/systemdesign/`（含 `savesystem.md`、`pausemenu.md`），**不含** Demo scope
 - 工程落地對照：`docs/alpha/implementation-status.md`
 - 執行期優化分析（非玩法缺口）：`docs/alpha/runtime-perf-audit.md`
@@ -69,10 +69,9 @@
 | 已處理 | 缺檔／缺系統 | 存檔 | 已有 `savesystem.md`：`user://save.json` + `version`；關店與準備結束寫入。活線已實作。 | savesystem.md, storepreparationphase.md, storeoperationphase.md |
 | 已處理 | 規則含糊 | 操作是否綁死鍵位 | 長線以 InputMap 為準（`control.md`）；預設仍 WASD／Xbox。活線 Autoload `Controls`。 | control.md |
 | 已處理 | 缺檔／缺系統 | 暫停選單／掛起 | 已有 `pausemenu.md`；活線接 `PlatformServices` suspend／resume。 | pausemenu.md, storeoperationphase.md, savesystem.md |
-| Alpha | 缺檔／缺系統 | HUD 以外的介面層空白 | 存檔／InputMap／暫停／字串表已補。暫停選單已有**事件 SFX 開／關與聲量**（見 `pausemenu.md`）。仍缺：BGM／整體設定頁、失敗／過關、教學、技能演出期間能否操作。 | storeoperationphase.md, playerskills.md, control.md, playersetup.md, pausemenu.md |
+| Alpha | 缺檔／缺系統 | HUD 以外的介面層空白 | 存檔／InputMap／暫停／字串表已補。暫停選單已有**事件 SFX 開／關與聲量**；**BGM Bus＋音量**已有；**教學框架**已落地（首日打磨仍開）。仍缺：完整設定頁、技能演出期間能否操作。失敗／過關敘事＝**EA 不做**（見 `versioning.md`）。 | storeoperationphase.md, playerskills.md, control.md, playersetup.md, pausemenu.md, tutorial.md |
 | Alpha | 用詞／錯字 | 用詞與錯字會改規則解讀 | 留待 Alpha 改回原檔，見 `docs/alpha/design.md`。以為→以下；三能種力值；奧義「技令」；衝刺句子斷掉。 | storeoperationphase.md, gameconcept.md, playerultimateskills.md, playermovement.md |
-| Alpha | 缺字型字元 | 善良的炮新增字元未進執行期字型 | `charset_game.txt` 已補「善」「良」，但目前無 Python/fonttools 環境可重建 `NotoSansTC-Game.ttf`；需用完整 JP 字型來源重跑子集流程，避免不支援系統字型回退的平台顯示豆腐字。 | playeractiveskills.md, `docs/alpha/fonts-subset.md` |
-| Alpha | 缺檔／缺系統 | 三段火槍陣新增字元未進執行期字型 | 四語字串已加入，但目前 `NotoSansTC-Game.ttf` 子集缺「火槍陣枪阵銃斉」；需使用完整 JP 字型來源與 fonttools 重建，避免無系統字型回退的平台顯示豆腐字。 | playerultimateskills.md, `docs/alpha/fonts-subset.md` |
+| 已處理 | 缺字型字元 | 善良的炮／三段火槍陣缺字 | 2026-11-18 以 Noto Sans CJK **JP** 來源重跑 `tools/fonts/subset_notosans_tc.py`；`NotoSansTC-Game.ttf` 已含「善良的炮三段火槍陣枪阵銃斉」。 | playeractiveskills.md, playerultimateskills.md, `docs/alpha/fonts-subset.md` |
 
 # 缺了整份檔的系統
 

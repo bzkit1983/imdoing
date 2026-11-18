@@ -8,7 +8,7 @@
 # 路徑與格式
 
 - 本機檔：`user://save.json`（**店主＋店舖**完整進度）
-- JSON 物件。頂層必有整數欄 **`version`**（與產品 SemVer tag 分開；目前實作 `SAVE_VERSION = 3`：商店評價／評級歷史／難度／last_*）
+- JSON 物件。頂層必有整數欄 **`version`**（與產品 SemVer tag 分開；目前實作 `SAVE_VERSION = 4`：商店評價／評級歷史／難度／last_*／教學進度等；見 `docs/versioning.md`）
 - `version` 過新：拒絕載入並提示更新遊戲。之後升版時在此檔補 migration 規則
 
 ## 訪客角色槽（本機雙人 M1）

@@ -1,0 +1,57 @@
+# Steam 產品化衝刺（H1–H3）
+
+- 對照日：2026-11-18
+- 活線：`godot/game`
+- tech-review：[`tech-review-v0.2.md`](tech-review-v0.2.md) §7 H1–H3
+- GodotSteam 接入：[`godotsteam-setup.md`](godotsteam-setup.md)
+- EA 範圍：[`docs/versioning.md`](../versioning.md)「Early Access／現行產品範圍」
+
+## 狀態總覽
+
+| 項 | 狀態 | 說明 |
+| --- | --- | --- |
+| **H3** EA 範圍聲明 | **Done** | 純日循環；不做失敗／過關／提早關店敘事；敘事／事件留 Beta |
+| **H1** Cloud／成就 API | **接線已落地** | `steam_platform.gd`：本機寫入後 `fileWrite`；冷啟可 `fileRead`；`setAchievement`＋`storeStats` |
+| **H1** 正式 App ID | **Open** | 現仍測試 **480**；需 Steam Direct 正式 ID 後改下列檔 |
+| **H2** 完整設定頁 | **Open** | 音量／語言／鏡頭／手掣碎片已在暫停＋準備；尚未收成單一設定殼 |
+| **H2** 第一日引導打磨 | **Open** | 教學框架＋劇本 5 Done；預設新檔首日體驗仍待打磨 |
+
+## H1 — 正式 App ID 切換清單（取得 ID 後）
+
+1. 改 [`godot/game/steam_appid.txt`](../../godot/game/steam_appid.txt)
+2. 改 `project.godot` 的 `steam/initialization/app_data/app_id`
+3. 確認 Partner 已開 **Steam Cloud**（配額／路徑與 `save.json`／`guest_slots.json` 一致）
+4. 在 Partner 登記成就 API 名稱，與 `PlatformServices.unlock_achievement(id)` 呼叫一致
+5. 重跑 [`tools/m3_steam_smoke.sh`](../../tools/m3_steam_smoke.sh)＋手動 Cloud／成就煙測
+6. **勿**把成就／Cloud 邏輯寫死只認 480
+
+## H1 — Cloud／成就行為（現行）
+
+- 權威仍是本機 `user://`；Cloud 為同步／還原層
+- `write_save`／`write_guest_slots`／`checkpoint` → 成功寫盤後嘗試 Cloud `fileWrite`
+- 本機無檔時 `read_*`／`has_*` 可從 Cloud 拉回
+- `unlock_achievement` → `setAchievement`＋`storeStats`；Steam 未開或 id 未登記則 log，不崩
+
+## H2 — 完整設定頁（驗收）
+
+收束現有碎片為單一「設定」入口（暫停或準備皆可進）：
+
+- [ ] BGM 開／關與音量
+- [ ] 事件 SFX 開／關與音量
+- [ ] 語言（四語）
+- [ ] 鏡頭視野
+- [ ] 虛擬搖桿（觸控 profile）
+- [ ] 寫入既有 `user://settings.cfg`（不另開設定存檔格式）
+
+## H2 — 第一日引導打磨（驗收）
+
+- [ ] 非「測試工具→劇本 5」的**預設新檔**也會進入最小教學鏈（或明確一次詢問）
+- [ ] 可跳過；進度寫入存檔（既有 tutorial progress）
+- [ ] 暫停可重看已完成課（既有）
+
+## H3 — EA 範圍（已拍板）
+
+見 [`docs/versioning.md`](../versioning.md) 與 [`docs/alpha/design.md`](design.md)。
+
+**範圍內：** 日循環、技能、評價、教學框架、中期美術、多人至 M3。  
+**範圍外：** 失敗／過關敘事、完整事件／劇情、技能解鎖表、長線流量定稿。

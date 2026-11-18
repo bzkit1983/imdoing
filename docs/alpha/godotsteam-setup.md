@@ -37,6 +37,14 @@ Repo **已含** GDExtension 外掛（Win／Linux／macOS universal／Android）�
 
 - Steam Direct 取得正式 App ID 後，改 `steam_appid.txt`／匯出設定，**勿**把成就／Cloud 綁死在 480。  
 - Depot：**Windows + Linux + macOS**（見 `docs/alpha/export-presets.md`）。
+- 產品化清單（Cloud／成就／設定頁／EA 範圍）：[`steam-productization.md`](steam-productization.md)。
+
+## Cloud／成就（H1 接線）
+
+- 實作：`godot/game/scripts/platform/steam_platform.gd`
+- 存檔／訪客槽：本機寫入後 `fileWrite`；本機無檔時可 `fileRead` 還原
+- 成就：`PlatformServices.unlock_achievement` → `setAchievement`＋`storeStats`
+- Partner 未開 Cloud／未登記成就 id 時會失敗並 log，不影響本機存檔
 
 ## 不要
 

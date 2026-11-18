@@ -7,6 +7,7 @@
 - 營運任務交叉：`tasksystem.md`（教學不走 `task_test_mode`）
 - 暫停重溫：`pausemenu.md`
 - 劇本入口：劇本 5「教學模式」（僅 `ProductVersion.test_tools_enabled()`）
+- **產品化（H2 仍開）：** 教學**框架**與劇本 5 鏈已落地；**預設新檔**的第一日引導打磨驗收見 [`docs/alpha/steam-productization.md`](../alpha/steam-productization.md)
 
 ## 範圍
 
