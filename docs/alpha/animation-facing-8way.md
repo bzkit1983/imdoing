@@ -50,6 +50,8 @@ Godot --headless --path godot/game --import
 
 斜向由同一 `.vox`／姿勢網格做 22.5° 水平旋轉後渲成 PNG（非手繪）。
 
+**東／西（純左／右）側身偏置：** 角色八／十六向 bake 時，指數 `E`／`W`（16 向＝4／12）yaw **往南偏約 20°**（`SIDE_CARDINAL_BIAS_DEG` in `tools/voxel_sprites.py`），避免 MagicaVoxel 式全 90° 側影；側身仍讀「左／右」，但可見多一點胸／臉（¾）。傢俬四向不受影響。完整 MagicaVoxel `full16` 覆寫幀仍原樣、不自動偏置。
+
 ### MagicaVoxel 覆寫（`art/src/anim/`）
 
 1. **完整十六向：** `{id}_{anim}_{0..15}_{frame}.vox` 齊 → `full16` 原樣烘焙  

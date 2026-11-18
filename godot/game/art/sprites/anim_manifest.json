@@ -20,34 +20,6 @@
   ],
   "facings": 16,
   "characters": {
-    "clerk_cleaner": {
-      "idle": {
-        "frames": 2,
-        "fps": 2
-      },
-      "walk": {
-        "frames": 4,
-        "fps": 8
-      },
-      "clean": {
-        "frames": 4,
-        "fps": 8
-      }
-    },
-    "clerk_security": {
-      "idle": {
-        "frames": 2,
-        "fps": 2
-      },
-      "walk": {
-        "frames": 4,
-        "fps": 8
-      },
-      "fight": {
-        "frames": 4,
-        "fps": 12
-      }
-    },
     "player": {
       "idle": {
         "frames": 2,
@@ -375,11 +347,37 @@
         "frames": 4,
         "fps": 8
       }
+    },
+    "clerk_security": {
+      "idle": {
+        "frames": 2,
+        "fps": 2
+      },
+      "walk": {
+        "frames": 4,
+        "fps": 8
+      },
+      "fight": {
+        "frames": 4,
+        "fps": 12
+      }
+    },
+    "clerk_cleaner": {
+      "idle": {
+        "frames": 2,
+        "fps": 2
+      },
+      "walk": {
+        "frames": 4,
+        "fps": 8
+      },
+      "clean": {
+        "frames": 4,
+        "fps": 8
+      }
     }
   },
   "sources": {
-    "clerk_cleaner": "designer_vox",
-    "clerk_security": "designer_vox",
     "player": "designer_vox",
     "player_alt1": "designer_vox",
     "player_alt2": "designer_vox",
@@ -389,6 +387,8 @@
     "customer_slow": "designer_vox",
     "thief": "designer_vox",
     "clerk_cashier": "designer_vox",
-    "clerk_restock": "designer_vox"
+    "clerk_restock": "designer_vox",
+    "clerk_security": "designer_vox",
+    "clerk_cleaner": "designer_vox"
   }
 }

@@ -230,11 +230,19 @@ def rotate_yaw_degrees(size, cells, degrees: float):
     return (out_sx, out_sy, sz), out
 
 
-def rotate_facing(size, cells, facing: int, facings: int = 16):
+## Character E/W only: nudge yaw toward south so side slots show a ¾ torso
+## (not a flat MagicaVoxel 90° profile). Furniture 4-way is unaffected.
+SIDE_CARDINAL_BIAS_DEG = 20.0
+
+
+def rotate_facing(size, cells, facing: int, facings: int = 16, side_bias: bool = True):
     """Rotate model to facing index.
 
     facings=1 → identity; 4 → exact 90°; 8/16 (power-of-2 ≥8) → south… with
     45°/22.5° yaw steps via rotate + rotate_yaw_degrees.
+
+    When side_bias and facings≥8, pure East／West are nudged ~20° toward
+    south so left/right reads as side-front (both eyes / chest visible).
     """
     if facings <= 1:
         return size, cells
@@ -245,6 +253,15 @@ def rotate_facing(size, cells, facing: int, facings: int = 16):
         raise ValueError(f"unsupported facings count: {facings}")
     ## Degrees clockwise from south; exact 90° uses discrete rotate().
     deg = facing * (360.0 / float(facings))
+    if side_bias:
+        east = facings // 4
+        west = (3 * facings) // 4
+        if facing == east:
+            ## 90° → ~70° (toward SE / camera).
+            deg -= SIDE_CARDINAL_BIAS_DEG
+        elif facing == west:
+            ## 270° → ~290° (toward SW / camera).
+            deg += SIDE_CARDINAL_BIAS_DEG
     turns = int(round(deg / 90.0)) % 4
     rem = deg - turns * 90.0
     ## Keep rem in (-45, 45] for stable nearest-cardinal + yaw.
