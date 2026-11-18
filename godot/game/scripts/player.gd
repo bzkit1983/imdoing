@@ -97,6 +97,12 @@ var _j_time: float = 0.0
 ## Long action already started (clean / stock / cashier / hand delivery) — release must not also take.
 var _long_committed: bool = false
 var _deliver_done: bool = false
+## One shelf Circle per Interact hold. After a segment stocks, ignore further
+## stock ticks until release — leftover hold must not try the next SKU / mismatch.
+var _shelve_done: bool = false
+## After a checkout finishes with no ready next guest (or register empty while
+## still holding), stay idle: allow walk until release, or resume if a guest becomes ready.
+var _checkout_hold_idle: bool = false
 ## This dash already resolved a guest (deliver or KO).
 var _dash_guest_done: bool = false
 ## Segment start for swept dash hit tests (set each dash physics step).
@@ -722,6 +728,8 @@ func set_hold(action: String, pressed: bool) -> void:
 				_j_time = 0.0
 				_long_committed = false
 				_deliver_done = false
+				_shelve_done = false
+				_checkout_hold_idle = false
 				## Do not short-interact on the release that ends the latch.
 				return
 			if _fighting:
@@ -743,6 +751,8 @@ func set_hold(action: String, pressed: bool) -> void:
 				_j_time = 0.0
 				_long_committed = false
 				_deliver_done = false
+				_shelve_done = false
+				_checkout_hold_idle = false
 				_restock_hold = 0.0
 				_restock_aborted = false
 				_pickup_used = false
@@ -912,10 +922,22 @@ func _in_dir_mode() -> bool:
 		return true
 	if _j_held and is_instance_valid(target):
 		if _obj_str(target, "kind") == "cashier":
-			return true
+			## Idle hold after a finished checkout (no ready guest) must not lock walk.
+			if _checkout_hold_idle:
+				return false
+			## Only lock while actively in checkout (committed with a payable guest).
+			if _long_committed and _cashier_has_ready(target):
+				return true
+			return command_lock
 	elif _j_held and target != null:
 		target = null
 	return command_lock
+
+
+func _cashier_has_ready(reg: Node) -> bool:
+	if reg == null or not is_instance_valid(reg) or not reg.has_method("ready_customer"):
+		return false
+	return reg.call("ready_customer") != null
 
 
 func _input(event: InputEvent) -> void:
@@ -2237,13 +2259,26 @@ func _tick_action(delta: float) -> void:
 				_deliver_done = true
 				_hand_deliver(guests, true)
 		"shelf":
-			_long_committed = true
 			target = _nearest_kind("shelf")
-			_tick_restock(delta)
+			## Hold past a finished Circle is "not released yet", not a new stock attempt.
+			if _shelve_done:
+				_long_committed = false
+			else:
+				_long_committed = true
+				_tick_restock(delta)
 		"cashier":
-			_long_committed = true
 			target = _nearest_kind("cashier")
-			_tick_cashier(delta)
+			## Hold with no payable guest: walk free. A ready guest resumes checkout.
+			if _checkout_hold_idle:
+				if _cashier_has_ready(target):
+					_checkout_hold_idle = false
+					_long_committed = true
+					_tick_cashier(delta)
+				else:
+					_long_committed = false
+			else:
+				_long_committed = true
+				_tick_cashier(delta)
 
 
 func _begin_fight() -> void:
@@ -2694,6 +2729,8 @@ func _tick_restock(delta: float) -> void:
 		if placed > 0 and game_shelve != null and game_shelve.has_method("note_shelve"):
 			game_shelve.call("note_shelve", seat_id, String(sku), placed)
 		hold_progress = 0.0
+		blocked_mismatch = false
+		_shelve_done = true
 		_interact_release(target)
 
 
@@ -2972,6 +3009,8 @@ func _tick_cashier(_delta: float) -> void:
 	var cust = target.call("ready_customer")
 	if cust == null:
 		_prompt.active = false
+		## Still holding, but nobody to check out — unlock walk until release / next ready.
+		_enter_checkout_hold_idle()
 		if not _no_queue_logged:
 			if target.call("front_customer") != null:
 				log_line.emit(Loc.t("log.player.guest_en_route"))
@@ -3150,6 +3189,22 @@ func _finish_checkout(cust) -> void:
 	_prompt.active = false
 	_prompt.fail_at = -1
 	_request_prompt_broadcast(true)
+	## Chain into the next ready guest while still holding; otherwise idle-walk.
+	if reg != null and is_instance_valid(reg) and _cashier_has_ready(reg):
+		_checkout_hold_idle = false
+		_no_queue_logged = false
+	else:
+		_enter_checkout_hold_idle()
+
+
+func _enter_checkout_hold_idle() -> void:
+	_checkout_hold_idle = true
+	_long_committed = false
+	if is_instance_valid(target) and _obj_str(target, "kind") == "cashier":
+		_interact_release(target)
+	if _prompt and not ult_prep:
+		_prompt.active = false
+		_prompt.fail_at = -1
 
 
 ## Next QUEUE／PAYING guest behind `primary` at this register (not TO_CASHIER).
