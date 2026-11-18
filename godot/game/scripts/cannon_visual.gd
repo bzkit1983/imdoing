@@ -1,11 +1,16 @@
 extends Node2D
 ## Code-native low-poly turret art; decorative only, with no collision.
-const SkuIcons = preload("res://scripts/sku_icons.gd")
+## Loaded ammo shows as a carton faceplate on the turret crown (炮頂).
+const BoxFaceplate = preload("res://scripts/box_faceplate.gd")
+
+const TOP_FACE_POS := Vector2(0.0, -46.0)
+const TOP_ICON_PX := 22.0
+
 var barrel: Node2D
 var _gun: Node2D
 var _flash: Polygon2D
 var _lamp: Polygon2D
-var _cargo: Sprite2D
+var _top_face: Node2D
 var _recoil: Tween
 var green_theme := false
 
@@ -50,23 +55,26 @@ func _ready() -> void:
 	_poly(_gun, [Vector2(-6,-33), Vector2(0,-36), Vector2(6,-33), Vector2(3,-32), Vector2(0,-33), Vector2(-3,-31)], _tone("6b9690", "4d8e46"))
 	_flash = _poly(_gun, [Vector2(-5,-39), Vector2(-9,-48), Vector2(-3,-46), Vector2(0,-56), Vector2(4,-46), Vector2(10,-49), Vector2(6,-39)], "fff0a4")
 	_flash.visible = false
-	# Fixed cap and status lamp, with a real next-SKU icon on the loading bay.
+	# Fixed cap and status lamp; next-SKU faceplate sits on the crown.
 	_poly(self, [Vector2(-8,-25), Vector2(0,-29), Vector2(8,-25), Vector2(8,-18), Vector2(0,-14), Vector2(-8,-18)], _tone("476b70", "285a30"))
 	_poly(self, [Vector2(-6,-26), Vector2(0,-29), Vector2(6,-26), Vector2(0,-23)], _tone("a1c6b6", "9bcf6b"))
 	_lamp = _poly(self, [Vector2(12,-22), Vector2(16,-24), Vector2(19,-22), Vector2(16,-20)], "5c6f6b")
-	_cargo = Sprite2D.new()
-	_cargo.position = Vector2(-16,-22)
-	_cargo.scale = Vector2(0.34,0.34)
-	add_child(_cargo)
 	set_ammo("")
 
 func set_ammo(sku: String) -> void:
+	sku = str(sku)
 	if _lamp == null:
 		return
 	_lamp.color = Color(_tone("71f0b3", "9de45e")) if sku != "" else Color(_tone("5c6f6b", "47624a"))
-	_cargo.visible = sku != ""
-	if sku != "":
-		_cargo.texture = SkuIcons.texture(sku)
+	if _top_face != null and is_instance_valid(_top_face):
+		_top_face.queue_free()
+		_top_face = null
+	if sku == "":
+		return
+	_top_face = BoxFaceplate.attach_carton_face(self, sku, TOP_ICON_PX, TOP_FACE_POS)
+	if _top_face != null:
+		_top_face.z_index = 8
+		_top_face.name = "AmmoTopFace"
 
 func fire() -> void:
 	if _recoil != null:

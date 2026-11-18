@@ -2,9 +2,12 @@ extends Node2D
 ## Non-blocking mint-and-gold turret that converts active thieves into guests.
 const Tuning = preload("res://scripts/tuning.gd")
 const UiFont = preload("res://scripts/ui_font.gd")
+const BoxFaceplate = preload("res://scripts/box_faceplate.gd")
 const Shot = preload("res://scripts/kind_cannon_shot.gd")
 const RADIUS := 3.0 * Tuning.BODY_LENGTH
 const CAPACITY := 10
+const TOP_FACE_POS := Vector2(0.0, -44.0)
+const TOP_ICON_PX := 22.0
 
 var kind := "kind_cannon"
 var host: Node
@@ -17,6 +20,7 @@ var net_agent_id: int = -1
 var net_puppet: bool = false
 var _label: Label
 var _barrel: Node2D
+var _top_face: Node2D
 
 
 func is_net_puppet() -> bool:
@@ -37,10 +41,14 @@ func interval() -> float:
 			return 8.0
 
 
-func apply_net_ammo(ammo_n: int, _next_sku: String = "") -> void:
+func apply_net_ammo(ammo_n: int, next_sku: String = "") -> void:
 	if not net_puppet:
 		return
-	ammo.resize(maxi(0, ammo_n))
+	ammo.clear()
+	for _i in maxi(0, ammo_n):
+		ammo.append(next_sku if next_sku != "" else "box")
+	if next_sku != "" and ammo_n > 0:
+		ammo[0] = next_sku
 	refresh()
 
 
@@ -49,7 +57,11 @@ func _broadcast_ammo_state() -> void:
 		return
 	if not SessionService.is_networked() or not SessionService.is_server():
 		return
-	SessionService.broadcast_agent_state({"id": net_agent_id, "ammo_n": ammo.size()})
+	SessionService.broadcast_agent_state({
+		"id": net_agent_id,
+		"ammo_n": ammo.size(),
+		"sku": ammo[0] if not ammo.is_empty() else "",
+	})
 
 
 func capacity() -> int:
@@ -101,8 +113,21 @@ func _ready() -> void:
 
 
 func refresh() -> void:
+	_sync_top_ammo_face()
 	if is_instance_valid(_label):
 		_label.text = Loc.t("kind_cannon.status", [owner_seat + 1, ammo.size(), CAPACITY])
+
+
+func _sync_top_ammo_face() -> void:
+	if _top_face != null and is_instance_valid(_top_face):
+		_top_face.queue_free()
+		_top_face = null
+	if ammo.is_empty():
+		return
+	_top_face = BoxFaceplate.attach_carton_face(self, str(ammo[0]), TOP_ICON_PX, TOP_FACE_POS)
+	if _top_face != null:
+		_top_face.z_index = 8
+		_top_face.name = "AmmoTopFace"
 
 
 func available_for(player) -> bool:
@@ -175,7 +200,7 @@ func _physics_process(delta: float) -> void:
 	shot.host = host
 	shot.target = target
 	shot.owner_seat = owner_seat
-	shot.setup(sku, global_position, target.global_position, Tuning.DROP_FLIGHT_SEC, 1)
+	shot.setup(sku, global_position, target.global_position, Tuning.DROP_FLIGHT_SEC, 1, true)
 	host.get("_world").add_child(shot)
 	if SessionService.is_networked() and SessionService.is_server():
 		SessionService.broadcast_flight({

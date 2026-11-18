@@ -72,14 +72,21 @@ const DASH_DISTANCE := 140.0
 const DASH_TIME := 0.12
 ## Tap-release shorter than this → dash; hold past this → run (no dash on that press).
 const RUN_HOLD_THRESHOLD := 0.18
-## Long-press cancel (B or ;) drops the top carried box. A tap still only cancels.
+## Long-press cancel (B or ;) enters drop aim. A tap tosses focused pieces.
 const DROP_HOLD_SEC := 0.2
-## Base toss distance (5 身位). Future drop-range skills multiply via player.drop_toss_dist().
-const DROP_TOSS_BODY_LENGTHS := 5.0
+## Player toss distance (10 身位 = 2× legacy 5). Future drop-range skills multiply via player.drop_toss_dist().
+const DROP_TOSS_BODY_LENGTHS := 10.0
 const DROP_TOSS_DIST := DROP_TOSS_BODY_LENGTHS * BODY_LENGTH
 const DROP_DIR_DEADZONE := 0.35
-## Flight time for the tossed box (movement stays locked until it lands).
+## Legacy / cannon default flight time (small arc era). Player toss uses player_drop_flight_sec().
 const DROP_FLIGHT_SEC := 0.28
+## Baseline for player toss speed: old 5 身位 / 0.28s; then ×0.55 half-speed, then +20%.
+const DROP_FLIGHT_BASELINE_BODY_LENGTHS := 5.0
+const DROP_FLIGHT_SPEED_FACTOR := 0.66
+## Short / charged toss: brief walk freeze so the player does not overtake the box.
+const DROP_TOSS_MOVE_PAUSE_SEC := 0.16
+## Player toss visual: full spins during flight (sprite only; trail stays straight).
+const DROP_FLIGHT_SPINS := 2.0
 const DROP_FEET_OFFSET := Vector2(0.0, 22.0)
 ## 投籃高手：第二件延遲出手 + 落點沿投向法線微偏，避免兩箱完全重疊。
 const HOOP_ACE_SECOND_DELAY_SEC := 0.1
@@ -429,12 +436,26 @@ static func dirt_type_name(dtype: String) -> String:
 
 
 ## Offset from player origin to drop destination.
-## Zero / tiny toss_dir → at feet. Else push `toss_dist` (default base 5 身位) along dir.
+## Zero / tiny toss_dir → push along facing via caller; here ZERO dir still returns feet offset for legacy.
+## Prefer always passing a unit facing for player tosses.
 static func drop_offset(toss_dir: Vector2, toss_dist: float = -1.0) -> Vector2:
 	var dist := DROP_TOSS_DIST if toss_dist < 0.0 else toss_dist
 	if toss_dir.length_squared() < 0.0001:
 		return DROP_FEET_OFFSET
 	return toss_dir.normalized() * dist
+
+
+## Player toss flight time: half of legacy ground speed, scaled by actual distance.
+static func player_drop_flight_sec(dist: float) -> float:
+	var baseline_dist := DROP_FLIGHT_BASELINE_BODY_LENGTHS * BODY_LENGTH
+	var baseline_speed := baseline_dist / DROP_FLIGHT_SEC
+	var speed := maxf(1.0, baseline_speed * DROP_FLIGHT_SPEED_FACTOR)
+	return maxf(0.05, absf(dist) / speed)
+
+
+## Long-press drop charge rate (pieces / sec). STR_eff capped at 50 like carry.
+static func drop_charge_per_sec(str_stat: float) -> float:
+	return 2.0 + minf(str_stat, 50.0) / 5.0
 
 
 ## Non-overlapping scatter points in a ring between min_r and max_r (pixels).

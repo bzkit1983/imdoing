@@ -187,6 +187,8 @@ var _drop_flight_lock: bool = false
 ## and the player is not already holding another short drop.
 var _piece_flights: int = 0
 var _piece_drop_lock: bool = false
+## Short toss while walking/running: brief freeze so the player does not catch the box.
+var _toss_move_pause_left: float = 0.0
 var _drop_aim_line: Line2D
 var _drop_aim_mark: Polygon2D
 ## 使命必達: range preview (follows player). Confirm with skill; cancel drops aim (no CD).
@@ -518,6 +520,14 @@ func carry_cap() -> int:
 	return n
 
 
+func _cycle_carry_focus(delta: int) -> void:
+	if not _round_active() or inventory.is_empty():
+		return
+	if skill_menu_open or ult_prep or _cancel_drop_ready or _in_dir_mode():
+		return
+	inventory.cycle_focus(delta)
+
+
 func move_speed_rate() -> float:
 	var rate := 1.0
 	for sk in _loadout():
@@ -760,8 +770,15 @@ func set_hold(action: String, pressed: bool) -> void:
 			else:
 				if not _j_held:
 					return
+				## `_release_interact` still needs `_long_committed` to skip short-take.
 				_release_interact()
 				_j_held = false
+				## Action finished / released — clear so a later short Cancel can toss.
+				## (Clean/deliver used to leave `_long_committed` stuck until next Interact.)
+				_long_committed = false
+				_deliver_done = false
+				_shelve_done = false
+				_checkout_hold_idle = false
 				_reset_hold()
 				_pickup_used = false
 				_no_queue_logged = false
@@ -807,6 +824,7 @@ func set_hold(action: String, pressed: bool) -> void:
 				_cancel_dropped = false
 				_cancel_drop_dir = Vector2.ZERO
 				_cancel_swallowed = false
+				## Seed facing immediately so a standing short-tap still has a toss dir.
 				_sample_cancel_drop_dir()
 				_cancel_input()
 			else:
@@ -821,8 +839,11 @@ func move_state() -> String:
 		return Loc.t("hud.move.stun")
 	if _slip_left > 0.0:
 		return Loc.t("hud.move.slip")
-	if _drop_flight_lock or _piece_drop_lock:
-		return Loc.t("hud.move.toss")
+	## Aim prep locks move; short-toss pause is a brief hitch (reuse drop_aim copy).
+	if _toss_move_pause_left > 0.0:
+		return Loc.t("hud.move.drop_aim")
+	if _cancel_drop_ready and _cancel_held and not _cancel_dropped:
+		return Loc.t("hud.move.drop_aim")
 	if _cancel_held and not _cancel_dropped:
 		return Loc.t("hud.move.drop_aim")
 	if ult_prep:
@@ -1130,14 +1151,19 @@ func _physics_process(delta: float) -> void:
 	command_lock = _long_committed and _j_held and is_instance_valid(target) and _obj_str(target, "kind") == "cashier" and not skill_menu_open and not ult_prep
 	if not command_lock and not ult_prep:
 		_prompt.active = false
-	if _k_held and not _cancel_held and not _drop_flight_lock and not _piece_drop_lock and not command_lock and not skill_menu_open and not ult_prep and not _fighting and _stun_left <= 0.0 and _slip_left <= 0.0:
+	if _k_held and not _cancel_held and not _cancel_drop_ready and not command_lock and not skill_menu_open and not ult_prep and not _fighting and _stun_left <= 0.0 and _slip_left <= 0.0:
 		_k_time += delta
 		if _k_time >= Tuning.RUN_HOLD_THRESHOLD:
 			_running = _dasher_active() or stamina > 1.0
 	if _cancel_held:
 		_tick_cancel_hold(delta)
-	## Long-press aim, a flying box, or a piece still in the air: freeze locomotion.
-	if (_cancel_drop_ready or _drop_flight_lock or _piece_drop_lock) and _slip_left <= 0.0:
+	if _toss_move_pause_left > 0.0:
+		_toss_move_pause_left = maxf(0.0, _toss_move_pause_left - delta)
+		_running = false
+		if not _dashing and _slip_left <= 0.0:
+			velocity = Vector2.ZERO
+	## Long-press aim only: freeze locomotion. In-flight boxes do not lock move.
+	if _cancel_drop_ready and _slip_left <= 0.0:
 		_running = false
 		_dashing = false
 		velocity = Vector2.ZERO
@@ -1238,12 +1264,13 @@ func _hud_fingerprint() -> String:
 	var inv_bits: PackedStringArray = []
 	for g in inventory.grouped():
 		inv_bits.append("%s:%d" % [String(g["id"]), int(g["count"])])
-	return "%s|%.2f|%.2f|%d|%s|%.2f|%s|%s" % [
+	return "%s|%.2f|%.2f|%d|%s@%d|%.2f|%s|%s" % [
 		_hud_move,
 		_hud_stam,
 		_hud_stam_max,
 		_hud_carry,
 		",".join(inv_bits),
+		int(inventory.focus_index) if inventory != null else -1,
 		_hud_hold,
 		str(_hud_blocked),
 		_hud_target_detail,
@@ -1437,9 +1464,11 @@ func _wiggle_axis() -> Vector2:
 
 
 func _move_axis() -> Vector2:
-	## Long-press aim, box flight, or a piece still in the air: no locomotion.
-	## After the last piece lands, a direction that is still held walks again.
-	if _cancel_drop_ready or _drop_flight_lock or _piece_drop_lock:
+	## Long-press drop aim only — in-flight boxes do not block walk.
+	if _cancel_drop_ready:
+		return Vector2.ZERO
+	## Short toss hitch: keep feet planted briefly so walk does not overtake the box.
+	if _toss_move_pause_left > 0.0:
 		return Vector2.ZERO
 	if _elite_focus_left > 0.0:
 		return Vector2.ZERO
@@ -1747,11 +1776,29 @@ func _long_kind() -> String:
 	return ""
 
 
+## Empty shelf → focused SKU; occupied shelf → matching SKU in hand (focus optional).
+func _shelve_sku_for(shelf: Node2D) -> String:
+	if shelf == null or inventory.is_empty():
+		return ""
+	var occupied := ""
+	if shelf.has_method("occupied_sku"):
+		occupied = String(shelf.call("occupied_sku"))
+	elif _obj_int(shelf, "count") > 0:
+		occupied = _obj_str(shelf, "sku")
+	if occupied == "":
+		return inventory.focused_sku()
+	if inventory.count_of(occupied) > 0:
+		return occupied
+	return ""
+
+
 func _shelf_can_take_carried(shelf: Node2D) -> bool:
 	if shelf == null or not shelf.has_method("can_accept") or inventory.is_empty():
 		return false
-	var run: Dictionary = inventory.trailing_run()
-	return bool(shelf.call("can_accept", String(run["id"])))
+	var sku := _shelve_sku_for(shelf)
+	if sku == "":
+		return false
+	return bool(shelf.call("can_accept", sku))
 
 
 func _preview_target() -> Node2D:
@@ -2188,8 +2235,9 @@ func _glow_span(node: Node2D) -> Vector2:
 func _update_target() -> void:
 	if _fighting:
 		return
-	## Aim / flight / slip / held interact: keep the action target (no full rescan).
-	if _j_held or _cancel_drop_ready or _drop_flight_lock or _slip_left > 0.0:
+	## Aim / slip / held interact: keep the action target (no full rescan).
+	## In-flight toss does not freeze target scan.
+	if _j_held or _cancel_drop_ready or _slip_left > 0.0:
 		return
 	var best := _preview_target()
 	if target != best:
@@ -2251,11 +2299,14 @@ func _tick_action(delta: float) -> void:
 			target = _nearest_kind("dirt")
 			_tick_clean(delta)
 		"guest":
-			_long_committed = true
 			var guests := _faced_guests()
 			if not guests.is_empty():
 				target = guests[0]
-			if not _deliver_done:
+			## One hand-deliver per Interact hold; leftover hold is idle.
+			if _deliver_done:
+				_long_committed = false
+			else:
+				_long_committed = true
 				_deliver_done = true
 				_hand_deliver(guests, true)
 		"shelf":
@@ -2664,17 +2715,22 @@ func _tick_restock(delta: float) -> void:
 		log_line.emit(Loc.t("log.player.empty_hands_shelf"))
 		_j_held = false
 		return
-	var run: Dictionary = inventory.trailing_run()
-	var sku := String(run["id"])
 	if not is_instance_valid(target) or not target.has_method("can_accept"):
 		hold_progress = 0.0
 		return
+	var sku := _shelve_sku_for(target)
+	var empty_shelf := true
+	if target.has_method("occupied_sku"):
+		empty_shelf = String(target.call("occupied_sku")) == ""
+	else:
+		empty_shelf = _obj_int(target, "count") <= 0 or _obj_str(target, "sku") == ""
+	var have := inventory.count_of(sku) if sku != "" else 0
 	## A2 L — shelf stocking Circle.
 	if not _interact_try(target):
 		log_line.emit(Loc.t("log.player.shelf_busy"))
 		hold_progress = 0.0
 		return
-	if not bool(target.call("can_accept", sku)):
+	if sku == "" or have <= 0 or not bool(target.call("can_accept", sku)):
 		if _obj_int(target, "count") >= _obj_int(target, "capacity"):
 			SfxBus.play("sfx_shelf_stock_blocked")
 			log_line.emit(Loc.t("log.player.shelf_full"))
@@ -2717,8 +2773,11 @@ func _tick_restock(delta: float) -> void:
 		if hold_progress < 1.0:
 			SfxBus.play_stock_loop()
 	if hold_progress >= 1.0:
-		var placed := int(target.call("add_items", sku, int(run["count"])))
-		inventory.remove_trailing(placed)
+		var placed := int(target.call("add_items", sku, have))
+		if empty_shelf:
+			inventory.remove_focused(placed)
+		else:
+			inventory.remove_sku(sku, placed)
 		_spawn_fx("spray", target.global_position + Vector2(0, -20))
 		if dur <= 0.001:
 			SfxBus.play("sfx_shelf_stock_instant")
@@ -2850,6 +2909,9 @@ func _tick_clean(_delta: float) -> void:
 		hold_progress = 0.0
 		_clean_hint = false
 		_last_wiggle = Vector2.ZERO
+		## Finished — leftover Interact hold is idle (same idea as shelve_done).
+		## Leaving `_long_committed` true made the next Cancel swallow instead of toss.
+		_long_committed = false
 		_spawn_fx("clean_spark", spark_at)
 		SfxBus.play("sfx_clean_done")
 		var game := _game()
@@ -2939,7 +3001,7 @@ func _bag_use_suppressed() -> bool:
 		return true
 	if _fighting or _cleaning() or _shelving():
 		return true
-	if _cancel_held or _cancel_drop_ready or _drop_flight_lock or _piece_drop_lock:
+	if _cancel_held or _cancel_drop_ready:
 		return true
 	if _stun_left > 0.0 or _slip_left > 0.0 or _elite_focus_left > 0.0:
 		return true
@@ -3321,6 +3383,7 @@ func _tick_triggers(delta: float) -> void:
 	var tr := Controls.trigger_values_for(seat_id)
 	var lt := tr.x >= Controls.TRIGGER_DEADZONE
 	var rt := tr.y >= Controls.TRIGGER_DEADZONE
+	var y_mod := _l_held or skill_menu_open
 	if lt and not _lt_held:
 		_lt_held = true
 		_lt_time = 0.0
@@ -3333,7 +3396,8 @@ func _tick_triggers(delta: float) -> void:
 		_lt_time += delta
 	if rt:
 		_rt_time += delta
-	if lt and rt:
+	## Ult chord only when Y is not held (Y+LT/RT = skills 4/5).
+	if lt and rt and not y_mod:
 		_trigger_chord_block = true
 		_both_trigger_time += delta
 		if not _ult_chord_active and not ult_prep and _both_trigger_time >= Skills.HOLD_MENU_SEC:
@@ -3343,15 +3407,18 @@ func _tick_triggers(delta: float) -> void:
 				_lt_fired = true
 				_rt_fired = true
 	else:
-		_both_trigger_time = 0.0
-	## Solo LT/RT → skill 4/5 after grace (skipped if the other trigger joined).
-	if lt and not rt and not _trigger_chord_block and not _lt_fired and not ult_prep:
+		if not (lt and rt):
+			_both_trigger_time = 0.0
+	## Y+LT / Y+RT → skill 4/5 (no solo trigger hotkeys).
+	if y_mod and lt and not rt and not _lt_fired and not ult_prep:
 		if _lt_time >= Controls.TRIGGER_SKILL_GRACE:
 			_lt_fired = true
+			_skill_release_ignore = true
 			_try_skill_hotkey(3)
-	if rt and not lt and not _trigger_chord_block and not _rt_fired and not ult_prep:
+	if y_mod and rt and not lt and not _rt_fired and not ult_prep:
 		if _rt_time >= Controls.TRIGGER_SKILL_GRACE:
 			_rt_fired = true
+			_skill_release_ignore = true
 			_try_skill_hotkey(4)
 	if not lt and _lt_held:
 		_lt_held = false
@@ -3501,12 +3568,22 @@ func _note_delivery_combo(guests: Array, _pieces: int) -> void:
 
 
 func _handle_hotkey_actions(event: InputEvent) -> void:
-	if event.is_action_pressed(Controls.SKILL_2):
-		_try_skill_hotkey(1)
+	## Y+LB / Y+RB = skills 2/3; bare LB/RB = carry focus.
+	var y_mod := _l_held or skill_menu_open
+	if event.is_action_pressed(Controls.CARRY_PREV) or event.is_action_pressed(Controls.SKILL_2):
+		if y_mod:
+			_skill_release_ignore = true
+			_try_skill_hotkey(1)
+		else:
+			_cycle_carry_focus(-1)
 		get_viewport().set_input_as_handled()
 		return
-	if event.is_action_pressed(Controls.SKILL_3):
-		_try_skill_hotkey(2)
+	if event.is_action_pressed(Controls.CARRY_NEXT) or event.is_action_pressed(Controls.SKILL_3):
+		if y_mod:
+			_skill_release_ignore = true
+			_try_skill_hotkey(2)
+		else:
+			_cycle_carry_focus(1)
 		get_viewport().set_input_as_handled()
 		return
 	## Restock 1–3 wins over bag keys while facing a restock point.

@@ -6,6 +6,8 @@ const Tuning = preload("res://scripts/tuning.gd")
 const Skills = preload("res://scripts/skills.gd")
 
 var host: CharacterBody2D = null
+var _charge_n: float = 1.0
+var _aim_qty_label: Label = null
 
 
 func bind(player: CharacterBody2D) -> void:
@@ -28,21 +30,42 @@ func setup_drop_aim() -> void:
 	host._drop_aim_mark.visible = false
 	host._drop_aim_mark.z_index = 6
 	host.add_child(host._drop_aim_mark)
+	_aim_qty_label = Label.new()
+	_aim_qty_label.name = "DropAimQty"
+	_aim_qty_label.visible = false
+	_aim_qty_label.z_index = 7
+	_aim_qty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	host.add_child(_aim_qty_label)
 
-## Base 5 身位; later drop-range skills can multiply this.
+## Base 10 身位; later drop-range skills can multiply this.
 func drop_toss_dist() -> float:
 	return Tuning.DROP_TOSS_DIST
 
 func begin_drop_aim() -> void:
-	## Entering drop prep pauses walk/run/dash until the box lands.
+	## Aim locks walk until release; flight itself does not keep the lock.
 	host._running = false
 	host._dashing = false
 	host.velocity = Vector2.ZERO
+	_charge_n = 1.0
+	## Default aim = current facing (no foot drop).
+	ensure_toss_dir()
+
+func ensure_toss_dir() -> Vector2:
+	## Standing still still tosses along facing — never leave a zero aim dir.
+	if host._cancel_drop_dir.length_squared() >= 0.01:
+		return host._cancel_drop_dir.normalized()
+	var face: Vector2 = host.facing
+	if face.length_squared() < 0.01:
+		face = Vector2.RIGHT
+	host._cancel_drop_dir = face.normalized()
+	return host._cancel_drop_dir
 
 func tick_cancel_hold(delta: float) -> void:
 	if host._cancel_dropped:
 		return
-	## Direction is sampled the whole time. Aim circle and move-lock start only after the long press.
+	## Long-press flight in progress: do not re-arm aim.
+	if host._drop_flight_lock:
+		return
 	sample_cancel_drop_dir()
 	host._cancel_time += delta
 	if host._cancel_time >= Tuning.DROP_HOLD_SEC:
@@ -50,36 +73,56 @@ func tick_cancel_hold(delta: float) -> void:
 			host._cancel_drop_ready = true
 			begin_drop_aim()
 			SfxBus.play("sfx_box_drop_aim")
+		else:
+			_tick_drop_charge(delta)
 		update_drop_aim()
 
+func _tick_drop_charge(delta: float) -> void:
+	if host.inventory.is_empty():
+		return
+	var cap := maxi(1, host.inventory.focused_count())
+	var rate := Tuning.drop_charge_per_sec(host._str_now())
+	_charge_n = minf(float(cap), _charge_n + rate * delta)
+
 func on_cancel_release() -> void:
-	## Armed by long-press → toss the top segment on release.
-	## Short press with a direction tosses one piece, unless this press cancelled a menu or action.
+	## Armed by long-press → toss charged focused pieces on release.
+	## Short press tosses 1 (or 2 w/ hoop_ace) along aim/facing.
+	ensure_toss_dir()
 	if host._cancel_drop_ready and not host._cancel_dropped and not host._drop_flight_lock:
 		host._cancel_dropped = true
 		hide_drop_aim()
-		discard_top_box()
+		discard_charged_box()
 	elif not host._drop_flight_lock:
 		if not host._cancel_swallowed:
 			toss_top_piece()
-		host._cancel_drop_dir = Vector2.ZERO
 		hide_drop_aim()
-	## Previous piece already landed and this press did not throw another: walk again.
-	## A whole-box flight keeps its own lock, so clear the piece lock here too.
 	if host._piece_flights <= 0:
 		host._piece_drop_lock = false
 	host._cancel_time = 0.0
 	host._cancel_drop_ready = false
+	host._cancel_drop_dir = Vector2.ZERO
+	_charge_n = 1.0
 
 func sample_cancel_drop_dir() -> void:
-	## Direction keys retarget aim; no input keeps last aim or feet (zero).
+	## Direction keys retarget aim; standing still keeps / seeds facing.
 	var v = host._move_vector() + host.stick_axis
 	if v.length() >= Tuning.DROP_DIR_DEADZONE:
 		host._cancel_drop_dir = v.normalized()
 		host.facing = host._cancel_drop_dir
+	else:
+		ensure_toss_dir()
+
+func toss_dir_or_facing() -> Vector2:
+	return ensure_toss_dir()
 
 func drop_aim_dest() -> Vector2:
-	return host.global_position + Tuning.drop_offset(host._cancel_drop_dir, drop_toss_dist())
+	var dir := toss_dir_or_facing()
+	var raw := host.global_position + Tuning.drop_offset(dir, drop_toss_dist())
+	var game = host._game()
+	if game != null and game.has_method("_clip_player_toss_path"):
+		var sku: String = String(host.inventory.focused_sku())
+		return game.call("_clip_player_toss_path", host.global_position, raw, sku)
+	return raw
 
 func update_drop_aim() -> void:
 	if host._drop_aim_line == null or host.inventory.is_empty():
@@ -90,14 +133,21 @@ func update_drop_aim() -> void:
 	host._drop_aim_mark.visible = true
 	host._drop_aim_line.points = PackedVector2Array([Vector2.ZERO, dest - host.global_position])
 	host._drop_aim_mark.position = dest - host.global_position
+	if _aim_qty_label:
+		var n := maxi(1, int(floor(_charge_n)))
+		_aim_qty_label.visible = true
+		_aim_qty_label.text = "×%d" % n
+		_aim_qty_label.position = dest - host.global_position + Vector2(-18, -28)
 
 func hide_drop_aim() -> void:
 	if host._drop_aim_line:
 		host._drop_aim_line.visible = false
 	if host._drop_aim_mark:
 		host._drop_aim_mark.visible = false
+	if _aim_qty_label:
+		_aim_qty_label.visible = false
 
-func discard_top_box() -> void:
+func discard_charged_box() -> void:
 	if not host._round_active():
 		return
 	if host._stun_left > 0.0 or host._slip_left > 0.0 or host._fighting:
@@ -106,93 +156,79 @@ func discard_top_box() -> void:
 		host.log_line.emit(Loc.t("log.player.hands_empty"))
 		hide_drop_aim()
 		return
-	var run: Dictionary = host.inventory.trailing_run()
-	var name := Tuning.sku_name(String(run["id"]))
-	var n := int(run["count"])
-	var toss = host._cancel_drop_dir
-	drop_top_box(toss)
-	if toss.length_squared() > 0.01:
-		SfxBus.play("sfx_box_toss")
-		var hint := sniper_toss_log(name, true)
-		if hint != "":
-			host.log_line.emit(hint)
-		else:
-			host.log_line.emit(
-				Loc.t("log.player.toss_fly", [name, n, drop_dir_label(toss)])
-			)
+	var run: Dictionary = host.inventory.focused_run()
+	var sku_id := String(run["id"])
+	var name := Tuning.sku_name(sku_id)
+	var n: int = clampi(int(floor(_charge_n)), 1, int(run["count"]))
+	var toss := toss_dir_or_facing()
+	drop_focused_box(toss, n, false)
+	## Aim unlocks walk on release — brief hitch like short toss so run cannot overtake.
+	_apply_toss_move_pause(true)
+	SfxBus.play("sfx_box_toss")
+	var hint := sniper_toss_log(name, true)
+	if hint != "":
+		host.log_line.emit(hint)
 	else:
-		SfxBus.play("sfx_box_drop_feet")
-		host.log_line.emit(Loc.t("log.player.toss_feet", [name, n]))
+		host.log_line.emit(
+			Loc.t("log.player.toss_fly", [name, n, drop_dir_label(toss)])
+		)
 
 
-## Direction + short cancel: throw the top piece. No aim circle.
-## Stop while it flies. Another toss before it lands keeps the stop.
-## When the last piece lands and cancel is up, a held direction walks again.
-
-## Direction + short cancel: throw the top piece. No aim circle.
-## Stop while it flies. Another toss before it lands keeps the stop.
-## When the last piece lands and cancel is up, a held direction walks again.
+## Short cancel: throw focused piece(s) along facing / aim. No aim circle.
 func toss_top_piece() -> bool:
 	if not host._round_active():
 		return false
 	if host._stun_left > 0.0 or host._slip_left > 0.0 or host._fighting or host._drop_flight_lock:
 		return false
-	if host._cancel_drop_dir.length_squared() < 0.01:
-		return false
+	var dir := toss_dir_or_facing()
 	if host.inventory.is_empty():
 		host.log_line.emit(Loc.t("log.player.hands_empty"))
 		return false
-	## 投籃高手：短按方向一次飛出最上 2 件（可不同 SKU）；只有 1 件則 1。
-	var want = 2 if host.buff_left("hoop_ace") > 0.05 else 1
-	var tossed: PackedStringArray = []
-	for _i in want:
-		if host.inventory.is_empty():
-			break
-		var run: Dictionary = host.inventory.trailing_run()
-		var sku := String(run["id"])
-		host.inventory.remove_trailing(1)
-		tossed.append(sku)
-	if tossed.is_empty():
+	## 投籃高手：短按一次飛出焦點最多 2 件。
+	var want: int = 2 if host.buff_left("hoop_ace") > 0.05 else 1
+	want = mini(want, host.inventory.focused_count())
+	var sku: String = host.inventory.focused_sku()
+	if sku == "" or want <= 0:
 		return false
-	var dir = host._cancel_drop_dir
+	host.inventory.remove_focused(want)
 	var dist := drop_toss_dist()
-	launch_piece_toss(String(tossed[0]), dir, dist, Vector2.ZERO)
-	if tossed.size() >= 2:
-		## Delay + lateral land offset so the second box reads as a separate toss.
-		var sku2 := String(tossed[1])
-		var nudge := hoop_ace_side_nudge(dir)
-		host._piece_flights += 1
-		host._piece_drop_lock = true
-		host._running = false
-		host._dashing = false
-		host.velocity = Vector2.ZERO
-		host.get_tree().create_timer(Tuning.HOOP_ACE_SECOND_DELAY_SEC).timeout.connect(
-			func() -> void:
-				if not is_instance_valid(host):
-					return
-				if not host._round_active():
-					on_piece_drop_landed()
-					return
-				launch_piece_toss(sku2, dir, dist, nudge, false)
-		)
-	var names: PackedStringArray = []
-	for s in tossed:
-		names.append(Tuning.sku_name(String(s)))
-	var label := "、".join(names)
-	var hint := sniper_toss_log(label, false)
+	## One flight payload with count (hoop_ace 2 still one visual for same SKU).
+	if want >= 2:
+		launch_piece_toss(sku, dir, dist, Vector2.ZERO, true, 2)
+	else:
+		launch_piece_toss(sku, dir, dist, Vector2.ZERO, true, 1)
+	_apply_toss_move_pause(false)
+	var label := Tuning.sku_name(sku)
+	var hint := sniper_toss_log(label, want > 1)
 	if hint != "":
 		host.log_line.emit(hint)
-	elif tossed.size() >= 2:
+	elif want >= 2:
 		host.log_line.emit(Loc.t("log.player.hoop_toss", [label, drop_dir_label(dir)]))
 	else:
 		host.log_line.emit(Loc.t("log.player.toss_one", [label, drop_dir_label(dir)]))
 	return true
 
+
+## Brief foot plant so walk/run cannot overtake the flying box.
+## Short toss: only when already moving. Charged toss: always (aim just unlocked move).
+func _apply_toss_move_pause(force: bool) -> void:
+	if not force:
+		var move_in: Vector2 = host._move_vector() + host.stick_axis
+		var was_moving: bool = (
+			move_in.length() >= Controls.MOVE_DEADZONE
+			or host.velocity.length_squared() > 36.0
+		)
+		if not was_moving:
+			return
+	host._toss_move_pause_left = Tuning.DROP_TOSS_MOVE_PAUSE_SEC
+	host._running = false
+	host._dashing = false
+	host.velocity = Vector2.ZERO
+
 func hoop_ace_side_nudge(dir: Vector2) -> Vector2:
 	if dir.length_squared() < 0.0001:
 		return Vector2(Tuning.HOOP_ACE_SIDE_OFFSET, 0.0)
 	var forward := dir.normalized()
-	## Perpendicular to toss (screen-right of throw direction).
 	return Vector2(-forward.y, forward.x) * Tuning.HOOP_ACE_SIDE_OFFSET
 
 func launch_piece_toss(
@@ -200,7 +236,8 @@ func launch_piece_toss(
 	dir: Vector2,
 	dist: float,
 	land_nudge: Vector2 = Vector2.ZERO,
-	count_flight: bool = true
+	count_flight: bool = true,
+	piece_n: int = 1,
 ) -> void:
 	var game = host._game()
 	if game == null:
@@ -209,13 +246,12 @@ func launch_piece_toss(
 		return
 	if count_flight:
 		host._piece_flights += 1
-	host._piece_drop_lock = true
-	host._running = false
-	host._dashing = false
-	host.velocity = Vector2.ZERO
+	## Flight does not lock locomotion — player can walk while the box flies.
+	host._piece_drop_lock = false
+	host._drop_flight_lock = false
 	game.spawn_dropped_box(host.global_position,
 		sku,
-		1,
+		maxi(1, piece_n),
 		dir,
 		dist,
 		Callable(host, "_on_piece_drop_landed"),
@@ -236,11 +272,6 @@ func sniper_toss_log(sku_name: String, whole_run: bool) -> String:
 
 func on_piece_drop_landed() -> void:
 	host._piece_flights = maxi(0, host._piece_flights - 1)
-	if host._piece_flights > 0:
-		return
-	## Still holding cancel for another short drop: stay stopped until that press ends.
-	if host._cancel_held and not host._cancel_swallowed and not host._cancel_drop_ready:
-		return
 	host._piece_drop_lock = false
 
 func drop_dir_label(dir: Vector2) -> String:
@@ -248,12 +279,12 @@ func drop_dir_label(dir: Vector2) -> String:
 		return Loc.t("dir.right") if dir.x > 0.0 else Loc.t("dir.left")
 	return Loc.t("dir.down") if dir.y > 0.0 else Loc.t("dir.up")
 
-func drop_top_box(toss_dir: Vector2 = Vector2.ZERO, lock_until_land: bool = true) -> void:
+func drop_focused_box(toss_dir: Vector2, n: int, lock_until_land: bool = false) -> void:
 	if host.inventory.is_empty():
 		return
-	var run: Dictionary = host.inventory.trailing_run()
-	var n := int(run["count"])
-	host.inventory.remove_trailing(n)
+	var run: Dictionary = host.inventory.focused_run()
+	n = clampi(n, 1, int(run["count"]))
+	host.inventory.remove_focused(n)
 	var game = host._game()
 	if game:
 		var landed := Callable()
@@ -263,6 +294,9 @@ func drop_top_box(toss_dir: Vector2 = Vector2.ZERO, lock_until_land: bool = true
 			host._dashing = false
 			host.velocity = Vector2.ZERO
 			landed = Callable(host, "_on_drop_flight_done")
+		else:
+			## Unlock on release: clear aim lock; do not wait for land.
+			host._drop_flight_lock = false
 		game.spawn_dropped_box(host.global_position,
 			String(run["id"]),
 			n,
@@ -273,8 +307,20 @@ func drop_top_box(toss_dir: Vector2 = Vector2.ZERO, lock_until_land: bool = true
 			host,
 		)
 
+## Legacy name used by older call sites.
+func drop_top_box(toss_dir: Vector2 = Vector2.ZERO, lock_until_land: bool = false) -> void:
+	var dir := toss_dir
+	if dir.length_squared() < 0.01:
+		dir = toss_dir_or_facing()
+	var n: int = host.inventory.focused_count()
+	drop_focused_box(dir, n, lock_until_land)
+
+
+func discard_top_box() -> void:
+	## Legacy alias — long-press release now uses charged discard.
+	discard_charged_box()
+
 func on_drop_flight_done() -> void:
 	host._drop_flight_lock = false
 	host._cancel_drop_dir = Vector2.ZERO
 	hide_drop_aim()
-
