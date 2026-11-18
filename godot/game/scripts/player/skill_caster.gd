@@ -869,6 +869,38 @@ func cast_slot(i: int) -> void:
 		begin_cast_pose(false)
 		host.skill_cast.emit(Loc.t("skill.kind_cannon.name"), false)
 		return
+	if bool(sk.get("elite_guest_cannon", false)):
+		if not host._round_active():
+			return
+		cancel_must_deliver_aim()
+		cancel_magneto_aim()
+		var game = host._game()
+		if _net_client_predicting():
+			host._cd[sid] = Tuning.cd_seconds(float(sk.get("cd", 45.0)), host._int_now())
+			host.log_line.emit(Loc.t("elite_guest_cannon.deployed"))
+		else:
+			if game == null or not game.has_method("deploy_elite_guest_cannon"):
+				return
+			var was_active := (
+				is_instance_valid(host._elite_guest_cannon)
+				and not bool(host._elite_guest_cannon.get("dismissed"))
+			)
+			host._elite_guest_cannon = game.deploy_elite_guest_cannon(
+				host.global_position, int(sk.get("lv", 3)), host.seat_id
+			)
+			if host._elite_guest_cannon == null:
+				return
+			host._cd[sid] = Tuning.cd_seconds(float(sk.get("cd", 45.0)), host._int_now())
+			host.log_line.emit(
+				Loc.t("elite_guest_cannon.refreshed")
+				if was_active
+				else Loc.t("elite_guest_cannon.deployed")
+			)
+		SfxBus.play("sfx_skill_cast")
+		begin_cast_pose(false)
+		host.skill_cast.emit(Loc.t("skill.elite_guest_cannon.name"), false)
+		play_zoom(false)
+		return
 	if bool(sk.get("self_checkout", false)):
 		if not cast_self_checkout(int(sk.get("lv", 3))):
 			return

@@ -131,6 +131,7 @@ const ACTIVES: Array[Dictionary] = [
 	{"id": "universal_cannon", "kind": "active", "lv": 3, "cost": 2, "universal_cannon": true, "cd": 60.0},
 	{"id": "shelf_cannon", "kind": "active", "lv": 3, "cost": 2, "shelf_cannon": true, "cd": 60.0},
 	{"id": "kind_cannon", "kind": "active", "lv": 3, "cost": 2, "kind_cannon": true, "cd": 90.0},
+	{"id": "elite_guest_cannon", "kind": "active", "lv": 3, "cost": 2, "elite_guest_cannon": true, "duration": 30.0, "cd": 45.0},
 	{"id": "self_checkout", "kind": "active", "lv": 3, "cost": 2, "self_checkout": true, "duration": 15.0, "cd": 30.0},
 	{"id": "calm_zone", "kind": "active", "lv": 3, "cost": 2, "calm_zone": true, "duration": 15.0, "cd": 30.0},
 	{"id": "senior_cashier", "kind": "active", "lv": 3, "cost": 2, "senior_cashier": true, "duration": 45.0, "cd": 15.0},
@@ -190,7 +191,7 @@ const GUEST_DUSK_COUNT := 15
 const GUEST_DUSK_INTERVAL := 2.0
 
 
-## Prep page picks LV1/2/3 for these actives. Unset means LV3.
+## Prep page picks LV1/2/3 for skills with an explicit level choice. Unset means LV3.
 static func prep_picks_level(sk: Dictionary) -> bool:
 	if sk.is_empty():
 		return false
@@ -201,6 +202,7 @@ static func prep_picks_level(sk: Dictionary) -> bool:
 		or bool(sk.get("universal_cannon", false))
 		or bool(sk.get("shelf_cannon", false))
 		or bool(sk.get("kind_cannon", false))
+		or bool(sk.get("elite_guest_cannon", false))
 		or bool(sk.get("self_checkout", false))
 		or bool(sk.get("calm_zone", false))
 		or bool(sk.get("senior_cashier", false))

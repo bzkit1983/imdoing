@@ -386,3 +386,25 @@ func deploy_universal_cannon(_at: Vector2, _level: int, _seat: int) -> Node2D:
 
 func deploy_shelf_cannon(_at: Vector2, _level: int, _seat: int) -> Node2D:
 	return null
+
+
+func deploy_elite_guest_cannon(_at: Vector2, _level: int, _seat: int) -> Node2D:
+	return null
+
+
+func elite_guest_cannon_reserved_count(_guest: Node, _sku: String) -> int:
+	return 0
+
+
+func reserve_elite_guest_cannon_need(_guest: Node, _sku: String) -> bool:
+	return false
+
+
+func release_elite_guest_cannon_need(_target_id: int, _sku: String) -> void:
+	pass
+
+
+func resolve_elite_guest_cannon_delivery(
+	_target: Node, _sku: String, _seat: int, _target_id: int
+) -> bool:
+	return false

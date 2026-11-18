@@ -91,7 +91,7 @@ func collect_agent_transforms() -> Array:
 			continue
 		## Static presentation agents — pose fixed after spawn (M2.3).
 		var kind := String(n.get("kind")) if n.get("kind") != null else ""
-		if kind in ["drop", "dirt", "ops_item", "universal_cannon", "shelf_cannon", "kind_cannon", "calm_zone", "three_volley"]:
+		if kind in ["drop", "dirt", "ops_item", "universal_cannon", "shelf_cannon", "kind_cannon", "elite_guest_cannon", "calm_zone", "three_volley"]:
 			continue
 		var fx := 0.0
 		var fy := 1.0
@@ -178,6 +178,8 @@ func apply_agent_spawn_payload(payload: Dictionary) -> void:
 			host._spawn_shelf_cannon_puppet(aid, pos, payload)
 		"kind_cannon":
 			host._spawn_kind_cannon_puppet(aid, pos, payload)
+		"elite_guest_cannon":
+			host._spawn_elite_guest_cannon_puppet(aid, pos, payload)
 		"calm_zone":
 			host._spawn_calm_zone_puppet(aid, pos, payload)
 		"three_volley":
@@ -245,6 +247,13 @@ func apply_agent_state_payload(payload: Dictionary) -> void:
 	## Cannon ammo label.
 	if payload.has("ammo_n") and n.has_method("apply_net_ammo"):
 		n.call("apply_net_ammo", int(payload.get("ammo_n", 0)), String(payload.get("sku", "")))
+		return
+	if payload.has("elite_guest_cannon_remaining") and n.has_method("apply_net_refresh"):
+		n.call(
+			"apply_net_refresh",
+			float(payload.get("elite_guest_cannon_remaining", 30.0)),
+			int(payload.get("level", 3)),
+		)
 		return
 	if payload.has("kind_converted"):
 		host._resolve_net_kind_conversion(n)

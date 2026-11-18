@@ -97,6 +97,8 @@ var _guest_dusk_in: float = 0.0
 ## 三段火槍陣: per-cast follow-up volleys use real seconds, unaffected by The World.
 var _three_volley_casts: Array[Dictionary] = []
 var _three_volley_visuals: Array[Node2D] = []
+## Host-only pending deliveries keyed by customer instance id then SKU.
+var _elite_guest_cannon_reservations: Dictionary = {}
 var _player: CharacterBody2D
 ## M1 local coop: all seated players. `_player` stays seat0 alias.
 var _players: Array[CharacterBody2D] = []
@@ -2471,6 +2473,19 @@ func _spawn_kind_cannon_puppet(aid: int, pos: Vector2, payload: Dictionary) -> v
 	_net_agents[aid] = cannon
 
 
+func _spawn_elite_guest_cannon_puppet(aid: int, pos: Vector2, payload: Dictionary) -> void:
+	var cannon: Node2D = preload("res://scripts/elite_guest_cannon.gd").new()
+	cannon.host = self
+	cannon.level = clampi(int(payload.get("level", 3)), 1, 3)
+	cannon.owner_seat = int(payload.get("owner_seat", 0))
+	cannon.remaining = clampf(float(payload.get("remaining", 30.0)), 0.0, 30.0)
+	cannon.net_puppet = true
+	cannon.net_agent_id = aid
+	_world.add_child(cannon)
+	cannon.global_position = pos
+	_net_agents[aid] = cannon
+
+
 func _spawn_calm_zone_puppet(aid: int, pos: Vector2, payload: Dictionary) -> void:
 	var zone: Node2D = preload("res://scripts/calm_zone.gd").new()
 	zone.host = self
@@ -3098,6 +3113,8 @@ func _finish_day() -> void:
 	dismiss_universal_cannons()
 	dismiss_shelf_cannons()
 	dismiss_kind_cannons()
+	dismiss_elite_guest_cannons()
+	_elite_guest_cannon_reservations.clear()
 	## Unsold shelf + floor (+ in-flight) pieces → warehouse boxes before save.
 	_return_unsold_to_warehouse()
 	var seat_n := maxi(1, SessionService.open_day_seat_n if SessionService.is_networked() else SeatTable.seat_count)
@@ -4752,6 +4769,102 @@ func deploy_kind_cannon(at: Vector2, level: int, seat: int) -> Node2D:
 	return cannon
 
 
+func deploy_elite_guest_cannon(at: Vector2, level: int, seat: int) -> Node2D:
+	if _world == null or phase not in ["open", "restock"]:
+		return null
+	if SessionService.is_networked() and SessionService.is_client():
+		return null
+	for child in _world.get_children():
+		if str(child.get("kind")) != "elite_guest_cannon" or int(child.get("owner_seat")) != seat:
+			continue
+		if child.get("dismissed") == true:
+			continue
+		child.refresh_level(level)
+		return child
+	var cannon: Node2D = preload("res://scripts/elite_guest_cannon.gd").new()
+	cannon.host = self
+	cannon.level = clampi(level, 1, 3)
+	cannon.owner_seat = seat
+	_world.add_child(cannon)
+	cannon.global_position = at
+	_register_net_agent(cannon, "elite_guest_cannon", {
+		"owner_seat": seat,
+		"level": cannon.level,
+		"remaining": 30.0,
+	})
+	return cannon
+
+
+func elite_guest_cannon_reserved_count(guest: Node, sku: String) -> int:
+	if guest == null or not is_instance_valid(guest) or sku == "":
+		return 0
+	var by_sku = _elite_guest_cannon_reservations.get(guest.get_instance_id(), {})
+	return int(by_sku.get(sku, 0)) if by_sku is Dictionary else 0
+
+
+func reserve_elite_guest_cannon_need(guest: Node, sku: String) -> bool:
+	if (
+		guest == null
+		or not is_instance_valid(guest)
+		or sku == ""
+		or guest.get("is_elite") != true
+		or guest.get("temp_clerk") == true
+		or not guest.has_method("can_receive_delivery")
+		or not bool(guest.call("can_receive_delivery"))
+	):
+		return false
+	var shopping = guest.get("shopping")
+	if not (shopping is Array):
+		return false
+	var needed := 0
+	for requested in shopping:
+		if String(requested) == sku:
+			needed += 1
+	if needed <= elite_guest_cannon_reserved_count(guest, sku):
+		return false
+	var target_id := guest.get_instance_id()
+	var by_sku: Dictionary = _elite_guest_cannon_reservations.get(target_id, {})
+	by_sku[sku] = int(by_sku.get(sku, 0)) + 1
+	_elite_guest_cannon_reservations[target_id] = by_sku
+	return true
+
+
+func release_elite_guest_cannon_need(target_id: int, sku: String) -> void:
+	if target_id <= 0 or not _elite_guest_cannon_reservations.has(target_id):
+		return
+	var by_sku: Dictionary = _elite_guest_cannon_reservations[target_id]
+	var left := int(by_sku.get(sku, 0)) - 1
+	if left > 0:
+		by_sku[sku] = left
+	else:
+		by_sku.erase(sku)
+	if by_sku.is_empty():
+		_elite_guest_cannon_reservations.erase(target_id)
+	else:
+		_elite_guest_cannon_reservations[target_id] = by_sku
+
+
+func resolve_elite_guest_cannon_delivery(
+	guest: Node, sku: String, seat: int, target_id: int
+) -> bool:
+	release_elite_guest_cannon_need(target_id, sku)
+	if (
+		guest == null
+		or not is_instance_valid(guest)
+		or guest.get("is_elite") != true
+		or guest.get("temp_clerk") == true
+		or not guest.has_method("can_receive_delivery")
+		or not bool(guest.call("can_receive_delivery"))
+		or not guest.has_method("accept_toss_box")
+	):
+		return false
+	var accepted := int(guest.call("accept_toss_box", sku, 1))
+	if accepted != 1:
+		return false
+	note_deliver(seat, "cannon", 1, false)
+	return true
+
+
 func deploy_calm_zone(at: Vector2, level: int, seat: int) -> Node2D:
 	if _world == null or phase not in ["open", "restock"]:
 		return null
@@ -4804,6 +4917,14 @@ func dismiss_kind_cannons() -> void:
 		return
 	for child in _world.get_children():
 		if str(child.get("kind")) == "kind_cannon":
+			child.dismiss()
+
+
+func dismiss_elite_guest_cannons() -> void:
+	if _world == null:
+		return
+	for child in _world.get_children():
+		if str(child.get("kind")) == "elite_guest_cannon":
 			child.dismiss()
 
 

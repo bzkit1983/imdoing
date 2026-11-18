@@ -33,6 +33,7 @@ var ops_bag: Array[String] = OpsItems.empty_bag()
 var _cannon: Node2D
 var _shelf_cannon: Node2D
 var _kind_cannon: Node2D
+var _elite_guest_cannon: Node2D
 var stamina: float = Tuning.stamina_max()
 var facing: Vector2 = Vector2.RIGHT
 var hold_progress: float = 0.0
