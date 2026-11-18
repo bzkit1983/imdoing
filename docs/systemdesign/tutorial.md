@@ -6,8 +6,11 @@
 - 文案：`Loc`（`tut.*`／`pause.tutorial.*`；見 `docs/alpha/i18n.md`）
 - 營運任務交叉：`tasksystem.md`（教學不走 `task_test_mode`）
 - 暫停重溫：`pausemenu.md`
-- 劇本入口：劇本 5「教學模式」（僅 `ProductVersion.test_tools_enabled()`）
-- **產品化（H2 仍開）：** 教學**框架**與劇本 5 鏈已落地；**預設新檔**的第一日引導打磨驗收見 [`docs/alpha/steam-productization.md`](../alpha/steam-productization.md)
+- 劇本入口：
+  - **產品（H2）：** 無存檔進入劇本頁時，先問「開始教學」→ `apply_scenario(5)`，或「跳過教學」→ `apply_scenario(1)`＋`tutorial_skipped`
+  - **測試工具：** 清單仍可另列劇本 5（`ProductVersion.test_tools_enabled()`）
+- **跳過：** 劇本頁拒絕；或教學模態「跳過教學」／強制頁 `cancel` → `TutorialDirector.skip_campaign()`（標全部課 `done`＋`tutorial_skipped`，寫存檔）
+- **產品化（H2 Done）：** 框架＋劇本 5 鏈＋新檔入場／跳過；驗收見 [`docs/alpha/steam-productization.md`](../alpha/steam-productization.md)
 
 ## 範圍
 

@@ -7,11 +7,13 @@ const UiFont = preload("res://scripts/ui_font.gd")
 
 signal finished
 signal cancelled
+signal skip_requested
 
 var _pages: Array = []
 var _index: int = 0
 var _review: bool = false
 var _open_queued: bool = false
+var _skip_btn: Button = null
 
 @onready var _shade: ColorRect = %Shade
 @onready var _card: PanelContainer = %Card
@@ -45,6 +47,7 @@ func _ready() -> void:
 	_next_btn.focus_mode = Control.FOCUS_NONE
 	_prev_btn.pressed.connect(_on_prev)
 	_next_btn.pressed.connect(_on_next)
+	_ensure_skip_btn()
 	## Ensure shade／card eat mouse so prep／world do not receive clicks underneath.
 	_shade.mouse_filter = Control.MOUSE_FILTER_STOP
 	_card.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -120,6 +123,35 @@ func _paint() -> void:
 		_next_btn.text = Loc.t("tut.modal.close" if _review else "tut.modal.practice")
 	else:
 		_next_btn.text = Loc.t("tut.modal.next")
+	_ensure_skip_btn()
+	if _skip_btn:
+		_skip_btn.visible = not _review
+		_skip_btn.text = Loc.t("tut.skip")
+
+
+func _ensure_skip_btn() -> void:
+	if _skip_btn != null and is_instance_valid(_skip_btn):
+		return
+	var nav := _next_btn.get_parent() if _next_btn else null
+	if nav == null:
+		return
+	_skip_btn = Button.new()
+	_skip_btn.name = "SkipBtn"
+	_skip_btn.focus_mode = Control.FOCUS_NONE
+	_skip_btn.custom_minimum_size = Vector2(160, 56)
+	_skip_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiFont.apply_button(_skip_btn, 20)
+	_skip_btn.text = Loc.t("tut.skip")
+	_skip_btn.pressed.connect(_on_skip)
+	nav.add_child(_skip_btn)
+
+
+func _on_skip() -> void:
+	if _review:
+		return
+	SfxBus.play("sfx_ui_cancel")
+	close_modal(false)
+	skip_requested.emit()
 
 
 func _on_prev() -> void:
@@ -157,6 +189,9 @@ func _input(event: InputEvent) -> void:
 		if _review:
 			SfxBus.play("sfx_ui_cancel")
 			close_modal(true)
+		elif not _review:
+			## Forced lesson: cancel skips the whole campaign (H2).
+			_on_skip()
 		get_viewport().set_input_as_handled()
 		return
 	## D-PAD is on bag_slot_* in ops; still accept it here for page flip.

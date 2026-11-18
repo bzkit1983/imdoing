@@ -13,6 +13,18 @@ pause.tutorial,教學,Tutorial,教学,チュートリアル
 pause.tutorial.title,教學重溫,Tutorial review,教学重温,チュートリアル復習
 pause.tutorial.back,返回,Back,返回,戻る
 pause.tutorial.empty,尚無已完成的教學,No completed tutorials yet,尚无已完成的教学,完了したチュートリアルはまだありません
+pause.settings,設定,Settings,设定,設定
+pause.settings.title,設定,Settings,设定,設定
+pause.settings.back,返回,Back,返回,戻る
+prep.settings,設定,Settings,设定,設定
+prep.settings.title,設定,Settings,设定,設定
+prep.settings.info,音效／音樂／語言／鏡頭／觸控搖桿。音量列用 A／D（←／→）加減，寫入本機設定跨局保留。,SFX / BGM / language / camera / touch stick. On a volume row, A/D (←/→) changes level. Saved locally across sessions.,音效／音乐／语言／镜头／触控摇杆。音量列用 A／D（←／→）加减，写入本机设定跨局保留。,効果音／BGM／言語／カメラ／タッチスティック。音量行は A／D（←／→）で調整。端末設定に保存され引き継がれます。
+prep.scenario.offer_body,新檔先選：開始教學，或跳過教學直接開店。也可選其他劇本。,New save: start the tutorial, or skip and open the shop. Other scenarios are listed below.,新档先选：开始教学，或跳过教学直接开店。也可选其他剧本。,新規セーブ：チュートリアル開始、またはスキップして開店。他のシナリオも選べます。
+prep.scenario.start_tutorial,開始教學　LV1　$3000　空店（簡易）,Start tutorial · LV1 · $3000 · empty shop (Easy),开始教学　LV1　$3000　空店（简易）,チュートリアル開始　LV1　$3000　空き店（簡易）
+prep.scenario.skip_tutorial,跳過教學　從新開始　$10000　LV1　空店,Skip tutorial · Fresh start · $10000 · LV1 · empty,跳过教学　从新开始　$10000　LV1　空店,チュートリアルをスキップ　新規　$10000　LV1　空き店
+tut.skip,跳過教學,Skip tutorial,跳过教学,チュートリアルをスキップ
+tut.skip.confirm,確定跳過其餘教學？,Skip the rest of the tutorial?,确定跳过其余教学？,残りのチュートリアルをスキップしますか？
+tut.skip.done,已跳過教學,Tutorial skipped,已跳过教学,チュートリアルをスキップしました
 tut.modal.prev,上一步,Back,上一步,戻る
 tut.modal.next,下一步,Next,下一步,次へ
 tut.modal.practice,開始練習,Start practice,开始练习,練習を始める

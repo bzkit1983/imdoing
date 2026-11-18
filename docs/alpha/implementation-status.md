@@ -59,5 +59,6 @@
 | 收銀取消 Circle＋INT／技能重做（2026-11-18） | **`cashiersystem.md`**、`playerstats.md`、`playeractiveskills.md`、`playerpassiveskills.md`；日誌 [`Bzho_log/20261118_….md`](../Bzho_log/20261118_收銀取消Circle與INT技能重做.md) | 指令完成即入帳（無 Loading Circle）；INT 減次數＋親收加錢；`checkout_rush`／`checkout_speed`／`senior_cashier` 重做；店員／影分身／Dark Side 就緒即收 |
 | EA 範圍聲明（H3） | **`docs/versioning.md`**；`docs/alpha/design.md`；tech-review H3 | **已拍板：** Steam EA／現行＝純日循環；不做失敗／過關／提早關店敘事；敘事／事件留 Beta |
 | Steam Cloud／成就接線（H1 半程） | **`docs/alpha/steam-productization.md`**；`godotsteam-setup.md` | `steam_platform.gd`：`fileWrite`／`fileRead`／`setAchievement`＋`storeStats`；正式 App ID 仍 Open（480） |
+| 完整設定頁＋首日引導（H2） | **`docs/alpha/steam-productization.md`**；`pausemenu.md`；`tutorial.md` | 暫停「設定」子選單＋準備「系統工具→設定」；新檔開始／跳過教學；`tutorial_skipped`＋模態跳過；暫停可重溫 |
 
 仍缺（非 §6）：完整設定頁、**第一日引導打磨**（教學框架已落地）、技能演出鎖輸入、正式 App ID／Cloud／成就、M4 Web——見 `docs/alpha/design.md`、`multiplayer.md` §13／§15。事件 SFX／BGM 音量已在暫停選單（BGM 亦在準備系統工具）。prep UI 已拆為 `scenes/prep_menu.tscn` + `scripts/prep/`。**教學框架**已落地（`docs/systemdesign/tutorial.md`）；劇本 5 開局鏈已有 prep 購入家具／採購罐頭／店鋪設計／角色能力配點／裝備技能／開發商品／採購新貨／擴充商店物品／擴充店鋪設計／第二台收銀機／招募店員（教學鏈終點）與 ops 上架／清潔／收銀／捉小偷／客人交付／完成一日／空貨架提示／第二日使用技能／第三日評價點數（OP-TUT-001 練習＋完美交付 tip）。

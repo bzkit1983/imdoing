@@ -191,7 +191,7 @@ PlatformServices：Desktop 實作完整；Steam 後端 **磁碟路徑可用、Cl
 - [x] **G1** GitHub Actions：既有 `tools/test_*.py` 於 PR（`.github/workflows/ci.yml` → `tools/run_ci_static.py`）；Godot `*_check.gd` 仍本機／可選（需 `GODOT=`）；少數過時契約列 quarantine
 - [x] **G2** 最少一條多人煙霧（本機 host＋client intent／開日／日結）— 手動清單 [`multiplayer-smoke-checklist.md`](multiplayer-smoke-checklist.md)＋靜態錨點 `tools/test_multiplayer_smoke_contract.py`
 - [ ] **H1** 正式 Steam App ID（仍 480）— Cloud／成就 **API 已接**（`steam_platform.gd`；見 [`steam-productization.md`](steam-productization.md)）；換正式 ID＋Partner Cloud／成就表後收尾
-- [ ] **H2** 完整設定頁；**第一日引導打磨**（**教學框架已落地**——`tutorial.md`／劇本 5；BGM Bus＋音量已在暫停／準備；驗收清單見 [`steam-productization.md`](steam-productization.md)）
+- [x] **H2** 完整設定頁＋第一日引導打磨（2026-11-18）— 暫停／準備「設定」殼；新檔開始／跳過教學；模態可跳過；見 [`steam-productization.md`](steam-productization.md)
 - [x] **H3** EA 範圍已文件拍板（2026-11-18）：現行／Steam EA＝**純日循環**；**不做**失敗／過關／提早關店敘事（見 `docs/versioning.md`、`docs/alpha/design.md`、[`steam-productization.md`](steam-productization.md)；敘事／事件留 Beta）
 - [x] **I1** 回寫過時 `docs/alpha/design.md`（COMBO／取貨等）— 改標已實作並指向 `customerdelivery.md`／`fetchcombo.md`／`implementation-status`；gaps／animation-pending 交叉引用一併修正
 - [x] **J1** 滿店＋技能＋雙人 Profiler 基線文件化— [`perf-baseline-j1.md`](perf-baseline-j1.md)（手動滿載配方＋`tools/j1_perf_probe.sh` 空店 settle 首筆；Deck／Switch 待補列）

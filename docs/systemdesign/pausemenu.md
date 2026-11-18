@@ -7,7 +7,7 @@
 - 音效設定：`SfxBus`（`user://settings.cfg` → `[audio] sfx_muted`、`sfx_volume`）
 - 背景音樂：`BgmBus`（同檔 `[audio] bgm_muted`、`bgm_volume`；規則見 `bgm.md`）
 - UI 偏好：`PlatformServices`（同檔 `[ui] virtual_stick`、`camera_view`、`locale`）
-- **完整設定頁（H2 仍開）：** 上列音量／語言／鏡頭／搖桿已在暫停主列＋準備系統工具；收成單一「設定」殼的驗收見 [`docs/alpha/steam-productization.md`](../alpha/steam-productization.md)
+- **完整設定頁（H2 Done）：** 暫停「設定」子選單＋準備「系統工具→設定」；驗收見 [`docs/alpha/steam-productization.md`](../alpha/steam-productization.md)
 
 ## 何時可開
 
@@ -26,19 +26,21 @@
 
 主畫面說明文（`pause.body`／`pause.body_suspend`）與提示小字（`pause.hint`／`pause.hint_touch`）僅在 **顯示開發用資訊**（`PlatformServices.is_show_dev_hud()`）開啟時顯示。語言／任務詳情子頁仍可顯示其自身說明。
 
-選項：
+選項（主列，H2 起）：
 
 1. **繼續遊戲** — 解除 `get_tree().paused`，回到店舖  
 2. **任務詳情** — 子畫面列出本座進行中任務（名稱【】＋描述＋進度／狀態）；返回回到暫停主列。資料來自當日 `task_hud_lines`  
 3. **教學** — 子畫面列出已完成的教學單元，可重溫講解分頁（不強制練習）。契約見 `tutorial.md`  
-4. **音效：開／關** — 靜音事件 SFX（不含 BGM；跨局保留）  
-5. **音效聲量：N%** — 0–100%、每檔 10%；−／＋ 或 A／D；J／點中間可試聽  
-6. **背景音樂：開／關** — 靜音 BGM（跨局保留；與準備「系統工具」共用）  
-7. **背景音樂聲量：N%** — 0–100%、每檔 10%；−／＋ 或 A／D；J／點中間可試聽（見 `bgm.md`）  
-8. **虛擬搖桿：開／關** — 與準備「系統工具」共用 `[ui] virtual_stick`（預設關）。開後只在觸控活躍時顯示；手掣／鍵盤自動隱藏（見 `inputmodes-vj.md`）。Desktop 編輯器亦顯示此列方便預覽  
-9. **鏡頭：正常／稍遠／全地圖** — 循環三種視野（見 `control.md`）。寫入 `user://settings.cfg` → `[ui] camera_view`（`normal`｜`far`｜`overview`，預設 `normal`）。改完繼續即套用，之後營運日沿用。營運中亦可用 Xbox 視圖鍵／鍵盤 `V` 循環（暫停開著時改由本列操作）  
-10. **語言** — 先開「選擇語言」子畫面，再從 `Loc.locales()`／CSV 欄支援列表（`zh_TW`／`en`／`zh_CN`／`ja`）選一項；寫入 `[ui] locale`（預設 `zh_TW`）。主列文案為「語言：%s」，語系名用各語 **endonym**（繁體中文／English／简体中文／日本語，不隨 UI 語系翻譯）。取消／返回不改語系。與準備「系統工具」共用；選定後當頁文案即刷。見 `docs/alpha/i18n.md`  
-11. **結束本日並結算** — 等同 HUD「馬上完成營運」（`skip_operate`）。**線上：僅 Host 機**可觸發；client 無此項或按下無效（`multiplayer.md` §12.6）。若有強制教學步驟未完成則擋住（見 `tutorial.md`）
+4. **設定** — 子畫面收束下列控制（寫入既有 `user://settings.cfg`；與準備「系統工具→設定」同一套 API）：
+   - **音效：開／關** — 靜音事件 SFX（不含 BGM；跨局保留）  
+   - **音效聲量：N%** — 0–100%、每檔 10%；−／＋ 或 A／D；J／點中間可試聽  
+   - **背景音樂：開／關** — 靜音 BGM（跨局保留）  
+   - **背景音樂聲量：N%** — 0–100%、每檔 10%；−／＋ 或 A／D；J／點中間可試聽（見 `bgm.md`）  
+   - **虛擬搖桿：開／關** — `[ui] virtual_stick`（預設關）。開後只在觸控活躍時顯示；手掣／鍵盤自動隱藏（見 `inputmodes-vj.md`）  
+   - **鏡頭：正常／稍遠／全地圖** — 循環三種視野（見 `control.md`）。`[ui] camera_view`（`normal`｜`far`｜`overview`）。營運中亦可用 Xbox 視圖鍵／鍵盤 `V` 循環  
+   - **語言** — 再開「選擇語言」子畫面；`Loc.locales()`；`[ui] locale`（預設 `zh_TW`）。見 `docs/alpha/i18n.md`  
+   - **返回** — 回暫停主列  
+5. **結束本日並結算** — 等同 HUD「馬上完成營運」（`skip_operate`）。**線上：僅 Host 機**可觸發；client 無此項或按下無效（`multiplayer.md` §12.6）。若有強制教學步驟未完成則擋住（見 `tutorial.md`）
 
 > 手機 Web 沒有 Esc／Start：用右上「暫停」。系統掛起（切 App／鎖屏）仍會經 `PlatformServices` 自動開暫停選單。
 
