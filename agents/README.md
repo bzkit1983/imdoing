@@ -22,6 +22,12 @@ agents/
 | `tutorial-content` | [`skills/tutorial-content/SKILL.md`](skills/tutorial-content/SKILL.md) | Design／validate／ship one full tutorial Lesson (pages＋forced steps＋catalog／locale) → Validation Report |
 | `pause-ui-chrome` | [`skills/pause-ui-chrome/SKILL.md`](skills/pause-ui-chrome/SKILL.md) | 動森暖系 Cozy Pause frames／buttons asset pack；Gemini paste: [`imdoing-pause-ui-chrome.md`](skills/pause-ui-chrome/imdoing-pause-ui-chrome.md) |
 
+Living design specs (not skills — link, don’t duplicate):
+
+| Spec | Path |
+| --- | --- |
+| UI Type Scale／Spacing | [`docs/systemdesign/uitypography.md`](../docs/systemdesign/uitypography.md) |
+
 ## Conventions
 
 - One skill = one folder + `SKILL.md`.

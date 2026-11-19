@@ -13,8 +13,9 @@ const FOCUS_RESUME := 0
 const FOCUS_TASKS := 1
 const FOCUS_TUTORIAL := 2
 const FOCUS_SETTINGS := 3
-const FOCUS_END := 4
-const FOCUS_COUNT := 5
+const FOCUS_LANG := 4
+const FOCUS_END := 5
+const FOCUS_COUNT := 6
 ## Settings submenu focus (when _settings).
 const SET_SFX := 0
 const SET_VOL := 1
@@ -22,11 +23,43 @@ const SET_BGM := 2
 const SET_BGM_VOL := 3
 const SET_STICK := 4
 const SET_CAMERA := 5
-const SET_LANG := 6
-const SET_BACK := 7
-const SET_COUNT := 8
+const SET_BACK := 6
+const SET_COUNT := 7
 
 const TutorialCatalog = preload("res://scripts/tutorial/tutorial_catalog.gd")
+
+## pause-ui-chrome + docs/systemdesign/uitypography.md
+const COL_COCOA := Color("5C4938")
+const COL_TAUPE := Color("9C8B7A")
+const SIZE_CAPTION := 16
+const SIZE_BODY_SM := 22
+const SIZE_BODY := 29
+const SIZE_HEADING_SM := 43
+const SPACE_12 := 12.0
+const SPACE_24 := 24.0
+const SPACE_30 := 30.0
+## Editor-tuned (pause_menu.tscn bake) — left title／body, right pill column.
+const ROW_H_MAX := 84.0
+const ROW_H_MIN := 56.0
+const ROW_LEFT := 345.0
+const ROW_RIGHT := 681.0
+const VOL_ROW_LEFT := 223.0
+const VOL_ROW_RIGHT := 803.0
+const ROW_GAP := 2.0
+const ROWS_TOP_MAIN := 58.0
+const ROWS_TOP_SETTINGS := 58.0
+const TITLE_LEFT := 66.0
+const TITLE_RIGHT := 245.0
+const TITLE_TOP := 57.0
+const TITLE_BOTTOM := 120.0
+const BODY_LEFT := 69.0
+const BODY_RIGHT := 299.0
+const BODY_TOP := 125.0
+const BODY_BOTTOM := 292.0
+const VOL_MINI := 60.0
+## Mid pill vs ± nest (editor: ± ends past mid start by ~14px).
+const VOL_SIDE_NEST := 14.0
+const GAP_MIN := -4.0
 
 var game: Node
 var _open: bool = false
@@ -55,10 +88,12 @@ var _tut_review_btns: Array[Button] = []
 var _tut_review_ids: Array[String] = []
 var _tut_review_focus: int = 0
 var _tut_review_scroll: ScrollContainer = null
-## Settings submenu (SFX／BGM／stick／camera／language).
+## Settings submenu (SFX／BGM／stick／camera／back). Language stays on main list.
 var _settings: bool = false
 var _settings_focus: int = 0
-var _settings_back: Button = null
+## Brief yellow flash on ± while nudging volume (mid pill stays focus yellow).
+var _vol_flash_btn: Button = null
+var _vol_flash_gen: int = 0
 
 @onready var _shade: ColorRect = %Shade
 @onready var _title: Label = %Title
@@ -80,6 +115,8 @@ var _settings_back: Button = null
 @onready var _camera_btn: Button = %CameraBtn
 @onready var _lang_btn: Button = %LangBtn
 @onready var _end_btn: Button = %EndDayBtn
+## Scene node (editor-tuned); was runtime Button.new().
+@onready var _settings_back: Button = %SettingbackBtn
 
 
 func setup(host: Node) -> void:
@@ -88,21 +125,31 @@ func setup(host: Node) -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	visible = false
 	_open = false
-	UiFont.apply_label(_title, 40)
-	_title.add_theme_color_override("font_color", Color("f4d35e"))
-	UiFont.apply_label(_body, 24)
-	_body.add_theme_color_override("font_color", Color("f4f1ea"))
-	UiFont.apply_label(_hint, 20)
-	_hint.add_theme_color_override("font_color", Color("c8c2b4"))
+	UiFont.apply_title_bold(_title, SIZE_HEADING_SM)
+	_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	_title.add_theme_color_override("font_color", COL_COCOA)
+	UiFont.apply_label(_body, SIZE_BODY)
+	_body.add_theme_color_override("font_color", COL_TAUPE)
+	UiFont.apply_label(_hint, SIZE_CAPTION)
+	_hint.add_theme_color_override("font_color", COL_TAUPE)
 	for b in [
 		_resume_btn, _tasks_btn, _tutorial_btn, _settings_btn, _sfx_btn, _vol_btn, _vol_down, _vol_up,
 		_bgm_btn, _bgm_vol_btn, _bgm_vol_down, _bgm_vol_up,
-		_stick_btn, _camera_btn, _lang_btn, _end_btn,
+		_stick_btn, _camera_btn, _lang_btn, _end_btn, _settings_back,
 	]:
 		if b == null:
 			continue
-		UiFont.apply_button(b, 22)
+		UiFont.apply_button_literal(b, SIZE_BODY_SM)
 		b.focus_mode = Control.FOCUS_NONE
+	_mark_mini_btn(_vol_down)
+	_mark_mini_btn(_vol_up)
+	_mark_mini_btn(_bgm_vol_down)
+	_mark_mini_btn(_bgm_vol_up)
+	## Do not clip VolRow — short rows used to crop cream mini ± into gray stubs.
+	if _vol_btn != null and _vol_btn.get_parent() is Control:
+		(_vol_btn.get_parent() as Control).clip_contents = false
+	if _bgm_vol_btn != null and _bgm_vol_btn.get_parent() is Control:
+		(_bgm_vol_btn.get_parent() as Control).clip_contents = false
 	_resume_btn.pressed.connect(_on_resume)
 	if _tasks_btn:
 		_tasks_btn.pressed.connect(_enter_tasks_detail)
@@ -126,6 +173,9 @@ func setup(host: Node) -> void:
 	_camera_btn.pressed.connect(_on_camera_cycle)
 	_lang_btn.pressed.connect(_enter_lang_pick)
 	_end_btn.pressed.connect(_on_end_day)
+	_wire_settings_back()
+	## Editor default: main page visible, settings chrome hidden.
+	_set_main_options_visible(true)
 	_set_settings_options_visible(false)
 	_paint_focus()
 	_refresh_audio_labels()
@@ -291,7 +341,6 @@ func _refresh_copy() -> void:
 		_refresh_audio_labels()
 		_refresh_stick_row()
 		_refresh_camera_row()
-		_refresh_lang_row()
 		_refresh_hint_visibility()
 		return
 	if _tasks_detail:
@@ -332,6 +381,7 @@ func _refresh_copy() -> void:
 		_tutorial_btn.text = Loc.t("pause.tutorial")
 	if _settings_btn:
 		_settings_btn.text = Loc.t("pause.settings")
+	_refresh_lang_row()
 	_end_btn.text = Loc.t("pause.end_day")
 	## Do not refresh settings-only rows here — that would re-show them on the main list.
 	_refresh_hint_visibility()
@@ -375,14 +425,16 @@ func _on_show_dev_hud_changed(_enabled: bool) -> void:
 
 
 func _refresh_hint_visibility() -> void:
-	## Body＋control-hint chrome are for developers; players use the option buttons.
+	## Body＋control-hint chrome are for developers on main／settings; subpages may show context.
 	var show := PlatformServices.is_show_dev_hud()
 	if _hint:
-		_hint.visible = show
+		_hint.visible = show and not _settings
 	if _body:
-		## Keep body visible in language／tasks／tutorial subpages (they reuse it for context).
-		if _lang_pick or _tasks_detail or _tut_review or _settings:
+		## Language／tasks／tutorial reuse body for context; settings keeps title-only chrome.
+		if _lang_pick or _tasks_detail or _tut_review:
 			_body.visible = true
+		elif _settings:
+			_body.visible = false
 		else:
 			_body.visible = show
 	if _open and not _lang_pick and not _tasks_detail and not _tut_review:
@@ -523,12 +575,12 @@ func _refresh_lang_row() -> void:
 	var code := Loc.get_locale()
 	var endonym := Loc.t("locale.name.%s" % code)
 	_lang_btn.text = Loc.t("pause.language", [endonym])
-	if _settings:
+	if _open and not _settings and not _lang_pick and not _tasks_detail and not _tut_review:
 		_layout_option_rows()
 
 
 func _layout_option_rows() -> void:
-	## Fit all main options inside the 720p card without overlapping the header.
+	## Editor-tuned narrow pills; volume rows stay wider.
 	if _resume_btn == null or _end_btn == null:
 		return
 	var card := _resume_btn.get_parent() as Control
@@ -554,8 +606,6 @@ func _layout_option_rows() -> void:
 			rows.append(_stick_btn)
 		if _camera_btn != null and _camera_btn.visible:
 			rows.append(_camera_btn)
-		if _lang_btn != null and _lang_btn.visible:
-			rows.append(_lang_btn)
 		if _settings_back != null and _settings_back.visible:
 			rows.append(_settings_back)
 	else:
@@ -566,87 +616,98 @@ func _layout_option_rows() -> void:
 			rows.append(_tutorial_btn)
 		if _settings_btn != null and _settings_btn.visible:
 			rows.append(_settings_btn)
+		if _lang_btn != null and _lang_btn.visible:
+			rows.append(_lang_btn)
 		if _end_btn != null and _end_btn.visible:
 			rows.append(_end_btn)
 	var n := rows.size()
 	if n <= 0:
 		return
-	var gap := 4.0
-	var bottom_pad := 8.0
+	var gap := ROW_GAP
+	var bottom_pad := SPACE_24
 	var y0 := header_h
 	var avail := maxf(80.0, inner_h - y0 - bottom_pad)
-	var row_h := (avail - gap * float(n - 1)) / float(n)
-	row_h = clampf(row_h, 28.0, 52.0)
-	## If clamped min still overflows, pull start up under the title only.
+	var row_h := ROW_H_MAX
 	var need := row_h * float(n) + gap * float(n - 1)
-	if y0 + need > inner_h - bottom_pad:
-		y0 = maxf(64.0, inner_h - bottom_pad - need)
-		avail = maxf(80.0, inner_h - y0 - bottom_pad)
-		row_h = clampf((avail - gap * float(n - 1)) / float(n), 26.0, 52.0)
-	var font_px := 22 if row_h >= 40.0 else (18 if row_h >= 32.0 else 16)
+	if need > avail:
+		## Prefer keeping plump height; allow slightly tighter (more negative) gap first.
+		var gap_need := (avail - row_h * float(n)) / float(maxi(n - 1, 1))
+		if gap_need >= GAP_MIN:
+			gap = gap_need
+		else:
+			gap = GAP_MIN
+			bottom_pad = maxf(8.0, bottom_pad - 8.0)
+			avail = maxf(80.0, inner_h - y0 - bottom_pad)
+			row_h = (avail - gap * float(n - 1)) / float(n)
+			row_h = clampf(row_h, ROW_H_MIN, ROW_H_MAX)
+	var font_px := SIZE_BODY_SM if row_h >= 56.0 else (18 if row_h >= 48.0 else SIZE_CAPTION)
 	var y := y0
 	var vol_parent := _vol_btn.get_parent() if _vol_btn else null
 	var bgm_vol_parent := _bgm_vol_btn.get_parent() if _bgm_vol_btn else null
 	for row in rows:
-		row.offset_left = 36.0
-		row.offset_right = 764.0
+		var is_vol := row == vol_parent or row == bgm_vol_parent
+		if is_vol:
+			row.offset_left = VOL_ROW_LEFT
+			row.offset_right = VOL_ROW_RIGHT
+		else:
+			row.offset_left = ROW_LEFT
+			row.offset_right = ROW_RIGHT
 		row.offset_top = y
 		row.offset_bottom = y + row_h
 		if row is Button:
-			UiFont.apply_button(row as Button, font_px)
-		if row == vol_parent or row == bgm_vol_parent:
+			UiFont.apply_button_literal(row as Button, font_px)
+		if is_vol:
 			_layout_volume_row(row, row_h, font_px)
 		y += row_h + gap
 
 
-## Pack title／optional body／hint; returns Y where option rows may start.
+## Left-column title／body; right-column rows start at ROWS_TOP_* (body does not push Y).
 func _layout_header_block() -> float:
-	var y := 12.0
 	if _title:
-		_title.offset_left = 36.0
-		_title.offset_right = 764.0
-		_title.offset_top = y
-		_title.offset_bottom = y + 44.0
-		y = _title.offset_bottom + 6.0
+		_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		_title.offset_left = TITLE_LEFT
+		_title.offset_right = TITLE_RIGHT
+		_title.offset_top = TITLE_TOP
+		_title.offset_bottom = TITLE_BOTTOM
 	if _body != null and _body.visible:
-		_body.offset_left = 36.0
-		_body.offset_right = 764.0
-		_body.offset_top = y
-		_body.offset_bottom = y + 56.0
-		y = _body.offset_bottom + 4.0
-	if _hint != null and _hint.visible:
-		_hint.offset_left = 36.0
-		_hint.offset_right = 764.0
-		_hint.offset_top = y
-		_hint.offset_bottom = y + 28.0
-		y = _hint.offset_bottom + 8.0
-	else:
-		y += 4.0
-	return y
+		_body.offset_left = BODY_LEFT
+		_body.offset_right = BODY_RIGHT
+		_body.offset_top = BODY_TOP
+		_body.offset_bottom = BODY_BOTTOM
+	## Hint stays editor-placed; do not pull into header stack.
+	return ROWS_TOP_SETTINGS if _settings else ROWS_TOP_MAIN
 
 
 func _layout_volume_row(row: Control, row_h: float, font_px: int) -> void:
-	var row_w := 728.0
-	var side_w := minf(88.0, row_h + 20.0)
-	var gap_x := 12.0
-	var mid_left := side_w + gap_x
-	var mid_right := row_w - side_w - gap_x
+	## Wider row; mid pill same width as main pills; ± nest slightly into mid (editor).
+	row.clip_contents = false
+	var row_w := row.offset_right - row.offset_left
+	var side_w := VOL_MINI
+	var mid_w := ROW_RIGHT - ROW_LEFT
+	var mid_left := (row_w - mid_w) * 0.5
+	var mid_right := mid_left + mid_w
+	var mini_top := maxf(0.0, (row_h - side_w) * 0.5)
 	for child in row.get_children():
 		if not child is Button:
 			continue
 		var b := child as Button
-		UiFont.apply_button(b, font_px)
-		b.offset_top = 0.0
-		b.offset_bottom = row_h
+		UiFont.apply_button_literal(b, font_px)
 		if b == _vol_down or b == _bgm_vol_down:
-			b.offset_left = 0.0
-			b.offset_right = side_w
+			b.offset_left = mid_left - side_w + VOL_SIDE_NEST
+			b.offset_right = b.offset_left + side_w
+			b.offset_top = mini_top
+			b.offset_bottom = mini_top + side_w
 		elif b == _vol_up or b == _bgm_vol_up:
-			b.offset_left = row_w - side_w
-			b.offset_right = row_w
+			b.offset_right = mid_right + side_w - VOL_SIDE_NEST
+			b.offset_left = b.offset_right - side_w
+			b.offset_top = mini_top
+			b.offset_bottom = mini_top + side_w
 		else:
 			b.offset_left = mid_left
 			b.offset_right = mid_right
+			b.offset_top = 0.0
+			b.offset_bottom = row_h
+			b.clip_text = true
 
 
 func _move_focus(delta: int) -> void:
@@ -691,6 +752,8 @@ func _activate_focus() -> void:
 			_enter_tut_review()
 		FOCUS_SETTINGS:
 			_enter_settings()
+		FOCUS_LANG:
+			_enter_lang_pick()
 		FOCUS_END:
 			SfxBus.play("sfx_ui_confirm")
 			_on_end_day()
@@ -710,8 +773,6 @@ func _activate_settings_focus() -> void:
 			_on_stick_toggle()
 		SET_CAMERA:
 			_on_camera_cycle()
-		SET_LANG:
-			_enter_lang_pick()
 		SET_BACK:
 			SfxBus.play("sfx_ui_cancel")
 			_exit_settings(true)
@@ -739,6 +800,8 @@ func _on_vol_nudge(steps: int) -> void:
 	_refresh_audio_labels()
 	_settings_focus = SET_VOL
 	_paint_focus()
+	var mini: Button = _vol_up if steps > 0 else _vol_down
+	_flash_vol_mini(mini)
 
 
 func _on_vol_preview() -> void:
@@ -772,6 +835,8 @@ func _on_bgm_vol_nudge(steps: int) -> void:
 	_refresh_audio_labels()
 	_settings_focus = SET_BGM_VOL
 	_paint_focus()
+	var mini: Button = _bgm_vol_up if steps > 0 else _bgm_vol_down
+	_flash_vol_mini(mini)
 
 
 func _on_bgm_vol_preview() -> void:
@@ -806,6 +871,7 @@ func _enter_lang_pick() -> void:
 		return
 	_exit_tasks_detail(false)
 	_exit_tut_review(false)
+	_exit_settings(false)
 	SfxBus.play("sfx_ui_confirm")
 	_lang_pick = true
 	_lang_pick_focus = 0
@@ -821,12 +887,9 @@ func _exit_lang_pick(play_focus: bool) -> void:
 		return
 	_lang_pick = false
 	_clear_lang_pick()
-	if _settings:
-		_set_settings_options_visible(true)
-		_settings_focus = SET_LANG
-	elif not _tasks_detail and not _tut_review:
+	if not _tasks_detail and not _tut_review and not _settings:
 		_set_main_options_visible(true)
-		_focus = FOCUS_SETTINGS
+		_focus = FOCUS_LANG
 	_refresh_copy()
 	if play_focus:
 		_paint_focus()
@@ -895,6 +958,8 @@ func _set_main_options_visible(on: bool) -> void:
 		_tutorial_btn.visible = on
 	if _settings_btn:
 		_settings_btn.visible = on
+	if _lang_btn:
+		_lang_btn.visible = on
 	## Host-only end-day; keep prior host_ok rule from _refresh_end_day_row.
 	if on:
 		_refresh_end_day_row()
@@ -917,8 +982,6 @@ func _set_settings_options_visible(on: bool) -> void:
 		_stick_btn.visible = on and _stick_row_visible()
 	if _camera_btn:
 		_camera_btn.visible = on
-	if _lang_btn:
-		_lang_btn.visible = on
 	if _settings_back:
 		_settings_back.visible = on
 	if on:
@@ -935,9 +998,8 @@ func _enter_settings() -> void:
 	_settings = true
 	_settings_focus = SET_SFX
 	_set_main_options_visible(false)
-	_ensure_settings_back()
 	_set_settings_options_visible(true)
-	## Keep volume ± rows above any late-added chrome so clicks hit −／＋.
+	## Keep volume ± rows／back above other chrome so clicks hit −／＋／返回.
 	_raise_volume_rows()
 	_refresh_copy()
 	_paint_focus()
@@ -958,11 +1020,10 @@ func _raise_volume_rows() -> void:
 
 
 func _exit_settings(play_focus: bool) -> void:
-	if not _settings and _settings_back == null:
+	if not _settings:
 		return
 	_settings = false
 	_set_settings_options_visible(false)
-	_clear_settings_back()
 	if not _lang_pick and not _tasks_detail and not _tut_review:
 		_set_main_options_visible(true)
 	_refresh_copy()
@@ -971,28 +1032,51 @@ func _exit_settings(play_focus: bool) -> void:
 		_paint_focus()
 
 
-func _ensure_settings_back() -> void:
-	if _settings_back != null and is_instance_valid(_settings_back):
+func _wire_settings_back() -> void:
+	## Scene %SettingbackBtn — do not Button.new()／queue_free.
+	if _settings_back == null:
 		return
-	var card := _resume_btn.get_parent()
-	if card == null:
-		return
-	_settings_back = Button.new()
-	_settings_back.name = "SettingsBackBtn"
 	_settings_back.focus_mode = Control.FOCUS_NONE
-	UiFont.apply_button(_settings_back, 22)
+	UiFont.apply_button_literal(_settings_back, SIZE_BODY_SM)
 	_settings_back.text = Loc.t("pause.settings.back")
-	_settings_back.pressed.connect(func() -> void:
-		SfxBus.play("sfx_ui_cancel")
-		_exit_settings(true)
-	)
-	card.add_child(_settings_back)
+	if not _settings_back.pressed.is_connected(_on_settings_back_pressed):
+		_settings_back.pressed.connect(_on_settings_back_pressed)
 
 
-func _clear_settings_back() -> void:
-	if _settings_back != null and is_instance_valid(_settings_back):
-		_settings_back.queue_free()
-	_settings_back = null
+func _on_settings_back_pressed() -> void:
+	SfxBus.play("sfx_ui_cancel")
+	_exit_settings(true)
+
+
+func _copy_pause_btn_styles(from_btn: Button, to_btn: Button) -> void:
+	## Prefer canonical saved skins — painted focus may sit on "normal" override.
+	if from_btn == null or to_btn == null:
+		return
+	_ensure_pause_btn_skin(from_btn)
+	if from_btn.has_meta("_pause_normal"):
+		var n: StyleBox = from_btn.get_meta("_pause_normal") as StyleBox
+		var h: StyleBox = from_btn.get_meta("_pause_hover") as StyleBox
+		var f: StyleBox = from_btn.get_meta("_pause_focus") as StyleBox
+		if n != null:
+			to_btn.add_theme_stylebox_override("normal", n)
+		if h != null:
+			to_btn.add_theme_stylebox_override("hover", h)
+		else:
+			to_btn.add_theme_stylebox_override("hover", n)
+		for state_name in ["pressed", "hover_pressed", "disabled"]:
+			var sb := from_btn.get_theme_stylebox(state_name)
+			if sb != null:
+				to_btn.add_theme_stylebox_override(state_name, sb)
+		if f != null:
+			to_btn.add_theme_stylebox_override("focus", f)
+		## Force destination to re-cache cream normal (not a painted yellow).
+		if to_btn.has_meta("_pause_skin_saved"):
+			to_btn.remove_meta("_pause_skin_saved")
+		return
+	for state_name in ["normal", "pressed", "hover", "hover_pressed", "disabled", "focus"]:
+		var sb2 := from_btn.get_theme_stylebox(state_name)
+		if sb2 != null:
+			to_btn.add_theme_stylebox_override(state_name, sb2)
 
 
 func _local_task_seat() -> int:
@@ -1082,7 +1166,7 @@ func _build_tasks_detail() -> void:
 	_tasks_detail_back.offset_right = 764.0
 	_tasks_detail_back.offset_top = 612.0
 	_tasks_detail_back.offset_bottom = 684.0
-	UiFont.apply_button(_tasks_detail_back, 22)
+	UiFont.apply_button_literal(_tasks_detail_back, SIZE_BODY_SM)
 	_tasks_detail_back.text = Loc.t("pause.tasks.back")
 	_tasks_detail_back.pressed.connect(func() -> void:
 		SfxBus.play("sfx_ui_cancel")
@@ -1150,7 +1234,7 @@ func _build_lang_pick() -> void:
 		btn.offset_right = 764.0
 		btn.offset_top = y
 		btn.offset_bottom = y + 72.0
-		UiFont.apply_button(btn, 22)
+		UiFont.apply_button_literal(btn, SIZE_BODY_SM)
 		var endonym := Loc.t("locale.name.%s" % c)
 		btn.text = Loc.t("pause.language_pick.current", [endonym]) if c == current else endonym
 		var idx := i
@@ -1168,7 +1252,7 @@ func _build_lang_pick() -> void:
 	_lang_pick_back.offset_right = 764.0
 	_lang_pick_back.offset_top = y
 	_lang_pick_back.offset_bottom = y + 72.0
-	UiFont.apply_button(_lang_pick_back, 22)
+	UiFont.apply_button_literal(_lang_pick_back, SIZE_BODY_SM)
 	_lang_pick_back.text = Loc.t("pause.language_pick.back")
 	_lang_pick_back.pressed.connect(func() -> void:
 		SfxBus.play("sfx_ui_cancel")
@@ -1304,7 +1388,7 @@ func _build_tut_review() -> void:
 			btn.focus_mode = Control.FOCUS_NONE
 			btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			btn.custom_minimum_size = Vector2(0, 56)
-			UiFont.apply_button(btn, 22)
+			UiFont.apply_button_literal(btn, SIZE_BODY_SM)
 			btn.text = _lesson_review_title(lid)
 			var idx := i
 			btn.pressed.connect(func() -> void:
@@ -1319,7 +1403,7 @@ func _build_tut_review() -> void:
 	_tut_review_back.offset_right = 764.0
 	_tut_review_back.offset_top = 612.0
 	_tut_review_back.offset_bottom = 684.0
-	UiFont.apply_button(_tut_review_back, 22)
+	UiFont.apply_button_literal(_tut_review_back, SIZE_BODY_SM)
 	_tut_review_back.text = Loc.t("pause.tutorial.back")
 	_tut_review_back.pressed.connect(func() -> void:
 		SfxBus.play("sfx_ui_cancel")
@@ -1383,6 +1467,22 @@ func _tut_review_input(event: InputEvent) -> void:
 		_exit_tut_review(true)
 
 
+func _flash_vol_mini(btn: Button) -> void:
+	## Brief yellow on ± after nudge; mid pill focus unchanged.
+	if btn == null:
+		return
+	_vol_flash_gen += 1
+	var gen := _vol_flash_gen
+	_vol_flash_btn = btn
+	_style_btn(btn, true)
+	await get_tree().create_timer(0.12).timeout
+	if gen != _vol_flash_gen:
+		return
+	if _vol_flash_btn == btn:
+		_vol_flash_btn = null
+	_style_btn(btn, false)
+
+
 func _paint_focus() -> void:
 	if _lang_pick:
 		for i in _lang_pick_btns.size():
@@ -1403,24 +1503,23 @@ func _paint_focus() -> void:
 	if _settings:
 		_style_btn(_sfx_btn, _settings_focus == SET_SFX)
 		var vol_on := _settings_focus == SET_VOL
+		## Focus = mid pill only；± stay cream unless _flash_vol_mini.
 		_style_btn(_vol_btn, vol_on)
-		_style_btn(_vol_down, vol_on)
-		_style_btn(_vol_up, vol_on)
+		_style_btn(_vol_down, _vol_flash_btn == _vol_down)
+		_style_btn(_vol_up, _vol_flash_btn == _vol_up)
 		if _bgm_btn:
 			_style_btn(_bgm_btn, _settings_focus == SET_BGM)
 		var bgm_vol_on := _settings_focus == SET_BGM_VOL
 		if _bgm_vol_btn:
 			_style_btn(_bgm_vol_btn, bgm_vol_on)
 		if _bgm_vol_down:
-			_style_btn(_bgm_vol_down, bgm_vol_on)
+			_style_btn(_bgm_vol_down, _vol_flash_btn == _bgm_vol_down)
 		if _bgm_vol_up:
-			_style_btn(_bgm_vol_up, bgm_vol_on)
+			_style_btn(_bgm_vol_up, _vol_flash_btn == _bgm_vol_up)
 		if _stick_btn and _stick_btn.visible:
 			_style_btn(_stick_btn, _settings_focus == SET_STICK)
 		if _camera_btn:
 			_style_btn(_camera_btn, _settings_focus == SET_CAMERA)
-		if _lang_btn:
-			_style_btn(_lang_btn, _settings_focus == SET_LANG)
 		if _settings_back:
 			_style_btn(_settings_back, _settings_focus == SET_BACK)
 		return
@@ -1431,16 +1530,103 @@ func _paint_focus() -> void:
 		_style_btn(_tutorial_btn, _focus == FOCUS_TUTORIAL)
 	if _settings_btn:
 		_style_btn(_settings_btn, _focus == FOCUS_SETTINGS)
+	if _lang_btn:
+		_style_btn(_lang_btn, _focus == FOCUS_LANG)
 	_style_btn(_end_btn, _focus == FOCUS_END)
 
 
+func _mark_mini_btn(btn: Button) -> void:
+	if btn == null:
+		return
+	btn.set_meta("_pause_kind", "mini")
+
+
+func _is_mini_btn(btn: Button) -> bool:
+	return btn != null and str(btn.get_meta("_pause_kind", "")) == "mini"
+
+
 func _style_btn(btn: Button, on: bool) -> void:
-	var box := StyleBoxFlat.new()
-	box.bg_color = Color("f4d35e") if on else Color("24302a")
-	box.set_corner_radius_all(10)
-	for state_name in ["normal", "hover", "pressed", "focus"]:
-		btn.add_theme_stylebox_override(state_name, box)
-	btn.add_theme_color_override("font_color", Color("1c241f") if on else Color("f4f1ea"))
+	## Keep scene StyleBoxTexture skins. Selection = focus skin (no Flat wipe).
+	if btn == null:
+		return
+	_ensure_pause_btn_skin(btn)
+	var focus_sb: StyleBox = btn.get_meta("_pause_focus") as StyleBox
+	var normal_sb: StyleBox = btn.get_meta("_pause_normal") as StyleBox
+	var hover_sb: StyleBox = btn.get_meta("_pause_hover") as StyleBox
+	if on and focus_sb != null:
+		btn.add_theme_stylebox_override("normal", focus_sb)
+		btn.add_theme_stylebox_override("hover", focus_sb)
+	else:
+		if normal_sb != null:
+			btn.add_theme_stylebox_override("normal", normal_sb)
+		if hover_sb != null:
+			btn.add_theme_stylebox_override("hover", hover_sb)
+	## Cream／gold pill art: Cocoa Ink (uitypography + pause-ui-chrome).
+	btn.add_theme_color_override("font_color", COL_COCOA)
+	btn.add_theme_color_override("font_hover_color", COL_COCOA)
+	btn.add_theme_color_override("font_pressed_color", COL_COCOA)
+	btn.add_theme_color_override("font_focus_color", COL_COCOA)
+
+
+func _ensure_pause_btn_skin(btn: Button) -> void:
+	if btn == null or btn.has_meta("_pause_skin_saved"):
+		return
+	## Mini ± must never inherit main-pill focus (yellow block over mid label).
+	if _is_mini_btn(btn):
+		_ensure_mini_btn_styles(btn)
+	elif btn != _resume_btn and _resume_btn != null and _resume_btn.has_meta("_pause_skin_saved"):
+		## New pills (SettingsBack etc.): clone Resume meta, not painted overrides.
+		var rn: StyleBox = _resume_btn.get_meta("_pause_normal") as StyleBox
+		var rh: StyleBox = _resume_btn.get_meta("_pause_hover") as StyleBox
+		var rf: StyleBox = _resume_btn.get_meta("_pause_focus") as StyleBox
+		if rn != null:
+			btn.add_theme_stylebox_override("normal", rn)
+		if rh != null:
+			btn.add_theme_stylebox_override("hover", rh)
+		if rf != null:
+			btn.add_theme_stylebox_override("focus", rf)
+		for state_name in ["pressed", "hover_pressed", "disabled"]:
+			var sb := _resume_btn.get_theme_stylebox(state_name)
+			if sb != null:
+				btn.add_theme_stylebox_override(state_name, sb)
+	else:
+		var normal_sb := btn.get_theme_stylebox("normal")
+		if normal_sb == null or not (normal_sb is StyleBoxTexture):
+			if _resume_btn != null and btn != _resume_btn:
+				_copy_pause_btn_styles(_resume_btn, btn)
+	btn.set_meta("_pause_normal", btn.get_theme_stylebox("normal"))
+	var hover_sb := btn.get_theme_stylebox("hover")
+	if hover_sb == null:
+		hover_sb = btn.get_theme_stylebox("normal")
+	btn.set_meta("_pause_hover", hover_sb)
+	var focus_sb := btn.get_theme_stylebox("focus")
+	if focus_sb == null:
+		## Prefer pressed for mini (mini_focus art); else normal.
+		focus_sb = btn.get_theme_stylebox("pressed")
+		if focus_sb == null:
+			focus_sb = btn.get_theme_stylebox("normal")
+	## Guard: never store the same box as both normal and focus for main pills.
+	if not _is_mini_btn(btn) and focus_sb != null and focus_sb == btn.get_meta("_pause_normal"):
+		if _resume_btn != null and _resume_btn.has_meta("_pause_focus"):
+			focus_sb = _resume_btn.get_meta("_pause_focus") as StyleBox
+	btn.set_meta("_pause_focus", focus_sb)
+	btn.set_meta("_pause_skin_saved", true)
+
+
+func _ensure_mini_btn_styles(btn: Button) -> void:
+	## Keep mini normal／focus only — never copy Resume main-pill StyleBoxes.
+	var n := btn.get_theme_stylebox("normal")
+	var f := btn.get_theme_stylebox("pressed")
+	if n == null and _vol_down != null and btn != _vol_down:
+		n = _vol_down.get_theme_stylebox("normal")
+		f = _vol_down.get_theme_stylebox("pressed")
+	if n != null:
+		btn.add_theme_stylebox_override("normal", n)
+		btn.add_theme_stylebox_override("hover", n)
+	if f != null:
+		btn.add_theme_stylebox_override("pressed", f)
+		btn.add_theme_stylebox_override("focus", f)
+		btn.add_theme_stylebox_override("hover_pressed", f)
 
 
 func _is_toggle(event: InputEvent) -> bool:

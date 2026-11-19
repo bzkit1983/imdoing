@@ -1,217 +1,477 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://cl1884sp2mlt4"]
 
-[ext_resource type="Script" path="res://scripts/pause_menu.gd" id="1_pause"]
+[ext_resource type="Script" uid="uid://cbv4wdan7qdg1" path="res://scripts/pause_menu.gd" id="1_pause"]
+[ext_resource type="Texture2D" uid="uid://cirnp1aryndad" path="res://art/ui/pause_menu_ui/SVG/pause_panel.svg" id="2_1s2dm"]
+[ext_resource type="Texture2D" uid="uid://cugyipnsxhxej" path="res://art/ui/pause_menu_ui/SVG/pause_btn_normal.svg" id="3_88e76"]
+[ext_resource type="Texture2D" uid="uid://d01bmh4acf4yh" path="res://art/ui/pause_menu_ui/SVG/pause_btn_pressed.svg" id="4_knqa7"]
+[ext_resource type="Texture2D" uid="uid://7xyuj1l2n42r" path="res://art/ui/pause_menu_ui/SVG/pause_btn_disabled.svg" id="5_71k7c"]
+[ext_resource type="Texture2D" uid="uid://duwlmqiwb2mg" path="res://art/ui/pause_menu_ui/SVG/pause_btn_focus.svg" id="6_88e76"]
+[ext_resource type="Texture2D" uid="uid://kqd6n1eapkb5" path="res://art/ui/pause_menu_ui/SVG/pause_btn_mini_focus.svg" id="6_cmnsq"]
+[ext_resource type="Texture2D" uid="uid://cobblh3nftnrc" path="res://art/ui/pause_menu_ui/SVG/pause_btn_mini_normal.svg" id="7_ofnjo"]
 
-[node name="PauseMenu" type="CanvasLayer"]
-layer = 60
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_wspc0"]
+texture = ExtResource("3_88e76")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_5d2l8"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+texture = ExtResource("4_knqa7")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_7l7mv"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+texture = ExtResource("3_88e76")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_88e76"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+texture = ExtResource("4_knqa7")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_knqa7"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+texture = ExtResource("5_71k7c")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_71k7c"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+texture = ExtResource("6_88e76")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_v4r4p"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+texture = ExtResource("7_ofnjo")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_cmnsq"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+texture = ExtResource("6_cmnsq")
+
+[node name="PauseMenu" type="CanvasLayer" unique_id=1891982398]
 process_mode = 3
+layer = 60
 script = ExtResource("1_pause")
+metadata/_edit_horizontal_guides_ = [66.0, 148.0, 230.0, 316.0, 402.0, 488.0, 576.0]
+metadata/_edit_vertical_guides_ = [585.0]
 
-[node name="Shade" type="ColorRect" parent="."]
+[node name="Shade" type="ColorRect" parent="." unique_id=994902112]
 unique_name_in_owner = true
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 0
 color = Color(0, 0, 0, 0.62)
 
-[node name="Card" type="ColorRect" parent="."]
+[node name="Card" type="ColorRect" parent="." unique_id=897645063]
 offset_left = 240.0
 offset_top = 8.0
 offset_right = 1040.0
 offset_bottom = 712.0
-mouse_filter = 0
-color = Color(0.109804, 0.141176, 0.121569, 1)
+color = Color(0.109804, 0.141176, 0.121569, 0)
 
-[node name="Title" type="Label" parent="Card"]
+[node name="CardBg" type="NinePatchRect" parent="Card" unique_id=978144762]
+modulate = Color(1, 1, 1, 0.9019608)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_1s2dm")
+patch_margin_left = 79
+patch_margin_top = 87
+patch_margin_right = 85
+patch_margin_bottom = 95
+
+[node name="Title" type="Label" parent="Card" unique_id=222572803]
 unique_name_in_owner = true
-offset_left = 36.0
-offset_top = 20.0
-offset_right = 764.0
-offset_bottom = 68.0
-theme_override_colors/font_color = Color(0.956863, 0.827451, 0.368627, 1)
-theme_override_font_sizes/font_size = 40
+layout_mode = 0
+offset_left = 66.0
+offset_top = 57.0
+offset_right = 245.0
+offset_bottom = 120.0
+theme_override_colors/font_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_font_sizes/font_size = 43
 text = "Pause"
 
-[node name="Body" type="Label" parent="Card"]
+[node name="Body" type="Label" parent="Card" unique_id=280925479]
 unique_name_in_owner = true
-offset_left = 36.0
-offset_top = 76.0
-offset_right = 764.0
-offset_bottom = 150.0
-theme_override_colors/font_color = Color(0.956863, 0.945098, 0.917647, 1)
-theme_override_font_sizes/font_size = 24
+visible = false
+layout_mode = 0
+offset_left = 69.0
+offset_top = 125.0
+offset_right = 299.0
+offset_bottom = 292.0
+theme_override_colors/font_color = Color(0.611765, 0.545098, 0.478431, 1)
+theme_override_font_sizes/font_size = 29
 text = "Game paused."
 autowrap_mode = 3
 
-[node name="Hint" type="Label" parent="Card"]
+[node name="Hint" type="Label" parent="Card" unique_id=586356674]
 unique_name_in_owner = true
-offset_left = 36.0
-offset_top = 156.0
-offset_right = 764.0
-offset_bottom = 196.0
-theme_override_colors/font_color = Color(0.784314, 0.760784, 0.705882, 1)
-theme_override_font_sizes/font_size = 20
-text = "Esc/Start toggle  W/S select  A/D volume  J confirm"
+visible = false
+layout_mode = 0
+offset_left = 576.0
+offset_top = 554.0
+offset_right = 755.0
+offset_bottom = 632.0
+theme_override_colors/font_color = Color(0.611765, 0.545098, 0.478431, 1)
+theme_override_font_sizes/font_size = 16
+text = "Esc/Start toggle
+W/S select  A/D volume
+J confirm"
 
-[node name="ResumeBtn" type="Button" parent="Card"]
+[node name="ResumeBtn" type="Button" parent="Card" unique_id=2115371951]
 unique_name_in_owner = true
-offset_left = 36.0
-offset_top = 214.0
-offset_right = 764.0
-offset_bottom = 286.0
+visible = false
+layout_mode = 0
+offset_left = 345.0
+offset_top = 58.0
+offset_right = 681.0
+offset_bottom = 142.0
 focus_mode = 0
+theme_override_colors/font_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_colors/font_focus_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_colors/font_pressed_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_colors/font_hover_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxTexture_wspc0")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_5d2l8")
+theme_override_styles/hover = SubResource("StyleBoxTexture_7l7mv")
+theme_override_styles/hover_pressed = SubResource("StyleBoxTexture_88e76")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_knqa7")
+theme_override_styles/focus = SubResource("StyleBoxTexture_71k7c")
 text = "Continue"
 
-[node name="TasksBtn" type="Button" parent="Card"]
+[node name="TasksBtn" type="Button" parent="Card" unique_id=1373658296]
 unique_name_in_owner = true
-offset_left = 36.0
-offset_top = 300.0
-offset_right = 764.0
-offset_bottom = 372.0
+visible = false
+layout_mode = 0
+offset_left = 345.0
+offset_top = 140.0
+offset_right = 681.0
+offset_bottom = 224.0
 focus_mode = 0
+theme_override_colors/font_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_colors/font_focus_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_colors/font_pressed_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_colors/font_hover_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxTexture_wspc0")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_5d2l8")
+theme_override_styles/hover = SubResource("StyleBoxTexture_7l7mv")
+theme_override_styles/hover_pressed = SubResource("StyleBoxTexture_88e76")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_knqa7")
+theme_override_styles/focus = SubResource("StyleBoxTexture_71k7c")
 text = "Task details"
 
-[node name="TutorialBtn" type="Button" parent="Card"]
+[node name="TutorialBtn" type="Button" parent="Card" unique_id=2022127608]
 unique_name_in_owner = true
-offset_left = 36.0
-offset_top = 386.0
-offset_right = 764.0
-offset_bottom = 458.0
+visible = false
+layout_mode = 0
+offset_left = 345.0
+offset_top = 222.0
+offset_right = 681.0
+offset_bottom = 306.0
 focus_mode = 0
+theme_override_colors/font_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_colors/font_focus_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_colors/font_pressed_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_colors/font_hover_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxTexture_wspc0")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_5d2l8")
+theme_override_styles/hover = SubResource("StyleBoxTexture_7l7mv")
+theme_override_styles/hover_pressed = SubResource("StyleBoxTexture_88e76")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_knqa7")
+theme_override_styles/focus = SubResource("StyleBoxTexture_71k7c")
 text = "Tutorial"
 
-[node name="SettingsBtn" type="Button" parent="Card"]
+[node name="SettingsBtn" type="Button" parent="Card" unique_id=767057603]
 unique_name_in_owner = true
-offset_left = 36.0
-offset_top = 429.0
-offset_right = 764.0
-offset_bottom = 501.0
+visible = false
+layout_mode = 0
+offset_left = 345.0
+offset_top = 308.0
+offset_right = 681.0
+offset_bottom = 392.0
 focus_mode = 0
+theme_override_colors/font_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_colors/font_focus_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_colors/font_pressed_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_colors/font_hover_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxTexture_wspc0")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_5d2l8")
+theme_override_styles/hover = SubResource("StyleBoxTexture_7l7mv")
+theme_override_styles/hover_pressed = SubResource("StyleBoxTexture_88e76")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_knqa7")
+theme_override_styles/focus = SubResource("StyleBoxTexture_71k7c")
 text = "Settings"
 
-[node name="SfxBtn" type="Button" parent="Card"]
+[node name="LangBtn" type="Button" parent="Card" unique_id=1311356461]
 unique_name_in_owner = true
-offset_left = 36.0
-offset_top = 472.0
-offset_right = 764.0
-offset_bottom = 544.0
+visible = false
+layout_mode = 0
+offset_left = 345.0
+offset_top = 394.0
+offset_right = 681.0
+offset_bottom = 478.0
 focus_mode = 0
-text = "SFX: On"
-
-[node name="VolRow" type="Control" parent="Card"]
-unique_name_in_owner = true
-offset_left = 36.0
-offset_top = 386.0
-offset_right = 764.0
-offset_bottom = 458.0
-mouse_filter = 0
-
-[node name="VolDownBtn" type="Button" parent="Card/VolRow"]
-unique_name_in_owner = true
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 88.0
-offset_bottom = 72.0
-focus_mode = 0
-text = "−"
-
-[node name="VolBtn" type="Button" parent="Card/VolRow"]
-unique_name_in_owner = true
-offset_left = 100.0
-offset_top = 0.0
-offset_right = 628.0
-offset_bottom = 72.0
-focus_mode = 0
-text = "SFX volume: 100%"
-
-[node name="VolUpBtn" type="Button" parent="Card/VolRow"]
-unique_name_in_owner = true
-offset_left = 640.0
-offset_top = 0.0
-offset_right = 728.0
-offset_bottom = 72.0
-focus_mode = 0
-text = "+"
-
-[node name="BgmBtn" type="Button" parent="Card"]
-unique_name_in_owner = true
-offset_left = 36.0
-offset_top = 472.0
-offset_right = 764.0
-offset_bottom = 544.0
-focus_mode = 0
-text = "BGM: On"
-
-[node name="BgmVolRow" type="Control" parent="Card"]
-unique_name_in_owner = true
-offset_left = 36.0
-offset_top = 386.0
-offset_right = 764.0
-offset_bottom = 458.0
-mouse_filter = 0
-
-[node name="BgmVolDownBtn" type="Button" parent="Card/BgmVolRow"]
-unique_name_in_owner = true
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 88.0
-offset_bottom = 72.0
-focus_mode = 0
-text = "−"
-
-[node name="BgmVolBtn" type="Button" parent="Card/BgmVolRow"]
-unique_name_in_owner = true
-offset_left = 100.0
-offset_top = 0.0
-offset_right = 628.0
-offset_bottom = 72.0
-focus_mode = 0
-text = "BGM volume: 100%"
-
-[node name="BgmVolUpBtn" type="Button" parent="Card/BgmVolRow"]
-unique_name_in_owner = true
-offset_left = 640.0
-offset_top = 0.0
-offset_right = 728.0
-offset_bottom = 72.0
-focus_mode = 0
-text = "+"
-
-[node name="StickBtn" type="Button" parent="Card"]
-unique_name_in_owner = true
-offset_left = 36.0
-offset_top = 472.0
-offset_right = 764.0
-offset_bottom = 544.0
-focus_mode = 0
-text = "Virtual stick: Off"
-
-[node name="CameraBtn" type="Button" parent="Card"]
-unique_name_in_owner = true
-offset_left = 36.0
-offset_top = 558.0
-offset_right = 764.0
-offset_bottom = 630.0
-focus_mode = 0
-text = "Camera: Normal"
-
-[node name="LangBtn" type="Button" parent="Card"]
-unique_name_in_owner = true
-offset_left = 36.0
-offset_top = 644.0
-offset_right = 764.0
-offset_bottom = 716.0
-focus_mode = 0
+theme_override_colors/font_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_colors/font_focus_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_colors/font_pressed_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_colors/font_hover_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxTexture_wspc0")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_5d2l8")
+theme_override_styles/hover = SubResource("StyleBoxTexture_7l7mv")
+theme_override_styles/hover_pressed = SubResource("StyleBoxTexture_88e76")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_knqa7")
+theme_override_styles/focus = SubResource("StyleBoxTexture_71k7c")
 text = "Language: 繁體中文"
 
-[node name="EndDayBtn" type="Button" parent="Card"]
+[node name="EndDayBtn" type="Button" parent="Card" unique_id=221663113]
 unique_name_in_owner = true
-offset_left = 36.0
-offset_top = 730.0
-offset_right = 764.0
-offset_bottom = 802.0
+visible = false
+layout_mode = 0
+offset_left = 345.0
+offset_top = 480.0
+offset_right = 681.0
+offset_bottom = 564.0
 focus_mode = 0
+theme_override_colors/font_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_colors/font_focus_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_colors/font_pressed_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_colors/font_hover_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxTexture_wspc0")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_5d2l8")
+theme_override_styles/hover = SubResource("StyleBoxTexture_7l7mv")
+theme_override_styles/hover_pressed = SubResource("StyleBoxTexture_88e76")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_knqa7")
+theme_override_styles/focus = SubResource("StyleBoxTexture_71k7c")
 text = "End day & settle"
+
+[node name="SfxBtn" type="Button" parent="Card" unique_id=1625627949]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 345.0
+offset_top = 58.0
+offset_right = 681.0
+offset_bottom = 142.0
+focus_mode = 0
+theme_override_colors/font_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxTexture_wspc0")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_5d2l8")
+theme_override_styles/hover = SubResource("StyleBoxTexture_7l7mv")
+theme_override_styles/hover_pressed = SubResource("StyleBoxTexture_88e76")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_knqa7")
+theme_override_styles/focus = SubResource("StyleBoxTexture_71k7c")
+text = "SFX: On"
+
+[node name="VolRow" type="Control" parent="Card" unique_id=80140744]
+unique_name_in_owner = true
+anchors_preset = 0
+offset_left = 223.0
+offset_top = 140.0
+offset_right = 803.0
+offset_bottom = 224.0
+
+[node name="VolDownBtn" type="Button" parent="Card/VolRow" unique_id=1112758000]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 76.0
+offset_top = 12.0
+offset_right = 136.0
+offset_bottom = 72.0
+focus_mode = 0
+theme_override_colors/font_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxTexture_v4r4p")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_cmnsq")
+theme_override_styles/hover = SubResource("StyleBoxTexture_v4r4p")
+theme_override_styles/hover_pressed = SubResource("StyleBoxTexture_cmnsq")
+theme_override_styles/focus = SubResource("StyleBoxTexture_cmnsq")
+text = "−"
+
+[node name="VolBtn" type="Button" parent="Card/VolRow" unique_id=2127263319]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 122.0
+offset_right = 458.0
+offset_bottom = 84.0
+focus_mode = 0
+theme_override_colors/font_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxTexture_wspc0")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_5d2l8")
+theme_override_styles/hover = SubResource("StyleBoxTexture_7l7mv")
+theme_override_styles/hover_pressed = SubResource("StyleBoxTexture_88e76")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_knqa7")
+theme_override_styles/focus = SubResource("StyleBoxTexture_71k7c")
+text = "SFX volume: 100%"
+
+[node name="VolUpBtn" type="Button" parent="Card/VolRow" unique_id=237908753]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 443.0
+offset_top = 12.0
+offset_right = 503.0
+offset_bottom = 72.0
+focus_mode = 0
+theme_override_colors/font_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxTexture_v4r4p")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_cmnsq")
+theme_override_styles/hover = SubResource("StyleBoxTexture_v4r4p")
+theme_override_styles/hover_pressed = SubResource("StyleBoxTexture_cmnsq")
+theme_override_styles/focus = SubResource("StyleBoxTexture_cmnsq")
+text = "+"
+
+[node name="BgmBtn" type="Button" parent="Card" unique_id=1224115856]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 345.0
+offset_top = 222.0
+offset_right = 681.0
+offset_bottom = 306.0
+focus_mode = 0
+theme_override_colors/font_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxTexture_wspc0")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_5d2l8")
+theme_override_styles/hover = SubResource("StyleBoxTexture_7l7mv")
+theme_override_styles/hover_pressed = SubResource("StyleBoxTexture_88e76")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_knqa7")
+theme_override_styles/focus = SubResource("StyleBoxTexture_71k7c")
+text = "BGM: On"
+
+[node name="BgmVolRow" type="Control" parent="Card" unique_id=1469749951]
+unique_name_in_owner = true
+anchors_preset = 0
+offset_left = 223.0
+offset_top = 308.0
+offset_right = 803.0
+offset_bottom = 392.0
+
+[node name="BgmVolDownBtn" type="Button" parent="Card/BgmVolRow" unique_id=721713491]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 76.0
+offset_top = 12.0
+offset_right = 136.0
+offset_bottom = 72.0
+focus_mode = 0
+theme_override_colors/font_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxTexture_v4r4p")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_cmnsq")
+theme_override_styles/hover = SubResource("StyleBoxTexture_v4r4p")
+theme_override_styles/hover_pressed = SubResource("StyleBoxTexture_cmnsq")
+theme_override_styles/focus = SubResource("StyleBoxTexture_cmnsq")
+text = "−"
+
+[node name="BgmVolBtn" type="Button" parent="Card/BgmVolRow" unique_id=885183177]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 122.0
+offset_right = 458.0
+offset_bottom = 84.0
+focus_mode = 0
+theme_override_colors/font_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxTexture_wspc0")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_5d2l8")
+theme_override_styles/hover = SubResource("StyleBoxTexture_7l7mv")
+theme_override_styles/hover_pressed = SubResource("StyleBoxTexture_88e76")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_knqa7")
+theme_override_styles/focus = SubResource("StyleBoxTexture_71k7c")
+text = "BGM volume: 100%"
+
+[node name="BgmVolUpBtn" type="Button" parent="Card/BgmVolRow" unique_id=1316956370]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 443.0
+offset_top = 12.0
+offset_right = 503.0
+offset_bottom = 72.0
+focus_mode = 0
+theme_override_colors/font_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxTexture_v4r4p")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_cmnsq")
+theme_override_styles/hover = SubResource("StyleBoxTexture_v4r4p")
+theme_override_styles/hover_pressed = SubResource("StyleBoxTexture_cmnsq")
+theme_override_styles/focus = SubResource("StyleBoxTexture_cmnsq")
+text = "+"
+
+[node name="StickBtn" type="Button" parent="Card" unique_id=1294118591]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 345.0
+offset_top = 394.0
+offset_right = 681.0
+offset_bottom = 478.0
+focus_mode = 0
+theme_override_colors/font_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxTexture_wspc0")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_5d2l8")
+theme_override_styles/hover = SubResource("StyleBoxTexture_7l7mv")
+theme_override_styles/hover_pressed = SubResource("StyleBoxTexture_88e76")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_knqa7")
+theme_override_styles/focus = SubResource("StyleBoxTexture_71k7c")
+text = "Virtual stick: Off"
+
+[node name="CameraBtn" type="Button" parent="Card" unique_id=1437055444]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 345.0
+offset_top = 480.0
+offset_right = 681.0
+offset_bottom = 564.0
+focus_mode = 0
+theme_override_colors/font_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxTexture_wspc0")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_5d2l8")
+theme_override_styles/hover = SubResource("StyleBoxTexture_7l7mv")
+theme_override_styles/hover_pressed = SubResource("StyleBoxTexture_88e76")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_knqa7")
+theme_override_styles/focus = SubResource("StyleBoxTexture_71k7c")
+text = "Camera: Normal"
+
+[node name="SettingbackBtn" type="Button" parent="Card" unique_id=1808306263]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 345.0
+offset_top = 568.0
+offset_right = 681.0
+offset_bottom = 652.0
+focus_mode = 0
+theme_override_colors/font_color = Color(0.360784, 0.286275, 0.219608, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxTexture_wspc0")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_5d2l8")
+theme_override_styles/hover = SubResource("StyleBoxTexture_7l7mv")
+theme_override_styles/hover_pressed = SubResource("StyleBoxTexture_88e76")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_knqa7")
+theme_override_styles/focus = SubResource("StyleBoxTexture_71k7c")
+text = "Back"

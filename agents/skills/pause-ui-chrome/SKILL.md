@@ -25,6 +25,7 @@ description: >-
 3. Assets: transparent PNG, **no baked player-facing text**; runtime copy uses Cocoa Ink `#5C4938` via Loc／Noto.
 4. Player-facing strings still go through `i18n-content` if you wire labels in engine.
 5. No pure black strokes; no gaussian drop shadows; focus = filled gold, not a thin ring.
+6. **Type sizes／spacing:** follow [`docs/systemdesign/uitypography.md`](../../../docs/systemdesign/uitypography.md) — do not redefine the scale in the Gemini pack.
 
 ## Workflow
 

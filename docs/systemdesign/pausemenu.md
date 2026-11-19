@@ -38,9 +38,11 @@
    - **背景音樂聲量：N%** — 0–100%、每檔 10%；−／＋ 或 A／D；J／點中間可試聽（見 `bgm.md`）  
    - **虛擬搖桿：開／關** — `[ui] virtual_stick`（預設關）。開後只在觸控活躍時顯示；手掣／鍵盤自動隱藏（見 `inputmodes-vj.md`）  
    - **鏡頭：正常／稍遠／全地圖** — 循環三種視野（見 `control.md`）。`[ui] camera_view`（`normal`｜`far`｜`overview`）。營運中亦可用 Xbox 視圖鍵／鍵盤 `V` 循環  
-   - **語言** — 再開「選擇語言」子畫面；`Loc.locales()`；`[ui] locale`（預設 `zh_TW`）。見 `docs/alpha/i18n.md`  
    - **返回** — 回暫停主列  
-5. **結束本日並結算** — 等同 HUD「馬上完成營運」（`skip_operate`）。**線上：僅 Host 機**可觸發；client 無此項或按下無效（`multiplayer.md` §12.6）。若有強制教學步驟未完成則擋住（見 `tutorial.md`）
+5. **語言** — 再開「選擇語言」子畫面；`Loc.locales()`；`[ui] locale`（預設 `zh_TW`）。見 `docs/alpha/i18n.md`  
+6. **結束本日並結算** — 等同 HUD「馬上完成營運」（`skip_operate`）。**線上：僅 Host 機**可觸發；client 無此項或按下無效（`multiplayer.md` §12.6）。若有強制教學步驟未完成則擋住（見 `tutorial.md`）
+
+工程：`scenes/pause_menu.tscn` 用 `CardBg`（NinePatch）＋ Button `StyleBoxTexture`；執行期 `_style_btn` **唔再**用 Flat 蓋皮，選中改用 focus 皮。字色／字級／間距見 [`uitypography.md`](uitypography.md)（標題 heading-sm 43＋Cocoa；說明 body／caption＋Taupe；掣 body-sm 22）；面板色見 `agents/skills/pause-ui-chrome/`。
 
 > 手機 Web 沒有 Esc／Start：用右上「暫停」。系統掛起（切 App／鎖屏）仍會經 `PlatformServices` 自動開暫停選單。
 

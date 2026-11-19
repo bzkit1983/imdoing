@@ -18,6 +18,7 @@ Canonical skills live under [`agents/skills/`](agents/skills/). Index: [`agents/
 | [`agents/skills/playerskillvalidator/SKILL.md`](agents/skills/playerskillvalidator/SKILL.md) | Adding, updating, or fixing player skills (active／passive／ultimate), COST／loadout, skill Intent／multiplayer cast paths, or skill design conflicts — emit Validation Report before done. |
 | [`agents/skills/tutorial-content/SKILL.md`](agents/skills/tutorial-content/SKILL.md) | Designing, validating, or shipping a full tutorial Lesson (pages／forced steps／triggers／`tut.*` copy／`tutorial_catalog`) — emit Validation Report before done. |
 | [`agents/skills/pause-ui-chrome/SKILL.md`](agents/skills/pause-ui-chrome/SKILL.md) | Pause menu chrome／asset pack — 動森暖系 Cozy（雙層 cream 面板、全膠囊 1.5D bevel、Focus 整顆暖金）；Gemini-ready: [`imdoing-pause-ui-chrome.md`](agents/skills/pause-ui-chrome/imdoing-pause-ui-chrome.md). |
+| UI 字級／間距 | 改選單／HUD／標題字大細或 spacing 時讀 [`docs/systemdesign/uitypography.md`](docs/systemdesign/uitypography.md)（Type Scale＋Spacing；Pause 色見 pause-ui-chrome）。 |
 
 ## i18n quick pointers
 
