@@ -132,6 +132,7 @@ const ACTIVES: Array[Dictionary] = [
 	{"id": "shelf_cannon", "kind": "active", "lv": 3, "cost": 2, "shelf_cannon": true, "cd": 60.0},
 	{"id": "kind_cannon", "kind": "active", "lv": 3, "cost": 2, "kind_cannon": true, "cd": 90.0},
 	{"id": "elite_guest_cannon", "kind": "active", "lv": 3, "cost": 2, "elite_guest_cannon": true, "duration": 30.0, "cd": 45.0},
+	{"id": "elite_guest_specialist", "kind": "active", "lv": 3, "cost": 2, "elite_guest_specialist": true, "duration": 30.0, "cd": 60.0},
 	{"id": "self_checkout", "kind": "active", "lv": 3, "cost": 2, "self_checkout": true, "duration": 15.0, "cd": 30.0},
 	{"id": "calm_zone", "kind": "active", "lv": 3, "cost": 2, "calm_zone": true, "duration": 15.0, "cd": 30.0},
 	{"id": "senior_cashier", "kind": "active", "lv": 3, "cost": 2, "senior_cashier": true, "duration": 45.0, "cd": 15.0},
@@ -203,6 +204,7 @@ static func prep_picks_level(sk: Dictionary) -> bool:
 		or bool(sk.get("shelf_cannon", false))
 		or bool(sk.get("kind_cannon", false))
 		or bool(sk.get("elite_guest_cannon", false))
+		or bool(sk.get("elite_guest_specialist", false))
 		or bool(sk.get("self_checkout", false))
 		or bool(sk.get("calm_zone", false))
 		or bool(sk.get("senior_cashier", false))

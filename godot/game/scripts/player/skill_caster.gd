@@ -869,6 +869,29 @@ func cast_slot(i: int) -> void:
 		begin_cast_pose(false)
 		host.skill_cast.emit(Loc.t("skill.kind_cannon.name"), false)
 		return
+	if bool(sk.get("elite_guest_specialist", false)):
+		var game = host._game()
+		if game == null or String(game.get("phase")) != "open":
+			return
+		cancel_must_deliver_aim()
+		cancel_magneto_aim()
+		if _net_client_predicting():
+			host._cd[sid] = Tuning.cd_seconds(float(sk.get("cd", 60.0)), host._int_now())
+		else:
+			if game == null or not game.has_method("deploy_elite_guest_specialist"):
+				return
+			var specialist = game.deploy_elite_guest_specialist(
+				host.global_position, int(sk.get("lv", 3)), host.seat_id
+			)
+			if specialist == null:
+				return
+			host._cd[sid] = Tuning.cd_seconds(float(sk.get("cd", 60.0)), host._int_now())
+		SfxBus.play("sfx_skill_cast")
+		host.log_line.emit(Loc.t("log.player.cast", [String(sk.get("name")), int(sk.get("lv", 3))]))
+		begin_cast_pose(false)
+		host.skill_cast.emit(String(sk.get("name")), false)
+		play_zoom(false)
+		return
 	if bool(sk.get("elite_guest_cannon", false)):
 		if not host._round_active():
 			return

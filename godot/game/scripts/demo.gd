@@ -1065,6 +1065,14 @@ func dismiss_shadow_clones() -> void:
 			c.call("vanish")
 
 
+func dismiss_elite_guest_specialists() -> void:
+	if _world == null:
+		return
+	for child in _world.get_children():
+		if str(child.get("kind")) == "elite_guest_specialist" and child.has_method("vanish"):
+			child.call("vanish")
+
+
 func shadow_clones() -> Array:
 	var out: Array = []
 	if _world == null:
@@ -2419,6 +2427,22 @@ func _spawn_shadow_clone_puppet(aid: int, pos: Vector2, payload: Dictionary) -> 
 	_net_agents[aid] = clone
 
 
+func _spawn_elite_guest_specialist_puppet(aid: int, pos: Vector2, payload: Dictionary) -> void:
+	var snap := {"skin_id": String(payload.get("skin_id", "player"))}
+	var specialist = preload("res://scripts/elite_guest_specialist.gd").new()
+	_world.add_child(specialist)
+	specialist.setup_specialist(
+		self,
+		pos,
+		snap,
+		int(payload.get("owner_seat", 0)),
+		int(payload.get("level", 3)),
+	)
+	specialist.net_puppet = true
+	specialist.net_agent_id = aid
+	_net_agents[aid] = specialist
+
+
 func _spawn_cannon_puppet(aid: int, pos: Vector2, payload: Dictionary) -> void:
 	var cannon: Node2D = preload("res://scripts/universal_cannon.gd").new()
 	cannon.host = self
@@ -3110,6 +3134,7 @@ func _finish_day() -> void:
 	SfxBus.play("sfx_phase_close")
 	## Clones drop held boxes onto the floor before unsold collect, then vanish.
 	dismiss_shadow_clones()
+	dismiss_elite_guest_specialists()
 	dismiss_universal_cannons()
 	dismiss_shelf_cannons()
 	dismiss_kind_cannons()
@@ -5028,6 +5053,67 @@ func deploy_elite_guest_cannon(at: Vector2, level: int, seat: int) -> Node2D:
 		"remaining": 30.0,
 	})
 	return cannon
+
+
+func deploy_elite_guest_specialist(at: Vector2, level: int, seat: int) -> Node2D:
+	if _world == null or phase != "open":
+		return null
+	if SessionService.is_networked() and SessionService.is_client():
+		return null
+	for child in _world.get_children():
+		if str(child.get("kind")) != "elite_guest_specialist" or int(child.get("owner_seat")) != seat:
+			continue
+		if not bool(child.get("_vanishing")):
+			return null
+	var caster := _seat_actor(seat)
+	if caster == null or not caster.has_method("clone_snapshot"):
+		return null
+	var snap: Dictionary = caster.call("clone_snapshot")
+	var facing := Vector2(caster.get("facing"))
+	var spots: Array[Vector2] = ShadowCloneCast.spawn_positions(
+		at, facing, 1, _obstacles, _clone_spawn_people_for(caster)
+	)
+	var spawn_at := spots[0] if not spots.is_empty() else at
+	var specialist = preload("res://scripts/elite_guest_specialist.gd").new()
+	_world.add_child(specialist)
+	specialist.setup_specialist(self, spawn_at, snap, seat, clampi(level, 1, 3))
+	_register_net_agent(specialist, "elite_guest_specialist", {
+		"owner_seat": seat,
+		"level": specialist.level,
+		"skin_id": String(snap.get("skin_id", "player")),
+	})
+	return specialist
+
+
+func deliver_elite_guest_specialist_item(guest: Node, sku: String, seat: int) -> bool:
+	if SessionService.is_networked() and SessionService.is_client():
+		return false
+	if (
+		guest == null
+		or not is_instance_valid(guest)
+		or not guest.has_method("can_receive_delivery")
+		or guest.get("is_elite") != true
+		or guest.get("temp_clerk") == true
+		or not bool(guest.call("can_receive_delivery"))
+		or not guest.has_method("accept_toss_box")
+		or sku == ""
+	):
+		return false
+	var guest_2d := guest as Node2D
+	if (
+		guest_2d == null
+		or _guest_wants_sku(guest_2d, sku) <= elite_guest_cannon_reserved_count(guest, sku)
+	):
+		return false
+	if int(state.stock.get(sku, 0)) <= 0 or not bool(state.consume_stock(sku, 1)):
+		return false
+	if int(guest.call("accept_toss_box", sku, 1)) != 1:
+		state.credit_unsold_pieces({sku: 1})
+		sync_stock()
+		return false
+	sync_stock()
+	note_deliver(seat, "specialist", 1, false)
+	return true
 
 
 func elite_guest_cannon_reserved_count(guest: Node, sku: String) -> int:

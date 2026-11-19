@@ -392,6 +392,14 @@ func deploy_elite_guest_cannon(_at: Vector2, _level: int, _seat: int) -> Node2D:
 	return null
 
 
+func deploy_elite_guest_specialist(_at: Vector2, _level: int, _seat: int) -> Node2D:
+	return null
+
+
+func deliver_elite_guest_specialist_item(_guest: Node, _sku: String, _seat: int) -> bool:
+	return false
+
+
 func elite_guest_cannon_reserved_count(_guest: Node, _sku: String) -> int:
 	return 0
 

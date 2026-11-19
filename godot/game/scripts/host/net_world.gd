@@ -172,6 +172,8 @@ func apply_agent_spawn_payload(payload: Dictionary) -> void:
 			host._spawn_drop_puppet(aid, pos, payload)
 		"shadow_clone":
 			host._spawn_shadow_clone_puppet(aid, pos, payload)
+		"elite_guest_specialist":
+			host._spawn_elite_guest_specialist_puppet(aid, pos, payload)
 		"universal_cannon":
 			host._spawn_cannon_puppet(aid, pos, payload)
 		"shelf_cannon":

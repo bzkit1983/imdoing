@@ -47,6 +47,8 @@ skill.kind_cannon.name,善良的炮,Kindness Cannon,善良的炮,やさしさ砲
 skill.kind_cannon.blurb,腳下佈置薄荷綠炮台，10件FIFO；78px內每12／10／8秒將小偷轉為普通客人；取消後CD90秒（INT縮短）,Deploy a mint-green turret with 10 FIFO rounds; converts a thief within 78px into a regular guest every 12/10/8s; cancel to start a 90s INT-scaled cooldown,脚下布置薄荷绿炮台，10件FIFO；78px内每12／10／8秒将小偷转为普通客人；取消后CD90秒（INT缩短）,足元にミント色の砲台を設置。FIFO弾薬10個、78px以内の泥棒を12／10／8秒ごとに一般客へ変える。解除後CD90秒（INT短縮）
 skill.elite_guest_cannon.name,西客炮,Elite Guest Cannon,麻烦客炮,厄介客砲
 skill.elite_guest_cannon.blurb,腳下布置全店炮台30秒；LV1／2／3每3／2／0.5秒從倉庫送出清單所需貨物；冷卻45秒（INT縮短）,Deploy a shop-wide turret for 30s; LV1/2/3 delivers a needed item from warehouse every 3/2/0.5s; 45s INT-scaled cooldown,脚下布置全店炮台30秒；LV1／2／3每3／2／0.5秒从仓库送出清单所需货物；冷却45秒（INT缩短）,足元に全店対象の砲台を30秒設置。LV1／2／3は3／2／0.5秒ごとに倉庫から必要商品を届ける。CD45秒（INT短縮）
+skill.elite_guest_specialist.name,西客專員,Elite Guest Specialist,麻烦客专员,厄介客対応員
+skill.elite_guest_specialist.blurb,分身維持30秒並跟隨麻煩客人；3格範圍每3／2／0.5秒同時向範圍內每位客人交付一件清單貨物；CD60秒（INT縮短）,"Summon a purple clone for 30s to follow elite guests. Every 3/2/0.5s, it delivers one needed item to each eligible guest within its 3-tile range; 60s INT-scaled cooldown.",分身持续30秒并跟随麻烦客人；3格范围每3／2／0.5秒同时向范围内每位客人交付一件清单商品；冷却60秒（INT缩短）,分身を30秒召喚し、厄介客の近くへ移動。3マス範囲内にいる対象全員へ3／2／0.5秒ごとに必要商品を1個ずつ届ける。CD60秒（INT短縮）。
 elite_guest_cannon.deployed,西客炮已布置,Elite Guest Cannon deployed,麻烦客炮已布置,厄介客砲を設置した
 elite_guest_cannon.refreshed,西客炮效果已刷新,Elite Guest Cannon refreshed,麻烦客炮效果已刷新,厄介客砲を再展開した
 elite_guest_cannon.status,西客炮 玩家%d  LV%d,Elite Guest Cannon P%d  LV%d,麻烦客炮 玩家%d  LV%d,厄介客砲 プレイヤー%d  LV%d
@@ -135,6 +137,7 @@ world.clerk.cleaner,店員清潔,Clerk cleaner,店员清洁,店員清掃
 world.clone.cashier,分身收銀,Clone checkout,分身收银,分身レジ
 world.clone.restock,分身補貨,Clone restock,分身补货,分身補充
 world.clone.label,分身,Clone,分身,分身
+world.clone.elite_specialist,西客專員,Elite Guest Specialist,麻烦客专员,厄介客対応員
 world.door,大門,Door,大门,入口
 world.restock.pick,選貨  ↑↓,Pick SKU  ↑↓,选货  ↑↓,商品選択  ↑↓
 world.restock.stock_line,%s  %d件,%s  %d pcs,%s  %d件,%s  %d個
