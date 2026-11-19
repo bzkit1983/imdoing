@@ -59,6 +59,8 @@ FORCE_CHARS = (
 	"▶→←↑↓−＋＝※"
 	# Pause / HUD extras that land via Loc before the next harvest cycle.
 	"閉項調音量聲點選右上"
+	# Skill name glyphs that previously tofu'd on subset-only platforms.
+	"善良的炮三段火槍陣枪阵銃斉"
 	# Hiragana + katakana (full) so ja UI never tofu even if a string is missed.
 	"ぁあぃいぅうぇえぉおかがきぎくぐけげこごさざしじすずせぜそぞただちぢっつづてでとどなにぬねのはばぱひびぴふぶぷへべぺほぼぽまみむめもゃやゅゆょよらりるれろゎわゐゑをんゔゕゖ゛゜ゝゞ"
 	"ァアィイゥウェエォオカガキギクグケゲコゴサザシジスズセゼソゾタダチヂッツヅテデトドナニヌネノハバパヒビピフブプヘベペホボポマミムメモャヤュユョヨラリルレロヮワヰヱヲンヴヵヶヷヸヹヺ・ーヽヾ"
@@ -94,6 +96,11 @@ def _harvest_locale_csv(chars: set[str]) -> None:
 					for _col, cell in row.items():
 						if not cell:
 							continue
+						# Duplicate CSV headers can yield a list of cells.
+						if isinstance(cell, list):
+							cell = "\n".join(str(x) for x in cell if x)
+						else:
+							cell = str(cell)
 						chars.update(cell.replace("\\n", "\n"))
 		except (UnicodeDecodeError, csv.Error):
 			# Fallback: whole-file scan

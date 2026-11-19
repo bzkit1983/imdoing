@@ -291,7 +291,8 @@ func play_net_flight(payload: Dictionary) -> void:
 	var to := Vector2(float(payload.get("tx", 0.0)), float(payload.get("ty", 0.0)))
 	var dur := float(payload.get("dur", Tuning.DROP_FLIGHT_SEC))
 	var flight: Node2D = DropFlightScript.acquire()
-	flight.setup(sku, from, to, dur, n)
+	## Match host player-toss presentation (straight). Cannons are local-simulated on Host.
+	flight.setup(sku, from, to, dur, n, false)
 	host._world.add_child(flight)
 
 func emit_net_flight(sku: String, n: int, from: Vector2, to: Vector2, duration: float) -> void:

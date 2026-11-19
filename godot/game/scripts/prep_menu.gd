@@ -1124,19 +1124,13 @@ func _activate() -> void:
 	var action := String(row["action"])
 	var arg = row["arg"]
 	match action:
+		"sc_tutorial":
+			_apply_scenario_choice(5, false)
+		"sc_skip_tutorial":
+			_apply_scenario_choice(1, true)
 		"sc":
-			## apply_scenario clears tutorial_progress; Director must drop stale forced state.
-			var tut_sc := _tutorial()
-			if tut_sc != null and tut_sc.has_method("reset_runtime"):
-				tut_sc.reset_runtime()
-			state.apply_scenario(int(arg))
-			if tut_sc != null:
-				tut_sc.setup(state)
-			## Scenario 5 always Easy for the test play-difficulty toggle.
-			if int(arg) == 5 and demo != null and demo.has_method("set_play_difficulty"):
-				demo.call("set_play_difficulty", "easy")
-			_msg = ""
-			_show_page("home")
+			## Non-tutorial scenarios skip the campaign so lessons do not soft-lock.
+			_apply_scenario_choice(int(arg), int(arg) != 5)
 		"wipe_save":
 			var tut_wipe := _tutorial()
 			if tut_wipe != null and tut_wipe.has_method("reset_runtime"):
@@ -1383,10 +1377,16 @@ func _activate() -> void:
 			_toggle_virtual_stick()
 		"toggle_dev_hud":
 			_toggle_dev_hud()
+		"toggle_sfx":
+			_toggle_sfx()
+		"nudge_sfx_volume":
+			_nudge_sfx_volume(int(arg) if arg != null else 0)
 		"toggle_bgm":
 			_toggle_bgm()
 		"nudge_bgm_volume":
 			_nudge_bgm_volume(int(arg) if arg != null else 0)
+		"cycle_camera":
+			_cycle_camera()
 		"set_locale":
 			_set_locale(String(arg))
 		"play_sfx":
@@ -1397,11 +1397,65 @@ func _activate() -> void:
 			pass
 
 
+func _apply_scenario_choice(scenario_id: int, skip_tutorial: bool) -> void:
+	## apply_scenario clears tutorial_progress; Director must drop stale forced state.
+	var tut_sc := _tutorial()
+	if tut_sc != null and tut_sc.has_method("reset_runtime"):
+		tut_sc.reset_runtime()
+	state.apply_scenario(scenario_id)
+	if skip_tutorial:
+		state.mark_tutorial_skipped()
+	if tut_sc != null:
+		tut_sc.setup(state)
+	## Scenario 5／product tutorial always Easy for the play-difficulty toggle.
+	if scenario_id == 5 and demo != null and demo.has_method("set_play_difficulty"):
+		demo.call("set_play_difficulty", "easy")
+	_msg = Loc.t("tut.skip.done") if skip_tutorial else ""
+	_show_page("home")
+
+
 func _toggle_virtual_stick() -> void:
 	var on := PlatformServices.toggle_virtual_stick()
 	SfxBus.play("sfx_ui_confirm")
 	_msg = Loc.t("prep.sys.virtual_stick_on" if on else "prep.sys.virtual_stick_off")
 	## Visibility updates via InputMode.show_vj_changed → demo._on_show_vj_changed.
+	_refresh()
+
+
+func _toggle_sfx() -> void:
+	if SfxBus.is_muted():
+		SfxBus.set_muted(false)
+		SfxBus.play("sfx_ui_confirm")
+		_msg = Loc.t("pause.sfx_on")
+	else:
+		SfxBus.play("sfx_ui_confirm")
+		SfxBus.set_muted(true)
+		_msg = Loc.t("pause.sfx_off")
+	_refresh()
+
+
+func _nudge_sfx_volume(steps: int) -> void:
+	if steps == 0:
+		SfxBus.play("sfx_ui_confirm", 1.0, NAN, true)
+		_msg = Loc.t("pause.sfx_volume", [SfxBus.volume_percent()])
+		_refresh()
+		return
+	SfxBus.nudge_volume(steps)
+	SfxBus.play("sfx_ui_move", 1.0, NAN, true)
+	_msg = Loc.t("pause.sfx_volume", [SfxBus.volume_percent()])
+	_refresh()
+
+
+func _cycle_camera() -> void:
+	PlatformServices.cycle_camera_view()
+	SfxBus.play("sfx_ui_confirm")
+	match PlatformServices.get_camera_view():
+		PlatformServices.CAMERA_VIEW_FAR:
+			_msg = Loc.t("pause.camera_far")
+		PlatformServices.CAMERA_VIEW_OVERVIEW:
+			_msg = Loc.t("pause.camera_overview")
+		_:
+			_msg = Loc.t("pause.camera_normal")
 	_refresh()
 
 
@@ -2287,6 +2341,16 @@ func _move(x: int, y: int) -> void:
 		return
 	if _rows.is_empty():
 		return
+	## Settings list（非 hub）：A／D 調音量，不換列。Mute 列同暫停選單也可左右加減。
+	if x != 0 and _index >= 0 and _index < _rows.size():
+		var row: Dictionary = _rows[_index]
+		var act := String(row.get("action", ""))
+		if act == "nudge_sfx_volume" or act == "toggle_sfx":
+			_nudge_sfx_volume(1 if x > 0 else -1)
+			return
+		if act == "nudge_bgm_volume" or act == "toggle_bgm":
+			_nudge_bgm_volume(1 if x > 0 else -1)
+			return
 	if y < 0 or x < 0:
 		_index = posmod(_index - 1, _rows.size())
 		SfxBus.play("sfx_ui_move")
@@ -2360,10 +2424,14 @@ func _move_hub(x: int, y: int) -> void:
 				return
 			next = posmod(cand, n)
 	else:
-		## BGM volume row: A／D（左右）調音量，不換列。
+		## Hub 單欄：A／D 調音量（含 mute 列），不換列。
 		if x != 0 and _index >= 0 and _index < n:
 			var row: Dictionary = _rows[_index]
-			if String(row.get("action", "")) == "nudge_bgm_volume":
+			var act := String(row.get("action", ""))
+			if act == "nudge_sfx_volume" or act == "toggle_sfx":
+				_nudge_sfx_volume(1 if x > 0 else -1)
+				return
+			if act == "nudge_bgm_volume" or act == "toggle_bgm":
 				_nudge_bgm_volume(1 if x > 0 else -1)
 				return
 		if y < 0 or x < 0:

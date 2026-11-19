@@ -30,6 +30,8 @@ static func parent_page(page: String) -> String:
 			if in_room_lobby and page != "lobby" and page != "lan_join" and page != "steam_join" and page != "confirm":
 				return "lobby"
 			return "home"
+		"settings":
+			return "hub_sys"
 		"stats", "skills", "look":
 			return "hub_char"
 		"skill_set", "skill_rename":
@@ -40,8 +42,10 @@ static func parent_page(page: String) -> String:
 			return "hub_goods"
 		"furn", "expand", "layout":
 			return "hub_shop"
-		"sfx", "locale", "test_tasks":
+		"sfx", "test_tasks":
 			return "hub_sys"
+		"locale":
+			return "settings"
 		_:
 			return "home"
 
@@ -175,6 +179,8 @@ static func fill(menu: CanvasLayer, page: String) -> void:
 			_hub_shop(menu)
 		"hub_sys":
 			_hub_sys(menu)
+		"settings":
+			_settings(menu)
 		"locale":
 			_locale(menu)
 		"stats":
@@ -278,7 +284,10 @@ static func fill_skill_pick(menu: CanvasLayer, slot_i: int) -> void:
 
 static func _scenario(menu: CanvasLayer) -> void:
 	menu._title.text = Loc.t("prep.scenario.title")
-	menu._info.text = Loc.t("prep.scenario.info")
+	menu._info.text = Loc.t("prep.scenario.offer_body")
+	## H2 product entry: tutorial ask first (not gated by TEST_TOOLS).
+	menu._add(Loc.t("prep.scenario.start_tutorial"), "sc_tutorial", null)
+	menu._add(Loc.t("prep.scenario.skip_tutorial"), "sc_skip_tutorial", null)
 	menu._add(Loc.t("prep.scenario.s1"), "sc", 1)
 	menu._add(Loc.t("prep.scenario.s2"), "sc", 2)
 	menu._add(Loc.t("prep.scenario.s3"), "sc", 3)
@@ -641,28 +650,7 @@ static func _hub_sys(menu: CanvasLayer) -> void:
 	menu._hub_cols = 1
 	menu._title.text = Loc.t("prep.hub.sys")
 	menu._info.text = menu._pair(menu._header(), Loc.t("prep.hub.sys_info"))
-	var stick_on := PlatformServices.is_virtual_stick_enabled()
-	menu._add_hub(
-		Loc.t("prep.sys.virtual_stick_on" if stick_on else "prep.sys.virtual_stick_off"),
-		"toggle_virtual_stick",
-		null,
-		"stick"
-	)
-	var bgm := BgmBusScript.bus()
-	var bgm_on: bool = bgm != null and not bgm.is_muted()
-	menu._add_hub(
-		Loc.t("prep.sys.bgm_on" if bgm_on else "prep.sys.bgm_off"),
-		"toggle_bgm",
-		null,
-		"bgm"
-	)
-	var bgm_pct: int = bgm.volume_percent() if bgm else 100
-	menu._add_hub(
-		Loc.t("prep.sys.bgm_volume", [bgm_pct]),
-		"nudge_bgm_volume",
-		0,
-		"bgm_vol"
-	)
+	menu._add_hub(Loc.t("prep.settings"), "go", "settings", "settings")
 	var dev_on := PlatformServices.is_show_dev_hud()
 	menu._add_hub(
 		Loc.t("prep.sys.dev_hud_on" if dev_on else "prep.sys.dev_hud_off"),
@@ -670,14 +658,45 @@ static func _hub_sys(menu: CanvasLayer) -> void:
 		null,
 		"dev"
 	)
-	var lang_name := Loc.t("locale.name.%s" % Loc.get_locale())
-	menu._add_hub(Loc.t("prep.sys.language", [lang_name]), "go", "locale", "lang")
 	if ProductVersion.test_tools_enabled():
 		menu._add_hub(Loc.t("prep.home.test_money"), "test_money", null, "money")
 		menu._add_hub(Loc.t("prep.home.test_tasks"), "go", "test_tasks", "tasks")
 		menu._add_hub(Loc.t("prep.home.sfx_test"), "go", "sfx", "sfx")
 	menu._add_hub(Loc.t("prep.home.wipe"), "wipe_save", null, "wipe")
 	menu._rebuild_hub_tiles()
+
+
+static func _settings(menu: CanvasLayer) -> void:
+	## H2 settings shell — same five controls as pause Settings; writes settings.cfg.
+	menu._hub_cols = 1
+	menu._title.text = Loc.t("prep.settings.title")
+	menu._info.text = menu._pair(menu._header(), Loc.t("prep.settings.info"))
+	if menu._msg != "":
+		menu._info.text = menu._pair(menu._info.text, menu._msg)
+	var sfx_on := not SfxBus.is_muted()
+	menu._add(Loc.t("pause.sfx_on" if sfx_on else "pause.sfx_off"), "toggle_sfx", null)
+	menu._add(Loc.t("pause.sfx_volume", [SfxBus.volume_percent()]), "nudge_sfx_volume", 0)
+	var bgm := BgmBusScript.bus()
+	var bgm_on: bool = bgm != null and not bgm.is_muted()
+	menu._add(Loc.t("prep.sys.bgm_on" if bgm_on else "prep.sys.bgm_off"), "toggle_bgm", null)
+	var bgm_pct: int = bgm.volume_percent() if bgm else 100
+	menu._add(Loc.t("prep.sys.bgm_volume", [bgm_pct]), "nudge_bgm_volume", 0)
+	var stick_on := PlatformServices.is_virtual_stick_enabled()
+	menu._add(
+		Loc.t("prep.sys.virtual_stick_on" if stick_on else "prep.sys.virtual_stick_off"),
+		"toggle_virtual_stick",
+		null
+	)
+	match PlatformServices.get_camera_view():
+		PlatformServices.CAMERA_VIEW_FAR:
+			menu._add(Loc.t("pause.camera_far"), "cycle_camera", null)
+		PlatformServices.CAMERA_VIEW_OVERVIEW:
+			menu._add(Loc.t("pause.camera_overview"), "cycle_camera", null)
+		_:
+			menu._add(Loc.t("pause.camera_normal"), "cycle_camera", null)
+	var lang_name := Loc.t("locale.name.%s" % Loc.get_locale())
+	menu._add(Loc.t("prep.sys.language", [lang_name]), "go", "locale")
+	menu._add(Loc.t("prep.back"), "go", "hub_sys")
 
 
 static func _locale(menu: CanvasLayer) -> void:
@@ -691,7 +710,8 @@ static func _locale(menu: CanvasLayer) -> void:
 		var endonym := Loc.t("locale.name.%s" % code)
 		var row := Loc.t("prep.locale.row_current" if code == current else "prep.locale.row", [endonym])
 		menu._add(row, "set_locale", String(code))
-	menu._add(Loc.t("prep.back"), "go", "hub_sys")
+	## Prefer returning to Settings shell when opened from there.
+	menu._add(Loc.t("prep.back"), "go", "settings")
 
 
 static func _stats(menu: CanvasLayer) -> void:

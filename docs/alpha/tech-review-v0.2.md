@@ -16,8 +16,8 @@ v0.1 清單（產品骨架＋主機準備文件）已兌現；專案已從「可
 | --- | --- | --- |
 | 可持續開發 | 骨架 ✅；體積 🔴 | 單一活線做對了，但 `player`／`demo` 已到 indieshipping 警戒線 |
 | 執行期效能 | P0–P2 ✅ | 現規模（十餘客）桌面／Web 仍輕；Switch 地板仍要再壓測 |
-| 平台／上架 | Steam 候選半程 | 正式 App ID／Cloud／成就／BGM／教學未到；主機仍卡 middleware |
-| 遊戲設計標準 | 核心循環強；外層弱 | 日循環／技能幻想清楚；劇情·教學·流量長線·失敗條件仍欠 |
+| 平台／上架 | Steam 候選半程 | 正式 App ID／Cloud／成就／完整設定頁未到；教學框架＋BGM 音量已有；主機仍卡 middleware |
+| 遊戲設計標準 | 核心循環強；外層弱 | 日循環／技能幻想清楚；劇情·流量長線仍欠；失敗敘事＝EA 不做（H3）；首日引導打磨仍開 |
 | 多人 | 設計＋M3 驗收強於同規模獨立團隊 | Net 邏輯浸入 God Object，回歸成本高 |
 
 ### 分數卡（業界獨立／中小型工作室標尺 · 10 分制）
@@ -145,7 +145,7 @@ v0.1 的最低門檻（停複本／存檔／InputMap／拆 prep／PlatformServic
 | **系統深度 vs 複雜稅** | 中高風險 | 技能／COST／多人鎖／評價並存；有 `playerskillvalidator` 屬加分，但玩家認知負擔需教學消化 |
 | **進度與長期動機** | 中 | 等級／店擴／技能／評價有骨幹；**技能解鎖表、事件／劇情、任務報酬**仍 Beta（外層循環空心） |
 | **難度曲線** | 弱–中 | `difficulty.md` stub；活線多為 TEST_TOOLS 簡易／普通；流量數字仍 Demo／tuning 驅動 |
-| **新手引導／失敗可讀** | 弱 | Alpha 仍列缺教學、失敗／過關流程、技能演出輸入鎖；`tasksystem` 點名的 `eventsystem.md` 尚不存在 |
+| **新手引導／失敗可讀** | 中 | 教學框架＋劇本 5 已落地；**首日打磨**仍開。失敗／過關敘事＝**EA 不做**（H3）。技能演出輸入鎖仍缺；`eventsystem.md` 尚不存在 |
 | **Live-ops／後製內容** | 弱 | 無事系統、任務報酬／店鋪任務解鎖仍 Beta；難度殼無倍率表；偏 EA 而非長線營運 |
 | **平衡工具** | 中上 | `tuning.gd` 集中；缺試算表／遙測；獨立 EA 可接受 |
 | **多人設計完整性** | 優 | `multiplayer.md` 里程碑、權威、斷線、結算拍板清楚；高於同規模均值 |
@@ -190,9 +190,9 @@ PlatformServices：Desktop 實作完整；Steam 後端 **磁碟路徑可用、Cl
 - [x] **F3** GameHost 覆蓋殘餘熱路徑 `call()`；新增 API 必須進 `game_host.gd`— 熱路徑（customer／clerk／shadow_clone／player＋controllers／hud／calm_zone）改 typed 呼叫；`game_host.gd` 補齊貨架／結帳／loot／部署等契約（約 45→90+ API）
 - [x] **G1** GitHub Actions：既有 `tools/test_*.py` 於 PR（`.github/workflows/ci.yml` → `tools/run_ci_static.py`）；Godot `*_check.gd` 仍本機／可選（需 `GODOT=`）；少數過時契約列 quarantine
 - [x] **G2** 最少一條多人煙霧（本機 host＋client intent／開日／日結）— 手動清單 [`multiplayer-smoke-checklist.md`](multiplayer-smoke-checklist.md)＋靜態錨點 `tools/test_multiplayer_smoke_contract.py`
-- [ ] **H1** 正式 Steam App ID；Cloud 接 `write_save`；成就接 `unlock_achievement`
-- [ ] **H2** BGM＋完整設定頁；最小教學／第一日引導
-- [ ] **H3** 失敗／提早關店／過關敘事（或文件標明 EA 不做）
+- [ ] **H1** 正式 Steam App ID（仍 480）— Cloud／成就 **API 已接**（`steam_platform.gd`；見 [`steam-productization.md`](steam-productization.md)）；換正式 ID＋Partner Cloud／成就表後收尾
+- [x] **H2** 完整設定頁＋第一日引導打磨（2026-11-18）— 暫停／準備「設定」殼；新檔開始／跳過教學；模態可跳過；見 [`steam-productization.md`](steam-productization.md)
+- [x] **H3** EA 範圍已文件拍板（2026-11-18）：現行／Steam EA＝**純日循環**；**不做**失敗／過關／提早關店敘事（見 `docs/versioning.md`、`docs/alpha/design.md`、[`steam-productization.md`](steam-productization.md)；敘事／事件留 Beta）
 - [x] **I1** 回寫過時 `docs/alpha/design.md`（COMBO／取貨等）— 改標已實作並指向 `customerdelivery.md`／`fetchcombo.md`／`implementation-status`；gaps／animation-pending 交叉引用一併修正
 - [x] **J1** 滿店＋技能＋雙人 Profiler 基線文件化— [`perf-baseline-j1.md`](perf-baseline-j1.md)（手動滿載配方＋`tools/j1_perf_probe.sh` 空店 settle 首筆；Deck／Switch 待補列）
 - [x] **J2** drop-flight／技能 VFX 物件池— `drop_flight.gd`／`fx_burst.gd`／`float_text.gd` 靜態池；demo／net_world 改 `acquire()`；`tools/test_vfx_pool.py`

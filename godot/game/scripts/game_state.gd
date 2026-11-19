@@ -107,6 +107,8 @@ var task_test_pack_id: String = "OP-TUT-001"
 var task_test_seed: int = 1
 ## Tutorial progress: lesson_id → { status, step_id?, pages_acked? } (tutorial.md).
 var tutorial_progress: Dictionary = {}
+## Product H2: player declined／skipped the tutorial campaign (persist across days).
+var tutorial_skipped: bool = false
 
 
 func _init() -> void:
@@ -137,6 +139,7 @@ func apply_scenario(id: int) -> void:
 	difficulty_prompt_acked = ""
 	support_rating = 0
 	tutorial_progress.clear()
+	tutorial_skipped = false
 	_install_new_game_sets()
 	match id:
 		2:
@@ -215,6 +218,18 @@ func mark_tutorial_done(lesson_id: String) -> void:
 	if lesson_id == "":
 		return
 	tutorial_progress[lesson_id] = {"status": "done", "pages_acked": true}
+
+
+func mark_tutorial_skipped() -> void:
+	## Skip remaining／all campaign lessons; Director must not start new ones.
+	tutorial_skipped = true
+	const Catalog = preload("res://scripts/tutorial/tutorial_catalog.gd")
+	for lesson in Catalog.all_lessons():
+		if not (lesson is Dictionary):
+			continue
+		var lid := String((lesson as Dictionary).get("id", ""))
+		if lid != "":
+			mark_tutorial_done(lid)
 
 
 func list_tutorial_done_ids() -> Array[String]:
@@ -1274,6 +1289,7 @@ func to_dict() -> Dictionary:
 		"task_test_pack_id": task_test_pack_id,
 		"task_test_seed": task_test_seed,
 		"tutorial_progress": tutorial_progress.duplicate(true),
+		"tutorial_skipped": tutorial_skipped,
 	}
 
 
@@ -1402,6 +1418,7 @@ func from_dict(data: Dictionary) -> String:
 			var trow = raw_tut[tid]
 			if trow is Dictionary:
 				tutorial_progress[String(tid)] = (trow as Dictionary).duplicate(true)
+	tutorial_skipped = bool(data.get("tutorial_skipped", false))
 	_grant_initial_goods()
 	_ensure_one_for_sale()
 	return ""

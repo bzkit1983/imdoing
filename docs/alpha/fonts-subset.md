@@ -14,6 +14,8 @@
 | `godot/game/fonts/source/NotoSansCJKtc-Regular.otf` | 可作備援來源（無假名時 ja 會缺字） |
 | `tools/fonts/subset_notosans_tc.py` | 收字＋`fonttools subset` |
 
+**2026-11-18：** 以 JP 來源重建；已涵蓋「善良的炮」「三段火槍陣／火枪阵／銃陣／斉」等先前豆腐字。locale CSV 若有重複欄名，收割腳本已相容 list cell。
+
 `project.godot`／`themes/default.tres`／`scripts/ui_font.gd` 皆指向 `NotoSansTC-Game.ttf`。
 
 ## 流程

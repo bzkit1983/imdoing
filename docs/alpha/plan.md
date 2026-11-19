@@ -212,7 +212,7 @@ Yes! My Lord!：
 - ~~事件 SFX 開／關與聲量~~ **已做**（暫停選單；`SfxBus`；跨局 `user://settings.cfg`）。BGM／完整設定頁仍未做
 - ~~存檔寫入本機 `user://save.json`。關店與準備回合結束時各寫一次~~ **已做**（長線見 `docs/systemdesign/savesystem.md`；活線 `godot/game`）
 - ~~輸入改 InputMap action~~ **已做**（長線見 `docs/systemdesign/control.md`；Autoload `Controls`）
-- 教學：首日三條提示，分別指向執貨、收銀、清潔（**未做**）
+- ~~教學：首日三條提示，分別指向執貨、收銀、清潔~~ **框架已落地**（`tutorial.md`；劇本 5 開局鏈見 `implementation-status.md`）。**仍開：** 產品預設新檔的第一日引導打磨（tech-review H2）
 - 技能演出開始後 0.45 秒內不接受移動與技能。之後恢復操作。奧義演出為 0.7 秒（**未做**）
 - 導出寫出本機 JSON：名字、STR／AGI／INT、已解鎖技能與等級。匯入後佔一個店員欄。不做連線（**未做**）
 

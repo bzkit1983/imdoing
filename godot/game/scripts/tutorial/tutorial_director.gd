@@ -349,7 +349,20 @@ func _resume_lesson(lesson: Dictionary) -> void:
 	_activate_step(found)
 
 
+## H2: skip remaining campaign from modal／offer. Marks all lessons done + persists.
+func skip_campaign() -> void:
+	if state == null:
+		return
+	close_modal_if_open()
+	state.mark_tutorial_skipped()
+	reset_runtime()
+	progress_changed.emit()
+	gate_changed.emit()
+
+
 func _trigger_ok(lesson: Dictionary, phase: String) -> bool:
+	if state != null and bool(state.tutorial_skipped):
+		return false
 	var trig: Dictionary = lesson.get("trigger", {})
 	var when := String(trig.get("when", "first_unseen"))
 	var requires = trig.get("requires_done", [])
@@ -401,11 +414,23 @@ func _begin_lesson(lesson: Dictionary) -> void:
 	_capture_equip_skills_baseline(id, true)
 	_busy_modal = true
 	_ensure_modal()
+	_disconnect_modal_signals()
 	if not _modal.finished.is_connected(_on_pages_finished):
 		_modal.finished.connect(_on_pages_finished)
+	if not _modal.skip_requested.is_connected(_on_skip_requested):
+		_modal.skip_requested.connect(_on_skip_requested)
 	_modal.open_pages(_lesson.get("pages", []), false)
 	gate_changed.emit()
 	progress_changed.emit()
+
+
+func _on_skip_requested() -> void:
+	_disconnect_modal_signals()
+	_busy_modal = false
+	skip_campaign()
+	## Persist immediately so a crash mid-prep still honors skip.
+	if state != null and state.has_method("save_to_disk"):
+		state.save_to_disk()
 
 
 func _on_pages_finished() -> void:
@@ -854,3 +879,5 @@ func _disconnect_modal_signals() -> void:
 		_modal.finished.disconnect(_on_perfect_deliver_tip_acked)
 	if _modal.cancelled.is_connected(_on_perfect_deliver_tip_acked):
 		_modal.cancelled.disconnect(_on_perfect_deliver_tip_acked)
+	if _modal.skip_requested.is_connected(_on_skip_requested):
+		_modal.skip_requested.disconnect(_on_skip_requested)

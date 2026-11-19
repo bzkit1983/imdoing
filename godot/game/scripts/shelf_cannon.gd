@@ -170,7 +170,7 @@ func tick_fire(delta: float) -> void:
 	projectile.host = host
 	projectile.target = next
 	projectile.owner_seat = owner_seat
-	projectile.setup(sku, global_position, next.global_position, Tuning.DROP_FLIGHT_SEC, 1)
+	projectile.setup(sku, global_position, next.global_position, Tuning.DROP_FLIGHT_SEC, 1, true)
 	host.get("_world").add_child(projectile)
 	if SessionService.is_networked() and SessionService.is_server():
 		SessionService.broadcast_flight({

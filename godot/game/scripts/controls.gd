@@ -18,9 +18,12 @@ const CANCEL := "cancel"
 const DASH := "dash"
 const SKILL := "skill"
 const ULT := "ult"
-## Xbox shoulder hotkeys: LB=skill2, RB=skill3 (slots 1/2). LT/RT polled in player.
+## Legacy action names kept for menu/touch; shoulders remapped to carry focus.
 const SKILL_2 := "skill_2"
 const SKILL_3 := "skill_3"
+## Carry focus cycle: keyboard [ / ], pad LB / RB (when Y not held).
+const CARRY_PREV := "carry_prev"
+const CARRY_NEXT := "carry_next"
 const ROTATE := "rotate"
 const RESTOCK_PREV := "restock_prev"
 const RESTOCK_NEXT := "restock_next"
@@ -91,9 +94,13 @@ func ensure_actions() -> void:
 	_ensure_action(SKILL, 0.5, [_key(KEY_L), _joy_btn(JOY_BUTTON_Y)])
 	## Keyboard U only — Xbox ult is LT+RT long-press (polled). Touch still set_hold("ult").
 	_ensure_action(ULT, 0.5, [_key(KEY_U)])
-	_ensure_action(SKILL_2, 0.5, [_joy_btn(JOY_BUTTON_LEFT_SHOULDER)])
-	_ensure_action(SKILL_3, 0.5, [_joy_btn(JOY_BUTTON_RIGHT_SHOULDER)])
+	## skill_2/3 no longer bind shoulders — Y+LB/RB chords handled in player.
+	_ensure_action(SKILL_2, 0.5, [])
+	_ensure_action(SKILL_3, 0.5, [])
+	_ensure_action(CARRY_PREV, 0.5, [_key(KEY_BRACKETLEFT), _joy_btn(JOY_BUTTON_LEFT_SHOULDER)])
+	_ensure_action(CARRY_NEXT, 0.5, [_key(KEY_BRACKETRIGHT), _joy_btn(JOY_BUTTON_RIGHT_SHOULDER)])
 	_migrate_xbox_skill_bindings()
+	_migrate_shoulders_to_carry_focus()
 	_migrate_move_dpad_to_bag()
 	## Prep layout rotate — same physical defaults as dash (contexts do not overlap).
 	_ensure_action(ROTATE, 0.5, [_key(KEY_K), _key(KEY_X), _joy_btn(JOY_BUTTON_X)])
@@ -396,8 +403,37 @@ func _migrate_xbox_skill_bindings() -> void:
 			InputMap.action_erase_event(ULT, ev2)
 		if not has_u:
 			InputMap.action_add_event(ULT, _key(KEY_U))
-	_ensure_joy_btn(SKILL_2, JOY_BUTTON_LEFT_SHOULDER)
-	_ensure_joy_btn(SKILL_3, JOY_BUTTON_RIGHT_SHOULDER)
+	## Do not re-bind shoulders to skill_2/3 — carry focus owns LB/RB.
+
+
+func _migrate_shoulders_to_carry_focus() -> void:
+	## Strip legacy LB/RB from skill hotkeys; ensure carry_prev/next own them.
+	_erase_joy_btn(SKILL_2, JOY_BUTTON_LEFT_SHOULDER)
+	_erase_joy_btn(SKILL_3, JOY_BUTTON_RIGHT_SHOULDER)
+	_ensure_joy_btn(CARRY_PREV, JOY_BUTTON_LEFT_SHOULDER)
+	_ensure_joy_btn(CARRY_NEXT, JOY_BUTTON_RIGHT_SHOULDER)
+	_ensure_key(CARRY_PREV, KEY_BRACKETLEFT)
+	_ensure_key(CARRY_NEXT, KEY_BRACKETRIGHT)
+
+
+func _erase_joy_btn(action: String, button: JoyButton) -> void:
+	if not InputMap.has_action(action):
+		return
+	var drop: Array[InputEvent] = []
+	for ev in InputMap.action_get_events(action):
+		if ev is InputEventJoypadButton and ev.button_index == button:
+			drop.append(ev)
+	for ev2 in drop:
+		InputMap.action_erase_event(action, ev2)
+
+
+func _ensure_key(action: String, keycode: Key) -> void:
+	if not InputMap.has_action(action):
+		InputMap.add_action(action, 0.5)
+	for ev in InputMap.action_get_events(action):
+		if ev is InputEventKey and (ev as InputEventKey).physical_keycode == keycode:
+			return
+	InputMap.action_add_event(action, _key(keycode))
 
 
 func _ensure_joy_btn(action: String, button: JoyButton) -> void:

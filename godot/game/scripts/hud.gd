@@ -1204,47 +1204,52 @@ func _obj_int(node: Object, prop: String) -> int:
 	return int(v) if v != null else 0
 
 
-## Hand-carry sequence: left→right, last slot = next drop (trailing).
+## Hand-carry sequence: left→right; gold frame = focus; right = recent-touch.
 func _sync_carry_icons(pane: Dictionary, inv) -> void:
 	var icons: HBoxContainer = pane.get("icons")
 	if icons == null:
 		return
 	var groups: Array = []
+	var focus_i := -1
 	if inv != null and not inv.is_empty():
 		groups = inv.grouped()
+		focus_i = int(inv.get("focus_index"))
 	var bits: PackedStringArray = []
 	for g in groups:
 		bits.append("%s:%d" % [String(g["id"]), int(g["count"])])
-	var fp := "|".join(bits)
+	var fp := "%s@%d" % ["|".join(bits), focus_i]
 	if fp == String(pane.get("icons_fp", "")):
 		return
 	pane["icons_fp"] = fp
-	_rebuild_carry_icon_row(icons, groups)
+	_rebuild_carry_icon_row(icons, groups, focus_i)
 
 
 func _sync_carry_icons_into(icons: HBoxContainer, inv, use_std_fp: bool) -> void:
 	if icons == null:
 		return
 	var groups: Array = []
+	var focus_i := -1
 	if inv != null and not inv.is_empty():
 		groups = inv.grouped()
+		focus_i = int(inv.get("focus_index"))
 	var bits: PackedStringArray = []
 	for g in groups:
 		bits.append("%s:%d" % [String(g["id"]), int(g["count"])])
-	var fp := "|".join(bits)
+	var fp := "%s@%d" % ["|".join(bits), focus_i]
 	if use_std_fp:
 		if fp == _carry_std_fp:
 			return
 		_carry_std_fp = fp
-	_rebuild_carry_icon_row(icons, groups)
+	_rebuild_carry_icon_row(icons, groups, focus_i)
 
 
-func _rebuild_carry_icon_row(icons: HBoxContainer, groups: Array) -> void:
+func _rebuild_carry_icon_row(icons: HBoxContainer, groups: Array, focus_index: int = -1) -> void:
 	for c in icons.get_children():
 		c.queue_free()
 	if groups.is_empty():
 		return
-	var last_i := groups.size() - 1
+	if focus_index < 0 or focus_index >= groups.size():
+		focus_index = groups.size() - 1
 	for i in groups.size():
 		var g: Dictionary = groups[i]
 		var sku := String(g["id"])
@@ -1252,8 +1257,8 @@ func _rebuild_carry_icon_row(icons: HBoxContainer, groups: Array) -> void:
 		var cell := VBoxContainer.new()
 		cell.add_theme_constant_override("separation", 0)
 		var icon := SkuIcons.make_tex_rect(sku, 28)
-		if i == last_i:
-			## Trailing / next-drop highlight.
+		if i == focus_index:
+			## Focus highlight (gold frame).
 			var frame := PanelContainer.new()
 			var sb := StyleBoxFlat.new()
 			sb.bg_color = Color(0, 0, 0, 0)
@@ -1273,4 +1278,25 @@ func _rebuild_carry_icon_row(icons: HBoxContainer, groups: Array) -> void:
 		qty.add_theme_color_override("font_outline_color", Color("121212"))
 		qty.add_theme_constant_override("outline_size", 4)
 		cell.add_child(qty)
+		## Touch: tap cell to set carry focus.
+		cell.mouse_filter = Control.MOUSE_FILTER_STOP
+		cell.gui_input.connect(_on_carry_cell_gui.bind(i))
 		icons.add_child(cell)
+
+
+func _on_carry_cell_gui(event: InputEvent, index: int) -> void:
+	var pressed := false
+	if event is InputEventMouseButton:
+		pressed = event.pressed and event.button_index == MOUSE_BUTTON_LEFT
+	elif event is InputEventScreenTouch:
+		pressed = event.pressed
+	if not pressed:
+		return
+	var seats := _collect_seat_players()
+	var p: Node = seats[0] if not seats.is_empty() else null
+	if p == null or not is_instance_valid(p):
+		return
+	var inv = p.get("inventory")
+	if inv == null or not inv.has_method("set_focus_index"):
+		return
+	inv.call("set_focus_index", index)
