@@ -38,6 +38,7 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_PAUSABLE
 	process_physics_priority = 110
 	_visual = preload("res://scripts/cannon_visual.gd").new()
+	_visual.purple_theme = true
 	add_child(_visual)
 	_barrel = _visual.barrel
 	_label = Label.new()
