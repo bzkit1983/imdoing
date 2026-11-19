@@ -1457,8 +1457,9 @@ func _tick_buffs(delta: float) -> void:
 
 
 func _wiggle_axis() -> Vector2:
-	## Clean: left stick / touch only (D-PAD is bag — opsitems.md).
-	var v := stick_axis + _joy_stick_vector()
+	## Clean: left stick / touch VJ / WASD (D-PAD stays bag — opsitems.md).
+	## Same sources as drop aim / walk; `_move_vector` also feeds remote_move on Host.
+	var v := _move_vector() + stick_axis
 	if v.length_squared() > 1.0:
 		v = v.normalized()
 	return v
