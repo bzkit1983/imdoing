@@ -1767,6 +1767,7 @@ func _clear_virtual_holds() -> void:
 		_player.set_hold("cancel", false)
 		_player.set_hold("dash", false)
 		_player.set_hold("skill", false)
+		_player.set_hold("bag_menu", false)
 		_player.set_hold("ult", false)
 	if _player:
 		_player.stick_axis = Vector2.ZERO
@@ -1820,6 +1821,7 @@ func _show_early_dialog() -> void:
 		_player.set_hold("cancel", false)
 		_player.set_hold("dash", false)
 		_player.set_hold("skill", false)
+		_player.set_hold("bag_menu", false)
 		_player.set_hold("ult", false)
 	if _early_layer != null and is_instance_valid(_early_layer):
 		_early_layer.visible = true
@@ -2099,8 +2101,9 @@ func _net_client_send_intents() -> void:
 			"my": mv.y,
 			"interact": p.get("_j_held") == true,
 			"cancel": p.get("_cancel_held") == true,
-			"dash": p.get("_k_held") == true,
+			"dash": p.get("_k_held") == true or p.get("_rt_dash_held") == true,
 			"skill": p.get("_l_held") == true,
+			"bag_menu": p.get("_bag_held") == true,
 			"ult": p.get("_u_held") == true,
 			"hotkey": hotkey,
 			"bag_slot": bag_slot,
@@ -2198,6 +2201,7 @@ func _net_host_apply_intents() -> void:
 			p.set_hold("cancel", intent.get("cancel", false) == true)
 			p.set_hold("dash", intent.get("dash", false) == true)
 			p.set_hold("skill", intent.get("skill", false) == true)
+			p.set_hold("bag_menu", intent.get("bag_menu", false) == true)
 			if not ult_cast:
 				p.set_hold("ult", intent.get("ult", false) == true)
 		var hotkey := int(intent.get("hotkey", -1))

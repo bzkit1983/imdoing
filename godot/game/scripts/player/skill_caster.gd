@@ -588,12 +588,15 @@ func on_skill_hold(pressed: bool) -> void:
 			host._skill_release_ignore = true
 			return
 		if host._skill_latch:
-			confirm_skill(0)
+			## Second L while latch open: cancel (center ❌ semantics).
+			close_skill_menu()
 			host._skill_release_ignore = true
 			return
+		if host.bag_menu_open and host.has_method("_close_bag_menu"):
+			host._close_bag_menu()
 		host._l_held = true
 		host._l_time = 0.0
-		host._skill_aim = 0
+		host._skill_aim = -1 ## cancel until stick pushed
 		return
 	if host._skill_release_ignore:
 		host._skill_release_ignore = false
@@ -625,9 +628,11 @@ func on_skill_hold(pressed: bool) -> void:
 			open_skill_menu(true)
 
 func open_skill_menu(latch: bool) -> void:
+	if host.bag_menu_open and host.has_method("_close_bag_menu"):
+		host._close_bag_menu()
 	host.skill_menu_open = true
 	host._skill_latch = latch
-	host._skill_aim = 0
+	host._skill_aim = -1 ## center ❌ default
 	host._move_locked_until_neutral = true
 	host._running = false
 	host.velocity = Vector2.ZERO
@@ -637,7 +642,7 @@ func open_skill_menu(latch: bool) -> void:
 		if host.controls_locally():
 			host._menu.call("set_slots", host._loadout(), host._cd)
 			if host._menu.has_method("set_aim"):
-				host._menu.call("set_aim", 0)
+				host._menu.call("set_aim", -1)
 	host._menu_fp = "%s|%s" % [str(host._cd), str(host._loadout())]
 	## A stick already pushed for walking must not count as the tap-menu choice.
 	if latch and (host.stick_axis.length() >= 0.42 or host._joy_stick_vector().length() >= 0.42):
@@ -653,16 +658,12 @@ func sync_hold_aim() -> void:
 	set_skill_aim(skill_aim_slot())
 
 func skill_aim_slot() -> int:
+	var SkillMenu = preload("res://scripts/skill_menu.gd")
 	var v = host._move_vector() + host.stick_axis
-	if v.length() < 0.42:
-		return 0
-	var dir := Skills.DIR_DOWN if v.y > 0.0 else Skills.DIR_UP
-	if absf(v.x) > absf(v.y):
-		dir = Skills.DIR_RIGHT if v.x > 0.0 else Skills.DIR_LEFT
-	return int(Skills.DIR_TO_SLOT.get(dir, 0))
+	return SkillMenu.aim_from_stick(v)
 
 func set_skill_aim(slot: int) -> void:
-	slot = clampi(slot, 0, 4)
+	slot = clampi(slot, -1, 4)
 	if slot == host._skill_aim:
 		if host._menu and host._menu.has_method("set_aim"):
 			host._menu.call("set_aim", slot)
@@ -685,6 +686,11 @@ func _net_client_predicting() -> bool:
 
 func confirm_skill(slot: int) -> void:
 	close_skill_menu()
+	## Center ❌ / cancel aim: close only.
+	if slot < 0:
+		host._move_locked_until_neutral = true
+		host.velocity = Vector2.ZERO
+		return
 	## Latch D-pad／hold-confirm must Intent the same way as hotkeys (M2.5).
 	_queue_client_skill_intent(slot)
 	cast_slot(slot)
@@ -711,12 +717,12 @@ func close_skill_menu() -> void:
 	host._l_held = false
 	host._l_time = 0.0
 	host._skill_latch = false
-	host._skill_aim = 0
+	host._skill_aim = -1
 	host.skill_menu_open = false
 	if host._menu:
 		host._menu.open = false
 		if host._menu.has_method("set_aim"):
-			host._menu.call("set_aim", 0)
+			host._menu.call("set_aim", -1)
 
 func on_ult_hold(pressed: bool) -> void:
 	if pressed:

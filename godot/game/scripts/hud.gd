@@ -124,6 +124,8 @@ func setup(g: Node, p: CharacterBody2D) -> void:
 	_cast.modulate.a = 0.0
 	_build_skip()
 	_build_pause()
+	if not InputMode.show_vj_changed.is_connected(_on_show_vj_changed_pause):
+		InputMode.show_vj_changed.connect(_on_show_vj_changed_pause)
 	_right_dirty = true
 	_left_fp = ""
 	_sync_left()
@@ -356,6 +358,8 @@ func _build_tr_std() -> void:
 	$Root.move_child(_tr_panel, _banner.get_index())
 	_apply_cjk_fonts(_carry_std)
 	_fit_tr_panel()
+	## Personal stamina/carry moved to world-space (player_floor_bars / carry_strip).
+	_tr_panel.visible = false
 
 
 func _paint_stamina_bar(bar: ProgressBar, ratio: float) -> void:
@@ -456,6 +460,8 @@ func _build_bottom_left_panel() -> void:
 	s_margin.add_child(_skills_list)
 	$Root.add_child(_skills_panel)
 	$Root.move_child(_skills_panel, _banner.get_index())
+	## Skill chips replaced by character radial (player-context-ui).
+	_skills_panel.visible = false
 	_build_bag_cross()
 
 
@@ -507,6 +513,8 @@ func _build_bag_cross() -> void:
 		_bag_slots.append(icon)
 	$Root.add_child(_bag_panel)
 	$Root.move_child(_bag_panel, _banner.get_index())
+	## Bag cross replaced by character radial (player-context-ui).
+	_bag_panel.visible = false
 
 
 func _mark_right_dirty() -> void:
@@ -645,8 +653,11 @@ func _process(delta: float) -> void:
 		if running != _skip_running:
 			_skip_running = running
 			_apply_dev_hud_visibility()
-			if _pause_btn:
-				_pause_btn.visible = running
+		if _pause_btn:
+			## Esc/Start always work; on-screen pause only when virtual stick is shown.
+			var show_pause := running and InputMode.show_vj()
+			if _pause_btn.visible != show_pause:
+				_pause_btn.visible = show_pause
 
 
 func _build_skip() -> void:
@@ -766,6 +777,13 @@ func _on_pause_pressed() -> void:
 		game.request_pause()
 
 
+func _on_show_vj_changed_pause(_show: bool = false) -> void:
+	if _pause_btn == null:
+		return
+	var running := game != null and (String(game.phase) == "restock" or String(game.phase) == "open")
+	_pause_btn.visible = running and InputMode.show_vj()
+
+
 func _on_log(text: String) -> void:
 	_log.add_item(text)
 	while _log.item_count > 8:
@@ -826,14 +844,22 @@ func _sync_left() -> void:
 	_time.text = time_txt
 	_phase.text = phase_txt
 	_rev.text = Loc.t("hud.revenue", [rev_n, ops_n, stolen_n])
-	_guests.text = Loc.t("hud.guests", [guests_n, thieves_n])
-	_store.text = store_txt
-	_role.text = role_txt
+	## Guests / store / role / combo: hide from shared Overcooked HUD (dev panel still has detail).
+	var show_extra := PlatformServices.is_show_dev_hud()
+	_guests.visible = show_extra
+	_store.visible = show_extra
+	_role.visible = show_extra
+	if show_extra:
+		_guests.text = Loc.t("hud.guests", [guests_n, thieves_n])
+		_store.text = store_txt
+		_role.text = role_txt
 	if _combo:
-		if SeatTable.is_coop():
-			_combo.text = Loc.t("hud.combo_coop", [p1, p2, team])
-		else:
-			_combo.text = Loc.t("hud.combo", [p1, team])
+		_combo.visible = show_extra
+		if show_extra:
+			if SeatTable.is_coop():
+				_combo.text = Loc.t("hud.combo_coop", [p1, p2, team])
+			else:
+				_combo.text = Loc.t("hud.combo", [p1, team])
 	if _tasks:
 		_tasks.text = tasks_txt
 	if _tasks_panel:
@@ -975,22 +1001,19 @@ func _sync_skill_hud() -> void:
 				float(e2.get("buff_left", 0.0)),
 				float(e2.get("buff_max", 0.0)),
 			)
-	var show := entries.size() > 0
-	_skills_panel.visible = show
-	if show:
-		var rows := entries.size()
-		var sh := float(12 + rows * 40)
-		_skills_panel.offset_bottom = -12.0
-		_skills_panel.offset_top = -12.0 - maxf(sh, 52.0)
+	## Always hide screen skill chips — use world radial.
+	_skills_panel.visible = false
 
 
 func _sync_bag_hud() -> void:
 	if _bag_panel == null or _bag_slots.is_empty():
 		return
+	## Always hide screen bag cross — use world radial.
+	_bag_panel.visible = false
+	return
 	var running := game != null and (String(game.phase) == "restock" or String(game.phase) == "open")
 	var unlocked := OpsItems.unlocked_count()
-	_bag_panel.visible = running and unlocked > 0 and not _close.visible
-	if not _bag_panel.visible:
+	if not (running and unlocked > 0 and not _close.visible):
 		return
 	var bag: Array[String] = []
 	if player != null and player.has_method("ops_bag_ids"):

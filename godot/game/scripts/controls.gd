@@ -17,6 +17,8 @@ const INTERACT := "interact"
 const CANCEL := "cancel"
 const DASH := "dash"
 const SKILL := "skill"
+## Hold to open ops bag radial (Xbox X / keyboard I).
+const BAG_MENU := "bag_menu"
 const ULT := "ult"
 ## Legacy action names kept for menu/touch; shoulders remapped to carry focus.
 const SKILL_2 := "skill_2"
@@ -58,7 +60,7 @@ const WEB_STICK_SUPPRESS_AXIS_TRIGGERS := 0.45
 ## device_id → once true, axis LT/RT stay ignored (buttons 6/7 only on Web).
 var _web_axis_triggers_untrusted: Dictionary = {}
 
-const HOLD_ACTIONS: Array[String] = [INTERACT, CANCEL, DASH, SKILL, ULT]
+const HOLD_ACTIONS: Array[String] = [INTERACT, CANCEL, DASH, SKILL, BAG_MENU, ULT]
 const MOVE_ACTIONS: Array[String] = [MOVE_UP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT]
 const SKILL_SLOT_ACTIONS: Array[String] = [SKILL_2, SKILL_3]
 
@@ -90,11 +92,14 @@ func ensure_actions() -> void:
 		_key(KEY_SEMICOLON), _key(KEY_BACKSPACE), _key(KEY_ESCAPE),
 		_joy_btn(JOY_BUTTON_B),
 	])
-	_ensure_action(DASH, 0.5, [_key(KEY_K), _joy_btn(JOY_BUTTON_X)])
+	## Keyboard K dash; pad dash is RT (polled in player). X freed for bag_menu.
+	_ensure_action(DASH, 0.5, [_key(KEY_K)])
+	_erase_joy_btn(DASH, JOY_BUTTON_X)
 	_ensure_action(SKILL, 0.5, [_key(KEY_L), _joy_btn(JOY_BUTTON_Y)])
+	_ensure_action(BAG_MENU, 0.5, [_key(KEY_I), _joy_btn(JOY_BUTTON_X)])
 	## Keyboard U only — Xbox ult is LT+RT long-press (polled). Touch still set_hold("ult").
 	_ensure_action(ULT, 0.5, [_key(KEY_U)])
-	## skill_2/3 no longer bind shoulders — Y+LB/RB chords handled in player.
+	## skill_2/3 empty — Y+shoulder chords disabled (carry owns LB/RB).
 	_ensure_action(SKILL_2, 0.5, [])
 	_ensure_action(SKILL_3, 0.5, [])
 	_ensure_action(CARRY_PREV, 0.5, [_key(KEY_BRACKETLEFT), _joy_btn(JOY_BUTTON_LEFT_SHOULDER)])
@@ -102,7 +107,8 @@ func ensure_actions() -> void:
 	_migrate_xbox_skill_bindings()
 	_migrate_shoulders_to_carry_focus()
 	_migrate_move_dpad_to_bag()
-	## Prep layout rotate — same physical defaults as dash (contexts do not overlap).
+	_migrate_dash_off_face_x()
+	## Prep layout rotate — X still rotates in prep (ops uses X for bag_menu; contexts do not overlap).
 	_ensure_action(ROTATE, 0.5, [_key(KEY_K), _key(KEY_X), _joy_btn(JOY_BUTTON_X)])
 	_ensure_action(RESTOCK_PREV, 0.5, [_key(KEY_Q)])
 	_ensure_action(RESTOCK_NEXT, 0.5, [_key(KEY_E)])
@@ -414,6 +420,14 @@ func _migrate_shoulders_to_carry_focus() -> void:
 	_ensure_joy_btn(CARRY_NEXT, JOY_BUTTON_RIGHT_SHOULDER)
 	_ensure_key(CARRY_PREV, KEY_BRACKETLEFT)
 	_ensure_key(CARRY_NEXT, KEY_BRACKETRIGHT)
+
+
+func _migrate_dash_off_face_x() -> void:
+	## Ops dash moved to RT poll; face X is bag_menu. Strip leftover Project Settings binds.
+	_erase_joy_btn(DASH, JOY_BUTTON_X)
+	_ensure_key(DASH, KEY_K)
+	_ensure_joy_btn(BAG_MENU, JOY_BUTTON_X)
+	_ensure_key(BAG_MENU, KEY_I)
 
 
 func _erase_joy_btn(action: String, button: JoyButton) -> void:
