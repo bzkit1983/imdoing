@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>三份成長分析（產品建議）</title>
+  <style>
+    :root {
+      --bg: #f3f7f6;
+      --surface: #ffffff;
+      --ink: #14201e;
+      --muted: #5b6b68;
+      --line: #d7e3df;
+      --accent: #0f766e;
+      --accent2: #1d4ed8;
+      --warn: #b45309;
+      --finale: #ecfdf5;
+      --post: #eff6ff;
+      --font: "Iowan Old Style", "Palatino Linotype", Palatino, "Songti TC", "Noto Serif TC", Georgia, serif;
+      --sans: "Avenir Next", "Segoe UI", "PingFang TC", "Noto Sans TC", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(1100px 480px at 8% -8%, #cdeee8 0%, transparent 55%),
+        radial-gradient(900px 420px at 100% 0%, #dbeafe66 0%, transparent 48%),
+        var(--bg);
+      font-family: var(--sans);
+      line-height: 1.55;
+    }
+    .wrap { max-width: 1140px; margin: 0 auto; padding: 32px 20px 72px; }
+    header.hero {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 22px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+    .brand {
+      font-family: var(--font);
+      font-size: clamp(2rem, 4vw, 2.7rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 0;
+      color: var(--accent);
+    }
+    h1 {
+      font-family: var(--font);
+      font-size: clamp(1.35rem, 2.4vw, 1.8rem);
+      margin: 0;
+      font-weight: 650;
+    }
+    .lede { color: var(--muted); max-width: 70ch; margin: 0; }
+    .badge {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 650;
+      padding: 4px 10px;
+      border: 1px solid #0f766e;
+      color: var(--accent);
+      background: #ecfdf5;
+      border-radius: 999px;
+      width: fit-content;
+    }
+    .links { display: flex; flex-wrap: wrap; gap: 10px; }
+    .links a {
+      color: var(--accent);
+      font-weight: 650;
+      text-decoration: none;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+    }
+    nav.tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 0 0 20px;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      padding: 10px 0;
+      background: color-mix(in srgb, var(--bg) 88%, transparent);
+      backdrop-filter: blur(8px);
+    }
+    nav.tabs button {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--ink);
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 650;
+    }
+    nav.tabs button[aria-selected="true"] {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    section.panel { display: none; }
+    section.panel.active { display: block; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    @media (max-width: 860px) {
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+    .stat b {
+      display: block;
+      font-family: var(--font);
+      font-size: 1.3rem;
+      color: var(--accent);
+    }
+    .stat span { color: var(--muted); font-size: 13px; }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+    .card h2 {
+      font-family: var(--font);
+      font-size: 1.12rem;
+      margin: 0 0 6px;
+    }
+    .card .cap { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+    .grid2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    @media (max-width: 860px) { .grid2 { grid-template-columns: 1fr; } }
+    .chart {
+      width: 100%;
+      height: auto;
+      display: block;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 16px;
+      margin: 10px 0 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .legend i {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      min-width: 680px;
+    }
+    th, td {
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+    th { color: var(--muted); font-weight: 650; white-space: nowrap; }
+    tr.finale td { background: var(--finale); }
+    tr.post td { background: var(--post); }
+    .pill {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #ecfdf5;
+      color: var(--accent);
+      border: 1px solid #99f6e4;
+      margin-right: 4px;
+    }
+    .pill.new {
+      background: #eff6ff;
+      color: var(--accent2);
+      border-color: #bfdbfe;
+    }
+    .callout {
+      border: 1px solid #99f6e4;
+      background: #f0fdfa;
+      color: #115e59;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 14px;
+      margin-bottom: 14px;
+    }
+    footer {
+      margin-top: 28px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+    }
+    code { font-size: 12px; background: #f1f5f4; padding: 1px 5px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <div class="badge">產品建議／可調數字</div>
+      <p class="brand">imdoing</p>
+      <h1>三份成長分析</h1>
+      <p class="lede">任務解鎖（等級僅條件）· 通用貨品性狀＋章／事件覆寫 · 頭目＝普通結算＋大額 XP／資金＋解鎖奧義。主線收在約 LV60；後日談 61–99。</p>
+      <div class="links">
+        <a href="./growth-character.md">角色成長.md</a>
+        <a href="./growth-economy.md">經濟.md</a>
+        <a href="./growth-skills.md">技能.md</a>
+        <a href="./progression-crossref.md">對照與決策.md</a>
+        <a href="../storysystem.md">劇情框架.md</a>
+      </div>
+    </header>
+
+    <nav class="tabs" role="tablist" aria-label="成長分析分頁">
+      <button type="button" role="tab" aria-selected="true" data-panel="overview">總覽</button>
+      <button type="button" role="tab" aria-selected="false" data-panel="character">角色 XP</button>
+      <button type="button" role="tab" aria-selected="false" data-panel="economy">經濟／規模</button>
+      <button type="button" role="tab" aria-selected="false" data-panel="skills">技能／奧義</button>
+      <button type="button" role="tab" aria-selected="false" data-panel="roadmap">整合路線</button>
+    </nav>
+
+    <section id="overview" class="panel active" role="tabpanel">
+      <div class="stats">
+        <div class="stat"><b>LV60</b><span>主線結束累計 130,250 XP</span></div>
+        <div class="stat"><b>LV99</b><span>滿級累計 311,600 XP</span></div>
+        <div class="stat"><b>~110 日</b><span>主線營運日（含頭目）</span></div>
+        <div class="stat"><b>S1→S6</b><span>約每 1–2 章一檔</span></div>
+      </div>
+      <div class="callout">解鎖權威：劇情／事件任務可發解鎖；角色等級從不直接解鎖（可作 <code>player_level &gt;= N</code> 任務條件）；資金＝有資格後付款。</div>
+      <div class="grid2">
+        <div class="card">
+          <h2>決策摘要</h2>
+          <p class="cap">已寫入 storysystem／progression-crossref</p>
+          <ul>
+            <li>日常失敗：軟擋（A）；頭目失敗：D→C</li>
+            <li>貨品：通用性狀為主；事件＞章＞SKU 覆寫</li>
+            <li>頭目首次：大額 XP＋資金＋奧義</li>
+            <li>麻煩 LV：第 N 章＝N，封頂 6</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h2>交叉檢查</h2>
+          <p class="cap">本輪分析自洽</p>
+          <ul>
+            <li>累計 XP → LV60 = 130,250</li>
+            <li>10 章頭目各一奧義槽（現有 6＋新 4）</li>
+            <li>S1 序／S2 第1／S3 第3／S4 第5／S5 第7／S6 終章</li>
+            <li>凍櫃 <code>spoil_unshelved</code>；第7章可 disable</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="character" class="panel" role="tabpanel">
+      <div class="card">
+        <h2>累計 XP 曲線</h2>
+        <p class="cap">錨點 LV60／99；公式見 growth-character.md §2</p>
+        <svg class="chart" viewBox="0 0 720 220" role="img" aria-label="累計 XP 曲線">
+          <rect x="0" y="0" width="720" height="220" fill="#fff"/>
+          <g stroke="#e7e5e4" stroke-width="1">
+            <line x1="48" y1="20" x2="48" y2="180"/><line x1="48" y1="180" x2="700" y2="180"/>
+            <line x1="48" y1="100" x2="700" y2="100" stroke-dasharray="4 4"/>
+            <line x1="48" y1="40" x2="700" y2="40" stroke-dasharray="4 4"/>
+          </g>
+          <polyline fill="none" stroke="#0f766e" stroke-width="3"
+            points="48,178 120,170 200,155 280,130 360,100 440,72 520,48 580,40 660,22 700,18"/>
+          <circle cx="580" cy="40" r="5" fill="#0f766e"/>
+          <text x="560" y="28" font-size="11" fill="#0f766e">LV60</text>
+          <text x="680" y="14" font-size="11" fill="#1d4ed8">LV99</text>
+          <text x="52" y="198" font-size="11" fill="#78716c">LV1</text>
+          <text x="560" y="198" font-size="11" fill="#78716c">60</text>
+          <text x="690" y="198" font-size="11" fill="#78716c">99</text>
+          <text x="52" y="36" font-size="10" fill="#78716c">311k</text>
+          <text x="52" y="96" font-size="10" fill="#78716c">130k</text>
+        </svg>
+        <div class="legend"><span><i style="background:#0f766e"></i>累計 XP</span><span>主線約 42% 滿級量；後日談長尾 58%</span></div>
+      </div>
+      <div class="card">
+        <h2>每章等級帶</h2>
+        <p class="cap">含頭目日；主線合計約 110 營運日</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>章</th><th>LV</th><th>章內 XP</th><th>日數</th><th>日均</th><th>累計</th><th>頭目 XP</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>序章</td><td>1→6</td><td>1,610</td><td>8</td><td>~200</td><td>1,610</td><td>250</td></tr>
+              <tr><td>第1章</td><td>6→12</td><td>3,951</td><td>10</td><td>~395</td><td>5,561</td><td>400</td></tr>
+              <tr><td>第2章</td><td>12→18</td><td>6,150</td><td>10</td><td>~615</td><td>11,711</td><td>500</td></tr>
+              <tr><td>第3章</td><td>18→24</td><td>8,949</td><td>10</td><td>~895</td><td>20,660</td><td>600</td></tr>
+              <tr><td>第4章</td><td>24→30</td><td>11,669</td><td>11</td><td>~1,060</td><td>32,329</td><td>700</td></tr>
+              <tr><td>第5章</td><td>30→36</td><td>14,131</td><td>11</td><td>~1,285</td><td>46,460</td><td>800</td></tr>
+              <tr><td>第6章</td><td>36→42</td><td>16,479</td><td>12</td><td>~1,375</td><td>62,939</td><td>900</td></tr>
+              <tr><td>第7章</td><td>42→48</td><td>19,215</td><td>12</td><td>~1,600</td><td>82,154</td><td>1,000</td></tr>
+              <tr><td>第8章</td><td>48→54</td><td>22,437</td><td>12</td><td>~1,870</td><td>104,591</td><td>1,100</td></tr>
+              <tr class="finale"><td>終章</td><td>54→60</td><td>25,659</td><td>14</td><td>~1,830</td><td><b>130,250</b></td><td>1,500</td></tr>
+              <tr class="post"><td>後日談</td><td>60→99</td><td>181,350</td><td>自由</td><td>~1.5k–4k</td><td><b>311,600</b></td><td>挑戰另定</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <h2>日結基礎 XP（重定）</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>來源</th><th>序–2</th><th>3–5</th><th>6–終</th><th>後日談</th></tr></thead>
+            <tbody>
+              <tr><td>關店</td><td>80</td><td>120</td><td>180</td><td>220</td></tr>
+              <tr><td>收銀／人</td><td>3</td><td>4</td><td>5</td><td>6</td></tr>
+              <tr><td>麻煩額外</td><td>12</td><td>15</td><td>20</td><td>25</td></tr>
+              <tr><td>抓賊</td><td>15</td><td>20</td><td>25</td><td>30</td></tr>
+              <tr><td>清潔</td><td>6</td><td>8</td><td>10</td><td>12</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="economy" class="panel" role="tabpanel">
+      <div class="stats">
+        <div class="stat"><b>$3,500</b><span>建議開局資金</span></div>
+        <div class="stat"><b>S6 / 720</b><span>旗艦面積格²</span></div>
+        <div class="stat"><b>5 店員</b><span>S6 雇員上限</span></div>
+        <div class="stat"><b>$12k</b><span>終章頭目資金獎勵</span></div>
+      </div>
+      <div class="card">
+        <h2>規模 S1–S6</h2>
+        <p class="cap">任務解鎖資格 → 資金付款</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>規模</th><th>登場</th><th>面積</th><th>雇員</th><th>擴店費</th></tr></thead>
+            <tbody>
+              <tr><td>S1</td><td>序章</td><td>100</td><td>0</td><td>—</td></tr>
+              <tr><td>S2</td><td>第1章</td><td>180</td><td>2</td><td>4,000</td></tr>
+              <tr><td>S3</td><td>第3章</td><td>280</td><td>2</td><td>8,000</td></tr>
+              <tr><td>S4</td><td>第5章</td><td>400</td><td>3</td><td>15,000</td></tr>
+              <tr><td>S5</td><td>第7章</td><td>560</td><td>4</td><td>25,000</td></tr>
+              <tr class="finale"><td>S6</td><td>終章</td><td>720</td><td>5</td><td>40,000</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h2>性狀優先序</h2>
+          <p class="cap">事件 ＞ 章 ＞ SKU 預設</p>
+          <ul>
+            <li><code>spoil_unshelved</code>：凍／冰櫃預設</li>
+            <li>第7章冰天雪地：可 disable 時限</li>
+            <li>熱浪事件：秒數 ×0.5</li>
+            <li>損耗／失竊不入營收</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h2>健康日營收帶</h2>
+          <ul>
+            <li>序章 800–1,800</li>
+            <li>第1 1,200–2,500</li>
+            <li>第2–3 2,000–4,500</li>
+            <li>第4–5 4,500–8,500</li>
+            <li>第6–7 8,000–15,000</li>
+            <li>第8–終 12,000–24,000</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card">
+        <h2>各章貨束（抽象）</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>章</th><th>新貨束</th><th>毛利帶</th></tr></thead>
+            <tbody>
+              <tr><td>序章</td><td>三種乾貨</td><td>65–70%</td></tr>
+              <tr><td>第1章</td><td>約六款／兩類</td><td>55–65%</td></tr>
+              <tr><td>第2章</td><td>傳統日用</td><td>45–55%</td></tr>
+              <tr><td>第3章</td><td>凍櫃壓力</td><td>40–50%</td></tr>
+              <tr><td>第4章</td><td>高價特貨</td><td>40–50%</td></tr>
+              <tr><td>第5章</td><td>科技耗材</td><td>35–50%</td></tr>
+              <tr><td>第6章</td><td>混線稀有</td><td>35–45%</td></tr>
+              <tr><td>第7章</td><td>生存／氣候</td><td>30–45%</td></tr>
+              <tr><td>第8章</td><td>規則貨</td><td>波動</td></tr>
+              <tr class="finale"><td>終章</td><td>終章限定</td><td>30–45%</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="skills" class="panel" role="tabpanel">
+      <div class="card">
+        <h2>COST 節奏</h2>
+        <p class="cap">主動＋被動 ≤5；奧義另槽</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>階段</th><th>章</th><th>焦點</th></tr></thead>
+            <tbody>
+              <tr><td>入門</td><td>序–1</td><td>多 COST1</td></tr>
+              <tr><td>展開</td><td>2–4</td><td>導入 COST2</td></tr>
+              <tr><td>系統</td><td>5–6</td><td>炮台／人力</td></tr>
+              <tr><td>收束</td><td>7–8</td><td>COST3＋場域</td></tr>
+              <tr class="finale"><td>終章</td><td>終</td><td>全庫可配</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <h2>頭目奧義時間軸</h2>
+        <p class="cap">首次通關解鎖；重試不重複</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>章</th><th>奧義</th><th>狀態</th></tr></thead>
+            <tbody>
+              <tr><td>序章</td><td>The World!</td><td><span class="pill">現有</span></td></tr>
+              <tr><td>第1章</td><td>節奏逆流</td><td><span class="pill new">需新設</span></td></tr>
+              <tr><td>第2章</td><td>Yes! My Lord!</td><td><span class="pill">現有</span></td></tr>
+              <tr><td>第3章</td><td>全體集資</td><td><span class="pill">現有</span></td></tr>
+              <tr><td>第4章</td><td>詠唱結帳</td><td><span class="pill new">需新設</span></td></tr>
+              <tr><td>第5章</td><td>落閘放狗</td><td><span class="pill">現有</span></td></tr>
+              <tr><td>第6章</td><td>諸客的黃昏</td><td><span class="pill">現有</span></td></tr>
+              <tr><td>第7章</td><td>三段火槍陣</td><td><span class="pill">現有</span></td></tr>
+              <tr><td>第8章</td><td>規則改寫許可</td><td><span class="pill new">需新設</span></td></tr>
+              <tr class="finale"><td>終章</td><td>全宇宙關店協議</td><td><span class="pill new">需新設</span></td></tr>
+              <tr class="post"><td>後日談</td><td>隱藏×3</td><td><span class="pill new">隱藏</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <h2>分章學會（摘要）</h2>
+        <p class="cap">詳表見 growth-skills.md §3；事件為主、劇情可發</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>章</th><th>新學會焦點</th></tr></thead>
+            <tbody>
+              <tr><td>序章</td><td>基礎主動5＋被動4</td></tr>
+              <tr><td>第1章</td><td>移動／交付／快吞</td></tr>
+              <tr><td>第2章</td><td>清潔／治安</td></tr>
+              <tr><td>第3章</td><td>上架狙擊／交付／攝石</td></tr>
+              <tr><td>第4章</td><td>收銀高階／Self Checkout</td></tr>
+              <tr><td>第5章</td><td>炮台／客人狙擊</td></tr>
+              <tr><td>第6章</td><td>Dark Side／影分身／召喚</td></tr>
+              <tr><td>第7章</td><td>場域／善良炮</td></tr>
+              <tr><td>第8章</td><td>COST3＋西客炮</td></tr>
+              <tr class="finale"><td>終章</td><td>漏網收束</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="roadmap" class="panel" role="tabpanel">
+      <div class="card">
+        <h2>整合路線（六軌並行）</h2>
+        <p class="cap">單軸時間：序章 → … → 終章 → 後日談</p>
+        <svg class="chart" viewBox="0 0 760 280" role="img" aria-label="整合路線示意">
+          <rect width="760" height="280" fill="#fff"/>
+          <g font-size="11" fill="#5b6b68">
+            <text x="20" y="28">LV</text>
+            <text x="20" y="68">規模</text>
+            <text x="20" y="108">經濟</text>
+            <text x="20" y="148">技能</text>
+            <text x="20" y="188">奧義</text>
+            <text x="20" y="228">麻煩</text>
+          </g>
+          <!-- chapter ticks -->
+          <g stroke="#e7e5e4" stroke-width="1">
+            <line x1="90" y1="10" x2="90" y2="250"/>
+            <line x1="160" y1="10" x2="160" y2="250"/>
+            <line x1="230" y1="10" x2="230" y2="250"/>
+            <line x1="300" y1="10" x2="300" y2="250"/>
+            <line x1="370" y1="10" x2="370" y2="250"/>
+            <line x1="440" y1="10" x2="440" y2="250"/>
+            <line x1="510" y1="10" x2="510" y2="250"/>
+            <line x1="580" y1="10" x2="580" y2="250"/>
+            <line x1="650" y1="10" x2="650" y2="250"/>
+            <line x1="720" y1="10" x2="720" y2="250"/>
+          </g>
+          <g font-size="10" fill="#78716c" text-anchor="middle">
+            <text x="90" y="268">序</text>
+            <text x="160" y="268">1</text>
+            <text x="230" y="268">2</text>
+            <text x="300" y="268">3</text>
+            <text x="370" y="268">4</text>
+            <text x="440" y="268">5</text>
+            <text x="510" y="268">6</text>
+            <text x="580" y="268">7</text>
+            <text x="650" y="268">8</text>
+            <text x="720" y="268">終</text>
+          </g>
+          <polyline fill="none" stroke="#0f766e" stroke-width="2.5" points="90,36 160,32 300,28 440,24 580,20 720,14"/>
+          <text x="728" y="16" font-size="10" fill="#0f766e">60</text>
+          <polyline fill="none" stroke="#b45309" stroke-width="2.5" points="90,76 160,72 300,68 440,62 580,56 720,48"/>
+          <text x="728" y="52" font-size="10" fill="#b45309">S6</text>
+          <polyline fill="none" stroke="#1d4ed8" stroke-width="2.5" points="90,116 230,110 370,104 510,98 650,92 720,88"/>
+          <polyline fill="none" stroke="#7c3aed" stroke-width="2.5" points="90,156 160,152 300,146 440,140 580,134 720,128"/>
+          <g fill="#0f766e">
+            <circle cx="90" cy="196" r="4"/><circle cx="160" cy="196" r="4"/><circle cx="230" cy="196" r="4"/>
+            <circle cx="300" cy="196" r="4"/><circle cx="370" cy="196" r="4"/><circle cx="440" cy="196" r="4"/>
+            <circle cx="510" cy="196" r="4"/><circle cx="580" cy="196" r="4"/><circle cx="650" cy="196" r="4"/>
+            <circle cx="720" cy="196" r="4"/>
+          </g>
+          <polyline fill="none" stroke="#b91c1c" stroke-width="2.5" points="160,236 230,232 300,228 370,224 440,220 510,216 580,216 720,216"/>
+          <text x="728" y="220" font-size="10" fill="#b91c1c">LV6</text>
+        </svg>
+        <div class="legend">
+          <span><i style="background:#0f766e"></i>LV</span>
+          <span><i style="background:#b45309"></i>規模</span>
+          <span><i style="background:#1d4ed8"></i>經濟壓</span>
+          <span><i style="background:#7c3aed"></i>技能深度</span>
+          <span><i style="background:#0f766e"></i>奧義點</span>
+          <span><i style="background:#b91c1c"></i>麻煩上限</span>
+        </div>
+      </div>
+      <div class="callout">正文以 Markdown 為準：growth-character／economy／skills。此頁為檢視用離線畫布（同概念藍圖 HTML 慣例）。</div>
+    </section>
+
+    <footer>
+      來源：docs/systemdesign/story/growth-*.md · 分支 cursor/growth-analyses-e4f1 · 活線數值落地另開工程
+    </footer>
+  </div>
+  <script>
+    const tabs = document.querySelectorAll('nav.tabs button');
+    const panels = document.querySelectorAll('section.panel');
+    tabs.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-panel');
+        tabs.forEach((b) => b.setAttribute('aria-selected', b === btn ? 'true' : 'false'));
+        panels.forEach((p) => p.classList.toggle('active', p.id === id));
+      });
+    });
+  </script>
+</body>
+</html>

@@ -13,5 +13,6 @@
 | [`growth-character.md`](growth-character.md) | 角色成長分析（XP／等級帶） |
 | [`growth-economy.md`](growth-economy.md) | 貨品／資金／規模／性狀 |
 | [`growth-skills.md`](growth-skills.md) | 技能／奧義分章學會 |
+| [`growth-analyses.html`](growth-analyses.html) | **離線檢視畫布**（總覽／XP／經濟／技能／整合路線） |
 
-章檔為概念開檔（劇本詳情後補）。**期望成長帶／貨／技能數字以三份 `growth-*.md` 為準。**
+章檔為概念開檔（劇本詳情後補）。**期望成長帶／貨／技能數字以三份 `growth-*.md` 為準。** 觀看建議開 [`growth-analyses.html`](growth-analyses.html)。
