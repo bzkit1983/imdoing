@@ -4,6 +4,7 @@
 - 工程代號：`EliteCustomer`
 - 一般客人規則見 `customer.md`；污物見 `cleaningsystem.md`；丟掉交付見 `playeraction.md`
 - **狀態：已拍板並落地活線**（`customer.gd`／`demo.gd`／`tuning.gd`）。劇情等級解鎖表／事件強制表標 **Beta**（見 `docs/beta/design.md`）
+- 章節框架：第1章起登場 LV1、其後逐章升高——對照與開放問題見 `storysystem.md`、`story/progression-crossref.md`
 - 拍板日：2026-10-24
 - 活線暫定：`ELITE_MAX_UNLOCKED_LV = 1`（僅 LV1），直至 Beta 解鎖表
 

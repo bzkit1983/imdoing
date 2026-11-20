@@ -46,6 +46,7 @@
 商店會有劇情進度,有表單記錄遊戲進度
 - 現在劇情進度
 - 已完成劇情
+- **劇情模式框架**（10 章＋後日談、混合解鎖）：見 `storysystem.md`、`story/`
 - 劇情任務（一次性、失敗擋推進）見 `tasksystem.md`、`taskcontent-story-stub.md`
 
 #事件進度

@@ -5,13 +5,13 @@
 - 各 Demo 繼續用自己的 scope 數字
 - 對照：`docs/systemdesign-gaps.md`（2026-10-22）
 
-劇情和事件也留待 Beta。經驗不從那裡增減。見 `playerlevel.md`、`ecosystem.md`。事件表、觸發和失敗條件仍未寫。
+劇情**框架**已開長線：`docs/systemdesign/storysystem.md`、`docs/systemdesign/story/`（各章開檔＋對照與開放問題）。完整劇本／事件內容、報酬數字、EXP 是否納入劇情／事件仍待 Beta／成長分析。見 `playerlevel.md`、`ecosystem.md`、`story/progression-crossref.md`。事件表、觸發和失敗條件仍未寫（待 `eventsystem.md`）。
 
 任務系統條件語意與測試內容已進長線：`docs/systemdesign/tasksystem.md`。本 Beta 檔仍欠：
 
 - **任務報酬系統**（XP、`shop_rating`、學技能、貨品開發解鎖、外觀解鎖等發放時機與表）
-- **店鋪進度以任務解鎖**的詳細機制（改 `shopprogress.md`）
-- 完整事件／劇情任務內容表（stub 見 `taskcontent-event-stub.md`、`taskcontent-story-stub.md`）
+- **店鋪進度以任務／章節解鎖**的詳細機制（改 `shopprogress.md`；對齊混合解鎖）
+- 完整事件／劇情任務內容表（章開檔見 `story/`；pack stub 見 `taskcontent-event-stub.md`、`taskcontent-story-stub.md`）
 
 # 技能解鎖表
 
