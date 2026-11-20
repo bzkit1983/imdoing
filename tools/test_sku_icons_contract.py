@@ -45,7 +45,8 @@ def main() -> int:
     for path, needle in [
         (POPUP, "SkuIcons"),
         (HUD, "_sync_carry_icons"),
-        (HUD, "last_i"),
+        ## Carry focus index (was last_i; focus_i after carry-focus overhaul).
+        (HUD, "focus_i"),
         (CUST, "_sync_list_icons"),
         (CUST, "KIND_MISS"),
         (CUST, "KIND_OK"),

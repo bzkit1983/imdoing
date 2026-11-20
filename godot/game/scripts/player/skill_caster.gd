@@ -884,7 +884,7 @@ func cast_slot(i: int) -> void:
 		if _net_client_predicting():
 			host._cd[sid] = Tuning.cd_seconds(float(sk.get("cd", 60.0)), host._int_now())
 		else:
-			if game == null or not game.has_method("deploy_elite_guest_specialist"):
+			if game == null:
 				return
 			var specialist = game.deploy_elite_guest_specialist(
 				host.global_position, int(sk.get("lv", 3)), host.seat_id
@@ -908,7 +908,7 @@ func cast_slot(i: int) -> void:
 			host._cd[sid] = Tuning.cd_seconds(float(sk.get("cd", 45.0)), host._int_now())
 			host.log_line.emit(Loc.t("elite_guest_cannon.deployed"))
 		else:
-			if game == null or not game.has_method("deploy_elite_guest_cannon"):
+			if game == null:
 				return
 			var was_active := (
 				is_instance_valid(host._elite_guest_cannon)
@@ -1109,7 +1109,7 @@ func cast_ultimate() -> void:
 	var game = host._game()
 	var predict := _net_client_predicting()
 	if sid == "self_service_operation":
-		if game == null or not game.has_method("can_cast_self_service_operation") or not bool(game.can_cast_self_service_operation()):
+		if game == null or not bool(game.can_cast_self_service_operation()):
 			host.log_line.emit(Loc.t("log.player.ult_self_service_unavailable"))
 			SfxBus.play("sfx_skill_cd_deny")
 			host._prompt.active = false

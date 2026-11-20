@@ -552,7 +552,7 @@ func resume_unpaid_leave_for_self_service() -> bool:
 	modulate.a = 1.0
 	if not _occupy_counted:
 		_occupy_counted = true
-		if _game != null and _game.has_method("note_customer_occupy_changed"):
+		if _game != null:
 			_game.note_customer_occupy_changed(self, true)
 	if shopping.is_empty():
 		_begin_checkout(Loc.t("mood.to_pay"))
