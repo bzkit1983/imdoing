@@ -89,9 +89,11 @@ func ensure_actions() -> void:
 	])
 	_ensure_action(INTERACT, 0.5, [_key(KEY_J), _key(KEY_ENTER), _joy_btn(JOY_BUTTON_A)])
 	_ensure_action(CANCEL, 0.5, [
-		_key(KEY_SEMICOLON), _key(KEY_BACKSPACE), _key(KEY_ESCAPE),
+		_key(KEY_SEMICOLON), _key(KEY_BACKSPACE),
 		_joy_btn(JOY_BUTTON_B),
 	])
+	## Esc opens pause (pause_menu); must not be cancel or player _input eats it first.
+	_erase_key(CANCEL, KEY_ESCAPE)
 	## Keyboard K dash; pad dash is RT (polled in player). X freed for bag_menu.
 	_ensure_action(DASH, 0.5, [_key(KEY_K)])
 	_erase_joy_btn(DASH, JOY_BUTTON_X)
@@ -436,6 +438,17 @@ func _erase_joy_btn(action: String, button: JoyButton) -> void:
 	var drop: Array[InputEvent] = []
 	for ev in InputMap.action_get_events(action):
 		if ev is InputEventJoypadButton and ev.button_index == button:
+			drop.append(ev)
+	for ev2 in drop:
+		InputMap.action_erase_event(action, ev2)
+
+
+func _erase_key(action: String, keycode: Key) -> void:
+	if not InputMap.has_action(action):
+		return
+	var drop: Array[InputEvent] = []
+	for ev in InputMap.action_get_events(action):
+		if ev is InputEventKey and (ev as InputEventKey).physical_keycode == keycode:
 			drop.append(ev)
 	for ev2 in drop:
 		InputMap.action_erase_event(action, ev2)

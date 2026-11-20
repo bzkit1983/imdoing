@@ -459,21 +459,55 @@ func _make_hud_label(name: String) -> Label:
 	return lab
 
 
+func _dock_tasks_under_left() -> void:
+	## Keep TasksPanel as a separate plate just below LeftStatusPanel; width fits task text.
+	if _tasks_panel == null or _left_panel == null:
+		return
+	const GAP := 8.0
+	const MIN_H := 52.0
+	const MIN_W := 120.0
+	const H_PAD := 28.0 ## panel content margins L+R (~14 each)
+	var left_pos := _left_panel.position
+	var left_sz := _left_panel.size
+	if left_sz.y < 1.0:
+		left_sz.y = maxf(_left_panel.get_combined_minimum_size().y, 64.0)
+	var task_lines := 1
+	var text_w := 0.0
+	if _tasks != null and _tasks.text.strip_edges() != "":
+		var txt := _tasks.text
+		task_lines = txt.count("\n") + 1
+		var font: Font = _tasks.get_theme_font("font")
+		var font_size := _tasks.get_theme_font_size("font_size")
+		if font == null:
+			font = ThemeDB.fallback_font
+		if font_size <= 0:
+			font_size = UiFont.WORLD
+		for line in txt.split("\n"):
+			text_w = maxf(text_w, font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x)
+	var width := maxf(text_w + H_PAD, MIN_W)
+	var max_w: float = get_viewport().get_visible_rect().size.x - left_pos.x - 12.0
+	if max_w > MIN_W:
+		width = minf(width, max_w)
+	var height := maxf(28.0 + float(task_lines) * 24.0, MIN_H)
+	var top := left_pos.y + left_sz.y + GAP
+	_tasks_panel.offset_left = left_pos.x
+	_tasks_panel.offset_right = left_pos.x + width
+	_tasks_panel.offset_top = top
+	_tasks_panel.offset_bottom = top + height
+
+
 func _build_bottom_left_panel() -> void:
-	## Tasks — bottom-left (teal). Skills／CD — bottom-right (gold).
+	## Tasks — independent teal plate under LeftStatusPanel. Skills／CD — bottom-right (gold).
 	_tasks_panel = _make_hud_panel(COL_TEAL)
 	_tasks_panel.name = "TasksPanel"
 	_tasks_panel.visible = false
-	_tasks_panel.anchor_left = 0.0
-	_tasks_panel.anchor_right = 0.0
-	_tasks_panel.anchor_top = 1.0
-	_tasks_panel.anchor_bottom = 1.0
+	_tasks_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	_tasks_panel.offset_left = 12.0
-	_tasks_panel.offset_right = 380.0
-	_tasks_panel.offset_top = -52.0
-	_tasks_panel.offset_bottom = -12.0
+	_tasks_panel.offset_right = 292.0
+	_tasks_panel.offset_top = 80.0
+	_tasks_panel.offset_bottom = 132.0
 	_tasks_panel.grow_horizontal = Control.GROW_DIRECTION_END
-	_tasks_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_tasks_panel.grow_vertical = Control.GROW_DIRECTION_END
 	var t_margin := MarginContainer.new()
 	t_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_tasks_panel.add_child(t_margin)
@@ -482,6 +516,7 @@ func _build_bottom_left_panel() -> void:
 	$Root.add_child(_tasks_panel)
 	$Root.move_child(_tasks_panel, _banner.get_index())
 	_apply_cjk_fonts(_tasks)
+	_dock_tasks_under_left()
 
 	_skills_panel = _make_hud_panel(COL_GOLD)
 	_skills_panel.name = "SkillsPanel"
@@ -866,6 +901,8 @@ func _sync_left() -> void:
 	_sync_stamina_std()
 	_sync_skill_hud()
 	_sync_bag_hud()
+	if _tasks_panel != null and _tasks_panel.visible:
+		_dock_tasks_under_left()
 	if rev == _left_hud_rev and hour_bucket == _left_hour_bucket:
 		return
 	_left_hud_rev = rev
@@ -913,12 +950,9 @@ func _sync_left() -> void:
 	if _tasks:
 		_tasks.text = tasks_txt
 	if _tasks_panel:
-		_tasks_panel.visible = tasks_txt != ""
-		if tasks_txt != "":
-			var task_lines := tasks_txt.count("\n") + 1
-			var th := float(28 + task_lines * 24)
-			_tasks_panel.offset_bottom = -12.0
-			_tasks_panel.offset_top = -12.0 - maxf(th, 52.0)
+		_tasks_panel.visible = tasks_txt != "" and not _close.visible
+		if _tasks_panel.visible:
+			_dock_tasks_under_left()
 
 
 func _pane_player(pane: Dictionary) -> CharacterBody2D:
