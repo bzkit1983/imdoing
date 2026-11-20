@@ -73,6 +73,7 @@
 | Alpha | 用詞／錯字 | 用詞與錯字會改規則解讀 | 留待 Alpha 改回原檔，見 `docs/alpha/design.md`。以為→以下；三能種力值；奧義「技令」；衝刺句子斷掉。 | storeoperationphase.md, gameconcept.md, playerultimateskills.md, playermovement.md |
 | 已處理 | 缺字型字元 | 善良的炮／三段火槍陣缺字 | 2026-11-18 以 Noto Sans CJK **JP** 來源重跑 `tools/fonts/subset_notosans_tc.py`；`NotoSansTC-Game.ttf` 已含「善良的炮三段火槍陣枪阵銃斉」。 | playeractiveskills.md, playerultimateskills.md, `docs/alpha/fonts-subset.md` |
 | Alpha | 缺字型字元 | 西客炮新增字元未進執行期字型 | `charset_game.txt` 已補「仓西届倉送」，但遠端字型子集是在西客炮加入前重建；需再次以完整 JP 字型來源重跑子集流程。 | playeractiveskills.md, `docs/alpha/fonts-subset.md` |
+| Alpha | 缺字型字元 | 源頭減廢新增字元未進執行期字型 | 技能名稱的「廢／废」已加進字元清單；本機缺 Python／fontTools，未能重建執行期 TTF，需重跑 `tools/fonts/subset_notosans_tc.py`。 | playerpassiveskills.md, `docs/alpha/fonts-subset.md` |
 
 # 缺了整份檔的系統
 

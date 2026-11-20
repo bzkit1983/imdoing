@@ -3225,7 +3225,7 @@ func _finish_checkout(cust) -> void:
 	## paid signal → demo._on_paid; pass elite via game helper when connected.
 	var game := _game()
 	if game != null:
-		game._on_paid(amount, from_elite, seat_id, self, perfect)
+		game._on_paid(amount, from_elite, seat_id, self, perfect, cust, true)
 	else:
 		paid.emit(amount)
 	_checkout_had_miss = false
@@ -3312,7 +3312,7 @@ func _try_senior_dual_checkout(reg, nxt) -> void:
 	var amount := Tuning.checkout_revenue_amount(base, _int_now(), false, _checkout_rush_bonus_now())
 	var game := _game()
 	if game != null:
-		game._on_paid(amount, from_elite, seat_id, self, false)
+		game._on_paid(amount, from_elite, seat_id, self, false, nxt, true)
 	else:
 		paid.emit(amount)
 	SfxBus.play("sfx_checkout_cash_pop2")

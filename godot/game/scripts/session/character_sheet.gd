@@ -127,10 +127,24 @@ static func from_dict(data: Dictionary) -> RefCounted:
 	if raw_slots is Array and raw_slots.size() >= 5:
 		sheet.slots = []
 		for i in 5:
-			sheet.slots.append(String(raw_slots[i]))
+			var skill_id := String(raw_slots[i])
+			sheet.slots.append("" if skill_id == "restock_radar" else skill_id)
 	var raw_sets = data.get("skill_sets", [])
 	if raw_sets is Array and not raw_sets.is_empty():
 		sheet.skill_sets = raw_sets.duplicate(true)
+		for set_row in sheet.skill_sets:
+			if not (set_row is Dictionary):
+				continue
+			var pack: Dictionary = set_row
+			var set_slots = pack.get("slots", [])
+			if set_slots is Array:
+				for i in set_slots.size():
+					if String(set_slots[i]) == "restock_radar":
+						set_slots[i] = ""
+			var levels = pack.get("levels", {})
+			if levels is Dictionary:
+				levels.erase("restock_radar")
+				pack["levels"] = levels
 	else:
 		sheet.skill_sets = [{
 			"name": Loc.t("world.sheet.default"),
@@ -140,6 +154,7 @@ static func from_dict(data: Dictionary) -> RefCounted:
 		}]
 	if data.get("flags") is Dictionary:
 		sheet.flags = (data["flags"] as Dictionary).duplicate()
+	sheet.flags.erase("restock_radar")
 	sheet.tint = clampi(int(data.get("tint", 0)), 0, TINT_COUNT - 1)
 	var SkinCatalog = load("res://scripts/session/skin_catalog.gd")
 	sheet.skin_id = SkinCatalog.normalize(String(data.get("skin_id", "player"))) if SkinCatalog else "player"

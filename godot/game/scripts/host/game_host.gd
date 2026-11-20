@@ -116,6 +116,8 @@ func _on_paid(
 	_seat: int = 0,
 	_actor: Node2D = null,
 	_perfect: bool = true,
+	_paid_customer: Node2D = null,
+	_player_checkout: bool = false,
 ) -> void:
 	pass
 
@@ -151,7 +153,7 @@ func spawn_dropped_box(
 	pass
 
 
-func cast_fundraise(_level: int) -> void:
+func cast_fundraise(_level: int, _seat: int = 0) -> void:
 	pass
 
 
@@ -171,7 +173,7 @@ func cast_summon_guest(_n: int) -> int:
 	return 0
 
 
-func cast_harvest_chives(_reg: Node, _max_n: int) -> int:
+func cast_harvest_chives(_reg: Node, _max_n: int, _seat: int = 0) -> int:
 	return 0
 
 

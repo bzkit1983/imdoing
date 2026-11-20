@@ -510,7 +510,7 @@ func cast_harvest_chives(lv: int) -> bool:
 	if _net_client_predicting():
 		host._interact_release(reg)
 		return true
-	var n := int(game.cast_harvest_chives(reg, want))
+	var n := int(game.cast_harvest_chives(reg, want, host.seat_id))
 	host._interact_release(reg)
 	if n <= 0:
 		host.log_line.emit(Loc.t("log.player.chives_empty"))
@@ -1110,7 +1110,7 @@ func cast_ultimate() -> void:
 	var predict := _net_client_predicting()
 	if sid == "fundraise":
 		if game and not predict:
-			game.cast_fundraise(lv)
+			game.cast_fundraise(lv, host.seat_id)
 		SfxBus.play("sfx_ult_fundraise")
 		host.log_line.emit(Loc.t("log.player.ult_fundraise", [lv]))
 		begin_cast_pose(true)

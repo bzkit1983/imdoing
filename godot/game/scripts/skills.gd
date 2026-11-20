@@ -161,6 +161,7 @@ const PASSIVES: Array[Dictionary] = [
 	{"id": "checkout_speed", "kind": "passive", "lv": 3, "cost": 1, "checkout_prefill": true},
 	{"id": "restock_speed", "kind": "passive", "lv": 3, "cost": 1, "restock_pct": 0.20},
 	{"id": "quick_swallow", "kind": "passive", "lv": 3, "cost": 2, "quick_swallow": true},
+	{"id": "source_waste", "kind": "passive", "lv": 1, "cost": 1, "source_waste": true},
 	{"id": "polite_dash", "kind": "passive", "lv": 1, "cost": 2, "polite_dash": true},
 	{"id": "wave_step", "kind": "passive", "lv": 1, "cost": 2, "ignore_dirt_slow": true, "ignore_trash_stamina": true, "ignore_puddle_slip": true, "ignore_vomit_sick": true},
 	{"id": "cold_smile", "kind": "passive", "lv": 1, "cost": 3, "no_queue_dissat": true},

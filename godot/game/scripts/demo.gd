@@ -654,7 +654,7 @@ func nearest_stocked_shelf(from: Vector2) -> Node2D:
 	return best
 
 
-func cast_fundraise(level: int) -> void:
+func cast_fundraise(level: int, seat: int = 0) -> void:
 	if SessionService.is_networked() and SessionService.is_client():
 		return
 	if _customers == null:
@@ -664,7 +664,7 @@ func cast_fundraise(level: int) -> void:
 	for c in picked:
 		var amount := int(c.call("payout_total")) if c.has_method("payout_total") else int(c.call("cart_total"))
 		total += amount
-		_on_paid(amount, c.get("is_elite") == true, 0, null, false)
+		_on_paid(amount, c.get("is_elite") == true, seat, null, false, c, true)
 		c.finish_paid()
 	release_player_checkout()
 	if _player:
@@ -672,7 +672,7 @@ func cast_fundraise(level: int) -> void:
 
 
 ## 割韭菜: cash up to `max_n` QUEUE/PAYING on one register (queue order). Returns how many paid.
-func cast_harvest_chives(reg: Node, max_n: int) -> int:
+func cast_harvest_chives(reg: Node, max_n: int, seat: int = 0) -> int:
 	if SessionService.is_networked() and SessionService.is_client():
 		return 0
 	if reg == null or not is_instance_valid(reg) or max_n <= 0:
@@ -689,7 +689,7 @@ func cast_harvest_chives(reg: Node, max_n: int) -> int:
 			continue
 		var amount := int(c.call("payout_total")) if c.has_method("payout_total") else int(c.call("cart_total"))
 		total += amount
-		_on_paid(amount, c.get("is_elite") == true, 0, null, false)
+		_on_paid(amount, c.get("is_elite") == true, seat, null, false, c, true)
 		c.finish_paid()
 	release_player_checkout()
 	var n := picked.size()
@@ -2871,6 +2871,8 @@ func _on_paid(
 	seat: int = 0,
 	actor: Node2D = null,
 	perfect: bool = true,
+	paid_customer: Node2D = null,
+	player_checkout: bool = false,
 ) -> void:
 	var body: Node2D = actor if actor != null and is_instance_valid(actor) else _seat_actor(seat)
 	if body == null:
@@ -2889,6 +2891,8 @@ func _on_paid(
 	if SessionService.is_networked() and SessionService.is_client():
 		apply_ops_rating(RatingRules.checkout_delta(from_elite, perfect), body)
 		return
+	if player_checkout and paid_customer != null and is_instance_valid(paid_customer):
+		_source_waste_after_checkout(seat, paid_customer)
 	revenue += amount
 	served += 1
 	_seat_bump(seat_served, seat, 1)
@@ -2926,6 +2930,36 @@ func _on_paid(
 		elif body != null and is_instance_valid(body):
 			at = body.global_position + Vector2(0, -24)
 		FxBurst.spawn(self, "coin", at)
+
+
+func _source_waste_after_checkout(seat: int, customer: Node2D) -> void:
+	if customer == null or not is_instance_valid(customer) or not _is_player_seat(seat):
+		return
+	var player: Node2D = _players[seat]
+	var stats = player.get("stats")
+	if stats == null or not stats.has_method("loadout"):
+		return
+	var equipped := false
+	for sk in stats.loadout():
+		if sk is Dictionary and String(sk.get("id", "")) == "source_waste":
+			equipped = true
+			break
+	if not equipped:
+		return
+	var nearest: Node2D = null
+	var nearest_dist_sq: float = INF
+	for dirt in dirts():
+		if dirt == null or not is_instance_valid(dirt):
+			continue
+		if bool(dirt.get_meta("source_waste_claimed", false)):
+			continue
+		var dist_sq: float = customer.global_position.distance_squared_to(dirt.global_position)
+		if dist_sq < nearest_dist_sq:
+			nearest = dirt
+			nearest_dist_sq = dist_sq
+	if nearest != null:
+		nearest.set_meta("source_waste_claimed", true)
+		nearest.queue_free()
 
 
 func _seat_actor(seat: int) -> Node2D:

@@ -930,8 +930,8 @@ func loadout() -> Array[Dictionary]:
 	return out
 
 
-## Dark Side / Shadow Clone / Dasher / Senior Cashier / Checkout Rush / Checkout Speed /
-## Hoop Ace（等）pick LV on the prep page. Missing choice means LV3.
+## Skills that expose LV1–3 pick their level on the prep page.
+## Missing choice means LV3. Other skills keep the catalog level.
 func skill_level_of(set_i: int, skill_id: String) -> int:
 	var sk := Skills.by_id(skill_id)
 	var fallback := 3 if Skills.prep_picks_level(sk) else int(sk.get("lv", 1))
@@ -1367,6 +1367,7 @@ func from_dict(data: Dictionary) -> String:
 	if raw_slots is Array:
 		for i in mini(5, raw_slots.size()):
 			loaded_slots[i] = String(raw_slots[i])
+	_clear_retired_skill_ids(loaded_slots)
 	var loaded_ult := _sanitize_ult_id(String(data.get("ult_id", "the_world")))
 	if not _load_skill_sets(data.get("skill_sets", null)):
 		_migrate_single_loadout(loaded_slots, loaded_ult)
@@ -1514,6 +1515,7 @@ func _sanitize_ult_id(id: String) -> String:
 
 
 func _migrate_single_loadout(loaded_slots: Array[String], loaded_ult: String) -> void:
+	_clear_retired_skill_ids(loaded_slots)
 	skill_sets.clear()
 	skill_sets.append(_make_set(default_skill_set_name(0), loaded_slots, loaded_ult))
 	for i in range(1, SKILL_SET_COUNT):
@@ -1533,14 +1535,23 @@ func _load_skill_sets(raw) -> bool:
 			if raw_slots is Array:
 				for s in mini(5, raw_slots.size()):
 					slot_ids[s] = String(raw_slots[s])
+			_clear_retired_skill_ids(slot_ids)
 			var ult := ""
 			if src.has("ult_id"):
 				ult = _sanitize_ult_id(String(src.get("ult_id")))
 			var set_name := String(src.get("name", ""))
-			skill_sets.append(_make_set(set_name, slot_ids, ult, _levels_from_save(src.get("levels", {}))))
+			var levels := _levels_from_save(src.get("levels", {}))
+			levels.erase("restock_radar")
+			skill_sets.append(_make_set(set_name, slot_ids, ult, levels))
 		else:
 			skill_sets.append(_make_set(default_skill_set_name(i), _blank_slot_ids(), ""))
 	return true
+
+
+func _clear_retired_skill_ids(slot_ids: Array[String]) -> void:
+	for i in slot_ids.size():
+		if slot_ids[i] == "restock_radar":
+			slot_ids[i] = ""
 
 
 func _repair_set_names() -> void:

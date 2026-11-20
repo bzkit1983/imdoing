@@ -109,6 +109,8 @@ skill.restock_speed.name,上架速度增加,Restock Speed Up,上架速度增加,
 skill.restock_speed.blurb,上架 +20%,Restock +20%,上架 +20%,陳列 +20%
 skill.quick_swallow.name,快吞轟,Quick Swallow,快吞轰,クイックスワロー
 skill.quick_swallow.blurb,短按補貨點／貨架一次取 2／3／5 件（LV1／2／3）,Tap a restock point or shelf to take 2/3/5 pieces at once (LV1/2/3),短按补货点／货架一次取 2／3／5 件（LV1／2／3）,補充棚／棚を短押しして一度に2／3／5個取得（LV1／2／3）
+skill.source_waste.name,源頭減廢,Source Reduction,源头减废,発生源でごみ削減
+skill.source_waste.blurb,玩家完成收銀後，客人離店前會清除全店距離客人最近的一件垃圾、水漬或嘔吐物,"After a player-attributed checkout, remove the nearest trash, puddle, or vomit to the guest before they leave.",玩家完成收银后，顾客离店前会清除全店距离顾客最近的一件垃圾、水渍或呕吐物,プレイヤーの会計後、客が退店する前に店内で客に最も近いゴミ・水たまり・嘔吐物を1つ除去します。
 skill.polite_dash.name,禮貌衝撞,Polite Dash,礼貌冲撞,丁寧ダッシュ
 skill.polite_dash.blurb,衝刺撞客人不滿不增加,Dashing into guests does not raise dissatisfaction,冲刺撞客人不满不增加,ダッシュで客にぶつかっても不満が増えない
 skill.wave_step.name,凌波微步,Wave Step,凌波微步,凌波微歩
