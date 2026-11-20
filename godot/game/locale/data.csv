@@ -199,7 +199,7 @@ mood.empty_handed,空手,Empty-handed,空手,空手
 mood.list_done,（清單完成）,(list done),（清单完成）,（リスト完了）
 mood.elite_lv,麻煩LV%d　,Elite LV%d  ,麻烦LV%d　,エリートLV%d　
 mood.taken_n,　已取%d,  took %d,　已取%d,　取得%d
-phase.restock,補貨時段  06:00–08:00  無客人,Restock  06:00–08:00  no guests,补货时段  06:00–08:00  无客人,補充タイム  06:00–08:00  客なし
+phase.restock,補貨時段  06:00–08:00,Restock  06:00–08:00,补货时段  06:00–08:00,補充タイム  06:00–08:00
 phase.ops,營運時段  08:00–22:00,Open  08:00–22:00,营运时段  08:00–22:00,営業タイム  08:00–22:00
 settle.guest_xp,\n訪客經驗 +%d　%s,\nGuest XP +%d  %s,\n访客经验 +%d　%s,\nゲスト経験値 +%d　%s
 settle.support_rating,\n支援別店評價 %+d　現 %d,\nSupport rating %+d  now %d,\n支援别店评价 %+d　现 %d,\n支援先評価 %+d　現在 %d

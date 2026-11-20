@@ -269,7 +269,7 @@ func _build_combo_label() -> void:
 
 
 func _wrap_left_status_panel() -> void:
-	## Manuscript left plate: [clock+time | phase / revenue] then optional dev rows.
+	## Manuscript left plate: clock spans 2 rows; right = rev / time+phase; then optional dev rows.
 	var left: VBoxContainer = $Root/Left
 	var root: Control = $Root
 	var idx := left.get_index()
@@ -300,44 +300,50 @@ func _wrap_left_status_panel() -> void:
 
 
 func _layout_left_manuscript_row(left: VBoxContainer) -> void:
-	## Reparent Clock/Time/Phase/Revenue into HBox: clock+time | phase/rev.
+	## [clock spans 2 rows] | rev / time+phase (time leads bottom row).
 	if left.get_node_or_null("ManuscriptRow") != null:
 		return
 	var row := HBoxContainer.new()
 	row.name = "ManuscriptRow"
 	row.add_theme_constant_override("separation", 10)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var clock_col := VBoxContainer.new()
-	clock_col.name = "ClockCol"
-	clock_col.add_theme_constant_override("separation", 2)
-	clock_col.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var stats_col := VBoxContainer.new()
-	stats_col.name = "StatsCol"
-	stats_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	stats_col.add_theme_constant_override("separation", 2)
-	stats_col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var stats := VBoxContainer.new()
+	stats.name = "StatsCol"
+	stats.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	stats.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	stats.add_theme_constant_override("separation", 2)
+	stats.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var bottom := HBoxContainer.new()
+	bottom.name = "RowTimePhase"
+	bottom.add_theme_constant_override("separation", 8)
+	bottom.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	for n in [_clock, _time, _phase, _rev]:
 		if n != null and n.get_parent() == left:
 			left.remove_child(n)
 	if _clock:
-		_clock.custom_minimum_size = Vector2(56, 56)
-		clock_col.add_child(_clock)
-	if _time:
-		_time.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		clock_col.add_child(_time)
-	if _phase:
-		stats_col.add_child(_phase)
+		_clock.custom_minimum_size = Vector2(52, 52)
+		_clock.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(_clock)
 	if _rev:
 		_rev.autowrap_mode = TextServer.AUTOWRAP_OFF
-		stats_col.add_child(_rev)
-	row.add_child(clock_col)
-	row.add_child(stats_col)
+		_rev.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		stats.add_child(_rev)
+	if _time:
+		_time.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		bottom.add_child(_time)
+	if _phase:
+		_phase.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_phase.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		bottom.add_child(_phase)
+	stats.add_child(bottom)
+	row.add_child(stats)
 	left.add_child(row)
 	left.move_child(row, 0)
 
 
 func _restyle_ops_labels() -> void:
-	## Manuscript: digital time under clock; phase gold; revenue single line.
+	## Manuscript: clock spans 2 rows; rev on top; time+phase on bottom.
 	_style_label(_time, COL_TEXT, UiFont.BODY, 5)
 	_style_label(_phase, COL_GOLD, UiFont.BODY, 5)
 	_style_label(_rev, COL_TEXT, UiFont.WORLD, 5)
