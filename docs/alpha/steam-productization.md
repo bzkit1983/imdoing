@@ -2,7 +2,7 @@
 
 - 對照日：2026-11-18
 - 活線：`godot/game`
-- tech-review：[`tech-review-v0.2.md`](tech-review-v0.2.md) §7 H1–H3
+- tech-review：[`tech-review-v0.3.md`](tech-review-v0.3.md)（H1 仍開）；細節拍板見 [`tech-review-v0.2.md`](tech-review-v0.2.md) §7 H1–H3
 - GodotSteam 接入：[`godotsteam-setup.md`](godotsteam-setup.md)
 - EA 範圍：[`docs/versioning.md`](../versioning.md)「Early Access／現行產品範圍」
 

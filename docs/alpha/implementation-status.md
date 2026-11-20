@@ -1,8 +1,8 @@
 # Alpha → v1 實作對照（設計已落地項）
 
-- 對照日：2026-11-18（含 PR #3–#117 等；多人 **M1～M2.9 已落地**；**§13 M3 Steam 已驗收**；產品 **v1.5.0** 中期美術；收銀取消 Circle／INT 技能重做）
+- 對照日：2026-11-20（含 PR #3–#117 等；多人 **M1～M2.9 已落地**；**§13 M3 Steam 已驗收**；產品 **v1.5.0** 中期美術；收銀取消 Circle／INT 技能重做；劇情框架設計開檔）
 - 用途：把近期工程變更連回長線／Alpha 設計檔，方便查「文件寫在哪、程式改哪」
-- 版控：`docs/versioning.md` · 技術評估：`docs/alpha/tech-review-v0.2.md`（現行；v0.1 §6 已全部勾完見 [`tech-review-v0.1.md`](tech-review-v0.1.md)） · 缺口：`docs/systemdesign-gaps.md` · 執行期優化：`docs/alpha/runtime-perf-audit.md`
+- 版控：`docs/versioning.md` · 技術評估：`docs/alpha/tech-review-v0.3.md`（現行；v0.2 §7 多數已勾見 [`tech-review-v0.2.md`](tech-review-v0.2.md)；v0.1 §6 見 [`tech-review-v0.1.md`](tech-review-v0.1.md)） · 缺口：`docs/systemdesign-gaps.md` · 執行期優化：`docs/alpha/runtime-perf-audit.md`
 - **美術：** v1.5.0 中期規格見 [`art-interim-v1.5.md`](../systemdesign/art-interim-v1.5.md)；**放置／換皮暫交美術成員**（工程維持插座與契約，不改玩法距離／COST／碰撞）
 - **EA 範圍：** 純日循環；不做失敗／過關敘事（H3 已拍板；見 `versioning.md`／`design.md`）
 
@@ -39,7 +39,7 @@
 | 小偷打擊 KO／連打晃動／近遠散落 | **`docs/systemdesign/thiefsystem.md`**、`playermovement.md` | `player.gd` fight／KO；`demo.spawn_loot_scatter`；`Tuning.LOOT_SCATTER_*`／`FIGHT_*` |
 | 離店途中仍可抓／砸／撞；出口才計被偷＋橫幅 | **`docs/systemdesign/thiefsystem.md`**、`storeoperationphase.md` | `is_active_thief` 含 LEAVE；`_finish_thief_exit`；`show_stolen_banner`／`demo.stolen_banner` |
 | 客人離店不卡門 | **`docs/systemdesign/customer.md`** | leave `collision_mask=0`；`exit_pos` 在 pathfinder 內；門檻／逾時 despawn |
-| 技術審查與跟進清單 | `docs/alpha/tech-review-v0.1.md`；**現行** [`tech-review-v0.2.md`](tech-review-v0.2.md) | 非玩法規格；v0.1 §6 已勾完；**v0.2 F1** demo 抽出 world_build／net_world／day_settle unsold |
+| 技術審查與跟進清單 | `docs/alpha/tech-review-v0.1.md`；v0.2；**現行** [`tech-review-v0.3.md`](tech-review-v0.3.md) | 非玩法規格；v0.1 §6 已勾完；v0.2 F–J 多數已勾；**v0.3** 巨石回脹／Steam ID／劇情設計閘門 |
 | Runtime P1＋P2 熱路徑優化 | **`docs/alpha/runtime-perf-audit.md`**（文末 P1／P2 DONE） | `player`/`customer`/`demo`/`pathfinder`/`inventory`/`box_stack`/`floor_tiles`／`cashier`／`clerk`／`hud`／`drop_flight`；A* 預算、髒 HUD、地板單節點、佇列索引、dirt 網格 |
 | 客人貨品交付（v1.2.0） | **`docs/systemdesign/customerdelivery.md`** | **已實作**。貨架短按 1 件、長按親手交付（近的先、每件 −15）、方向＋短按丟一件、整箱改每件 −15、主動技衝刺交付（COST 1、5 秒） |
 | 自訂技能組合 | **`docs/systemdesign/customizedskillset.md`**、`playersetup.md` | **已實作**。五組預存、準備時可改未選用組、改完立刻寫檔、營運中鎖定。自訂名稱只准 10 個英文字母。角色整備入口「裝備技能」不顯示 COST；各組列表仍顯示 |
@@ -57,7 +57,8 @@
 | 多人 M3 Steam | **`docs/systemdesign/multiplayer.md`** §13 | **§13.4 已驗收**（2026-11-11）。GodotSteam 4.24；`host_with_lobby`／`connect_to_lobby`；雙帳邀請進混合房＋開日／日結。正式 App ID／Cloud／成就可後補 |
 | 中期美術 v1.5.0 | **`docs/systemdesign/art-interim-v1.5.md`**；`voxel-hires-scale-plan.md`；`ops-sku-icon-ui.md` | 非玩家體素、補貨架高度、SKU／技能／prep 圖示、地板牆污物；玩家四套 Look／CELL／碰撞／技能數值凍結。**放置／換皮暫交美術**；工程驗收見 art-interim「美術放置驗收清單」 |
 | 收銀取消 Circle＋INT／技能重做（2026-11-18） | **`cashiersystem.md`**、`playerstats.md`、`playeractiveskills.md`、`playerpassiveskills.md`；日誌 [`Bzho_log/20261118_….md`](../Bzho_log/20261118_收銀取消Circle與INT技能重做.md) | 指令完成即入帳（無 Loading Circle）；INT 減次數＋親收加錢；`checkout_rush`／`checkout_speed`／`senior_cashier` 重做；店員／影分身／Dark Side 就緒即收 |
-| EA 範圍聲明（H3） | **`docs/versioning.md`**；`docs/alpha/design.md`；tech-review H3 | **已拍板：** Steam EA／現行＝純日循環；不做失敗／過關／提早關店敘事；敘事／事件留 Beta |
+| EA 範圍聲明（H3） | **`docs/versioning.md`**；`docs/alpha/design.md`；tech-review v0.2 H3／v0.3 | **已拍板：** Steam EA／現行＝純日循環；不做失敗／過關／提早關店敘事；敘事／事件留 Beta（劇情框架見 `storysystem.md`，活線未做） |
+| 劇情模式框架（設計） | **`docs/systemdesign/storysystem.md`**；`story/`；`docs/beta/design.md` | **設計開檔**（十章＋成長三分析＋失敗擋 UX）；**活線未實作**；見 tech-review v0.3 N1 |
 | Steam Cloud／成就接線（H1 半程） | **`docs/alpha/steam-productization.md`**；`godotsteam-setup.md` | `steam_platform.gd`：`fileWrite`／`fileRead`／`setAchievement`＋`storeStats`；正式 App ID 仍 Open（480） |
 | 完整設定頁＋首日引導（H2） | **`docs/alpha/steam-productization.md`**；`pausemenu.md`；`tutorial.md` | 暫停「設定」子選單＋準備「系統工具→設定」；新檔開始／跳過教學；`tutorial_skipped`＋模態跳過；暫停可重溫 |
 

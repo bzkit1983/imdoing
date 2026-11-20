@@ -11,7 +11,7 @@ Repository for game project
 **產品版：** `v1.5.0`（中期美術；見 [`VERSION`](VERSION)、[`docs/versioning.md`](docs/versioning.md)、[`docs/systemdesign/art-interim-v1.5.md`](docs/systemdesign/art-interim-v1.5.md)；上一錨點 `v1.4.0`）  
 **網頁試玩：** https://bzkit1983.github.io/imdoing/play/
 
-技術評估（可持續／效能／遊戲設計／平台；現行）：[`docs/alpha/tech-review-v0.2.md`](docs/alpha/tech-review-v0.2.md) · 前一輪：[`tech-review-v0.1.md`](docs/alpha/tech-review-v0.1.md)
+技術評估（可持續／效能／遊戲設計／平台；現行）：[`docs/alpha/tech-review-v0.3.md`](docs/alpha/tech-review-v0.3.md) · 前一輪：[`tech-review-v0.2.md`](docs/alpha/tech-review-v0.2.md) · 更早：[`tech-review-v0.1.md`](docs/alpha/tech-review-v0.1.md)
 
 ## 凍結快照（勿開新功能）
 
@@ -36,7 +36,7 @@ Repository for game project
 - 多人連線（本機二＋線上補滿至四人）：[`docs/systemdesign/multiplayer.md`](docs/systemdesign/multiplayer.md)（**M1～M2.9 已落地**；**M3 Steam 已驗收**；見 [`godotsteam-setup.md`](docs/alpha/godotsteam-setup.md)；M4 Web 待做）
 - Steam 產品化（H1–H3）：[`docs/alpha/steam-productization.md`](docs/alpha/steam-productization.md)（H2 設定頁＋首日引導 Done；H3 EA 已拍；Cloud／成就已接；正式 App ID 仍開）
 - 缺口檢視：`docs/systemdesign-gaps.md`
-- Alpha 計劃／審查／設計：`docs/alpha/plan.md`、`docs/alpha/design.md`、`docs/alpha/tech-review-v0.2.md`（現行）、`docs/alpha/tech-review-v0.1.md`（歷史）
+- Alpha 計劃／審查／設計：`docs/alpha/plan.md`、`docs/alpha/design.md`、`docs/alpha/tech-review-v0.3.md`（現行）、`docs/alpha/tech-review-v0.2.md`／`tech-review-v0.1.md`（歷史）
 - 執行期優化分析：`docs/alpha/runtime-perf-audit.md`
 - 工程對照：`docs/alpha/implementation-status.md`（存檔、InputMap、暫停／SFX／鏡頭視野、i18n、客人交付、技能組、互動發光、三招狙擊手、Dark Side、多重影分身、M1 本機雙人、Look 外觀、營運飄字、Pages 等）
 - 字串表／字型／匯出：`docs/alpha/i18n.md`、`docs/alpha/fonts-subset.md`、`docs/alpha/export-presets.md`
