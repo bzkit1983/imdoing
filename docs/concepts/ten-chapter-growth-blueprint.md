@@ -2,7 +2,9 @@
 
 > **概念沙盒／非產品／非實作**  
 > 本文僅供腦力激盪與節奏感討論。**不得**視為產品路線圖、實作規格、或對 `docs/systemdesign/*`／`docs/beta/*`／`godot/game` 的變更指示。  
-> 章節主題只寫**方向**，不固定世界名。數字皆為概念假設，可整表推翻。
+> 章節主題只寫**方向**，不固定世界名。數字皆為概念假設，可整表推翻。  
+>  
+> **正式產品框架已另開：** [`docs/systemdesign/storysystem.md`](../systemdesign/storysystem.md) 與 [`docs/systemdesign/story/`](../systemdesign/story/)（混合解鎖；數字不寫死）。本沙盒僅作節奏對照，衝突時以 `storysystem.md` 為準。
 
 配套視覺：
 - Cursor Canvas「十章成長概念藍圖」（分元素進程圖 + 整合路線圖；需 Cursor）

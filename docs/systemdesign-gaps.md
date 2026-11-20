@@ -51,7 +51,7 @@
 | 已處理 | 規則含糊 | 全體集資「一半客人」沒有選法 | LV1 只處理排隊。LV2、LV3 都不含離開中客人和小偷。略過指令與 Circle，馬上收錢。已拿走的貨按售價全額入帳；未買完的貨不入帳、不白送，客人當已付款離開。 | playerultimateskills.md, cashiersystem.md |
 | 已處理 | 規則含糊 | 全體集資 LV2 一半怎樣取 | 單數向上取整。已拿走件數最多的客人優先。件數相同時，銷售金額最高者優先。件數和金額都相同時，不滿度較高者優先。不滿度也相同時，隨意選一位。 | playerultimateskills.md |
 | 已處理 | 規則含糊 | 衝刺撞飛客人與尋路互相打架 | 衝刺撞客人：Screen KO 飛起再**原地落地**（不離店）；停止 2 秒；+50 不滿（基值；禮貌衝撞則 +0）；購物車貨品原地掉落；**購物清單不變**（不重抽），已取貨放回清單後從頭尋貨。路人擁擠：玩家 3 身位內有客人／小偷 → 移速 ×0.5＋頭頂「唔該借借⋯」。小偷被衝刺撞飛或貨箱砸中都**算抓住**。 | playermovement.md, customer.md, playerpassiveskills.md, thiefsystem.md, ecosystem.md |
-| P1 | 缺檔／缺系統 | 劇情／事件層沒有設計檔 | 任務條件語意已有（`tasksystem.md`）；事件表、觸發、失敗條件與完整劇情任務內容仍缺（stub：`taskcontent-event-stub.md`、`taskcontent-story-stub.md`）。經驗不從事件／劇情增減仍標 Beta。 | gameconcept.md, playerlevel.md, ecosystem.md, ratingsystem.md, tasksystem.md |
+| P1 | 缺檔／缺系統 | 劇情框架已開、事件層與章詳設仍缺 | 框架：`storysystem.md`＋`story/` 各章開檔；任務條件語意已有（`tasksystem.md`）。仍缺：`eventsystem.md`、各章劇本／事件內容、成長三份分析回填、失敗擋推進 UX。經驗是否從事件／劇情增減見 `story/progression-crossref.md` 開放問題。 | storysystem.md, story/, gameconcept.md, playerlevel.md, ecosystem.md, ratingsystem.md, tasksystem.md |
 | 已處理 | 缺檔／缺系統 | 任務系統無設計檔 | 已有 `tasksystem.md`＋測試／stub 內容檔；活線未實作。報酬與店鋪任務解鎖細節標 Beta。 | tasksystem.md, taskcontent-ops-test.md, docs/beta/design.md |
 | 已處理 | 規則含糊 | 幫忙取貨與 COMBO | 活線已改：每成功交付 +1、失誤個人 RESET；完美交付＝清單一次交清（見 `fetchcombo.md`／`tasksystem.md`）。 | fetchcombo.md, tasksystem.md, gameconcept.md |
 | Beta | 未定數值 | 客人流量幾乎沒有長線數值 | 留待 Beta 設計，見 `docs/beta/design.md`。有清單上限 15、逗留 1 秒、思考 3 秒。抽出件數交給各 Demo。沒有生成間隔、在店人數上限、客人類別移速表。找不到貨長線點數未定（Demo v0.3 為 +18）。麻煩客人行為已寫進 `elitecustomer.md` 並落地；仍欠劇情 LV 解鎖／事件表。 | customer.md, elitecustomer.md, gameconcept.md |
