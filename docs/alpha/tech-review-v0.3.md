@@ -103,9 +103,9 @@ demo.gd（GameHost · ~5.4k）──── 日循環 · 生成 · 技能世界�
 
 | 嚴重度 | 問題 | 證據 | 建議 |
 | --- | --- | --- | --- |
-| **高** | `demo.gd` 回脹超過 v0.2 | 5414 行／342 `func`；抽出後 ~3859 → 現況 | **硬凍結**：新世界效果／雇員／技能部署只進 `host/` 或獨立節點；搬遷 PR 優先於功能 PR |
-| **高** | 技能施放集中於單檔 | `skill_caster.gd` 1227 行；新招繼續堆 `if sid ==` | 按族拆模組（cannon／sniper／clone／ultimate）＋表驅動 cast |
-| **中** | UI 胖腳本第二波 | `prep_menu` 2983、`pause_menu` 1683、`hud` 1409 | 設定／任務板／chrome 已可再拆場景＋controller |
+| **高→緩** | `demo.gd` 回脹 | L1 後 **~3784**（曾 5414）；見 [`monolith-merge-gate.md`](monolith-merge-gate.md) | 維持門禁；新世界效果只進 `host/` |
+| **高→緩** | 技能施放集中於單檔 | L2 後編排器 **~401**＋族模組 | 新招進族檔；禁止只加編排器巨型 `if` |
+| **中** | UI 胖腳本第二波 | L3 首刀：pause −261；prep／hud 小幅 | 可再拆 prep shell／hud chrome |
 | **中** | duck-typing 殘量 | 全庫 ~675；demo 230 | 新 API 必進 `game_host.gd`；demo 內禁止新增字串 `call` |
 | **中** | 劇情設計無活線錨點 | `storysystem.md` 明寫「活線未做」 | 在 prep／versioning 顯眼處標 EA 範圍；開 `StoryDirector` stub 前先過閘門 |
 | **低** | 新技能 CJK 字型債 | gaps：西客炮／源頭減廢／有糧出… 未進執行期 TTF | 重跑 `subset_notosans_tc.py`（含 Bold／Black） |
@@ -208,10 +208,10 @@ PlatformServices：Desktop 完整；Steam **磁碟＋Cloud fileWrite／fileRead�
 
 ### 本輪新增
 
-- [ ] **L1** `demo.gd` 壓回 ≤~3900 行（或等量搬出）：雇員調度／技能部署／ops 世界效果優先出 `host/` 或獨立節點
-- [ ] **L2** 拆 `skill_caster`：cannon／sniper／clone／ultimate 分模組或表驅動；禁止只加巨型 `if sid`
-- [ ] **L3** `prep_menu`／`pause_menu`／`hud` 第二波瘦身（設定／任務板／chrome controller）
-- [ ] **L4** 合併紀律：player／demo／skill_caster **淨增**需附搬遷或豁免說明（文件閘門即可）
+- [x] **L1** `demo.gd` 壓回 ≤~3900 行— `host/skill_deploy`／`skill_cast`／`clerk_cast`／`ops_world`／`world_spawn`／`toss_world`；`demo.gd` **~3784**（自 5414）
+- [x] **L2** 拆 `skill_caster`— `skill_cannon`／`sniper`／`clone`／`ultimate`／`range`／`instant`；編排器 **~401**（自 ~1227）；`cast_slot`／`cast_ultimate` 仍在編排器
+- [x] **L3** `prep_menu`／`pause_menu`／`hud` 第二波瘦身— `ui/settings_actions`、`pause/pause_chrome`、`session/task_hud_format`（pause −261 為主）
+- [x] **L4** 合併紀律— [`monolith-merge-gate.md`](monolith-merge-gate.md)；淨增須搬遷對帳或豁免
 - [ ] **M2** 重跑 CJK 字型子集（西客炮／源頭減廢／有糧出…；含 Bold／Black）
 - [ ] **N1** 文件閘門：README／prep／versioning 顯式「劇情框架＝設計；活線未做／EA 不做」
 - [ ] **N2** （可選）開 `eventsystem.md` 占位——**不**排活線實作

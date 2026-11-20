@@ -7,6 +7,7 @@ DEMO = (ROOT / "godot/game/scripts/demo.gd").read_text(encoding="utf-8")
 WORLD = (ROOT / "godot/game/scripts/host/world_build.gd").read_text(encoding="utf-8")
 NET = (ROOT / "godot/game/scripts/host/net_world.gd").read_text(encoding="utf-8")
 SETTLE = (ROOT / "godot/game/scripts/host/day_settle.gd").read_text(encoding="utf-8")
+TOSS = (ROOT / "godot/game/scripts/host/toss_world.gd").read_text(encoding="utf-8")
 
 errs: list[str] = []
 
@@ -16,8 +17,14 @@ def need(cond: bool, msg: str) -> None:
         errs.append(msg)
 
 
-need("WorldBuildScript" in DEMO and "NetWorldScript" in DEMO, "demo preloads host modules")
-need("_world_build.bind(self)" in DEMO and "_net.bind(self)" in DEMO, "demo binds host modules")
+need(
+    "WorldBuildScript" in DEMO and "NetWorldScript" in DEMO and "TossWorldScript" in DEMO,
+    "demo preloads host modules",
+)
+need(
+    "_world_build.bind(self)" in DEMO and "_net.bind(self)" in DEMO and "_toss_world.bind(self)" in DEMO,
+    "demo binds host modules",
+)
 need("_net.connect_session()" in DEMO, "net session connect from demo ready")
 need("func build_furniture(" in WORLD and "func build_floor(" in WORLD, "world_build furniture/floor")
 need("func register_net_agent(" in NET and "func apply_agent_spawn_payload(" in NET, "net_world agent sync")
@@ -30,6 +37,10 @@ need("host.sync_stock()" in NET, "net_world stock apply uses host.sync_stock")
 need("var was_thief: bool" in NET, "net_world types was_thief")
 need("_world_build.build_furniture(nodes)" in DEMO, "demo delegates furniture")
 need("_net.register_net_agent(node, kind, extra)" in DEMO, "demo delegates net register")
+need("func spawn_dropped_box(" in TOSS and "func _resolve_toss_landing(" in TOSS, "toss_world drop logic")
+need("_toss_world.spawn_dropped_box(" in DEMO, "demo delegates toss spawn")
+need("host._world.add_child" in TOSS and "host._emit_net_flight" in TOSS, "toss_world uses host for world/net")
+need(len(DEMO.splitlines()) <= 3900, f"demo.gd line budget ({len(DEMO.splitlines())} > 3900)")
 # Puppets / intent tick stay on demo for F1.
 need("func _spawn_customer_puppet(" in DEMO, "customer puppet remains on demo")
 need("func _net_tick_intents_and_sync(" in DEMO, "intent tick remains on demo")

@@ -44,7 +44,8 @@ def main() -> int:
     if finish.find("dismiss_shadow_clones") > finish.find("_return_unsold_to_warehouse"):
         print("FAIL clones must drop before unsold collect")
         return 1
-    toss = demo.split("func _resolve_toss_landing", 1)[-1].split("func ", 1)[0]
+    toss_src = (GAME / "scripts" / "host" / "toss_world.gd").read_text(encoding="utf-8")
+    toss = toss_src.split("func _resolve_toss_landing", 1)[-1].split("func ", 1)[0]
     for name in ("_thief_for_toss", "_guest_for_toss", "_shelf_for_toss", "_clone_for_toss"):
         if name not in toss:
             print("FAIL toss missing", name)

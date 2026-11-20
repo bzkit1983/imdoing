@@ -2,6 +2,7 @@
 
 - **目的：** 保留可玩的 Alpha v0.1，之後所有 issue／功能只在一條主線上推進，不再整包複製 Godot 專案。
 - **對照：** 技術評估見 `docs/alpha/tech-review-v0.3.md`（現行）；前一輪 `docs/alpha/tech-review-v0.2.md`；v0.1 歷史清單見 `docs/alpha/tech-review-v0.1.md`。
+- **巨石合併紀律（L4）：** 改 `demo.gd`／`player.gd`／`skill_caster.gd` 且淨增時，見 [`docs/alpha/monolith-merge-gate.md`](alpha/monolith-merge-gate.md)。
 - **拍板日：** 2026-10-21
 
 ## 一句話

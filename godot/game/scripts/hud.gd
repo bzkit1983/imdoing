@@ -7,6 +7,7 @@ const SkuIcons = preload("res://scripts/sku_icons.gd")
 const SkillHudChip = preload("res://scripts/ui/skill_hud_chip.gd")
 const OpsItems = preload("res://scripts/ops_items.gd")
 const OpsItemIcons = preload("res://scripts/ops_item_icons.gd")
+const TaskHudFormat = preload("res://scripts/session/task_hud_format.gd")
 
 ## Ops HUD palette — dark shop plate + warm gold accent (not purple / cream-serif clichés).
 const COL_INK := Color(0.045, 0.055, 0.06, 1.0)
@@ -1018,33 +1019,7 @@ func _tasks_status_text() -> String:
 	if player != null and is_instance_valid(player):
 		seat = int(player.seat_id)
 	var rows: Array = game.task_hud_lines(seat)
-	if rows.is_empty():
-		return ""
-	const TaskTracker = preload("res://scripts/session/task_tracker.gd")
-	var lines: PackedStringArray = PackedStringArray()
-	lines.append(Loc.t("hud.tasks_header"))
-	for row in rows:
-		if not (row is Dictionary):
-			continue
-		var st := String(row.get("status", "active"))
-		var unwired := bool(row.get("unwired", false))
-		var mark := TaskTracker.status_mark(st, unwired)
-		var label := String(row.get("name", ""))
-		if label == "":
-			var key := String(row.get("name_key", row.get("loc_key", "")))
-			label = Loc.t(key) if key != "" else String(row.get("id", ""))
-		if unwired:
-			lines.append("%s %s (%s)" % [mark, label, Loc.t("hud.tasks_unwired")])
-			continue
-		var cur := int(row.get("current", 0))
-		var tgt := int(row.get("target", 0))
-		var op := String(row.get("op", ">="))
-		var prog := TaskTracker.progress_text(op, cur, tgt, st)
-		if st == "done":
-			lines.append("%s %s %s %s" % [mark, label, prog, Loc.t("hud.tasks_done")])
-		else:
-			lines.append("%s %s %s" % [mark, label, prog])
-	return "\n".join(lines)
+	return TaskHudFormat.hud_status_block(rows)
 
 
 func _sync_right() -> void:

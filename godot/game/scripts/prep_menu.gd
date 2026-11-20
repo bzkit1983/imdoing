@@ -15,7 +15,7 @@ const SkinCatalog = preload("res://scripts/session/skin_catalog.gd")
 const CharacterSheet = preload("res://scripts/session/character_sheet.gd")
 const Vox = preload("res://scripts/voxel_sprite.gd")
 const RatingRules = preload("res://scripts/session/rating_rules.gd")
-const BgmBusScript = preload("res://scripts/bgm_bus.gd")
+const SettingsActions = preload("res://scripts/ui/settings_actions.gd")
 
 const PREP_TITLE := PrepWidgets.PREP_TITLE
 const PREP_INFO := PrepWidgets.PREP_INFO
@@ -1415,90 +1415,47 @@ func _apply_scenario_choice(scenario_id: int, skip_tutorial: bool) -> void:
 
 
 func _toggle_virtual_stick() -> void:
-	var on := PlatformServices.toggle_virtual_stick()
-	SfxBus.play("sfx_ui_confirm")
-	_msg = Loc.t("prep.sys.virtual_stick_on" if on else "prep.sys.virtual_stick_off")
+	_msg = SettingsActions.prep_toggle_virtual_stick()
 	## Visibility updates via InputMode.show_vj_changed → demo._on_show_vj_changed.
 	_refresh()
 
 
 func _toggle_sfx() -> void:
-	if SfxBus.is_muted():
-		SfxBus.set_muted(false)
-		SfxBus.play("sfx_ui_confirm")
-		_msg = Loc.t("pause.sfx_on")
-	else:
-		SfxBus.play("sfx_ui_confirm")
-		SfxBus.set_muted(true)
-		_msg = Loc.t("pause.sfx_off")
+	_msg = SettingsActions.prep_toggle_sfx()
 	_refresh()
 
 
 func _nudge_sfx_volume(steps: int) -> void:
-	if steps == 0:
-		SfxBus.play("sfx_ui_confirm", 1.0, NAN, true)
-		_msg = Loc.t("pause.sfx_volume", [SfxBus.volume_percent()])
-		_refresh()
-		return
-	SfxBus.nudge_volume(steps)
-	SfxBus.play("sfx_ui_move", 1.0, NAN, true)
-	_msg = Loc.t("pause.sfx_volume", [SfxBus.volume_percent()])
+	_msg = SettingsActions.prep_nudge_sfx_volume(steps)
 	_refresh()
 
 
 func _cycle_camera() -> void:
-	PlatformServices.cycle_camera_view()
-	SfxBus.play("sfx_ui_confirm")
-	match PlatformServices.get_camera_view():
-		PlatformServices.CAMERA_VIEW_FAR:
-			_msg = Loc.t("pause.camera_far")
-		PlatformServices.CAMERA_VIEW_OVERVIEW:
-			_msg = Loc.t("pause.camera_overview")
-		_:
-			_msg = Loc.t("pause.camera_normal")
+	_msg = SettingsActions.prep_cycle_camera()
 	_refresh()
 
 
 func _toggle_dev_hud() -> void:
-	var on := PlatformServices.toggle_show_dev_hud()
-	SfxBus.play("sfx_ui_confirm")
-	_msg = Loc.t("prep.sys.dev_hud_on" if on else "prep.sys.dev_hud_off")
+	_msg = SettingsActions.prep_toggle_dev_hud()
 	_refresh()
 
 
 func _toggle_bgm() -> void:
-	var bgm := BgmBusScript.bus()
-	if bgm == null:
+	_msg = SettingsActions.prep_toggle_bgm()
+	if _msg == "":
 		return
-	var muted: bool = bgm.toggle_muted()
-	SfxBus.play("sfx_ui_confirm")
-	_msg = Loc.t("prep.sys.bgm_off" if muted else "prep.sys.bgm_on")
 	_refresh()
 
 
 func _nudge_bgm_volume(steps: int) -> void:
-	var bgm := BgmBusScript.bus()
-	if bgm == null:
+	_msg = SettingsActions.prep_nudge_bgm_volume(steps)
+	if _msg == "":
 		return
-	if steps == 0:
-		bgm.preview_volume()
-		SfxBus.play("sfx_ui_confirm", 1.0, NAN, true)
-		_msg = Loc.t("prep.sys.bgm_volume", [bgm.volume_percent()])
-		_refresh()
-		return
-	bgm.nudge_volume(steps)
-	bgm.preview_volume()
-	SfxBus.play("sfx_ui_move", 1.0, NAN, true)
-	_msg = Loc.t("prep.sys.bgm_volume", [bgm.volume_percent()])
 	_refresh()
 
 
 func _set_locale(code: String) -> void:
-	PlatformServices.set_locale(code)
-	SfxBus.play("sfx_ui_confirm")
-	## Keep page; _show_page would clear _msg. locale_changed also refreshes chrome.
-	var lang_name := Loc.t("locale.name.%s" % Loc.get_locale())
-	_msg = Loc.t("prep.locale.changed", [lang_name])
+	_msg = SettingsActions.prep_set_locale(code)
 	_refresh_chrome_copy()
 	_refresh()
 
