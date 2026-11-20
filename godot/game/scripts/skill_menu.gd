@@ -10,8 +10,10 @@ const AIM_CANCEL := -1
 const OUTER_R := 150.0
 const SLOT_R := 36.0
 const CANCEL_R := 28.0
+const CD_RING_R := 40.0
 ## Stick length below this → cancel aim.
 const DEADZONE := 0.42
+const CD_COL := Color("c45c26")
 
 var open: bool = false
 ## -1 cancel; 0–4 loadout index.
@@ -20,6 +22,8 @@ var dim: Array[bool] = [false, false, false, false, false]
 var names: Array[String] = ["", "", "", "", ""]
 var ids: Array[String] = ["", "", "", "", ""]
 var cds: Array[float] = [0.0, 0.0, 0.0, 0.0, 0.0]
+var cd_maxs: Array[float] = [0.0, 0.0, 0.0, 0.0, 0.0]
+var _cd_peak: Dictionary = {} ## skill id → peak remaining this cool cycle
 
 ## Screen offsets for loadout 0–4 (up, UL, UR, LL, LR).
 const _POS := [
@@ -32,12 +36,28 @@ const _POS := [
 
 
 func set_slots(equipped: Array, cd_map: Dictionary) -> void:
+	var live: Dictionary = {}
 	for i in 5:
 		var sk: Dictionary = equipped[i] if i < equipped.size() and equipped[i] is Dictionary else {}
 		names[i] = String(sk.get("name", ""))
 		ids[i] = String(sk.get("id", ""))
 		dim[i] = names[i] != "" and String(sk.get("kind", "")) != "active"
-		cds[i] = float(cd_map.get(String(sk.get("id", "")), 0.0))
+		var sid := ids[i]
+		var left := float(cd_map.get(sid, 0.0)) if sid != "" else 0.0
+		cds[i] = left
+		if sid == "" or left <= 0.05:
+			cd_maxs[i] = 0.0
+			if sid != "":
+				_cd_peak.erase(sid)
+			continue
+		live[sid] = true
+		var peak := float(_cd_peak.get(sid, left))
+		peak = maxf(peak, left)
+		_cd_peak[sid] = peak
+		cd_maxs[i] = peak
+	for id in _cd_peak.keys():
+		if not live.has(id):
+			_cd_peak.erase(id)
 	queue_redraw()
 
 
@@ -121,11 +141,18 @@ func _draw_skill_slot(p: Vector2, slot: int) -> void:
 	if cd > 0.05 and not passive and names[slot] != "":
 		col = Color("c45c26")
 	var chosen := slot == aim
-	if chosen and not passive and names[slot] != "":
+	if chosen and not passive and names[slot] != "" and cd <= 0.05:
 		col = Color("fff4c2")
 	var bg := Color(0.16, 0.2, 0.14, 0.94) if chosen else Color(0.05, 0.07, 0.06, 0.88)
 	draw_circle(p, SLOT_R, bg)
 	draw_arc(p, SLOT_R, 0.0, TAU, 28, col, 3.5 if chosen else 2.0, true)
+	## Remaining CD as emptying ring outside the slot rim.
+	if cd > 0.05 and not passive and names[slot] != "":
+		var frac := clampf(cd / maxf(cd_maxs[slot], 0.01), 0.0, 1.0)
+		var start := deg_to_rad(-90.0)
+		var sweep := -TAU * frac
+		var w := 4.5 if chosen else 3.25
+		draw_arc(p, CD_RING_R, start, start + sweep, 40, CD_COL, w, true)
 	if ids[slot] != "":
 		var icon := SkillIcons.texture(ids[slot])
 		if icon != null:

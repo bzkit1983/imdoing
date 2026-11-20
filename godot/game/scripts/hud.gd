@@ -269,7 +269,7 @@ func _build_combo_label() -> void:
 
 
 func _wrap_left_status_panel() -> void:
-	## Left vitals plate: time → money → floor → combo.
+	## Manuscript left plate: [clock+time | phase / revenue] then optional dev rows.
 	var left: VBoxContainer = $Root/Left
 	var root: Control = $Root
 	var idx := left.get_index()
@@ -277,26 +277,70 @@ func _wrap_left_status_panel() -> void:
 	_left_panel = _make_hud_panel(COL_TEAL)
 	_left_panel.name = "LeftStatusPanel"
 	_left_panel.position = Vector2(12, 10)
+	var sb := _left_panel.get_theme_stylebox("panel") as StyleBoxFlat
+	if sb != null:
+		sb = sb.duplicate() as StyleBoxFlat
+		sb.content_margin_left = 10
+		sb.content_margin_right = 12
+		sb.content_margin_top = 8
+		sb.content_margin_bottom = 8
+		_left_panel.add_theme_stylebox_override("panel", sb)
 	left.layout_mode = 2
 	left.offset_left = 0.0
 	left.offset_top = 0.0
 	left.offset_right = 0.0
 	left.offset_bottom = 0.0
-	left.custom_minimum_size = Vector2(300, 0)
-	left.add_theme_constant_override("separation", 5)
-	if _clock:
-		_clock.custom_minimum_size = Vector2(108, 108)
+	left.custom_minimum_size = Vector2(280, 0)
+	left.add_theme_constant_override("separation", 4)
+	_layout_left_manuscript_row(left)
 	_left_panel.add_child(left)
 	root.add_child(_left_panel)
 	root.move_child(_left_panel, idx)
 	_restyle_ops_labels()
 
 
+func _layout_left_manuscript_row(left: VBoxContainer) -> void:
+	## Reparent Clock/Time/Phase/Revenue into HBox: clock+time | phase/rev.
+	if left.get_node_or_null("ManuscriptRow") != null:
+		return
+	var row := HBoxContainer.new()
+	row.name = "ManuscriptRow"
+	row.add_theme_constant_override("separation", 10)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var clock_col := VBoxContainer.new()
+	clock_col.name = "ClockCol"
+	clock_col.add_theme_constant_override("separation", 2)
+	clock_col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var stats_col := VBoxContainer.new()
+	stats_col.name = "StatsCol"
+	stats_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	stats_col.add_theme_constant_override("separation", 2)
+	stats_col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for n in [_clock, _time, _phase, _rev]:
+		if n != null and n.get_parent() == left:
+			left.remove_child(n)
+	if _clock:
+		_clock.custom_minimum_size = Vector2(56, 56)
+		clock_col.add_child(_clock)
+	if _time:
+		_time.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		clock_col.add_child(_time)
+	if _phase:
+		stats_col.add_child(_phase)
+	if _rev:
+		_rev.autowrap_mode = TextServer.AUTOWRAP_OFF
+		stats_col.add_child(_rev)
+	row.add_child(clock_col)
+	row.add_child(stats_col)
+	left.add_child(row)
+	left.move_child(row, 0)
+
+
 func _restyle_ops_labels() -> void:
-	## Time primary → phase gold → money → floor muted → combo punch.
-	_style_label(_time, COL_TEXT, UiFont.TITLE, 7)
+	## Manuscript: digital time under clock; phase gold; revenue single line.
+	_style_label(_time, COL_TEXT, UiFont.BODY, 5)
 	_style_label(_phase, COL_GOLD, UiFont.BODY, 5)
-	_style_label(_rev, COL_TEXT, UiFont.BODY, 6)
+	_style_label(_rev, COL_TEXT, UiFont.WORLD, 5)
 	_style_label(_guests, COL_MUTED, UiFont.WORLD, 5)
 	_style_label(_combo, COL_GOLD, UiFont.BODY, 6)
 	_style_label(_store, COL_MUTED, UiFont.WORLD, 4)

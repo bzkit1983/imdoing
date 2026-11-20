@@ -7,8 +7,8 @@
 
 | 資產 | 用途 | 建議 |
 | --- | --- | --- |
-| `art/ui/hud/panel_shared.9.png` | 左上資訊欄（時間／錢／評價／任務） | 半透明深底＋青／金邊 9-slice |
-| （可選）時計錶盤／針 | 取代程式 `clock_face` | 可後期 |
+| `art/ui/hud/panel_shared.9.png` | 左上手稿橫排（時計＋時間｜時段／營業額列） | 半透明深底＋青／金邊 9-slice；矮横板 |
+| （可選）時計錶盤／針 | 取代程式 `clock_face`（約 56px） | 可後期 |
 | 暫停小掣 | 僅 VJ 時顯示 | 可复用 pause mini 或新做 |
 
 ## 角色情境（世界空間·每 seat 一套）
@@ -19,8 +19,8 @@
 | 技能槽井 | `art/ui/hud/skill_well.png` | 外圈五點陣底板（可程式圓代替） |
 | 道具槽井 | `art/ui/hud/bag_well.png` | 十字四格 |
 | 持貨焦點框 | `art/ui/hud/carry_focus.png` | 三格預覽中格金框 |
-| 腳下耐力 track／fill | `art/ui/hud/stam_track.png`、`stam_fill.png` | 角色下方 |
-| 技能 CD 小條 | `art/ui/hud/cd_fill.png` | 與耐力分槽，勿重疊 |
+| 腳下耐力 track／fill | `art/ui/hud/stam_track.png`、`stam_fill.png` | 角色下方（只耐力） |
+| 技能 CD 環 | （程式 `draw_arc` 或可選 `cd_ring.png`） | 圍技能圓盤格；唔再腳底小條 |
 
 內容 icon 仍走既有：`art/ui/skill/<id>.png`、`art/ui/ops_item/<id>.png`、`art/ui/sku/<id>.png`。
 
