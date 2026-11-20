@@ -5,7 +5,7 @@
 - 各 Demo 繼續用自己的 scope 數字
 - 對照：`docs/systemdesign-gaps.md`（2026-10-22）
 
-劇情**框架**已開長線：`docs/systemdesign/storysystem.md`、`docs/systemdesign/story/`（各章開檔＋對照與開放問題）。完整劇本／事件內容、報酬數字仍待 Beta／成長分析。**劇情／事件可按個別任務給 XP**（已拍；量級待表）。見 `playerlevel.md`、`ecosystem.md`、`story/progression-crossref.md` §6。事件表、觸發和失敗條件仍未寫（待 `eventsystem.md`）。
+劇情**框架**與**三份成長分析**已開：`docs/systemdesign/storysystem.md`、`story/growth-character.md`、`growth-economy.md`、`growth-skills.md`。完整劇本／事件 pack 仍待各章詳設。**任務 XP／頭目大額／學會表**以成長分析為產品建議；活線落地可標工程 Beta。見 `playerlevel.md`、`ecosystem.md`、`story/progression-crossref.md`。事件表、觸發仍待 `eventsystem.md`。
 
 任務系統條件語意與測試內容已進長線：`docs/systemdesign/tasksystem.md`。本 Beta 檔仍欠：
 

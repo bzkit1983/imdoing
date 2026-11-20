@@ -36,7 +36,7 @@
 | 麻煩客人 | 最高解鎖等級登場（待表；設計上限見 `elitecustomer.md` LV6） | 解鎖表 |
 | 店舖／收銀／店員 | 旗艦規模檔（檔位數待店舖分析；現行長線僅 S1–S3） | 店舖分析 |
 | 章末頭目 | **最終頭目**（多階段） | 通關條件 |
-| 期望成長帶 | 第8章出口 → **約 LV60** → 後日談 | 成長分析 |
+| 期望成長帶 | LV54→60；S6；見 [`growth-character.md`](growth-character.md)／[`growth-economy.md`](growth-economy.md) | 終章奧義見 [`growth-skills.md`](growth-skills.md) §4 |
 
 # 劇情／事件內容
 

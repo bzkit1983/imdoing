@@ -34,7 +34,7 @@
 | 麻煩客人 | 等級上限較前章提升（精確 LV 待表） | 解鎖表 |
 | 店舖／收銀／店員 | 視主題需要 | 店舖分析 |
 | 章末頭目 | 新頭目 | 通關條件 |
-| 期望成長帶 | 第6章接續（自 [`chapter-05.md`](chapter-05.md)）→ 第7章（[`chapter-07.md`](chapter-07.md)） | 成長分析 |
+| 期望成長帶 | 見 [growth-character.md](growth-character.md) §5；技能／奧義 [growth-skills.md](growth-skills.md)；貨／規模 [growth-economy.md](growth-economy.md) | 章詳設回填 |
 
 # 劇情／事件內容
 

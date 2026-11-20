@@ -42,7 +42,7 @@
 | 麻煩客人 | **LV1 登場** | 解鎖表對齊 `elitecustomer.md` |
 | 店舖／收銀／店員 | 擴店、增收銀、兩店員；規模走向 S4+（約每 1–2 章一檔） | 規模檔位待店舖分析 |
 | 章末頭目 | 限時高客流／擴店後動線考驗 | 通關條件 |
-| 期望成長帶 | 接序章出口 → 第2章入口 | 成長分析 |
+| 期望成長帶 | LV6→12；S2；見 [`growth-character.md`](growth-character.md)／[`growth-economy.md`](growth-economy.md) | 技能見 [`growth-skills.md`](growth-skills.md) |
 
 # 劇情／事件內容
 

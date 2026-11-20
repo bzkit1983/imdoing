@@ -1,8 +1,8 @@
 #店鋪進度設定
 - 此檔案包含店鋪進度設定
-- **過渡／測試版：** 下列解鎖仍以**角色等級**為準
-- **產品方向（劇情框架）：** 改為**混合解鎖**——章節／劇情／事件任務為主解鎖貨種與玩法；等級可作並行條件；資金為經濟門檻。見 `storysystem.md`、`story/progression-crossref.md`
-- 任務作為解鎖條件來源：見 `tasksystem.md`、`docs/beta/design.md`。本表數字分析後會重定
+- **過渡／測試版（作廢中）：** 下列解鎖仍以**角色等級**為準——**僅對照活線／Demo**
+- **產品方向：** **等級從不直接解鎖**；貨種／架／規模資格由**劇情或事件任務**發放；有資格後用**資金**購買／開發。任務可設等級門檻。見 `storysystem.md`、[`story/growth-economy.md`](story/growth-economy.md)
+- 任務系統：`tasksystem.md`；報酬細節可仍標 Beta（`docs/beta/design.md`）
 
 #店鋪進度開放新功能
 ##初始貨物

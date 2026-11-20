@@ -12,7 +12,7 @@
 |------|------|
 | 框架結構（本章） | **產品規格開檔** |
 | 各章內容／事件／劇本 | 開檔 stub，詳情後補 |
-| 期望 EXP／資金／技能／開發規模等數字 | **不寫死**；另開成長分析後填入 |
+| 期望 EXP／資金／技能／開發規模等數字 | 產品建議見 `story/growth-*.md`；實作前可再調 |
 | 活線實作 | 未做（見 `docs/beta/design.md`、`docs/versioning.md`） |
 
 # 章節結構
@@ -38,51 +38,50 @@
 | 槽位 | 說明 | 詳細補完位置 |
 |------|------|--------------|
 | 主題方向 | 該章玩法／壓力主題（抽象即可） | 各章 stub |
-| 新貨品種類／SKU | 外觀＋**特性**（例：離架時限）；特性表章內補 | 各章＋貨品營運分析 |
-| 新事件任務 | ① 關聯劇情的一次性任務（含解鎖技能）② 與劇情無關、可重覆的期間限定 | 各章＋`taskcontent-event-*` |
-| 新技能 | 主要由**事件任務獎勵**獲得；每章有對應能力推進任務 | 各章＋技能分析 |
+| 新貨品種類／SKU | 外觀＋**通用性狀**（可被章／事件修飾器覆寫）；特性表章內補 | 各章＋[`story/growth-economy.md`](story/growth-economy.md) |
+| 新事件任務 | ① 關聯劇情的一次性任務（含解鎖）② 與劇情無關、可重覆的期間限定 | 各章＋`taskcontent-event-*` |
+| 新技能 | **劇情／事件任務獎勵**學會（等級不解鎖）；每章有能力推進任務 | 各章＋[`story/growth-skills.md`](story/growth-skills.md) |
 | 客人特別行為 | 套用到**該章一般客人族群**（非麻煩客個體），例：購物完成率↑、移速↑、易怒 | 各章 |
 | 客人流量／不滿度 | 章級調參（不寫死） | 各章＋成長分析 |
 | 麻煩客人 | 可解鎖的最高等級／前綴池擴張；分析起點＝**每章升一級至 LV6**（序章未解鎖） | 各章＋`elitecustomer.md`；粗表見 [`story/progression-crossref.md`](story/progression-crossref.md) §6 |
 | 店舖／收銀／店員 | 擴店、收銀機、雇員等主線任務鉤子 | 各章 |
 | 章末頭目 | 大型特定營運回合／多階段壓力 | 各章 |
-| 期望成長帶 | 目標等級帶、資金帶、可用技能帶、開發規模（皆待分析） | [`story/progression-crossref.md`](story/progression-crossref.md) |
+| 期望成長帶 | 目標等級帶、資金帶、可用技能帶、開發規模 | [`story/growth-character.md`](story/growth-character.md) 等三份分析 |
 
-# 解鎖權威（混合）
+# 解鎖權威（任務解鎖）
 
-拍板：**混合解鎖**。
+拍板：**等級從不直接解鎖**；解鎖一律由**劇情任務或事件任務**發放。
 
-| 權威 | 負責解鎖 | 備註 |
-|------|----------|------|
-| **章節／劇情／事件任務**（主） | 新貨種類、新玩法、技能學會、麻煩客人等級上限、章節限定客人行為、營運道具／外觀等「玩法推進」 | 任務報酬細節仍標 Beta（`docs/beta/design.md`） |
-| **角色等級**（並／軟） | 能力點成長；可作**並行條件**（例：擴店需「章節旗標 + 等級下限 + 資金」） | 不單靠等級解全新貨種／技能 |
-| **資金** | 擴店費、開發費、傢俬／雇員等經濟門檻 | 與章節／等級條件可 AND |
+| 權威 | 角色 | 備註 |
+|------|------|------|
+| **劇情任務** | 可推進章節，**也可觸發解鎖**（貨種、技能、規模資格、麻煩上限、道具、外觀等） | 失敗擋推進見 §失敗 UX |
+| **事件任務** | 可觸發解鎖；含一次性劇情向與可重覆期間限定 | 失敗不擋劇情 |
+| **角色等級** | 只成長能力點／XP；**可作任務條件**（例 `player_level >= N`） | **不是**解鎖表 |
+| **資金** | 有解鎖資格後的購買／擴店／開發／雇員經濟門檻 | 不解鎖資格本身 |
 
-現行長線表（`shopprogress.md` 等）以等級為主——視為**測試版／過渡**；劇情框架落地後改為「章節主解鎖＋等級並行」，具體對照與重定義見 [`story/progression-crossref.md`](story/progression-crossref.md)。
+現行 `shopprogress.md` 等級表＝**測試版／過渡**，以任務解鎖表取代。見 [`story/progression-crossref.md`](story/progression-crossref.md)、三份成長分析。
 
-數字（期望 EXP、資金、可用技能、開發規模等）**一律不在此檔寫死**；待下列分析完成後回填各章：
+產品建議數字見：
 
-1. 角色成長分析  
-2. 貨品營運成本與收入分析  
-3. 技能分析  
+1. [`story/growth-character.md`](story/growth-character.md)  
+2. [`story/growth-economy.md`](story/growth-economy.md)  
+3. [`story/growth-skills.md`](story/growth-skills.md)  
 
-分析後會重定：測試版升級能力數值、獲得 EXP、物品成本與售價、及其他成長相關數值。
+已拍板方向：
 
-已拍板方向（細節／數字仍待分析）：
-
-- **劇情／事件 XP：** 允許；由**個別任務報酬**決定給否與量（見 `playerlevel.md`、`story/progression-crossref.md` §6）
-- **店舖規模：** 需要 **S4+**；約**每 1–2 章**多一檔（面積／雇員表待店舖分析）
+- **劇情／事件 XP：** 允許；由**個別任務報酬**決定
+- **貨品性狀：** 通用性狀為主；章／事件修飾器可覆寫（事件＞章＞SKU 預設）
+- **頭目日：** 普通結算＋任務另發大額 XP／資金＋**解鎖奧義**（首次通關）
+- **店舖規模：** **S4+**（目標至 S6）；約每 1–2 章一檔
 - **教學 vs 序章：** 系統分開，元件可重用
 
-# 等級錨點（框架層，非經驗表）
+# 等級錨點（框架層）
 
 | 錨點 | 值 | 說明 |
 |------|-----|------|
 | 角色等級上限 | **99** | 與 `playerlevel.md` 一致 |
-| 序章→終章目標等級 | **約 60** | 主線結束期望帶；精確曲線待成長分析 |
+| 序章→終章目標等級 | **約 60** | 曲線見 [`story/growth-character.md`](story/growth-character.md) |
 | 後日談 | **61–99** | 再練、回訪、重玩性空間 |
-
-LV11–99 單級 EXP 表、日均 XP、章內日數等：**待分析**，不在此定。
 
 # 與三層循環的關係
 
@@ -113,6 +112,7 @@ LV11–99 單級 EXP 表、日均 XP、章內日數等：**待分析**，不在�
 - **頭目**＝章節主線終點的**特殊營運日**（可多階段），不是另開戰鬥場景
 - 通過條件由該章劇情任務／評價／存活指標等組合定義（章內補）
 - 終章頭目為最終頭目；後日談可另設可選週期挑戰頭目（非擋主線）
+- **通關報酬：** 當日**普通結算**照算；**任務獎勵另給**大額 EXP、大額資金、**解鎖奧義**（首次通關；D→C 重試不重複發解鎖／大額）。量級見成長分析
 - **失敗：** 先走敘事失敗態（演出；懲罰待表）→ 回準備回合調整 → 再進入同一頭目節點（D→C）。通過前 `story_blocked`，不 `advance_story`
 - **日常劇情失敗：** 軟擋（A）——可繼續日循環，只擋推進
 
@@ -128,10 +128,13 @@ LV11–99 單級 EXP 表、日均 XP、章內日數等：**待分析**，不在�
 
 | 文件 | 角色 |
 |------|------|
-| [`story/progression-crossref.md`](story/progression-crossref.md) | 現有設計對照＋成長計算缺口＋開放問題 |
+| [`story/progression-crossref.md`](story/progression-crossref.md) | 現有設計對照＋決策／開放問題 |
+| [`story/growth-character.md`](story/growth-character.md) | 角色成長分析（XP／等級帶） |
+| [`story/growth-economy.md`](story/growth-economy.md) | 貨品／資金／規模／性狀分析 |
+| [`story/growth-skills.md`](story/growth-skills.md) | 技能／奧義分章學會表 |
 | [`tasksystem.md`](tasksystem.md) | 任務 kind／失敗擋推進 |
-| [`playerlevel.md`](playerlevel.md) | 等級上限／EXP 來源（劇情 XP 仍標待分析） |
-| [`shopprogress.md`](shopprogress.md) | 現行等級解鎖表（過渡） |
-| [`elitecustomer.md`](elitecustomer.md) | 麻煩客人等級；劇情解鎖表 Beta |
-| [`tutorial.md`](tutorial.md) | 教學 Lesson；與序章關係待定 |
-| [`docs/beta/design.md`](../beta/design.md) | 報酬表、流量數字等仍標 Beta 的項 |
+| [`playerlevel.md`](playerlevel.md) | 等級上限／EXP 來源 |
+| [`shopprogress.md`](shopprogress.md) | 現行等級解鎖表（過渡／作廢中） |
+| [`elitecustomer.md`](elitecustomer.md) | 麻煩客人等級 |
+| [`tutorial.md`](tutorial.md) | 教學 Lesson；與序章分開可重用 |
+| [`docs/beta/design.md`](../beta/design.md) | 報酬落地細節仍可標 Beta |
