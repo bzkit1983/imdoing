@@ -119,12 +119,18 @@ func _ready() -> void:
 	process_physics_priority = 100
 
 
-func activate_self_checkout(host: Node, level: int, seat: int) -> void:
-	_clear_self_customer()
+func activate_self_checkout(host: Node, level: int, seat: int, duration: float = 15.0, preserve_progress: bool = false) -> void:
+	var previous_customer = _self_customer if preserve_progress else null
+	var previous_progress := _self_progress if preserve_progress else 0.0
 	_self_host = host
-	_self_left = 15.0
+	_self_left = maxf(0.0, duration)
 	_self_seconds = float(6 - clampi(level, 1, 3))
 	_self_seat = seat
+	if previous_customer != null and is_instance_valid(previous_customer) and ready_customer() == previous_customer:
+		_self_customer = previous_customer
+		_self_progress = previous_progress
+	else:
+		_clear_self_customer()
 	_refresh_label()
 
 

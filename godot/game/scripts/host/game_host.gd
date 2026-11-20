@@ -249,7 +249,15 @@ func shelf_has(_shelf: Node2D, _sku: String) -> bool:
 	return false
 
 
-func take_from_shelf(_shelf: Node2D, _sku: String) -> bool:
+func take_from_shelf(_shelf: Node2D, _sku: String, _customer_purchase: bool = false) -> bool:
+	return false
+
+
+func can_cast_self_service_operation() -> bool:
+	return false
+
+
+func cast_self_service_operation(_seat: int) -> bool:
 	return false
 
 

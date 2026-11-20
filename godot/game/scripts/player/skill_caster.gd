@@ -1106,14 +1106,35 @@ func cast_ultimate() -> void:
 	if host.cd_left(sid) > 0.05:
 		host._prompt.active = false
 		return
+	var game = host._game()
+	var predict := _net_client_predicting()
+	if sid == "self_service_operation":
+		if game == null or not game.has_method("can_cast_self_service_operation") or not bool(game.can_cast_self_service_operation()):
+			host.log_line.emit(Loc.t("log.player.ult_self_service_unavailable"))
+			SfxBus.play("sfx_skill_cd_deny")
+			host._prompt.active = false
+			return
+		if not predict and not bool(game.cast_self_service_operation(host.seat_id)):
+			if game.has_method("_dump_all_skill_cds"):
+				game.call("_dump_all_skill_cds")
+			host.log_line.emit(Loc.t("log.player.ult_self_service_unavailable"))
+			SfxBus.play("sfx_skill_cd_deny")
+			host._prompt.active = false
+			return
 	## Mirror skill hotkeys: Client predicts SFX／pose／CD; Host re-casts for world authority.
 	if host.controls_locally() and SessionService.is_networked() and SessionService.is_client():
 		host.pending_ult_cast = true
 	var lv := int(sk.get("lv", 3))
 	host._cd[sid] = Tuning.cd_seconds(float(sk.get("cd", Skills.ULT_CD)), host._int_now())
 	host._buff_cache_valid = false
-	var game = host._game()
-	var predict := _net_client_predicting()
+	if sid == "self_service_operation":
+		SfxBus.play("sfx_ult_yes_my_lord")
+		host.log_line.emit(Loc.t("log.player.ult_self_service"))
+		begin_cast_pose(true)
+		host.skill_cast.emit(String(sk.get("name")), true)
+		play_zoom(true)
+		host._prompt.active = false
+		return
 	if sid == "fundraise":
 		if game and not predict:
 			game.cast_fundraise(lv, host.seat_id)

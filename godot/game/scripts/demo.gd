@@ -99,6 +99,9 @@ var _three_volley_casts: Array[Dictionary] = []
 var _three_volley_visuals: Array[Node2D] = []
 ## Host-only pending deliveries keyed by customer instance id then SKU.
 var _elite_guest_cannon_reservations: Dictionary = {}
+## Ultimate: store-wide self-service; raw real seconds, Host-owned.
+var _self_service_operation_left: float = 0.0
+var _self_service_operation_owner: int = -1
 var _player: CharacterBody2D
 ## M1 local coop: all seated players. `_player` stays seat0 alias.
 var _players: Array[CharacterBody2D] = []
@@ -255,6 +258,7 @@ func refresh_world_dev_labels() -> void:
 
 
 func _begin_day() -> void:
+	_clear_self_service_operation()
 	if _prep:
 		_prep.set_process_unhandled_input(false)
 	if _pause and _pause.has_method("close_menu"):
@@ -468,6 +472,7 @@ func _local_touch_player() -> CharacterBody2D:
 
 
 func _clear_world() -> void:
+	_clear_self_service_operation()
 	_clear_three_volley()
 	## TutorialDirector owns the explain modal — must survive day rebuild
 	## (same as prep／pause). Killing it left a freed ref and soft-locked ops.
@@ -1992,6 +1997,7 @@ func _process(delta: float) -> void:
 	## Tutorial pages open: hold the day still without get_tree().paused.
 	if tutorial_freezes_play():
 		return
+	_tick_self_service_operation(delta)
 	_poll_camera_view_hotkey()
 	_maintain_overview_camera()
 	_maintain_coop_camera()
@@ -2565,20 +2571,78 @@ func shelf_has(shelf: Node2D, sku: String) -> bool:
 	return String(shelf.get("sku")) == sku and int(shelf.get("count")) > 0
 
 
-func take_from_shelf(shelf: Node2D, sku: String) -> bool:
+func take_from_shelf(shelf: Node2D, sku: String, customer_purchase: bool = false) -> bool:
 	if shelf == null or not is_instance_valid(shelf):
 		return false
+	var refill := customer_purchase and _self_service_operation_left > 0.0 and int(state.stock.get(sku, 0)) > 0
+	if refill and not state.consume_stock(sku, 1):
+		refill = false
 	if shelf.has_method("take_one"):
-		return bool(shelf.call("take_one", sku))
+		if refill and not shelf.has_method("take_one_and_refill"):
+			state.credit_unsold_pieces({sku: 1})
+			refill = false
+		var ok := bool(shelf.call("take_one_and_refill", sku, refill)) if shelf.has_method("take_one_and_refill") else bool(shelf.call("take_one", sku))
+		if not ok and refill:
+			state.credit_unsold_pieces({sku: 1})
+		return ok
 	if not shelf_has(shelf, sku):
+		if refill:
+			state.credit_unsold_pieces({sku: 1})
 		return false
-	var n := int(shelf.get("count")) - 1
+	var n := int(shelf.get("count")) if refill else int(shelf.get("count")) - 1
 	shelf.set("count", n)
 	if n <= 0:
 		shelf.set("sku", "")
 		shelf.set("count", 0)
 	shelf.call("_refresh")
 	return true
+
+
+func can_cast_self_service_operation() -> bool:
+	if _world == null or not is_instance_valid(_world) or phase != "open":
+		return false
+	for reg in cashiers:
+		if reg != null and is_instance_valid(reg):
+			return true
+	return false
+
+
+func cast_self_service_operation(seat: int) -> bool:
+	if not (SessionService.is_server() or SessionService.is_local_transport()) or not can_cast_self_service_operation():
+		return false
+	_self_service_operation_left = 30.0
+	_self_service_operation_owner = seat
+	for reg in cashiers:
+		if reg == null or not is_instance_valid(reg):
+			continue
+		reg.activate_self_checkout(self, 3, seat, 30.0, true)
+	if _customers != null and is_instance_valid(_customers):
+		for customer in _customers.get_children():
+			if customer != null and is_instance_valid(customer) and customer.has_method("resume_unpaid_leave_for_self_service"):
+				customer.call("resume_unpaid_leave_for_self_service")
+	bump_hud()
+	return true
+
+
+func self_service_operation_active() -> bool:
+	return _self_service_operation_left > 0.0
+
+
+func _tick_self_service_operation(delta: float) -> void:
+	if not (SessionService.is_server() or SessionService.is_local_transport()) or _self_service_operation_left <= 0.0:
+		return
+	_self_service_operation_left = maxf(0.0, _self_service_operation_left - delta)
+	if _self_service_operation_left <= 0.0:
+		_self_service_operation_owner = -1
+		bump_hud()
+
+
+func _clear_self_service_operation() -> void:
+	_self_service_operation_left = 0.0
+	_self_service_operation_owner = -1
+	for reg in cashiers:
+		if reg != null and is_instance_valid(reg) and reg.has_method("clear_self_checkout"):
+			reg.clear_self_checkout()
 
 
 func _index_shelf_sku(sku: String, shelf: Node) -> void:
@@ -3155,6 +3219,7 @@ func _finish_day() -> void:
 			phase = "open"
 			game_hours = maxf(game_hours, Tuning.CLOSE_HOUR - 0.05)
 		return
+	_clear_self_service_operation()
 	## Clients wait for Host settle RPC (_on_settle_payload); do not invent a local shop settle.
 	if SessionService.is_client():
 		phase = "closed"

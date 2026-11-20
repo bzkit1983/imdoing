@@ -64,10 +64,19 @@ func take_all() -> Array[String]:
 
 
 func take_one(want: String) -> bool:
+	return take_one_and_refill(want, false)
+
+
+## Customer self-service can atomically replace the purchased piece from the warehouse.
+func take_one_and_refill(want: String, refill: bool) -> bool:
 	if not has_sku(want):
 		return false
 	var old_sku := occupied_sku()
-	count -= 1
+	if refill:
+		## The caller has already reserved one same-SKU warehouse piece.
+		count = mini(capacity, count)
+	else:
+		count -= 1
 	if count <= 0:
 		sku = ""
 		count = 0

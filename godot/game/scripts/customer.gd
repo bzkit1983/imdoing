@@ -150,6 +150,30 @@ func apply_net_shopping(list: Array) -> void:
 	_sync_labels()
 
 
+func apply_net_self_service_resume(payload: Dictionary) -> void:
+	if not net_puppet:
+		return
+	state = clampi(int(payload.get("state", State.SEEK)), State.SEEK, State.TEMP)
+	dissatisfaction = clampf(float(payload.get("dissat", dissatisfaction)), 0.0, Tuning.DISSAT_MAX)
+	shopping.clear()
+	for sku_v in payload.get("shopping", []):
+		var sku := String(sku_v)
+		if sku != "":
+			shopping.append(sku)
+	cart.clear()
+	for sku_v in payload.get("cart", []):
+		var sku := String(sku_v)
+		if sku != "":
+			cart.append(sku)
+	mood = Loc.t("mood.shop") if not shopping.is_empty() else Loc.t("mood.to_pay")
+	_clear_route()
+	_target_shelf = null
+	z_index = 0
+	modulate.a = 1.0
+	_sync_labels()
+	_sync_puppet_visual()
+
+
 ## Client presentation: Host absolute checkout dirs (M2.9). No-op if equal.
 func apply_net_checkout_seq(seq: Array, init: bool) -> void:
 	var n := seq.size()
@@ -512,6 +536,49 @@ func apply_kind_cannon_conversion() -> bool:
 	return true
 
 
+func resume_unpaid_leave_for_self_service() -> bool:
+	if is_thief or temp_clerk or state != State.LEAVE:
+		return false
+	## A paid guest clears both arrays in finish_paid; never charge them twice.
+	if shopping.is_empty() and cart.is_empty():
+		return false
+	_clear_route()
+	_target_shelf = null
+	_leave_elapsed = 0.0
+	dissatisfaction = minf(dissatisfaction, Tuning.DISSAT_MAX - 1.0)
+	collision_layer = Tuning.LAYER_CUSTOMERS
+	collision_mask = Tuning.LAYER_WALLS
+	z_index = 0
+	modulate.a = 1.0
+	if not _occupy_counted:
+		_occupy_counted = true
+		if _game != null and _game.has_method("note_customer_occupy_changed"):
+			_game.note_customer_occupy_changed(self, true)
+	if shopping.is_empty():
+		_begin_checkout(Loc.t("mood.to_pay"))
+	else:
+		state = State.SEEK
+		mood = Loc.t("mood.shop")
+	_sync_labels()
+	_broadcast_self_service_resume()
+	return true
+
+
+func _broadcast_self_service_resume() -> void:
+	if net_puppet or net_agent_id < 0:
+		return
+	if not SessionService.is_networked() or not SessionService.is_server():
+		return
+	SessionService.broadcast_agent_state({
+		"id": net_agent_id,
+		"self_service_resume": true,
+		"state": state,
+		"dissat": dissatisfaction,
+		"shopping": shopping.duplicate(),
+		"cart": cart.duplicate(),
+	})
+
+
 func in_fight() -> bool:
 	return state == State.FIGHT
 
@@ -665,7 +732,7 @@ func _take_current() -> void:
 	if shelf == null or not bool(_game.shelf_has(shelf, want)):
 		shelf = _game.find_shelf(want)
 		_target_shelf = shelf
-	if shelf and bool(_game.take_from_shelf(shelf, want)):
+	if shelf and bool(_game.take_from_shelf(shelf, want, not is_thief and not temp_clerk)):
 		cart.append(want)
 		shopping.remove_at(0)
 		_bump_list()

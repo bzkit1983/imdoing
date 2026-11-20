@@ -14,7 +14,7 @@ class Host extends Node:
 	var locked := false
 	func seat_locks_register(_reg) -> bool:
 		return locked
-	func _on_paid(amount, elite, seat, actor, perfect: bool = true) -> void:
+	func _on_paid(amount, elite, seat, actor, perfect: bool = true, _paid_customer = null, _player_checkout: bool = false) -> void:
 		payments.append([amount, elite, seat, actor, perfect])
 
 class LiveHost extends "res://scripts/demo.gd":
@@ -23,7 +23,7 @@ class LiveHost extends "res://scripts/demo.gd":
 	func _process(_delta: float) -> void:
 		pass
 
-class Guest extends Node:
+class Guest extends Node2D:
 	var arrived := true
 	var paid := false
 	var is_elite := false
@@ -46,6 +46,7 @@ func guest(reg):
 	return c
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	call_deferred("run")
 
 func run() -> void:
@@ -53,6 +54,7 @@ func run() -> void:
 	var host := Host.new()
 	add_child(host)
 	var reg = Cashier.new()
+	reg.process_mode = Node.PROCESS_MODE_PAUSABLE
 	host.add_child(reg)
 	reg.set_physics_process(false)
 	reg.label = Label.new()
@@ -132,7 +134,9 @@ func run() -> void:
 	var player = Player.new()
 	player.game = host
 	player.seat_id = 1
+	player._skills.bind(player)
 	var far_reg = Cashier.new()
+	far_reg.process_mode = Node.PROCESS_MODE_PAUSABLE
 	host.add_child(far_reg)
 	far_reg.set_physics_process(false)
 	host.phase = "open"
@@ -146,6 +150,7 @@ func run() -> void:
 			rings.append(child)
 	need(rings.size() == 1, "successful cast creates one ring")
 	var ring: Line2D = rings[0]
+	ring.process_mode = Node.PROCESS_MODE_PAUSABLE
 	ring.set_physics_process(false)
 	var origin := ring.global_position
 	need(ring.get_point_count() == 64 and ring.closed, "complete outline")
@@ -167,6 +172,7 @@ func run() -> void:
 		if child is Line2D and child != ring:
 			second_ring = child
 	need(second_ring != null, "each successful cast has independent ring")
+	second_ring.process_mode = Node.PROCESS_MODE_PAUSABLE
 	second_ring.set_physics_process(false)
 	need(is_instance_valid(second_ring._marker), "successful cast plants activation flag")
 	second_ring._physics_process(4.9)

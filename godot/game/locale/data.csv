@@ -61,6 +61,8 @@ settle.kind_cannon_seat,玩家%d：%d,Player %d: %d,玩家%d：%d,プレイヤ�
 settle.kind_cannon_client,善良的炮感化小偷：你 %d／全隊 %d,Kindness Cannon conversions: you %d / team %d,善良的炮感化小偷：你 %d／全队 %d,やさしさ砲で改心：あなた %d／チーム %d
 skill.self_checkout.name,Self Checkout,Self Checkout,Self Checkout,Self Checkout
 skill.self_checkout.blurb,啟動5身位內機台15秒；每客5／4／3秒自助，真人／NPC優先，尾單收完,Enable nearby registers for 15s within 5 body lengths; 5/4/3s per guest; operators take priority; finish final guest,启动5身位内机台15秒；每客5／4／3秒自助，真人／NPC优先，尾单收完,5体長内のレジを15秒稼働；客1人あたり5／4／3秒でセルフ精算、プレイヤー／NPC優先、最後の客は完了まで
+skill.self_service_operation.name,有糧出無汗出,"Stock In, No Sweat",有粮出无汗出,在庫が出て汗いらず
+skill.self_service_operation.blurb,全店自助營業30秒。客人自己埋單，貨架即時用後倉同款存貨補回，收入照常入帳。,"Run the whole store in self-service for 30 seconds. Customers pay themselves, shelves refill immediately from same-SKU warehouse stock, and revenue counts as usual.",全店自助营业30秒。客人自行结账，货架即时用后仓同款库存补回，收入照常入账。,30秒間、店全体がセルフ営業に。客が自分で会計し、棚の商品は倉庫の同一商品で即時補充、売上も通常どおり入金。
 skill.calm_zone.name,你定少少先,Take a Breather,你定少少先,少し落ち着いて
 skill.calm_zone.blurb,定點安撫15秒；LV1／2／3半徑5／7／10身位，每秒減怒2／3／4,"Place a 15s calm zone; LV1/2/3 radius 5/7/10 body lengths, reducing dissatisfaction by 2/3/4 per second",定点安抚15秒；LV1／2／3半径5／7／10身位，每秒减怒2／3／4,15秒間その場に落ち着きゾーンを設置；LV1／2／3の範囲は5／7／10体長、毎秒不満を2／3／4減少
 skill.senior_cashier.name,資深收銀員,Senior Cashier,资深收银员,ベテランレジ係
@@ -332,6 +334,8 @@ log.player.ult_close_gate,奧義 落閘放狗,Ultimate Drop the Gate,奥义 落�
 log.player.ult_dusk,奧義 諸客的黃昏 — 30 秒吸引 %d 人,Ultimate Twilight of Guests — %d entries in 30s,奥义 诸客的黄昏 — 30 秒吸引 %d 人,奥義 諸客の黄昏 — 30 秒で %d 人誘引
 log.player.ult_dusk_closed,奧義 諸客的黃昏 — 非營業時段無效,Ultimate Twilight of Guests — invalid off-hours,奥义 诸客的黄昏 — 非营业时段无效,奥義 諸客の黄昏 — 非営業時は無効
 log.player.ult_three_volley,奧義 三段火槍陣 — 三排開火,Ultimate Three Volley Fire — three ranks firing,奥义 三段火枪阵 — 三排开火,奥義 三段銃陣 — 三列一斉射撃
+log.player.ult_self_service,奧義 有糧出無汗出 — 全店自助營業30秒,"Ultimate Stock In, No Sweat — store-wide self-service for 30s",奥义 有粮出无汗出 — 全店自助营业30秒,奥義 在庫が出て汗いらず — 店全体が30秒セルフ営業
+log.player.ult_self_service_unavailable,奧義 有糧出無汗出 — 只限營業時間並需要收銀機,"Ultimate Stock In, No Sweat — requires an open store and a register",奥义 有粮出无汗出 — 仅限营业时间且需要收银机,奥義 在庫が出て汗いらず — 営業中かつレジが必要
 log.player.ult_lord,奧義 Yes! My Lord! LV%d — 客人搶購 %.0f 秒,Ultimate Yes! My Lord! LV%d — rush %.0fs,奥义 Yes! My Lord! LV%d — 客人抢购 %.0f 秒,奥義 Yes! My Lord! LV%d — 客の買い急ぎ %.0f 秒
 log.player.ult_world,奧義 %s LV%d — 時停,Ultimate %s LV%d — time stop,奥义 %s LV%d — 时停,奥義 %s LV%d — 時止め
 log.player.cmd_reset,放手 — 指令重置,Release — commands reset,放手 — 指令重置,離した — 指令をリセット

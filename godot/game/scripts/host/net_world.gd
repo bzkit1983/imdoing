@@ -220,6 +220,9 @@ func apply_agent_state_payload(payload: Dictionary) -> void:
 		if int(payload.get("n", 0)) <= 0:
 			host._net_agents.erase(aid)
 		return
+	if payload.has("self_service_resume") and n.has_method("apply_net_self_service_resume"):
+		n.call("apply_net_self_service_resume", payload)
+		return
 	## Guest／thief shopping pictogram chrome (M2.7).
 	if payload.has("shopping") and n.has_method("apply_net_shopping"):
 		n.call("apply_net_shopping", payload.get("shopping", []))
