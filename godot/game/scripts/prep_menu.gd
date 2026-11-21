@@ -9,6 +9,7 @@ const StateScript = preload("res://scripts/game_state.gd")
 const PrepWidgets = preload("res://scripts/prep/prep_widgets.gd")
 const SkillIcons = preload("res://scripts/skill_icons.gd")
 const PrepPages = preload("res://scripts/prep/prep_pages.gd")
+const DasherTrial = preload("res://scenes/dasher_trial.tscn")
 const PrepGridView = preload("res://scripts/prep/prep_grid_view.gd")
 const ProductVersion = preload("res://scripts/product_version.gd")
 const SkinCatalog = preload("res://scripts/session/skin_catalog.gd")
@@ -1206,6 +1207,12 @@ func _activate() -> void:
 				_refresh()
 		"light_quiz_save":
 			_save_light_quiz_win()
+		"dasher_trial":
+			if can_access_cultivation():
+				var trial := DasherTrial.instantiate()
+				trial.exited.connect(_return_from_dasher)
+				hide()
+				add_child(trial)
 		"cultivate_material":
 			_cultivation_slots[_cultivation_slot] = String(arg)
 			_show_page("cultivate")
@@ -2594,6 +2601,11 @@ func _back() -> void:
 		return
 	if _page != "home" and _page != "scenario":
 		_show_page(PrepPages.parent_page(_page))
+
+
+func _return_from_dasher() -> void:
+	show()
+	_show_page("hub_minigames")
 
 
 func _restart_light_quiz() -> void:

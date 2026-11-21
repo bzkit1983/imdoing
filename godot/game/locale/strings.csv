@@ -836,6 +836,17 @@ prep.light_quiz.outro2,能力我可以接受，但我不想成為你的子民！
 prep.light_quiz.outro3,此事由不得你選擇。,The choice is not yours to make.,此事由不得你选择。,あなたに選ぶ権利はない。
 prep.light_quiz.outro4,咁你又問？,Then why'd you ask?,那你还问？,じゃあ何で聞いたの？
 prep.light_quiz.reward,已獲得奧義：%s,Ultimate acquired: %s,已获得奥义：%s,奥義を獲得：%s
+prep.dasher.store,Imdoing,Imdoing,Imdoing,Imdoing
+prep.dasher.rules,不限時。有 %d 條命同 %d 次 Dash，跌落或撞敵人會扣一條命，返最近嘅檢查點。\n方向鍵／A、D 或左搖桿／方向掣移動\n空白鍵／手掣 A 跳躍　Shift／手掣 X 衝刺\nR／手掣 Y 重開　Esc／手掣 B 返回,"No time limit. You have %d lives and %d dashes. Fall or hit an enemy and you lose a life and return to the last checkpoint.\nMove: arrows or A/D · left stick or D-pad\nJump: Space / pad A · Dash: Shift / pad X\nRestart: R / pad Y · Back: Esc / pad B",不限时。有 %d 条命和 %d 次 Dash，掉落或撞到敌人会扣一条命，返回最近的检查点。\n方向键／A、D 或左摇杆／方向键移动\n空格／手柄 A 跳跃　Shift／手柄 X 冲刺\nR／手柄 Y 重开　Esc／手柄 B 返回,時間制限なし。残機%d・ダッシュ%d回。落下や敵との接触で残機を1つ失い，最後のチェックポイントに戻ります。\n移動：矢印キーかA/D・左スティックか方向キー\nジャンプ：Space／パッドA　ダッシュ：Shift／パッドX\nやり直す：R／パッドY　戻る：Esc／パッドB
+prep.dasher.start,開始跑,Start run,开始跑,スタート
+prep.dasher.restart,重開,Restart,重开,やり直す
+prep.dasher.lives,生命 %d/%d,Lives %d/%d,生命 %d/%d,残機 %d/%d
+prep.dasher.dashes,Dash %d/%d,Dash %d/%d,Dash %d/%d,ダッシュ %d/%d
+prep.dasher.fall,跌落街　−1 條命,Fell · −1 life,掉落　−1 条命,落下　残機 −1
+prep.dasher.enemy_hit,撞到敵人　−1 條命,Enemy hit · −1 life,撞到敌人　−1 条命,敵に接触　残機 −1
+prep.dasher.win,到咗超市！,You made it to the store!,到达超市！,お店に到着！
+prep.dasher.game_over,冇晒命,Out of lives,生命用尽,残機切れ
+prep.dasher.result,用時 %.1f 秒｜剩餘 Dash %d/%d,Time %.1f s · Dashes left %d/%d,用时 %.1f 秒｜剩余 Dash %d/%d,タイム %.1f秒｜残りダッシュ %d/%d
 prep.light_quiz.continue,按確認或點擊繼續,Confirm or click to continue,按确认或点击继续,決定ボタンかクリックで進む
 prep.light_quiz.progress,第 %d／%d 題,Question %d of %d,第 %d／%d 题,第%d問／全%d問
 prep.light_quiz.score,答對 %d／%d 題,%d of %d correct,答对 %d／%d 题,正解 %d／%d 問
