@@ -36,6 +36,11 @@ static func choose_from_register_queue(queue: Array, max_n: int) -> Array:
 static func _eligible(c) -> bool:
 	if c.get("is_thief") or c.get("temp_clerk"):
 		return false
+	## Boss guests require multi-wave personal checkout.
+	if c.get("is_boss") == true:
+		return false
+	if c.has_method("blocks_auto_checkout") and bool(c.call("blocks_auto_checkout")):
+		return false
 	var st := int(c.get("state"))
 	if st == Customer.State.TEMP:
 		return false

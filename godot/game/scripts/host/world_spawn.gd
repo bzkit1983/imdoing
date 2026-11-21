@@ -4,6 +4,7 @@ extends RefCounted
 const Tuning = preload("res://scripts/tuning.gd")
 const Skills = preload("res://scripts/skills.gd")
 const CustomerScript = preload("res://scripts/customer.gd")
+const OpsItems = preload("res://scripts/ops_items.gd")
 
 var host: Node
 
@@ -135,4 +136,40 @@ func _spawn_thief(force: bool = false) -> void:
 		host._player.log_line.emit(Loc.t("demo.thief_enter"))
 	if host._tutorial != null and is_instance_valid(host._tutorial) and host._tutorial.has_method("notify_flag"):
 		host._tutorial.notify_flag("thief_present")
+
+
+## Open-phase guest／thief／dirt／ops-item cadence (boss day suppresses ambient).
+func tick_ambient(delta: float) -> void:
+	if not (SessionService.is_server() or SessionService.is_local_transport()):
+		return
+	var boss = host.get("_boss_world")
+	var suppress: bool = (
+		boss != null
+		and boss.has_method("should_suppress_ambient")
+		and bool(boss.should_suppress_ambient())
+	)
+	if host.phase == "open":
+		if suppress:
+			if boss != null and boss.has_method("tick_open_spawn"):
+				boss.tick_open_spawn()
+		else:
+			_tick_guest_dusk(delta)
+			host._spawn_in -= host.world_delta(delta)
+			if host._spawn_in <= 0.0:
+				host._spawn_customer()
+				host._spawn_in = host.state.spawn_every()
+			host._thief_spawn_in -= host.world_delta(delta)
+			if host._thief_spawn_in <= 0.0:
+				_spawn_thief()
+				host._thief_spawn_in = host.state.thief_spawn_sec()
+	if not suppress:
+		host._dirt_spawn_in -= host.world_delta(delta)
+		if host._dirt_spawn_in <= 0.0:
+			host._try_spawn_dirt()
+			host._dirt_spawn_in = host.dirt_spawn_interval()
+		if host.phase == "open":
+			host._ops_item_spawn_in -= host.world_delta(delta)
+			if host._ops_item_spawn_in <= 0.0:
+				host._try_spawn_ops_item()
+				host._ops_item_spawn_in = randf_range(OpsItems.SPAWN_EVERY_MIN, OpsItems.SPAWN_EVERY_MAX)
 

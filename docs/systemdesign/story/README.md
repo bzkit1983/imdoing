@@ -18,3 +18,5 @@
 | [`growth-analyses.html`](growth-analyses.html) | **離線檢視畫布**（總覽／XP／經濟／技能／整合路線） |
 
 章檔為概念開檔（劇本詳情後補）。**期望成長帶／貨／技能數字以三份 `growth-*.md` 為準。** 觀看建議開 [`growth-analyses.html`](growth-analyses.html)。
+
+頭目戰回合框架：[`../bossbattle.md`](../bossbattle.md)；各頭目專檔：[`../bosses/`](../bosses/)（測試：[`../bosses/alien_tycoon.md`](../bosses/alien_tycoon.md)）。

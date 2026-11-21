@@ -341,12 +341,29 @@ hud.combo_coop,COMBO P1 %d  ·  P2 %d  ·  TEAM %d,COMBO P1 %d  ·  P2 %d  ·  T
 hud.seat,P%d,P%d,P%d,P%d
 prep.back,返回,Back,返回,戻る
 prep.scenario.title,選擇劇本,Choose scenario,选择剧本,シナリオ選択
-prep.scenario.info,劇本1 從空店開始，資金 $10000。劇本2、3 帶現成店面和店員。劇本4 用來試技能。測試版另有劇本5 教學模式（$3000）。,Scenario 1 starts empty with $10000. 2 and 3 include a shop and clerks. 4 is for trying skills. Test builds also list Scenario 5 Tutorial ($3000).,剧本1 从空店开始，资金 $10000。剧本2、3 带现成店面和店员。剧本4 用来试技能。测试版另有剧本5 教学模式（$3000）。,シナリオ1は空の店から開始、資金 $10000。シナリオ2・3は店舗と店員付き。シナリオ4はスキル試し用。テスト版にはシナリオ5 チュートリアル（$3000）もあります。
+prep.scenario.info,劇本1 從空店開始，資金 $10000。劇本2、3 帶現成店面和店員。劇本4 用來試技能。測試版另有劇本5 教學模式（$3000）、劇本6 頭目戰（藍本同劇本4）。,Scenario 1 starts empty with $10000. 2 and 3 include a shop and clerks. 4 is for trying skills. Test builds also list Scenario 5 Tutorial ($3000) and Scenario 6 Boss battle (same blueprint as 4).,剧本1 从空店开始，资金 $10000。剧本2、3 带现成店面和店员。剧本4 用来试技能。测试版另有剧本5 教学模式（$3000）、剧本6 头目战（蓝本同剧本4）。,シナリオ1は空の店から開始、資金 $10000。シナリオ2・3は店舗と店員付き。シナリオ4はスキル試し用。テスト版にはシナリオ5 チュートリアル（$3000）とシナリオ6 ボス戦（シナリオ4と同構成）もあります。
 prep.scenario.s5,劇本5　教學模式　LV1　$3000　空店（測試）,Scenario 5 · Tutorial · LV1 · $3000 · empty shop (test),剧本5　教学模式　LV1　$3000　空店（测试）,シナリオ5　チュートリアル　LV1　$3000　空店舗（テスト）
+prep.scenario.s6,劇本6　頭目戰　藍本同劇本4（測試）,Scenario 6 · Boss battle · same as Scenario 4 (test),剧本6　头目战　蓝本同剧本4（测试）,シナリオ6　ボス戦　シナリオ4と同構成（テスト）
 prep.scenario.s1,劇本1　從新開始　資金 $10000　LV1　空店,Scenario 1 · Fresh start · $10000 · LV1 · empty,剧本1　从新开始　资金 $10000　LV1　空店,シナリオ1　新規スタート　資金 $10000　LV1　空き店
 prep.scenario.s2,劇本2　LV5　資金 $10000　店規模 2　1 名店員,Scenario 2 · LV5 · $10000 · scale 2 · 1 clerk,剧本2　LV5　资金 $10000　店规模 2　1 名店员,シナリオ2　LV5　資金 $10000　店規模 2　店員 1名
 prep.scenario.s3,劇本3　LV10　資金 $99999　三圍 30　店規模 3　2 名店員,Scenario 3 · LV10 · $99999 · stats 30 · scale 3 · 2 clerks,剧本3　LV10　资金 $99999　三围 30　店规模 3　2 名店员,シナリオ3　LV10　資金 $99999　三能力 30　店規模 3　店員 2名
 prep.scenario.s4,劇本4　技能測試　LV10　三圍20　$99999　規模3　18×10,Scenario 4 · Skill test · LV10 · stats 20 · $99999 · scale 3 · 18×10,剧本4　技能测试　LV10　三围20　$99999　规模3　18×10,シナリオ4　スキルテスト　LV10　三能力20　$99999　規模3　18×10
+boss.hud.progress,頭目進度 %d／%d,Boss progress %d/%d,头目进度 %d／%d,ボス進行 %d／%d
+boss.hud.mission_complete,任務完成,Mission complete,任务完成,ミッション完了
+boss.hud.fail_title,頭目戰失敗,Boss battle failed,头目战失败,ボス戦失敗
+boss.hud.dialog_hint,按行動鍵繼續,Press action to continue,按行动键继续,アクションで続行
+boss.alien_tycoon.name,外星大土豪,Alien Tycoon,外星大土豪,エイリアン大富豪
+boss.alien_tycoon.line.restock_intro,今天好像有事情發生⋯⋯還是專心工作。,Something seems off today… better just focus on work.,今天好像有事情发生⋯⋯还是专心工作。,今日は何かありそうだ…仕事に集中しよう。
+boss.alien_tycoon.line.enter,好像很多東西要帶回羅茲威爾⋯⋯,Looks like I've got a lot to take back to Roswell…,好像很多东西要带回罗兹威尔⋯⋯,ロズウェルに持ち帰るものがたくさんあるみたいだ…
+boss.alien_tycoon.line.list_1,好像還有什麼要帶回羅茲威爾⋯⋯,I feel like I still need something else for Roswell…,好像还有什么要带回罗兹威尔⋯⋯,まだロズウェルに持っていくものがありそうだ…
+boss.alien_tycoon.line.list_2,想起了，還有更多的同伴在等我！,Right — more companions are waiting for me!,想起了，还有更多的同伴在等我！,そうだ、もっと仲間が待っている！
+boss.alien_tycoon.line.list_3,還有更多⋯⋯還有更多⋯⋯還有更多！！！,More… more… MORE!!!,还有更多⋯⋯还有更多⋯⋯还有更多！！！,もっと…もっと…もっと！！！
+boss.alien_tycoon.line.list_4,還有更多⋯⋯還有更多⋯⋯還有更多！！！,More… more… MORE!!!,还有更多⋯⋯还有更多⋯⋯还有更多！！！,もっと…もっと…もっと！！！
+boss.alien_tycoon.line.list_5,終於買夠了，去付款吧。,Finally enough — time to pay.,终于买够了，去付款吧。,やっと揃った。会計だ。
+boss.alien_tycoon.line.pay_wave,（繼續結帳⋯⋯）,（Continuing checkout…）,（继续结账⋯⋯）,（会計を続ける…）
+boss.alien_tycoon.line.pay_done,好像買了很多東西⋯⋯回去吧。,I bought so much… time to go back.,好像买了很多东西⋯⋯回去吧。,ずいぶん買っちゃったな…帰るか。
+boss.alien_tycoon.fail_time,時間到了⋯⋯大土豪失望地離開。,Time's up… the Tycoon leaves disappointed.,时间到了⋯⋯大土豪失望地离开。,時間切れ…大富豪はがっかりして去った。
+boss.alien_tycoon.fail_dissat,大土豪不滿爆錶，怒氣沖沖離店。,The Tycoon's patience ran out and stormed out.,大土豪不满爆表，怒气冲冲离店。,大富豪の不満が限界で怒って出て行った。
 prep.home.title,營運準備,Prep,营运准备,営業準備
 prep.header,資金 $%d　LV%d　%s\nSTR%d AGI%d INT%d　點數 %d　商店評價 %d　支援別店 %d,Cash $%d · LV%d · %s\nSTR%d AGI%d INT%d · Pts %d · Shop rating %d · Support %d,资金 $%d　LV%d　%s\nSTR%d AGI%d INT%d　点数 %d　商店评价 %d　支援别店 %d,資金 $%d　LV%d　%s\nSTR%d AGI%d INT%d　ポイント %d　店舗評価 %d　支援評価 %d
 prep.home.info_rating,商店評價 %d　支援別店評價 %d　已記錄 %d 日。選「評價記錄」可連續查看近況。,Shop rating %d · support-other-shops %d · %d days logged. Open Rating history to browse.,商店评价 %d　支援别店评价 %d　已记录 %d 日。选“评价记录”可连续查看近况。,店舗評価 %d　他店支援評価 %d　記録 %d 日。「評価記録」で近況を連続閲覧できます。

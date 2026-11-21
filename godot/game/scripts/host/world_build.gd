@@ -200,18 +200,27 @@ func build_furniture(nodes: Array[Node2D]) -> void:
 
 func spawn_clerks() -> void:
 	var i := 0
+	var skip_cashier := false
+	if host.has_method("boss_skip_cashier_clerks"):
+		skip_cashier = bool(host.call("boss_skip_cashier_clerks"))
+	elif host.get("_boss_world") != null and host._boss_world.has_method("should_skip_cashier_clerks"):
+		skip_cashier = bool(host._boss_world.should_skip_cashier_clerks())
 	for c in host.state.clerks:
+		var role := String(c["role"])
+		## Boss day: stow cashier clerks (config kept in prep／save).
+		if skip_cashier and role == "cashier":
+			continue
 		var clerk: CharacterBody2D = ClerkScript.new()
 		var reg: Node2D = null
-		if String(c["role"]) == "cashier" and not host.cashiers.is_empty():
+		if role == "cashier" and not host.cashiers.is_empty():
 			reg = host.cashiers[mini(int(c["register"]), host.cashiers.size() - 1)]
 		host._world.add_child(clerk)
 		var origin: Vector2 = host.FLOOR_ORIGIN
 		var floor_size: Vector2 = host.FLOOR_SIZE
-		clerk.setup(host, origin + Vector2(80 + i * 36, floor_size.y - 120), String(c["role"]), reg)
+		clerk.setup(host, origin + Vector2(80 + i * 36, floor_size.y - 120), role, reg)
 		host._clerks.append(clerk)
 		host._register_net_agent(clerk, "clerk", {
-			"role": String(c["role"]),
+			"role": role,
 		})
 		i += 1
 

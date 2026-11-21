@@ -28,7 +28,7 @@
 | 奧義 | 現有 6，全開 | **頭目任務**解鎖為主；約一章一個 | [`growth-skills.md`](growth-skills.md) |
 | 麻煩客人 | 行為 LV1–6 已定；活線硬頂 LV1；解鎖標劇情 Beta | 第1章 LV1 起、逐章升高 | 章→最高 LV 對照表 |
 | 客人特別行為（章級） | 無「整章套用」層；只有個體／事件修飾意圖 | 每章族群行為 | 修飾器管線 |
-| 頭目日 | 無產品規格（僅概念沙盒） | 普通結算＋大額 XP／資金＋解鎖奧義 | [`growth-character.md`](growth-character.md)／economy／skills |
+| 頭目日 | 框架＋測試頭目已開檔；劇本6 測進場 | 普通結算＋大額 XP／資金＋解鎖奧義 | [`../bossbattle.md`](../bossbattle.md)、[`../bosses/alien_tycoon.md`](../bosses/alien_tycoon.md)、[`growth-character.md`](growth-character.md)／economy／skills |
 | 店舖規模 | S1–S3；LV4／LV7＋金錢 | S1–S6；約每 1–2 章一檔；任務解鎖＋資金付款 | [`growth-economy.md`](growth-economy.md) |
 | 店員 | 規模綁 0／1／2；日薪 $100 | 第1章目標兩店員等 | 雇員上限／薪資曲線 |
 | 貨品 | 乾／凍／冰各 3；LV1–10 開發 | 每章新種類＋**通用性狀**＋章／事件覆寫 | [`growth-economy.md`](growth-economy.md) |

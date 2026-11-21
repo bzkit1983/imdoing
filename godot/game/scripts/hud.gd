@@ -80,6 +80,16 @@ var _left_panel: PanelContainer
 @onready var _close_text: Label = $Root/Closeout/Margin/Columns/SettleCard/CardMargin/SettleCol/CloseText
 var _closeout_styled: bool = false
 var _stamina_low_paint: bool = false
+## Boss-day progress (HP-like) + dialog overlay.
+var _boss_bar_wrap: Control
+var _boss_bar: ProgressBar
+var _boss_bar_label: Label
+var _boss_dialog_layer: Control
+var _boss_dialog_title: Label
+var _boss_dialog_body: Label
+var _boss_dialog_hint: Label
+var _boss_waiting_advance: bool = false
+var _boss_advance: bool = false
 
 
 func setup(g: Node, p: CharacterBody2D) -> void:
@@ -1382,3 +1392,161 @@ func _on_carry_cell_gui(event: InputEvent, index: int) -> void:
 	if inv == null or not inv.has_method("set_focus_index"):
 		return
 	inv.call("set_focus_index", index)
+
+
+func setup_boss_progress(total: int) -> void:
+	## Prep／restock: bar stays hidden until ops／boss enter.
+	_ensure_boss_bar()
+	set_boss_progress(0, total)
+	if _boss_bar_wrap:
+		_boss_bar_wrap.visible = false
+
+
+func show_boss_progress() -> void:
+	_ensure_boss_bar()
+	if _boss_bar_wrap:
+		_boss_bar_wrap.visible = true
+
+
+func hide_boss_progress() -> void:
+	if _boss_bar_wrap != null and is_instance_valid(_boss_bar_wrap):
+		_boss_bar_wrap.visible = false
+
+
+func set_boss_progress(done: int, total: int) -> void:
+	_ensure_boss_bar()
+	if _boss_bar == null:
+		return
+	var t := maxi(1, total)
+	var remain := maxi(0, t - done)
+	_boss_bar.max_value = float(t)
+	var tw := create_tween()
+	tw.tween_property(_boss_bar, "value", float(remain), 0.28).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
+func _ensure_boss_bar() -> void:
+	if _boss_bar_wrap != null and is_instance_valid(_boss_bar_wrap):
+		return
+	var root: Control = $Root
+	_boss_bar_wrap = Control.new()
+	_boss_bar_wrap.name = "BossProgress"
+	_boss_bar_wrap.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_boss_bar_wrap.offset_left = -220.0
+	_boss_bar_wrap.offset_right = 220.0
+	_boss_bar_wrap.offset_top = 18.0
+	_boss_bar_wrap.offset_bottom = 40.0
+	_boss_bar_wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(_boss_bar_wrap)
+	_boss_bar_label = null
+	_boss_bar = ProgressBar.new()
+	_boss_bar.show_percentage = false
+	_boss_bar.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_boss_bar.max_value = 8.0
+	_boss_bar.value = 8.0
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = Color(0.86, 0.28, 0.32, 0.95)
+	fill.set_corner_radius_all(6)
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color(0.08, 0.09, 0.10, 0.85)
+	bg.set_corner_radius_all(6)
+	_boss_bar.add_theme_stylebox_override("fill", fill)
+	_boss_bar.add_theme_stylebox_override("background", bg)
+	_boss_bar_wrap.add_child(_boss_bar)
+	_boss_bar_wrap.visible = false
+
+
+func show_boss_dialog(title: String, body: String, typewriter_title: bool = false) -> void:
+	_ensure_boss_dialog()
+	_boss_dialog_layer.visible = true
+	_boss_waiting_advance = true
+	_boss_advance = false
+	_boss_dialog_hint.text = Loc.t("boss.hud.dialog_hint")
+	_boss_dialog_body.text = body
+	if typewriter_title and title != "":
+		_boss_dialog_title.text = ""
+		for i in title.length():
+			_boss_dialog_title.text += title.substr(i, 1)
+			SfxBus.play("sfx_checkout_dir_ok")
+			await get_tree().create_timer(0.12).timeout
+			if not is_inside_tree():
+				return
+	else:
+		_boss_dialog_title.text = title
+	## Wait for interact／cancel or auto after a short beat.
+	var waited := 0.0
+	while is_inside_tree() and _boss_waiting_advance and not _boss_advance and waited < 8.0:
+		if Input.is_action_just_pressed(Controls.INTERACT) or Input.is_action_just_pressed(Controls.CANCEL):
+			break
+		await get_tree().process_frame
+		waited += get_process_delta_time()
+	_boss_dialog_layer.visible = false
+	_boss_waiting_advance = false
+	_boss_advance = false
+
+
+func show_boss_mission_complete() -> void:
+	_ensure_boss_dialog()
+	_boss_dialog_layer.visible = true
+	_boss_dialog_body.text = ""
+	_boss_dialog_hint.text = ""
+	var title := Loc.t("boss.hud.mission_complete")
+	_boss_dialog_title.text = ""
+	for i in title.length():
+		_boss_dialog_title.text += title.substr(i, 1)
+		SfxBus.play("sfx_checkout_dir_ok")
+		await get_tree().create_timer(0.14).timeout
+		if not is_inside_tree():
+			return
+	await get_tree().create_timer(3.0).timeout
+	_boss_dialog_layer.visible = false
+
+
+func _ensure_boss_dialog() -> void:
+	if _boss_dialog_layer != null and is_instance_valid(_boss_dialog_layer):
+		return
+	var root: Control = $Root
+	_boss_dialog_layer = Control.new()
+	_boss_dialog_layer.name = "BossDialog"
+	_boss_dialog_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_boss_dialog_layer.mouse_filter = Control.MOUSE_FILTER_STOP
+	root.add_child(_boss_dialog_layer)
+	var dim := ColorRect.new()
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0, 0, 0, 0.35)
+	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_boss_dialog_layer.add_child(dim)
+	var panel := PanelContainer.new()
+	panel.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	panel.offset_left = -320.0
+	panel.offset_right = 320.0
+	panel.offset_top = -210.0
+	panel.offset_bottom = -48.0
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = COL_PANEL
+	sb.border_color = COL_PANEL_EDGE
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(12)
+	sb.content_margin_left = 18
+	sb.content_margin_right = 18
+	sb.content_margin_top = 14
+	sb.content_margin_bottom = 14
+	panel.add_theme_stylebox_override("panel", sb)
+	_boss_dialog_layer.add_child(panel)
+	var col := VBoxContainer.new()
+	panel.add_child(col)
+	_boss_dialog_title = Label.new()
+	_boss_dialog_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiFont.apply_label(_boss_dialog_title, UiFont.TITLE)
+	_boss_dialog_title.add_theme_color_override("font_color", COL_GOLD)
+	col.add_child(_boss_dialog_title)
+	_boss_dialog_body = Label.new()
+	_boss_dialog_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiFont.apply_label(_boss_dialog_body, UiFont.WORLD)
+	_boss_dialog_body.add_theme_color_override("font_color", COL_TEXT)
+	col.add_child(_boss_dialog_body)
+	_boss_dialog_hint = Label.new()
+	_boss_dialog_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UiFont.apply_label(_boss_dialog_hint, UiFont.WORLD)
+	_boss_dialog_hint.add_theme_color_override("font_color", COL_MUTED)
+	col.add_child(_boss_dialog_hint)
+	_boss_dialog_layer.visible = false

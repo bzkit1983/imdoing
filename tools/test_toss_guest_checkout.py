@@ -26,7 +26,8 @@ def main() -> int:
         errs.append("could not locate accept_toss_box body")
     else:
         body = m.group(0)
-        if "_begin_checkout" not in body:
+        ## Boss days route via _try_finish_shopping → _begin_checkout when lists done.
+        if "_begin_checkout" not in body and "_try_finish_shopping" not in body:
             errs.append("accept_toss_box must call _begin_checkout when list done")
         if "shopping.is_empty()" not in body:
             errs.append("accept_toss_box must check shopping.is_empty()")
@@ -37,13 +38,16 @@ def main() -> int:
             and "謝謝！去付款" not in body
         ):
             errs.append("accept_toss_box should set checkout mood")
-    after = re.search(r"func _after_think\(\)[\s\S]*?func _begin_checkout", text)
+    after = re.search(
+        r"func _after_think\(\)[\s\S]*?func (_begin_checkout|_try_finish_shopping)",
+        text,
+    )
     if not after:
         errs.append("_after_think should handle empty shopping before _begin_checkout")
     else:
         if "shopping.is_empty()" not in after.group(0):
             errs.append("_after_think must bail to checkout when shopping empty")
-        if "_begin_checkout" not in after.group(0):
+        if "_begin_checkout" not in after.group(0) and "_try_finish_shopping" not in after.group(0):
             errs.append("_after_think must call _begin_checkout when empty")
     if errs:
         print("FAIL")

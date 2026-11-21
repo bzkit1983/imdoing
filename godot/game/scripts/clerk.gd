@@ -117,6 +117,10 @@ func _physics_process(delta: float) -> void:
 	if _game == null or String(_game.get("phase")) == "closed" or String(_game.get("phase")) == "prep":
 		_sync_visual("idle", Vector2.DOWN)
 		return
+	if _game.has_method("cutscene_freezes_actors") and bool(_game.cutscene_freezes_actors()):
+		velocity = Vector2.ZERO
+		_sync_visual("idle", Vector2.DOWN if role != "cashier" else Vector2.UP)
+		return
 	if bool(_game.asking_early_close()):
 		velocity = Vector2.ZERO
 		_sync_visual("idle", Vector2.DOWN)
@@ -347,6 +351,11 @@ func _tick_cashier(delta: float) -> void:
 	var cust = register.call("ready_customer")
 	if cust == null:
 		_timer = 0.0
+		return
+	## Boss multi-wave checkout must be player-driven.
+	if cust.get("is_boss") == true or (cust.has_method("blocks_auto_checkout") and bool(cust.call("blocks_auto_checkout"))):
+		_timer = 0.0
+		_checkout_customer = null
 		return
 	if _checkout_customer != cust:
 		_timer = 0.0

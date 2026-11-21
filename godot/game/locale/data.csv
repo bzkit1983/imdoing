@@ -170,6 +170,8 @@ world.guest_slot.empty,（空）,(empty),（空）,（空）
 world.toss_range.farther,稍遠,Farther,稍远,やや遠く
 mood.shop,購物,Shopping,购物,買い物
 mood.elite,麻煩客人,Problem guest,麻烦客人,厄介な客
+mood.boss,外星大土豪,Alien Tycoon,外星大土豪,エイリアン大富豪
+mood.boss_wait,在想還要買什麼…,Thinking of what else to buy…,在想还要买什么…,他に買うものを考え中…
 mood.stepped_on,踩到%s！,Stepped in %s!,踩到%s！,%sを踏んだ！
 mood.stepped_dirt,踩到污物！,Stepped in a mess!,踩到污物！,汚れを踏んだ！
 mood.paying,付款中,Paying,付款中,支払い中

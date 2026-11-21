@@ -39,6 +39,7 @@ const ClerkCastScript = preload("res://scripts/host/clerk_cast.gd")
 const OpsWorldScript = preload("res://scripts/host/ops_world.gd")
 const WorldSpawnScript = preload("res://scripts/host/world_spawn.gd")
 const TossWorldScript = preload("res://scripts/host/toss_world.gd")
+const BossWorldScript = preload("res://scripts/host/boss_world.gd")
 const NetPresentationScript = preload("res://scripts/session/net_presentation.gd")
 const TaskCatalog = preload("res://scripts/session/task_catalog.gd")
 const TaskTrackerScript = preload("res://scripts/session/task_tracker.gd")
@@ -179,6 +180,7 @@ var _clerk_cast = ClerkCastScript.new()
 var _ops_world = OpsWorldScript.new()
 var _world_spawn = WorldSpawnScript.new()
 var _toss_world = TossWorldScript.new()
+var _boss_world = BossWorldScript.new()
 
 
 func _ready() -> void:
@@ -207,6 +209,7 @@ func _ready() -> void:
 	_ops_world.bind(self)
 	_world_spawn.bind(self)
 	_toss_world.bind(self)
+	_boss_world.bind(self)
 	_net.connect_session()
 	if not SessionService.carry_state_received.is_connected(_on_carry_state_received):
 		SessionService.carry_state_received.connect(_on_carry_state_received)
@@ -330,6 +333,9 @@ func _begin_day() -> void:
 	game_hours = Tuning.GAME_START_HOUR
 	hud_rev = 0
 	phase = "restock"
+	_boss_world.clear()
+	if state != null and state.has_method("is_boss_test_scenario") and bool(state.is_boss_test_scenario()):
+		_boss_world.configure("alien_tycoon")
 	_net_pres.clear()
 	_owned_host_pose.clear()
 	_net_accum = 0.0
@@ -459,8 +465,11 @@ func _begin_day() -> void:
 		_tutorial.clear_runtime_flags()
 	if SessionService.is_server() or SessionService.is_local_transport():
 		_spawn_clerks()
-		for i in Tuning.dirt_start(_play_easy()):
-			_try_spawn_dirt()
+		if _boss_world.should_spawn_open_dirt():
+			for i in Tuning.dirt_start(_play_easy()):
+				_try_spawn_dirt()
+		if _hud != null and _hud.has_method("setup_boss_progress") and _boss_world.is_active():
+			_hud.call("setup_boss_progress", _boss_world.progress_total())
 		## Align client shelf／warehouse／carry／prompt presentation after world exists (M2.4／M2.6／M2.9).
 		if SessionService.is_networked() and SessionService.is_server():
 			_dump_all_stock()
@@ -481,6 +490,9 @@ func _begin_day() -> void:
 	## Ops tutorial after world／HUD exist (director survives _clear_world).
 	if _tutorial != null and is_instance_valid(_tutorial):
 		_tutorial.call_deferred("consider_ops")
+	## Boss day: restock foreshadow dialog after HUD／world ready.
+	if _boss_world != null and _boss_world.is_active():
+		call_deferred("_boss_run_restock_intro")
 
 
 func _local_touch_player() -> CharacterBody2D:
@@ -1054,6 +1066,8 @@ func _return_to_prep() -> void:
 		return
 	phase = "prep"
 	clear_elite_test()
+	if _boss_world != null:
+		_boss_world.clear()
 	## Capture before close() clears settlement_applied.
 	var settled_ok := SessionService.settlement_applied or _settled
 	var keep_room := SessionService.keeps_room_after_settle()
@@ -1122,6 +1136,58 @@ func clear_elite_test() -> void:
 	elite_test_active = false
 	elite_test_lv = 0
 	elite_test_need_one = false
+
+
+func boss_skip_cashier_clerks() -> bool:
+	return _boss_world != null and _boss_world.should_skip_cashier_clerks()
+
+
+func boss_on_list_cleared(cust: Node) -> bool:
+	return _boss_world != null and bool(_boss_world.on_list_cleared(cust))
+
+
+func boss_checkout_wave_count(cust: Node) -> int:
+	return int(_boss_world.checkout_wave_count(cust)) if _boss_world != null else -1
+
+
+func boss_on_checkout_wave_done(cust: Node) -> bool:
+	return _boss_world != null and bool(_boss_world.on_checkout_wave_done(cust))
+
+
+func boss_on_paid(cust: Node) -> void:
+	if _boss_world != null:
+		_boss_world.on_boss_paid(cust)
+
+
+func boss_on_angry_leave(cust: Node) -> void:
+	if _boss_world != null:
+		_boss_world.on_boss_angry_leave(cust)
+
+
+## Deferred entry points (Node) → presentation lives in boss_world.
+func _boss_run_restock_intro() -> void:
+	if _boss_world != null and _boss_world.is_active():
+		await _boss_world.run_restock_intro_cutscene()
+
+
+func _boss_run_enter_cutscene() -> void:
+	await _boss_world.run_enter_cutscene()
+
+
+func _boss_run_list_cutscene(stage_1based: int) -> void:
+	await _boss_world.run_list_cutscene(stage_1based)
+
+
+func _boss_run_pay_wave_cutscene(wave_idx: int) -> void:
+	await _boss_world.run_pay_wave_cutscene(wave_idx)
+
+
+func _boss_run_win_flow() -> void:
+	await _boss_world.run_win_flow()
+
+
+func _boss_run_fail_flow(reason: String) -> void:
+	await _boss_world.run_fail_flow(reason)
 
 
 func elite_test_label() -> String:
@@ -1616,8 +1682,15 @@ func _hide_early_dialog() -> void:
 		_early_layer.visible = false
 
 
+## Boss dialog／zoom: stop guests／clerks／clones／players (world clock also frozen).
+func cutscene_freezes_actors() -> bool:
+	return _boss_world != null and _boss_world.time_frozen
+
+
 func world_delta(delta: float) -> float:
 	if _early_open:
+		return 0.0
+	if _boss_world != null and _boss_world.time_frozen:
 		return 0.0
 	## the_world: strongest freeze wins (min clock_scale across seats).
 	var scale := 1.0
@@ -1652,6 +1725,13 @@ func _process(delta: float) -> void:
 	## Tutorial pages open: hold the day still without get_tree().paused.
 	if tutorial_freezes_play():
 		return
+	## Boss cutscenes freeze ops clock (guests／dissat still pause via world_delta=0).
+	if _boss_world != null and _boss_world.time_frozen:
+		_poll_camera_view_hotkey()
+		_maintain_overview_camera()
+		_maintain_coop_camera()
+		_net_tick_intents_and_sync(delta)
+		return
 	_tick_self_service_operation(delta)
 	_poll_camera_view_hotkey()
 	_maintain_overview_camera()
@@ -1675,6 +1755,8 @@ func _process(delta: float) -> void:
 			phase = "open"
 			game_hours = maxf(game_hours, Tuning.CLOSE_HOUR - 0.05)
 			return
+		if _boss_world != null and _boss_world.is_active() and _boss_world.on_day_time_up():
+			return
 		_finish_day()
 		return
 	_tick_three_volley(delta)
@@ -1684,30 +1766,10 @@ func _process(delta: float) -> void:
 			SfxBus.play("sfx_phase_open")
 		if _consider_early_close():
 			return
-		## Listen-server: only host / local spawn agents.
-		if SessionService.is_server() or SessionService.is_local_transport():
-			_tick_guest_dusk(delta)
-			_spawn_in -= world_delta(delta)
-			if _spawn_in <= 0.0:
-				_spawn_customer()
-				_spawn_in = state.spawn_every()
-			_thief_spawn_in -= world_delta(delta)
-			if _thief_spawn_in <= 0.0:
-				_spawn_thief()
-				_thief_spawn_in = state.thief_spawn_sec()
 	if phase != prev_phase:
 		bump_hud()
 		host_phase_changed.emit(phase)
-	if SessionService.is_server() or SessionService.is_local_transport():
-		_dirt_spawn_in -= world_delta(delta)
-		if _dirt_spawn_in <= 0.0:
-			_try_spawn_dirt()
-			_dirt_spawn_in = dirt_spawn_interval()
-		if phase == "open":
-			_ops_item_spawn_in -= world_delta(delta)
-			if _ops_item_spawn_in <= 0.0:
-				_try_spawn_ops_item()
-				_ops_item_spawn_in = randf_range(OpsItems.SPAWN_EVERY_MIN, OpsItems.SPAWN_EVERY_MAX)
+	_world_spawn.tick_ambient(delta)
 
 
 func _net_tick_intents_and_sync(delta: float) -> void:
@@ -2986,11 +3048,17 @@ func _finish_day() -> void:
 			game_hours = maxf(game_hours, Tuning.CLOSE_HOUR - 0.05)
 		return
 	_clear_self_service_operation()
+	## Closeout owns INTERACT／CANCEL → prep. Boss win／fail call us mid-open without DayPhase.
+	phase = "closed"
+	if _boss_world != null:
+		_boss_world.time_frozen = false
+		_boss_world.cutscene_busy = false
 	## Clients wait for Host settle RPC (_on_settle_payload); do not invent a local shop settle.
 	if SessionService.is_client():
-		phase = "closed"
 		clear_ops_items_world()
 		if _hud:
+			if _hud.has_method("hide_boss_progress"):
+				_hud.call("hide_boss_progress")
 			_hud.show_closeout()
 			_hud.set_closeout_panels(Loc.t("lobby.client_waiting_settle"), Loc.t("settle.tasks_host_only"))
 		## Keep _settled false until settle RPC (or Host abort).
@@ -3072,6 +3140,8 @@ func _finish_day() -> void:
 		## Local coop：日結後進局間大廳（§12.10）。
 		SessionService.begin_post_settle_lobby()
 	if _hud:
+		if _hud.has_method("hide_boss_progress"):
+			_hud.call("hide_boss_progress")
 		_hud.show_closeout()
 		var loss := Loc.t("settle.loss") if bool(result["loss"]) else Loc.t("settle.no_loss")
 		var head := Loc.t("demo.closeout_head")
@@ -3909,4 +3979,3 @@ func convert_thief_to_guest(thief: Node2D, seat: int) -> bool:
 
 func cannon_hit_thief(thief: Node2D, seat: int, direction: Vector2) -> void:
 	_skill_deploy.cannon_hit_thief(thief, seat, direction)
-

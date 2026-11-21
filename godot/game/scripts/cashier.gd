@@ -180,6 +180,9 @@ func _tick_self_checkout(delta: float) -> void:
 		if _self_left <= 0.0 or cust == null:
 			_refresh_label()
 			return
+		if cust.get("is_boss") == true or (cust.has_method("blocks_auto_checkout") and bool(cust.call("blocks_auto_checkout"))):
+			_refresh_label()
+			return
 		_self_customer = cust
 		_self_progress = available
 	else:
