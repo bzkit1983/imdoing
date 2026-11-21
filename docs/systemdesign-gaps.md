@@ -75,6 +75,7 @@
 | Alpha | 缺字型字元 | 西客炮新增字元未進執行期字型 | `charset_game.txt` 已補「仓西届倉送」，但遠端字型子集是在西客炮加入前重建；需再次以完整 JP 字型來源重跑子集流程。 | playeractiveskills.md, `docs/alpha/fonts-subset.md` |
 | Alpha | 缺字型字元 | 源頭減廢新增字元未進執行期字型 | 技能名稱的「廢／废」已加進字元清單；本機缺 Python／fontTools，未能重建執行期 TTF，需重跑 `tools/fonts/subset_notosans_tc.py`。 | playerpassiveskills.md, `docs/alpha/fonts-subset.md` |
 | Alpha | 缺字型字元 | 有糧出無汗出新增字元未進執行期字型 | 已把「糧／汗／粮」加入 `charset_game.txt`；本機 Windows Python launcher 無法啟動，而且缺 Bold／Black JP 原始字型，未能重建三款執行期 TTF。需取得完整三字重 JP 字型及可用 Python/fontTools 後重跑 `tools/fonts/subset_notosans_tc.py`。 | playerultimateskills.md, `docs/alpha/fonts-subset.md` |
+| Alpha | 缺字型字元 | 「我說有光就有光！」新增字元未進執行期字型 | 已把「說／说／光」加入 `charset_game.txt`；本機 Python launcher 無法啟動，未能重建執行期 TTF。需用可用 Python/fontTools 重跑 `tools/fonts/subset_notosans_tc.py`。 | playerultimateskills.md, `docs/alpha/fonts-subset.md` |
 
 # 缺了整份檔的系統
 

@@ -133,6 +133,8 @@ skill.guest_dusk.name,諸客的黃昏,Twilight of Guests,诸客的黄昏,諸客�
 skill.guest_dusk.blurb,30 現實秒內成功進店 15 人（可超 cap、無小偷）。單階 CD120。指令上左右下下左右上,"15 successful entries in 30 real seconds (may exceed cap, no thieves). Single-tier CD120. Input: up left right down down left right up",30 现实秒内成功进店 15 人（可超 cap、无小偷）。单阶 CD120。指令上左右下下左右上,現実時間30秒以内に15人が入店成功（上限超過可、泥棒なし）。単段階 CD120。コマンド：上左右下下左右上
 skill.three_volley.name,三段火槍陣,Three Volley Fire,三段火枪阵,三段銃陣
 skill.three_volley.blurb,全店掃射三波：立即／2／4秒開火；客人每中一槍完成一件清單貨，小偷掉贓離店。單階 CD120。指令上右下左上右下左,"Three shop-wide volleys at 0/2/4s; each hit guest completes one list item, thieves drop loot and leave. Single-tier CD120. Input: up right down left up right down left",全店扫射三波：立即／2／4秒开火；客人每中一枪完成一件清单货，小偷掉赃离店。单阶 CD120。指令上右下左上右下左,店内全体に3連射：0／2／4秒で発射。命中した客は買物リストを1品達成し、泥棒は盗品を落として退店。単段階 CD120。コマンド：上右下左上右下左
+skill.let_there_be_light.name,我說有光就有光！,Let there be light!,我说有光就有光！,光あれ！
+skill.let_there_be_light.blurb,即時為貨架補貨；空架隨機選同類有貨商品。消耗後倉存貨，單階 CD60。指令右右左左上下下上,"Instantly restock shelves; empty shelves randomly get an in-stock item of the same category. Uses warehouse stock. Single-tier CD60. Input: right right left left up down down up",即时为货架补货；空架随机选同类有货商品。消耗后仓存货，单阶 CD60。指令右右左左上下下上,棚を即時補充。空の棚には同じカテゴリの在庫商品をランダムに補充。在庫を消費。単段階 CD60。コマンド：右右左左上下下上
 world.cashier.status,收銀機 %d\n排隊 %d 人,Register %d\nQueue %d,收银机 %d\n排队 %d 人,レジ %d\n列 %d 人
 world.clerk.cashier,店員收銀,Clerk checkout,店员收银,店員レジ
 world.clerk.restock,店員補貨,Clerk restock,店员补货,店員補充
@@ -336,6 +338,8 @@ log.player.ult_dusk_closed,奧義 諸客的黃昏 — 非營業時段無效,Ulti
 log.player.ult_three_volley,奧義 三段火槍陣 — 三排開火,Ultimate Three Volley Fire — three ranks firing,奥义 三段火枪阵 — 三排开火,奥義 三段銃陣 — 三列一斉射撃
 log.player.ult_self_service,奧義 有糧出無汗出 — 全店自助營業30秒,"Ultimate Stock In, No Sweat — store-wide self-service for 30s",奥义 有粮出无汗出 — 全店自助营业30秒,奥義 在庫が出て汗いらず — 店全体が30秒セルフ営業
 log.player.ult_self_service_unavailable,奧義 有糧出無汗出 — 只限營業時間並需要收銀機,"Ultimate Stock In, No Sweat — requires an open store and a register",奥义 有粮出无汗出 — 仅限营业时间且需要收银机,奥義 在庫が出て汗いらず — 営業中かつレジが必要
+log.player.ult_light,奧義 我說有光就有光！— 貨架已即時補貨,Ultimate Let there be light! — shelves restocked,奥义 我说有光就有光！— 货架已即时补货,奥義 光あれ！— 棚を補充しました
+log.player.ult_light_unavailable,奧義 我說有光就有光！— 需要可補貨的貨架及後倉存貨,"Ultimate Let there be light! — requires a shelf that can be restocked and warehouse stock",奥义 我说有光就有光！— 需要可补货的货架及后仓存货,奥義 光あれ！— 補充可能な棚と倉庫在庫が必要です
 log.player.ult_lord,奧義 Yes! My Lord! LV%d — 客人搶購 %.0f 秒,Ultimate Yes! My Lord! LV%d — rush %.0fs,奥义 Yes! My Lord! LV%d — 客人抢购 %.0f 秒,奥義 Yes! My Lord! LV%d — 客の買い急ぎ %.0f 秒
 log.player.ult_world,奧義 %s LV%d — 時停,Ultimate %s LV%d — time stop,奥义 %s LV%d — 时停,奥義 %s LV%d — 時止め
 log.player.cmd_reset,放手 — 指令重置,Release — commands reset,放手 — 指令重置,離した — 指令をリセット

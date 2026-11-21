@@ -1121,6 +1121,22 @@ func cast_ultimate() -> void:
 			SfxBus.play("sfx_skill_cd_deny")
 			host._prompt.active = false
 			return
+	var light_result: Dictionary = {}
+	if sid == "let_there_be_light":
+		if game == null or not game.has_method("can_cast_light_shelves") or not bool(game.can_cast_light_shelves()):
+			host.log_line.emit(Loc.t("log.player.ult_light_unavailable"))
+			SfxBus.play("sfx_skill_cd_deny")
+			host._prompt.active = false
+			return
+		if not predict:
+			light_result = game.cast_light_shelves()
+			if not bool(light_result.get("ok", false)):
+				if game.has_method("_dump_all_skill_cds"):
+					game.call("_dump_all_skill_cds")
+				host.log_line.emit(Loc.t("log.player.ult_light_unavailable"))
+				SfxBus.play("sfx_skill_cd_deny")
+				host._prompt.active = false
+				return
 	## Mirror skill hotkeys: Client predicts SFX／pose／CD; Host re-casts for world authority.
 	if host.controls_locally() and SessionService.is_networked() and SessionService.is_client():
 		host.pending_ult_cast = true
@@ -1130,6 +1146,14 @@ func cast_ultimate() -> void:
 	if sid == "self_service_operation":
 		SfxBus.play("sfx_ult_yes_my_lord")
 		host.log_line.emit(Loc.t("log.player.ult_self_service"))
+		begin_cast_pose(true)
+		host.skill_cast.emit(String(sk.get("name")), true)
+		play_zoom(true)
+		host._prompt.active = false
+		return
+	if sid == "let_there_be_light":
+		SfxBus.play("sfx_ult_yes_my_lord")
+		host.log_line.emit(Loc.t("log.player.ult_light"))
 		begin_cast_pose(true)
 		host.skill_cast.emit(String(sk.get("name")), true)
 		play_zoom(true)

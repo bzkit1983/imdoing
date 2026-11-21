@@ -261,6 +261,14 @@ func cast_self_service_operation(_seat: int) -> bool:
 	return false
 
 
+func can_cast_light_shelves() -> bool:
+	return false
+
+
+func cast_light_shelves() -> Dictionary:
+	return {}
+
+
 func nearest_shelf(_origin: Vector2) -> Node2D:
 	return null
 
