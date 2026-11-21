@@ -11,6 +11,8 @@ Repository for game project
 **產品版：** `v1.5.0`（中期美術；見 [`VERSION`](VERSION)、[`docs/versioning.md`](docs/versioning.md)、[`docs/systemdesign/art-interim-v1.5.md`](docs/systemdesign/art-interim-v1.5.md)；上一錨點 `v1.4.0`）  
 **網頁試玩：** https://bzkit1983.github.io/imdoing/play/
 
+**EA 產品範圍：** 活線＝**純日循環**（準備 → 補貨 → 營運 → 結算）。[`storysystem.md`](docs/systemdesign/storysystem.md)／[`story/`](docs/systemdesign/story/)＝**設計框架先行**；**活線未做**，EA **不做**章節 runtime／失敗敘事（見 [`docs/versioning.md`](docs/versioning.md)）。預設拒收敘事 PR，除非 milestone 改範圍。
+
 技術評估（可持續／效能／遊戲設計／平台；現行）：[`docs/alpha/tech-review-v0.3.md`](docs/alpha/tech-review-v0.3.md) · 前一輪：[`tech-review-v0.2.md`](docs/alpha/tech-review-v0.2.md) · 更早：[`tech-review-v0.1.md`](docs/alpha/tech-review-v0.1.md)
 
 ## 凍結快照（勿開新功能）

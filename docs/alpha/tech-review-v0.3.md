@@ -27,7 +27,7 @@ v0.2 跟進清單（F／G／H2–H3／I／J）**大多已兌現**；產品從「
 | --- | --- | --- | --- |
 | **A. 架構與可持續** | 5.5 | **5.0** | 抽出模組在；`demo` 5.4k／`player` 3.9k 回脹；`prep_menu`／`pause_menu`／`skill_caster` 成第二波胖腳本 |
 | **B. 效能與擴展** | 7.5 | **7.5** | J1 配方＋J2 池；規模仍十餘客；新 UI／技能壓力未改「缺實機」結論 |
-| **C. 工程質素／測試** | 6.0 | **7.0** | `.github/workflows/ci.yml`＋`tools/run_ci_static.py`；45× `test_*`；18× `*_check.gd` 仍本機 |
+| **C. 工程質素／測試** | 6.0 | **7.0** | `.github/workflows/ci.yml`＋`tools/run_ci_static.py`；可選 `godot-checks` job；18× `*_check.gd` 部分已進 CI |
 | **D. 內容管線** | 7.0 | **7.5** | v1.5 中期美術、pause-ui-chrome skill、任務／ops 圖示；新技能 CJK 字型子集有債 |
 | **E. 平台就緒** | 5.5 | **6.0** | H2／Cloud／成就接線；正式 ID／Partner 表／Deck 清單未完；主機未開工 |
 | **F. 多人／網路** | 7.5 | **7.5** | 規格＋M3 不變；`@rpc` 集中 `session_service`；耦合仍重 |
@@ -138,8 +138,8 @@ v0.2 及格線中：**CI、H2／H3、J1／J2、GameHost 覆蓋**已過；**「pl
 
 | 優先 | 項目 | 狀態／建議 |
 | --- | --- | --- |
-| P0 | 實機／目標硬體幀時間基線 | **配方＋實驗室空店 settle 已有**（[`perf-baseline-j1.md`](perf-baseline-j1.md)）；**Deck／Switch 列仍待填** |
-| P1 | 滿載手動 Profiler 一筆桌面數字 | 建議補進 J1 紀錄表（滿店＋影分身 Lv3＋本機雙人 ≥30s） |
+| P0 | 實機／目標硬體幀時間基線 | **配方＋空店＋桌面滿載輔測已有**（[`perf-baseline-j1.md`](perf-baseline-j1.md)）；**Deck／Switch／雙人 Editor Profiler 仍待填** |
+| P1 | 滿載手動 Profiler 一筆桌面數字 | O1：headless `--load` 已入表；雙人 ≥30s Editor Profiler 仍建議補 |
 | P1 | 技能／ops 生成節流 | 部署體與炸彈殘留需有 cap／despawn（對照既有 thief／dirt cap 紀律） |
 | P2 | PC Forward+ vs Compatibility | 仍合理；非阻塞 |
 | P2 | 十呎／TV 安全區 UI | PlatformServices 有 profile；主機認證級未到 |
@@ -212,11 +212,11 @@ PlatformServices：Desktop 完整；Steam **磁碟＋Cloud fileWrite／fileRead�
 - [x] **L2** 拆 `skill_caster`— `skill_cannon`／`sniper`／`clone`／`ultimate`／`range`／`instant`；編排器 **~401**（自 ~1227）；`cast_slot`／`cast_ultimate` 仍在編排器
 - [x] **L3** `prep_menu`／`pause_menu`／`hud` 第二波瘦身— `ui/settings_actions`、`pause/pause_chrome`、`session/task_hud_format`（pause −261 為主）
 - [x] **L4** 合併紀律— [`monolith-merge-gate.md`](monolith-merge-gate.md)；淨增須搬遷對帳或豁免
-- [ ] **M2** 重跑 CJK 字型子集（西客炮／源頭減廢／有糧出…；含 Bold／Black）
-- [ ] **N1** 文件閘門：README／prep／versioning 顯式「劇情框架＝設計；活線未做／EA 不做」
-- [ ] **N2** （可選）開 `eventsystem.md` 占位——**不**排活線實作
-- [ ] **O1** J1 紀錄表補至少一筆**桌面滿載** Profiler；Deck 列可後補
-- [ ] **Q1** CI 可選 Godot job 跑 2–3 個關鍵 `*_check.gd`
+- [x] **M2** 重跑 CJK 字型子集（西客炮／源頭減廢／有糧出…；含 Bold／Black）— 三款 `NotoSansTC-Game*.ttf` cmap 已含目標字
+- [x] **N1** 文件閘門：README／`godot/game`／versioning／design／`storysystem` 顯式「劇情框架＝設計；活線未做／EA 不做」
+- [x] **N2** （可選）開 `eventsystem.md` 占位——**不**排活線實作
+- [x] **O1** J1 紀錄表補桌面滿載列— `j1_perf_probe.sh -- --load`（15 客＋3 分身；process 2.85／physics 13.12 ms）；Deck 仍待
+- [x] **Q1** CI 可選 Godot job 跑 3 個關鍵 `*_check.gd`— `godot-checks`（`continue-on-error`）＋`tools/run_godot_checks.py`（shelf_sniper／interact_glow／difficulty）
 
 ### v0.2 已完成（勿重開）
 

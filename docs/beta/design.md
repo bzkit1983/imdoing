@@ -5,7 +5,7 @@
 - 各 Demo 繼續用自己的 scope 數字
 - 對照：`docs/systemdesign-gaps.md`（2026-10-22）
 
-劇情**框架**與**三份成長分析**已開：`docs/systemdesign/storysystem.md`、`story/growth-character.md`、`growth-economy.md`、`growth-skills.md`。完整劇本／事件 pack 仍待各章詳設。**任務 XP／頭目大額／學會表**以成長分析為產品建議；活線落地可標工程 Beta。見 `playerlevel.md`、`ecosystem.md`、`story/progression-crossref.md`。事件表、觸發仍待 `eventsystem.md`。
+劇情**框架**與**三份成長分析**已開：`docs/systemdesign/storysystem.md`、`story/growth-character.md`、`growth-economy.md`、`growth-skills.md`。完整劇本／事件 pack 仍待各章詳設。**任務 XP／頭目大額／學會表**以成長分析為產品建議；活線落地可標工程 Beta。見 `playerlevel.md`、`ecosystem.md`、`story/progression-crossref.md`。事件占位：`eventsystem.md`（**不**排 EA 活線；表與觸發留本 Beta）。
 
 任務系統條件語意與測試內容已進長線：`docs/systemdesign/tasksystem.md`。本 Beta 檔仍欠：
 

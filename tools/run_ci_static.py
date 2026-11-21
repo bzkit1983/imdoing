@@ -36,7 +36,6 @@ GODOT_REQUIRED = {
 QUARANTINE = {
     "test_customized_skillset_design.py": "version/SAVE_VERSION assertions lag product",
     "test_design_gap_rules.py": "tuning/design anchor drift",
-    "test_font_charset.py": "charset subset missing new locale glyphs",
     "test_sfx_catalog.py": "wav missing for new skill/ult ids",
 }
 

@@ -59,6 +59,10 @@
 | 收銀取消 Circle＋INT／技能重做（2026-11-18） | **`cashiersystem.md`**、`playerstats.md`、`playeractiveskills.md`、`playerpassiveskills.md`；日誌 [`Bzho_log/20261118_….md`](../Bzho_log/20261118_收銀取消Circle與INT技能重做.md) | 指令完成即入帳（無 Loading Circle）；INT 減次數＋親收加錢；`checkout_rush`／`checkout_speed`／`senior_cashier` 重做；店員／影分身／Dark Side 就緒即收 |
 | EA 範圍聲明（H3） | **`docs/versioning.md`**；`docs/alpha/design.md`；tech-review v0.2 H3／v0.3 | **已拍板：** Steam EA／現行＝純日循環；不做失敗／過關／提早關店敘事；敘事／事件留 Beta（劇情框架見 `storysystem.md`，活線未做） |
 | 劇情模式框架（設計） | **`docs/systemdesign/storysystem.md`**；`story/`；`docs/beta/design.md` | **設計開檔**（十章＋成長三分析＋失敗擋 UX）；**活線未實作**；見 tech-review v0.3 N1 |
+| 事件系統占位（N2） | **`docs/systemdesign/eventsystem.md`** | **占位開檔；不排活線** |
+| CJK 字型子集（M2） | **`docs/alpha/fonts-subset.md`** | 2026-11-21 重跑 Regular／Bold／Black（西客炮／源頭減廢／有糧出…） |
+| 效能基線 J1（O1） | **`docs/alpha/perf-baseline-j1.md`** | 空店＋桌面 `--load` 滿店 15／分身 3；Deck 待測 |
+| CI Godot 可選（Q1） | **`.github/workflows/ci.yml`** `godot-checks`；`tools/run_godot_checks.py` | shelf_sniper／interact_glow／difficulty；`continue-on-error` |
 | Steam Cloud／成就接線（H1 半程） | **`docs/alpha/steam-productization.md`**；`godotsteam-setup.md` | `steam_platform.gd`：`fileWrite`／`fileRead`／`setAchievement`＋`storeStats`；正式 App ID 仍 Open（480） |
 | 完整設定頁＋首日引導（H2） | **`docs/alpha/steam-productization.md`**；`pausemenu.md`；`tutorial.md` | 暫停「設定」子選單＋準備「系統工具→設定」；新檔開始／跳過教學；`tutorial_skipped`＋模態跳過；暫停可重溫 |
 

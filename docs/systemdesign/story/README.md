@@ -2,6 +2,8 @@
 
 框架總則：[`../storysystem.md`](../storysystem.md)
 
+> **設計先行／活線未做：** 本目錄僅規格與成長分析。EA 產品＝純日循環；勿當實作工單（見 [`docs/versioning.md`](../../versioning.md)）。
+
 | 檔案 | 章／用途 |
 |------|----------|
 | [`prologue.md`](prologue.md) | 序章 |

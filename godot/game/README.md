@@ -3,6 +3,7 @@
 v1.0 起唯一維護的 Godot 專案。從凍結的 `godot/alpha_v0_1` 複製一次而來。
 
 - **產品版：** `1.5.0`（`config/version` · `scripts/product_version.gd` · repo `VERSION` · 字串對齊 `v1.5.0`；中期美術，見 `docs/systemdesign/art-interim-v1.5.md`；上一錨點 `v1.4.0`）
+- **EA 活線範圍：** **純日循環**（準備／補貨／營運／結算）。`docs/systemdesign/storysystem.md`＝設計框架；**劇情／章節 runtime 未做，EA 不做**（見 `docs/versioning.md`）。
 - 用 Godot **4.7** 打開本目錄的 `project.godot`（主機 middleware 對齊政策見 `docs/alpha/godot-middleware-pin.md`）
 - 版控：`docs/versioning.md`
 - 技術债清單：`docs/alpha/tech-review-v0.1.md`

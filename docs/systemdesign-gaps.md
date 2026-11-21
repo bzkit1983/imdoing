@@ -51,7 +51,7 @@
 | 已處理 | 規則含糊 | 全體集資「一半客人」沒有選法 | LV1 只處理排隊。LV2、LV3 都不含離開中客人和小偷。略過指令與 Circle，馬上收錢。已拿走的貨按售價全額入帳；未買完的貨不入帳、不白送，客人當已付款離開。 | playerultimateskills.md, cashiersystem.md |
 | 已處理 | 規則含糊 | 全體集資 LV2 一半怎樣取 | 單數向上取整。已拿走件數最多的客人優先。件數相同時，銷售金額最高者優先。件數和金額都相同時，不滿度較高者優先。不滿度也相同時，隨意選一位。 | playerultimateskills.md |
 | 已處理 | 規則含糊 | 衝刺撞飛客人與尋路互相打架 | 衝刺撞客人：Screen KO 飛起再**原地落地**（不離店）；停止 2 秒；+50 不滿（基值；禮貌衝撞則 +0）；購物車貨品原地掉落；**購物清單不變**（不重抽），已取貨放回清單後從頭尋貨。路人擁擠：玩家 3 身位內有客人／小偷 → 移速 ×0.5＋頭頂「唔該借借⋯」。小偷被衝刺撞飛或貨箱砸中都**算抓住**。 | playermovement.md, customer.md, playerpassiveskills.md, thiefsystem.md, ecosystem.md |
-| P1 | 缺檔／缺系統 | 劇情框架已開、事件層與章詳設仍缺 | 框架：`storysystem.md`＋`story/` 各章開檔；任務條件語意已有（`tasksystem.md`）。仍缺：`eventsystem.md`、各章劇本／事件內容、成長三份分析回填、失敗擋推進 UX。經驗是否從事件／劇情增減見 `story/progression-crossref.md` 開放問題。 | storysystem.md, story/, gameconcept.md, playerlevel.md, ecosystem.md, ratingsystem.md, tasksystem.md |
+| P1 | 缺檔／缺系統 | 劇情框架已開、事件層與章詳設仍缺 | 框架：`storysystem.md`＋`story/`；事件占位：`eventsystem.md`（**不**排活線）。仍缺各章劇本／事件內容表、失敗擋推進 UX。經驗是否從事件／劇情增減見 `story/progression-crossref.md`。EA＝純日循環。 | storysystem.md, eventsystem.md, story/, gameconcept.md, playerlevel.md, ecosystem.md, ratingsystem.md, tasksystem.md |
 | 已處理 | 缺檔／缺系統 | 任務系統無設計檔 | 已有 `tasksystem.md`＋測試／stub 內容檔；活線未實作。報酬與店鋪任務解鎖細節標 Beta。 | tasksystem.md, taskcontent-ops-test.md, docs/beta/design.md |
 | 已處理 | 規則含糊 | 幫忙取貨與 COMBO | 活線已改：每成功交付 +1、失誤個人 RESET；完美交付＝清單一次交清（見 `fetchcombo.md`／`tasksystem.md`）。 | fetchcombo.md, tasksystem.md, gameconcept.md |
 | Beta | 未定數值 | 客人流量幾乎沒有長線數值 | 留待 Beta 設計，見 `docs/beta/design.md`。有清單上限 15、逗留 1 秒、思考 3 秒。抽出件數交給各 Demo。沒有生成間隔、在店人數上限、客人類別移速表。找不到貨長線點數未定（Demo v0.3 為 +18）。麻煩客人行為已寫進 `elitecustomer.md` 並落地；仍欠劇情 LV 解鎖／事件表。 | customer.md, elitecustomer.md, gameconcept.md |
@@ -72,15 +72,13 @@
 | Alpha | 缺檔／缺系統 | HUD 以外的介面層空白 | 存檔／InputMap／暫停／字串表已補。暫停選單已有**事件 SFX 開／關與聲量**；**BGM Bus＋音量**已有；**教學框架**已落地（首日打磨仍開）。仍缺：完整設定頁、技能演出期間能否操作。失敗／過關敘事＝**EA 不做**（見 `versioning.md`）。 | storeoperationphase.md, playerskills.md, control.md, playersetup.md, pausemenu.md, tutorial.md |
 | Alpha | 用詞／錯字 | 用詞與錯字會改規則解讀 | 留待 Alpha 改回原檔，見 `docs/alpha/design.md`。以為→以下；三能種力值；奧義「技令」；衝刺句子斷掉。 | storeoperationphase.md, gameconcept.md, playerultimateskills.md, playermovement.md |
 | 已處理 | 缺字型字元 | 善良的炮／三段火槍陣缺字 | 2026-11-18 以 Noto Sans CJK **JP** 來源重跑 `tools/fonts/subset_notosans_tc.py`；`NotoSansTC-Game.ttf` 已含「善良的炮三段火槍陣枪阵銃斉」。 | playeractiveskills.md, playerultimateskills.md, `docs/alpha/fonts-subset.md` |
-| Alpha | 缺字型字元 | 西客炮新增字元未進執行期字型 | `charset_game.txt` 已補「仓西届倉送」，但遠端字型子集是在西客炮加入前重建；需再次以完整 JP 字型來源重跑子集流程。 | playeractiveskills.md, `docs/alpha/fonts-subset.md` |
-| Alpha | 缺字型字元 | 源頭減廢新增字元未進執行期字型 | 技能名稱的「廢／废」已加進字元清單；本機缺 Python／fontTools，未能重建執行期 TTF，需重跑 `tools/fonts/subset_notosans_tc.py`。 | playerpassiveskills.md, `docs/alpha/fonts-subset.md` |
-| Alpha | 缺字型字元 | 有糧出無汗出新增字元未進執行期字型 | 已把「糧／汗／粮」加入 `charset_game.txt`；本機 Windows Python launcher 無法啟動，而且缺 Bold／Black JP 原始字型，未能重建三款執行期 TTF。需取得完整三字重 JP 字型及可用 Python/fontTools 後重跑 `tools/fonts/subset_notosans_tc.py`。 | playerultimateskills.md, `docs/alpha/fonts-subset.md` |
+| 已處理 | 缺字型字元 | 西客炮／源頭減廢／有糧出無汗出 | 2026-11-21 以 JP Regular／Bold／Black 重跑 `tools/fonts/subset_notosans_tc.py`；三款 `NotoSansTC-Game*.ttf` cmap 已含「西客炮仓届倉送廢废糧汗粮」。 | playeractiveskills.md, playerpassiveskills.md, playerultimateskills.md, `docs/alpha/fonts-subset.md` |
 
 # 缺了整份檔的系統
 
 經營回合與準備回合的主循環已有拆檔（含清潔、小偷、採購、店舖設計、店員）。下列主題被點名，但沒有對應設計，或檔案仍是一句。
 
-- **循環與進度：** 劇情／事件表、過關與失敗、技能解鎖表。~~評價／經營值~~ 見 `ratingsystem.md`（難度 stub 見 `difficulty.md`）。~~存檔~~ 見 `savesystem.md`。~~暫停／掛起~~ 見 `pausemenu.md`。~~任務條件語意~~ 見 `tasksystem.md`（活線／報酬／事件全表仍缺）
+- **循環與進度：** 劇情／事件內容表、過關與失敗、技能解鎖表。~~劇情框架~~ 見 `storysystem.md`（活線未做）。~~事件占位~~ 見 `eventsystem.md`（不排活線）。~~評價／經營值~~ 見 `ratingsystem.md`（難度 stub 見 `difficulty.md`）。~~存檔~~ 見 `savesystem.md`。~~暫停／掛起~~ 見 `pausemenu.md`。~~任務條件語意~~ 見 `tasksystem.md`（活線／報酬／事件全表仍缺）
 - **店內系統：** 冰櫃與凍櫃的操作差異。幫忙取貨與 COMBO：`fetchcombo.md` 現行；任務新語意待對齊活線
 - **幾乎是空檔：** 角色導出的連線與檔案留待 Alpha。Voxel 初模和給設計師加細節的規矩在 `docs/alpha/voxel-v0.1.md`。外觀配置只有一句
 - **多人連線：** 設計見 [`docs/systemdesign/multiplayer.md`](systemdesign/multiplayer.md)（§10／§11／§12／§13）。**M2 首刀～M2.9 已交**；**M3 §13.4 已驗收**（2026-11-11）。下一步：正式 App ID／Cloud／成就，與 **M4** Web。交叉：`savesystem.md`／`pausemenu.md`／`control.md`
