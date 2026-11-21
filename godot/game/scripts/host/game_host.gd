@@ -231,6 +231,9 @@ func clock_text() -> String:
 	return DayPhase.clock_text(game_hours)
 
 
+func clock_hm_ampm() -> Dictionary:
+	return DayPhase.clock_hm_ampm(game_hours)
+
 func phase_text() -> String:
 	return DayPhase.phase_text(phase)
 

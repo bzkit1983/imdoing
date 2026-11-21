@@ -47,7 +47,7 @@
 
 版心：頂列標題、其下說明（右側留給返回）、中段內容、底部動作。間距 8px。列表、說明、數量、店舖設計的尺寸列與地圖各佔一塊，不相交。720 高度內不裁切。
 
-配色沿用深底與金色重點，卡片、焦點環、列表選取收在 `prep_widgets.gd`。
+**目標配色**跟全遊戲 Cozy 母本 [`imdoing-pause-ui-chrome.md`](../../agents/skills/pause-ui-chrome/imdoing-pause-ui-chrome.md)（奶油／羊皮／沙邊／暖金 Focus）；現行 `prep_widgets.gd` 深底＋金屬過渡佔位，遷移時唔再開新色票。卡片、焦點環、列表選取收在 `prep_widgets.gd`。
 
 ## 美術放置驗收清單
 

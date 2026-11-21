@@ -1,31 +1,74 @@
 # 營運 HUD／情境 UI 美術 brief
 
-- 狀態：對齊 [`player-context-ui.md`](player-context-ui.md) 實作後可換皮
-- 工程：`godot/game`；Filter＝**Nearest**；圖內**不寫玩家文案**（❌ 符號可畫入圖）
+- 狀態：行為已落地（程式 Flat／`draw_arc`）；**`art/ui/hud/` 待換皮**
+- **Gemini 貼上（Ops HUD 自包含）：** [`agents/skills/ops-hud-chrome/imdoing-ops-hud-chrome.md`](../../agents/skills/ops-hud-chrome/imdoing-ops-hud-chrome.md)
+- **色票同源：** [`imdoing-pause-ui-chrome.md`](../../agents/skills/pause-ui-chrome/imdoing-pause-ui-chrome.md)
+- **形狀語彙來源（人眼）：** [Kirby's Dream Buffet @ GUIDB](https://www.gameuidatabase.com/gameData.php?id=1502)；截圖 `godot/game/art/ui/hud/_qa/kirby_dream_buffet_ref/`（**唔餵 AI；唔抄角色面／商標**）
+- Pause 仍跟動森雙層卡；HUD **唔做成迷你 Pause**
+- **生圖：** Gemini 用 Ops skill；**唔用** Canva Magic 當主路徑
+- 流程：[`game-ui-ux-architect`](../../agents/skills/game-ui-ux-architect/SKILL.md)
+- 工程：`godot/game`；Filter＝**Nearest**；圖內**不寫玩家文案**（❌ 可畫入）
+- 交叉：[`player-context-ui.md`](player-context-ui.md)
 
-## 螢幕共用（Canvas）
+本檔只列 **要畫咩／檔名／尺寸**；色票、1.5D、禁止事項跟母本。
 
-| 資產 | 用途 | 建議 |
+---
+
+## 方向一句
+
+營運板＝**甜點派對菜單板**：奶油內頁＋暖橙／蜜糖外框＋餐具圓章／緞帶標；唔係羊皮小票、唔係深色玻璃、唔係空白厚塑料框。
+
+---
+
+## 從截圖抽出（可抄 · 不可抄）
+
+| 可抄（語彙） | 不可抄 |
+| --- | --- |
+| 暖橙／蜜糖 **ornate 外框**（角有裝飾、邊可有食物 silhouette 紋） | Kirby 面、Nintendo／系列 logo |
+| 頂中 **圓章**（叉匙／店章）騎在框上 | 原作文案、關卡名 |
+| 奶油／羊皮 **內頁**；邊可 **波浪／扇貝 scallop** | 直接貼 GUIDB 圖入包 |
+| Focus 掣：**青綠／Mint 斜紋**＋左圓星章（對齊母本 Mint／Gold） | 原作資產再导出當正式皮 |
+| 次要掣：奶油底＋左黃／金 tab；可有輕撕紙邊 | |
+| 標題可用 **緞帶 banner** 形（字仍執行期疊） | |
+| 高飽和糖果色溫；板「像食物道具」多過「像系統窗」 | |
+
+**密度分級**
+
+- **Ops HUD 常駐**（`panel_shared`）：外框＋內頁簡化版；圓章可選、紋樣要淡，半透明睇店
+- **Modal／結算／大提示**：可用完整 ornate＋圓章＋緞帶（之後 Pause／結算若遷向此線再開）
+
+---
+
+## 而家要唔要畫？
+
+| 類 | 要做？ | 說明 |
 | --- | --- | --- |
-| `art/ui/hud/panel_shared.9.png` | 左上手稿（時計跨兩行｜營業額列；時間＋時段）；同皮第二實例＝其下獨立任務板 | 半透明深底＋青／金邊 9-slice；矮横板 |
-| （可選）時計錶盤／針 | 取代程式 `clock_face`（約 56px） | 可後期 |
-| 暫停小掣 | 僅 VJ 時顯示 | 可复用 pause mini 或新做 |
+| **HUD chrome**（P0） | **要** | 人手／向量跟上表語彙＋Cozy hex |
+| 技能／道具／SKU icon | **唔使今輪** | 已有 |
+| Pause 全套 | **唔使** | 已有；語彙可後遷 |
+| 觸控 VJ chrome | **唔使** | 另開 |
 
-## 角色情境（世界空間·每 seat 一套）
+---
 
-| 資產 | 路徑建議 | 說明 |
-| --- | --- | --- |
-| 圓盤取消中心 | `art/ui/hud/radial_cancel.png` | 圓圈 ✕；技能／道具共用 |
-| 技能槽井 | `art/ui/hud/skill_well.png` | 外圈五點陣底板（可程式圓代替） |
-| 道具槽井 | `art/ui/hud/bag_well.png` | 十字四格 |
-| 持貨焦點框 | `art/ui/hud/carry_focus.png` | 三格預覽中格金框 |
-| 腳下耐力 track／fill | `art/ui/hud/stam_track.png`、`stam_fill.png` | 角色下方（只耐力） |
-| 技能 CD 環 | （程式 `draw_arc` 或可選 `cd_ring.png`） | 圍技能圓盤格；唔再腳底小條 |
+## P0 — 必做（8 張）
 
-內容 icon 仍走既有：`art/ui/skill/<id>.png`、`art/ui/ops_item/<id>.png`、`art/ui/sku/<id>.png`。
+| # | 檔名 | 建議尺寸 | 用途 |
+| --- | --- | --- | --- |
+| 1 | `panel_shared.9.png` | 128×64（中間淨色） | 左上手稿＋任務板；9-slice ~16–24；**簡化版菜單板框** |
+| 2 | `radial_cancel.png` | 64×64 | 圓盤中心 ❌ |
+| 3 | `skill_well.png` | 80×80 | 技能格空井（甜點碟／軟糖邊） |
+| 4 | `bag_well.png` | 80×80 | 道具格空井 |
+| 5 | `stam_track.png` | 96×16 | 耐力槽底 |
+| 6 | `stam_fill.png` | 96×16 | 耐力填充 |
+| 7 | `carry_focus.png` | 48×48 | 持貨焦點空框 |
+| 8 | `pause_fab.png` | 64×64 | VJ 暫停小掣（可复用 pause mini） |
 
-## 不做（本 brief）
+輸出：`godot/game/art/ui/hud/`。檢收：真 alpha、無烤字、色票跟母本、形似菜單板／食物框（唔似 cyber／唔似空白厚軟膠）。
 
-- 螢幕右下常駐技能 chip／道具十字／右上耐力持貨列（已改角色側）
-- 觸控 VJ chrome（另開）
-- 暫停選單全套（已有 `pause_menu_ui`）
+## P1
+
+時計盤／針、CD 環、well focus——可程式代替則跳。圓章／緞帶可作獨立小素材疊在板上。
+
+## 工程掛載
+
+`res://art/ui/hud/<檔名>` → `hud.gd`／`skill_menu`／`bag_menu`／`player_floor_bars`／`player_carry_strip`（另開工程）。

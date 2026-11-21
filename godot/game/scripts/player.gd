@@ -1897,7 +1897,7 @@ func _release_interact() -> void:
 		_restock_picking = false
 		_restock_hold = 0.0
 		return
-	if _fighting or _long_committed or _deliver_done or _restock_picking:
+	if _fighting or _long_committed or _deliver_done or _shelve_done or _restock_picking:
 		if _restock_picking and target != null and _obj_str(target, "kind") == "restock":
 			var sku := String(target.call("commit_pick"))
 			SfxBus.play("sfx_box_sku_confirm")

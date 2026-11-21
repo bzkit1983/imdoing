@@ -1,7 +1,8 @@
 # 角色情境 UI（雙長按圓盤＋腳下條＋持貨預覽）
 
 - 工程活線：`godot/game`
-- 交叉：[`control.md`](control.md)、[`opsitems.md`](opsitems.md)、[`replenishmentsystem.md`](replenishmentsystem.md)、[`art-interim-v1.5.md`](art-interim-v1.5.md)
+- 交叉：[`control.md`](control.md)、[`opsitems.md`](opsitems.md)、[`replenishmentsystem.md`](replenishmentsystem.md)、[`art-interim-v1.5.md`](art-interim-v1.5.md)、[`hud-art-brief.md`](hud-art-brief.md)
+- **Chrome：** [`imdoing-pause-ui-chrome.md`](../../agents/skills/pause-ui-chrome/imdoing-pause-ui-chrome.md) tokens；Ops HUD 形狀／材質主參考 **Kirby's Dream Buffet**（見 [`hud-art-brief.md`](hud-art-brief.md)；禁深色 cyber）
 - 實作：`scripts/skill_menu.gd`、`scripts/bag_menu.gd`、`scripts/player/skill_caster.gd`、`scripts/player/bag_caster.gd`、`scripts/player/player_floor_bars.gd`、`scripts/player/player_carry_strip.gd`、`scripts/hud.gd`
 
 ## 目標

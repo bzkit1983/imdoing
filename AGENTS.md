@@ -18,8 +18,10 @@ Canonical skills live under [`agents/skills/`](agents/skills/). Index: [`agents/
 | [`agents/skills/i18n-content/SKILL.md`](agents/skills/i18n-content/SKILL.md) | Adding or editing player-visible copy: skill names/blurbs, SKU/furniture names, events, story, HUD/menu strings — even if the task is “write the design in Chinese”. |
 | [`agents/skills/playerskillvalidator/SKILL.md`](agents/skills/playerskillvalidator/SKILL.md) | Adding, updating, or fixing player skills (active／passive／ultimate), COST／loadout, skill Intent／multiplayer cast paths, or skill design conflicts — emit Validation Report before done. |
 | [`agents/skills/tutorial-content/SKILL.md`](agents/skills/tutorial-content/SKILL.md) | Designing, validating, or shipping a full tutorial Lesson (pages／forced steps／triggers／`tut.*` copy／`tutorial_catalog`) — emit Validation Report before done. |
-| [`agents/skills/pause-ui-chrome/SKILL.md`](agents/skills/pause-ui-chrome/SKILL.md) | Pause menu chrome／asset pack — 動森暖系 Cozy（雙層 cream 面板、全膠囊 1.5D bevel、Focus 整顆暖金）；Gemini-ready: [`imdoing-pause-ui-chrome.md`](agents/skills/pause-ui-chrome/imdoing-pause-ui-chrome.md). |
-| UI 字級／間距 | 改選單／HUD／標題字大細或 spacing 時讀 [`docs/systemdesign/uitypography.md`](docs/systemdesign/uitypography.md)（Type Scale＋Spacing；Pause 色見 pause-ui-chrome）。 |
+| [`agents/skills/pause-ui-chrome/SKILL.md`](agents/skills/pause-ui-chrome/SKILL.md) | **全遊戲 UI chrome 母本**（動森暖系 Cozy）；Gemini／Canva: [`imdoing-pause-ui-chrome.md`](agents/skills/pause-ui-chrome/imdoing-pause-ui-chrome.md)。Pause／HUD／Prep 色票一律對齊此檔。 |
+| [`agents/skills/game-ui-ux-architect/SKILL.md`](agents/skills/game-ui-ux-architect/SKILL.md) | 遊戲 UI／UX 4 階段：資訊架構 → 線框 → 掛風格 Skill → 素材清單／生圖（唔跳步）；本專案階段 3＝`imdoing-pause-ui-chrome.md`。 |
+| [`agents/skills/ops-hud-chrome/SKILL.md`](agents/skills/ops-hud-chrome/SKILL.md) | 營運 HUD；Gemini／生圖貼 [`imdoing-ops-hud-chrome.md`](agents/skills/ops-hud-chrome/imdoing-ops-hud-chrome.md)。 |
+| UI 字級／間距 | [`docs/systemdesign/uitypography.md`](docs/systemdesign/uitypography.md)（Type Scale＋Spacing；色票只引用 pause-ui-chrome 母本）。 |
 
 ## i18n quick pointers
 

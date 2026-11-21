@@ -20,6 +20,10 @@ const COL_TEAL := Color(0.42, 0.78, 0.68, 1.0)
 const COL_STAMINA := Color(0.38, 0.82, 0.58, 0.95)
 const COL_STAMINA_LOW := Color(0.92, 0.55, 0.32, 0.95)
 const COL_STAMINA_BG := Color(0.08, 0.10, 0.10, 0.75)
+## Capsule pills: visual source of truth is hud.tscn LabelSettings_hwgv3／StyleBox_pill.
+## Runtime must not clobber scene font／outline. Meta marks labels for CJK skip only.
+const PILL_FONT_SIZE := 24
+const COL_PILL_OUTLINE := Color(0.3862129, 0.37503615, 0.3750433, 1.0) ## LabelSettings outline
 
 var game: Node
 var player: CharacterBody2D
@@ -36,15 +40,16 @@ var _left_hour_bucket: int = -1
 ## Per-seat right panes: {player, title, state, stamina, carry, icons, target, progress, icons_fp}.
 var _panes: Array = []
 
-@onready var _clock: Control = $Root/Left/Clock
-@onready var _time: Label = $Root/Left/Time
-@onready var _phase: Label = $Root/Left/Phase
-@onready var _rev: Label = $Root/Left/Revenue
-@onready var _guests: Label = $Root/Left/Guests
-@onready var _store: Label = $Root/Left/Store
-@onready var _role: Label = $Root/Left/Role
-@onready var _skills: Label = $Root/Left/Skills
-var _combo: Label
+## Ops chrome authored in hud.tscn for Godot editor layout; runtime fills text／dock.
+## Left: three Canva cream capsules (clock／money／rating). Phase／stolen／dev rows removed.
+@onready var _left_panel: Control = $Root/LeftStatusRow
+@onready var _clock: Control = $Root/LeftStatusRow/PillTime/Row/ClockFace/Hands
+@onready var _time: Label = $Root/LeftStatusRow/PillTime/Row/TimeLabel
+@onready var _ampm: Label = $Root/LeftStatusRow/PillTime/Row/AmPmLabel
+@onready var _money: Label = $Root/LeftStatusRow/PillMoney/Row/MoneyLabel
+@onready var _rating: Label = $Root/LeftStatusRow/PillRating/Row/RatingLabel
+@onready var _tasks_panel: PanelContainer = $Root/TasksPanel
+@onready var _tasks: Label = $Root/TasksPanel/Margin/Tasks
 var _stamina_std: ProgressBar
 var _carry_std: Label
 var _carry_icons_std: HBoxContainer
@@ -56,9 +61,6 @@ var _skills_panel: PanelContainer
 var _bag_panel: Control
 var _bag_slots: Array = [] ## TextureRect ×4: up, right, down, left
 var _bag_fp := ""
-var _tasks: Label
-var _tasks_panel: PanelContainer
-var _left_panel: PanelContainer
 @onready var _right: PanelContainer = $Root/Right
 @onready var _right_vbox: VBoxContainer = $Root/Right/Margin/VBox
 @onready var _state: Label = $Root/Right/Margin/VBox/State
@@ -101,13 +103,10 @@ func setup(g: Node, p: CharacterBody2D) -> void:
 	_log.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	## Icon strip replaces text HudList (P0 ops SKU UI).
 	_hud_list.visible = false
-	_build_combo_label()
-	_wrap_left_status_panel()
+	## LeftStatusRow／TasksPanel live in hud.tscn for editor layout.
+	_fit_left_status_panel()
 	_build_tr_std()
 	_build_bottom_left_panel()
-	## Scene Skills row stays as legacy; standard skills live bottom-right.
-	if _skills:
-		_skills.visible = false
 	if not PlatformServices.show_dev_hud_changed.is_connected(_on_show_dev_hud_changed):
 		PlatformServices.show_dev_hud_changed.connect(_on_show_dev_hud_changed)
 	_apply_dev_hud_visibility()
@@ -126,9 +125,13 @@ func setup(g: Node, p: CharacterBody2D) -> void:
 	if _panes.size() >= 2:
 		## Dual seat panes need room; shrink shared log min height.
 		_log.custom_minimum_size = Vector2(0, 64)
+	## Tag pills before CJK pass so UiFont does not clobber LabelSettings.
+	_style_pill_labels()
 	_apply_cjk_fonts($Root)
 	_style_right_panel()
 	_restyle_ops_labels()
+	_fit_left_status_panel()
+	_dock_tasks_under_left()
 	get_viewport().size_changed.connect(_on_viewport_resized)
 	_style_closeout()
 	_set_closeout_visible(false)
@@ -269,101 +272,40 @@ func _build_extra_seat_pane(p: CharacterBody2D) -> Dictionary:
 	return _pane_dict(p, title, state, stamina, carry, icons, target, progress)
 
 
-func _build_combo_label() -> void:
-	_combo = Label.new()
-	_combo.name = "Combo"
-	_combo.text = Loc.t("hud.combo", [0, 0])
-	var left: VBoxContainer = $Root/Left
-	## Sit under guests — action feedback after shop vitals.
-	left.add_child(_combo)
-	left.move_child(_combo, _guests.get_index() + 1)
-
-
-func _wrap_left_status_panel() -> void:
-	## Manuscript left plate: clock spans 2 rows; right = rev / time+phase; then optional dev rows.
-	var left: VBoxContainer = $Root/Left
-	var root: Control = $Root
-	var idx := left.get_index()
-	root.remove_child(left)
-	_left_panel = _make_hud_panel(COL_TEAL)
-	_left_panel.name = "LeftStatusPanel"
-	_left_panel.position = Vector2(12, 10)
-	var sb := _left_panel.get_theme_stylebox("panel") as StyleBoxFlat
-	if sb != null:
-		sb = sb.duplicate() as StyleBoxFlat
-		sb.content_margin_left = 10
-		sb.content_margin_right = 12
-		sb.content_margin_top = 8
-		sb.content_margin_bottom = 8
-		_left_panel.add_theme_stylebox_override("panel", sb)
-	left.layout_mode = 2
-	left.offset_left = 0.0
-	left.offset_top = 0.0
-	left.offset_right = 0.0
-	left.offset_bottom = 0.0
-	left.custom_minimum_size = Vector2(280, 0)
-	left.add_theme_constant_override("separation", 4)
-	_layout_left_manuscript_row(left)
-	_left_panel.add_child(left)
-	root.add_child(_left_panel)
-	root.move_child(_left_panel, idx)
-	_restyle_ops_labels()
-
-
-func _layout_left_manuscript_row(left: VBoxContainer) -> void:
-	## [clock spans 2 rows] | rev / time+phase (time leads bottom row).
-	if left.get_node_or_null("ManuscriptRow") != null:
+func _fit_left_status_panel() -> void:
+	## HBox pills size themselves; sync LeftStatusRow rect for TasksPanel dock.
+	if _left_panel == null:
 		return
-	var row := HBoxContainer.new()
-	row.name = "ManuscriptRow"
-	row.add_theme_constant_override("separation", 10)
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var stats := VBoxContainer.new()
-	stats.name = "StatsCol"
-	stats.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	stats.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	stats.add_theme_constant_override("separation", 2)
-	stats.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var bottom := HBoxContainer.new()
-	bottom.name = "RowTimePhase"
-	bottom.add_theme_constant_override("separation", 8)
-	bottom.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	for n in [_clock, _time, _phase, _rev]:
-		if n != null and n.get_parent() == left:
-			left.remove_child(n)
-	if _clock:
-		_clock.custom_minimum_size = Vector2(52, 52)
-		_clock.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		row.add_child(_clock)
-	if _rev:
-		_rev.autowrap_mode = TextServer.AUTOWRAP_OFF
-		_rev.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		stats.add_child(_rev)
-	if _time:
-		_time.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-		bottom.add_child(_time)
-	if _phase:
-		_phase.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		_phase.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		bottom.add_child(_phase)
-	stats.add_child(bottom)
-	row.add_child(stats)
-	left.add_child(row)
-	left.move_child(row, 0)
+	var min_sz := _left_panel.get_combined_minimum_size()
+	min_sz.y = maxf(min_sz.y, 51.0)
+	_left_panel.size = min_sz
 
 
 func _restyle_ops_labels() -> void:
-	## Manuscript: clock spans 2 rows; rev on top; time+phase on bottom.
-	_style_label(_time, COL_TEXT, UiFont.BODY, 5)
-	_style_label(_phase, COL_GOLD, UiFont.BODY, 5)
-	_style_label(_rev, COL_TEXT, UiFont.WORLD, 5)
-	_style_label(_guests, COL_MUTED, UiFont.WORLD, 5)
-	_style_label(_combo, COL_GOLD, UiFont.BODY, 6)
-	_style_label(_store, COL_MUTED, UiFont.WORLD, 4)
-	_style_label(_role, COL_MUTED, UiFont.WORLD, 4)
+	## Tasks／carry keep dark-plate CJK; capsule labels use Zen Maru (see _style_pill_labels).
 	_style_label(_tasks, COL_TEXT, UiFont.WORLD, 5)
 	_style_label(_carry_std, COL_TEXT, UiFont.WORLD, 5)
+
+
+func _style_pill_labels() -> void:
+	_style_pill_label(_time)
+	_style_pill_label(_ampm)
+	_style_pill_label(_money)
+	_style_pill_label(_rating)
+
+
+func _style_pill_label(lab: Label) -> void:
+	## hud.tscn LabelSettings／theme overrides win — tag for CJK skip and clear
+	## any prior UiFont theme overrides so scene styling shows through.
+	if lab == null:
+		return
+	lab.set_meta("pill_font", true)
+	lab.set_meta("cjk_design", PILL_FONT_SIZE)
+	lab.remove_theme_font_override("font")
+	lab.remove_theme_font_size_override("font_size")
+	lab.remove_theme_color_override("font_color")
+	lab.remove_theme_color_override("font_outline_color")
+	lab.remove_theme_constant_override("outline_size")
 
 
 func _style_label(lab: Label, color: Color, size: int = UiFont.BODY, outline: int = 5) -> void:
@@ -471,17 +413,17 @@ func _make_hud_label(name: String) -> Label:
 
 
 func _dock_tasks_under_left() -> void:
-	## Keep TasksPanel as a separate plate just below LeftStatusPanel; width fits task text.
+	## Keep TasksPanel as a separate plate just below LeftStatusRow; width fits task text.
+	## Uses LeftStatusRow.position from the scene so editor moves stick.
 	if _tasks_panel == null or _left_panel == null:
 		return
 	const GAP := 8.0
 	const MIN_H := 52.0
 	const MIN_W := 120.0
 	const H_PAD := 28.0 ## panel content margins L+R (~14 each)
+	_fit_left_status_panel()
 	var left_pos := _left_panel.position
 	var left_sz := _left_panel.size
-	if left_sz.y < 1.0:
-		left_sz.y = maxf(_left_panel.get_combined_minimum_size().y, 64.0)
 	var task_lines := 1
 	var text_w := 0.0
 	if _tasks != null and _tasks.text.strip_edges() != "":
@@ -508,25 +450,7 @@ func _dock_tasks_under_left() -> void:
 
 
 func _build_bottom_left_panel() -> void:
-	## Tasks — independent teal plate under LeftStatusPanel. Skills／CD — bottom-right (gold).
-	_tasks_panel = _make_hud_panel(COL_TEAL)
-	_tasks_panel.name = "TasksPanel"
-	_tasks_panel.visible = false
-	_tasks_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	_tasks_panel.offset_left = 12.0
-	_tasks_panel.offset_right = 292.0
-	_tasks_panel.offset_top = 80.0
-	_tasks_panel.offset_bottom = 132.0
-	_tasks_panel.grow_horizontal = Control.GROW_DIRECTION_END
-	_tasks_panel.grow_vertical = Control.GROW_DIRECTION_END
-	var t_margin := MarginContainer.new()
-	t_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_tasks_panel.add_child(t_margin)
-	_tasks = _make_hud_label("Tasks")
-	t_margin.add_child(_tasks)
-	$Root.add_child(_tasks_panel)
-	$Root.move_child(_tasks_panel, _banner.get_index())
-	_apply_cjk_fonts(_tasks)
+	## TasksPanel lives in hud.tscn; dock under LeftStatusRow. Skills／CD still built here (hidden).
 	_dock_tasks_under_left()
 
 	_skills_panel = _make_hud_panel(COL_GOLD)
@@ -625,13 +549,15 @@ func _on_viewport_resized() -> void:
 func _apply_cjk_fonts(node: Node) -> void:
 	if node is Label:
 		var lab := node as Label
-		var size := int(lab.get_meta("cjk_design", 0))
-		if size <= 0:
-			size = lab.get_theme_font_size("font_size")
+		## Pill labels keep scene LabelSettings — do not UiFont.apply_label.
+		if not bool(lab.get_meta("pill_font", false)):
+			var size := int(lab.get_meta("cjk_design", 0))
 			if size <= 0:
-				size = UiFont.BODY
-			lab.set_meta("cjk_design", size)
-		UiFont.apply_label(lab, size)
+				size = lab.get_theme_font_size("font_size")
+				if size <= 0:
+					size = UiFont.BODY
+				lab.set_meta("cjk_design", size)
+			UiFont.apply_label(lab, size)
 	if node is ItemList:
 		var lst := node as ItemList
 		lst.add_theme_font_override("font", UiFont.font())
@@ -740,8 +666,10 @@ func _process(delta: float) -> void:
 		_font_debounce -= delta
 		if _font_debounce <= 0.0:
 			_font_pending = false
+			_style_pill_labels()
 			_apply_cjk_fonts($Root)
 			_restyle_ops_labels()
+			_fit_left_status_panel()
 	_sync_left()
 	_sync_right()
 	if _skip or _pause_btn:
@@ -794,15 +722,9 @@ func _on_show_dev_hud_changed(_enabled: bool) -> void:
 
 
 func _apply_dev_hud_visibility() -> void:
-	## Developer chrome: store／role／ops + right action／log + skip. Default off.
-	## Standard: left status plate, stamina／carry (top-right), skills／CD (bottom-right), tasks (bottom-left).
+	## Developer chrome: right action／log + skip. Default off.
+	## Standard: left capsules, stamina／carry (top-right), skills／CD (bottom-right), tasks under pills.
 	var show := PlatformServices.is_show_dev_hud()
-	if _store:
-		_store.visible = show
-	if _role:
-		_role.visible = show
-	if _skills:
-		_skills.visible = false
 	if _right:
 		_right.visible = show
 	if _skip:
@@ -918,48 +840,31 @@ func _sync_left() -> void:
 		return
 	_left_hud_rev = rev
 	_left_hour_bucket = hour_bucket
-	var time_txt: String = game.clock_text()
-	var phase_txt: String = game.phase_text()
+	var clock_parts: Dictionary = game.clock_hm_ampm() if game.has_method("clock_hm_ampm") else {}
+	var hm_txt := String(clock_parts.get("hm", game.clock_text()))
+	var ampm_txt := String(clock_parts.get("ampm", ""))
 	var rev_n := int(game.revenue)
-	var stolen_n := int(game.stolen_value)
-	var guests_n := int(game.guest_count())
-	var thieves_n := int(game.thief_count())
-	var store_txt := String(player.call("store_status_text"))
-	var role_txt := _role_status_all()
-	var p1 := int(game.combo_personal(0))
-	var p2 := int(game.combo_personal(1))
-	var team := int(game.combo_team())
 	var ops_n := int(game.get("ops_rating")) if game.get("ops_rating") != null else 50
 	var tasks_txt := _tasks_status_text()
-	var fp := "%s|%s|%d|%d|%d|%d|%s|%s|%d|%d|%d|%d|%d|%d|%s" % [
-		time_txt, phase_txt, rev_n, stolen_n, guests_n, thieves_n,
-		store_txt, role_txt, p1, p2, team, rev, hour_bucket, ops_n, tasks_txt,
-	]
+	var money_txt := Loc.t("hud.money_only", [rev_n])
+	var rating_txt := str(ops_n)
+	var fp := "%s|%s|%s|%s|%d|%d|%s" % [hm_txt, ampm_txt, money_txt, rating_txt, rev, hour_bucket, tasks_txt]
 	if fp == _left_fp:
 		return
 	_left_fp = fp
-	_clock.game_hours = hours
-	_time.text = time_txt
-	_phase.text = phase_txt
-	_rev.text = Loc.t("hud.revenue", [rev_n, ops_n, stolen_n])
-	## Guests / store / role / combo: hide from shared Overcooked HUD (dev panel still has detail).
-	var show_extra := PlatformServices.is_show_dev_hud()
-	_guests.visible = show_extra
-	_store.visible = show_extra
-	_role.visible = show_extra
-	if show_extra:
-		_guests.text = Loc.t("hud.guests", [guests_n, thieves_n])
-		_store.text = store_txt
-		_role.text = role_txt
-	if _combo:
-		_combo.visible = show_extra
-		if show_extra:
-			if SeatTable.is_coop():
-				_combo.text = Loc.t("hud.combo_coop", [p1, p2, team])
-			else:
-				_combo.text = Loc.t("hud.combo", [p1, team])
+	if _clock:
+		_clock.game_hours = hours
+	if _time:
+		_time.text = hm_txt
+	if _ampm:
+		_ampm.text = ampm_txt
+	if _money:
+		_money.text = money_txt
+	if _rating:
+		_rating.text = rating_txt
 	if _tasks:
 		_tasks.text = tasks_txt
+	_fit_left_status_panel()
 	if _tasks_panel:
 		_tasks_panel.visible = tasks_txt != "" and not _close.visible
 		if _tasks_panel.visible:

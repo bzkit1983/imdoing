@@ -1,16 +1,17 @@
 ---
 name: imdoing-pause-ui-chrome
-description: "ImDoing Pause UI Chrome — 動森暖系 Cozy 圓潤膠囊與 1.5D 軟膠質感素材包規範"
+description: "ImDoing 全遊戲 UI Chrome 母本 — 動森暖系 Cozy；Pause／HUD／Prep 共用 tokens"
 ---
 
-# ImDoing — Pause UI Chrome（動森暖系 Cozy 風）
+# ImDoing — UI Chrome（動森暖系 Cozy 風）
 
-> 給 **Gemini**（或任何圖像／UI 生成模型）用的**自包含** skill。  
-> 整份貼上作 System instruction／Gem 知識／對話開頭即可。**唔需要**讀任何專案檔案。
+> **Repo 唯一色票／材質母本。** 給 Gemini／Canva／任何圖像模型用的自包含 skill。  
+> 整份貼上作 System instruction／Gem 知識／對話開頭即可。**唔需要**讀其他專案檔案。  
+> 字級／間距另見工程 `docs/systemdesign/uitypography.md`（本檔唔重複定義 Type Scale）。
 
 **Theme:** warm daylight · cozy rounded-pill · 1.5D soft bevel（無死黑框、無模糊陰影）  
-**Scope:** 便利店遊戲暫停選單（Pause）的**雙層圓角面板、全圓角膠囊按鈕、圓角方塊小鍵、白邊貼紙角標**素材包。  
-**唔做:** 營運 HUD、SKU／技能 icon、世界 voxel、整頁網站 hero collage
+**Scope:** 便利店遊戲 **全部 Canvas／選單 chrome**——Pause 完整雙層卡＋膠囊掣；營運 HUD／情境 UI／Prep 殼用**同一套 tokens**（板可半透明／更矮）。  
+**唔做:** SKU／技能／道具**內容** icon、世界 voxel、整頁網站 hero collage、深色 cyber／sci-fi 玻璃 HUD
 
 ---
 
@@ -18,13 +19,23 @@ description: "ImDoing Pause UI Chrome — 動森暖系 Cozy 圓潤膠囊與 1.5D
 
 參考《集合啦！動物森友會》UI 的治癒手感：棄用刺眼撞色與 1px 死黑線框，改用 **奶油白＋暖羊皮紙雙層大圓角卡片**、**全圓角膠囊按鈕（Full-Capsule Pill）**，並以 **底部 4–5px 暖色實體厚邊（1.5D Bevel）** 營造軟膠按鍵立體感；選中（Focus）時直接以 **暖金黃 `#FFD43B` 整顆填滿**，無文字烤入 PNG，方便 Godot 疊加執行期多語系字型。
 
-用途係 **便利店遊戲 Pause 設定面板**——置中一張雙層卡、直向可點膠囊列表、手掣／觸控可讀。
+**全遊戲統一呢套皮。** Pause＝置中實心雙層卡（動森手感）；營運 HUD＝**同色票**、材質改走《Kirby's Dream Buffet》式 **甜點菜單板**（暖橙／蜜糖 ornate 外框、奶油內頁、餐具圓章、可選緞帶／扇貝邊），半透明睇到店面；禁止另開深灰／黑半透明「cyber」語彙。人眼截圖細節見工程 `hud-art-brief.md`（唔餵 AI、唔抄角色面）。
+
+---
+
+## Surfaces（同一 tokens · 不同密度）
+
+| Surface | 板 | 圓角 | 備註 |
+|---------|----|------|------|
+| **Pause** | 實心雙層 Cream／Parchment | 外 28／內 20 | 下方完整素材包；手感參考 ACNH（可後遷 Dream Buffet modal 語彙） |
+| **Ops HUD／情境** | **半透明** Cream 菜單內頁＋暖橙食物外框（簡化） | ~14–16 | **主參考：** Kirby Dream Buffet；清單／可抄表見 `hud-art-brief.md` |
+| **Prep** | 目標同 Pause 家族 | 跟選單密度 | 過渡深底佔位須遷向本 tokens |
 
 ---
 
 ## Tokens — Colors（必須遵守）
 
-| Name | Hex | Pause 用法 |
+| Name | Hex | 用法（全遊戲 chrome） |
 |------|-----|------------|
 | Cream Canvas | `#FFFDF2` | 主面板外殼、標準按鈕底色、貼紙外圈白邊 |
 | Warm Parchment | `#F7EED6` | 主面板內凹底板、音量小鍵底色 |
@@ -121,9 +132,10 @@ Squircle 12–16px 圓角；normal 用 Warm Parchment／Cream；focus 整顆 `#F
 ## Don't
 
 - 唔用死黑描邊、高斯陰影、玻璃擬態厚漸變
-- 唔用舊佔位深底＋金、亦唔用 Fictional 撞色 sticker／2px 黃 ring 當主 focus 語彙
-- 唔把選單文案烤進圖
+- 唔用舊佔位**深底＋金**、深灰半透明 cyber／sci-fi HUD、亦唔用 Fictional 撞色 sticker／2px 黃 ring 當主 focus 語彙
+- 唔把選單／HUD 文案烤進圖
 - 唔令列表按鈕旋轉成 collage
+- 唔為營運 HUD 另造一套與上表衝突的色票
 
 ---
 

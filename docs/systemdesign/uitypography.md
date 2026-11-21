@@ -3,8 +3,8 @@
 - 活線：`godot/game`
 - 基準解析度：1280×720
 - 字型執行期：`scripts/ui_font.gd`（Noto Sans CJK 子集；見 `docs/alpha/fonts-subset.md`）
-- Pause 色票／素材：`agents/skills/pause-ui-chrome/`（字級以**本檔**為準，唔喺 Gemini 包重複定義）
-- 暫停落地對照：`pausemenu.md`
+- **全遊戲 chrome 色票／材質母本：** [`agents/skills/pause-ui-chrome/imdoing-pause-ui-chrome.md`](../../agents/skills/pause-ui-chrome/imdoing-pause-ui-chrome.md)（字級以**本檔**為準，唔喺母本重複定義 Type Scale）
+- 暫停落地對照：`pausemenu.md`；HUD 資產清單：`hud-art-brief.md`
 
 ## 字重（Faces）
 
@@ -21,7 +21,7 @@ API：`apply_label(..., weight)`、`apply_title_bold`、`apply_button_literal`�
 1. 遊戲內常駐 UI（暫停、準備、HUD）只用下表 **caption → heading**。
 2. `heading-lg`／`display`／`display-xl`／`hero` 僅限 Splash、章節大字等全螢幕標題；**唔**用於選單掣或面板標題。
 3. Godot Label／Button 本輪只鎖定 **px 字級**；CSS letter-spacing／精準 line-height 唔強制。
-4. 奶油 Pause 面板上的標題／掣字用 Cocoa Ink；次要說明用 Muted Taupe（色見 pause-ui-chrome）。
+4. 所有 Cozy 面板（Pause／HUD／Prep 目標皮）標題／掣字用 Cocoa Ink `#5C4938`；次要說明用 Muted Taupe `#9C8B7A`（色見 `imdoing-pause-ui-chrome.md`）。
 
 ## Type Scale
 

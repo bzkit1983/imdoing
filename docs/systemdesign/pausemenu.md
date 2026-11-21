@@ -42,7 +42,7 @@
 5. **語言** — 再開「選擇語言」子畫面；`Loc.locales()`；`[ui] locale`（預設 `zh_TW`）。見 `docs/alpha/i18n.md`  
 6. **結束本日並結算** — 等同 HUD「馬上完成營運」（`skip_operate`）。**線上：僅 Host 機**可觸發；client 無此項或按下無效（`multiplayer.md` §12.6）。若有強制教學步驟未完成則擋住（見 `tutorial.md`）
 
-工程：`scenes/pause_menu.tscn` 用 `CardBg`（NinePatch）＋ Button `StyleBoxTexture`；執行期 `_style_btn` **唔再**用 Flat 蓋皮，選中改用 focus 皮。字色／字級／間距見 [`uitypography.md`](uitypography.md)（標題 heading-sm 43＋Cocoa；說明 body／caption＋Taupe；掣 body-sm 22）；面板色見 `agents/skills/pause-ui-chrome/`。
+工程：`scenes/pause_menu.tscn` 用 `CardBg`（NinePatch）＋ Button `StyleBoxTexture`；執行期 `_style_btn` **唔再**用 Flat 蓋皮，選中改用 focus 皮。字色／字級／間距見 [`uitypography.md`](uitypography.md)（標題 heading-sm 43＋Cocoa；說明 body／caption＋Taupe；掣 body-sm 22）；面板色見唯一母本 [`imdoing-pause-ui-chrome.md`](../../agents/skills/pause-ui-chrome/imdoing-pause-ui-chrome.md)。
 
 > 手機 Web 沒有 Esc／Start：用右上「暫停」。系統掛起（切 App／鎖屏）仍會經 `PlatformServices` 自動開暫停選單。
 

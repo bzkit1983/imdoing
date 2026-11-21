@@ -4,10 +4,23 @@ extends RefCounted
 const Tuning = preload("res://scripts/tuning.gd")
 
 
-static func clock_text(game_hours: float) -> String:
-	var h := int(floor(game_hours)) % 24
+static func clock_hm_ampm(game_hours: float) -> Dictionary:
+	## {hm: "06:00", ampm: "am"} — split so HUD can pin am/pm in a fixed slot.
+	var h24 := int(floor(game_hours)) % 24
 	var m := int(floor((game_hours - floorf(game_hours)) * 60.0))
-	return "%02d:%02d" % [h, m]
+	var h12 := h24 % 12
+	if h12 == 0:
+		h12 = 12
+	var ampm := Loc.t("hud.ampm.am") if h24 < 12 else Loc.t("hud.ampm.pm")
+	return {
+		"hm": Loc.t("hud.clock_hm", [h12, m]),
+		"ampm": ampm,
+	}
+
+
+static func clock_text(game_hours: float) -> String:
+	var parts := clock_hm_ampm(game_hours)
+	return "%s %s" % [String(parts["hm"]), String(parts["ampm"])]
 
 
 static func phase_text(phase: String) -> String:

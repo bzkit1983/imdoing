@@ -1,35 +1,32 @@
 ---
 name: pause-ui-chrome
 description: >-
-  ImDoing Pause UI Chrome — Animal Crossing cozy warm dual-layer cream panel,
-  full-capsule 1.5D bevel buttons, gold fill focus, sticker badges. Use when
-  generating pause menu frames/buttons/badges asset packs for Gemini, or when
-  the user mentions cozy Pause UI / 動森風 pause chrome.
+  ImDoing 全遊戲 UI Chrome 母本（動森暖系 Cozy）。Pause／HUD／Prep 換皮或生圖時必讀；
+  Gemini／Canva paste: imdoing-pause-ui-chrome.md。
 ---
 
-# Pause UI chrome（動森暖系 Cozy → 素材包）
+# UI chrome（動森暖系 Cozy → 全遊戲母本）
 
-**Canonical body for Gemini (self-contained — paste the whole file):**  
+**Canonical body（自包含 — 整份貼上生成模型）：**  
 [`imdoing-pause-ui-chrome.md`](imdoing-pause-ui-chrome.md)
 
 ## When to use
 
-- User wants Pause menu **frames / buttons / badges** asset pack
-- User will paste a skill into **Gemini** (or another image model)
-- Visual direction is **動森暖系 Cozy**（奶油白＋羊皮紙雙層卡、全膠囊、1.5D 底厚邊、Focus 整顆 `#FFD43B`）
+- Pause／Prep／**營運 HUD**／情境 UI 任何 **chrome**（面板、掣、井、耐力條框）
+- 用戶提到 Cozy／動森風／統一遊戲 UI 皮
+- 階段 3 風格橋：[`game-ui-ux-architect`](../game-ui-ux-architect/SKILL.md) 掛本母本
 
 ## Rules
 
-1. Prefer the full markdown above; it embeds all hex tokens and English prompts — **do not** tell Gemini to read repo paths.
-2. Existing in-game Pause/HUD/Prep visuals may be placeholders; this skill defines the **target playable** Pause chrome.
-3. Assets: transparent PNG, **no baked player-facing text**; runtime copy uses Cocoa Ink `#5C4938` via Loc／Noto.
-4. Player-facing strings still go through `i18n-content` if you wire labels in engine.
-5. No pure black strokes; no gaussian drop shadows; focus = filled gold, not a thin ring.
-6. **Type sizes／spacing:** follow [`docs/systemdesign/uitypography.md`](../../../docs/systemdesign/uitypography.md) — do not redefine the scale in the Gemini pack.
+1. Prefer [`imdoing-pause-ui-chrome.md`](imdoing-pause-ui-chrome.md)；**唔好**叫模型讀一堆 repo 路徑。  
+2. 其他文件（`hud-art-brief`、`ops-hud-chrome`、`uitypography`）只**引用**本母本，唔另開衝突色票。  
+3. Assets: 透明 PNG、圖內無玩家文案；執行期 Cocoa `#5C4938` via Loc。  
+4. 無純黑描邊、無 blur 陰影；Focus＝整顆 `#FFD43B`。  
+5. Type sizes／spacing：[`uitypography.md`](../../../docs/systemdesign/uitypography.md)。  
+6. HUD 生圖用專檔 [`imdoing-ops-hud-chrome.md`](../ops-hud-chrome/imdoing-ops-hud-chrome.md)（唔只靠 Surfaces 一句）。
 
 ## Workflow
 
-1. Open [`imdoing-pause-ui-chrome.md`](imdoing-pause-ui-chrome.md).
-2. Paste into Gemini System／Gem／chat.
-3. Run the「一次出成包」block or per-file English prompts.
-4. Import PNGs into Godot (`NinePatchRect`／`StyleBoxTexture`／Theme); do not change pause behavior contracts unless asked.
+1. 打開／貼上 `imdoing-pause-ui-chrome.md`。  
+2. Pause 用「一次出成包」；HUD 用 Surfaces 規則＋`hud-art-brief` P0 清單。  
+3. 匯入 Godot；唔擅自改玩法合約。
