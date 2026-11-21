@@ -100,7 +100,7 @@ func cast_ultimate() -> void:
 		host._prompt.active = false
 		return
 	var game = host._game()
-	var predict := orc._net_client_predicting()
+	var predict: bool = orc._net_client_predicting()
 	if sid == "self_service_operation":
 		if game == null or not bool(game.can_cast_self_service_operation()):
 			host.log_line.emit(Loc.t("log.player.ult_self_service_unavailable"))

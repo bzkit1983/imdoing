@@ -119,7 +119,7 @@ func deploy_elite_guest_specialist(at: Vector2, level: int, seat: int) -> Node2D
 			continue
 		if not bool(child.get("_vanishing")):
 			return null
-	var caster := host._seat_actor(seat)
+	var caster: Node2D = host._seat_actor(seat)
 	if caster == null or not caster.has_method("clone_snapshot"):
 		return null
 	var snap: Dictionary = caster.call("clone_snapshot")

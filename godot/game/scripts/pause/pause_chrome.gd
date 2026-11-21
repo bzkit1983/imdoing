@@ -129,7 +129,7 @@ static func ensure_pause_btn_skin(menu: CanvasLayer, btn: Button) -> void:
 		if rf != null:
 			btn.add_theme_stylebox_override("focus", rf)
 		for state_name in ["pressed", "hover_pressed", "disabled"]:
-			var sb := menu._resume_btn.get_theme_stylebox(state_name)
+			var sb: StyleBox = menu._resume_btn.get_theme_stylebox(state_name)
 			if sb != null:
 				btn.add_theme_stylebox_override(state_name, sb)
 	else:

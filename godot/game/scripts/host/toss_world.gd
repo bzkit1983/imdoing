@@ -178,14 +178,14 @@ func _clip_player_toss_path_ex(
 		return {"dest": dest, "shelf": null, "thief": null, "floor_block": false}
 	## Walls (layer 1) + furniture shelves/cashier/restock (layer 2).
 	if host._world != null and is_instance_valid(host._world):
-		var space := host._world.get_world_2d().direct_space_state
+		var space: PhysicsDirectSpaceState2D = host._world.get_world_2d().direct_space_state
 		var mask := Tuning.LAYER_WALLS | Tuning.LAYER_FURNITURE
 		var query := PhysicsRayQueryParameters2D.create(from, dest, mask)
 		query.collide_with_areas = false
 		query.collide_with_bodies = true
 		if toss_player != null and is_instance_valid(toss_player):
 			query.exclude = [toss_player.get_rid()]
-		var hit := space.intersect_ray(query)
+		var hit: Dictionary = space.intersect_ray(query)
 		if not hit.is_empty():
 			var hp: Vector2 = hit.position
 			var t := from.distance_to(hp) / sqrt(len_sq)
@@ -230,7 +230,7 @@ func _clip_player_toss_path_ex(
 			floor_block = false
 	## Guests who still want this SKU: stop at the guest so the box does not fly past.
 	var guest_r := Tuning.DROP_GUEST_HIT_RADIUS
-	if _customers != null:
+	if host._customers != null:
 		for c in host._customers.get_children():
 			if c == null or not is_instance_valid(c):
 				continue
@@ -293,7 +293,7 @@ func _clip_player_toss_path_ex(
 			hit_thief = null
 			floor_block = true
 	## Other seated players (wall-layer bodies) along the path.
-	for p in _players:
+	for p in host._players:
 		if p == null or not is_instance_valid(p):
 			continue
 		if toss_player != null and p == toss_player:

@@ -72,11 +72,11 @@ func _try_spawn_dirt() -> void:
 	var size := Tuning.DIRT_SIZE
 	## Sample free coarse cells first; full rect check only on candidates.
 	for _i in 12:
-		var origin := host.FLOOR_ORIGIN + Vector2(
+		var origin: Vector2 = host.FLOOR_ORIGIN + Vector2(
 			randf_range(36.0, host.FLOOR_SIZE.x - size.x - 36.0),
 			randf_range(48.0, host.FLOOR_SIZE.y - size.y - 36.0)
 		)
-		var center := origin + size * 0.5
+		var center: Vector2 = origin + size * 0.5
 		if host._dirt_block_cells.has(_dirt_cell_key(center)):
 			continue
 		var r := Rect2(origin, size)
@@ -134,7 +134,7 @@ func _try_spawn_ops_item() -> void:
 		return
 	var size := OpsItems.PICKUP_SIZE
 	for _i in 12:
-		var origin := host.FLOOR_ORIGIN + Vector2(
+		var origin: Vector2 = host.FLOOR_ORIGIN + Vector2(
 			randf_range(36.0, host.FLOOR_SIZE.x - size.x - 36.0),
 			randf_range(48.0, host.FLOOR_SIZE.y - size.y - 48.0)
 		)
@@ -182,7 +182,7 @@ func clear_ops_items_world() -> void:
 func use_ops_item(seat: int, slot: int) -> bool:
 	if SessionService.is_networked() and SessionService.is_client():
 		return false
-	var actor := host._seat_actor(seat)
+	var actor: Node2D = host._seat_actor(seat)
 	if actor == null or not actor.has_method("ops_bag_ids"):
 		return false
 	var bag: Array = actor.ops_bag_ids()

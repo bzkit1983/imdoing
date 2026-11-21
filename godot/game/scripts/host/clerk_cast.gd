@@ -16,7 +16,7 @@ func cast_dark_side(level: int, seat: int = -1) -> void:
 		return
 	if host._customers == null:
 		return
-	var caster := host._seat_actor(seat) if seat >= 0 else host._player
+	var caster: Node2D = host._seat_actor(seat) if seat >= 0 else host._player
 	var need := DarkSide.draft_count(level)
 	var locked = _checkout_locked_guest()
 	var pool: Array = []
@@ -50,7 +50,7 @@ func cast_shadow_clone(level: int, seat: int = -1) -> void:
 	if SessionService.is_networked() and SessionService.is_client():
 		return
 	dismiss_shadow_clones()
-	var caster := host._seat_actor(seat) if seat >= 0 else host._player
+	var caster: Node2D = host._seat_actor(seat) if seat >= 0 else host._player
 	var need := ShadowCloneCast.clone_count(level)
 	var snap := {}
 	if caster != null and caster.has_method("clone_snapshot"):

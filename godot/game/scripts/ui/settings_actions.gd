@@ -4,7 +4,7 @@ extends RefCounted
 const BgmBusScript = preload("res://scripts/bgm_bus.gd")
 
 
-static func _bgm():
+static func _bgm() -> Node:
 	return BgmBusScript.bus()
 
 
@@ -48,7 +48,7 @@ static func pause_sfx_volume_label() -> String:
 
 
 static func prep_toggle_bgm() -> String:
-	var bgm := _bgm()
+	var bgm: Node = _bgm()
 	if bgm == null:
 		return ""
 	var muted: bool = bgm.toggle_muted()
@@ -57,7 +57,7 @@ static func prep_toggle_bgm() -> String:
 
 
 static func pause_toggle_bgm() -> void:
-	var bgm := _bgm()
+	var bgm: Node = _bgm()
 	if bgm == null:
 		return
 	if bgm.is_muted():
@@ -69,7 +69,7 @@ static func pause_toggle_bgm() -> void:
 
 
 static func nudge_bgm_volume(steps: int) -> void:
-	var bgm := _bgm()
+	var bgm: Node = _bgm()
 	if bgm == null:
 		return
 	if steps == 0:
@@ -82,7 +82,7 @@ static func nudge_bgm_volume(steps: int) -> void:
 
 
 static func prep_nudge_bgm_volume(steps: int) -> String:
-	var bgm := _bgm()
+	var bgm: Node = _bgm()
 	if bgm == null:
 		return ""
 	nudge_bgm_volume(steps)
@@ -90,21 +90,21 @@ static func prep_nudge_bgm_volume(steps: int) -> String:
 
 
 static func pause_preview_bgm_volume() -> void:
-	var bgm := _bgm()
+	var bgm: Node = _bgm()
 	if bgm:
 		bgm.preview_volume()
 	SfxBus.play("sfx_ui_confirm", 1.0, NAN, true)
 
 
 static func pause_bgm_mute_label() -> String:
-	var bgm := _bgm()
+	var bgm: Node = _bgm()
 	if bgm == null:
 		return ""
 	return Loc.t("pause.bgm_off") if bgm.is_muted() else Loc.t("pause.bgm_on")
 
 
 static func pause_bgm_volume_label() -> String:
-	var bgm := _bgm()
+	var bgm: Node = _bgm()
 	if bgm == null:
 		return ""
 	return Loc.t("pause.bgm_volume", [bgm.volume_percent()])
