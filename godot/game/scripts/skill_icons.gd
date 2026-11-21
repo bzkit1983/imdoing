@@ -9,6 +9,7 @@ const ROW_H := 72
 
 static var _cache: Dictionary = {}
 static var _rows: Dictionary = {}
+static var _locked_rows: Dictionary = {}
 
 
 static func texture(id: String) -> Texture2D:
@@ -45,6 +46,30 @@ static func row_texture(id: String) -> Texture2D:
 		img.blit_rect(copy, Rect2i(0, 0, 40, 40), Vector2i(4, 16))
 	var tex := ImageTexture.create_from_image(img)
 	_rows[id] = tex
+	return tex
+
+
+static func locked_row_texture(id: String) -> Texture2D:
+	if id.is_empty():
+		return row_texture(id)
+	if _locked_rows.has(id):
+		return _locked_rows[id] as Texture2D
+	var img := row_texture(id).get_image()
+	for y in range(16, 56):
+		for x in range(4, 44):
+			var pixel := img.get_pixel(x, y)
+			var shade := 0.12 + pixel.get_luminance() * 0.38
+			img.set_pixel(x, y, Color(shade, shade, shade, pixel.a))
+	## Contrasting padlock badge, inset from the upper-left edge of the row.
+	img.fill_rect(Rect2i(4, 14, 16, 17), Color("171a19"))
+	var ink := Color("e0e0e0")
+	img.fill_rect(Rect2i(9, 16, 6, 2), ink)
+	img.fill_rect(Rect2i(8, 18, 2, 5), ink)
+	img.fill_rect(Rect2i(14, 18, 2, 5), ink)
+	img.fill_rect(Rect2i(6, 21, 12, 8), ink)
+	img.fill_rect(Rect2i(11, 23, 2, 4), Color("171a19"))
+	var tex := ImageTexture.create_from_image(img)
+	_locked_rows[id] = tex
 	return tex
 
 

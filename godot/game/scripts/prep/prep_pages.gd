@@ -28,7 +28,7 @@ static func parent_page(page: String) -> String:
 	match page:
 		"hub_minigames":
 			return "home"
-		"cultivate":
+		"cultivate", "light_intro", "light_quiz":
 			return "hub_minigames"
 		"cultivate_pick":
 			return "cultivate"
@@ -186,7 +186,14 @@ static func fill(menu: CanvasLayer, page: String) -> void:
 			menu._title.text = Loc.t("prep.minigames")
 			menu._info.text = menu._header()
 			menu._add_hub(Loc.t("prep.cultivate.title"), "go", "cultivate", "goods")
+			menu._add_hub(Loc.t("skill.let_there_be_light.name"), "go", "light_intro", "skills")
 			menu._rebuild_hub_tiles()
+		"light_intro":
+			menu._light_intro.set_line(menu._light_line)
+			menu._back_btn.visible = menu._light_intro.ready_for_dialogue
+			menu._add(Loc.t("prep.light_quiz.continue"), "light_intro_next")
+		"light_quiz":
+			_light_quiz(menu)
 		"cultivate":
 			_cultivate(menu)
 		"cultivate_pick":
@@ -270,6 +277,10 @@ static func fill_skill_pick(menu: CanvasLayer, slot_i: int) -> void:
 	var slot_lbl := Loc.t("prep.skill_pick.ult_slot") if slot_i == 5 else str(slot_i + 1)
 	var set_name: String = menu.state.skill_set_name(menu._skill_set)
 	menu._info.text = Loc.t("prep.skill_pick.info", [set_name, slot_lbl])
+	var pack: Dictionary = menu.state.skill_sets[menu._skill_set]
+	var equipped_id := String(pack["ult_id"] if slot_i == 5 else pack["slots"][slot_i])
+	if not menu.state.can_equip_skill(equipped_id):
+		menu._info.text = menu._pair(menu._info.text, Loc.t("prep.light_quiz.locked"))
 	var pool: Array = []
 	if slot_i == 5:
 		pool.append_array(Skills.ULTS)
@@ -280,16 +291,18 @@ static func fill_skill_pick(menu: CanvasLayer, slot_i: int) -> void:
 	for raw in pool:
 		var sk: Dictionary = Skills.localize(raw)
 		var pick_id := String(sk.get("id", ""))
-		menu._add(
+		var locked: bool = not menu.state.can_equip_skill(pick_id)
+		_add_skill_row(menu,
 			"%s　%s　COST%d　%s" % [
 				_kind_label(String(sk.get("kind", ""))),
 				String(sk.get("name", "")),
 				int(sk.get("cost", 1)),
-				String(sk.get("blurb", "")),
+				Loc.t("prep.light_quiz.locked") if locked else String(sk.get("blurb", "")),
 			],
 			"equip",
 			[slot_i, pick_id],
-			SkillIcons.row_texture(pick_id),
+			pick_id,
+			locked,
 		)
 	menu._add(Loc.t("prep.skill_pick.unequip"), "unequip", slot_i)
 	menu._add(Loc.t("prep.back"), "go", "skill_set")
@@ -790,6 +803,14 @@ static func _skills(menu: CanvasLayer) -> void:
 	menu._add(Loc.t("prep.back"), "go", "hub_char")
 
 
+static func _add_skill_row(menu: CanvasLayer, label: String, action: String, arg: Variant, id: String, locked: bool) -> void:
+	var icon := SkillIcons.locked_row_texture(id) if locked else SkillIcons.row_texture(id)
+	menu._add(label, action, arg, icon)
+	if locked:
+		## Readable against both the dark list and the gold selection.
+		menu._list.set_item_custom_fg_color(menu._list.item_count - 1, Color("777777"))
+
+
 static func _skill_set(menu: CanvasLayer) -> void:
 	var i := int(menu._skill_set)
 	var set_name: String = menu.state.skill_set_name(i)
@@ -818,7 +839,7 @@ static func _skill_set(menu: CanvasLayer) -> void:
 			kind = _kind_label(String(sk.get("kind"))) + "　"
 			if Skills.prep_picks_level(sk):
 				skill_name = "%s　LV%d" % [skill_name, menu.state.skill_level_of(i, id)]
-		menu._add(Loc.t("prep.skill_set.slot", [s + 1, kind, skill_name]), "pick_slot", s, SkillIcons.row_texture(id))
+		_add_skill_row(menu, Loc.t("prep.skill_set.slot", [s + 1, kind, skill_name]), "pick_slot", s, id, not menu.state.can_equip_skill(id))
 	for sid in set_slots:
 		var level_id := String(sid)
 		if level_id == "":
@@ -828,7 +849,8 @@ static func _skill_set(menu: CanvasLayer) -> void:
 			continue
 		menu._add(Loc.t("prep.skill.level_row", [String(level_sk.get("name")), menu.state.skill_level_of(i, level_id)]), "cycle_skill_lv", level_id)
 	var ult_sk: Dictionary = menu.state.ult_of(i)
-	menu._add(Loc.t("prep.skill_set.ult", [_ult_label(ult_sk)]), "pick_slot", 5, SkillIcons.row_texture(String(ult_sk.get("id", ""))))
+	var ult_id := String(ult_sk.get("id", ""))
+	_add_skill_row(menu, Loc.t("prep.skill_set.ult", [_ult_label(ult_sk)]), "pick_slot", 5, ult_id, not menu.state.can_equip_skill(ult_id))
 	menu._add(Loc.t("prep.back"), "go", "skills")
 
 
@@ -857,6 +879,33 @@ static func _ult_label(sk: Dictionary) -> String:
 		return Loc.t("prep.ult.empty")
 	var n := String(sk.get("name", ""))
 	return n if n != "" else Loc.t("prep.ult.empty")
+
+
+static func _light_quiz(menu: CanvasLayer) -> void:
+	menu._title.text = Loc.t("skill.let_there_be_light.name")
+	var total: int = menu.LIGHT_QUIZ_ANSWERS.size()
+	if menu._light_question < total:
+		var number: int = menu._light_question + 1
+		var key := "prep.light_quiz.q%d" % number
+		menu._info.text = menu._pair(Loc.t("prep.light_quiz.progress", [number, total]), Loc.t(key))
+		for option in range(4):
+			var letter := "ABCD".substr(option, 1)
+			menu._add("%s. %s" % [letter, Loc.t(key + "." + letter.to_lower())], "light_quiz_answer", option)
+	else:
+		var score: int = menu._light_score
+		var result := Loc.t("prep.light_quiz.failed")
+		if score == total:
+			if menu.state.light_quiz_passed:
+				result = Loc.t("prep.light_quiz.unlocked")
+			else:
+				result = menu._msg
+				menu._add(Loc.t("prep.light_quiz.save"), "light_quiz_save")
+		menu._info.text = "%s\n%s\n%s" % [
+			Loc.t("prep.light_quiz.score", [score, total]), result, Loc.t("prep.light_quiz.source"),
+		]
+		if score < total or menu.state.light_quiz_passed:
+			menu._add(Loc.t("prep.light_quiz.retry"), "light_quiz_retry")
+	menu._add(Loc.t("prep.back"), "go", "hub_minigames")
 
 
 static func _cultivate(menu: CanvasLayer) -> void:

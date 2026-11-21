@@ -825,3 +825,43 @@ prep.cultivate.harvest_new,解鎖咗%s，已送 1 件入倉。,%s unlocked. Adde
 prep.cultivate.harvest_done,%s ×1 已送入倉。,Added 1 %s to the warehouse.,%s ×1 已送入仓。,%sを倉庫に1個追加しました。
 prep.cultivate.stock_short,倉庫冇足夠材料。,There are not enough items in the warehouse.,仓库没有足够材料。,倉庫の材料が足りません。
 prep.cultivate.unavailable,而家未可以進行呢個操作。,This action is unavailable right now.,现在无法进行此操作。,今はこの操作ができません。
+prep.light_quiz.god,神,God,神,神
+prep.light_quiz.player,玩家,Player,玩家,プレイヤー
+prep.light_quiz.line1,你要相信我!,You have to believe in me!,你要相信我!,私を信じなさい！
+prep.light_quiz.line2,你才要相信我!你全家也要相信我!,You're the one who should believe in me! Your whole family should believe in me too!,你才要相信我!你全家也要相信我!,そっちこそ僕を信じろよ！ 家族みんなで僕を信じろよ！
+prep.light_quiz.line3,......,......,......,......
+prep.light_quiz.line4,無論如何....接受試煉吧!,In any case.... face the trial!,无论如何....接受试炼吧!,ともかく……試練を受けよ！
+prep.light_quiz.continue,按確認或點擊繼續,Confirm or click to continue,按确认或点击继续,決定ボタンかクリックで進む
+prep.light_quiz.progress,第 %d／%d 題,Question %d of %d,第 %d／%d 题,第%d問／全%d問
+prep.light_quiz.score,答對 %d／%d 題,%d of %d correct,答对 %d／%d 题,正解 %d／%d 問
+prep.light_quiz.failed,五題全對先可以解鎖奧義。,Answer all five correctly to unlock the ultimate.,五题全对才能解锁奥义。,全問正解で奥義を解放できます。
+prep.light_quiz.unlocked,已解鎖奧義！,Ultimate unlocked!,已解锁奥义！,奥義を解放しました！
+prep.light_quiz.save,重試存檔,Retry save,重试存档,保存をやり直す
+prep.light_quiz.retry,再試一次,Try again,再试一次,もう一度挑戦する
+prep.light_quiz.locked,完成「小遊戲」入面嘅奧義問答先可以裝備。,Pass this ultimate's quiz in Minigames to equip it.,完成「小游戏」里的奥义问答才能装备。,「ミニゲーム」の奥義クイズをクリアすると装備できます。
+prep.light_quiz.source,經文出處：創世記 1:3、1:4、1:5、1:3–5、1:14–19,"Scripture: Genesis 1:3, 1:4, 1:5, 1:3–5, 1:14–19",经文出处：创世记 1:3、1:4、1:5、1:3–5、1:14–19,聖書：創世記 1:3、1:4、1:5、1:3–5、1:14–19
+prep.light_quiz.q1,神說「要有光」之後，發生咩事？,"What happened after God said, “Let there be light”?",神说「要有光」之后，发生了什么？,神が「光あれ」と言った後、何が起きましたか？
+prep.light_quiz.q1.a,陸地出現,Dry land appeared,陆地出现,陸地が現れた
+prep.light_quiz.q1.b,就有了光,There was light,就有了光,光があった
+prep.light_quiz.q1.c,星星出現,Stars appeared,星星出现,星が現れた
+prep.light_quiz.q1.d,天空形成,The sky formed,天空形成,空ができた
+prep.light_quiz.q2,神見到光之後，將光同咩分開？,"After seeing the light, what did God separate it from?",神看见光之后，把光和什么分开？,神は光を見て、何と分けましたか？
+prep.light_quiz.q2.a,水,Water,水,水
+prep.light_quiz.q2.b,雲,Clouds,云,雲
+prep.light_quiz.q2.c,空氣,Air,空气,空気
+prep.light_quiz.q2.d,黑暗,Darkness,黑暗,闇
+prep.light_quiz.q3,神稱光做咩？,What did God call the light?,神称光为什么？,神は光を何と呼びましたか？
+prep.light_quiz.q3.a,晝,Day,昼,昼
+prep.light_quiz.q3.b,晨,Morning,晨,朝
+prep.light_quiz.q3.c,天,Sky,天,空
+prep.light_quiz.q3.d,火,Fire,火,火
+prep.light_quiz.q4,光出現同分開晝夜，係創造嘅第幾日？,On which day of creation did light appear and day and night become separate?,光出现和昼夜分开，是创造的第几日？,光が現れ、昼と夜が分けられたのは創造の何日目ですか？
+prep.light_quiz.q4.a,第二日,Second day,第二日,二日目
+prep.light_quiz.q4.b,第三日,Third day,第三日,三日目
+prep.light_quiz.q4.c,第一日,First day,第一日,一日目
+prep.light_quiz.q4.d,第四日,Fourth day,第四日,四日目
+prep.light_quiz.q5,用嚟照耀大地嘅兩個大光體，係創造嘅第幾日造嘅？,On which day of creation were the two great lights made to shine on the earth?,用来照耀大地的两个大光体，是创造的第几日造的？,地を照らす二つの大きな光が造られたのは創造の何日目ですか？
+prep.light_quiz.q5.a,第一日,First day,第一日,一日目
+prep.light_quiz.q5.b,第四日,Fourth day,第四日,四日目
+prep.light_quiz.q5.c,第五日,Fifth day,第五日,五日目
+prep.light_quiz.q5.d,第六日,Sixth day,第六日,六日目
