@@ -1181,6 +1181,14 @@ func _physics_process(delta: float) -> void:
 		_tick_camera_shake(delta)
 		_sync_interact_glow()
 		return
+	if has_meta("boss_cutscene_lock"):
+		velocity = Vector2.ZERO
+		_tick_buffs(delta)
+		_tick_status(delta)
+		_tick_camera_shake(delta)
+		_sync_interact_glow()
+		_update_visuals()
+		return
 	_tick_buffs(delta)
 	_tick_status(delta)
 	if _cast_pose_left > 0.0:
@@ -3138,6 +3146,21 @@ func _tick_cashier(_delta: float) -> void:
 	if not seq_done:
 		_request_prompt_broadcast()
 		return
+	## Boss multi-wave: finish one wave → cutscene／next wave instead of pay.
+	var game_w := _game()
+	if cust.get("is_boss") == true and game_w != null and game_w.has_method("boss_on_checkout_wave_done"):
+		if bool(game_w.call("boss_on_checkout_wave_done", cust)):
+			seq_index = 0
+			seq_done = false
+			cust.checkout_seq.clear()
+			if cust.has_meta("checkout_seq_init"):
+				cust.remove_meta("checkout_seq_init")
+			_prompt.active = true
+			## Typed Array[int] — do not assign bare [].
+			_prompt.sequence.clear()
+			_prompt.index = 0
+			_request_prompt_broadcast(true)
+			return
 	_finish_checkout(cust)
 
 
@@ -3153,6 +3176,12 @@ func _ensure_seq(cust) -> void:
 		if SessionService.is_networked() and SessionService.is_client():
 			return
 		var n := Tuning.checkout_command_count(cust.cart.size(), _int_now())
+		var game_n := _game()
+		## Boss absolute wave counts (no INT reduce / later prefill).
+		if cust.get("is_boss") == true and game_n != null and game_n.has_method("boss_checkout_wave_count"):
+			var wave_n := int(game_n.call("boss_checkout_wave_count", cust))
+			if wave_n > 0:
+				n = wave_n
 		cust.set_meta("checkout_seq_init", true)
 		seq_index = 0
 		_checkout_had_miss = false
@@ -3164,8 +3193,12 @@ func _ensure_seq(cust) -> void:
 		SfxBus.play("sfx_checkout_enter")
 		log_line.emit(Loc.t("log.player.checkout_cmds", [n, cust.cart.size()]))
 		## Perfect-chain prefill: drop first N arrows (only remainder shown); keep full for miss restore.
-		var pref := mini(_checkout_prefill_charge, seq.size())
-		_checkout_prefill_charge = 0
+		## Boss waves: never prefill.
+		var pref := 0 if cust.get("is_boss") == true else mini(_checkout_prefill_charge, seq.size())
+		if cust.get("is_boss") != true:
+			_checkout_prefill_charge = 0
+		else:
+			_checkout_prefill_charge = 0
 		seq_index = 0
 		if cust.has_meta("checkout_seq_full"):
 			cust.remove_meta("checkout_seq_full")
@@ -3294,7 +3327,8 @@ func _try_command(dir: int) -> void:
 func _finish_checkout(cust) -> void:
 	var reg = target
 	## Peek dual target before primary leaves the queue (index 1 = next in line).
-	var dual_guest = _peek_senior_dual_guest(reg, cust)
+	## Boss: no senior dual-pay.
+	var dual_guest = null if cust.get("is_boss") == true else _peek_senior_dual_guest(reg, cust)
 	var base: int = int(cust.call("payout_total")) if cust.has_method("payout_total") else int(cust.call("cart_total"))
 	var from_elite: bool = cust.get("is_elite") == true
 	var perfect := not _checkout_had_miss
@@ -3315,6 +3349,8 @@ func _finish_checkout(cust) -> void:
 		log_line.emit(Loc.t("log.player.pay_done", [amount]))
 	_spawn_dollar()
 	cust.finish_paid()
+	if game != null and cust.get("is_boss") == true and game.has_method("boss_on_paid"):
+		game.call("boss_on_paid", cust)
 	if reg and is_instance_valid(reg) and reg.has_method("dequeue"):
 		reg.dequeue(cust)
 	## Perfect-chain: arm next-guest prefill (one layer; non-Perfect clears).

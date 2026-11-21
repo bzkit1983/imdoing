@@ -111,7 +111,8 @@
 # 頭目（框架定義）
 
 - **頭目**＝章節主線終點的**特殊營運日**（可多階段），不是另開戰鬥場景
-- 通過條件由該章劇情任務／評價／存活指標等組合定義（章內補）
+- **回合規則／HUD／世界覆寫／演出契約：** 見 [`bossbattle.md`](bossbattle.md)；各頭目詳設見 [`bosses/`](bosses/)
+- 通過條件由該章劇情任務／評價／存活指標等組合定義（章內補；測試例：[`bosses/alien_tycoon.md`](bosses/alien_tycoon.md)）
 - 終章頭目為最終頭目；後日談可另設可選週期挑戰頭目（非擋主線）
 - **通關報酬：** 當日**普通結算**照算；**任務獎勵另給**大額 EXP、大額資金、**解鎖奧義**（首次通關；D→C 重試不重複發解鎖／大額）。量級見成長分析
 - **失敗：** 先走敘事失敗態（演出；懲罰待表）→ 回準備回合調整 → 再進入同一頭目節點（D→C）。通過前 `story_blocked`，不 `advance_story`
@@ -137,5 +138,7 @@
 | [`playerlevel.md`](playerlevel.md) | 等級上限／EXP 來源 |
 | [`shopprogress.md`](shopprogress.md) | 現行等級解鎖表（過渡／作廢中） |
 | [`elitecustomer.md`](elitecustomer.md) | 麻煩客人等級 |
+| [`bossbattle.md`](bossbattle.md) | 頭目戰回合框架 |
+| [`bosses/`](bosses/) | 各頭目專檔 |
 | [`tutorial.md`](tutorial.md) | 教學 Lesson；與序章分開可重用 |
 | [`docs/beta/design.md`](../beta/design.md) | 報酬落地細節仍可標 Beta |

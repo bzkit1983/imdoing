@@ -25,6 +25,9 @@ var is_elite: bool = false
 var elite_lv: int = 0
 ## Affix id → effect LV (default = elite_lv; Beta may remap).
 var elite_affixes: Dictionary = {}
+## Boss guest (頭目戰) — see bossbattle.md / bosses/*.
+var is_boss: bool = false
+var boss_id: String = ""
 var kind: String = ""
 ## Alpha pace variant: normal / hurry / slow → distinct model (not full recolor).
 var pace: String = "normal"
@@ -255,7 +258,7 @@ func setup(game: Node, door: Vector2, thief: bool = false) -> void:
 
 ## Promote a normal guest into EliteCustomer after setup (list re-rolled with mult).
 func become_elite(lv: int) -> void:
-	if is_thief:
+	if is_thief or is_boss:
 		return
 	is_elite = true
 	elite_lv = clampi(lv, 1, 6)
@@ -278,8 +281,76 @@ func become_elite(lv: int) -> void:
 	_sync_labels()
 
 
+## Promote into a boss guest (alien tycoon etc.). Uses alien model + passive shopping.
+func become_boss(id: String, first_list_n: int) -> void:
+	if is_thief:
+		return
+	is_boss = true
+	boss_id = id
+	is_elite = false
+	elite_lv = 0
+	elite_affixes.clear()
+	_elite_affix_cd.clear()
+	## Reuse passive_shop behavior via has_elite_affix path.
+	elite_affixes["passive_shop"] = 1
+	kind = "boss"
+	## Boss paces the floor fast — player must chase deliveries across the shop.
+	pace = "hurry"
+	_pace_speed = 2.5
+	_model_id = "player_alt1"
+	if not Vox.has_anim(_model_id, "walk"):
+		_model_id = "customer"
+	cart.clear()
+	shopping = _roll_list_n(maxi(1, first_list_n))
+	_bump_list()
+	mood = Loc.t("mood.boss")
+	## Rebuild body — play_anim alone keeps the old guest SpriteFrames.
+	_swap_body_model(_model_id)
+	_sync_labels()
+
+
+func _swap_body_model(model_id: String) -> void:
+	if model_id == "":
+		return
+	_model_id = model_id
+	var old: CanvasItem = _body
+	var insert_at := 0
+	if old != null and is_instance_valid(old):
+		insert_at = old.get_index()
+		old.queue_free()
+	_body = Vox.animated(_model_id)
+	add_child(_body)
+	move_child(_body, insert_at)
+	_body.modulate = Color(1, 1, 1, 1)
+	_shown_tint = _body.modulate
+	_shown_facing = -1
+	if _body is AnimatedSprite2D:
+		_body.set_meta("shown_anim", "")
+		Vox.play_anim(_body as AnimatedSprite2D, _model_id, "idle", Vector2.DOWN)
+	elif _body is Sprite2D:
+		Vox.apply(_body as Sprite2D, _model_id, 0)
+
+
+func boss_start_list_stage(n: int) -> void:
+	if not is_boss:
+		return
+	shopping = _roll_list_n(maxi(1, n))
+	## Cart accumulates across stages.
+	_bump_list()
+	state = State.SEEK
+	_timer = 0.0
+	_target_shelf = null
+	_clear_route()
+	mood = Loc.t("mood.shop")
+	_sync_labels()
+
+
+func blocks_auto_checkout() -> bool:
+	return is_boss
+
+
 func has_elite_affix(affix: String) -> bool:
-	return is_elite and elite_affixes.has(affix)
+	return (is_elite or is_boss) and elite_affixes.has(affix)
 
 
 func elite_effect_lv(affix: String) -> int:
@@ -451,7 +522,12 @@ func apply_close_gate() -> String:
 func unsold_checkout_cart() -> Array[String]:
 	if is_thief:
 		return []
-	if not shopping.is_empty() or cart.is_empty():
+	if cart.is_empty():
+		return []
+	## Boss mid-list still has shopping; unpaid cart still returns on fail／close.
+	if is_boss:
+		return cart.duplicate()
+	if not shopping.is_empty():
 		return []
 	return cart.duplicate()
 
@@ -528,7 +604,7 @@ func apply_kind_cannon_conversion() -> bool:
 			state = State.TO_CASHIER
 			mood = Loc.t("mood.to_pay")
 		else:
-			_begin_checkout()
+			_try_finish_shopping()
 	else:
 		mood = Loc.t("mood.shop")
 	_bump_list()
@@ -555,7 +631,7 @@ func resume_unpaid_leave_for_self_service() -> bool:
 		if _game != null:
 			_game.note_customer_occupy_changed(self, true)
 	if shopping.is_empty():
-		_begin_checkout(Loc.t("mood.to_pay"))
+		_try_finish_shopping(Loc.t("mood.to_pay"))
 	else:
 		state = State.SEEK
 		mood = Loc.t("mood.shop")
@@ -611,6 +687,10 @@ func _physics_process(delta: float) -> void:
 		return
 	if net_puppet:
 		## Presentation only — Host owns AI (§8 / M2.2).
+		return
+	if _game.has_method("cutscene_freezes_actors") and bool(_game.cutscene_freezes_actors()):
+		velocity = Vector2.ZERO
+		_sync_labels()
 		return
 	if temp_clerk:
 		_tick_temp(delta)
@@ -698,7 +778,7 @@ func _physics_process(delta: float) -> void:
 
 func _tick_seek(delta: float) -> void:
 	if shopping.is_empty():
-		_begin_checkout(Loc.t("mood.to_pay"))
+		_try_finish_shopping(Loc.t("mood.to_pay"))
 		return
 	if has_elite_affix("passive_shop"):
 		_tick_elite_passive_wander(delta)
@@ -754,7 +834,7 @@ func _take_current() -> void:
 func _after_think() -> void:
 	## Toss / other paths may empty the list while still in THINK.
 	if shopping.is_empty():
-		_begin_checkout(Loc.t("mood.to_pay"))
+		_try_finish_shopping(Loc.t("mood.to_pay"))
 		return
 	if shopping.size() > 1:
 		var first := shopping[0]
@@ -775,11 +855,35 @@ func _after_think() -> void:
 			_sku_popup(String(shopping[0]), SkuIcons.KIND_MISS)
 
 
+## Shopping cleared → boss may advance list stages instead of paying.
+func _try_finish_shopping(pay_mood: String = Loc.t("mood.to_pay")) -> void:
+	if is_boss and _game != null and _game.has_method("boss_on_list_cleared"):
+		if bool(_game.call("boss_on_list_cleared", self)):
+			velocity = Vector2.ZERO
+			state = State.SEEK
+			_timer = 0.0
+			_clear_route()
+			mood = Loc.t("mood.boss_wait")
+			_sync_labels()
+			return
+	_begin_checkout(pay_mood)
+
+
 ## Shopping done → join a register and walk to pay (shared by seek / think / toss / raid).
 func _begin_checkout(pay_mood: String = Loc.t("mood.to_pay")) -> void:
 	if is_thief:
 		escape_with_loot()
 		return
+	## Boss mid-lists: skills that force pay still advance stages first.
+	if is_boss and shopping.is_empty() and _game != null and _game.has_method("boss_on_list_cleared"):
+		if bool(_game.call("boss_on_list_cleared", self)):
+			velocity = Vector2.ZERO
+			state = State.SEEK
+			_timer = 0.0
+			_clear_route()
+			mood = Loc.t("mood.boss_wait")
+			_sync_labels()
+			return
 	if state == State.TO_CASHIER or state == State.QUEUE or state == State.PAYING:
 		mood = pay_mood
 		return
@@ -976,6 +1080,8 @@ func _leave(angry: bool) -> void:
 	_notify_unoccupy()
 	state = State.LEAVE
 	_leave_elapsed = 0.0
+	if angry and is_boss and _game != null and _game.has_method("boss_on_angry_leave"):
+		_game.call("boss_on_angry_leave", self)
 	if is_thief:
 		## Stay targetable, but ghost walls — door solids otherwise wedge bodies
 		## in the gap and leave paths never reach exit_pos.
@@ -1174,7 +1280,7 @@ func accept_must_deliver(pieces: Array) -> int:
 	_bump_list()
 	_target_shelf = null
 	if shopping.is_empty():
-		_begin_checkout(Loc.t("mood.thanks_pay"))
+		_try_finish_shopping(Loc.t("mood.thanks_pay"))
 	else:
 		mood = Loc.t("mood.thanks_bang")
 		if state == State.THINK or state == State.LINGER:
@@ -1207,7 +1313,7 @@ func accept_force_sell(pieces: Array) -> int:
 	_bump_list()
 	_target_shelf = null
 	if shopping.is_empty():
-		_begin_checkout(Loc.t("mood.thanks_pay"))
+		_try_finish_shopping(Loc.t("mood.thanks_pay"))
 	else:
 		mood = Loc.t("mood.thanks_bang")
 		if state == State.THINK or state == State.LINGER:
@@ -1244,7 +1350,7 @@ func accept_toss_box(sku: String, n: int) -> int:
 		return take
 	if shopping.is_empty():
 		## List completed by toss — go pay; do not linger in THINK「找不到」.
-		_begin_checkout(Loc.t("mood.thanks_pay"))
+		_try_finish_shopping(Loc.t("mood.thanks_pay"))
 	else:
 		mood = Loc.t("mood.thanks_bang")
 		if state == State.THINK or state == State.LINGER:
@@ -1445,6 +1551,10 @@ func _tick_temp_cashier(delta: float) -> void:
 	var cust = reg.call("ready_customer") if reg.has_method("ready_customer") else null
 	if cust == null:
 		_temp_work = 0.0
+		return
+	if cust.get("is_boss") == true or (cust.has_method("blocks_auto_checkout") and bool(cust.call("blocks_auto_checkout"))):
+		_temp_work = 0.0
+		_checkout_customer = null
 		return
 	if _checkout_customer != cust:
 		_temp_work = 0.0
@@ -1812,8 +1922,9 @@ func _elite_try_litter() -> bool:
 func _tick_elite_passive_wander(delta: float) -> void:
 	_elite_wander_cd -= delta
 	if _elite_wander_cd <= 0.0 or _elite_wander_goal == Vector2.ZERO:
-		_elite_wander_goal = _pick_elite_wander_point()
-		_elite_wander_cd = randf_range(2.0, 4.0)
+		_elite_wander_goal = _pick_boss_wander_point() if is_boss else _pick_elite_wander_point()
+		## Boss retargets often so they cover more of the shop.
+		_elite_wander_cd = randf_range(0.45, 1.1) if is_boss else randf_range(2.0, 4.0)
 		_clear_route()
 	mood = Loc.t("mood.affix.idle")
 	if _follow_to(_elite_wander_goal, delta):
@@ -1828,6 +1939,68 @@ func _pick_elite_wander_point() -> Vector2:
 	if _game:
 		return _game.inside_pos() + Vector2(randf_range(-80, 80), randf_range(-60, 60))
 	return global_position + Vector2(randf_range(-40, 40), randf_range(-40, 40))
+
+
+func _pick_boss_wander_point() -> Vector2:
+	## Mix shelf stands, registers, door／aisle samples — prefer a far goal.
+	var cands: Array[Vector2] = []
+	if _game == null:
+		return global_position + Vector2(randf_range(-80, 80), randf_range(-80, 80))
+	var shelves = _game.get("shelves")
+	if shelves is Array:
+		for s in shelves:
+			if s == null or not is_instance_valid(s):
+				continue
+			if _game.has_method("shelf_stand"):
+				var stand: Vector2 = _game.shelf_stand(s)
+				if stand != Vector2.ZERO:
+					cands.append(stand)
+	var cashiers = _game.get("cashiers")
+	if cashiers is Array:
+		for reg in cashiers:
+			if reg == null or not is_instance_valid(reg):
+				continue
+			if reg.has_method("slot_position"):
+				cands.append(reg.call("slot_position", 0))
+			elif reg.has_method("back_position"):
+				cands.append(reg.call("back_position"))
+			else:
+				cands.append(reg.global_position + Vector2(0, 48))
+	var origin: Vector2 = _game.FLOOR_ORIGIN
+	var size: Vector2 = _game.FLOOR_SIZE
+	var inset := 64.0
+	cands.append(origin + Vector2(inset, inset))
+	cands.append(origin + Vector2(size.x - inset, inset))
+	cands.append(origin + Vector2(size.x - inset, size.y - inset))
+	cands.append(origin + Vector2(inset, size.y - inset))
+	cands.append(origin + Vector2(size.x * 0.5, size.y * 0.5))
+	if _game.has_method("inside_pos"):
+		cands.append(_game.inside_pos())
+	if _game.has_method("door_pos"):
+		cands.append(_game.door_pos() + Vector2(0, 48))
+	## A few random aisle samples across the floor.
+	for _i in 4:
+		cands.append(origin + Vector2(
+			randf_range(inset, maxf(inset + 1.0, size.x - inset)),
+			randf_range(inset, maxf(inset + 1.0, size.y - inset))
+		))
+	if cands.is_empty():
+		return _pick_elite_wander_point()
+	## Prefer farther points so the boss crosses the shop instead of circling one aisle.
+	var best: Vector2 = cands[0]
+	var best_d := -1.0
+	var scored: Array[Dictionary] = []
+	for p in cands:
+		var d := global_position.distance_squared_to(p)
+		scored.append({"p": p, "d": d})
+		if d > best_d:
+			best_d = d
+			best = p
+	scored.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return float(a["d"]) > float(b["d"]))
+	var top_n := mini(6, scored.size())
+	if top_n <= 0:
+		return best
+	return scored[randi() % top_n]["p"]
 
 
 ## Called by another elite: drop a fraction of cart in place; list unchanged (rebuy).
@@ -1900,7 +2073,22 @@ func _roll_list() -> Array[String]:
 	else:
 		## Baseline = what a normal guest would draw, then × level mult (may exceed 15).
 		n = int(ceil(float(n) * Tuning.elite_list_mult(elite_lv)))
+	return _fill_list_from_pool(pool, n)
+
+
+func _roll_list_n(n: int) -> Array[String]:
+	var pool: Array[String] = []
+	if _game:
+		pool = _game.sellable()
+	if pool.is_empty():
+		return []
+	return _fill_list_from_pool(pool, maxi(1, n))
+
+
+func _fill_list_from_pool(pool: Array[String], n: int) -> Array[String]:
 	var out: Array[String] = []
+	if pool.is_empty() or n <= 0:
+		return out
 	for i in n:
 		out.append(pool[randi() % pool.size()])
 	return out

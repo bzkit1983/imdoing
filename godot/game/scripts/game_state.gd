@@ -168,10 +168,17 @@ func apply_scenario(id: int) -> void:
 			_scenario_skill()
 		5:
 			_scenario_tutorial()
+		6:
+			## Boss-battle test day — same shop blueprint as skill sandbox (scenario 4).
+			_scenario_skill()
 		_:
 			_scenario_new()
 	_grant_initial_goods()
 	_default_for_sale_for_developed()
+
+
+func is_boss_test_scenario() -> bool:
+	return scenario == 6
 
 
 func _grant_initial_goods() -> void:

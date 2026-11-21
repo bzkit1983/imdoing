@@ -16,6 +16,7 @@ const SETTINGS_VOLUME := "bgm_volume"
 const TRACK_PREP := "PrepareShop"
 const TRACK_OP: Array[String] = ["Operation1", "Operation2"]
 const TRACK_ELITE: Array[String] = ["EliteCustomer1", "EliteCustomer2"]
+const TRACK_BOSS := "BossBattle1"
 const BGM_DIR := "res://audio/bgm/"
 const AUTOLOAD_PATH := "/root/BgmBus"
 
@@ -34,7 +35,7 @@ var _muted: bool = false
 ## Linear 0.0–1.0; applied to the Music bus (independent of mute).
 var _volume: float = 1.0
 
-## Current theme: "" | "prep" | "operation" | "elite"
+## Current theme: "" | "prep" | "operation" | "elite" | "boss"
 var _theme: String = ""
 ## Day-locked Operation track id (Operation1 / Operation2).
 var _operation_track: String = ""
@@ -117,7 +118,7 @@ func play_operation(reshuffle: bool = true) -> void:
 
 
 func enter_elite() -> void:
-	if _theme == "elite":
+	if _theme == "elite" or _theme == "boss":
 		return
 	## Remember operation bed if we somehow entered elite without a day pick.
 	if _operation_track == "":
@@ -136,6 +137,17 @@ func exit_elite_if_clear() -> void:
 	if _operation_track == "":
 		_operation_track = String(TRACK_OP[randi() % TRACK_OP.size()])
 	_switch_to(_operation_track)
+
+
+## Boss battle day: override with BossBattle1 until prep／day end.
+func enter_boss() -> void:
+	if _theme == "boss":
+		return
+	if _operation_track == "":
+		_operation_track = String(TRACK_OP[randi() % TRACK_OP.size()])
+	_theme = "boss"
+	_elite_track = ""
+	_switch_to(TRACK_BOSS)
 
 
 func stop() -> void:
@@ -250,6 +262,7 @@ func _preload_all() -> void:
 		_load_one(String(id))
 	for id in TRACK_ELITE:
 		_load_one(String(id))
+	_load_one(TRACK_BOSS)
 
 
 func _load_one(id: String) -> AudioStream:

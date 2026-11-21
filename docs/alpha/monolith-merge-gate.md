@@ -8,7 +8,7 @@
 
 | 檔 | 抽出後水位（約） | 新功能應落點 |
 | --- | ---: | --- |
-| `godot/game/scripts/demo.gd` | **≤ ~3900**（L1 後） | `host/*`（deploy／cast／ops／spawn／toss／net／settle） |
+| `godot/game/scripts/demo.gd` | **≤ ~4000**（L1 後；頭目日薄掛線後） | `host/*`（deploy／cast／ops／spawn／toss／net／settle／boss_world） |
 | `godot/game/scripts/player.gd` | 維持 F2 後趨勢；勿再吞控制器 | `player/*` controllers |
 | `godot/game/scripts/player/skill_caster.gd` | 編排器 **~400**；族模組另檔 | `player/skill_*_caster.gd` 或新族檔 |
 

@@ -157,6 +157,10 @@ func _physics_process(delta: float) -> void:
 		velocity = Vector2.ZERO
 		_sync_visual("idle", _facing)
 		return
+	if _game.has_method("cutscene_freezes_actors") and bool(_game.cutscene_freezes_actors()):
+		velocity = Vector2.ZERO
+		_sync_visual("idle", _facing)
+		return
 	if _dash_stun_left > 0.0:
 		_dash_stun_left = maxf(0.0, _dash_stun_left - delta)
 		velocity = Vector2.ZERO
@@ -186,6 +190,10 @@ func _tick_cashier(delta: float) -> void:
 	var cust = register.call("ready_customer")
 	if cust == null:
 		_timer = 0.0
+		return
+	if cust.get("is_boss") == true or (cust.has_method("blocks_auto_checkout") and bool(cust.call("blocks_auto_checkout"))):
+		_timer = 0.0
+		_checkout_customer = null
 		return
 	if _checkout_customer != cust:
 		_timer = 0.0
