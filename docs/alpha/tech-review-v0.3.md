@@ -216,7 +216,7 @@ PlatformServices：Desktop 完整；Steam **磁碟＋Cloud fileWrite／fileRead�
 - [x] **N1** 文件閘門：README／`godot/game`／versioning／design／`storysystem` 顯式「劇情框架＝設計；活線未做／EA 不做」
 - [x] **N2** （可選）開 `eventsystem.md` 占位——**不**排活線實作
 - [x] **O1** J1 紀錄表補桌面滿載列— `j1_perf_probe.sh -- --load`（15 客＋3 分身；process 2.85／physics 13.12 ms）；Deck 仍待
-- [x] **Q1** CI 可選 Godot job 跑 3 個關鍵 `*_check.gd`— `godot-checks`（`continue-on-error`）＋`tools/run_godot_checks.py`（shelf_sniper／interact_glow／difficulty）
+- [x] **Q1** CI 可選 Godot job 跑 3 個關鍵 `*_check.gd`— `tools/run_godot_checks.py`（shelf_sniper／interact_glow／difficulty）；`.github/workflows/ci.yml` `godot-checks` 改動在工作樹（需 `workflow` scope 才能推）
 
 ### v0.2 已完成（勿重開）
 
