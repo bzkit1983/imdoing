@@ -789,3 +789,22 @@ log.player.ops_item_pickup,撿起道具：%s,Picked up item: %s,捡起道具：%
 log.player.ops_bag_full,道具袋已滿,Item bag is full,道具袋已满,アイテム袋がいっぱいです
 log.player.ops_item_busy,這件道具有人在撿,Someone is picking up that item,这件道具有人在捡,そのアイテムは拾い中です
 log.ops_item.used,使用了%s,Used %s,使用了%s,%sを使った
+prep.minigames,小遊戲,Minigames,小游戏,ミニゲーム
+prep.cultivate.title,貨品培育,Goods cultivation,货品培育,商品栽培
+prep.cultivate.choose,揀 1 至 3 件倉庫貨品做材料。,Choose 1 to 3 items from your warehouse.,选 1 至 3 件仓库货品做材料。,倉庫から材料を1〜3個選んでください。
+prep.cultivate.slot,投料格 %d　%s,Slot %d · %s,投料格 %d　%s,材料枠 %d　%s
+prep.cultivate.empty,空,Empty,空,空き
+prep.cultivate.wait,所需回合：%d,Days to harvest: %d,所需回合：%d,収穫まで：%d 日
+prep.cultivate.pick,為投料格 %d 揀一件貨,Choose an item for slot %d,为投料格 %d 选一件货,材料枠 %d に入れる商品を選択
+prep.cultivate.remove,移除材料,Remove item,移除材料,材料を外す
+prep.cultivate.stock,%s　庫存 %d 件,%s · %d in stock,%s　库存 %d 件,%s　在庫 %d 個
+prep.cultivate.stock_unavailable,%s　庫存 %d 件（無可用）,%s · %d in stock (none available),%s　库存 %d 件（无可用）,%s　在庫 %d 個（選択不可）
+prep.cultivate.start,確認培育,Start cultivation,确认培育,栽培を始める
+prep.cultivate.remaining,培育中　剩餘 %d 回合,Growing · %d days left,培育中　剩余 %d 回合,栽培中　あと %d 日
+prep.cultivate.inputs,已投入：%s,Materials: %s,已投入：%s,投入した材料：%s
+prep.cultivate.ready,可以收成,Ready to harvest,可以收成,収穫できます
+prep.cultivate.harvest,收成,Harvest,收成,収穫する
+prep.cultivate.harvest_new,解鎖咗%s，已送 1 件入倉。,%s unlocked. Added 1 to the warehouse.,已解锁%s，已送 1 件入仓。,"%sを解放し、倉庫に1個追加しました。"
+prep.cultivate.harvest_done,%s ×1 已送入倉。,Added 1 %s to the warehouse.,%s ×1 已送入仓。,%sを倉庫に1個追加しました。
+prep.cultivate.stock_short,倉庫冇足夠材料。,There are not enough items in the warehouse.,仓库没有足够材料。,倉庫の材料が足りません。
+prep.cultivate.unavailable,而家未可以進行呢個操作。,This action is unavailable right now.,现在无法进行此操作。,今はこの操作ができません。

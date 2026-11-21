@@ -8,10 +8,21 @@ const GUEST_FILE := "guest_slots.json"
 
 
 func write_save(text: String) -> String:
-	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	var temp_path := SAVE_PATH + ".tmp"
+	var f := FileAccess.open(temp_path, FileAccess.WRITE)
 	if f == null:
 		return Loc.t("err.platform.save", [FileAccess.get_open_error()])
-	f.store_string(text)
+	var stored := f.store_string(text)
+	f.flush()
+	var err := f.get_error()
+	f.close()
+	if stored and err == OK:
+		err = DirAccess.rename_absolute(temp_path, SAVE_PATH)
+	elif err == OK:
+		err = ERR_FILE_CANT_WRITE
+	if err != OK:
+		DirAccess.remove_absolute(temp_path)
+		return Loc.t("err.platform.save", [err])
 	return ""
 
 
