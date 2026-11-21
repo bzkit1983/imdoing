@@ -1,7 +1,8 @@
 # 版本控制策略（Alpha v0.1 → v1.0+）
 
 - **目的：** 保留可玩的 Alpha v0.1，之後所有 issue／功能只在一條主線上推進，不再整包複製 Godot 專案。
-- **對照：** 技術評估見 `docs/alpha/tech-review-v0.2.md`（現行）；v0.1 歷史清單見 `docs/alpha/tech-review-v0.1.md`。
+- **對照：** 技術評估見 `docs/alpha/tech-review-v0.3.md`（現行）；前一輪 `docs/alpha/tech-review-v0.2.md`；v0.1 歷史清單見 `docs/alpha/tech-review-v0.1.md`。
+- **巨石合併紀律（L4）：** 改 `demo.gd`／`player.gd`／`skill_caster.gd` 且淨增時，見 [`docs/alpha/monolith-merge-gate.md`](alpha/monolith-merge-gate.md)。
 - **拍板日：** 2026-10-21
 
 ## 一句話
@@ -12,7 +13,8 @@
 
 - **範圍內：** 可連線的動作經營**日循環**（準備 → 補貨 → 營運 → 結算）、技能、評價、教學框架、中期美術、Steam／LAN／本機多人（至 M3）。
 - **範圍外（EA 不做；留 Beta／之後）：** 失敗／過關／提早關店**敘事層**、完整事件／劇情表、技能解鎖表、長線流量定稿。可重玩當日與資金保留仍依現有結算規則。
-- 對照：[`docs/alpha/design.md`](alpha/design.md)、[`docs/alpha/tech-review-v0.2.md`](alpha/tech-review-v0.2.md) H3、[`docs/beta/design.md`](beta/design.md)。
+- **劇情閘門（N1）：** [`docs/systemdesign/storysystem.md`](systemdesign/storysystem.md)＋[`story/`](systemdesign/story/)＝**設計規格先行**；**活線未做**。禁止在 EA 里程碑開 `StoryDirector`／章節狀態機／劇情 pack 執行期，除非 milestone 明確改 EA 範圍或開 Beta 旗標。事件占位見 [`eventsystem.md`](systemdesign/eventsystem.md)（**不**排活線）。
+- 對照：[`docs/alpha/design.md`](alpha/design.md)、[`docs/alpha/tech-review-v0.3.md`](alpha/tech-review-v0.3.md)（H3 拍板見 [`tech-review-v0.2.md`](alpha/tech-review-v0.2.md)）、[`docs/beta/design.md`](beta/design.md)。
 
 ## 現在的產品版
 

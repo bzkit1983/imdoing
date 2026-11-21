@@ -32,6 +32,12 @@ const DaySettle = preload("res://scripts/host/day_settle.gd")
 const WorldBuildScript = preload("res://scripts/host/world_build.gd")
 const BgmBusScript = preload("res://scripts/bgm_bus.gd")
 const NetWorldScript = preload("res://scripts/host/net_world.gd")
+const SkillDeployScript = preload("res://scripts/host/skill_deploy.gd")
+const SkillCastScript = preload("res://scripts/host/skill_cast.gd")
+const ClerkCastScript = preload("res://scripts/host/clerk_cast.gd")
+const OpsWorldScript = preload("res://scripts/host/ops_world.gd")
+const WorldSpawnScript = preload("res://scripts/host/world_spawn.gd")
+const TossWorldScript = preload("res://scripts/host/toss_world.gd")
 const NetPresentationScript = preload("res://scripts/session/net_presentation.gd")
 const TaskCatalog = preload("res://scripts/session/task_catalog.gd")
 const TaskTrackerScript = preload("res://scripts/session/task_tracker.gd")
@@ -166,6 +172,12 @@ const DIRT_CELL := 40.0
 var _dirt_block_cells: Dictionary = {}
 var _world_build = WorldBuildScript.new()
 var _net = NetWorldScript.new()
+var _skill_deploy = SkillDeployScript.new()
+var _skill_cast = SkillCastScript.new()
+var _clerk_cast = ClerkCastScript.new()
+var _ops_world = OpsWorldScript.new()
+var _world_spawn = WorldSpawnScript.new()
+var _toss_world = TossWorldScript.new()
 
 
 func _ready() -> void:
@@ -188,6 +200,12 @@ func _ready() -> void:
 	SessionService.disconnect_session.connect(_on_session_disconnect)
 	_world_build.bind(self)
 	_net.bind(self)
+	_skill_deploy.bind(self)
+	_skill_cast.bind(self)
+	_clerk_cast.bind(self)
+	_ops_world.bind(self)
+	_world_spawn.bind(self)
+	_toss_world.bind(self)
 	_net.connect_session()
 	if not SessionService.carry_state_received.is_connected(_on_carry_state_received):
 		SessionService.carry_state_received.connect(_on_carry_state_received)
@@ -660,229 +678,43 @@ func nearest_stocked_shelf(from: Vector2) -> Node2D:
 
 
 func cast_fundraise(level: int, seat: int = 0) -> void:
-	if SessionService.is_networked() and SessionService.is_client():
-		return
-	if _customers == null:
-		return
-	var picked: Array = Fundraise.choose(_customers.get_children(), level)
-	var total := 0
-	for c in picked:
-		var amount := int(c.call("payout_total")) if c.has_method("payout_total") else int(c.call("cart_total"))
-		total += amount
-		_on_paid(amount, c.get("is_elite") == true, seat, null, false, c, true)
-		c.finish_paid()
-	release_player_checkout()
-	if _player:
-		_player.log_line.emit(Loc.t("demo.fundraise", [picked.size(), total]))
+	_skill_cast.cast_fundraise(level, seat)
 
-
-## 割韭菜: cash up to `max_n` QUEUE/PAYING on one register (queue order). Returns how many paid.
 func cast_harvest_chives(reg: Node, max_n: int, seat: int = 0) -> int:
-	if SessionService.is_networked() and SessionService.is_client():
-		return 0
-	if reg == null or not is_instance_valid(reg) or max_n <= 0:
-		return 0
-	if str(reg.get("kind")) != "cashier":
-		return 0
-	var q: Array = reg.get("queue") if reg.get("queue") != null else []
-	var picked: Array = Fundraise.choose_from_register_queue(q, max_n)
-	if picked.is_empty():
-		return 0
-	var total := 0
-	for c in picked:
-		if c == null or not is_instance_valid(c):
-			continue
-		var amount := int(c.call("payout_total")) if c.has_method("payout_total") else int(c.call("cart_total"))
-		total += amount
-		_on_paid(amount, c.get("is_elite") == true, seat, null, false, c, true)
-		c.finish_paid()
-	release_player_checkout()
-	var n := picked.size()
-	_play_banner_flash(
-		Loc.t("log.demo.chives", [n]),
-		Color(0.95, 0.92, 0.35, 1.0),
-		56,
-		Color(0.08, 0.12, 0.04, 0.55),
-		0.85,
-	)
-	if _player:
-		_player.log_line.emit(Loc.t("log.demo.chives_cash", [n, total]))
-	return n
+	return _skill_cast.cast_harvest_chives(reg, max_n, seat)
 
-
-## Short skill feedback banner (攝石人 etc.).
 func play_skill_banner(text: String) -> void:
-	_play_banner_flash(
-		text,
-		Color(0.85, 0.95, 1.0, 1.0),
-		52,
-		Color(0.04, 0.08, 0.14, 0.5),
-		0.8,
-	)
+	_skill_cast.play_skill_banner(text)
 
-
-## Instant summon at door; ignore guest_cap. Returns how many guests spawned.
 func cast_summon_guest(n: int) -> int:
-	if SessionService.is_networked() and SessionService.is_client():
-		return 0
-	if phase != "open" or n <= 0:
-		return 0
-	var spawned := 0
-	for _i in n:
-		if state.sellable().is_empty():
-			break
-		if _spawn_customer(true):
-			spawned += 1
-		else:
-			break
-	return spawned
-
+	return _skill_cast.cast_summon_guest(n)
 
 func cast_guest_dusk() -> bool:
-	## 諸客的黃昏: 30 real seconds, up to 15 successful guest entries (ignore cap).
-	if SessionService.is_networked() and SessionService.is_client():
-		return phase == "open"
-	if phase != "open":
-		clear_guest_dusk()
-		return false
-	_guest_dusk_left = Skills.GUEST_DUSK_DURATION
-	_guest_dusk_remain = Skills.GUEST_DUSK_COUNT
-	_guest_dusk_in = 0.0
-	return true
-
+	return _skill_cast.cast_guest_dusk()
 
 func clear_guest_dusk() -> void:
-	_guest_dusk_left = 0.0
-	_guest_dusk_remain = 0
-	_guest_dusk_in = 0.0
-
+	_skill_cast.clear_guest_dusk()
 
 func cast_close_gate() -> void:
-	## 落閘放狗：有貨清 shopping 排隊；空車離店；小偷掉贓離店（不計逃走）。
-	if SessionService.is_networked() and SessionService.is_client():
-		return
-	if _customers == null:
-		return
-	var queued := 0
-	var left := 0
-	var thieves := 0
-	for c in _customers.get_children():
-		if c == null or not is_instance_valid(c):
-			continue
-		## FloatText / other non-customer siblings: Object.get → null → bool()/int() crash.
-		if not c.has_method("occupies_store"):
-			continue
-		if c.is_thief:
-			var st: int = c.state
-			if st == CustomerScript.State.FLEE:
-				continue
-			if c.has_method("drop_loot_and_leave"):
-				c.call("drop_loot_and_leave")
-			thieves += 1
-			continue
-		if not c.has_method("apply_close_gate"):
-			continue
-		var result := String(c.call("apply_close_gate"))
-		if result == "leave":
-			left += 1
-		elif result == "queue":
-			queued += 1
-	release_player_checkout()
-	if _player:
-		_player.log_line.emit(Loc.t("demo.close_gate", [queued, left, thieves]))
-
+	_skill_cast.cast_close_gate()
 
 func cast_three_volley() -> void:
-	## Host resolves shopping and thief outcomes; clients only receive the volley visual.
-	if SessionService.is_client() or _customers == null or _world == null:
-		return
-	var effect: Node2D = ThreeVolleyVisualScript.new()
-	effect.name = "ThreeVolleyEffect"
-	_world.add_child(effect)
-	effect.call("setup", FLOOR_ORIGIN, FLOOR_SIZE)
-	_track_three_volley_visual(effect)
-	_register_net_agent(effect, "three_volley", {
-		"ox": FLOOR_ORIGIN.x,
-		"oy": FLOOR_ORIGIN.y,
-		"fw": FLOOR_SIZE.x,
-		"fh": FLOOR_SIZE.y,
-	})
-	var hit_thieves: Array[int] = []
-	_resolve_three_volley_wave(hit_thieves)
-	_three_volley_casts.append({
-		"until_next": 2.0,
-		"waves_left": 2,
-		"hit_thieves": hit_thieves,
-		"effect": effect,
-	})
-
+	_skill_cast.cast_three_volley()
 
 func _track_three_volley_visual(effect: Node2D) -> void:
-	_three_volley_visuals.append(effect)
-	effect.tree_exiting.connect(_on_three_volley_visual_exiting.bind(effect))
-
+	_skill_cast._track_three_volley_visual(effect)
 
 func _on_three_volley_visual_exiting(effect: Node2D) -> void:
-	_three_volley_visuals.erase(effect)
-
+	_skill_cast._on_three_volley_visual_exiting(effect)
 
 func _clear_three_volley() -> void:
-	_three_volley_casts.clear()
-	for effect in _three_volley_visuals.duplicate():
-		if effect != null and is_instance_valid(effect):
-			effect.queue_free()
-	_three_volley_visuals.clear()
-
+	_skill_cast._clear_three_volley()
 
 func _tick_three_volley(delta: float) -> void:
-	if _three_volley_casts.is_empty():
-		return
-	for cast_i in range(_three_volley_casts.size() - 1, -1, -1):
-		var cast: Dictionary = _three_volley_casts[cast_i]
-		var until_next := float(cast.get("until_next", 0.0)) - delta
-		var waves_left := int(cast.get("waves_left", 0))
-		var hit_thieves: Array[int] = []
-		var hit_thieves_v = cast.get("hit_thieves", [])
-		if hit_thieves_v is Array:
-			for thief_id_v in hit_thieves_v:
-				hit_thieves.append(int(thief_id_v))
-		while until_next <= 0.0 and waves_left > 0:
-			_resolve_three_volley_wave(hit_thieves)
-			waves_left -= 1
-			until_next += 2.0
-		if waves_left <= 0:
-			_three_volley_casts.remove_at(cast_i)
-		else:
-			cast["until_next"] = until_next
-			cast["waves_left"] = waves_left
-			cast["hit_thieves"] = hit_thieves
-			_three_volley_casts[cast_i] = cast
-
+	_skill_cast._tick_three_volley(delta)
 
 func _resolve_three_volley_wave(hit_thieves: Array[int]) -> void:
-	if _customers == null or not is_instance_valid(_customers):
-		return
-	for target in _customers.get_children():
-		if target == null or not is_instance_valid(target):
-			continue
-		if target.has_method("is_active_thief") and bool(target.call("is_active_thief")):
-			var thief_id := int(target.get_instance_id())
-			if hit_thieves.has(thief_id):
-				continue
-			hit_thieves.append(thief_id)
-			if target.has_method("drop_loot_and_leave"):
-				target.call("drop_loot_and_leave")
-			continue
-		if not target.has_method("can_receive_delivery") or not bool(target.call("can_receive_delivery")):
-			continue
-		if target.get("temp_clerk") == true:
-			continue
-		var shopping_v = target.get("shopping")
-		if not (shopping_v is Array) or shopping_v.is_empty():
-			continue
-		if target.has_method("accept_must_deliver"):
-			target.call("accept_must_deliver", [String(shopping_v[0])])
-
+	_skill_cast._resolve_three_volley_wave(hit_thieves)
 
 func sellable() -> Array[String]:
 	return state.sellable()
@@ -978,240 +810,49 @@ func soothe_all(keep: float) -> void:
 
 
 func cast_dark_side(level: int, seat: int = -1) -> void:
-	if SessionService.is_networked() and SessionService.is_client():
-		return
-	if _customers == null:
-		return
-	var caster := _seat_actor(seat) if seat >= 0 else _player
-	var need := DarkSide.draft_count(level)
-	var locked = _checkout_locked_guest()
-	var pool: Array = []
-	for c in _customers.get_children():
-		if DarkSide.eligible(c, locked):
-			pool.append(c)
-	pool.shuffle()
-	var drafted: Array = []
-	for i in mini(need, pool.size()):
-		drafted.append(pool[i])
-	var rolls: Array = []
-	for c in drafted:
-		if DarkSide.roll_cashier():
-			rolls.append(c)
-	var empties: Array = DarkSide.open_registers(
-		cashiers,
-		_hired_cashier_registers(),
-		_temp_cashier_registers(),
-		_caster_pos(caster),
-		_player_lock_register(),
-	)
-	var jobs: Dictionary = DarkSide.plan(drafted, rolls, empties)
-	for c in drafted:
-		var row: Dictionary = jobs[c]
-		var reg = row.get("register", null)
-		c.call("begin_temp_clerk", String(row.get("role", "restock")), reg)
-	if caster != null and caster.has_signal("log_line"):
-		caster.log_line.emit(Loc.t("log.demo.dark_side", [drafted.size()]))
-
+	_clerk_cast.cast_dark_side(level, seat)
 
 func cast_shadow_clone(level: int, seat: int = -1) -> void:
-	if SessionService.is_networked() and SessionService.is_client():
-		return
-	dismiss_shadow_clones()
-	var caster := _seat_actor(seat) if seat >= 0 else _player
-	var need := ShadowCloneCast.clone_count(level)
-	var snap := {}
-	if caster != null and caster.has_method("clone_snapshot"):
-		snap = caster.call("clone_snapshot")
-	var facing := Vector2.RIGHT
-	if caster != null:
-		facing = Vector2(caster.get("facing"))
-	var origin := _caster_pos(caster)
-	var spots: Array = ShadowCloneCast.spawn_positions(
-		origin, facing, need, _obstacles, _clone_spawn_people_for(caster)
-	)
-	var drafted: Array = []
-	for i in need:
-		var clone: CharacterBody2D = ShadowCloneScript.new()
-		if _world != null:
-			_world.add_child(clone)
-		else:
-			add_child(clone)
-		var at: Vector2 = spots[i] if i < spots.size() else origin
-		clone.setup(self, at, snap)
-		drafted.append(clone)
-	var rolls: Array = []
-	for c in drafted:
-		if DarkSide.roll_cashier():
-			rolls.append(c)
-	var empties: Array = DarkSide.open_registers(
-		cashiers,
-		_hired_cashier_registers(),
-		_temp_cashier_registers(),
-		origin,
-		_player_lock_register(),
-	)
-	var jobs: Dictionary = DarkSide.plan(drafted, rolls, empties)
-	for c in drafted:
-		var row: Dictionary = jobs[c]
-		var role := String(row.get("role", "restock"))
-		c.call("begin_job", role, row.get("register", null))
-		var skin := String(c.get("_model_id")) if c.get("_model_id") != null else "player"
-		_register_net_agent(c, "shadow_clone", {
-			"role": role,
-			"skin_id": skin,
-		})
-	if caster != null and caster.has_signal("log_line"):
-		caster.log_line.emit(Loc.t("log.demo.shadow_clone", [drafted.size()]))
-
+	_clerk_cast.cast_shadow_clone(level, seat)
 
 func dismiss_shadow_clones() -> void:
-	for c in shadow_clones():
-		if c != null and is_instance_valid(c) and c.has_method("vanish"):
-			c.call("vanish")
-
+	_clerk_cast.dismiss_shadow_clones()
 
 func dismiss_elite_guest_specialists() -> void:
-	if _world == null:
-		return
-	for child in _world.get_children():
-		if str(child.get("kind")) == "elite_guest_specialist" and child.has_method("vanish"):
-			child.call("vanish")
-
+	_clerk_cast.dismiss_elite_guest_specialists()
 
 func shadow_clones() -> Array:
-	var out: Array = []
-	if _world == null:
-		return out
-	for c in _world.get_children():
-		if c == null or not is_instance_valid(c):
-			continue
-		if not c.has_method("is_shadow_clone_unit") or not bool(c.call("is_shadow_clone_unit")):
-			continue
-		## Truthiness: Object.get missing → null; bool(null) crashes in Godot 4.
-		if c.get("_vanishing"):
-			continue
-		out.append(c)
-	return out
-
+	return _clerk_cast.shadow_clones()
 
 func _clone_spawn_people() -> Array:
-	return _clone_spawn_people_for(_player)
-
+	return _clerk_cast._clone_spawn_people()
 
 func _clone_spawn_people_for(caster: Node2D) -> Array:
-	var people: Array = []
-	if caster != null and is_instance_valid(caster):
-		people.append(caster.global_position)
-	for p in _players:
-		if p == null or not is_instance_valid(p) or p == caster:
-			continue
-		people.append(p.global_position)
-	if _world != null:
-		for c in _world.get_children():
-			if c == null or not is_instance_valid(c):
-				continue
-			if c is CharacterBody2D:
-				people.append(c.global_position)
-	if _customers != null:
-		for c in _customers.get_children():
-			if c == null or not is_instance_valid(c):
-				continue
-			people.append(c.global_position)
-	return people
-
+	return _clerk_cast._clone_spawn_people_for(caster)
 
 func restock_holds(except: Node) -> Dictionary:
-	var sku := {}
-	var shelf := {}
-	if _world != null:
-		for c in _world.get_children():
-			if c == null or c == except or not is_instance_valid(c):
-				continue
-			## str() — String(null) throws in Godot 4.7 and aborts the whole scan,
-			## so hired clerks never finish _find_job.
-			if str(c.get("role")) != "restock":
-				continue
-			_note_restock_hold(sku, shelf, c.get("_plan_sku"), c.get("_box_sku"), c.get("_shelf"))
-	if _customers != null:
-		for c in _customers.get_children():
-			if c == null or c == except or not is_instance_valid(c):
-				continue
-			if not c.get("temp_clerk") or str(c.get("temp_role")) != "restock":
-				continue
-			_note_restock_hold(sku, shelf, c.get("_temp_plan_sku"), c.get("_temp_box_sku"), c.get("_temp_shelf"))
-	return {"sku": sku, "shelf": shelf}
-
+	return _clerk_cast.restock_holds(except)
 
 func _note_restock_hold(sku: Dictionary, shelf: Dictionary, planned, carried, target) -> void:
-	var plan_s := str(planned) if planned != null else ""
-	if plan_s != "":
-		sku[plan_s] = true
-	var carry_s := str(carried) if carried != null else ""
-	if carry_s != "":
-		sku[carry_s] = true
-	if target != null:
-		shelf[target] = true
-
+	_clerk_cast._note_restock_hold(sku, shelf, planned, carried, target)
 
 func _hired_cashier_registers() -> Array:
-	var out: Array = []
-	if _world == null:
-		return out
-	for c in _world.get_children():
-		if c == null or not is_instance_valid(c):
-			continue
-		if str(c.get("role")) != "cashier":
-			continue
-		var reg = c.get("register")
-		if reg != null:
-			out.append(reg)
-	return out
-
+	return _clerk_cast._hired_cashier_registers()
 
 func _temp_cashier_registers() -> Array:
-	var out: Array = []
-	if _customers == null:
-		return out
-	for c in _customers.get_children():
-		if c == null or not is_instance_valid(c):
-			continue
-		if not c.get("temp_clerk") or str(c.get("temp_role")) != "cashier":
-			continue
-		var reg = c.get("temp_register")
-		if reg != null:
-			out.append(reg)
-	return out
-
+	return _clerk_cast._temp_cashier_registers()
 
 func _dark_side_player_pos() -> Vector2:
-	return _caster_pos(_player)
-
+	return _clerk_cast._dark_side_player_pos()
 
 func _caster_pos(caster: Node2D) -> Vector2:
-	if caster == null or not is_instance_valid(caster):
-		return Vector2(1.0e8, 1.0e8)
-	return caster.global_position
-
+	return _clerk_cast._caster_pos(caster)
 
 func _player_lock_register():
-	## Any seat holding a cashier under command_lock (A4).
-	for p in _players:
-		if p == null or not is_instance_valid(p):
-			continue
-		if not p.get("command_lock"):
-			continue
-		var target = p.get("target")
-		if target != null and str(target.get("kind")) == "cashier":
-			return target
-	return null
-
+	_clerk_cast._player_lock_register()
 
 func _checkout_locked_guest():
-	var reg = _player_lock_register()
-	if reg == null or not reg.has_method("ready_customer"):
-		return null
-	return reg.call("ready_customer")
-
+	_clerk_cast._checkout_locked_guest()
 
 func pick_register(cust: Node) -> Node2D:
 	if cashiers.is_empty():
@@ -3453,85 +3094,11 @@ func _finish_day() -> void:
 
 
 func _tick_guest_dusk(delta: float) -> void:
-	if _guest_dusk_left <= 0.0 and _guest_dusk_remain <= 0:
-		return
-	if phase != "open":
-		clear_guest_dusk()
-		return
-	_guest_dusk_left = maxf(0.0, _guest_dusk_left - delta)
-	if _guest_dusk_remain <= 0:
-		return
-	if _guest_dusk_left <= 0.0:
-		clear_guest_dusk()
-		return
-	_guest_dusk_in -= delta
-	## Empty sellable: retry next frame (skip, do not burn a slot or the interval).
-	while _guest_dusk_remain > 0 and _guest_dusk_in <= 0.0:
-		if state.sellable().is_empty():
-			_guest_dusk_in = 0.0
-			break
-		if _spawn_customer(true):
-			_guest_dusk_remain -= 1
-			_guest_dusk_in += Skills.GUEST_DUSK_INTERVAL
-		else:
-			_guest_dusk_in = 0.0
-			break
-	if _guest_dusk_remain <= 0:
-		_guest_dusk_remain = 0
+	_world_spawn._tick_guest_dusk(delta)
 
-
-## Returns true when a guest was spawned. `ignore_cap` for 諸客的黃昏.
 func _spawn_customer(ignore_cap: bool = false) -> bool:
-	if state.sellable().is_empty():
-		return false
-	if not ignore_cap and guest_count() >= state.guest_cap():
-		return false
-	## EliteCustomer only during open phase (not restock).
-	var make_elite := false
-	var elite_lv := 1
-	if phase == "open":
-		if elite_test_active and elite_test_need_one:
-			make_elite = true
-			elite_test_need_one = false
-		elif elite_test_active:
-			## Test mode: elevated chance after the guaranteed first elite.
-			make_elite = randf() < Tuning.ELITE_TEST_SPAWN_CHANCE
-		else:
-			make_elite = randf() < Tuning.elite_spawn_chance()
-		if make_elite:
-			if elite_test_active:
-				elite_lv = elite_test_lv if elite_test_lv >= 1 else randi_range(1, 6)
-			else:
-				elite_lv = Tuning.elite_roll_level()
-	var c: CharacterBody2D = CustomerScript.new()
-	_customers.add_child(c)
-	c.setup(self, door_pos())
-	if make_elite:
-		c.call("become_elite", elite_lv)
-		announce_elite_customer(c)
-	register_customer(c)
-	var cust_extra := {
-		"pace": String(c.get("pace")),
-		"elite": bool(c.get("is_elite")),
-		"elite_lv": int(c.get("elite_lv")),
-		"model": String(c.get("_model_id")),
-		"shopping": c.shopping.duplicate() if c.get("shopping") != null else [],
-	}
-	if c.has_meta("checkout_seq_init") and bool(c.get_meta("checkout_seq_init")):
-		var dirs: Array = []
-		for d in c.checkout_seq:
-			dirs.append(int(d))
-		cust_extra["checkout_seq"] = dirs
-		cust_extra["checkout_init"] = true
-	_register_net_agent(c, "customer", cust_extra)
-	SfxBus.play("sfx_guest_enter")
-	## Rating tutorial tip arms on first normal／elite guest (not thieves).
-	if _tutorial != null and is_instance_valid(_tutorial) and _tutorial.has_method("notify_flag"):
-		_tutorial.notify_flag("guest_present")
-	return true
+	return _world_spawn._spawn_customer(ignore_cap)
 
-
-## Soft-attach a task pack for tutorial practice HUD (does not set task_test_mode).
 func attach_tutorial_practice_pack(pack_id: String) -> void:
 	if pack_id == "" or _tasks == null:
 		return
@@ -3599,48 +3166,13 @@ func _play_elite_zoom(c: Node) -> void:
 
 ## Scenario 5: no thieves until checkout tutorial is done.
 func _tutorial_blocks_thief_spawn() -> bool:
-	if state == null or int(state.scenario) != 5:
-		return false
-	return state.tutorial_status("tut.ops.checkout") != "done"
+	return _world_spawn._tutorial_blocks_thief_spawn()
 
-
-## After checkout lesson (or escape during catch lesson): force one thief in.
 func seed_thief_for_tutorial() -> void:
-	if _tutorial_blocks_thief_spawn():
-		return
-	if not (SessionService.is_server() or SessionService.is_local_transport()):
-		return
-	_spawn_thief(true)
-
+	_world_spawn.seed_thief_for_tutorial()
 
 func _spawn_thief(force: bool = false) -> void:
-	if _tutorial_blocks_thief_spawn():
-		return
-	if state.sellable().is_empty():
-		return
-	if not force and randf() > thief_appear_rate():
-		return
-	if thief_count() >= Tuning.THIEF_CAP:
-		return
-	var c: CharacterBody2D = CustomerScript.new()
-	_customers.add_child(c)
-	c.setup(self, door_pos(), true)
-	_add_interactable(c)
-	c.tree_exiting.connect(func() -> void: _remove_interactable(c))
-	register_customer(c)
-	_register_net_agent(c, "thief", {
-		"pace": "normal",
-		"elite": false,
-		"elite_lv": 0,
-		"model": String(c.get("_model_id")),
-		"shopping": c.shopping.duplicate() if c.get("shopping") != null else [],
-	})
-	SfxBus.play("sfx_thief_spawn")
-	if _player:
-		_player.log_line.emit(Loc.t("demo.thief_enter"))
-	if _tutorial != null and is_instance_valid(_tutorial) and _tutorial.has_method("notify_flag"):
-		_tutorial.notify_flag("thief_present")
-
+	_world_spawn._spawn_thief(force)
 
 func _floor() -> void:
 	_world_build.build_floor()
@@ -3687,280 +3219,67 @@ func _make_shelf(r: Rect2, cat: String, index: int, rot: int, cap: int = Tuning.
 func _make_cashier(r: Rect2, rot: int, index: int) -> Node2D:
 	return _world_build.make_cashier(r, rot, index)
 func _dirt_cell_key(p: Vector2) -> int:
-	var cx := int(floor(p.x / DIRT_CELL))
-	var cy := int(floor(p.y / DIRT_CELL))
-	return cx + cy * 4096
-
+	return _ops_world._dirt_cell_key(p)
 
 func _mark_dirt_rect_cells(r: Rect2, blocked: bool) -> void:
-	var grow := r.grow(18.0)
-	var x0 := int(floor(grow.position.x / DIRT_CELL))
-	var y0 := int(floor(grow.position.y / DIRT_CELL))
-	var x1 := int(floor(grow.end.x / DIRT_CELL))
-	var y1 := int(floor(grow.end.y / DIRT_CELL))
-	for x in range(x0, x1 + 1):
-		for y in range(y0, y1 + 1):
-			var key := x + y * 4096
-			if blocked:
-				_dirt_block_cells[key] = int(_dirt_block_cells.get(key, 0)) + 1
-			else:
-				var n := int(_dirt_block_cells.get(key, 0)) - 1
-				if n <= 0:
-					_dirt_block_cells.erase(key)
-				else:
-					_dirt_block_cells[key] = n
-
+	_ops_world._mark_dirt_rect_cells(r, blocked)
 
 func _rebuild_dirt_block_cells() -> void:
-	_dirt_block_cells.clear()
-	_mark_dirt_rect_cells(Rect2(door_pos() + Vector2(-70, -20), Vector2(140, 110)), true)
-	for o in _obstacles:
-		_mark_dirt_rect_cells(o, true)
-	for d in _dirts:
-		if d != null and is_instance_valid(d):
-			_mark_dirt_rect_cells(Rect2(d.global_position - Tuning.DIRT_SIZE * 0.5, Tuning.DIRT_SIZE), true)
+	_ops_world._rebuild_dirt_block_cells()
 
-
-## Scenario 5: no dirt until shelve lesson is done (clean lesson waits on dirt_present).
 func _tutorial_blocks_dirt_spawn() -> bool:
-	if state == null or int(state.scenario) != 5:
-		return false
-	return state.tutorial_status("tut.ops.shelve") != "done"
+	return _ops_world._tutorial_blocks_dirt_spawn()
 
-
-## Called after shelve tutorial completes so clean can arm on first dirt.
 func seed_dirt_if_tutorial_allows() -> void:
-	if _tutorial_blocks_dirt_spawn():
-		return
-	if SessionService.is_server() or SessionService.is_local_transport():
-		_try_spawn_dirt()
-
+	_ops_world.seed_dirt_if_tutorial_allows()
 
 func _try_spawn_dirt() -> void:
-	if _tutorial_blocks_dirt_spawn():
-		return
-	if _dirts.size() >= Tuning.DIRT_CAP:
-		return
-	if _dirt_block_cells.is_empty() and not _obstacles.is_empty():
-		_rebuild_dirt_block_cells()
-	var size := Tuning.DIRT_SIZE
-	## Sample free coarse cells first; full rect check only on candidates.
-	for _i in 12:
-		var origin := FLOOR_ORIGIN + Vector2(
-			randf_range(36.0, FLOOR_SIZE.x - size.x - 36.0),
-			randf_range(48.0, FLOOR_SIZE.y - size.y - 36.0)
-		)
-		var center := origin + size * 0.5
-		if _dirt_block_cells.has(_dirt_cell_key(center)):
-			continue
-		var r := Rect2(origin, size)
-		if _blocked_rect(r):
-			continue
-		_spawn_dirt(r, Tuning.random_dirt_type())
-		return
-
+	_ops_world._try_spawn_dirt()
 
 func _blocked_rect(r: Rect2) -> bool:
-	var grow := r.grow(18.0)
-	var door := Rect2(door_pos() + Vector2(-70, -20), Vector2(140, 110))
-	if grow.intersects(door):
-		return true
-	for d in _dirts:
-		if not is_instance_valid(d):
-			continue
-		var other := Rect2(d.global_position - Tuning.DIRT_SIZE * 0.5, Tuning.DIRT_SIZE).grow(24.0)
-		if grow.intersects(other):
-			return true
-	## Obstacles last (largest list).
-	for o in _obstacles:
-		if grow.intersects(o):
-			return true
-	return false
-
+	return _ops_world._blocked_rect(r)
 
 func _spawn_dirt(r: Rect2, dtype: String) -> void:
-	var area: Area2D = DirtScript.new()
-	area.setup(dtype, r.size)
-	area.global_position = r.position + r.size * 0.5
-	_world.add_child(area)
-	_dirts.append(area)
-	_add_interactable(area)
-	_mark_dirt_rect_cells(r, true)
-	area.tree_exiting.connect(_on_dirt_gone.bind(area))
-	_register_net_agent(area, "dirt", {
-		"dirt_type": dtype,
-		"sx": r.size.x,
-		"sy": r.size.y,
-	})
-	SfxBus.play("sfx_dirt_spawn")
-	if _tutorial != null and is_instance_valid(_tutorial) and _tutorial.has_method("notify_flag"):
-		_tutorial.notify_flag("dirt_present")
-
+	_ops_world._spawn_dirt(r, dtype)
 
 func _on_dirt_gone(area: Node2D) -> void:
-	if area != null and is_instance_valid(area):
-		_mark_dirt_rect_cells(Rect2(area.global_position - Tuning.DIRT_SIZE * 0.5, Tuning.DIRT_SIZE), false)
-	_dirts.erase(area)
-	_remove_interactable(area)
-
+	_ops_world._on_dirt_gone(area)
 
 func _try_spawn_ops_item() -> void:
-	if OpsItems.unlocked_count() <= 0:
-		return
-	_prune_ops_items()
-	if _ops_items.size() >= OpsItems.SPAWN_CAP:
-		return
-	var size := OpsItems.PICKUP_SIZE
-	for _i in 12:
-		var origin := FLOOR_ORIGIN + Vector2(
-			randf_range(36.0, FLOOR_SIZE.x - size.x - 36.0),
-			randf_range(48.0, FLOOR_SIZE.y - size.y - 48.0)
-		)
-		var r := Rect2(origin, size)
-		if _blocked_rect(r):
-			continue
-		_spawn_ops_item(r.position + r.size * 0.5, OpsItems.random_id())
-		return
-
+	_ops_world._try_spawn_ops_item()
 
 func _spawn_ops_item(pos: Vector2, item_id: String) -> void:
-	var area: Area2D = OpsItemPickupScript.new()
-	area.setup(item_id)
-	area.global_position = pos
-	_world.add_child(area)
-	_ops_items.append(area)
-	_add_interactable(area)
-	area.tree_exiting.connect(_on_ops_item_gone.bind(area))
-	_register_net_agent(area, "ops_item", {"item_id": item_id})
-
+	_ops_world._spawn_ops_item(pos, item_id)
 
 func _on_ops_item_gone(area: Node2D) -> void:
-	_ops_items.erase(area)
-	_remove_interactable(area)
-
+	_ops_world._on_ops_item_gone(area)
 
 func _prune_ops_items() -> void:
-	var keep: Array[Node2D] = []
-	for n in _ops_items:
-		if n != null and is_instance_valid(n):
-			keep.append(n)
-	_ops_items = keep
-
+	_ops_world._prune_ops_items()
 
 func clear_ops_items_world() -> void:
-	_prune_ops_items()
-	for n in _ops_items.duplicate():
-		if n != null and is_instance_valid(n):
-			n.queue_free()
-	_ops_items.clear()
-	for p in _players:
-		if p != null and is_instance_valid(p) and p.has_method("clear_ops_bag"):
-			p.clear_ops_bag()
-	_ops_item_spawn_in = OpsItems.SPAWN_FIRST_SEC
+	_ops_world.clear_ops_items_world()
 
-
-## Host: consume bag slot and apply bomb. Returns true if consumed.
 func use_ops_item(seat: int, slot: int) -> bool:
-	if SessionService.is_networked() and SessionService.is_client():
-		return false
-	var actor := _seat_actor(seat)
-	if actor == null or not actor.has_method("ops_bag_ids"):
-		return false
-	var bag: Array = actor.ops_bag_ids()
-	if slot < 0 or slot >= bag.size():
-		return false
-	var id := String(bag[slot])
-	if id == "" or not OpsItems.is_known(id):
-		return false
-	match id:
-		OpsItems.COMFORT_BOMB:
-			_use_comfort_bomb(seat, actor)
-		OpsItems.CLEAN_BOMB:
-			_use_clean_bomb(seat, actor)
-		OpsItems.VILLAIN_BOMB:
-			_use_villain_bomb(seat, actor)
-		_:
-			return false
-	if actor.ops_bag.size() > slot:
-		actor.ops_bag[slot] = ""
-	if actor.has_signal("stats_changed"):
-		actor.stats_changed.emit()
-	return true
-
+	return _ops_world.use_ops_item(seat, slot)
 
 func _use_comfort_bomb(_seat: int, actor: Node2D) -> void:
-	soothe_all(0.0)
-	_play_ops_bomb_flash(Loc.t("ops_item.comfort_bomb.name"), Color(1.0, 0.75, 0.85, 0.7))
-	if _customers != null:
-		## `_customers` also parents float_text siblings — only touch real guests.
-		for c in _customers.get_children():
-			if c == null or not is_instance_valid(c):
-				continue
-			if not (c is CustomerScript):
-				continue
-			var guest := c as CustomerScript
-			if guest.is_thief or guest.temp_clerk:
-				continue
-			if guest.state == CustomerScript.State.LEAVE or guest.state == CustomerScript.State.FLEE:
-				continue
-			guest.mood = Loc.t("mood.ops_happy")
-	if actor != null and actor.has_signal("log_line"):
-		actor.log_line.emit(Loc.t("log.ops_item.used", [OpsItems.display_name(OpsItems.COMFORT_BOMB)]))
-
+	_ops_world._use_comfort_bomb(_seat, actor)
 
 func _use_clean_bomb(seat: int, actor: Node2D) -> void:
-	_play_ops_bomb_flash(Loc.t("ops_item.clean_bomb.name"), Color(0.55, 0.9, 1.0, 0.7))
-	var snapshot: Array = _dirts.duplicate()
-	var FxBurst = preload("res://scripts/fx_burst.gd")
-	for d in snapshot:
-		if d == null or not is_instance_valid(d):
-			continue
-		FxBurst.spawn(self, "clean_spark", d.global_position)
-		note_clean(seat, actor)
-		d.queue_free()
-	if actor != null and actor.has_signal("log_line"):
-		actor.log_line.emit(Loc.t("log.ops_item.used", [OpsItems.display_name(OpsItems.CLEAN_BOMB)]))
-
+	_ops_world._use_clean_bomb(seat, actor)
 
 func _use_villain_bomb(seat: int, actor: Node2D) -> void:
-	_play_ops_bomb_flash(Loc.t("ops_item.villain_bomb.name"), Color(1.0, 0.45, 0.35, 0.75))
-	if _customers == null:
-		return
-	var thieves: Array = []
-	for c in _customers.get_children():
-		if c != null and is_instance_valid(c) and c.has_method("is_active_thief") and bool(c.call("is_active_thief")):
-			thieves.append(c)
-	if not thieves.is_empty():
-		play_ko_banner()
-	for t in thieves:
-		var dir := Vector2.RIGHT
-		if actor != null:
-			dir = (t.global_position - actor.global_position).normalized()
-			if dir.length_squared() < 0.01:
-				dir = Vector2.RIGHT
-		if t.has_method("ko_box_hit_and_flee"):
-			t.call("ko_box_hit_and_flee", dir)
-		record_caught(seat, "ops_item", actor)
-	if actor != null and actor.has_signal("log_line"):
-		actor.log_line.emit(Loc.t("log.ops_item.used", [OpsItems.display_name(OpsItems.VILLAIN_BOMB)]))
-
+	_ops_world._use_villain_bomb(seat, actor)
 
 func _play_ops_bomb_flash(title: String, flash_color: Color) -> void:
-	_play_banner_flash(title, Color(1.0, 0.98, 0.9, 1.0), 72, flash_color, 0.85)
-
+	_ops_world._play_ops_bomb_flash(title, flash_color)
 
 func _add_interactable(node: Node2D) -> void:
-	if _player == null:
-		return
-	if not _player.interactables.has(node):
-		_player.interactables.append(node)
-
+	_ops_world._add_interactable(node)
 
 func _remove_interactable(node: Node2D) -> void:
-	if _player == null:
-		return
-	_player.interactables.erase(node)
-
+	_ops_world._remove_interactable(node)
 
 func spawn_dropped_box(
 	pos: Vector2,
@@ -3972,115 +3291,22 @@ func spawn_dropped_box(
 	land_nudge: Vector2 = Vector2.ZERO,
 	toss_player: CharacterBody2D = null,
 ) -> void:
-	## Player tosses must never foot-drop: fall back to facing if dir was lost.
-	if toss_player != null and is_instance_valid(toss_player) and toss_dir.length_squared() < 0.0001:
-		var face: Vector2 = toss_player.facing if toss_player.get("facing") != null else Vector2.RIGHT
-		if face.length_squared() < 0.0001:
-			face = Vector2.RIGHT
-		toss_dir = face.normalized()
-	var dest := pos + Tuning.drop_offset(toss_dir, toss_dist)
-	## Instant place when no flight needed (e.g. legacy callers).
-	if not on_landed.is_valid() and toss_dir.length_squared() < 0.0001:
-		_place_dropped_box(dest + land_nudge, sku, n)
-		return
-	var sniper_guest: Node2D = null
-	var sniper_thief: Node2D = null
-	var sniper_shelf: Node2D = null
-	## Sniper buffs belong to the tossing seat — never fall back to global `_player`
-	## (Client seats on Host would otherwise miss guest／thief／shelf sniper).
-	var sniper_src: CharacterBody2D = toss_player
-	if toss_dir.length_squared() > 0.0001 and sniper_src != null and is_instance_valid(sniper_src):
-		## Priority when several snipers are armed: thief → guest → shelf.
-		if sniper_src.has_method("sniper_thief_active") and bool(sniper_src.call("sniper_thief_active")):
-			sniper_thief = _sniper_thief_for(pos)
-			if sniper_thief != null:
-				dest = _sniper_thief_drop_pos(sniper_thief)
-		if sniper_thief == null and sniper_src.has_method("sniper_guest_active") and bool(sniper_src.call("sniper_guest_active")):
-			sniper_guest = _sniper_guest_for(sku, pos)
-			if sniper_guest != null:
-				dest = _sniper_guest_drop_pos(sniper_guest)
-		if (
-			sniper_thief == null
-			and sniper_guest == null
-			and sniper_src.has_method("sniper_shelf_active")
-			and bool(sniper_src.call("sniper_shelf_active"))
-		):
-			sniper_shelf = _sniper_shelf_for(sku, pos)
-			if sniper_shelf != null:
-				dest = _sniper_drop_pos(sniper_shelf)
-	## Optional side offset (投籃高手第二件) after sniper dest so piles do not stack.
-	dest += land_nudge
-	## Player directional toss: clip walls / furniture / shelves / thieves before flight.
-	var clip_shelf: Node2D = null
-	var clip_thief: Node2D = null
-	var clip_floor := false
-	if toss_dir.length_squared() > 0.0001 and toss_player != null and is_instance_valid(toss_player):
-		var clip: Dictionary = _clip_player_toss_path_ex(pos, dest, sku, toss_player)
-		dest = clip["dest"]
-		clip_shelf = clip["shelf"]
-		clip_thief = clip["thief"]
-		clip_floor = bool(clip["floor_block"])
-	var flight_dist := pos.distance_to(dest)
-	var flight_sec := Tuning.player_drop_flight_sec(flight_dist) if toss_player != null else Tuning.DROP_FLIGHT_SEC
-	_emit_net_flight(sku, n, pos, dest, flight_sec)
-	var flight: Node2D = DropFlightScript.acquire()
-	## Player tosses fly straight; other callers keep a small arc.
-	flight.setup(sku, pos, dest, flight_sec, n, toss_player == null)
-	_world.add_child(flight)
-	flight.finished.connect(func() -> void:
-		if sniper_thief != null and is_instance_valid(sniper_thief):
-			_resolve_sniper_thief_landing(sniper_thief, dest, sku, n, toss_dir, sniper_src)
-		elif sniper_guest != null and is_instance_valid(sniper_guest):
-			_resolve_sniper_guest_landing(sniper_guest, dest, sku, n, sniper_src)
-		elif sniper_shelf != null and is_instance_valid(sniper_shelf):
-			_resolve_sniper_landing(sniper_shelf, dest, sku, n, sniper_src)
-		else:
-			_resolve_toss_landing(
-				pos, dest, sku, n, toss_dir, sniper_src, clip_shelf, clip_floor, clip_thief
-			)
-		if on_landed.is_valid():
-			on_landed.call()
-	, CONNECT_ONE_SHOT)
+	_toss_world.spawn_dropped_box(
+		pos, sku, n, toss_dir, toss_dist, on_landed, land_nudge, toss_player
+	)
 
 
-## Scatter cart piles from `origin` with flight anim; destinations do not overlap.
 func spawn_loot_scatter(
 	origin: Vector2,
 	piles: Array,
 	min_r: float,
 	max_r: float,
 ) -> void:
-	if piles.is_empty():
-		return
-	SfxBus.play("sfx_loot_scatter")
-	var dests := Tuning.loot_scatter_positions(origin, piles.size(), min_r, max_r)
-	for i in piles.size():
-		var pile: Dictionary = piles[i]
-		var sku := String(pile.get("sku", ""))
-		var n := int(pile.get("n", 0))
-		if sku == "" or n <= 0:
-			continue
-		var dest: Vector2 = dests[i] if i < dests.size() else origin + Vector2(0, Tuning.LOOT_SCATTER_MELEE_MIN)
-		var dur := Tuning.LOOT_SCATTER_FLIGHT_SEC + float(i) * 0.04
-		_spawn_box_flight(origin, dest, sku, n, dur, Callable())
+	_toss_world.spawn_loot_scatter(origin, piles, min_r, max_r)
 
 
-## Instant foot-drop of loot piles at `origin` (box-hit KO — no scatter flight).
 func spawn_loot_inplace(origin: Vector2, piles: Array) -> void:
-	if piles.is_empty():
-		return
-	SfxBus.play("sfx_loot_inplace")
-	var dests := Tuning.loot_scatter_positions(
-		origin, piles.size(), 0.0, Tuning.LOOT_INPLACE_MAX
-	)
-	for i in piles.size():
-		var pile: Dictionary = piles[i]
-		var sku := String(pile.get("sku", ""))
-		var n := int(pile.get("n", 0))
-		if sku == "" or n <= 0:
-			continue
-		var dest: Vector2 = dests[i] if i < dests.size() else origin
-		_place_dropped_box(dest, sku, n)
+	_toss_world.spawn_loot_inplace(origin, piles)
 
 
 func _spawn_box_flight(
@@ -4091,190 +3317,21 @@ func _spawn_box_flight(
 	duration: float,
 	on_landed: Callable,
 ) -> void:
-	_emit_net_flight(sku, n, from, to, duration)
-	var flight: Node2D = DropFlightScript.acquire()
-	flight.setup(sku, from, to, duration, n, true)
-	_world.add_child(flight)
-	flight.finished.connect(func() -> void:
-		_place_dropped_box(to, sku, n)
-		if on_landed.is_valid():
-			on_landed.call()
-	, CONNECT_ONE_SHOT)
+	_toss_world._spawn_box_flight(from, to, sku, n, duration, on_landed)
 
 
 func _emit_net_flight(sku: String, n: int, from: Vector2, to: Vector2, duration: float) -> void:
 	_net.emit_net_flight(sku, n, from, to, duration)
-func _toss_actor(toss_player: CharacterBody2D = null) -> CharacterBody2D:
-	if toss_player != null and is_instance_valid(toss_player):
-		return toss_player
-	return _player
 
 
-## Aim preview helper — destination only.
 func _clip_player_toss_path(from: Vector2, dest: Vector2, sku: String) -> Vector2:
-	return _clip_player_toss_path_ex(from, dest, sku, null)["dest"]
+	return _toss_world._clip_player_toss_path(from, dest, sku)
 
 
-## Clip toss path. `shelf` = accepting shelf to restock; `thief` = stop on thief;
-## `floor_block` = must land as floor pile (wall / cashier / restock / blocked shelf / other character).
 func _clip_player_toss_path_ex(
 	from: Vector2, dest: Vector2, sku: String, toss_player: CharacterBody2D = null
 ) -> Dictionary:
-	var best := dest
-	var best_t := 1.0
-	var hit_shelf: Node2D = null
-	var hit_thief: Node2D = null
-	var floor_block := false
-	var ab := dest - from
-	var len_sq := ab.length_squared()
-	if len_sq < 0.0001:
-		return {"dest": dest, "shelf": null, "thief": null, "floor_block": false}
-	## Walls (layer 1) + furniture shelves/cashier/restock (layer 2).
-	if _world != null and is_instance_valid(_world):
-		var space := _world.get_world_2d().direct_space_state
-		var mask := Tuning.LAYER_WALLS | Tuning.LAYER_FURNITURE
-		var query := PhysicsRayQueryParameters2D.create(from, dest, mask)
-		query.collide_with_areas = false
-		query.collide_with_bodies = true
-		if toss_player != null and is_instance_valid(toss_player):
-			query.exclude = [toss_player.get_rid()]
-		var hit := space.intersect_ray(query)
-		if not hit.is_empty():
-			var hp: Vector2 = hit.position
-			var t := from.distance_to(hp) / sqrt(len_sq)
-			if t < best_t:
-				best_t = t
-				## Nudge slightly back so the pile sits on walkable floor.
-				best = from.lerp(dest, maxf(0.0, t - 0.02))
-				hit_shelf = null
-				hit_thief = null
-				floor_block = true
-				var col = hit.get("collider")
-				if col != null and is_instance_valid(col):
-					var kind := str(col.get("kind"))
-					if kind == "shelf" and col.has_method("can_accept") and bool(col.call("can_accept", sku)):
-						hit_shelf = col as Node2D
-						floor_block = false
-						best = col.global_position + Tuning.DROP_FEET_OFFSET * 0.25
-					elif kind == "shelf" or kind == "cashier" or kind == "restock":
-						floor_block = true
-					elif col is CharacterBody2D:
-						## Other clerks / players on the wall layer.
-						floor_block = true
-						best = col.global_position + Tuning.DROP_FEET_OFFSET
-	## Active thieves: stop on them so the box cannot fly through to a shelf beyond.
-	var thief_r := Tuning.DROP_THIEF_HIT_RADIUS
-	for tnode in thieves():
-		if tnode == null or not is_instance_valid(tnode):
-			continue
-		if not tnode.has_method("is_active_thief") or not bool(tnode.call("is_active_thief")):
-			continue
-		var tp_pos: Vector2 = tnode.global_position
-		if _dist_point_to_segment(tp_pos, from, dest) > thief_r:
-			continue
-		var tt := clampf((tp_pos - from).dot(ab) / len_sq, 0.0, 1.0)
-		if tt < 0.05:
-			continue
-		if tt < best_t:
-			best_t = tt
-			best = tp_pos + Tuning.DROP_FEET_OFFSET
-			hit_thief = tnode
-			hit_shelf = null
-			floor_block = false
-	## Guests who still want this SKU: stop at the guest so the box does not fly past.
-	var guest_r := Tuning.DROP_GUEST_HIT_RADIUS
-	if _customers != null:
-		for c in _customers.get_children():
-			if c == null or not is_instance_valid(c):
-				continue
-			if not c.has_method("occupies_store") or bool(c.get("is_thief")):
-				continue
-			var st: int = int(c.get("state"))
-			if st == 7 or st == 9 or st == 8:
-				continue
-			var shopping = c.get("shopping")
-			if shopping == null or not (shopping is Array) or not (shopping as Array).has(sku):
-				continue
-			var gp: Vector2 = c.global_position
-			if _dist_point_to_segment(gp, from, dest) > guest_r:
-				continue
-			var tg := clampf((gp - from).dot(ab) / len_sq, 0.0, 1.0)
-			if tg < 0.05:
-				continue
-			if tg < best_t:
-				best_t = tg
-				best = gp + Tuning.DROP_FEET_OFFSET
-				hit_shelf = null
-				hit_thief = null
-				floor_block = false
-	var block_r := Tuning.DROP_SHELF_HIT_RADIUS * 0.75
-	## Explicit shelf pass (accept → restock dest; reject → floor block).
-	for s in shelves:
-		if s == null or not is_instance_valid(s):
-			continue
-		var sp: Vector2 = s.global_position
-		if _dist_point_to_segment(sp, from, dest) > block_r:
-			continue
-		var t2 := clampf((sp - from).dot(ab) / len_sq, 0.0, 1.0)
-		if t2 < 0.08:
-			continue
-		if t2 < best_t:
-			best_t = t2
-			hit_thief = null
-			if s.has_method("can_accept") and bool(s.call("can_accept", sku)):
-				best = sp + Tuning.DROP_FEET_OFFSET * 0.25
-				hit_shelf = s
-				floor_block = false
-			else:
-				best = from.lerp(dest, maxf(0.0, t2 - 0.02))
-				hit_shelf = null
-				floor_block = true
-	## Cashier / restock: stop and floor-drop (furniture layer may already have hit).
-	for node in _toss_floor_block_nodes():
-		if node == null or not is_instance_valid(node):
-			continue
-		var np: Vector2 = node.global_position
-		if _dist_point_to_segment(np, from, dest) > block_r:
-			continue
-		var tn := clampf((np - from).dot(ab) / len_sq, 0.0, 1.0)
-		if tn < 0.08:
-			continue
-		if tn < best_t:
-			best_t = tn
-			best = from.lerp(dest, maxf(0.0, tn - 0.02))
-			hit_shelf = null
-			hit_thief = null
-			floor_block = true
-	## Other seated players (wall-layer bodies) along the path.
-	for p in _players:
-		if p == null or not is_instance_valid(p):
-			continue
-		if toss_player != null and p == toss_player:
-			continue
-		var pp: Vector2 = p.global_position
-		if _dist_point_to_segment(pp, from, dest) > guest_r:
-			continue
-		var tp := clampf((pp - from).dot(ab) / len_sq, 0.0, 1.0)
-		if tp < 0.08:
-			continue
-		if tp < best_t:
-			best_t = tp
-			best = pp + Tuning.DROP_FEET_OFFSET
-			hit_shelf = null
-			hit_thief = null
-			floor_block = true
-	return {"dest": best, "shelf": hit_shelf, "thief": hit_thief, "floor_block": floor_block}
-
-
-func _toss_floor_block_nodes() -> Array:
-	var out: Array = []
-	for n in cashiers:
-		out.append(n)
-	if _world != null:
-		for child in _world.get_children():
-			if child != null and is_instance_valid(child) and str(child.get("kind")) == "restock":
-				out.append(child)
-	return out
+	return _toss_world._clip_player_toss_path_ex(from, dest, sku, toss_player)
 
 
 func _resolve_toss_landing(
@@ -4288,219 +3345,17 @@ func _resolve_toss_landing(
 	clip_floor: bool = false,
 	clip_thief: Node2D = null,
 ) -> void:
-	if n <= 0:
-		return
-	var actor := _toss_actor(toss_player)
-	if toss_dir.length_squared() < 0.0001:
-		_place_dropped_box(dest, sku, n)
-		return
-	## Prefer the thief locked at clip time so a mid-flight step cannot miss the hit.
-	var thief: Node2D = null
-	if clip_thief != null and is_instance_valid(clip_thief):
-		if clip_thief.has_method("is_active_thief") and bool(clip_thief.call("is_active_thief")):
-			thief = clip_thief
-		else:
-			## Thief fled during flight — still drop the tossed goods at the clip point.
-			_place_dropped_box(dest, sku, n)
-			return
-	else:
-		thief = _thief_for_toss(from, dest)
-	if thief != null:
-		## Thrown box lands at the hit; KO drops stolen goods in place.
-		var land_at: Vector2 = dest
-		if is_instance_valid(thief):
-			land_at = thief.global_position + Tuning.DROP_FEET_OFFSET
-		_place_dropped_box(land_at, sku, n)
-		if actor and actor.has_method("apply_toss_ko"):
-			actor.call("apply_toss_ko", thief, toss_dir)
-		return
-	## Wanting guest first (matches path clip). Reject guests must not steal a shelf hit.
-	var guest_want := _guest_for_toss(from, dest, sku, true)
-	if guest_want != null:
-		_resolve_toss_guest(guest_want, dest, sku, n, actor)
-		return
-	## Wall / cashier / restock / blocked shelf / other character → always floor pile.
-	if clip_floor:
-		_place_dropped_box(dest, sku, n)
-		return
-	var shelf: Node2D = clip_shelf if clip_shelf != null and is_instance_valid(clip_shelf) else _shelf_for_toss(dest, sku)
-	if shelf != null and shelf.has_method("can_accept") and bool(shelf.call("can_accept", sku)):
-		var placed := int(shelf.call("add_items", sku, n))
-		if placed > 0:
-			SfxBus.play("sfx_box_shelf_toss")
-			var left := n - placed
-			if actor:
-				if left <= 0:
-					actor.log_line.emit(
-						Loc.t("log.demo.toss_shelved", [Tuning.sku_name(sku), placed])
-					)
-				else:
-					actor.log_line.emit(
-						Loc.t("log.demo.toss_shelved_drop", [Tuning.sku_name(sku), placed, left])
-					)
-			if left > 0:
-				_place_dropped_box(dest, sku, left)
-			return
-	var guest_reject := _guest_for_toss(from, dest, sku, false)
-	if guest_reject != null:
-		_resolve_toss_guest(guest_reject, dest, sku, n, actor)
-		return
-	var clone := _clone_for_toss(from, dest)
-	if clone != null:
-		_resolve_toss_clone(clone, sku, n, actor)
-		return
-	_place_dropped_box(dest, sku, n)
+	_toss_world._resolve_toss_landing(
+		from, dest, sku, n, toss_dir, toss_player, clip_shelf, clip_floor, clip_thief
+	)
 
 
-func _clone_for_toss(from: Vector2, dest: Vector2) -> Node2D:
-	var best: Node2D = null
-	var best_d := Tuning.DROP_GUEST_HIT_RADIUS
-	for c in shadow_clones():
-		if c == null or not is_instance_valid(c):
-			continue
-		if c.get("_vanishing"):
-			continue
-		var p: Vector2 = c.global_position
-		var d := minf(_dist_point_to_segment(p, from, dest), dest.distance_to(p))
-		if d <= best_d:
-			best_d = d
-			best = c
-	return best
+func _guest_wants_sku(guest: Node2D, sku: String) -> int:
+	return _toss_world._guest_wants_sku(guest, sku)
 
 
-func _resolve_toss_clone(
-	clone: Node2D, sku: String, n: int, toss_player: CharacterBody2D = null
-) -> void:
-	if clone.has_method("apply_toss_hit"):
-		clone.call("apply_toss_hit")
-	_place_dropped_box(clone.global_position + Tuning.DROP_FEET_OFFSET, sku, n)
-	var actor := _toss_actor(toss_player)
-	if actor:
-		actor.log_line.emit(
-			Loc.t("log.demo.toss_clone", [Tuning.sku_name(sku), n])
-		)
-
-
-## `want_only`: true → guests whose shopping still lists `sku` (deliver hit).
-## false → any other in-range guest (reject hit). Pass sku="" with want_only=false for legacy any-guest.
-func _guest_for_toss(
-	from: Vector2, dest: Vector2, sku: String = "", want_only: bool = false
-) -> Node2D:
-	if _customers == null:
-		return null
-	var best: Node2D = null
-	var best_d := Tuning.DROP_GUEST_HIT_RADIUS
-	for c in _customers.get_children():
-		if c == null or not is_instance_valid(c):
-			continue
-		## Ops FloatText siblings under Customers lack guest props → bool(null) crash.
-		if not c.has_method("occupies_store"):
-			continue
-		if c.is_thief:
-			continue
-		var st: int = c.state
-		if st == 7 or st == 9 or st == 8:
-			continue
-		var wants := false
-		if sku != "":
-			wants = _guest_wants_sku(c, sku) > 0
-		if want_only and not wants:
-			continue
-		if not want_only and sku != "" and wants:
-			## Wanting guests are handled in the earlier pass.
-			continue
-		var p: Vector2 = c.global_position
-		var d := minf(_dist_point_to_segment(p, from, dest), dest.distance_to(p))
-		if d <= best_d:
-			best_d = d
-			best = c
-	return best
-
-
-func _resolve_toss_guest(
-	guest: Node2D, dest: Vector2, sku: String, n: int, toss_player: CharacterBody2D = null
-) -> void:
-	var actor := _toss_actor(toss_player)
-	var before := 0
-	if guest != null and guest.get("shopping") != null:
-		before = int((guest.shopping as Array).size())
-	var taken := 0
-	if guest.has_method("accept_toss_box"):
-		taken = int(guest.call("accept_toss_box", sku, n))
-	var toss_seat := int(actor.seat_id) if actor != null else 0
-	if taken > 0:
-		var left := n - taken
-		SfxBus.play("sfx_box_hit_guest_ok")
-		if actor:
-			actor.log_line.emit(
-				Loc.t("log.demo.toss_guest_ok", [
-					Tuning.sku_name(sku), taken,
-					(Loc.t("log.demo.toss_remain", [left]) if left > 0 else ""),
-				])
-			)
-		if left > 0:
-			_place_dropped_box(dest, sku, left)
-		var perfect: bool = before >= 1 and guest != null and guest.get("shopping") != null and bool(guest.shopping.is_empty())
-		if perfect and guest.has_method("apply_combo_bonus"):
-			guest.call("apply_combo_bonus")
-		combo_note_qualify(toss_seat)
-		if perfect:
-			combo_note_perfect(toss_seat)
-		note_deliver(toss_seat, "toss", 1, perfect)
-		return
-	if guest.has_method("apply_toss_reject"):
-		guest.call("apply_toss_reject", sku)
-	SfxBus.play("sfx_box_hit_guest_reject")
-	_place_dropped_box(dest, sku, n)
-	combo_break_personal(toss_seat)
-	if actor:
-		actor.log_line.emit(Loc.t("log.demo.toss_guest_reject"))
-
-
-## Active thief nearest the flight segment / landing within hit radius.
-func _thief_for_toss(from: Vector2, dest: Vector2) -> Node2D:
-	var best: Node2D = null
-	var best_d := Tuning.DROP_THIEF_HIT_RADIUS
-	for t in thieves():
-		if t == null or not is_instance_valid(t):
-			continue
-		if not t.has_method("is_active_thief") or not bool(t.call("is_active_thief")):
-			continue
-		var p: Vector2 = t.global_position
-		var d := minf(_dist_point_to_segment(p, from, dest), dest.distance_to(p))
-		if d <= best_d:
-			best_d = d
-			best = t
-	return best
-
-
-func _dist_point_to_segment(p: Vector2, a: Vector2, b: Vector2) -> float:
-	var ab := b - a
-	var len_sq := ab.length_squared()
-	if len_sq < 0.0001:
-		return p.distance_to(a)
-	var t := clampf((p - a).dot(ab) / len_sq, 0.0, 1.0)
-	return p.distance_to(a + ab * t)
-
-
-## Nearest active thief. No target → caller keeps the normal toss.
 func _sniper_thief_for(from: Vector2) -> Node2D:
-	var best: Node2D = null
-	var best_d := INF
-	for t in thieves():
-		if t == null or not is_instance_valid(t):
-			continue
-		if not t.has_method("is_active_thief") or not bool(t.call("is_active_thief")):
-			continue
-		var d := from.distance_squared_to(t.global_position)
-		if d < best_d:
-			best_d = d
-			best = t
-	return best
-
-
-func _sniper_thief_drop_pos(thief: Node2D) -> Vector2:
-	return thief.global_position + Tuning.DROP_FEET_OFFSET
+	return _toss_world._sniper_thief_for(from)
 
 
 func _resolve_sniper_thief_landing(
@@ -4511,206 +3366,31 @@ func _resolve_sniper_thief_landing(
 	toss_dir: Vector2,
 	toss_player: CharacterBody2D = null,
 ) -> void:
-	if n <= 0:
-		return
-	var actor := _toss_actor(toss_player)
-	## Thief fled / became uncatchable while the box was in the air.
-	if not thief.has_method("is_active_thief") or not bool(thief.call("is_active_thief")):
-		_place_dropped_box(dest, sku, n)
-		if actor:
-			actor.log_line.emit(
-				Loc.t("log.demo.sniper_thief_gone", [Tuning.sku_name(sku), n])
-			)
-		return
-	## Hit lands at the thief; whole throw drops (thief does not take shopping).
-	_place_dropped_box(thief.global_position + Tuning.DROP_FEET_OFFSET, sku, n)
-	if actor and actor.has_method("apply_toss_ko"):
-		actor.call("apply_toss_ko", thief, toss_dir)
-	elif actor:
-		actor.log_line.emit(
-			Loc.t("log.demo.sniper_thief_hit", [Tuning.sku_name(sku), n])
-		)
+	_toss_world._resolve_sniper_thief_landing(thief, dest, sku, n, toss_dir, toss_player)
 
 
-## Guests who can still take `sku` from their shopping list. Nearest first.
-## No target → caller keeps the normal toss. Unlike shelf sniper, there is no
-## "fly to a full guest and dump beside them" fallback.
 func _sniper_guest_for(sku: String, from: Vector2) -> Node2D:
-	if _customers == null or sku == "":
-		return null
-	var best: Node2D = null
-	var best_d := INF
-	for c in _customers.get_children():
-		if c == null or not is_instance_valid(c):
-			continue
-		## Skip FloatText / non-guest children before any Object.get coercions.
-		if not c.has_method("can_receive_delivery"):
-			continue
-		if c.is_thief:
-			continue
-		if not bool(c.call("can_receive_delivery")):
-			continue
-		if _guest_wants_sku(c, sku) <= 0:
-			continue
-		var d := from.distance_squared_to(c.global_position)
-		if d < best_d:
-			best_d = d
-			best = c
-	return best
-
-
-func _guest_wants_sku(guest: Node2D, sku: String) -> int:
-	var shopping = guest.get("shopping")
-	if not (shopping is Array):
-		return 0
-	var want := 0
-	for s in shopping:
-		if String(s) == sku:
-			want += 1
-	return want
-
-
-func _sniper_guest_drop_pos(guest: Node2D) -> Vector2:
-	return guest.global_position + Tuning.DROP_FEET_OFFSET
+	return _toss_world._sniper_guest_for(sku, from)
 
 
 func _resolve_sniper_guest_landing(
 	guest: Node2D, dest: Vector2, sku: String, n: int, toss_player: CharacterBody2D = null
 ) -> void:
-	if n <= 0:
-		return
-	var actor := _toss_actor(toss_player)
-	## Guest may have finished shopping while the box was in the air.
-	if not guest.has_method("can_receive_delivery") or not bool(guest.call("can_receive_delivery")) or _guest_wants_sku(guest, sku) <= 0:
-		_place_dropped_box(dest, sku, n)
-		if actor:
-			actor.log_line.emit(
-				Loc.t("log.demo.sniper_guest_gone", [Tuning.sku_name(sku), n])
-			)
-		return
-	var before := 0
-	if guest.get("shopping") != null:
-		before = int((guest.shopping as Array).size())
-	var taken := 0
-	if guest.has_method("accept_toss_box"):
-		taken = int(guest.call("accept_toss_box", sku, n))
-	var left := n - taken
-	var toss_seat := int(actor.seat_id) if actor != null else 0
-	if taken > 0:
-		SfxBus.play("sfx_box_hit_guest_ok")
-		var perfect: bool = before >= 1 and bool(guest.shopping.is_empty())
-		if perfect and guest.has_method("apply_combo_bonus"):
-			guest.call("apply_combo_bonus")
-		combo_note_qualify(toss_seat)
-		if perfect:
-			combo_note_perfect(toss_seat)
-		note_deliver(toss_seat, "toss", 1, perfect)
-		if actor:
-			if left <= 0:
-				actor.log_line.emit(
-					Loc.t("log.demo.sniper_guest_ok", [Tuning.sku_name(sku), taken])
-				)
-			else:
-				actor.log_line.emit(
-					Loc.t("log.demo.sniper_guest_partial", [Tuning.sku_name(sku), taken, left])
-				)
-	elif actor:
-		actor.log_line.emit(
-			Loc.t("log.demo.sniper_guest_gone", [Tuning.sku_name(sku), n])
-		)
-	if left > 0:
-		_place_dropped_box(dest, sku, left)
+	_toss_world._resolve_sniper_guest_landing(guest, dest, sku, n, toss_player)
 
 
-## Same-SKU shelves only. Prefer the nearest with free space; otherwise the nearest full one.
 func _sniper_shelf_for(sku: String, from: Vector2) -> Node2D:
-	var list = _shelves_by_sku.get(sku)
-	if list == null:
-		return null
-	var best_open: Node2D = null
-	var best_open_d := INF
-	var best_any: Node2D = null
-	var best_any_d := INF
-	for s in list:
-		if s == null or not is_instance_valid(s):
-			continue
-		if String(s.get("sku")) != sku or int(s.get("count")) <= 0:
-			continue
-		var d := from.distance_squared_to(s.global_position)
-		if d < best_any_d:
-			best_any_d = d
-			best_any = s
-		if s.has_method("can_accept") and bool(s.call("can_accept", sku)) and d < best_open_d:
-			best_open_d = d
-			best_open = s
-	return best_open if best_open != null else best_any
-
-
-func _sniper_drop_pos(shelf: Node2D) -> Vector2:
-	if shelf.has_method("stand_position"):
-		return shelf.call("stand_position")
-	return shelf.global_position + Vector2(0.0, 48.0)
+	return _toss_world._sniper_shelf_for(sku, from)
 
 
 func _resolve_sniper_landing(
 	shelf: Node2D, dest: Vector2, sku: String, n: int, toss_player: CharacterBody2D = null
 ) -> void:
-	if n <= 0:
-		return
-	var actor := _toss_actor(toss_player)
-	var placed := 0
-	if shelf.has_method("can_accept") and bool(shelf.call("can_accept", sku)) and shelf.has_method("add_items"):
-		placed = int(shelf.call("add_items", sku, n))
-	var left := n - placed
-	if placed > 0:
-		SfxBus.play("sfx_box_shelf_toss")
-		if actor:
-			if left <= 0:
-				actor.log_line.emit(
-					Loc.t("log.demo.sniper_shelf_ok", [Tuning.sku_name(sku), placed])
-				)
-			else:
-				actor.log_line.emit(
-					Loc.t("log.demo.sniper_shelf_partial", [Tuning.sku_name(sku), placed, left])
-				)
-	elif actor:
-		actor.log_line.emit(
-			Loc.t("log.demo.sniper_shelf_full", [Tuning.sku_name(sku), n])
-		)
-	if left > 0:
-		_place_dropped_box(dest, sku, left)
+	_toss_world._resolve_sniper_landing(shelf, dest, sku, n, toss_player)
 
 
-## Nearest shelf that can accept `sku` at the landing (clip already snapped accept hits).
-func _shelf_for_toss(dest: Vector2, sku: String) -> Node2D:
-	var best: Node2D = null
-	var best_d := Tuning.DROP_SHELF_HIT_RADIUS
-	var cat := Tuning.category_of(sku)
-	## Prefer indexed stocked shelves + empty shelves of matching category.
-	var candidates: Array = []
-	var stocked = _shelves_by_sku.get(sku)
-	if stocked != null:
-		for s in stocked:
-			candidates.append(s)
-	var empties = _empty_by_cat.get(cat)
-	if empties != null:
-		for s in empties:
-			candidates.append(s)
-	if candidates.is_empty():
-		candidates = shelves
-	for s in candidates:
-		if s == null or not is_instance_valid(s):
-			continue
-		if not s.has_method("can_accept") or not bool(s.call("can_accept", sku)):
-			continue
-		var shelf_sku := String(s.get("sku"))
-		if shelf_sku != "" and shelf_sku != sku:
-			continue
-		var d := dest.distance_to(s.global_position)
-		if d <= best_d:
-			best_d = d
-			best = s
-	return best
+func _place_dropped_box(dest: Vector2, sku: String, n: int) -> void:
+	_toss_world._place_dropped_box(dest, sku, n)
 
 
 ## Full-screen KO flash used when a fight mash finishes the thief.
@@ -4774,17 +3454,6 @@ func _play_banner_flash(
 	tw.tween_property(flash, "color:a", 0.0, hold_sec * 0.55)
 	tw.parallel().tween_property(lab, "modulate:a", 0.0, hold_sec * 0.55)
 	tw.tween_callback(layer.queue_free)
-
-
-func _place_dropped_box(dest: Vector2, sku: String, n: int) -> void:
-	SfxBus.play("sfx_box_land")
-	var drop: Area2D = DroppedBoxScript.new()
-	drop.setup(sku, n)
-	drop.global_position = dest
-	_world.add_child(drop)
-	_add_interactable(drop)
-	drop.tree_exiting.connect(func() -> void: _remove_interactable(drop))
-	_register_net_agent(drop, "drop", {"sku": sku, "n": n})
 
 
 func _make_player(skin_id: String = "player") -> CharacterBody2D:
@@ -5164,360 +3833,61 @@ func _fit_body(body: StaticBody2D, r: Rect2, model_id: String, rot: int, layer: 
 func _caption(pos: Vector2, text: String) -> Label:
 	return _world_build.caption(pos, text)
 func deploy_universal_cannon(at: Vector2, level: int, seat: int) -> Node2D:
-	if _world == null or phase not in ["open", "restock"]:
-		return null
-	if SessionService.is_networked() and SessionService.is_client():
-		return null
-	# Defensive ownership gate in addition to the player's runtime reference.
-	for child in _world.get_children():
-		if str(child.get("kind")) == "universal_cannon" and child.owner_seat == seat and not child.dismissed:
-			return child
-	var cannon: Node2D = preload("res://scripts/universal_cannon.gd").new()
-	cannon.host = self
-	cannon.level = clampi(level, 1, 3)
-	cannon.owner_seat = seat
-	_world.add_child(cannon)
-	cannon.global_position = at
-	for player in _players:
-		if not player.interactables.has(cannon):
-			player.interactables.append(cannon)
-	_register_net_agent(cannon, "universal_cannon", {
-		"owner_seat": seat,
-		"level": cannon.level,
-		"ammo_n": 0,
-		"sku": "",
-	})
-	return cannon
-
+	return _skill_deploy.deploy_universal_cannon(at, level, seat)
 
 func deploy_shelf_cannon(at: Vector2, level: int, seat: int) -> Node2D:
-	if _world == null or phase not in ["open", "restock"]:
-		return null
-	if SessionService.is_networked() and SessionService.is_client():
-		return null
-	for child in _world.get_children():
-		if str(child.get("kind")) == "shelf_cannon" and child.owner_seat == seat and not child.dismissed:
-			return child
-	var cannon: Node2D = preload("res://scripts/shelf_cannon.gd").new()
-	cannon.host = self
-	cannon.level = clampi(level, 1, 3)
-	cannon.owner_seat = seat
-	_world.add_child(cannon)
-	cannon.global_position = at
-	for player in _players:
-		if not player.interactables.has(cannon):
-			player.interactables.append(cannon)
-	_register_net_agent(cannon, "shelf_cannon", {
-		"owner_seat": seat,
-		"level": cannon.level,
-		"ammo_n": 0,
-		"sku": "",
-	})
-	return cannon
-
+	return _skill_deploy.deploy_shelf_cannon(at, level, seat)
 
 func deploy_kind_cannon(at: Vector2, level: int, seat: int) -> Node2D:
-	if _world == null or phase not in ["open", "restock"]:
-		return null
-	if SessionService.is_networked() and SessionService.is_client():
-		return null
-	for child in _world.get_children():
-		if str(child.get("kind")) == "kind_cannon" and child.owner_seat == seat and not child.dismissed:
-			return child
-	var cannon: Node2D = preload("res://scripts/kind_cannon.gd").new()
-	cannon.host = self
-	cannon.level = clampi(level, 1, 3)
-	cannon.owner_seat = seat
-	_world.add_child(cannon)
-	cannon.global_position = at
-	for player in _players:
-		if player != null and is_instance_valid(player) and not player.interactables.has(cannon):
-			player.interactables.append(cannon)
-	_register_net_agent(cannon, "kind_cannon", {
-		"owner_seat": seat,
-		"level": cannon.level,
-		"ammo_n": 0,
-	})
-	return cannon
-
+	return _skill_deploy.deploy_kind_cannon(at, level, seat)
 
 func deploy_elite_guest_cannon(at: Vector2, level: int, seat: int) -> Node2D:
-	if _world == null or phase not in ["open", "restock"]:
-		return null
-	if SessionService.is_networked() and SessionService.is_client():
-		return null
-	for child in _world.get_children():
-		if str(child.get("kind")) != "elite_guest_cannon" or int(child.get("owner_seat")) != seat:
-			continue
-		if child.get("dismissed") == true:
-			continue
-		child.refresh_level(level)
-		return child
-	var cannon: Node2D = preload("res://scripts/elite_guest_cannon.gd").new()
-	cannon.host = self
-	cannon.level = clampi(level, 1, 3)
-	cannon.owner_seat = seat
-	_world.add_child(cannon)
-	cannon.global_position = at
-	_register_net_agent(cannon, "elite_guest_cannon", {
-		"owner_seat": seat,
-		"level": cannon.level,
-		"remaining": 30.0,
-	})
-	return cannon
-
+	return _skill_deploy.deploy_elite_guest_cannon(at, level, seat)
 
 func deploy_elite_guest_specialist(at: Vector2, level: int, seat: int) -> Node2D:
-	if _world == null or phase != "open":
-		return null
-	if SessionService.is_networked() and SessionService.is_client():
-		return null
-	for child in _world.get_children():
-		if str(child.get("kind")) != "elite_guest_specialist" or int(child.get("owner_seat")) != seat:
-			continue
-		if not bool(child.get("_vanishing")):
-			return null
-	var caster := _seat_actor(seat)
-	if caster == null or not caster.has_method("clone_snapshot"):
-		return null
-	var snap: Dictionary = caster.call("clone_snapshot")
-	var facing := Vector2(caster.get("facing"))
-	var spots: Array[Vector2] = ShadowCloneCast.spawn_positions(
-		at, facing, 1, _obstacles, _clone_spawn_people_for(caster)
-	)
-	var spawn_at := spots[0] if not spots.is_empty() else at
-	var specialist = preload("res://scripts/elite_guest_specialist.gd").new()
-	_world.add_child(specialist)
-	specialist.setup_specialist(self, spawn_at, snap, seat, clampi(level, 1, 3))
-	_register_net_agent(specialist, "elite_guest_specialist", {
-		"owner_seat": seat,
-		"level": specialist.level,
-		"skin_id": String(snap.get("skin_id", "player")),
-	})
-	return specialist
-
+	return _skill_deploy.deploy_elite_guest_specialist(at, level, seat)
 
 func deliver_elite_guest_specialist_item(guest: Node, sku: String, seat: int) -> bool:
-	if SessionService.is_networked() and SessionService.is_client():
-		return false
-	if (
-		guest == null
-		or not is_instance_valid(guest)
-		or not guest.has_method("can_receive_delivery")
-		or guest.get("is_elite") != true
-		or guest.get("temp_clerk") == true
-		or not bool(guest.call("can_receive_delivery"))
-		or not guest.has_method("accept_toss_box")
-		or sku == ""
-	):
-		return false
-	var guest_2d := guest as Node2D
-	if (
-		guest_2d == null
-		or _guest_wants_sku(guest_2d, sku) <= elite_guest_cannon_reserved_count(guest, sku)
-	):
-		return false
-	if int(state.stock.get(sku, 0)) <= 0 or not bool(state.consume_stock(sku, 1)):
-		return false
-	if int(guest.call("accept_toss_box", sku, 1)) != 1:
-		state.credit_unsold_pieces({sku: 1})
-		sync_stock()
-		return false
-	sync_stock()
-	note_deliver(seat, "specialist", 1, false)
-	return true
-
+	return _skill_deploy.deliver_elite_guest_specialist_item(guest, sku, seat)
 
 func elite_guest_cannon_reserved_count(guest: Node, sku: String) -> int:
-	if guest == null or not is_instance_valid(guest) or sku == "":
-		return 0
-	var by_sku = _elite_guest_cannon_reservations.get(guest.get_instance_id(), {})
-	return int(by_sku.get(sku, 0)) if by_sku is Dictionary else 0
-
+	return _skill_deploy.elite_guest_cannon_reserved_count(guest, sku)
 
 func reserve_elite_guest_cannon_need(guest: Node, sku: String) -> bool:
-	if (
-		guest == null
-		or not is_instance_valid(guest)
-		or sku == ""
-		or guest.get("is_elite") != true
-		or guest.get("temp_clerk") == true
-		or not guest.has_method("can_receive_delivery")
-		or not bool(guest.call("can_receive_delivery"))
-	):
-		return false
-	var shopping = guest.get("shopping")
-	if not (shopping is Array):
-		return false
-	var needed := 0
-	for requested in shopping:
-		if String(requested) == sku:
-			needed += 1
-	if needed <= elite_guest_cannon_reserved_count(guest, sku):
-		return false
-	var target_id := guest.get_instance_id()
-	var by_sku: Dictionary = _elite_guest_cannon_reservations.get(target_id, {})
-	by_sku[sku] = int(by_sku.get(sku, 0)) + 1
-	_elite_guest_cannon_reservations[target_id] = by_sku
-	return true
-
+	return _skill_deploy.reserve_elite_guest_cannon_need(guest, sku)
 
 func release_elite_guest_cannon_need(target_id: int, sku: String) -> void:
-	if target_id <= 0 or not _elite_guest_cannon_reservations.has(target_id):
-		return
-	var by_sku: Dictionary = _elite_guest_cannon_reservations[target_id]
-	var left := int(by_sku.get(sku, 0)) - 1
-	if left > 0:
-		by_sku[sku] = left
-	else:
-		by_sku.erase(sku)
-	if by_sku.is_empty():
-		_elite_guest_cannon_reservations.erase(target_id)
-	else:
-		_elite_guest_cannon_reservations[target_id] = by_sku
-
+	_skill_deploy.release_elite_guest_cannon_need(target_id, sku)
 
 func resolve_elite_guest_cannon_delivery(
 	guest: Node, sku: String, seat: int, target_id: int
 ) -> bool:
-	release_elite_guest_cannon_need(target_id, sku)
-	if (
-		guest == null
-		or not is_instance_valid(guest)
-		or guest.get("is_elite") != true
-		or guest.get("temp_clerk") == true
-		or not guest.has_method("can_receive_delivery")
-		or not bool(guest.call("can_receive_delivery"))
-		or not guest.has_method("accept_toss_box")
-	):
-		return false
-	var accepted := int(guest.call("accept_toss_box", sku, 1))
-	if accepted != 1:
-		return false
-	note_deliver(seat, "cannon", 1, false)
-	return true
-
+	return _skill_deploy.resolve_elite_guest_cannon_delivery(guest, sku, seat, target_id)
 
 func deploy_calm_zone(at: Vector2, level: int, seat: int) -> Node2D:
-	if _world == null or phase not in ["open", "restock"]:
-		return null
-	if SessionService.is_networked() and SessionService.is_client():
-		return null
-	var zone: Node2D = preload("res://scripts/calm_zone.gd").new()
-	zone.host = self
-	zone.level = clampi(level, 1, 3)
-	zone.owner_seat = seat
-	_world.add_child(zone)
-	zone.global_position = at
-	_register_net_agent(zone, "calm_zone", {
-		"owner_seat": seat,
-		"level": zone.level,
-	})
-	return zone
-
+	return _skill_deploy.deploy_calm_zone(at, level, seat)
 
 func _remove_cannon_interactable(cannon: Node2D) -> void:
-	var lock = get_node_or_null("/root/InteractLock")
-	if lock != null:
-		var seat: int = lock.holder_of(cannon)
-		if seat >= 0:
-			lock.release(cannon, seat)
-	for player in _players:
-		player.interactables.erase(cannon)
-		if player.target == cannon:
-			player._reset_hold()
-			player.target = null
-
+	_skill_deploy._remove_cannon_interactable(cannon)
 
 func dismiss_universal_cannons() -> void:
-	if _world == null:
-		return
-	for child in _world.get_children():
-		if str(child.get("kind")) == "universal_cannon":
-			child.dismiss()
-
+	_skill_deploy.dismiss_universal_cannons()
 
 func dismiss_shelf_cannons() -> void:
-	if _world == null:
-		return
-	for child in _world.get_children():
-		if str(child.get("kind")) == "shelf_cannon":
-			child.dismiss()
-
+	_skill_deploy.dismiss_shelf_cannons()
 
 func dismiss_kind_cannons() -> void:
-	if _world == null:
-		return
-	for child in _world.get_children():
-		if str(child.get("kind")) == "kind_cannon":
-			child.dismiss()
-
+	_skill_deploy.dismiss_kind_cannons()
 
 func dismiss_elite_guest_cannons() -> void:
-	if _world == null:
-		return
-	for child in _world.get_children():
-		if str(child.get("kind")) == "elite_guest_cannon":
-			child.dismiss()
-
+	_skill_deploy.dismiss_elite_guest_cannons()
 
 func _resolve_net_kind_conversion(thief: Node) -> void:
-	if thief == null or not is_instance_valid(thief) or not thief.has_method("apply_kind_cannon_conversion"):
-		return
-	if not bool(thief.call("apply_kind_cannon_conversion")):
-		return
-	_thieves.erase(thief)
-	_guest_n += 1
-	_recount_active_thieves()
-	for player in _players:
-		if player == null or not is_instance_valid(player):
-			continue
-		player.interactables.erase(thief)
-		if player.target == thief:
-			if player._fighting:
-				player._end_fight(true)
-			else:
-				player._reset_hold()
-			player.target = null
-	bump_hud()
-
+	_skill_deploy._resolve_net_kind_conversion(thief)
 
 func convert_thief_to_guest(thief: Node2D, seat: int) -> bool:
-	if SessionService.is_networked() and SessionService.is_client():
-		return false
-	if not is_instance_valid(thief) or not thief.has_method("is_active_thief") or not thief.is_active_thief():
-		return false
-	if not thief.has_method("apply_kind_cannon_conversion") or not bool(thief.call("apply_kind_cannon_conversion")):
-		return false
-	_thieves.erase(thief)
-	_guest_n += 1
-	_recount_active_thieves()
-	_seat_bump(seat_kind_converted, seat, 1)
-	kind_converted_total += 1
-	for player in _players:
-		if player == null or not is_instance_valid(player):
-			continue
-		player.interactables.erase(thief)
-		if player.target == thief:
-			if player._fighting:
-				player._end_fight(true)
-			else:
-				player._reset_hold()
-			player.target = null
-	bump_hud()
-	if thief.net_agent_id >= 0 and SessionService.is_networked() and SessionService.is_server():
-		SessionService.broadcast_agent_state({"id": thief.net_agent_id, "kind_converted": true})
-	return true
-
+	return _skill_deploy.convert_thief_to_guest(thief, seat)
 
 func cannon_hit_thief(thief: Node2D, seat: int, direction: Vector2) -> void:
-	if not is_instance_valid(thief) or not thief.is_active_thief():
-		return
-	# Resolve state immediately so concurrent projectiles cannot count the KO twice.
-	thief.ko_box_hit_and_flee(direction)
-	record_caught(seat)
-	SfxBus.play("sfx_box_hit_thief")
-	play_ko_banner()
-	for player in _players:
-		if player.target == thief and player._fighting:
-			player._end_fight(true)
+	_skill_deploy.cannon_hit_thief(thief, seat, direction)
+

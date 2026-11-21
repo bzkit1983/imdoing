@@ -9,6 +9,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 CUSTOMER = (ROOT / "godot/game/scripts/customer.gd").read_text(encoding="utf-8")
 DEMO = (ROOT / "godot/game/scripts/demo.gd").read_text(encoding="utf-8")
+## L1: guest spawn body lives in host/world_spawn.gd; demo keeps thin forwards.
+WORLD_SPAWN = (ROOT / "godot/game/scripts/host/world_spawn.gd").read_text(encoding="utf-8")
+SPAWN = DEMO + "\n" + WORLD_SPAWN
 TUNING = (ROOT / "godot/game/scripts/tuning.gd").read_text(encoding="utf-8")
 STATE = (ROOT / "godot/game/scripts/game_state.gd").read_text(encoding="utf-8")
 DOC = (ROOT / "docs/systemdesign/elitecustomer.md").read_text(encoding="utf-8")
@@ -46,18 +49,18 @@ def main() -> int:
     ]:
         if needle not in where:
             errs.append(f"missing {needle!r}")
-    if "become_elite" not in DEMO:
+    if "become_elite" not in SPAWN:
         errs.append("demo spawn should call become_elite")
-    if not re.search(r"elite_spawn_chance", DEMO):
+    if not re.search(r"elite_spawn_chance", SPAWN):
         errs.append("demo should roll elite_spawn_chance")
-    if "ELITE_TEST_SPAWN_CHANCE" not in DEMO:
+    if "ELITE_TEST_SPAWN_CHANCE" not in SPAWN:
         errs.append("elite test mode should use ELITE_TEST_SPAWN_CHANCE")
     tun = (ROOT / "godot/game/scripts/tuning.gd").read_text(encoding="utf-8")
     if "ELITE_TEST_SPAWN_CHANCE" not in tun:
         errs.append("tuning missing ELITE_TEST_SPAWN_CHANCE")
     if "payout_total" not in (ROOT / "godot/game/scripts/player.gd").read_text(encoding="utf-8"):
         errs.append("player checkout should use payout_total")
-    if "elite_test_need_one" not in DEMO or "elite_test_need_one = false" not in DEMO:
+    if "elite_test_need_one" not in SPAWN or "elite_test_need_one = false" not in SPAWN:
         errs.append("guaranteed first elite should clear elite_test_need_one")
     if "約 40%" not in DOC and "40%" not in DOC:
         errs.append("elitecustomer.md should note elevated test spawn rate")

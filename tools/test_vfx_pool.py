@@ -7,6 +7,7 @@ DROP = (ROOT / "godot/game/scripts/drop_flight.gd").read_text(encoding="utf-8")
 FX = (ROOT / "godot/game/scripts/fx_burst.gd").read_text(encoding="utf-8")
 FLOAT = (ROOT / "godot/game/scripts/ui/float_text.gd").read_text(encoding="utf-8")
 DEMO = (ROOT / "godot/game/scripts/demo.gd").read_text(encoding="utf-8")
+TOSS = (ROOT / "godot/game/scripts/host/toss_world.gd").read_text(encoding="utf-8")
 NET = (ROOT / "godot/game/scripts/host/net_world.gd").read_text(encoding="utf-8")
 
 errs: list[str] = []
@@ -27,9 +28,9 @@ need("_frames_cache" in FX, "fx_burst caches textures across reuse")
 need("func _recycle(" in FLOAT and "static var _pool" in FLOAT, "float_text pool")
 need("_tween.kill()" in FLOAT or "kill()" in FLOAT, "float_text kills tween on recycle")
 
-need("DropFlightScript.acquire()" in DEMO, "demo acquires drop flights")
-need("CONNECT_ONE_SHOT" in DEMO, "demo finished listeners are one-shot")
-need("DropFlightScript.new()" not in DEMO, "demo no longer news drop flights")
+need("DropFlightScript.acquire()" in TOSS, "toss_world acquires drop flights")
+need("CONNECT_ONE_SHOT" in TOSS, "toss_world finished listeners are one-shot")
+need("DropFlightScript.new()" not in DEMO and "DropFlightScript.new()" not in TOSS, "no news drop flights")
 need("DropFlightScript.acquire()" in NET, "net_world acquires drop flights")
 need("DropFlightScript.new()" not in NET, "net_world no longer news drop flights")
 

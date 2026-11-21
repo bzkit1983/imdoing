@@ -1,11 +1,14 @@
 # 技術評估 v0.2（業界質素／可續寫／效能／遊戲設計）
 
+> **後繼：** 現行評估見 [`tech-review-v0.3.md`](tech-review-v0.3.md)（2026-11-20 · 活線 `godot/game` · v1.5.0）。本文保留為歷史基線與 §7 勾選紀錄。
+
 - **範圍：** 活線 `godot/game`（Godot **4.7** · 產品 **`v1.4.0`**）；設計以 `docs/systemdesign/` 為準
 - **對照 tip：** `origin/main` @ `f37a8d73`（2026-11-14）
 - **前一輪：** [`tech-review-v0.1.md`](tech-review-v0.1.md)（2026-10-20／21，當時約以 `godot/alpha_v0_1` 為準）
 - **並行證據：** [`runtime-perf-audit.md`](runtime-perf-audit.md) · [`implementation-status.md`](implementation-status.md) · [`systemdesign-gaps.md`](../systemdesign-gaps.md) · [`multiplayer.md`](../systemdesign/multiplayer.md)
 - **目標平台：** Steam · Nintendo Switch · Xbox（及現行 Web 試玩）
 - **性質：** 工程＋產品可交付性評估；**非**玩法規格。玩法仍以 `docs/systemdesign/` 為準。
+- **狀態：** 審查結論與 §7 清單供對照；現行分數／跟進見 v0.3。
 
 ## 總評
 

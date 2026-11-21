@@ -2,18 +2,19 @@
 
 - 此檔案定義**劇情模式框架**（章節結構、解鎖權威、與任務／成長系統的關係）
 - **不含**劇本對話、角色設定、具體任務文案；各章細節見 [`story/`](story/)
+- **閘門：** 本檔與 `story/`＝**設計先行**。**活線未做**；Steam EA／現行產品**不做**章節 runtime（見 [`docs/versioning.md`](../versioning.md)）。貢獻者勿開敘事 PR，除非 milestone 改 EA 範圍或 Beta 旗標。
 - 概念沙盒對照（非產品、可推翻）：[`docs/concepts/ten-chapter-growth-blueprint.md`](../concepts/ten-chapter-growth-blueprint.md)
 - 任務條件語意：[`tasksystem.md`](tasksystem.md)；劇情 pack stub：[`taskcontent-story-stub.md`](taskcontent-story-stub.md)
-- 事件修飾器表：待 [`eventsystem.md`](eventsystem.md)（尚未開檔）
+- 事件修飾器表：[`eventsystem.md`](eventsystem.md)（占位；**不**排活線）
 
 # 狀態
 
 | 項目 | 狀態 |
 |------|------|
-| 框架結構（本章） | **產品規格開檔** |
+| 框架結構（本章） | **產品規格開檔（設計）** |
 | 各章內容／事件／劇本 | 開檔 stub，詳情後補 |
 | 期望 EXP／資金／技能／開發規模等數字 | 產品建議見 `story/growth-*.md`；實作前可再調 |
-| 活線實作 | 未做（見 `docs/beta/design.md`、`docs/versioning.md`） |
+| 活線實作 | **未做／EA 不做**（見 `docs/beta/design.md`、`docs/versioning.md`） |
 
 # 章節結構
 

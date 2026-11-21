@@ -36,15 +36,16 @@
 
 ```bash
 # repo root
-./tools/j1_perf_probe.sh
-# 或: GODOT=/path/to/Godot ./tools/j1_perf_probe.sh
+./tools/j1_perf_probe.sh              # prep settle（空店地板）
+./tools/j1_perf_probe.sh -- --load    # 強制 open＋滿 cap 客人＋影分身 Lv3
+# 或: GODOT=/path/to/Godot ./tools/j1_perf_probe.sh -- --load
 ```
 
-輸出前綴 `J1_PROBE`。
+輸出前綴 `J1_PROBE`。`--load` 仍是**單座 headless**（非正式 Editor Profiler、非雙人），但比空店 settle 更接近滿載腳本／物理壓力。
 
 ---
 
-## 3. 實驗室首筆（2026-11-14）
+## 3. 實驗室首筆（2026-11-14 · 空店）
 
 | 欄位 | 值 |
 | --- | --- |
@@ -62,7 +63,28 @@
 | nodes / resources | 73 / 175 |
 | static mem | ~122.7 MiB |
 
-**解讀：** 空店 prep 在 M3 上腳本＋物理合計 **約 1 ms／幀** 量級，桌面餘裕大。滿店＋影分身＋雙人的瓶頸仍須 §1 手動 Profiler 才能定 Switch／Deck 地板。
+**解讀：** 空店 prep 在 M3 上腳本＋物理合計 **約 1 ms／幀** 量級，桌面餘裕大。
+
+---
+
+## 3b. 桌面滿載輔測（2026-11-21 · O1）
+
+| 欄位 | 值 |
+| --- | --- |
+| 機器 | Apple **M3** · 8 GB · arm64 · macOS |
+| Godot | 4.7.2.stable |
+| 方式 | `./tools/j1_perf_probe.sh -- --load`（headless） |
+| 場景 | `_begin_day` → 強制 guests＝cap、`cast_shadow_clone(3)` → sample 8 s |
+| guest_cap / guests / clones | **15 / 15 / 3** |
+| samples | 1143 |
+| avg frame (from FPS) | **7.02 ms**（仍受 headless FPS 上限影響） |
+| max frame | 7.69 ms |
+| avg `TIME_PROCESS` | **2.85 ms** |
+| avg `TIME_PHYSICS_PROCESS` | **13.12 ms** |
+| nodes / resources | 711 / 1949 |
+| static mem | ~122.5 MiB |
+
+**解讀：** 相對空店，process ≈ **5×**、physics ≈ **25×**；物理在滿店＋分身時成主壓力。桌面仍遠低於 16.7 ms 預算；**Deck／雙人 Editor Profiler** 仍待 §1 手動填。
 
 ---
 
@@ -71,6 +93,7 @@
 | 日期 | 機器／匯出 | 配方（cap／分身／雙人） | avg frame ms | process ms | physics ms | 備註 |
 | --- | --- | --- | --- | --- | --- | --- |
 | 2026-11-14 | M3 8GB · headless | prep settle（非正式） | 6.92* | 0.56 | 0.52 | *受 FPS 回報限制；看 process／physics |
+| 2026-11-21 | M3 8GB · headless `--load` | 滿店 **15**＋分身 **3**＋單座 | 7.02* | **2.85** | **13.12** | O1 桌面滿載輔測；非雙人／非 Editor Profiler |
 | | Deck／低階筆電 | 滿店 15＋分身 3＋雙人 open 30s | | | | 待測 |
 | | （未來）Switch | 同上 | | | | 待測 |
 

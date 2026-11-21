@@ -98,6 +98,7 @@ FORCE_CHARS = (
 	"閉項調音量聲點選右上"
 	# Skill name glyphs that previously tofu'd on subset-only platforms.
 	"善良的炮三段火槍陣枪阵銃斉源頭減廢源头减废"
+	"西客炮仓届倉送有糧出無汗出粮我說有光就有光说说"
 	# Hiragana + katakana (full) so ja UI never tofu even if a string is missed.
 	"ぁあぃいぅうぇえぉおかがきぎくぐけげこごさざしじすずせぜそぞただちぢっつづてでとどなにぬねのはばぱひびぴふぶぷへべぺほぼぽまみむめもゃやゅゆょよらりるれろゎわゐゑをんゔゕゖ゛゜ゝゞ"
 	"ァアィイゥウェエォオカガキギクグケゲコゴサザシジスズセゼソゾタダチヂッツヅテデトドナニヌネノハバパヒビピフブプヘベペホボポマミムメモャヤュユョヨラリルレロヮワヰヱヲンヴヵヶヷヸヹヺ・ーヽヾ"
