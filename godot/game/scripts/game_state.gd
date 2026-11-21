@@ -3,6 +3,7 @@ extends RefCounted
 
 const Tuning = preload("res://scripts/tuning.gd")
 const Skills = preload("res://scripts/skills.gd")
+const XpRules = preload("res://scripts/session/xp_rules.gd")
 
 ## Bump when the save schema changes; from_dict must migrate or reject.
 ## 2+: stock is pieces. v1 saves store boxes and are multiplied by BOX_SIZE on load.
@@ -14,16 +15,20 @@ const RatingRules = preload("res://scripts/session/rating_rules.gd")
 
 const CELL := 64.0
 const WAGE := 100
-const XP_CLOSE := 100
-const XP_SERVE := 2
-const XP_CATCH := 10
-const XP_CLEAN := 5
-## Extra XP when a 麻煩客人（EliteCustomer）is successfully checked out.
-const XP_ELITE_SERVE := 10
-const SCALE_MAX := {1: 10, 2: 15, 3: 20}
-const SCALE_COST := {2: 3000, 3: 6000}
-const SCALE_NEED_LV := {2: 4, 3: 7}
-const HIRE_CAP := {1: 0, 2: 1, 3: 2}
+const LEVEL_CAP := XpRules.LEVEL_CAP
+## Legacy float-text fallbacks; settle uses XpRules.rates_for_level(level).
+const XP_CLOSE := 80
+const XP_SERVE := 3
+const XP_CATCH := 15
+const XP_CLEAN := 6
+const XP_ELITE_SERVE := 12
+## Total area cap (cells²). Default square side = floor(sqrt(area)).
+const SCALE_AREA := {1: 100, 2: 180, 3: 280, 4: 400, 5: 560, 6: 720}
+const SCALE_COST := {2: 4000, 3: 8000, 4: 15000, 5: 25000, 6: 40000}
+const HIRE_CAP := {1: 0, 2: 2, 3: 2, 4: 3, 5: 4, 6: 5}
+const SCALE_MAX_LV := 6
+## Default grid side after expand (floor √area). Kept as SCALE_MAX for callers.
+const SCALE_MAX := {1: 10, 2: 13, 3: 16, 4: 20, 5: 23, 6: 26}
 const CULTIVATION_WAIT := [0, 2, 4, 8]
 ## Keys contain sorted SKU IDs, including duplicate pieces.
 const CULTIVATION_RECIPES := {
@@ -390,28 +395,16 @@ func set_restock_default_sku(index: int, sku: String) -> void:
 
 
 func xp_to_next() -> int:
-	if level >= 10:
-		return 0
-	return _xp_need(level + 1)
+	return XpRules.xp_to_next(level)
 
 
 func _xp_need(target_lv: int) -> int:
-	match target_lv:
-		2: return 200
-		3: return 400
-		4: return 800
-		5: return 1200
-		6: return 1500
-		7: return 2000
-		8: return 3000
-		9: return 5000
-		10: return 6000
-		_: return 0
+	return XpRules.xp_need(target_lv)
 
 
-## Grant EXP as needed and level up until `level >= min_lv` (cap 10). Returns levels gained.
+## Grant EXP as needed and level up until `level >= min_lv` (cap LEVEL_CAP). Returns levels gained.
 func ensure_min_level(min_lv: int) -> int:
-	min_lv = clampi(min_lv, 1, 10)
+	min_lv = clampi(min_lv, 1, LEVEL_CAP)
 	var ups := 0
 	while level < min_lv:
 		var need := _xp_need(level + 1)
@@ -438,14 +431,19 @@ func ensure_min_money(min_amount: int) -> int:
 
 ## Raise shop_scale／grid to min_scale without charging SCALE_COST. Returns steps raised.
 func ensure_min_shop_scale(min_scale: int) -> int:
-	min_scale = clampi(min_scale, 1, 3)
+	min_scale = clampi(min_scale, 1, SCALE_MAX_LV)
 	var ups := 0
 	while shop_scale < min_scale:
 		shop_scale += 1
-		grid_w = int(SCALE_MAX[shop_scale])
-		grid_h = int(SCALE_MAX[shop_scale])
+		var side := scale_default_side(shop_scale)
+		grid_w = side
+		grid_h = side
 		ups += 1
 	return ups
+
+
+static func scale_default_side(scale: int) -> int:
+	return int(SCALE_MAX.get(clampi(scale, 1, SCALE_MAX_LV), 10))
 
 
 func spend_point(stat: String, delta: int) -> String:
@@ -749,8 +747,7 @@ func item_at(x: int, y: int) -> int:
 
 
 func area_cap() -> int:
-	var side := int(SCALE_MAX[shop_scale])
-	return side * side
+	return int(SCALE_AREA.get(clampi(shop_scale, 1, SCALE_MAX_LV), 100))
 
 
 func set_grid(w: int, h: int) -> String:
@@ -767,18 +764,18 @@ func set_grid(w: int, h: int) -> String:
 
 
 func expand() -> String:
-	if shop_scale >= 3:
+	if shop_scale >= SCALE_MAX_LV:
 		return Loc.t("err.max_scale")
 	var nxt := shop_scale + 1
-	if level < int(SCALE_NEED_LV[nxt]):
-		return Loc.t("err.need_level", [int(SCALE_NEED_LV[nxt])])
+	## Money-only until story/event unlock gates land.
 	var price := int(SCALE_COST[nxt])
 	if money < price:
 		return Loc.t("err.funds")
 	money -= price
 	shop_scale = nxt
-	grid_w = int(SCALE_MAX[nxt])
-	grid_h = int(SCALE_MAX[nxt])
+	var side := scale_default_side(nxt)
+	grid_w = side
+	grid_h = side
 	return ""
 
 
@@ -1102,32 +1099,19 @@ func settle(
 	xp_override: int = -1,
 	ops_rating: int = RatingRules.OPS_START,
 ) -> Dictionary:
-	var gain_xp := (
-		XP_CLOSE
-		+ served * XP_SERVE
-		+ caught * XP_CATCH
-		+ cleaned * XP_CLEAN
-		+ elite_served * XP_ELITE_SERVE
-		+ bonus_xp
+	var gain_xp := XpRules.raw_xp_for_counts(
+		level, served, caught, cleaned, elite_served, bonus_xp
 	)
 	if xp_override >= 0:
 		gain_xp = xp_override
 	xp += gain_xp
-	var ups := 0
-	while level < 10:
-		var need := _xp_need(level + 1)
-		if need <= 0 or xp < need:
-			break
-		xp -= need
-		level += 1
-		unspent += 5
-		ups += 1
+	var ups := XpRules.apply_level_ups(self)
 	money += revenue
 	last_loss = revenue < day_procurement
 	var note := ""
 	if ups > 0:
 		note = Loc.t("err.level_up", [ups, ups * 5])
-	if level >= 10:
+	if level >= LEVEL_CAP:
 		note += Loc.t("err.level_cap_note")
 	level_note = note
 	var loss := last_loss
@@ -1157,21 +1141,18 @@ func settle(
 	}
 
 
-## Per-seat raw XP (includes XP_CLOSE). Coop averages these.
+## Per-seat raw XP (includes close bonus). Coop averages these.
+## `for_level` selects the day-settle rate band (growth-character level proxy).
 static func raw_xp_for_counts(
 	served: int,
 	caught: int,
 	cleaned: int,
 	elite_served: int = 0,
 	bonus_xp: int = 0,
+	for_level: int = 1,
 ) -> int:
-	return (
-		XP_CLOSE
-		+ served * XP_SERVE
-		+ caught * XP_CATCH
-		+ cleaned * XP_CLEAN
-		+ elite_served * XP_ELITE_SERVE
-		+ bonus_xp
+	return XpRules.raw_xp_for_counts(
+		for_level, served, caught, cleaned, elite_served, bonus_xp
 	)
 
 
@@ -1426,7 +1407,7 @@ func from_dict(data: Dictionary) -> String:
 			if is_restock_type(t):
 				row["default_sku"] = String(d.get("default_sku", ""))
 			placed.append(row)
-	shop_scale = clampi(int(data.get("shop_scale", 1)), 1, 3)
+	shop_scale = clampi(int(data.get("shop_scale", 1)), 1, SCALE_MAX_LV)
 	grid_w = maxi(8, int(data.get("grid_w", 10)))
 	grid_h = maxi(8, int(data.get("grid_h", 10)))
 	clerks.clear()

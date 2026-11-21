@@ -9,8 +9,9 @@
 
 #**經驗值**
 經驗只會增加，不會減少。
-來源暫時跟 `ecosystem.md`：關店 +100、每成功收銀 +2、每抓住小偷 +10、每成功清潔 +5。
-**劇情／事件任務可以給 XP**（已拍板）：給否與量由**個別任務報酬**設計，不是固定每關同一公式。具體數值待成長分析＋任務報酬表（`docs/beta/design.md`、`story/progression-crossref.md` §6）。
+**活線已接**產品曲線／日結帶：見 [`story/growth-character.md`](story/growth-character.md)；實作 `godot/game/scripts/session/xp_rules.gd`（上限 LV99）。  
+日結基礎 XP 暫以**角色等級帶**代理章段（尚無 `story_chapter_id`）：LV1–18／19–36／37–60／61–99 → 關店／收銀／麻煩／賊／清潔見該文 §3。  
+**劇情／事件任務可以給 XP**（已拍板）：給否與量由**個別任務報酬**設計。任務報酬表見 `docs/beta/design.md`、`story/progression-crossref.md` §6。
 
 #**級數與技能**
 **等級從不直接解鎖技能。** 學會一律由**劇情／事件任務獎勵**發放；任務可要求 `player_level >= N`。  
@@ -25,7 +26,6 @@
 劇情模式框架見 `storysystem.md`。等級＝成長與任務條件，**不是**解鎖權威。
 
 #**角色升級所需經驗值**
-起始 LV 1。  
-**產品建議曲線**（取代僅 LV2–10 測試表）：見 [`story/growth-character.md`](story/growth-character.md)（主線至約 LV60 累計 130,250 XP；滿級 99 累計 311,600）。  
-以下舊測試表僅對照，**不作產品最終值**：
-Lv2: 200／Lv3: 400／Lv4: 800／Lv5: 1200／Lv6: 1500／Lv7: 2000／Lv8: 3000／Lv9: 5000／LV10: 6000
+起始 LV 1；滿級 **99**。  
+產品公式與累計錨點（至 LV60 ≈ 130,250；滿級 ≈ 311,600）見 [`story/growth-character.md`](story/growth-character.md)。  
+舊 LV2–10 測試表已退役。

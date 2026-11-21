@@ -1096,7 +1096,7 @@ static func _expand(menu: CanvasLayer) -> void:
 		menu.state.grid_w * menu.state.grid_h, menu.state.area_cap(),
 	])
 	var expand_icon := _prep_row_icon("expand")
-	if menu.state.shop_scale < 3:
+	if menu.state.shop_scale < int(menu.state.SCALE_MAX_LV):
 		var nxt: int = int(menu.state.shop_scale) + 1
 		menu._add(Loc.t("prep.expand.row", [nxt, int(menu.state.SCALE_COST[nxt])]), "expand", null, expand_icon)
 	else:
