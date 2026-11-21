@@ -814,6 +814,11 @@ prep.light_quiz.line1,你要相信我!,You have to believe in me!,你要相信�
 prep.light_quiz.line2,你才要相信我!你全家也要相信我!,You're the one who should believe in me! Your whole family should believe in me too!,你才要相信我!你全家也要相信我!,そっちこそ僕を信じろよ！ 家族みんなで僕を信じろよ！
 prep.light_quiz.line3,......,......,......,......
 prep.light_quiz.line4,無論如何....接受試煉吧!,In any case.... face the trial!,无论如何....接受试炼吧!,ともかく……試練を受けよ！
+prep.light_quiz.outro1,你已通過試煉。我已將這能力賜予你。你可願作我的子民，歸入我的羊群？,"You have passed the trial. I have bestowed this power upon you. Will you become one of my people and join my flock?",你已通过试炼。我已将这能力赐予你。你可愿作我的子民，归入我的羊群？,あなたは試練を乗り越えた。この力をあなたに授けた。わが民となり，わが羊の群れに加わる気はあるか？
+prep.light_quiz.outro2,能力我可以接受，但我不想成為你的子民！,I'll take the power. But I don't want to be one of your people!,能力我可以接受，但我不想成为你的子民！,力は受け取る。でも、あなたの民にはなりたくない！
+prep.light_quiz.outro3,此事由不得你選擇。,The choice is not yours to make.,此事由不得你选择。,あなたに選ぶ権利はない。
+prep.light_quiz.outro4,咁你又問？,Then why'd you ask?,那你还问？,じゃあ何で聞いたの？
+prep.light_quiz.reward,已獲得奧義：%s,Ultimate acquired: %s,已获得奥义：%s,奥義を獲得：%s
 prep.light_quiz.continue,按確認或點擊繼續,Confirm or click to continue,按确认或点击继续,決定ボタンかクリックで進む
 prep.light_quiz.progress,第 %d／%d 題,Question %d of %d,第 %d／%d 题,第%d問／全%d問
 prep.light_quiz.score,答對 %d／%d 題,%d of %d correct,答对 %d／%d 题,正解 %d／%d 問

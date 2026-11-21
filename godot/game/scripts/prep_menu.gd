@@ -478,7 +478,7 @@ func can_access_cultivation() -> bool:
 
 
 func _show_page(page: String) -> void:
-	if page in ["hub_minigames", "cultivate", "cultivate_pick", "light_intro", "light_quiz"] and not can_access_cultivation():
+	if page in ["hub_minigames", "cultivate", "cultivate_pick", "light_intro", "light_outro", "light_quiz"] and not can_access_cultivation():
 		page = "home"
 	if page not in ["cultivate", "cultivate_pick"]:
 		_cultivation_slots = ["", "", ""]
@@ -504,7 +504,7 @@ func _show_page(page: String) -> void:
 			_steam_join_from_invite = false
 	if _light_intro != null:
 		_light_intro.stop()
-	if page == "light_intro":
+	if page in ["light_intro", "light_outro"]:
 		if _light_intro == null:
 			_light_intro = LightQuizIntro.new()
 			add_child(_light_intro)
@@ -1177,14 +1177,20 @@ func _activate() -> void:
 		"cultivate_pick":
 			_cultivation_slot = int(arg)
 			_show_page("cultivate_pick")
-		"light_intro_next":
+		"light_dialogue_next":
 			if not _light_intro.ready_for_dialogue:
 				return
+			var outro := _page == "light_outro"
+			var speakers := LightQuizIntro.OUTRO_SPEAKERS if outro else LightQuizIntro.SPEAKERS
 			_light_line += 1
-			if _light_line == LightQuizIntro.SPEAKERS.size():
-				_restart_light_quiz()
+			if _light_line < speakers.size():
+				_light_intro.set_line(_light_line, outro)
+			elif outro:
+				_show_page("light_quiz")
+				var ultimate := Loc.t("skill.let_there_be_light.name")
+				_popup_info(Loc.t("prep.light_quiz.unlocked"), Loc.t("prep.light_quiz.reward", [ultimate]))
 			else:
-				_light_intro.set_line(_light_line)
+				_restart_light_quiz()
 		"light_quiz_retry":
 			_restart_light_quiz()
 		"light_quiz_answer":
@@ -1196,10 +1202,10 @@ func _activate() -> void:
 			_index = 0
 			if _light_score == LIGHT_QUIZ_ANSWERS.size():
 				_save_light_quiz_win()
-			_refresh()
+			else:
+				_refresh()
 		"light_quiz_save":
 			_save_light_quiz_win()
-			_refresh()
 		"cultivate_material":
 			_cultivation_slots[_cultivation_slot] = String(arg)
 			_show_page("cultivate")
@@ -2600,12 +2606,16 @@ func _save_light_quiz_win() -> void:
 	if not can_access_cultivation() or _light_score != LIGHT_QUIZ_ANSWERS.size():
 		return
 	_msg = state.unlock_light_ultimate()
+	if _msg.is_empty():
+		_show_page("light_outro")
+	else:
+		_refresh()
 
 
 func _input(event: InputEvent) -> void:
 	if _try_back_click(event):
 		return
-	if visible and _page == "light_intro" and event is InputEventMouseButton:
+	if visible and _page in ["light_intro", "light_outro"] and event is InputEventMouseButton:
 		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			get_viewport().set_input_as_handled()
 			_activate()

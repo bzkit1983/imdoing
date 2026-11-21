@@ -4,6 +4,7 @@ signal dialogue_ready
 
 const UiFont = preload("res://scripts/ui_font.gd")
 const SPEAKERS := ["god", "player", "god", "god"]
+const OUTRO_SPEAKERS := ["god", "player", "god", "player"]
 
 var ready_for_dialogue := false
 var _glow: TextureRect
@@ -70,10 +71,12 @@ func stop() -> void:
 	hide()
 
 
-func set_line(index: int) -> void:
+func set_line(index: int, outro: bool = false) -> void:
+	var speakers := OUTRO_SPEAKERS if outro else SPEAKERS
+	var line_key := "prep.light_quiz.outro%d" if outro else "prep.light_quiz.line%d"
 	_copy.text = "%s\n%s\n\n%s" % [
-		Loc.t("prep.light_quiz." + SPEAKERS[index]),
-		Loc.t("prep.light_quiz.line%d" % (index + 1)),
+		Loc.t("prep.light_quiz." + speakers[index]),
+		Loc.t(line_key % (index + 1)),
 		Loc.t("prep.light_quiz.continue"),
 	]
 

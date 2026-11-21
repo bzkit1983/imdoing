@@ -26,6 +26,8 @@ static func parent_page(page: String) -> String:
 		and SessionService.keeps_room_after_settle()
 	)
 	match page:
+		"light_outro":
+			return "light_quiz"
 		"hub_minigames":
 			return "home"
 		"cultivate", "light_intro", "light_quiz":
@@ -188,10 +190,10 @@ static func fill(menu: CanvasLayer, page: String) -> void:
 			menu._add_hub(Loc.t("prep.cultivate.title"), "go", "cultivate", "goods")
 			menu._add_hub(Loc.t("skill.let_there_be_light.name"), "go", "light_intro", "skills")
 			menu._rebuild_hub_tiles()
-		"light_intro":
-			menu._light_intro.set_line(menu._light_line)
+		"light_intro", "light_outro":
+			menu._light_intro.set_line(menu._light_line, page == "light_outro")
 			menu._back_btn.visible = menu._light_intro.ready_for_dialogue
-			menu._add(Loc.t("prep.light_quiz.continue"), "light_intro_next")
+			menu._add(Loc.t("prep.light_quiz.continue"), "light_dialogue_next")
 		"light_quiz":
 			_light_quiz(menu)
 		"cultivate":
