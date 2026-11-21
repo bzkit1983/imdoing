@@ -10,7 +10,9 @@ const XpRules = preload("res://scripts/session/xp_rules.gd")
 ## 3+: shop_rating / rating_history / difficulty / last_* rating fields.
 ## 4+: day_index / active_tasks_by_seat / task test selection (tasksystem.md).
 ## 5+: pending goods cultivation.
-const SAVE_VERSION := 5
+## 6+: completion of the Genesis quiz.
+const SAVE_VERSION := 6
+const LIGHT_ULTIMATE := "let_there_be_light"
 const RatingRules = preload("res://scripts/session/rating_rules.gd")
 
 const CELL := 64.0
@@ -116,6 +118,7 @@ var support_rating: int = 0
 ## Closed ops days (increments on every close including early close).
 var day_index: int = 0
 var cultivation: Dictionary = {}
+var light_quiz_passed := false
 ## seat id string → Array of task runtime rows (see session/task_tracker.gd).
 var active_tasks_by_seat: Dictionary = {}
 ## Prep「測試任務」: off | pack | random
@@ -150,6 +153,7 @@ func apply_scenario(id: int) -> void:
 	last_grade = 0
 	day_index = 0
 	cultivation.clear()
+	light_quiz_passed = false
 	active_tasks_by_seat.clear()
 	task_test_mode = "off"
 	task_test_pack_id = "OP-TUT-001"
@@ -892,12 +896,28 @@ func equip(slot_i: int, skill_id: String) -> String:
 	return equip_set(skill_set_index, slot_i, skill_id)
 
 
+func unlock_light_ultimate() -> String:
+	if light_quiz_passed:
+		return ""
+	light_quiz_passed = true
+	var err := save_to_disk()
+	if err != "":
+		light_quiz_passed = false
+	return err
+
+
+func can_equip_skill(skill_id: String) -> bool:
+	return skill_id != LIGHT_ULTIMATE or light_quiz_passed
+
+
 func equip_set(set_i: int, slot_i: int, skill_id: String) -> String:
 	if set_i < 0 or set_i >= skill_sets.size():
 		return ""
 	var sk := Skills.by_id(skill_id)
 	if sk.is_empty():
 		return Loc.t("err.no_skill")
+	if not can_equip_skill(skill_id):
+		return Loc.t("prep.light_quiz.locked")
 	var pack: Dictionary = skill_sets[set_i]
 	if slot_i == 5:
 		if String(sk.get("kind")) != "ultimate":
@@ -1321,6 +1341,7 @@ func to_dict() -> Dictionary:
 		"for_sale": for_sale.duplicate(true),
 		"stock": stock.duplicate(true),
 		"cultivation": cultivation.duplicate(true),
+		"light_quiz_passed": light_quiz_passed,
 		"owned": owned.duplicate(true),
 		"placed": placed_list,
 		"shop_scale": shop_scale,
@@ -1454,6 +1475,7 @@ func from_dict(data: Dictionary) -> String:
 	difficulty_prompt_acked = String(data.get("difficulty_prompt_acked", ""))
 	support_rating = int(data.get("support_rating", 0))
 	day_index = maxi(0, int(data.get("day_index", 0)))
+	light_quiz_passed = ver >= 6 and data.get("light_quiz_passed", false) == true
 	cultivation = {}
 	var batch = data.get("cultivation", {})
 	if batch is Dictionary:

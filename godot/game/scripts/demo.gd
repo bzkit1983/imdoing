@@ -2284,6 +2284,8 @@ func cast_self_service_operation(seat: int) -> bool:
 func can_cast_light_shelves() -> bool:
 	if state == null or (phase != "restock" and phase != "open"):
 		return false
+	if (SessionService.is_server() or SessionService.is_local_transport()) and not state.light_quiz_passed:
+		return false
 	for shelf in shelves:
 		if shelf == null or not is_instance_valid(shelf):
 			continue

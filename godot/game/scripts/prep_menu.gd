@@ -110,6 +110,12 @@ var _qty_panel: VBoxContainer
 var _hub_cols: int = 3
 var _cultivation_slots: Array[String] = ["", "", ""]
 var _cultivation_slot: int = 0
+const LightQuizIntro = preload("res://scripts/prep/light_quiz_intro.gd")
+const LIGHT_QUIZ_ANSWERS := [1, 3, 0, 2, 1]
+var _light_intro: LightQuizIntro
+var _light_line := 0
+var _light_question := 0
+var _light_score := 0
 var _open_focus: int = -1 ## -1 tiles · 10 difficulty · 0 open main · 1 elite · 2 random
 var _shade: ColorRect
 var _box: Control
@@ -472,7 +478,7 @@ func can_access_cultivation() -> bool:
 
 
 func _show_page(page: String) -> void:
-	if page in ["hub_minigames", "cultivate", "cultivate_pick"] and not can_access_cultivation():
+	if page in ["hub_minigames", "cultivate", "cultivate_pick", "light_intro", "light_quiz"] and not can_access_cultivation():
 		page = "home"
 	if page not in ["cultivate", "cultivate_pick"]:
 		_cultivation_slots = ["", "", ""]
@@ -496,6 +502,15 @@ func _show_page(page: String) -> void:
 		## Leaving claim UI without joining keeps pending; clear invite chrome only.
 		if not SessionService.has_pending_steam_invite():
 			_steam_join_from_invite = false
+	if _light_intro != null:
+		_light_intro.stop()
+	if page == "light_intro":
+		if _light_intro == null:
+			_light_intro = LightQuizIntro.new()
+			add_child(_light_intro)
+			_light_intro.dialogue_ready.connect(func(): _back_btn.show())
+		_light_line = 0
+		_light_intro.start()
 	_page = page
 	_index = 0
 	_open_focus = -1
@@ -1162,6 +1177,29 @@ func _activate() -> void:
 		"cultivate_pick":
 			_cultivation_slot = int(arg)
 			_show_page("cultivate_pick")
+		"light_intro_next":
+			if not _light_intro.ready_for_dialogue:
+				return
+			_light_line += 1
+			if _light_line == LightQuizIntro.SPEAKERS.size():
+				_restart_light_quiz()
+			else:
+				_light_intro.set_line(_light_line)
+		"light_quiz_retry":
+			_restart_light_quiz()
+		"light_quiz_answer":
+			if not can_access_cultivation() or _light_question >= LIGHT_QUIZ_ANSWERS.size():
+				return
+			if int(arg) == LIGHT_QUIZ_ANSWERS[_light_question]:
+				_light_score += 1
+			_light_question += 1
+			_index = 0
+			if _light_score == LIGHT_QUIZ_ANSWERS.size():
+				_save_light_quiz_win()
+			_refresh()
+		"light_quiz_save":
+			_save_light_quiz_win()
+			_refresh()
 		"cultivate_material":
 			_cultivation_slots[_cultivation_slot] = String(arg)
 			_show_page("cultivate")
@@ -2552,8 +2590,25 @@ func _back() -> void:
 		_show_page(PrepPages.parent_page(_page))
 
 
+func _restart_light_quiz() -> void:
+	_light_question = 0
+	_light_score = 0
+	_show_page("light_quiz")
+
+
+func _save_light_quiz_win() -> void:
+	if not can_access_cultivation() or _light_score != LIGHT_QUIZ_ANSWERS.size():
+		return
+	_msg = state.unlock_light_ultimate()
+
+
 func _input(event: InputEvent) -> void:
 	if _try_back_click(event):
+		return
+	if visible and _page == "light_intro" and event is InputEventMouseButton:
+		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			get_viewport().set_input_as_handled()
+			_activate()
 		return
 	if not visible or _page != "layout" or _dlg_open or state == null:
 		return
