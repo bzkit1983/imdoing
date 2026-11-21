@@ -8,7 +8,8 @@ const Skills = preload("res://scripts/skills.gd")
 ## 2+: stock is pieces. v1 saves store boxes and are multiplied by BOX_SIZE on load.
 ## 3+: shop_rating / rating_history / difficulty / last_* rating fields.
 ## 4+: day_index / active_tasks_by_seat / task test selection (tasksystem.md).
-const SAVE_VERSION := 4
+## 5+: pending goods cultivation.
+const SAVE_VERSION := 5
 const RatingRules = preload("res://scripts/session/rating_rules.gd")
 
 const CELL := 64.0
@@ -23,6 +24,16 @@ const SCALE_MAX := {1: 10, 2: 15, 3: 20}
 const SCALE_COST := {2: 3000, 3: 6000}
 const SCALE_NEED_LV := {2: 4, 3: 7}
 const HIRE_CAP := {1: 0, 2: 1, 3: 2}
+const CULTIVATION_WAIT := [0, 2, 4, 8]
+## Keys contain sorted SKU IDs, including duplicate pieces.
+const CULTIVATION_RECIPES := {
+	"can": ["drink", "icecream"],
+	"can,can": ["snack", "cup"],
+	"can,drink": ["soda"],
+	"drink,icecream": ["milk"],
+	"can,icecream,milk": ["meat"],
+	"can,cup,meat": ["rice"],
+}
 
 ## Display names live in locale/data.csv (`furniture.<id>`).
 const FURNITURE := {
@@ -99,6 +110,7 @@ var difficulty_prompt_acked: String = ""
 var support_rating: int = 0
 ## Closed ops days (increments on every close including early close).
 var day_index: int = 0
+var cultivation: Dictionary = {}
 ## seat id string → Array of task runtime rows (see session/task_tracker.gd).
 var active_tasks_by_seat: Dictionary = {}
 ## Prep「測試任務」: off | pack | random
@@ -132,6 +144,7 @@ func apply_scenario(id: int) -> void:
 	last_ops_rating = RatingRules.OPS_START
 	last_grade = 0
 	day_index = 0
+	cultivation.clear()
 	active_tasks_by_seat.clear()
 	task_test_mode = "off"
 	task_test_pack_id = "OP-TUT-001"
@@ -515,6 +528,69 @@ func develop(sku: String) -> String:
 	if not stock.has(sku):
 		stock[sku] = 0
 	return ""
+
+
+func start_cultivation(inputs: Array[String]) -> String:
+	if not cultivation.is_empty() or inputs.is_empty() or inputs.size() >= CULTIVATION_WAIT.size():
+		return Loc.t("prep.cultivate.unavailable")
+	var required := {}
+	for sku in inputs:
+		required[sku] = int(required.get(sku, 0)) + 1
+		if not Tuning.SELLABLE_SKUS.has(sku) or int(stock.get(sku, 0)) < int(required[sku]):
+			return Loc.t("prep.cultivate.stock_short")
+	var sorted_inputs := inputs.duplicate()
+	sorted_inputs.sort()
+	var choices: Array = CULTIVATION_RECIPES.get(",".join(sorted_inputs), sorted_inputs)
+	cultivation = {
+		"inputs": inputs.duplicate(),
+		"result": choices.pick_random(),
+		"ready_day": day_index + CULTIVATION_WAIT[inputs.size()],
+	}
+	for sku in required:
+		stock[sku] -= required[sku]
+	var err := save_to_disk()
+	if err != "":
+		for sku in required:
+			stock[sku] += required[sku]
+		cultivation.clear()
+		return err
+	warehouse_changed.emit()
+	return ""
+
+
+func cultivation_remaining() -> int:
+	return maxi(0, int(cultivation.get("ready_day", day_index)) - day_index)
+
+
+func harvest_cultivation() -> Dictionary:
+	if cultivation.is_empty() or cultivation_remaining() > 0:
+		return {"error": Loc.t("prep.cultivate.unavailable")}
+	var batch := cultivation
+	var sku := String(batch["result"])
+	var is_new := not developed.has(sku)
+	var previous_stock = stock.get(sku)
+	var previous_for_sale = for_sale.get(sku)
+	if is_new:
+		developed[sku] = true
+		for_sale[sku] = true
+	stock[sku] = int(stock.get(sku, 0)) + 1
+	cultivation = {}
+	var err := save_to_disk()
+	if err != "":
+		cultivation = batch
+		if previous_stock == null:
+			stock.erase(sku)
+		else:
+			stock[sku] = previous_stock
+		if is_new:
+			developed.erase(sku)
+			if previous_for_sale == null:
+				for_sale.erase(sku)
+			else:
+				for_sale[sku] = previous_for_sale
+		return {"error": err}
+	warehouse_changed.emit()
+	return {"sku": sku, "is_new": is_new}
 
 
 func buy_stock(sku: String, pieces: int) -> String:
@@ -1263,6 +1339,7 @@ func to_dict() -> Dictionary:
 		"developed": developed.duplicate(true),
 		"for_sale": for_sale.duplicate(true),
 		"stock": stock.duplicate(true),
+		"cultivation": cultivation.duplicate(true),
 		"owned": owned.duplicate(true),
 		"placed": placed_list,
 		"shop_scale": shop_scale,
@@ -1396,6 +1473,17 @@ func from_dict(data: Dictionary) -> String:
 	difficulty_prompt_acked = String(data.get("difficulty_prompt_acked", ""))
 	support_rating = int(data.get("support_rating", 0))
 	day_index = maxi(0, int(data.get("day_index", 0)))
+	cultivation = {}
+	var batch = data.get("cultivation", {})
+	if batch is Dictionary:
+		var inputs = batch.get("inputs")
+		var result = batch.get("result")
+		var ready_day = batch.get("ready_day")
+		var valid_inputs: bool = inputs is Array and inputs.size() in [1, 2, 3]
+		var valid_result: bool = result is String and Tuning.SELLABLE_SKUS.has(result)
+		if valid_inputs and valid_result and (ready_day is int or ready_day is float):
+			if inputs.all(func(sku): return sku is String and Tuning.SELLABLE_SKUS.has(sku)) and int(ready_day) > 0:
+				cultivation = {"inputs": inputs.duplicate(), "result": result, "ready_day": int(ready_day)}
 	active_tasks_by_seat = {}
 	var raw_tasks = data.get("active_tasks_by_seat", {})
 	if raw_tasks is Dictionary:

@@ -186,6 +186,7 @@ const ULTS: Array[Dictionary] = [
 	{"id": "guest_dusk", "kind": "ultimate", "lv": 1, "cost": 0, "duration": 30.0, "cd": 120.0, "seq": [0, 2, 3, 1, 1, 2, 3, 0]},
 	{"id": "three_volley", "kind": "ultimate", "lv": 1, "cost": 0, "duration": 4.0, "cd": 120.0, "seq": [0, 3, 1, 2, 0, 3, 1, 2]},
 	{"id": "self_service_operation", "kind": "ultimate", "lv": 1, "cost": 0, "duration": 30.0, "cd": 60.0, "self_service_operation": true, "seq": [2, 2, 3, 3, 0, 1, 0, 1]},
+	{"id": "let_there_be_light", "kind": "ultimate", "lv": 1, "cost": 0, "duration": 0.0, "cd": 60.0, "let_there_be_light": true, "seq": [3, 3, 2, 2, 0, 1, 1, 0]},
 ]
 
 

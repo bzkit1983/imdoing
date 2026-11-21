@@ -108,6 +108,8 @@ var _size_side: int = 1
 var _on_size_btns: bool = false
 var _qty_panel: VBoxContainer
 var _hub_cols: int = 3
+var _cultivation_slots: Array[String] = ["", "", ""]
+var _cultivation_slot: int = 0
 var _open_focus: int = -1 ## -1 tiles · 10 difficulty · 0 open main · 1 elite · 2 random
 var _shade: ColorRect
 var _box: Control
@@ -465,7 +467,15 @@ func _apply_steam_join_invite_state() -> void:
 		_steam_join_from_invite = false
 
 
+func can_access_cultivation() -> bool:
+	return not tutorial_prep_restricts() and (not SessionService.is_networked() or SessionService.is_server())
+
+
 func _show_page(page: String) -> void:
+	if page in ["hub_minigames", "cultivate", "cultivate_pick"] and not can_access_cultivation():
+		page = "home"
+	if page not in ["cultivate", "cultivate_pick"]:
+		_cultivation_slots = ["", "", ""]
 	## Soft-lock: bounce out of pages outside the active prep tutorial path.
 	var tut := _tutorial()
 	if tut != null and tut.has_method("prep_page_allowed") and not bool(tut.prep_page_allowed(page)):
@@ -1149,6 +1159,37 @@ func _activate() -> void:
 			if dest == "steam_join" and not SessionService.has_pending_steam_invite():
 				_steam_join_from_invite = false
 			_show_page(dest)
+		"cultivate_pick":
+			_cultivation_slot = int(arg)
+			_show_page("cultivate_pick")
+		"cultivate_material":
+			_cultivation_slots[_cultivation_slot] = String(arg)
+			_show_page("cultivate")
+		"cultivate_start":
+			if not can_access_cultivation():
+				return
+			var materials: Array[String] = []
+			for sku in _cultivation_slots:
+				if sku != "":
+					materials.append(sku)
+			var err := state.start_cultivation(materials)
+			if err == "":
+				_cultivation_slots = ["", "", ""]
+			_show_page("cultivate")
+			if err != "":
+				_popup_info(Loc.t("prep.cultivate.title"), err)
+		"cultivate_harvest":
+			if not can_access_cultivation():
+				return
+			var harvest := state.harvest_cultivation()
+			_show_page("cultivate")
+			var message: String
+			if harvest.has("error"):
+				message = harvest["error"]
+			else:
+				var key := "prep.cultivate.harvest_new" if harvest["is_new"] else "prep.cultivate.harvest_done"
+				message = Loc.t(key, [Tuning.sku_name(harvest["sku"])])
+			_popup_info(Loc.t("prep.cultivate.title"), message)
 		"reset":
 			var fee := state.reset_stats_cost()
 			var err := state.reset_stats()

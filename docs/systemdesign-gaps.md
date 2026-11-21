@@ -72,7 +72,7 @@
 | Alpha | 缺檔／缺系統 | HUD 以外的介面層空白 | 存檔／InputMap／暫停／字串表已補。暫停選單已有**事件 SFX 開／關與聲量**；**BGM Bus＋音量**已有；**教學框架**已落地（首日打磨仍開）。仍缺：完整設定頁、技能演出期間能否操作。失敗／過關敘事＝**EA 不做**（見 `versioning.md`）。 | storeoperationphase.md, playerskills.md, control.md, playersetup.md, pausemenu.md, tutorial.md |
 | Alpha | 用詞／錯字 | 用詞與錯字會改規則解讀 | 留待 Alpha 改回原檔，見 `docs/alpha/design.md`。以為→以下；三能種力值；奧義「技令」；衝刺句子斷掉。 | storeoperationphase.md, gameconcept.md, playerultimateskills.md, playermovement.md |
 | 已處理 | 缺字型字元 | 善良的炮／三段火槍陣缺字 | 2026-11-18 以 Noto Sans CJK **JP** 來源重跑 `tools/fonts/subset_notosans_tc.py`；`NotoSansTC-Game.ttf` 已含「善良的炮三段火槍陣枪阵銃斉」。 | playeractiveskills.md, playerultimateskills.md, `docs/alpha/fonts-subset.md` |
-| 已處理 | 缺字型字元 | 西客炮／源頭減廢／有糧出無汗出 | 2026-11-21 以 JP Regular／Bold／Black 重跑 `tools/fonts/subset_notosans_tc.py`；三款 `NotoSansTC-Game*.ttf` cmap 已含「西客炮仓届倉送廢废糧汗粮」。 | playeractiveskills.md, playerpassiveskills.md, playerultimateskills.md, `docs/alpha/fonts-subset.md` |
+| 已處理 | 缺字型字元 | 西客炮／源頭減廢／有糧出無汗出／我說有光就有光 | 2026-11-21 以 JP Regular／Bold／Black 重跑 `tools/fonts/subset_notosans_tc.py`（含 main 新奧義字）；三款 `NotoSansTC-Game*.ttf` cmap 已含目標字。 | playeractiveskills.md, playerpassiveskills.md, playerultimateskills.md, `docs/alpha/fonts-subset.md` |
 
 # 缺了整份檔的系統
 

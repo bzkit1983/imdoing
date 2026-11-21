@@ -26,6 +26,12 @@ static func parent_page(page: String) -> String:
 		and SessionService.keeps_room_after_settle()
 	)
 	match page:
+		"hub_minigames":
+			return "home"
+		"cultivate":
+			return "hub_minigames"
+		"cultivate_pick":
+			return "cultivate"
 		"hub_char", "hub_goods", "hub_shop", "hub_sys", "clerks", "confirm", "elite_test", "rating_history", "lobby", "lan_join", "steam_join", "tasks", "home":
 			if in_room_lobby and page != "lobby" and page != "lan_join" and page != "steam_join" and page != "confirm":
 				return "lobby"
@@ -175,6 +181,16 @@ static func fill(menu: CanvasLayer, page: String) -> void:
 			_hub_char(menu)
 		"hub_goods":
 			_hub_goods(menu)
+		"hub_minigames":
+			menu._hub_cols = 1
+			menu._title.text = Loc.t("prep.minigames")
+			menu._info.text = menu._header()
+			menu._add_hub(Loc.t("prep.cultivate.title"), "go", "cultivate", "goods")
+			menu._rebuild_hub_tiles()
+		"cultivate":
+			_cultivate(menu)
+		"cultivate_pick":
+			_cultivate_pick(menu)
 		"hub_shop":
 			_hub_shop(menu)
 		"hub_sys":
@@ -353,6 +369,9 @@ static func _home(menu: CanvasLayer) -> void:
 			Loc.t("prep.hub.tasks"), "go", "tasks", "tasks",
 			menu.tutorial_home_hub_locked("tasks")
 		)
+		if menu.can_access_cultivation():
+			menu._hub_cols = 4
+			menu._add_hub(Loc.t("prep.minigames"), "go", "hub_minigames", "goods")
 	menu._add_hub(
 		Loc.t("prep.hub.sys"), "go", "hub_sys", "sys",
 		menu.tutorial_home_hub_locked("hub_sys")
@@ -839,6 +858,49 @@ static func _ult_label(sk: Dictionary) -> String:
 	return n if n != "" else Loc.t("prep.ult.empty")
 
 
+static func _cultivate(menu: CanvasLayer) -> void:
+	menu._title.text = Loc.t("prep.cultivate.title")
+	var batch: Dictionary = menu.state.cultivation
+	if batch.is_empty():
+		var count: int = 3 - menu._cultivation_slots.count("")
+		menu._info.text = menu._msg if menu._msg != "" else Loc.t("prep.cultivate.choose")
+		if count > 0:
+			menu._info.text = menu._pair(menu._info.text, Loc.t("prep.cultivate.wait", [menu.state.CULTIVATION_WAIT[count]]))
+		for index in range(3):
+			var sku: String = menu._cultivation_slots[index]
+			var name := Loc.t("prep.cultivate.empty") if sku == "" else Tuning.sku_name(sku)
+			menu._add(Loc.t("prep.cultivate.slot", [index + 1, name]), "cultivate_pick", index, SkuIcons.row_texture(sku) if sku != "" else null)
+		if count > 0:
+			menu._add(Loc.t("prep.cultivate.start"), "cultivate_start")
+	else:
+		var names := PackedStringArray()
+		for sku in batch["inputs"]:
+			names.append(Tuning.sku_name(sku))
+		var remaining: int = menu.state.cultivation_remaining()
+		var status := Loc.t("prep.cultivate.remaining", [remaining]) if remaining > 0 else Loc.t("prep.cultivate.ready")
+		menu._info.text = menu._pair(status, Loc.t("prep.cultivate.inputs", [", ".join(names)]))
+		if remaining == 0:
+			menu._add(Loc.t("prep.cultivate.harvest"), "cultivate_harvest")
+	menu._add(Loc.t("prep.back"), "go", "hub_minigames")
+
+
+static func _cultivate_pick(menu: CanvasLayer) -> void:
+	menu._title.text = Loc.t("prep.cultivate.title")
+	var current: String = menu._cultivation_slots[menu._cultivation_slot]
+	menu._info.text = Loc.t("prep.cultivate.pick", [menu._cultivation_slot + 1])
+	if current != "":
+		menu._add(Loc.t("prep.cultivate.remove"), "cultivate_material", "")
+	for sku in Tuning.SELLABLE_SKUS:
+		var stock: int = menu.state.stock.get(sku, 0)
+		var reserved: int = menu._cultivation_slots.count(sku)
+		if sku == current:
+			reserved -= 1
+		var action := "cultivate_material" if stock > reserved else "noop"
+		var key := "prep.cultivate.stock" if stock > reserved else "prep.cultivate.stock_unavailable"
+		menu._add(Loc.t(key, [Tuning.sku_name(sku), stock]), action, sku, SkuIcons.row_texture(sku))
+	menu._add(Loc.t("prep.back"), "go", "cultivate")
+
+
 static func _develop(menu: CanvasLayer) -> void:
 	menu._title.text = Loc.t("prep.develop.title")
 	var develop_info := Loc.t("prep.develop.info")
@@ -851,10 +913,10 @@ static func _develop(menu: CanvasLayer) -> void:
 		if sku_lock and not menu.tutorial_goods_sku_allowed(sku):
 			continue
 		var icon := SkuIcons.row_texture(sku)
-		if not menu.state.sku_unlocked(sku):
-			menu._add(Loc.t("prep.sku.locked", [Tuning.sku_name(sku), int(Tuning.SKU_UNLOCK_LV[sku])]), "locked_sku", sku, icon)
-		elif menu.state.developed.has(sku):
+		if menu.state.developed.has(sku):
 			menu._add(Loc.t("prep.sku.developed", [Tuning.sku_name(sku)]), "noop", sku, icon)
+		elif not menu.state.sku_unlocked(sku):
+			menu._add(Loc.t("prep.sku.locked", [Tuning.sku_name(sku), int(Tuning.SKU_UNLOCK_LV[sku])]), "locked_sku", sku, icon)
 		else:
 			menu._add(Loc.t("prep.sku.develop_row", [Tuning.sku_name(sku), int(Tuning.SKU_DEVELOP[sku])]), "dev", sku, icon)
 	menu._add(Loc.t("prep.back"), "go", "hub_goods")
@@ -882,7 +944,7 @@ static func _buy(menu: CanvasLayer) -> void:
 		if sku_lock and not menu.tutorial_goods_sku_allowed(sku):
 			continue
 		var icon := SkuIcons.row_texture(sku)
-		if not menu.state.sku_unlocked(sku):
+		if not menu.state.developed.has(sku) and not menu.state.sku_unlocked(sku):
 			menu._add(Loc.t("prep.sku.locked", [Tuning.sku_name(sku), int(Tuning.SKU_UNLOCK_LV[sku])]), "locked_sku", sku, icon)
 		elif not menu.state.developed.has(sku):
 			menu._add(Loc.t("prep.sku.need_dev", [Tuning.sku_name(sku)]), "need_develop", sku, icon)

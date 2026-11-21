@@ -2265,6 +2265,115 @@ func cast_self_service_operation(seat: int) -> bool:
 	return true
 
 
+## Ultimate: refill stocked shelves first, then randomly seed empty shelves.
+## All stock and shelf mutations are Host-owned and use the normal broadcast hooks.
+func can_cast_light_shelves() -> bool:
+	if state == null or (phase != "restock" and phase != "open"):
+		return false
+	for shelf in shelves:
+		if shelf == null or not is_instance_valid(shelf):
+			continue
+		var count := int(shelf.get("count"))
+		var item_sku := String(shelf.get("sku"))
+		if count > 0 and item_sku != "":
+			if int(shelf.get("capacity")) > count and int(state.stock.get(item_sku, 0)) > 0:
+				return true
+		elif not _light_shelf_candidates(String(shelf.get("category")), state.stock).is_empty():
+			return true
+	return false
+
+
+func cast_light_shelves() -> Dictionary:
+	if not (SessionService.is_server() or SessionService.is_local_transport()):
+		return {}
+	if not can_cast_light_shelves():
+		return {}
+	var plan := _light_shelf_fill_plan()
+	if plan.is_empty():
+		return {}
+	var required: Dictionary = {}
+	for entry in plan:
+		var sku := String(entry["sku"])
+		required[sku] = int(required.get(sku, 0)) + int(entry["count"])
+	var consumed: Dictionary = {}
+	for sku_value in required.keys():
+		var sku := String(sku_value)
+		var amount := int(required[sku])
+		if not state.consume_stock(sku, amount):
+			if not consumed.is_empty():
+				state.credit_unsold_pieces(consumed)
+			return {}
+		consumed[sku] = amount
+	var filled_shelves := 0
+	var filled_pieces := 0
+	for entry in plan:
+		var shelf: Node = entry["shelf"]
+		if shelf == null or not is_instance_valid(shelf):
+			state.credit_unsold_pieces({String(entry["sku"]): int(entry["count"])})
+			continue
+		var placed := int(shelf.call("add_items", String(entry["sku"]), int(entry["count"])))
+		if placed > 0:
+			filled_shelves += 1
+			filled_pieces += placed
+		if placed < int(entry["count"]):
+			state.credit_unsold_pieces({String(entry["sku"]): int(entry["count"]) - placed})
+	if filled_pieces <= 0:
+		return {}
+	return {"ok": true, "shelves": filled_shelves, "pieces": filled_pieces}
+
+
+func _light_shelf_fill_plan() -> Array[Dictionary]:
+	var plan: Array[Dictionary] = []
+	if state == null:
+		return plan
+	var remaining: Dictionary = state.stock.duplicate(true)
+	## First preserve and replenish every shelf's existing SKU.
+	for shelf in shelves:
+		if shelf == null or not is_instance_valid(shelf):
+			continue
+		var item_sku := String(shelf.get("sku"))
+		var count := int(shelf.get("count"))
+		if count <= 0 or item_sku == "":
+			continue
+		var space := maxi(0, int(shelf.get("capacity")) - count)
+		var amount := mini(space, int(remaining.get(item_sku, 0)))
+		if amount <= 0 or (shelf.has_method("can_accept") and not bool(shelf.call("can_accept", item_sku))):
+			continue
+		plan.append({"shelf": shelf, "sku": item_sku, "count": amount})
+		remaining[item_sku] = int(remaining.get(item_sku, 0)) - amount
+	## Then assign one random compatible, stocked SKU to each empty shelf.
+	for shelf in shelves:
+		if shelf == null or not is_instance_valid(shelf):
+			continue
+		if int(shelf.get("count")) > 0 and String(shelf.get("sku")) != "":
+			continue
+		var candidates := _light_shelf_candidates(String(shelf.get("category")), remaining)
+		if candidates.is_empty():
+			continue
+		var item_sku: String = candidates.pick_random()
+		var capacity := maxi(0, int(shelf.get("capacity")))
+		var amount := mini(capacity, int(remaining.get(item_sku, 0)))
+		if amount <= 0:
+			continue
+		plan.append({"shelf": shelf, "sku": item_sku, "count": amount})
+		remaining[item_sku] = int(remaining.get(item_sku, 0)) - amount
+	return plan
+
+
+func _light_shelf_candidates(category: String, available_stock: Dictionary) -> Array[String]:
+	var candidates: Array[String] = []
+	if state == null:
+		return candidates
+	for sku in Tuning.SELLABLE_SKUS:
+		if Tuning.category_of(sku) != category:
+			continue
+		if not state.developed.has(sku) or not state.is_for_sale(sku):
+			continue
+		if int(available_stock.get(sku, 0)) > 0:
+			candidates.append(sku)
+	return candidates
+
+
 func self_service_operation_active() -> bool:
 	return _self_service_operation_left > 0.0
 
