@@ -5,6 +5,7 @@ extends "res://scripts/host/game_host.gd"
 const Tuning = preload("res://scripts/tuning.gd")
 const Skills = preload("res://scripts/skills.gd")
 const StateScript = preload("res://scripts/game_state.gd")
+const XpRules = preload("res://scripts/session/xp_rules.gd")
 const PlayerScript = preload("res://scripts/player.gd")
 const RestockScript = preload("res://scripts/restock_point.gd")
 const ShelfScript = preload("res://scripts/shelf.gd")
@@ -556,7 +557,7 @@ func note_clean(seat: int = 0, actor_override: Node2D = null) -> void:
 	if seat >= 0:
 		_seat_bump(seat_cleaned, seat, 1)
 		if actor != null:
-			FloatText.spawn_xp(actor, StateScript.XP_CLEAN)
+			FloatText.spawn_xp(actor, _xp_float("clean", seat))
 	apply_ops_rating(RatingRules.P4_CLEAN, actor)
 	bump_hud()
 	if seat < 0:
@@ -565,6 +566,19 @@ func note_clean(seat: int = 0, actor_override: Node2D = null) -> void:
 		_tasks.note_metric(seat, "clean_count", 1)
 	if _tutorial != null:
 		_tutorial.note_metric("clean_count", 1)
+
+
+func _seat_level(seat: int) -> int:
+	if seat <= 0:
+		return int(state.level) if state != null else 1
+	if SeatTable.guest_stats != null and "level" in SeatTable.guest_stats:
+		return int(SeatTable.guest_stats.level)
+	return int(state.level) if state != null else 1
+
+
+func _xp_float(kind: String, seat: int = 0) -> int:
+	var r: Dictionary = XpRules.rates_for_level(_seat_level(seat))
+	return int(r.get(kind, 0))
 
 
 func _seat_bump(arr: Array, seat: int, n: int) -> void:
@@ -2610,7 +2624,7 @@ func record_caught(seat: int = 0, method: String = "any", actor_override: Node2D
 		actor = _seat_actor(seat)
 	var FloatText = preload("res://scripts/ui/float_text.gd")
 	if seat >= 0 and actor != null:
-		FloatText.spawn_xp(actor, StateScript.XP_CATCH)
+		FloatText.spawn_xp(actor, _xp_float("catch", seat))
 	if SessionService.is_networked() and SessionService.is_client():
 		apply_ops_rating(RatingRules.P3_CATCH, actor)
 		return
@@ -2701,10 +2715,10 @@ func _on_paid(
 		if amount > 0:
 			FloatText.spawn_money(body, amount, stagger)
 			stagger += 1
-		FloatText.spawn_xp(body, StateScript.XP_SERVE, stagger)
+		FloatText.spawn_xp(body, _xp_float("serve", seat), stagger)
 		stagger += 1
 		if from_elite:
-			FloatText.spawn_xp(body, StateScript.XP_ELITE_SERVE, stagger)
+			FloatText.spawn_xp(body, _xp_float("elite", seat), stagger)
 	## Client: presentation only — Host absolute day_hud overwrites revenue／ops.
 	if SessionService.is_networked() and SessionService.is_client():
 		apply_ops_rating(RatingRules.checkout_delta(from_elite, perfect), body)
@@ -2996,8 +3010,11 @@ func _finish_day() -> void:
 	## Unsold shelf + floor (+ in-flight) pieces → warehouse boxes before save.
 	_return_unsold_to_warehouse()
 	var seat_n := maxi(1, SessionService.open_day_seat_n if SessionService.is_networked() else SeatTable.seat_count)
+	var seat_levels: Array = []
+	for s in seat_n:
+		seat_levels.append(_seat_level(s))
 	var xp_pack: Dictionary = DaySettle.shared_xp_for_seats(
-		seat_served, seat_caught, seat_cleaned, seat_elite, seat_n, _skip_xp
+		seat_served, seat_caught, seat_cleaned, seat_elite, seat_n, _skip_xp, seat_levels
 	)
 	var shared_xp: int = int(xp_pack["shared_xp"])
 	## Evaluate tasks against the ending day before day_index increments in settle().

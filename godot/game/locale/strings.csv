@@ -472,7 +472,7 @@ prep.stock.qty_info,庫存 %d 件　標示 $%d／件（4 件價÷4）。中間�
 prep.furn.title,購入商店物品,Buy furniture,购入商店物品,店舗アイテム購入
 prep.furn.info,買入後到店舖設計才放進店裡。展示貨架有 4、8、12、24 件，越大越貴。凍櫃 LV4、冰櫃 LV7 才開放。,Place bought items in Layout. Shelf sizes 4/8/12/24. Frozen LV4 · Ice LV7.,买入后到店铺设计才放进店里。展示货架有 4、8、12、24 件，越大越贵。冻柜 LV4、冰柜 LV7 才开放。,購入後は店舗設計で店内に配置。陳列棚は4／8／12／24枠、大きいほど高額。冷凍はLV4、冷蔵はLV7で開放。
 prep.expand.title,擴張店舖,Expand shop,扩张店铺,店舗拡張
-prep.expand.info,現時規模 LV%d　地圖 %d×%d　總面積 %d／%d。闊度和長度在店舖設計裡調，一邊減少就能加另一邊。\nLV2＝$3000、總面積 225，要角色 LV4。LV3＝$6000、總面積 400，要角色 LV7。,Scale LV%d · map %d×%d · area %d/%d. Adjust width/height in Layout.\nLV2=$3000 area 225 (need LV4). LV3=$6000 area 400 (need LV7).,现时规模 LV%d　地图 %d×%d　总面积 %d／%d。阔度和长度在店铺设计里调，一边减少就能加另一边。\nLV2＝$3000、总面积 225，要角色 LV4。LV3＝$6000、总面积 400，要角色 LV7。,現在規模 LV%d　マップ %d×%d　総面積 %d／%d。幅と長さは店舗設計で調整。一方を減らせば他方を増やせます。\nLV2＝$3000、総面積225、キャラLV4が必要。LV3＝$6000、総面積400、キャラLV7が必要。
+prep.expand.info,現時規模 S%d　地圖 %d×%d　總面積 %d／%d。闊度和長度在店舖設計裡調，一邊減少就能加另一邊。\n擴店只收資金（S2 $4000／S3 $8000／S4 $15000／S5 $25000／S6 $40000）；面積上限見 growth-economy。,Scale S%d · map %d×%d · area %d/%d. Adjust width/height in Layout.\nExpand costs money only (S2 $4000 / S3 $8000 / S4 $15000 / S5 $25000 / S6 $40000); area caps in growth-economy.,现时规模 S%d　地图 %d×%d　总面积 %d／%d。阔度和长度在店铺设计里调，一边减少就能加另一边。\n扩店只收资金（S2 $4000／S3 $8000／S4 $15000／S5 $25000／S6 $40000）；面积上限见 growth-economy。,現在規模 S%d　マップ %d×%d　総面積 %d／%d。幅と長さは店舗設計で調整。一方を減らせば他方を増やせます。\n拡張は資金のみ（S2 $4000／S3 $8000／S4 $15000／S5 $25000／S6 $40000）。面積上限は growth-economy。
 prep.layout.title,店舖設計,Layout,店铺设计,店舗設計
 prep.layout.info,拖：左列放到圖上；圖上拖移，拖出或輕點收回。補貨架預設貨：鍵鼠在架上長按滑鼠左鍵，或游標對準後長按行動鍵（J／Enter）；手制長按行動。地圖持物短取消還原、長取消收回；無持物取消回尺寸／清單。,"Drag from the list onto the grid; drag to move, off or tap to recall. Restock default SKU: mouse long-press the rack, or aim the cursor and hold Interact (J/Enter); pad: hold act. Map lift: short-cancel restores, long-cancel recalls; empty-handed cancel → size/list.",拖：左列放到图上；图上拖移，拖出或轻点收回。补货架预设货：键鼠在架上长按鼠标左键，或游标对准后长按行动键（J／Enter）；手制长按行动。地图持物短取消还原、长取消收回；无持物取消回尺寸／清单。,ドラッグ：左リストから図へ。補充棚の既定商品：マウスで棚を長押し、またはカーソルを合わせて行動（J／Enter）長押し。パッドは行動長押し。マップ持ち：短キャンセル復元・長キャンセル回収。非所持キャンセルはサイズ／リスト。
 prep.layout.holding,正在放 %s。確定放下；轉向。地圖拿起：短取消還原、長取消收回；清單拿起：取消退回庫。,"Placing %s. Confirm to place; rotate to turn. From map: short-cancel restores, long-cancel recalls. From list: cancel returns to stock.",正在放 %s。确定放下；转向。地图拿起：短取消还原、长取消收回；清单拿起：取消退回库。,%sを配置中。決定で置く。回転で向き変更。マップから：短キャンセルで復元、長キャンセルで回収。リストから：キャンセルで在庫へ戻す。
@@ -679,7 +679,7 @@ prep.msg.area_over,加了%s之後總面積是 %d，超過規模 LV%d 的上限 %
 prep.msg.furniture_oob,有傢俬超出新的邊界，先在圖上收回再縮小。,Furniture outside new bounds; pick up before shrinking.,有家私超出新的边界，先在图上收回再缩小。,家具が新しい境界の外に出ます。先に配置を片付けてから縮小してください。
 prep.msg.save_cleared,已清除存檔,Save cleared,已清除存档,セーブを消去しました
 prep.msg.cant_equip,不能裝備,Cannot equip,不能装备,装備できません
-prep.msg.max_scale_detail,店舖已是最大規模 LV3，不能再擴張。,Shop already max scale LV3.,店铺已是最大规模 LV3，不能再扩张。,店舗はすでに最大規模 LV3 です。これ以上拡張できません。
+prep.msg.max_scale_detail,店舖已是最大規模 S6，不能再擴張。,Shop already max scale S6.,店铺已是最大规模 S6，不能再扩张。,店舗はすでに最大規模 S6 です。これ以上拡張できません。
 prep.msg.locked_sku,%s要角色 LV%d 才開放，現在是 LV%d。,%s unlocks at LV%d (now LV%d).,%s要角色 LV%d 才开放，现在是 LV%d。,%sはキャラ LV%d で開放、現在は LV%d。
 prep.msg.locked_furn,%s要角色 LV%d 才開放購入，現在是 LV%d。,%s buy unlocks at LV%d (now LV%d).,%s要角色 LV%d 才开放购入，现在是 LV%d。,%sの購入はキャラ LV%d で開放、現在は LV%d。
 prep.msg.need_funds,%s要 $%d，現有 $%d。,"%s needs $%d, have $%d.",%s要 $%d，现有 $%d。,%sには $%d 必要、所持 $%d。

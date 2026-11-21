@@ -3,6 +3,7 @@ extends RefCounted
 ## No shop / money / warehouse. Duck-types with GameState for player.stats.
 
 const Skills = preload("res://scripts/skills.gd")
+const XpRules = preload("res://scripts/session/xp_rules.gd")
 
 const TINT_COUNT := 4
 const TINT_COLORS: Array[Color] = [
@@ -230,23 +231,15 @@ func appearance_tint() -> Color:
 	return tint_color(tint)
 
 
-## Same level curve as GameState.settle. Returns {xp, ups, note}.
+## Same level curve as GameState.settle (XpRules). Returns {xp, ups, note}.
 func apply_xp_gain(gain: int) -> Dictionary:
 	var g := maxi(0, gain)
 	xp += g
-	var ups := 0
-	while level < 10:
-		var need := _xp_need(level + 1)
-		if need <= 0 or xp < need:
-			break
-		xp -= need
-		level += 1
-		unspent += 5
-		ups += 1
+	var ups := XpRules.apply_level_ups(self)
 	var note := ""
 	if ups > 0:
 		note = Loc.t("err.level_up", [ups, ups * 5])
-	if level >= 10:
+	if level >= XpRules.LEVEL_CAP:
 		note += Loc.t("err.level_cap_note")
 	return {"xp": g, "ups": ups, "note": note}
 
@@ -287,17 +280,7 @@ func unlock_skin(id: String) -> void:
 
 
 func _xp_need(target_lv: int) -> int:
-	match target_lv:
-		2: return 200
-		3: return 400
-		4: return 800
-		5: return 1200
-		6: return 1500
-		7: return 2000
-		8: return 3000
-		9: return 5000
-		10: return 6000
-		_: return 0
+	return XpRules.xp_need(target_lv)
 
 
 func _levels_of(set_i: int) -> Dictionary:

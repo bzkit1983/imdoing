@@ -265,7 +265,7 @@ err.cost_over,COST 超過 5,COST exceeds 5,COST 超过 5,COST が 5 を超えて
 err.name_letters,名稱只用英文字母，最多 10 個,"Name: English letters only, max 10",名称只用英文字母，最多 10 个,名前は英字のみ、最大 10 文字
 err.name_taken,名稱已被使用,Name already used,名称已被使用,その名前は使用中
 err.level_up,升級 %d 級，未分配點數 +%d,"Leveled +%d, unspent +%d",升级 %d 级，未分配点数 +%d,%d レベルアップ、未割り振り +%d
-err.level_cap_note,  LV10 之後經驗表未定，不再升級,  XP table TBD after LV10; no further levels,  LV10 之后经验表未定，不再升级,  LV10 以降の経験値表は未定、これ以上レベルアップしない
+err.level_cap_note,  已達等級上限（LV99）,  Already at level cap (LV99),  已达等级上限（LV99）,  すでにレベル上限（LV99）
 err.save_empty,存檔是空的,Save is empty,存档是空的,セーブが空です
 err.save_no_version,存檔缺少 version,Save missing version,存档缺少 version,セーブに version がない
 err.save_bad_version,存檔 version 無效,Save version invalid,存档 version 无效,セーブの version が無効

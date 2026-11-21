@@ -1873,20 +1873,21 @@ func _ask_furniture(type: String) -> void:
 
 
 func _ask_expand() -> void:
-	if state.shop_scale >= 3:
+	if state.shop_scale >= int(state.SCALE_MAX_LV):
 		_popup_info(Loc.t("prep.msg.locked_title"), Loc.t("prep.msg.max_scale_detail"))
 		return
 	var nxt := state.shop_scale + 1
-	var need := int(state.SCALE_NEED_LV[nxt])
-	if state.level < need:
-		_popup_info(Loc.t("prep.msg.locked_title"), Loc.t("prep.msg.expand_locked", [nxt, need, state.level]))
-		return
 	var price := int(state.SCALE_COST[nxt])
 	if state.money < price:
 		_popup_info(Loc.t("err.funds"), _funds_line(Loc.t("prep.msg.expand_what", [nxt]), price))
 		return
-	var cap := int(state.SCALE_MAX[nxt])
-	_popup_confirm(Loc.t("prep.msg.confirm_title"), Loc.t("prep.msg.expand_ask", [nxt, cap * cap, cap, cap, price]), {"action": "expand"})
+	var area := int(state.SCALE_AREA[nxt])
+	var side := int(state.SCALE_MAX[nxt])
+	_popup_confirm(
+		Loc.t("prep.msg.confirm_title"),
+		Loc.t("prep.msg.expand_ask", [nxt, area, side, side, price]),
+		{"action": "expand"},
+	)
 
 
 func _try_hire() -> void:
@@ -1900,7 +1901,7 @@ func _try_hire() -> void:
 	if msg == Loc.t("err.hire_full"):
 		var cap := int(state.HIRE_CAP.get(state.shop_scale, 0))
 		var body := Loc.t("prep.msg.hire_cap", [state.shop_scale, cap])
-		if state.shop_scale < 3:
+		if state.shop_scale < int(state.SCALE_MAX_LV):
 			body += Loc.t("prep.msg.hire_expand_hint")
 		_popup_info(Loc.t("prep.msg.locked_title"), body)
 	elif msg == Loc.t("err.clerks_gt_registers"):

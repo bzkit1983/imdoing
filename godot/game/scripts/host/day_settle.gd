@@ -11,19 +11,22 @@ static func shared_xp_for_seats(
 	seat_elite: Array,
 	seat_n: int,
 	skip_xp: int,
+	seat_levels: Array = [],
 ) -> Dictionary:
-	## Returns {shared_xp, raws, raw_sum}.
+	## Returns {shared_xp, raws, raw_sum}. Rates use each seat's level band.
 	var n := maxi(1, seat_n)
 	var raw_sum := 0
 	var raws: Array[int] = []
 	for s in n:
 		var bonus := skip_xp if s == 0 else 0
+		var lv := int(seat_levels[s]) if s < seat_levels.size() else 1
 		var raw := StateScript.raw_xp_for_counts(
 			_seat_get(seat_served, s),
 			_seat_get(seat_caught, s),
 			_seat_get(seat_cleaned, s),
 			_seat_get(seat_elite, s),
 			bonus,
+			lv,
 		)
 		raws.append(raw)
 		raw_sum += raw
