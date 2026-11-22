@@ -21,6 +21,7 @@ need(
     "WorldBuildScript" in DEMO and "NetWorldScript" in DEMO and "TossWorldScript" in DEMO,
     "demo preloads host modules",
 )
+need("NetDayChromeScript" in DEMO and "_day_chrome.bind(self)" in DEMO, "demo preloads／binds net_day_chrome")
 need("BossWorldScript" in DEMO and "_boss_world.bind(self)" in DEMO, "demo preloads／binds boss_world")
 need("_world_spawn.tick_ambient(" in DEMO, "demo delegates ambient spawn tick")
 need(

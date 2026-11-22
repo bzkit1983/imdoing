@@ -56,7 +56,10 @@ need("take_pending_aim_confirm" in player and "toss_intent_snapshot" in player, 
 need("local_guest_seat_id" in (SCRIPTS / "session" / "seat_table.gd").read_text(encoding="utf-8"), "SeatTable.local_guest_seat_id")
 
 need("aim_confirm" in demo and "toss_dx" in demo and "restock_cursor" in demo, "demo Intent aim／toss／restock fields")
-need("_broadcast_day_clock_state" in demo, "demo Host day clock broadcast")
+need("NetDayChromeScript" in demo and "_day_chrome" in demo, "demo Host day chrome module")
+need("broadcast_day_clock_state" in demo, "demo delegates Host day clock broadcast")
+chrome = (SCRIPTS / "host" / "net_day_chrome.gd").read_text(encoding="utf-8") if (SCRIPTS / "host" / "net_day_chrome.gd").is_file() else ""
+need("func broadcast_day_clock_state" in chrome, "net_day_chrome.broadcast_day_clock_state")
 need("is_client()" in demo and "DayPhase.advance" in demo, "demo Client clock gate near DayPhase")
 
 checklist = DOCS / "alpha" / "multiplayer-smoke-checklist.md"

@@ -1977,10 +1977,9 @@ func _pick_boss_wander_point() -> Vector2:
 		for s in shelves:
 			if s == null or not is_instance_valid(s):
 				continue
-			if _game.has_method("shelf_stand"):
-				var stand: Vector2 = _game.shelf_stand(s)
-				if stand != Vector2.ZERO:
-					cands.append(stand)
+			var stand: Vector2 = _game.shelf_stand(s)
+			if stand != Vector2.ZERO:
+				cands.append(stand)
 	var cashiers = _game.get("cashiers")
 	if cashiers is Array:
 		for reg in cashiers:
@@ -2000,10 +1999,8 @@ func _pick_boss_wander_point() -> Vector2:
 	cands.append(origin + Vector2(size.x - inset, size.y - inset))
 	cands.append(origin + Vector2(inset, size.y - inset))
 	cands.append(origin + Vector2(size.x * 0.5, size.y * 0.5))
-	if _game.has_method("inside_pos"):
-		cands.append(_game.inside_pos())
-	if _game.has_method("door_pos"):
-		cands.append(_game.door_pos() + Vector2(0, 48))
+	cands.append(_game.inside_pos())
+	cands.append(_game.door_pos() + Vector2(0, 48))
 	## A few random aisle samples across the floor.
 	for _i in 4:
 		cands.append(origin + Vector2(
