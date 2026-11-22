@@ -43,6 +43,7 @@ var _operation_track: String = ""
 var _elite_track: String = ""
 ## Desired track while muted — resume on unmute.
 var _pending_track: String = ""
+var _suspended := false
 
 
 func _ready() -> void:
@@ -162,9 +163,20 @@ func current_theme() -> String:
 	return _theme
 
 
+func set_suspended(suspended: bool) -> void:
+	if _player == null or _suspended == suspended:
+		return
+	_suspended = suspended
+	_kill_fade()
+	_player.volume_db = DEFAULT_VOL_DB
+	_player.stream_paused = suspended
+	if not suspended and not _muted and _pending_track != "":
+		_start_track(_pending_track, false)
+
+
 ## Settings tip: ensure Music bus briefly audible at current volume.
 func preview_volume() -> void:
-	if _player == null:
+	if _player == null or _suspended:
 		return
 	var idx := AudioServer.get_bus_index("Music")
 	if idx >= 0 and _muted:
@@ -195,6 +207,8 @@ func _switch_to(track_id: String) -> void:
 
 
 func _start_track(track_id: String, fade: bool) -> void:
+	if _suspended:
+		return
 	var stream: AudioStream = _streams.get(track_id) as AudioStream
 	if stream == null:
 		stream = _load_one(track_id)

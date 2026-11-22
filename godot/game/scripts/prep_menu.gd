@@ -12,6 +12,7 @@ const PrepPages = preload("res://scripts/prep/prep_pages.gd")
 const DasherTrial = preload("res://scenes/dasher_trial.tscn")
 const CashierDuel = preload("res://scenes/cashier_duel.tscn")
 const BunDuel = preload("res://scenes/bun_duel.tscn")
+const MetalRushTrial = preload("res://scenes/metal_rush_trial.tscn")
 const PrepGridView = preload("res://scripts/prep/prep_grid_view.gd")
 const ProductVersion = preload("res://scripts/product_version.gd")
 const SkinCatalog = preload("res://scripts/session/skin_catalog.gd")
@@ -1224,6 +1225,12 @@ func _activate() -> void:
 		"bun_duel":
 			if can_access_cultivation():
 				var game := BunDuel.instantiate()
+				game.exited.connect(_return_from_prep_minigame)
+				hide()
+				add_child(game)
+		"metal_rush_trial":
+			if can_access_cultivation():
+				var game := MetalRushTrial.instantiate()
 				game.exited.connect(_return_from_prep_minigame)
 				hide()
 				add_child(game)

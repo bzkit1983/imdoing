@@ -927,3 +927,16 @@ prep.bun_duel.tie,打和！,Tie!,平局！,引き分け！
 prep.bun_duel.loss,電腦贏咗！,CPU wins!,电脑赢了！,CPUの勝ち！
 prep.bun_duel.reward,獲得技能：%s（試玩提示）,Skill earned: %s (trial),获得技能：%s（试玩提示）,スキル獲得：%s（体験版）
 prep.bun_duel.ok,確認,OK,确认,決定
+prep.metal_trial.title,金屬狂潮：節奏挑戰,Metal Rush: Rhythm Challenge,金属狂潮：节奏挑战,メタルラッシュ：リズムチャレンジ
+prep.metal_trial.controls,左至右 D F J K／手掣 X Y A B｜Esc 或返回鍵離開,Left to right D F J K / pad X Y A B · Esc or Back to exit,从左到右 D F J K／手柄 X Y A B｜Esc 或返回键退出,左から D F J K／パッド X Y A B｜Esc または Back で終了
+prep.metal_trial.retry,再玩（R／Start）,Retry (R / Start),再玩（R／Start）,再挑戦（R／Start）
+prep.metal_trial.ready,預備 %d,Ready %d,准备 %d,準備 %d
+prep.metal_trial.live,分數 %d｜連擊 %d,Score %d · Combo %d,分数 %d｜连击 %d,スコア %d｜コンボ %d
+prep.metal_trial.perfect,完美,Perfect,完美,パーフェクト
+prep.metal_trial.good,良好,Good,良好,グッド
+prep.metal_trial.empty,空按,Empty,空按,空打ち
+prep.metal_trial.pass,挑戰成功！,Challenge cleared!,挑战成功！,チャレンジ成功！
+prep.metal_trial.fail,未達 70%,Below 70%,未达 70%,70% 未満
+prep.metal_trial.summary,%.1f%%｜最高連擊 %d｜完美 %d・良好 %d・漏拍 %d,%.1f%% · Best combo %d · Perfect %d · Good %d · Miss %d,%.1f%%｜最高连击 %d｜完美 %d・良好 %d・漏拍 %d,%.1f%%｜最大コンボ %d｜パーフェクト %d・グッド %d・ミス %d
+prep.metal_trial.reward,獲得技能：%s（試玩提示）,Skill earned: %s (trial),获得技能：%s（试玩提示）,スキル獲得：%s（体験版）
+prep.metal_trial.audio_error,測試曲未能載入。,Could not load the trial track.,测试曲无法载入。,テスト曲を読み込めませんでした。

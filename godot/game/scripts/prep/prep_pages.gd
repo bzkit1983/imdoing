@@ -192,6 +192,7 @@ static func fill(menu: CanvasLayer, page: String) -> void:
 			menu._add_hub(Loc.t("skill.dasher.name"), "dasher_trial", null, "skills")
 			menu._add_hub(Loc.t("skill.checkout_rush.name"), "cashier_duel", null, "skills")
 			menu._add_hub(Loc.t("prep.bun_duel.title"), "bun_duel", null, "skills")
+			menu._add_hub(Loc.t("prep.metal_trial.title"), "metal_rush_trial", null, "skills")
 			menu._rebuild_hub_tiles()
 		"light_intro", "light_outro":
 			menu._light_intro.set_line(menu._light_line, page == "light_outro")
