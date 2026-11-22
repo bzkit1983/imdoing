@@ -7,7 +7,7 @@ const FontStyle = preload("res://scripts/ui_font.gd")
 const READY_TIME := 3.0
 const ROUND_TIME := 15.0
 const BITES_PER_BUN := 5
-const CPU_BITES := 23 * BITES_PER_BUN
+const CPU_BITES := 25 * BITES_PER_BUN
 const COPY := "prep.bun_duel."
 
 enum Phase { READY, EATING, RESULT }
