@@ -125,6 +125,8 @@ func restock(r: Rect2, cat: String, default_sku: String = "") -> Node2D:
 	fit_body(node, r, "restock_" + cat, 0, 2)
 	node.body = node.get_node("Body")
 	node.label = caption(r.position + Vector2(4, 18), "")
+	node.net_restock_id = host._next_net_restock_id
+	host._next_net_restock_id += 1
 	node.setup(cat)
 	## Must be in-tree before apply_default_sku — skus() reads game host.state via the tree.
 	host._world.add_child(node)

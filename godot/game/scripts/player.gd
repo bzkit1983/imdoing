@@ -86,6 +86,12 @@ var pending_skill_hotkey: int = -1
 var pending_ops_bag_slot: int = -1
 ## Client→Host: ultimate completed locally; Host must authority-cast (world FX／agents).
 var pending_ult_cast: bool = false
+## Client→Host: aim confirm／toss release／restock pick edges (§8.2).
+var pending_aim_confirm: bool = false
+var pending_toss_release: bool = false
+var pending_restock_commit: bool = false
+var pending_restock_abort: bool = false
+var _intent_toss_charge: float = 1.0
 ## L-class target currently held via InteractLock (shelf/cashier/restock/…).
 var _lock_node: Node = null
 
@@ -266,6 +272,11 @@ func controls_locally() -> bool:
 func is_net_puppet() -> bool:
 	## Client-side copy of a seat owned by another peer (or frozen).
 	return SessionService.is_networked() and SessionService.is_client() and not controls_locally()
+
+
+func _world_authority() -> bool:
+	## Inventory／shelf／delivery／checkout mutate only on Host (or local transport).
+	return not (SessionService.is_networked() and SessionService.is_client())
 
 
 func _agent_is_net_puppet(node: Node) -> bool:
@@ -1912,9 +1923,15 @@ func _release_interact() -> void:
 		return
 	if _fighting or _long_committed or _deliver_done or _shelve_done or _restock_picking:
 		if _restock_picking and target != null and _obj_str(target, "kind") == "restock":
-			var sku := String(target.call("commit_pick"))
-			SfxBus.play("sfx_box_sku_confirm")
-			log_line.emit(Loc.t("log.player.restock_set", [Tuning.sku_name(sku)]))
+			if _world_authority():
+				var sku := String(target.call("commit_pick"))
+				SfxBus.play("sfx_box_sku_confirm")
+				log_line.emit(Loc.t("log.player.restock_set", [Tuning.sku_name(sku)]))
+			else:
+				## Client: close local pick chrome; Host commits via restock_commit intent.
+				pending_restock_commit = true
+				target.picking = false
+				SfxBus.play("sfx_box_sku_confirm")
 		_restock_picking = false
 		_restock_hold = 0.0
 		return
@@ -1965,6 +1982,10 @@ func _take_shelf_piece(shelf: Node2D) -> void:
 	if room <= 0:
 		SfxBus.play("sfx_box_pull_fail")
 		log_line.emit(Loc.t("log.player.carry_need", [inventory.count(), carry_cap()]))
+		return
+	## §8.2: Client must not mutate shelf stock — Host applies via interact intent.
+	if not _world_authority():
+		SfxBus.play("sfx_box_pull")
 		return
 	var sku := _obj_str(shelf, "sku")
 	if sku == "" or not shelf.has_method("take_n"):
@@ -2099,6 +2120,9 @@ func _cast_harvest_chives(lv: int) -> bool:
 func _cast_force_sell(lv: int) -> bool:
 	return _skills.cast_force_sell(lv)
 func _hand_deliver(guests: Array, penalize_miss: bool) -> int:
+	## §8.2: Client chrome only — Host applies delivery via interact intent.
+	if not _world_authority():
+		return 0
 	var total := 0
 	var nearest: Node = null
 	var locked: Array = []
@@ -2786,7 +2810,11 @@ func _tick_sku_pick(delta: float) -> void:
 
 func _abort_restock_pick() -> void:
 	if target != null and _obj_str(target, "kind") == "restock":
-		target.call("abort_pick")
+		if _world_authority():
+			target.call("abort_pick")
+		else:
+			pending_restock_abort = true
+			target.picking = false
 		SfxBus.play("sfx_box_sku_cancel")
 		_interact_release(target)
 	_restock_picking = false
@@ -2801,6 +2829,10 @@ func _try_pickup() -> void:
 	if room <= 0:
 		SfxBus.play("sfx_box_pull_fail")
 		log_line.emit(Loc.t("log.player.carry_need", [inventory.count(), carry_cap()]))
+		return
+	## §8.2: Client must not declare warehouse consume — Host owns stock.
+	if not _world_authority():
+		SfxBus.play("sfx_box_pull")
 		return
 	var sku := String(target.call("selected_sku"))
 	var requested := mini(_manual_pickup_limit(), room)
@@ -2878,6 +2910,18 @@ func _tick_restock(delta: float) -> void:
 		if hold_progress < 1.0:
 			SfxBus.play_stock_loop()
 	if hold_progress >= 1.0:
+		## Client: Circle chrome only; Host applies shelf／inventory via interact intent.
+		if not _world_authority():
+			_spawn_fx("spray", target.global_position + Vector2(0, -20))
+			if dur <= 0.001:
+				SfxBus.play("sfx_shelf_stock_instant")
+			else:
+				SfxBus.play("sfx_shelf_stock_done")
+			hold_progress = 0.0
+			blocked_mismatch = false
+			_shelve_done = true
+			_interact_release(target)
+			return
 		var placed := int(target.call("add_items", sku, have))
 		if empty_shelf:
 			inventory.remove_focused(placed)
@@ -3374,6 +3418,9 @@ func _try_command(dir: int) -> void:
 
 
 func _finish_checkout(cust) -> void:
+	## Host authority — Client waits for prompt／agent state (M2.9).
+	if not _world_authority():
+		return
 	var reg = target
 	## Peek dual target before primary leaves the queue (index 1 = next in line).
 	## Boss: no senior dual-pay.
@@ -3538,6 +3585,90 @@ func take_pending_ult_cast() -> bool:
 	var cast_now := pending_ult_cast
 	pending_ult_cast = false
 	return cast_now
+
+
+func take_pending_aim_confirm() -> bool:
+	var v := pending_aim_confirm
+	pending_aim_confirm = false
+	return v
+
+
+func toss_intent_snapshot() -> Dictionary:
+	var dx := 0.0
+	var dy := 0.0
+	if _cancel_drop_dir.length_squared() >= 0.01:
+		dx = _cancel_drop_dir.x
+		dy = _cancel_drop_dir.y
+	elif facing.length_squared() >= 0.01:
+		dx = facing.x
+		dy = facing.y
+	var charge := 1.0
+	if _toss != null and "_charge_n" in _toss:
+		charge = float(_toss._charge_n)
+	elif _intent_toss_charge > 0.0:
+		charge = _intent_toss_charge
+	var rel := pending_toss_release
+	pending_toss_release = false
+	return {"dx": dx, "dy": dy, "charge": charge, "release": rel}
+
+
+func apply_toss_intent(d: Dictionary) -> void:
+	## Host remote seat: stamp Client aim／charge before cancel-hold edges.
+	## Actual toss fires from set_hold("cancel", false) → _on_cancel_release.
+	var dx := float(d.get("dx", 0.0))
+	var dy := float(d.get("dy", 0.0))
+	if Vector2(dx, dy).length_squared() >= 0.01:
+		_cancel_drop_dir = Vector2(dx, dy).normalized()
+		facing = _cancel_drop_dir
+	var charge := float(d.get("charge", 1.0))
+	_intent_toss_charge = maxf(1.0, charge)
+	if _toss != null:
+		_toss._charge_n = _intent_toss_charge
+	## Short-press release may arrive as toss_release without a prior cancel-hold tick.
+	if bool(d.get("release", false)) and not _cancel_held and _toss != null:
+		_toss.on_cancel_release()
+
+
+func restock_intent_snapshot() -> Dictionary:
+	var cursor := -1
+	if _restock_picking and target != null and _obj_str(target, "kind") == "restock":
+		cursor = int(target.get("cursor")) if target.get("cursor") != null else -1
+	var commit := pending_restock_commit
+	var abort := pending_restock_abort
+	pending_restock_commit = false
+	pending_restock_abort = false
+	return {"cursor": cursor, "commit": commit, "abort": abort}
+
+
+func apply_restock_intent(d: Dictionary) -> void:
+	## Host remote seat: sync restock SKU pick cursor／commit／abort from Client.
+	if target == null or not is_instance_valid(target) or _obj_str(target, "kind") != "restock":
+		return
+	var cursor := int(d.get("cursor", -1))
+	if cursor >= 0 and target.get("picking") == true:
+		target.cursor = cursor
+		if target.has_method("_refresh"):
+			target.call("_refresh")
+		if target.get("_list") != null:
+			target._list.queue_redraw()
+	if bool(d.get("abort", false)):
+		_abort_restock_pick()
+		return
+	if bool(d.get("commit", false)) and target.get("picking") == true:
+		var sku := String(target.call("commit_pick"))
+		_restock_picking = false
+		_restock_hold = 0.0
+		_interact_release(target)
+		SfxBus.play("sfx_box_sku_confirm")
+		log_line.emit(Loc.t("log.player.restock_set", [Tuning.sku_name(sku)]))
+
+
+func apply_aim_confirm_intent() -> void:
+	## Host remote seat: finish must-deliver／magneto aim at Host pose.
+	if _must_deliver_aim:
+		_skills.finish_must_deliver_aim()
+	elif _magneto_aim:
+		_skills.finish_magneto_aim()
 
 
 ## TouchPad / external callers: slot 0–4 = skills 1–5 (0 = center; 1–4 = LB/RB/LT/RT).

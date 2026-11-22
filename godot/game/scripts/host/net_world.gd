@@ -37,6 +37,7 @@ func clear_runtime() -> void:
 	host._pending_prompt_states.clear()
 	host._shelves_by_net_id.clear()
 	host._next_net_shelf_id = 0
+	host._next_net_restock_id = 0
 	## Keep `_warehouse_hooked` — state signal stays connected across days.
 
 func alloc_agent_id() -> int:

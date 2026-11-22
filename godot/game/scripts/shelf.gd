@@ -39,6 +39,9 @@ func occupied_sku() -> String:
 
 
 func add_items(item_sku: String, n: int) -> int:
+	## §8.2／§8.4: networked Client presentation uses absolute stock_state only.
+	if SessionService.is_networked() and SessionService.is_client():
+		return 0
 	if not can_accept(item_sku):
 		return 0
 	var old_sku := occupied_sku()
@@ -86,6 +89,9 @@ func take_one_and_refill(want: String, refill: bool) -> bool:
 
 ## Remove up to `n` of the occupied SKU (any). Returns how many were taken.
 func take_n(n: int) -> int:
+	## Networked Client presentation uses absolute stock_state only.
+	if SessionService.is_networked() and SessionService.is_client():
+		return 0
 	if sku == "" or count <= 0 or n <= 0:
 		return 0
 	var old_sku := occupied_sku()

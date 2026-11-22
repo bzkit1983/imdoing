@@ -33,6 +33,7 @@ const DaySettle = preload("res://scripts/host/day_settle.gd")
 const WorldBuildScript = preload("res://scripts/host/world_build.gd")
 const BgmBusScript = preload("res://scripts/bgm_bus.gd")
 const NetWorldScript = preload("res://scripts/host/net_world.gd")
+const NetDayChromeScript = preload("res://scripts/host/net_day_chrome.gd")
 const SkillDeployScript = preload("res://scripts/host/skill_deploy.gd")
 const SkillCastScript = preload("res://scripts/host/skill_cast.gd")
 const ClerkCastScript = preload("res://scripts/host/clerk_cast.gd")
@@ -147,10 +148,16 @@ var _pending_carry_states: Array = []
 var _pending_prompt_states: Array = []
 ## Client pending day HUD economy RPCs before world ready.
 var _pending_day_hud_states: Array = []
+## Client pending day clock／phase RPCs before world ready.
+var _pending_day_clock_states: Array = []
 ## Client pending skill CD／buff RPCs before world ready.
 var _pending_skill_cd_states: Array = []
 ## Host fingerprint to throttle skill CD broadcasts.
 var _skill_cd_net_fp: String = ""
+## Host fingerprint／accum for day clock broadcasts (~4 Hz).
+var _day_clock_net_fp: String = ""
+var _day_clock_accum: float = 0.0
+var _next_net_restock_id: int = 0
 var _dirt_spawn_in: float = Tuning.DIRT_SPAWN_SEC
 var _thief_spawn_in: float = Tuning.THIEF_SPAWN_FIRST
 var _early_open: bool = false
@@ -174,6 +181,7 @@ const DIRT_CELL := 40.0
 var _dirt_block_cells: Dictionary = {}
 var _world_build = WorldBuildScript.new()
 var _net = NetWorldScript.new()
+var _day_chrome = NetDayChromeScript.new()
 var _skill_deploy = SkillDeployScript.new()
 var _skill_cast = SkillCastScript.new()
 var _clerk_cast = ClerkCastScript.new()
@@ -203,6 +211,7 @@ func _ready() -> void:
 	SessionService.disconnect_session.connect(_on_session_disconnect)
 	_world_build.bind(self)
 	_net.bind(self)
+	_day_chrome.bind(self)
 	_skill_deploy.bind(self)
 	_skill_cast.bind(self)
 	_clerk_cast.bind(self)
@@ -211,14 +220,11 @@ func _ready() -> void:
 	_toss_world.bind(self)
 	_boss_world.bind(self)
 	_net.connect_session()
+	_day_chrome.connect_session()
 	if not SessionService.carry_state_received.is_connected(_on_carry_state_received):
 		SessionService.carry_state_received.connect(_on_carry_state_received)
 	if not SessionService.prompt_state_received.is_connected(_on_prompt_state_received):
 		SessionService.prompt_state_received.connect(_on_prompt_state_received)
-	if not SessionService.day_hud_state_received.is_connected(_on_day_hud_state_received):
-		SessionService.day_hud_state_received.connect(_on_day_hud_state_received)
-	if not SessionService.skill_cd_state_received.is_connected(_on_skill_cd_state_received):
-		SessionService.skill_cd_state_received.connect(_on_skill_cd_state_received)
 	_hook_warehouse_changed()
 	_pause = PauseScene.instantiate()
 	add_child(_pause)
@@ -387,7 +393,8 @@ func _begin_day() -> void:
 		if stats_src == null:
 			stats_src = load("res://scripts/session/character_sheet.gd").from_game_state(state)
 			SeatTable.set_sheet(seat, stats_src)
-		if seat == 1 and SeatTable.guest_stats == null:
+		## Bind guest_stats only for this machine's claim2 seat (local_index 1), not global seat 1.
+		if SeatTable.seat_owned_locally(seat) and SeatTable.local_index_of(seat) == 1 and SeatTable.guest_stats == null:
 			SeatTable.guest_stats = stats_src
 		var spawn := spawn0 + Vector2(40.0 * float(seat), 0.0)
 		_spawn_seated_player(seat, stats_src, nodes, spawn)
@@ -485,8 +492,9 @@ func _begin_day() -> void:
 		_flush_pending_stock_states()
 		_flush_pending_carry_states()
 		_flush_pending_prompt_states()
-		_flush_pending_day_hud_states()
-		_flush_pending_skill_cd_states()
+		_day_chrome.flush_pending_day_hud_states()
+		_day_chrome.flush_pending_day_clock_states()
+		_day_chrome.flush_pending_skill_cd_states()
 	## Ops tutorial after world／HUD exist (director survives _clear_world).
 	if _tutorial != null and is_instance_valid(_tutorial):
 		_tutorial.call_deferred("consider_ops")
@@ -581,10 +589,11 @@ func note_clean(seat: int = 0, actor_override: Node2D = null) -> void:
 
 
 func _seat_level(seat: int) -> int:
+	var sheet = SeatTable.sheet_of(seat)
+	if sheet != null and "level" in sheet:
+		return int(sheet.level)
 	if seat <= 0:
 		return int(state.level) if state != null else 1
-	if SeatTable.guest_stats != null and "level" in SeatTable.guest_stats:
-		return int(SeatTable.guest_stats.level)
 	return int(state.level) if state != null else 1
 
 
@@ -1523,12 +1532,16 @@ func _on_pause_end_day() -> void:
 
 
 func _consider_early_close() -> bool:
+	## §8.1: only Host evaluates early-close (Client clock is presentation-only).
+	if SessionService.is_networked() and SessionService.is_client():
+		return false
 	if not _restocks_cleared() or not _registers_idle():
 		_early_latched = false
 		return false
 	if _early_latched:
 		return false
 	_show_early_dialog()
+	_day_chrome.broadcast_day_clock_state(true)
 	return true
 
 
@@ -1674,6 +1687,9 @@ func _early_input(event: InputEvent) -> void:
 
 
 func _confirm_early_close() -> void:
+	## Same Host-only gate as skip_operate / pause end-day.
+	if SessionService.is_networked() and not SessionService.request_end_day():
+		return
 	if _tutorial != null and _tutorial.blocks_settle():
 		_decline_early_close()
 		return
@@ -1685,14 +1701,19 @@ func _confirm_early_close() -> void:
 	clear_guest_dusk()
 	phase = "closed"
 	game_hours = Tuning.CLOSE_HOUR
+	_day_chrome.broadcast_day_clock_state(true)
 	_finish_day()
 
 
 func _decline_early_close() -> void:
+	if SessionService.is_networked() and SessionService.is_client():
+		## Client mirrors Host chrome only — cannot dismiss Host prompt.
+		return
 	if not _early_open:
 		return
 	_early_latched = true
 	_hide_early_dialog()
+	_day_chrome.broadcast_day_clock_state(true)
 
 
 func _hide_early_dialog() -> void:
@@ -1739,7 +1760,14 @@ func customer_move_mult() -> float:
 
 
 func _process(delta: float) -> void:
-	if phase == "prep" or phase == "closed" or _early_open:
+	if phase == "prep" or phase == "closed":
+		return
+	## Early-close dialog freezes clock via world_delta=0 but keeps net ticks (boss pattern).
+	if _early_open:
+		_poll_camera_view_hotkey()
+		_maintain_overview_camera()
+		_maintain_coop_camera()
+		_net_tick_intents_and_sync(delta)
 		return
 	## Tutorial pages open: hold the day still without get_tree().paused.
 	if tutorial_freezes_play():
@@ -1757,6 +1785,9 @@ func _process(delta: float) -> void:
 	_maintain_coop_camera()
 	_soft_push_players(delta)
 	_net_tick_intents_and_sync(delta)
+	## §8.1: Client never drives DayPhase／early-close／_finish_day — Host broadcasts clock.
+	if SessionService.is_networked() and SessionService.is_client():
+		return
 	real_time += world_delta(delta)
 	var prev_phase := phase
 	var tick: Dictionary = DayPhase.advance(real_time)
@@ -1768,6 +1799,7 @@ func _process(delta: float) -> void:
 		if phase != prev_phase:
 			bump_hud()
 			host_phase_changed.emit(phase)
+			_day_chrome.broadcast_day_clock_state(true)
 		## Avoid end-of-day spin while a forced ops tutorial still blocks settle.
 		if _tutorial != null and _tutorial.blocks_settle():
 			real_time = maxf(0.0, Tuning.RESTOCK_REAL_SEC + Tuning.OPEN_REAL_SEC - 0.35)
@@ -1776,6 +1808,7 @@ func _process(delta: float) -> void:
 			return
 		if _boss_world != null and _boss_world.is_active() and _boss_world.on_day_time_up():
 			return
+		_day_chrome.broadcast_day_clock_state(true)
 		_finish_day()
 		return
 	_tick_three_volley(delta)
@@ -1788,6 +1821,9 @@ func _process(delta: float) -> void:
 	if phase != prev_phase:
 		bump_hud()
 		host_phase_changed.emit(phase)
+		_day_chrome.broadcast_day_clock_state(true)
+	else:
+		_day_chrome.maybe_broadcast_day_clock(delta)
 	_world_spawn.tick_ambient(delta)
 
 
@@ -1818,7 +1854,7 @@ func _net_tick_once() -> void:
 		return
 	_net_host_apply_intents()
 	_net_host_broadcast_players()
-	_maybe_broadcast_skill_cds()
+	_day_chrome.maybe_broadcast_skill_cds()
 
 
 func _net_client_send_intents() -> void:
@@ -1838,6 +1874,27 @@ func _net_client_send_intents() -> void:
 		var ult_cast := false
 		if p.has_method("take_pending_ult_cast"):
 			ult_cast = bool(p.call("take_pending_ult_cast"))
+		var aim_confirm := false
+		if p.has_method("take_pending_aim_confirm"):
+			aim_confirm = bool(p.call("take_pending_aim_confirm"))
+		var toss_dx := 0.0
+		var toss_dy := 0.0
+		var toss_charge := 1.0
+		var toss_release := false
+		if p.has_method("toss_intent_snapshot"):
+			var toss: Dictionary = p.call("toss_intent_snapshot")
+			toss_dx = float(toss.get("dx", 0.0))
+			toss_dy = float(toss.get("dy", 0.0))
+			toss_charge = float(toss.get("charge", 1.0))
+			toss_release = bool(toss.get("release", false))
+		var restock_cursor := -1
+		var restock_commit := false
+		var restock_abort := false
+		if p.has_method("restock_intent_snapshot"):
+			var rp: Dictionary = p.call("restock_intent_snapshot")
+			restock_cursor = int(rp.get("cursor", -1))
+			restock_commit = bool(rp.get("commit", false))
+			restock_abort = bool(rp.get("abort", false))
 		SessionService.send_intent(sid, {
 			"mx": mv.x,
 			"my": mv.y,
@@ -1850,6 +1907,14 @@ func _net_client_send_intents() -> void:
 			"hotkey": hotkey,
 			"bag_slot": bag_slot,
 			"ult_cast": ult_cast,
+			"aim_confirm": aim_confirm,
+			"toss_dx": toss_dx,
+			"toss_dy": toss_dy,
+			"toss_charge": toss_charge,
+			"toss_release": toss_release,
+			"restock_cursor": restock_cursor,
+			"restock_commit": restock_commit,
+			"restock_abort": restock_abort,
 		})
 
 
@@ -1933,6 +1998,20 @@ func _net_host_apply_intents() -> void:
 				p.remote_move = Vector2.ZERO
 			continue
 		p.remote_move = Vector2(float(intent.get("mx", 0.0)), float(intent.get("my", 0.0)))
+		## Apply toss aim／charge before cancel hold edges so Host release uses Client dir.
+		if p.has_method("apply_toss_intent"):
+			p.call("apply_toss_intent", {
+				"dx": float(intent.get("toss_dx", 0.0)),
+				"dy": float(intent.get("toss_dy", 0.0)),
+				"charge": float(intent.get("toss_charge", 1.0)),
+				"release": intent.get("toss_release", false) == true,
+			})
+		if p.has_method("apply_restock_intent"):
+			p.call("apply_restock_intent", {
+				"cursor": int(intent.get("restock_cursor", -1)),
+				"commit": intent.get("restock_commit", false) == true,
+				"abort": intent.get("restock_abort", false) == true,
+			})
 		var ult_cast: bool = intent.get("ult_cast", false) == true
 		## Clear prep before ult=false hold so we do not emit a spurious cancel.
 		if ult_cast:
@@ -1949,6 +2028,8 @@ func _net_host_apply_intents() -> void:
 		var hotkey := int(intent.get("hotkey", -1))
 		if hotkey >= 0 and p.has_method("_try_skill_hotkey"):
 			p.call("_try_skill_hotkey", hotkey)
+		if intent.get("aim_confirm", false) == true and p.has_method("apply_aim_confirm_intent"):
+			p.call("apply_aim_confirm_intent")
 		var bag_slot := int(intent.get("bag_slot", -1))
 		if bag_slot >= 0:
 			use_ops_item(sid3, bag_slot)
@@ -3722,133 +3803,7 @@ func _flush_pending_prompt_states() -> void:
 
 
 func _broadcast_day_hud_state() -> void:
-	if not SessionService.is_networked() or not SessionService.is_server() or not SessionService.day_started:
-		return
-	SessionService.broadcast_day_hud_state({
-		"ops_rating": ops_rating,
-		"revenue": revenue,
-		"stolen_value": stolen_value,
-		"stolen_count": stolen_count,
-		"served": served,
-		"angry_left": angry_left,
-		"thieves_caught": thieves_caught,
-		"thieves_escaped": thieves_escaped,
-	})
-
-
-func _on_day_hud_state_received(payload: Dictionary) -> void:
-	if not SessionService.is_client():
-		return
-	if _world == null or not is_instance_valid(_world):
-		_pending_day_hud_states.append(payload.duplicate(true))
-		return
-	_apply_day_hud_state_payload(payload)
-
-
-func _flush_pending_day_hud_states() -> void:
-	if _pending_day_hud_states.is_empty():
-		return
-	var queued: Array = _pending_day_hud_states.duplicate(true)
-	_pending_day_hud_states.clear()
-	for payload in queued:
-		if payload is Dictionary:
-			_apply_day_hud_state_payload(payload)
-
-
-func _apply_day_hud_state_payload(payload: Dictionary) -> void:
-	if payload.is_empty():
-		return
-	if payload.has("ops_rating"):
-		ops_rating = int(payload["ops_rating"])
-	if payload.has("revenue"):
-		revenue = int(payload["revenue"])
-	if payload.has("stolen_value"):
-		stolen_value = int(payload["stolen_value"])
-	if payload.has("stolen_count"):
-		stolen_count = int(payload["stolen_count"])
-	if payload.has("served"):
-		served = int(payload["served"])
-	if payload.has("angry_left"):
-		angry_left = int(payload["angry_left"])
-	if payload.has("thieves_caught"):
-		thieves_caught = int(payload["thieves_caught"])
-	if payload.has("thieves_escaped"):
-		thieves_escaped = int(payload["thieves_escaped"])
-	if _tasks != null:
-		_tasks.sync_absolute_for_all_seats("ops_rating", ops_rating)
-		_tasks.sync_absolute_for_all_seats("sales_revenue", revenue)
-		_tasks.sync_absolute_for_all_seats("angry_leave", angry_left)
-	bump_hud()
-
-
-func _skill_cd_net_fingerprint() -> String:
-	var bits: PackedStringArray = []
-	for p in _players:
-		if p == null or not is_instance_valid(p) or not p.has_method("skill_cd_fp"):
-			continue
-		bits.append(String(p.call("skill_cd_fp")))
-	bits.sort()
-	return "|".join(bits)
-
-
-func _maybe_broadcast_skill_cds() -> void:
-	if not SessionService.is_networked() or not SessionService.is_server() or not SessionService.day_started:
-		return
-	var fp := _skill_cd_net_fingerprint()
-	if fp == _skill_cd_net_fp:
-		return
-	_skill_cd_net_fp = fp
-	_dump_all_skill_cds()
-
-
-func _dump_all_skill_cds() -> void:
-	if not SessionService.is_networked() or not SessionService.is_server() or not SessionService.day_started:
-		return
-	var rows: Array = []
-	for p in _players:
-		if p == null or not is_instance_valid(p) or not p.has_method("skill_cd_net_row"):
-			continue
-		rows.append(p.call("skill_cd_net_row"))
-	if rows.is_empty():
-		return
-	_skill_cd_net_fp = _skill_cd_net_fingerprint()
-	SessionService.broadcast_skill_cd_state({"seats": rows})
-
-
-func _on_skill_cd_state_received(payload: Dictionary) -> void:
-	if not SessionService.is_client():
-		return
-	if _world == null or not is_instance_valid(_world):
-		_pending_skill_cd_states.append(payload.duplicate(true))
-		return
-	_apply_skill_cd_state_payload(payload)
-
-
-func _flush_pending_skill_cd_states() -> void:
-	if _pending_skill_cd_states.is_empty():
-		return
-	var queued: Array = _pending_skill_cd_states.duplicate(true)
-	_pending_skill_cd_states.clear()
-	for payload in queued:
-		if payload is Dictionary:
-			_apply_skill_cd_state_payload(payload)
-
-
-func _apply_skill_cd_state_payload(payload: Dictionary) -> void:
-	var rows = payload.get("seats", [])
-	if not (rows is Array):
-		return
-	for row in rows:
-		if not (row is Dictionary):
-			continue
-		var sid := int(row.get("seat", -1))
-		if sid < 0:
-			continue
-		var p := _player_for_seat(sid)
-		if p == null or not p.has_method("apply_net_skill_cd"):
-			continue
-		p.call("apply_net_skill_cd", row)
-	bump_hud()
+	_day_chrome.broadcast_day_hud_state()
 
 
 func _apply_prompt_state_payload(payload: Dictionary) -> void:

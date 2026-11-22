@@ -46,9 +46,21 @@ need("reconcile_owned" in pres_body and "INTENT_STALE_TICKS" in pres_body, "net_
 
 need("func intent_is_stale" in session, "SessionService.intent_is_stale (§8.4)")
 need("next_intent_seq" in session, "SessionService intent seq (§8.4)")
+need("broadcast_day_clock_state" in session, "SessionService.broadcast_day_clock_state (§8.1)")
+need("day_clock_state_received" in session, "SessionService day_clock signal")
 
 player = (SCRIPTS / "player.gd").read_text(encoding="utf-8")
 need("var remote_move" in player and "func is_net_puppet" in player, "player net puppet / remote move")
+need("func _world_authority" in player, "player Host world-authority gate")
+need("take_pending_aim_confirm" in player and "toss_intent_snapshot" in player, "player aim／toss intent helpers")
+need("local_guest_seat_id" in (SCRIPTS / "session" / "seat_table.gd").read_text(encoding="utf-8"), "SeatTable.local_guest_seat_id")
+
+need("aim_confirm" in demo and "toss_dx" in demo and "restock_cursor" in demo, "demo Intent aim／toss／restock fields")
+need("NetDayChromeScript" in demo and "_day_chrome" in demo, "demo Host day chrome module")
+need("broadcast_day_clock_state" in demo, "demo delegates Host day clock broadcast")
+chrome = (SCRIPTS / "host" / "net_day_chrome.gd").read_text(encoding="utf-8") if (SCRIPTS / "host" / "net_day_chrome.gd").is_file() else ""
+need("func broadcast_day_clock_state" in chrome, "net_day_chrome.broadcast_day_clock_state")
+need("is_client()" in demo and "DayPhase.advance" in demo, "demo Client clock gate near DayPhase")
 
 checklist = DOCS / "alpha" / "multiplayer-smoke-checklist.md"
 need(checklist.is_file(), "G2 manual checklist doc exists")

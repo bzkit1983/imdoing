@@ -1793,8 +1793,11 @@ func refresh_room_sheets_from_state() -> void:
 				sheets.append(guest.to_dict())
 			else:
 				sheets.append(main.to_dict())
-		elif SeatTable.sheet_of(1) != null and SeatTable.sheet_of(1).has_method("to_dict"):
-			sheets.append(SeatTable.sheet_of(1).to_dict())
+		else:
+			var guest_seat := SeatTable.local_guest_seat_id()
+			var guest_sheet = SeatTable.sheet_of(guest_seat) if guest_seat >= 0 else null
+			if guest_sheet != null and guest_sheet.has_method("to_dict"):
+				sheets.append(guest_sheet.to_dict())
 	## Networked client claim1: only main sheet. Host with only seat0: only main.
 	var expect_n := 0
 	for s in SeatTable.seat_ids():

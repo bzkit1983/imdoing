@@ -10,6 +10,8 @@ var category: String = Tuning.CAT_DRY
 var highlight: int = 0
 var cursor: int = 0
 var picking: bool = false
+## Stable id across Host／Client for InteractLock (§11.6).
+var net_restock_id: int = -1
 ## Seat that opened the SKU pick list — menu anchors over that clerk (not game._player).
 var pick_seat: int = -1
 var stock: Dictionary = {}
@@ -157,6 +159,9 @@ func take_box() -> bool:
 
 func take_pieces(requested: int) -> int:
 	## Player restock: consume up to `requested` pieces from the selected SKU.
+	## §8.2: networked Client must not consume warehouse.
+	if SessionService.is_networked() and SessionService.is_client():
+		return 0
 	if requested <= 0:
 		return 0
 	var sku := selected_sku()

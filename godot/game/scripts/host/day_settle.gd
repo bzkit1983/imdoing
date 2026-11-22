@@ -44,11 +44,12 @@ static func _seat_get(arr: Array, seat: int) -> int:
 
 
 static func persist_guest_xp(shared_xp: int, host_grade: int = 0) -> Dictionary:
-	## Applies shared XP + support_rating to SeatTable guest and saves selected slot.
+	## Applies shared XP + support_rating to this machine's claim2 sheet (local_index 1).
 	## Returns {guest_xp_line, guest_ups}.
 	var guest_xp_line := ""
 	var guest_ups := 0
-	if not SeatTable.is_coop() or SeatTable.guest_stats == null:
+	## Prefer guest_stats only when this peer owns a local_index=1 seat (not remote seat 1).
+	if SeatTable.local_guest_seat_id() < 0 or SeatTable.guest_stats == null:
 		return {"guest_xp_line": guest_xp_line, "guest_ups": guest_ups}
 	var guest_res: Dictionary = SeatTable.guest_stats.apply_xp_gain(shared_xp)
 	guest_ups = int(guest_res.get("ups", 0))

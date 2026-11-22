@@ -149,10 +149,15 @@ func on_skill_hold(pressed: bool) -> void:
 			host.log_line.emit(Loc.t("log.player.cant_skill"))
 			return
 		if host._must_deliver_aim:
+			## Client: local chrome + aim_confirm intent; Host finishes authority cast.
+			if SessionService.is_networked() and SessionService.is_client():
+				host.pending_aim_confirm = true
 			finish_must_deliver_aim()
 			host._skill_release_ignore = true
 			return
 		if host._magneto_aim:
+			if SessionService.is_networked() and SessionService.is_client():
+				host.pending_aim_confirm = true
 			finish_magneto_aim()
 			host._skill_release_ignore = true
 			return
@@ -266,9 +271,13 @@ func try_skill_hotkey(slot: int) -> void:
 		return
 	_queue_client_skill_intent(slot)
 	if host._must_deliver_aim:
+		if SessionService.is_networked() and SessionService.is_client():
+			host.pending_aim_confirm = true
 		finish_must_deliver_aim()
 		return
 	if host._magneto_aim:
+		if SessionService.is_networked() and SessionService.is_client():
+			host.pending_aim_confirm = true
 		finish_magneto_aim()
 		return
 	confirm_skill(slot)

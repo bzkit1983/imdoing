@@ -1,19 +1,19 @@
 # 本機多人 vs 網上連線：全面對照報告
 
 - **性質：** 工程對照審計（設計契約 × 活線程式）；**非**玩法規格、**非**本輪修 bug PR
-- **對照日：** 2026-11-22
+- **對照日：** 2026-11-22（初稿）；**修復跟進：** 2026-11-22（§7 項 1／2／3／5 已落地；項 4 COMBO HUD 暫緩）
 - **權威規格：** [`docs/systemdesign/multiplayer.md`](../systemdesign/multiplayer.md)
 - **活線入口：** `godot/game/scripts/session/session_service.gd`、`seat_table.gd`、`net_transport.gd`、`demo.gd`
 - **相關：** [`multiplayer-smoke-checklist.md`](multiplayer-smoke-checklist.md)、[`implementation-status.md`](implementation-status.md)、[`../systemdesign-gaps.md`](../systemdesign-gaps.md)
 
 ## 結論
 
-Seat≠Peer listen-server 骨架（M1～M3）已落地且文件標「已交／已驗收」；但網上路徑仍有數處**違反 §8 Host 權威**的 Client 本地模擬，加上三項**規格驗收未勾**與測試網薄弱。本機雙人大多「碰巧正確」（同一進程、無 RPC），一上線就會露出時鐘／提早關店／互動預測／Intent 缺欄等問題。
+Seat≠Peer listen-server 骨架（M1～M3）已落地。審計時網上路徑有數處違反 §8 Host 權威的 Client 本地模擬；**項 1／2／3／5 已修**（時鐘、庫存／L 鎖、Intent aim／toss／restock、`guest_stats`＝local_index 1）。**COMBO HUD（項 4）另行再設計，不直出介面。** 仍開：§8.4／§12.10／§13.6 驗收、M4 `web_ws`、雙 peer CI。
 
 | 計量 | 數量 |
 | --- | --- |
-| P0 權威／協定問題 | 4 |
-| P1 產品／規格落差 | 6 |
+| P0 已修 | 時鐘／庫存／InteractLock／Intent（4） |
+| P1 已修 | guest_stats 解耦；COMBO HUD 暫緩 |
 | 規格驗收未勾 | §8.4／§12.10／§13.6 |
 | CODE 未支援 | M4 `web_ws` |
 
@@ -170,11 +170,11 @@ Host Sim     ──pose / chrome / settle──► Client NetPresentation
 
 ---
 
-## 7. 建議修復順序（後續實作，本檔不改玩法碼）
+## 7. 建議修復順序
 
-1. **Host 權威時鐘：** Client 停跑 `DayPhase`／提早關店；Host 廣播 phase／clock 或 end-day 事件；提早關店走與 `request_end_day` 同級閘。
-2. **L 互動＋庫存：** Client 互動只出 Intent／chrome；庫存／客人突變只在 Host；鎖以穩定 net id（非 instance_id）或僅 Host 表。
-3. **擴 Intent：** aim-confirm、toss dir／charge、restock 選項。
-4. **COMBO：** HUD 接上＋納入 day_hud（或專用 RPC）；Client 禁本地 `combo_note_*`。
-5. **解耦 guest_stats ↔ seat 1**（改「本機 local_index 1」語意）。
+1. **Host 權威時鐘：** ~~Client 停跑 DayPhase／提早關店；Host 廣播 clock~~ **已修**（2026-11-22）。
+2. **L 互動＋庫存：** ~~Host-only 突變＋穩定 lock key~~ **已修**（2026-11-22）。
+3. **擴 Intent：** ~~aim-confirm、toss dir／charge、restock~~ **已修**（2026-11-22）。
+4. **COMBO HUD：** 另行再設計；**不**直出介面（暫緩）。
+5. **解耦 guest_stats ↔ seat 1**（local_index 1）**已修**（2026-11-22）。
 6. **補驗收／測試：** §8.4／§12.10／§13.6 真機勾完；至少一條雙實例 headless／半自動 smoke。

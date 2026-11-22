@@ -88,6 +88,18 @@ func on_cancel_release() -> void:
 	## Armed by long-press → toss charged focused pieces on release.
 	## Short press tosses 1 (or 2 w/ hoop_ace) along aim/facing.
 	ensure_toss_dir()
+	## Networked Client: chrome only — Host applies toss via toss_* intent (§8.2).
+	var client_predict := SessionService.is_networked() and SessionService.is_client()
+	if client_predict:
+		host.pending_toss_release = true
+		hide_drop_aim()
+		if host._piece_flights <= 0:
+			host._piece_drop_lock = false
+		host._cancel_time = 0.0
+		host._cancel_drop_ready = false
+		host._cancel_drop_dir = Vector2.ZERO
+		_charge_n = 1.0
+		return
 	if host._cancel_drop_ready and not host._cancel_dropped and not host._drop_flight_lock:
 		host._cancel_dropped = true
 		hide_drop_aim()
