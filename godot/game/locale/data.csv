@@ -323,6 +323,7 @@ log.player.pay_done,收銀完成  +$%d,Checkout done  +$%d,收银完成  +$%d,�
 log.player.cant_skill,現在不能發動技能,Cannot cast skills now,现在不能发动技能,今はスキルを発動できない
 log.player.skill_menu_tap,技能選單 — 按方向即發動，再按技能鍵發動中間,Skill menu — tap direction to cast; skill again for center,技能选单 — 按方向即发动，再按技能键发动中间,スキルメニュー — 方向を押すと発動、スキル再押しで中央
 log.player.skill_menu_hold,技能選單 — 拉方向預覽，放開發動；回中則中間,"Skill menu — hold direction to preview, release to cast; center = middle",技能选单 — 拉方向预览，放开发动；回中则中间,スキルメニュー — 方向を引いてプレビュー、離して発動；中央に戻すと中央枠
+log.player.carry_menu_tap,持貨選單 — 按方向選定焦點貨,Carry menu — pick direction to focus SKU,持货选单 — 按方向选定焦点货,所持メニュー — 方向でフォーカス商品を選ぶ
 log.player.cant_ult,現在不能發動奧義,Cannot cast ultimate now,现在不能发动奥义,今は奥義を発動できない
 log.player.no_ult,沒有裝備奧義,No ultimate equipped,没有装备奥义,奥義を装備していない
 log.player.demo_no_cd,%s 本 Demo 未實作，不會進入冷卻,%s not in this demo — no cooldown,%s 本 Demo 未实作，不会进入冷却,%s はこの Demo 未実装、クールダウンに入らない

@@ -52,7 +52,7 @@ tut.prep.shop_layout.p1.body,把剛買的三種基本商店物件配置到店中
 tut.prep.shop_layout.p2.title,位置不限,Place anywhere,位置不限,どこに置いてもOK
 tut.prep.shop_layout.p2.body,收銀台、乾貨補貨架、乾貨類貨架（4件）各放一件即可；放在哪一格都可以。,"Place one each: cashier, dry restock rack, dry shelf (4). Any tiles are fine.",收银台、干货补货架、干货类货架（4件）各放一件即可；放在哪一格都可以。,レジ・常温補充棚・常温棚（4個）を各1つ。置くマスはどこでも構いません。
 tut.prep.shop_layout.p3.title,補貨架預設貨,Restock default SKU,补货架预设货,補充棚の既定商品
-tut.prep.shop_layout.p3.body,"在設計圖對準補貨架後可設這格預設貨品（開業補貨會依此執貨）。\n手制：長按行動鍵。\n鍵盤：游標對準後長按 J／Enter；↑↓ 改選，確定／取消。\n滑鼠：在架上長按左鍵；滾輪改選，左鍵確定、右鍵取消。","On the layout, set a restock rack’s default SKU (ops restock uses it).\nPad: hold Act.\nKeyboard: aim cursor, hold J/Enter; ↑↓ to change, confirm/cancel.\nMouse: long-press LMB on the rack; wheel to change, LMB confirm, RMB cancel.","在设计图对准补货架后可设这格预设货品（开业补货会依此执货）。\n手制：长按行动键。\n键盘：游标对准后长按 J／Enter；↑↓ 改选，确定／取消。\n鼠标：在架上长按左键；滚轮改选，左键确定、右键取消。","デザイン図で補充棚に合わせ、そのマスの既定商品を設定できます（営業中の補充に使います）。\nパッド：行動を長押し。\nキーボード：カーソルを合わせて J／Enter 長押し。↑↓ で変更、決定／キャンセル。\nマウス：棚を左クリック長押し。ホイールで変更、左クリック決定・右クリックキャンセル。"
+tut.prep.shop_layout.p3.body,"在設計圖對準補貨架後可設這格預設貨品（開業補貨會依此執貨）。\n手制：長按行動鍵。\n鍵盤：游標對準後長按 H／Enter；↑↓ 改選，確定／取消。\n滑鼠：在架上長按左鍵；滾輪改選，左鍵確定、右鍵取消。","On the layout, set a restock rack’s default SKU (ops restock uses it).\nPad: hold Act.\nKeyboard: aim cursor, hold H/Enter; ↑↓ to change, confirm/cancel.\nMouse: long-press LMB on the rack; wheel to change, LMB confirm, RMB cancel.","在设计图对准补货架后可设这格预设货品（开业补货会依此执货）。\n手制：长按行动键。\n键盘：游标对准后长按 H／Enter；↑↓ 改选，确定／取消。\n鼠标：在架上长按左键；滚轮改选，左键确定、右键取消。","デザイン図で補充棚に合わせ、そのマスの既定商品を設定できます（営業中の補充に使います）。\nパッド：行動を長押し。\nキーボード：カーソルを合わせて H／Enter 長押し。↑↓ で変更、決定／キャンセル。\nマウス：棚を左クリック長押し。ホイールで変更、左クリック決定・右クリックキャンセル。"
 tut.prep.shop_layout.p4.title,擺好即可開業,Then open the day,摆好即可开业,置けたら営業開始
 tut.prep.shop_layout.p4.body,三件都放到店裡後即可開業，完成本教學。,"Once all three are in the shop, open the day to finish this lesson.",三件都放到店里后即可开业，完成本教学。,3つを店内に置けたら営業開始でこのチュートリアル完了です。
 tut.prep.shop_layout.task.name,配置基本商店物件,Place basic shop pieces,配置基本商店物件,基本の店舗アイテムを配置
@@ -197,7 +197,7 @@ tut.ops.shelve.done.body,已上架 4 件。可以繼續營業。,"You shelved 4 
 tut.ops.clean.p1.title,清潔入門,Cleaning basics,清洁入门,掃除の基本
 tut.ops.clean.p1.body,地上出現污物了。清掉至少 1 團後即可正常結算。,"Dirt is on the floor. Clean at least 1 pile, then you can settle normally.",地上出现污物了。清掉至少 1 团后即可正常结算。,床に汚れが出ました。1つ以上掃除すれば通常どおり精算できます。
 tut.ops.clean.p2.title,清潔操作,How to clean,清洁操作,掃除の操作
-tut.ops.clean.p2.body,"對準污物清潔（可持貨）。\n手制：長按行動並持續轉搖桿。\n鍵盤：長按 J／Enter 並持續按 WASD 轉方向。\n觸控／虛擬鍵：長按行動並轉虛擬搖桿。","Face dirt to clean (OK while carrying).\nPad: hold Act and keep circling the stick.\nKeyboard: hold J/Enter and keep wiggling WASD.\nTouch/virtual: hold Act and circle the virtual stick.","对准污物清洁（可持货）。\n手制：长按行动并持续转摇杆。\n键盘：长按 J／Enter 并持续按 WASD 转方向。\n触控／虚拟键：长按行动并转虚拟摇杆。","汚れに向いて掃除（荷物持ちでも可）。\nパッド：行動長押し＋スティックを回し続ける。\nキーボード：J／Enter 長押し＋WASD を振り続ける。\nタッチ／仮想：行動長押し＋仮想スティックを回す。"
+tut.ops.clean.p2.body,"對準污物清潔（可持貨）。\n手制：長按行動並持續轉搖桿。\n鍵盤：長按 H／Enter 並持續按 WASD 轉方向。\n觸控／虛擬鍵：長按行動並轉虛擬搖桿。","Face dirt to clean (OK while carrying).\nPad: hold Act and keep circling the stick.\nKeyboard: hold H/Enter and keep wiggling WASD.\nTouch/virtual: hold Act and circle the virtual stick.","对准污物清洁（可持货）。\n手制：长按行动并持续转摇杆。\n键盘：长按 H／Enter 并持续按 WASD 转方向。\n触控／虚拟键：长按行动并转虚拟摇杆。","汚れに向いて掃除（荷物持ちでも可）。\nパッド：行動長押し＋スティックを回し続ける。\nキーボード：H／Enter 長押し＋WASD を振り続ける。\nタッチ／仮想：行動長押し＋仮想スティックを回す。"
 tut.ops.clean.p3.title,開始練習,Start practice,开始练习,練習を始める
 tut.ops.clean.p3.body,清掉至少 1 團污物；完成前不能結算本日。,"Clean at least 1 dirt pile. You cannot settle until this is done.",清掉至少 1 团污物；完成前不能结算本日。,汚れを1つ以上掃除。完了まで精算できません。
 tut.ops.clean.task.name,教學：清潔 1 次,Tutorial: clean once,教学：清洁 1 次,チュートリアル：1回掃除
@@ -662,7 +662,7 @@ pause.scene.body,遊戲已暫停。,Game paused.,游戏已暂停。,ゲームを
 pause.scene.hint,Esc／Start 開關　　W／S 選擇　　A／D 調音量　　J 確定,Esc/Start toggle  W/S select  A/D volume  J confirm,Esc／Start 开关　　W／S 选择　　A／D 调音量　　J 确定,Esc／Start で切替　　W／S で選択　　A／D で音量　　J で確定
 pause.scene.vol,音效聲量：100%,SFX volume: 100%,音效声量：100%,効果音量：100%
 pause.scene.stick,虛擬搖桿：關,Virtual stick: Off,虚拟摇杆：关,仮想スティック：オフ
-prep.scene.hint,WASD／搖桿移動　J／A 確定　;／B 返回　店舖設計時 X／K 轉向,WASD/stick move  J/A confirm  ;/B back  layout: X/K rotate,WASD／摇杆移动　J／A 确定　;／B 返回　店铺设计时 X／K 转向,WASD／スティックで移動　J／A で確定　;／B で戻る　店舗設計時 X／K で回転
+prep.scene.hint,WASD／搖桿移動　H／A 確定　J／B 返回　店舖設計時 Y／R 轉向,WASD/stick move  H/A confirm  J/B back  layout: Y/R rotate,WASD／摇杆移动　H／A 确定　J／B 返回　店铺设计时 Y／R 转向,WASD／スティックで移動　H／A で確定　J／B で戻る　店舗設計時 Y／R で回転
 prep.skill.level_row,%s 等級　LV%d,%s level  LV%d,%s 等级　LV%d,%s レベル　LV%d
 prep.sku.locked,%s　LV%d 開放,%s  unlocks LV%d,%s　LV%d 开放,%s　LV%d で開放
 prep.sku.developed,%s　已開發,%s  developed,%s　已开发,%s　開発済み
@@ -771,6 +771,8 @@ hud.move.toss,丟貨,Tossing,丢货,投げる
 hud.move.drop_aim,掉貨瞄準,Drop aim,掉货瞄准,投下照準
 hud.move.ult_cmd,奧義指令,Ult inputs,奥义指令,奥義コマンド
 hud.move.skill_menu,技能選單,Skill menu,技能选单,スキルメニュー
+hud.move.bag_menu,道具選單,Bag menu,道具选单,アイテムメニュー
+hud.move.carry_menu,持貨選單,Carry menu,持货选单,所持メニュー
 hud.move.pick_sku,選貨,Picking SKU,选货,商品選択
 hud.move.clean,清潔,Cleaning,清洁,清掃
 hud.move.fight,打擊,Fight,打击,攻撃
