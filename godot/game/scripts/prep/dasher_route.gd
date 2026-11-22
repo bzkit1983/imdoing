@@ -35,4 +35,13 @@ static func generate(seed_value: int) -> Dictionary:
 		})
 		x = landing
 		y = clampi(y + 5 * random.randi_range(-2, 2), 107, 143)
+	var trapped_gaps := [true, true, true, true, false, false]
+	for i in range(trapped_gaps.size() - 1, 0, -1):
+		var pick := random.randi_range(0, i)
+		var trapped: bool = trapped_gaps[i]
+		trapped_gaps[i] = trapped_gaps[pick]
+		trapped_gaps[pick] = trapped
+	for i in sections.size():
+		sections[i]["gap_brick"] = trapped_gaps[i]
+		sections[i]["solid_step"] = hazards[i] == Hazard.FAKE and random.randi_range(0, 1) == 1
 	return {"sections": sections, "finish_start": x, "finish_ground": y}

@@ -123,9 +123,16 @@ func _build_route() -> void:
 				_hidden.append(_trap(Rect2(hazard_x + 38, y - 11, 12, 11)))
 			Route.Hazard.FAKE:
 				_platform(Rect2(left, y, edge - left, 180 - y))
-				var fake := Trap.new()
-				fake.rect = Rect2(edge + 34, y - 4, 33, 18)
-				_fake.append(fake)
+				var step_rect := Rect2(edge + 34, y - 4, 33, 18)
+				if section["solid_step"]:
+					_platform(step_rect)
+				else:
+					var fake := Trap.new()
+					fake.rect = step_rect
+					_fake.append(fake)
+		if section["gap_brick"]:
+			# A late jump meets the underside or side. An earlier jump clears the top.
+			_hidden.append(_trap(Rect2(edge + 13, y - 32, 12, 16)))
 		_add_enemy(Vector2(section["enemy_x"], y - 10), section["patrol"])
 	var final_x: int = route["finish_start"]
 	var final_y: int = route["finish_ground"]
