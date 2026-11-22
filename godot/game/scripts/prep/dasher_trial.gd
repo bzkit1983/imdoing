@@ -62,11 +62,16 @@ func _build_ui() -> void:
 	bar.offset_right = -24
 	bar.offset_top = 12
 	_lives = _label(bar, UiFont.SIZE_BODY)
+	_lives.add_theme_stylebox_override("normal", _warm_panel("FFFDF2", 14, 8))
 	_status = _label(bar, UiFont.SIZE_BODY)
-	_status.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_status.add_theme_stylebox_override("normal", _warm_panel("FFFDF2", 14, 8))
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bar.add_child(spacer)
 	_restart = _button(bar, _reset)
 	_back = _button(bar, _exit)
 	_notice = _label(_view, UiFont.SIZE_BODY)
+	_notice.add_theme_color_override("font_color", Color("fff1c4"))
 	_notice.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_notice.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
 	_notice.offset_top = 65
@@ -76,17 +81,14 @@ func _build_ui() -> void:
 	_view.add_child(_cover)
 	_cover.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var panel := PanelContainer.new()
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color("23203a")
-	style.border_color = Color("79d9be")
-	style.set_border_width_all(3)
-	for side in [SIDE_LEFT, SIDE_TOP, SIDE_RIGHT, SIDE_BOTTOM]:
-		style.set_content_margin(side, 24)
-	panel.add_theme_stylebox_override("panel", style)
+	panel.add_theme_stylebox_override("panel", _warm_panel("FFFDF2", 28, 10))
 	_cover.add_child(panel)
+	var inset := PanelContainer.new()
+	inset.add_theme_stylebox_override("panel", _warm_panel("F7EED6", 20, 18))
+	panel.add_child(inset)
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 16)
-	panel.add_child(column)
+	inset.add_child(column)
 	_heading = _label(column, UiFont.SIZE_HEADING)
 	_details = _label(column, UiFont.SIZE_BODY_SM)
 	_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -96,8 +98,8 @@ func _build_ui() -> void:
 
 func _label(parent: Control, size_px: int) -> Label:
 	var label := Label.new()
-	UiFont.apply_label(label, size_px, UiFont.WEIGHT_REGULAR, 2)
-	label.add_theme_color_override("font_color", Color("fff1c4"))
+	UiFont.apply_label(label, size_px, UiFont.WEIGHT_REGULAR, 0)
+	label.add_theme_color_override("font_color", Color("5C4938"))
 	parent.add_child(label)
 	return label
 
@@ -107,9 +109,26 @@ func _button(parent: Control, action: Callable) -> Button:
 	button.focus_mode = Control.FOCUS_NONE
 	button.custom_minimum_size.y = 44
 	UiFont.apply_button_literal(button, UiFont.SIZE_BODY_SM)
+	button.add_theme_stylebox_override("normal", _warm_panel("FFFDF2", 24, 8))
+	button.add_theme_stylebox_override("hover", _warm_panel("FFD43B", 24, 8))
+	button.add_theme_stylebox_override("pressed", _warm_panel("FFD43B", 24, 8))
+	for state in ["font_color", "font_hover_color", "font_pressed_color"]:
+		button.add_theme_color_override(state, Color("5C4938"))
 	button.pressed.connect(action)
 	parent.add_child(button)
 	return button
+
+
+func _warm_panel(fill: String, radius: int, padding: int) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(fill)
+	style.border_color = Color("E0AC16" if fill == "FFD43B" else "DFD3B8")
+	style.set_border_width_all(2)
+	style.border_width_bottom = 4
+	style.set_corner_radius_all(radius)
+	for side in [SIDE_LEFT, SIDE_TOP, SIDE_RIGHT, SIDE_BOTTOM]:
+		style.set_content_margin(side, padding)
+	return style
 
 
 func _localize(_locale: String = "") -> void:

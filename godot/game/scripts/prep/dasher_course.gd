@@ -282,16 +282,27 @@ func _respawn(point: Vector2) -> void:
 
 
 func _draw() -> void:
-	draw_rect(Rect2(0, 0, course_width, 180), Color("22254b"))
-	for x in range(18, course_width, 71):
-		draw_rect(Rect2(x, 18 + (x * 7) % 36, 2, 2), Color("a985a4"))
-	draw_rect(Rect2(0, 63, course_width, 92), Color("45395e"))
-	for x in range(0, course_width, 46):
-		var roof := 58 + (x * 13) % 38
-		draw_rect(Rect2(x, roof, 37, 87), Color("322e53"))
-		for y in range(roof + 9, 125, 13):
-			draw_rect(Rect2(x + 7, y, 5, 4), Color("746387"))
-			draw_rect(Rect2(x + 23, y, 5, 4), Color("977981"))
+	for band in 8:
+		draw_rect(Rect2(0, band * 21, course_width, 21), Color("191f43").lerp(Color("765877"), band / 7.0))
+	for x in range(18, course_width, 41):
+		draw_rect(Rect2(x, 9 + (x * 7) % 46, 2, 1), Color("cfabc4"))
+	for x in range(0, course_width, 34):
+		var roof := 49 + (x * 13) % 36
+		draw_rect(Rect2(x, roof, 30, 116), Color("40375e"))
+		draw_rect(Rect2(x + 4, roof - 4, 15, 4), Color("40375e"))
+		for y in range(roof + 8, 120, 14):
+			draw_rect(Rect2(x + 5, y, 3, 2), Color("806980"))
+	for x in range(6, course_width, 54):
+		var roof := 70 + (x * 11) % 27
+		draw_rect(Rect2(x, roof, 44, 96), Color("292944"))
+		draw_rect(Rect2(x - 2, roof, 47, 3), Color("534665"))
+		draw_rect(Rect2(x + 40, roof + 3, 4, 87), Color("38324f"))
+		for y in range(roof + 10, 144, 16):
+			for column in 3:
+				var wx := x + 6 + column * 12
+				draw_rect(Rect2(wx, y, 8, 8), Color("1c2340"))
+				draw_rect(Rect2(wx + 1, y + 1, 6, 5), Color("b48a82") if (wx + y) % 3 == 0 else Color("525776"))
+				draw_rect(Rect2(wx + 3, y + 1, 1, 5), Color("343651"))
 	draw_rect(Rect2(0, 166, course_width, 14), Color("14162a"))
 	for x in range(4, course_width, 24):
 		draw_rect(Rect2(x, 173, 12, 2), Color("615371"))
@@ -324,36 +335,48 @@ func _draw() -> void:
 	for enemy in _enemies:
 		var point := enemy.body.position.round()
 		if enemy.patrol:
-			_draw_actor(point, Color("4b355b"), Color("d39a78"), Color("e47c85"))
+			_draw_actor(point, Color("765184"), Color("d39a78"), Color("33273d"), 1.0, true)
 			draw_rect(Rect2(point - Vector2(3, 7), Vector2(7, 2)), Color("211d35"))
 			draw_rect(Rect2(point + Vector2(-9, 2), Vector2(5, 7)), Color("d59b68"))
 		else:
-			_draw_actor(point, Color("b14861"), Color("edbd8d"), Color("702e62"))
+			_draw_actor(point, Color("d06b78"), Color("edbd8d"), Color("702e62"), -1.0, false)
+			draw_rect(Rect2(point + Vector2(-8, -1), Vector2(3, 7)), Color("b04e6d"))
 			draw_rect(Rect2(point - Vector2(0, 22), Vector2(2, 5)), Color("f6b97c"))
 			draw_rect(Rect2(point - Vector2(0, 15), Vector2(2, 2)), Color("f6b97c"))
-	_draw_actor(player.position, Color("65d2b7"), Color("f5cb9c"), Color("35548a"))
+	_draw_actor(player.position, Color("65d2b7"), Color("f5cb9c"), Color("35548a"), _facing, absf(player.velocity.x) > 1)
+	var cap := player.position.round() + Vector2(-5, -11)
+	draw_rect(Rect2(cap, Vector2(10, 3)), Color("96e6be"))
+	draw_rect(Rect2(cap + Vector2(3 * _facing, 2), Vector2(10, 2)), Color("408e8e"))
 	if _dash_left > 0:
 		var p := player.position.round() - Vector2(_dash_direction * 14, 3)
 		draw_rect(Rect2(p, Vector2(9, 2)), Color("d2f6bd"))
 		draw_rect(Rect2(p + Vector2(-3 * _dash_direction, 6), Vector2(7, 2)), Color("65d2b7"))
+		for spark in 3:
+			draw_rect(Rect2(p + Vector2(-_dash_direction * (8 + spark * 5), spark * 3), Vector2(3, 1)), Color("8bc8b1"))
 
 
 func _draw_platform(platform: Rect2) -> void:
 	draw_rect(platform, Color("313143"))
 	draw_rect(Rect2(platform.position, Vector2(platform.size.x, 4)), Color("e1a06a"))
 	draw_rect(Rect2(platform.position + Vector2(0, 4), Vector2(platform.size.x, 4)), Color("8a5964"))
-	for x in range(int(platform.position.x) + 8, int(platform.end.x), 16):
-		draw_rect(Rect2(x, platform.position.y + 13, 8, 2), Color("694c65"))
+	for row_y in range(9, int(platform.size.y) - 3, 8):
+		for x in range(4 + row_y % 7, int(platform.size.x) - 2, 15):
+			var width := minf(11, platform.size.x - x)
+			draw_rect(Rect2(platform.position + Vector2(x, row_y), Vector2(width, 2)), Color("57506a"))
+	draw_rect(Rect2(platform.position, Vector2(platform.size.x, 1)), Color("ffd599"))
 
 
-func _draw_actor(center: Vector2, shirt: Color, skin: Color, hair: Color) -> void:
+func _draw_actor(center: Vector2, shirt: Color, skin: Color, hair: Color, direction: float, walking: bool) -> void:
 	var pos := center.round() - Vector2(6, 10)
 	draw_rect(Rect2(pos + Vector2(2, 0), Vector2(8, 7)), skin)
 	draw_rect(Rect2(pos + Vector2(2, 0), Vector2(8, 2)), hair)
-	draw_rect(Rect2(pos + Vector2(6, 3), Vector2(3, 1)), Color("201d36"))
+	draw_rect(Rect2(pos + Vector2(5 + direction * 2, 3), Vector2(2, 2)), Color("201d36"))
 	draw_rect(Rect2(pos + Vector2(0, 7), Vector2(12, 8)), shirt)
-	draw_rect(Rect2(pos + Vector2(1, 15), Vector2(4, 4)), hair)
-	draw_rect(Rect2(pos + Vector2(7, 15), Vector2(4, 4)), hair)
+	draw_rect(Rect2(pos + Vector2(1, 8), Vector2(8, 2)), shirt.lightened(0.3))
+	draw_rect(Rect2(pos + Vector2(1, 13), Vector2(10, 2)), shirt.darkened(0.3))
+	var stride := 1 if walking and int(elapsed * 12.0) % 2 == 0 else 0
+	draw_rect(Rect2(pos + Vector2(1 - stride, 15), Vector2(4, 4)), hair)
+	draw_rect(Rect2(pos + Vector2(7 + stride, 15 - stride), Vector2(4, 4)), hair)
 
 
 func _draw_store() -> void:
@@ -365,6 +388,9 @@ func _draw_store() -> void:
 	for x in range(1178, 1298, 10):
 		draw_rect(Rect2(x, 72, 10, 6), Color("ea8374") if x % 20 == 18 else Color("fff1b9"))
 	draw_rect(Rect2(1191, 85, 39, 16), Color("405b74"))
+	for x in range(1194, 1228, 8):
+		draw_rect(Rect2(x, 94, 5, 4), Color("e9b778"))
+	draw_rect(Rect2(1192, 86, 37, 1), Color("85afb2"))
 	draw_rect(Rect2(1250, 80, 25, 27), Color("f3cd88"))
 	draw_rect(Rect2(1253, 83, 19, 24), Color("27776b"))
 	draw_rect(Rect2(1268, 94, 2, 3), Color("fff1b9"))
