@@ -915,3 +915,15 @@ prep.light_quiz.q5.a,第一日,First day,第一日,一日目
 prep.light_quiz.q5.b,第四日,Fourth day,第四日,四日目
 prep.light_quiz.q5.c,第五日,Fifth day,第五日,五日目
 prep.light_quiz.q5.d,第六日,Sixth day,第六日,六日目
+prep.bun_duel.title,快吞轟：食包對決,Quick Swallow: Bun Duel,快吞轰：吃包对决,クイックスワロー：パン早食い対決
+prep.bun_duel.ready,預備 %d,Ready %d,准备 %d,準備 %d
+prep.bun_duel.time,剩餘 %d 秒,%d s left,剩余 %d 秒,残り %d 秒
+prep.bun_duel.player,你｜%d 個包・%d／5 啖,You · %d buns · %d/5 bites,你｜%d 个包・%d／5 口,あなた｜%d個・%d/5口
+prep.bun_duel.cpu,電腦｜%d 個包・%d／5 啖,CPU · %d buns · %d/5 bites,电脑｜%d 个包・%d／5 口,CPU｜%d個・%d/5口
+prep.bun_duel.controls,連撳鍵盤 A 或手掣 A｜5 啖一個包,Mash keyboard A or controller A · 5 bites per bun,连按键盘 A 或手柄 A｜5 口一个包,キーボードかパッドのAを連打｜5口でパン1個
+prep.bun_duel.retry,再玩（R／Y）,Retry (R / Y),再玩（R／Y）,再挑戦（R／Y）
+prep.bun_duel.win,你贏咗！,You win!,你赢了！,勝利！
+prep.bun_duel.tie,打和！,Tie!,平局！,引き分け！
+prep.bun_duel.loss,電腦贏咗！,CPU wins!,电脑赢了！,CPUの勝ち！
+prep.bun_duel.reward,獲得技能：%s（試玩提示）,Skill earned: %s (trial),获得技能：%s（试玩提示）,スキル獲得：%s（体験版）
+prep.bun_duel.ok,確認,OK,确认,決定
