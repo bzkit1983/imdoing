@@ -27,6 +27,8 @@ def main() -> int:
             errs.append("dash_knock_guest should append cart then remaining shopping")
         if "_drop_cart_inplace" not in body:
             errs.append("dash_knock_guest should still drop cart inplace")
+        if "is_boss" not in body or "_boss_cart_checkpoint" not in body:
+            errs.append("dash_knock_guest must bank prior-stage boss cart (no list inflate)")
     doc = MOVE_DOC.read_text(encoding="utf-8")
     if "購物清單不變" not in doc:
         errs.append("playermovement.md should say 購物清單不變")

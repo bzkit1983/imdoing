@@ -114,6 +114,23 @@ func spawn_loot_scatter(
 		_spawn_box_flight(origin, dest, sku, n, dur, Callable())
 
 
+## Even ring scatter (boss 序4／序5 reject): piles fly to equal angles at `radius`.
+func spawn_loot_even_ring(origin: Vector2, piles: Array, radius: float) -> void:
+	if piles.is_empty():
+		return
+	SfxBus.play("sfx_loot_scatter")
+	var dests := Tuning.loot_even_ring_positions(origin, piles.size(), radius)
+	for i in piles.size():
+		var pile: Dictionary = piles[i]
+		var sku := String(pile.get("sku", ""))
+		var n := int(pile.get("n", 0))
+		if sku == "" or n <= 0:
+			continue
+		var dest: Vector2 = dests[i] if i < dests.size() else origin + Vector2(radius, 0)
+		var dur := Tuning.LOOT_SCATTER_FLIGHT_SEC + float(i) * 0.04
+		_spawn_box_flight(origin, dest, sku, n, dur, Callable())
+
+
 ## Instant foot-drop of loot piles at `origin` (box-hit KO — no scatter flight).
 func spawn_loot_inplace(origin: Vector2, piles: Array) -> void:
 	if piles.is_empty():
@@ -495,6 +512,12 @@ func _resolve_toss_guest(
 			host.combo_note_perfect(toss_seat)
 		host.note_deliver(toss_seat, "toss", 1, perfect)
 		return
+	## Boss 序4／序5: wrong toss → even ring + dialog (no foot drop).
+	if host.has_method("boss_on_wrong_toss") and bool(host.call("boss_on_wrong_toss", actor, guest, sku, n, dest)):
+		host.combo_break_personal(toss_seat)
+		if actor:
+			actor.log_line.emit(Loc.t("log.demo.toss_guest_reject"))
+		return
 	if guest.has_method("apply_toss_reject"):
 		guest.call("apply_toss_reject", sku)
 	SfxBus.play("sfx_box_hit_guest_reject")
@@ -629,6 +652,9 @@ func _resolve_sniper_guest_landing(
 	var actor := _toss_actor(toss_player)
 	## Guest may have finished shopping while the box was in the air.
 	if not guest.has_method("can_receive_delivery") or not bool(guest.call("can_receive_delivery")) or _guest_wants_sku(guest, sku) <= 0:
+		## Boss 序4／序5 wrong sniper toss → ring reject (not foot drop).
+		if host.has_method("boss_on_wrong_toss") and bool(host.call("boss_on_wrong_toss", actor, guest, sku, n, dest)):
+			return
 		_place_dropped_box(dest, sku, n)
 		if actor:
 			actor.log_line.emit(

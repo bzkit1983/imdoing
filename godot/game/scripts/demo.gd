@@ -1164,7 +1164,26 @@ func boss_on_angry_leave(cust: Node) -> void:
 		_boss_world.on_boss_angry_leave(cust)
 
 
+func boss_hand_deliver(player: Node, cust: Node) -> Dictionary:
+	if _boss_world == null:
+		return {"handled": false, "given": 0}
+	return _boss_world.try_hand_deliver(player, cust)
+
+
+func boss_on_wrong_toss(player: Node, cust: Node, sku: String, n: int, dest: Vector2) -> bool:
+	return _boss_world != null and bool(_boss_world.on_wrong_toss(player, cust, sku, n, dest))
+
+
+func spawn_loot_even_ring(origin: Vector2, piles: Array, radius: float) -> void:
+	_toss_world.spawn_loot_even_ring(origin, piles, radius)
+
+
 ## Deferred entry points (Node) → presentation lives in boss_world.
+func _boss_run_reject_flow(dialog_key: String, player: Node, knock_player: bool, origin: Vector2) -> void:
+	if _boss_world != null:
+		await _boss_world.run_reject_flow(dialog_key, player, knock_player, origin)
+
+
 func _boss_run_restock_intro() -> void:
 	if _boss_world != null and _boss_world.is_active():
 		await _boss_world.run_restock_intro_cutscene()

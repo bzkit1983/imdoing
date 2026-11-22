@@ -1338,8 +1338,9 @@ func _ensure_boss_bar() -> void:
 	_boss_bar_wrap.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	_boss_bar_wrap.offset_left = -220.0
 	_boss_bar_wrap.offset_right = 220.0
-	_boss_bar_wrap.offset_top = 18.0
-	_boss_bar_wrap.offset_bottom = 40.0
+	## Below left Canva pills (y≈10–61) so the HP bar does not stack on HUD chrome.
+	_boss_bar_wrap.offset_top = 88.0
+	_boss_bar_wrap.offset_bottom = 112.0
 	_boss_bar_wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(_boss_bar_wrap)
 	_boss_bar_label = null
@@ -1363,6 +1364,8 @@ func _ensure_boss_bar() -> void:
 func show_boss_dialog(title: String, body: String, typewriter_title: bool = false) -> void:
 	_ensure_boss_dialog()
 	_boss_dialog_layer.visible = true
+	_boss_dialog_layer.z_index = 80
+	_boss_dialog_layer.move_to_front()
 	_boss_waiting_advance = true
 	_boss_advance = false
 	_boss_dialog_hint.text = Loc.t("boss.hud.dialog_hint")
@@ -1377,7 +1380,16 @@ func show_boss_dialog(title: String, body: String, typewriter_title: bool = fals
 				return
 	else:
 		_boss_dialog_title.text = title
-	## Wait for interact／cancel or auto after a short beat.
+	## Prep "start day" INTERACT／CANCEL must not instantly dismiss restock foreshadow.
+	while is_inside_tree() and (
+		Input.is_action_pressed(Controls.INTERACT) or Input.is_action_pressed(Controls.CANCEL)
+	):
+		await get_tree().process_frame
+	var grace := 0.25
+	while is_inside_tree() and grace > 0.0:
+		await get_tree().process_frame
+		grace -= get_process_delta_time()
+	## Wait for a fresh interact／cancel or auto after a short beat.
 	var waited := 0.0
 	while is_inside_tree() and _boss_waiting_advance and not _boss_advance and waited < 8.0:
 		if Input.is_action_just_pressed(Controls.INTERACT) or Input.is_action_just_pressed(Controls.CANCEL):

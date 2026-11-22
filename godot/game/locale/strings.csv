@@ -369,6 +369,9 @@ boss.alien_tycoon.line.pay_wave,（繼續結帳⋯⋯）,（Continuing checkout�
 boss.alien_tycoon.line.pay_done,好像買了很多東西⋯⋯回去吧。,I bought so much… time to go back.,好像买了很多东西⋯⋯回去吧。,ずいぶん買っちゃったな…帰るか。
 boss.alien_tycoon.fail_time,時間到了⋯⋯大土豪失望地離開。,Time's up… the Tycoon leaves disappointed.,时间到了⋯⋯大土豪失望地离开。,時間切れ…大富豪はがっかりして去った。
 boss.alien_tycoon.fail_dissat,大土豪不滿爆錶，怒氣沖沖離店。,The Tycoon's patience ran out and stormed out.,大土豪不满爆表，怒气冲冲离店。,大富豪の不満が限界で怒って出て行った。
+boss.alien_tycoon.line.need_all_at_once,我要一次集齊所有貨品呀！,I need every item gathered in one handoff!,我要一次集齐所有货品呀！,全部の商品をいっぺんにそろえてくれ！
+boss.alien_tycoon.line.need_only_correct,我要一次集齊只有對的貨品呀！,I only want the right goods — no wrong tosses!,我要一次集齐只有对的货品呀！,正しい商品だけをそろえてくれ！
+boss.alien_tycoon.line.need_toss,我已經沒手接貨⋯⋯你還是丟給我吧。,My hands are full… just toss it to me.,我已经没手接货⋯⋯你还是丢给我吧。,もう手が塞がってる…投げてくれ。
 prep.home.title,營運準備,Prep,营运准备,営業準備
 prep.header,資金 $%d　LV%d　%s\nSTR%d AGI%d INT%d　點數 %d　商店評價 %d　支援別店 %d,Cash $%d · LV%d · %s\nSTR%d AGI%d INT%d · Pts %d · Shop rating %d · Support %d,资金 $%d　LV%d　%s\nSTR%d AGI%d INT%d　点数 %d　商店评价 %d　支援别店 %d,資金 $%d　LV%d　%s\nSTR%d AGI%d INT%d　ポイント %d　店舗評価 %d　支援評価 %d
 prep.home.info_rating,商店評價 %d　支援別店評價 %d　已記錄 %d 日。選「評價記錄」可連續查看近況。,Shop rating %d · support-other-shops %d · %d days logged. Open Rating history to browse.,商店评价 %d　支援别店评价 %d　已记录 %d 日。选“评价记录”可连续查看近况。,店舗評価 %d　他店支援評価 %d　記録 %d 日。「評価記録」で近況を連続閲覧できます。

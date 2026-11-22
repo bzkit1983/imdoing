@@ -458,6 +458,21 @@ static func drop_charge_per_sec(str_stat: float) -> float:
 	return 2.0 + minf(str_stat, 50.0) / 5.0
 
 
+## Evenly spaced points on a circle (boss reject ring, etc.).
+static func loot_even_ring_positions(origin: Vector2, count: int, radius: float) -> PackedVector2Array:
+	var out: PackedVector2Array = PackedVector2Array()
+	if count <= 0:
+		return out
+	var r := maxf(radius, 1.0)
+	if count == 1:
+		out.append(origin + Vector2(r, 0))
+		return out
+	for i in count:
+		var ang := TAU * float(i) / float(count) - PI * 0.5
+		out.append(origin + Vector2(cos(ang), sin(ang)) * r)
+	return out
+
+
 ## Non-overlapping scatter points in a ring between min_r and max_r (pixels).
 static func loot_scatter_positions(
 	origin: Vector2,

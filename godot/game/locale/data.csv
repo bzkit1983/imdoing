@@ -359,6 +359,7 @@ log.player.sniper_toss_shelf,丟掉 %s %s — 狙擊手飛向同款貨架,Toss %
 log.player.cancel_pick,取消選貨,Cancel SKU pick,取消选货,商品選択をキャンセル
 log.player.cancel_skill_menu,取消技能選單,Cancel skill menu,取消技能选单,スキルメニューをキャンセル
 log.player.slip,水漬滑倒 — 滑出 3 身位，暈眩 3 秒,"Puddle slip — slide 3 lengths, stun 3s",水渍滑倒 — 滑出 3 身位，晕眩 3 秒,水たまりで転倒 — 3 身位すべり、3 秒スタン
+log.player.boss_bump,被頭目撞飛 — 滑出 3 身位後暈倒,Boss knockback — slide 3 lengths then stun,被头目撞飞 — 滑出 3 身位后晕倒,ボスに吹き飛ばされた — 3 身位すべってスタン
 log.player.vomit,踩到嘔吐物 — 技能禁止、能力 −30% 10 秒,"Stepped in vomit — skills blocked, stats −30% 10s",踩到呕吐物 — 技能禁止、能力 −30% 10 秒,嘔吐物を踏んだ — スキル禁止、能力 −30% が 10 秒
 log.player.restock_set,補貨點改為 %s,Restock point set to %s,补货点改为 %s,補充ポイントを %s に変更
 log.player.hold_deliver_hint,長按行動鍵把貨交給客人,Hold Action to deliver to guest,长按行动键把货交给客人,アクション長押しで客に商品を渡す

@@ -2089,6 +2089,7 @@ func _hand_deliver(guests: Array, penalize_miss: bool) -> int:
 	var total := 0
 	var nearest: Node = null
 	var locked: Array = []
+	var boss_rejected := false
 	for guest in guests:
 		if guest == null or not is_instance_valid(guest):
 			continue
@@ -2100,6 +2101,17 @@ func _hand_deliver(guests: Array, penalize_miss: bool) -> int:
 		locked.append(guest)
 		if nearest == null:
 			nearest = guest
+		## Boss 序4／序5 hand rules (all-at-once / toss-only).
+		if guest.get("is_boss") == true:
+			var game_b := _game()
+			if game_b != null and game_b.has_method("boss_hand_deliver"):
+				var r: Dictionary = game_b.call("boss_hand_deliver", self, guest)
+				if bool(r.get("handled", false)):
+					var g := int(r.get("given", 0))
+					total += g
+					if g <= 0:
+						boss_rejected = true
+					continue
 		total += _give_guest(guest)
 	if total > 0:
 		SfxBus.play("sfx_box_hit_guest_ok")
@@ -2109,6 +2121,13 @@ func _hand_deliver(guests: Array, penalize_miss: bool) -> int:
 		for g in locked:
 			_interact_release(g)
 		return total
+	if boss_rejected:
+		var game_r := _game()
+		if game_r != null:
+			game_r.combo_break_personal(seat_id)
+		for g in locked:
+			_interact_release(g)
+		return 0
 	if penalize_miss and nearest != null and nearest.has_method("apply_toss_reject"):
 		nearest.call("apply_toss_reject", "")
 		SfxBus.play("sfx_box_hit_guest_reject")
@@ -2122,6 +2141,23 @@ func _hand_deliver(guests: Array, penalize_miss: bool) -> int:
 	for g in locked:
 		_interact_release(g)
 	return 0
+
+
+## Boss reject: slide 3 body lengths away, then stun (no carry dump — goods already scattered).
+func apply_boss_bump(away_from: Vector2) -> void:
+	var dir := global_position - away_from
+	if dir.length_squared() < 0.01:
+		dir = -facing
+	facing = dir.normalized()
+	_dashing = false
+	_running = false
+	_reset_hold()
+	_long_committed = false
+	_deliver_done = false
+	_slip_left = Tuning.SLIP_TIME
+	_stun_pending = Tuning.STUN_SEC
+	SfxBus.play("sfx_move_slip")
+	log_line.emit(Loc.t("log.player.boss_bump"))
 
 
 func _dash_guests() -> Array:

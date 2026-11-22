@@ -28,6 +28,8 @@ var elite_affixes: Dictionary = {}
 ## Boss guest (頭目戰) — see bossbattle.md / bosses/*.
 var is_boss: bool = false
 var boss_id: String = ""
+## Boss: cart size at the start of the current list stage (earlier stages stay banked).
+var _boss_cart_checkpoint: int = 0
 var kind: String = ""
 ## Alpha pace variant: normal / hurry / slow → distinct model (not full recolor).
 var pace: String = "normal"
@@ -301,6 +303,7 @@ func become_boss(id: String, first_list_n: int) -> void:
 	if not Vox.has_anim(_model_id, "walk"):
 		_model_id = "customer"
 	cart.clear()
+	_boss_cart_checkpoint = 0
 	shopping = _roll_list_n(maxi(1, first_list_n))
 	_bump_list()
 	mood = Loc.t("mood.boss")
@@ -335,7 +338,8 @@ func boss_start_list_stage(n: int) -> void:
 	if not is_boss:
 		return
 	shopping = _roll_list_n(maxi(1, n))
-	## Cart accumulates across stages.
+	## Cart accumulates across stages; checkpoint = already-banked prior stages.
+	_boss_cart_checkpoint = cart.size()
 	_bump_list()
 	state = State.SEEK
 	_timer = 0.0
@@ -1224,18 +1228,40 @@ func dash_knock_guest(add_dissat: float) -> void:
 	if _reg():
 		_reg().dequeue(self)
 	## Rebuild wanted list = taken (cart) + still needed (shopping), then drop cart.
+	## Boss carts bank prior stages — only this-stage takes re-enter shopping.
 	var rebuy: Array[String] = []
-	for s in cart:
-		rebuy.append(s)
-	for s in shopping:
-		rebuy.append(s)
-	_drop_cart_inplace()
+	var banked: Array[String] = []
+	if is_boss:
+		var cp := clampi(_boss_cart_checkpoint, 0, cart.size())
+		for i in cart.size():
+			if i < cp:
+				banked.append(String(cart[i]))
+			else:
+				rebuy.append(String(cart[i]))
+		## Drop only this-stage takes (banked restored after).
+		cart.clear()
+		for s in rebuy:
+			cart.append(s)
+		_drop_cart_inplace()
+		for s in shopping:
+			rebuy.append(s)
+		shopping = rebuy
+		cart.clear()
+		for s in banked:
+			cart.append(s)
+		_boss_cart_checkpoint = cart.size()
+	else:
+		for s in cart:
+			rebuy.append(s)
+		for s in shopping:
+			rebuy.append(s)
+		_drop_cart_inplace()
+		shopping = rebuy
+		cart.clear()
 	if add_dissat > 0.0:
 		gain_dissat(add_dissat, "dash")
 	else:
 		gain_dissat(add_dissat)
-	shopping = rebuy
-	cart.clear()
 	raided = false
 	_target_shelf = null
 	_bump_list()
