@@ -81,7 +81,7 @@
 - **循環與進度：** 劇情／事件內容表、過關與失敗、技能解鎖表。~~劇情框架~~ 見 `storysystem.md`（活線未做）。~~事件占位~~ 見 `eventsystem.md`（不排活線）。~~評價／經營值~~ 見 `ratingsystem.md`（難度 stub 見 `difficulty.md`）。~~存檔~~ 見 `savesystem.md`。~~暫停／掛起~~ 見 `pausemenu.md`。~~任務條件語意~~ 見 `tasksystem.md`（活線／報酬／事件全表仍缺）
 - **店內系統：** 冰櫃與凍櫃的操作差異。幫忙取貨與 COMBO：`fetchcombo.md` 現行；任務新語意待對齊活線
 - **幾乎是空檔：** 角色導出的連線與檔案留待 Alpha。Voxel 初模和給設計師加細節的規矩在 `docs/alpha/voxel-v0.1.md`。外觀配置只有一句
-- **多人連線：** 設計見 [`docs/systemdesign/multiplayer.md`](systemdesign/multiplayer.md)（§10／§11／§12／§13）。**M2 首刀～M2.9 已交**；**M3 §13.4 已驗收**（2026-11-11）。下一步：正式 App ID／Cloud／成就，與 **M4** Web。交叉：`savesystem.md`／`pausemenu.md`／`control.md`
+- **多人連線：** 設計見 [`docs/systemdesign/multiplayer.md`](systemdesign/multiplayer.md)（§10／§11／§12／§13）。**M2 首刀～M2.9 已交**；**M3 §13.4 已驗收**（2026-11-11）。下一步：正式 App ID／Cloud／成就，與 **M4** Web。交叉：`savesystem.md`／`pausemenu.md`／`control.md`。**本機 vs 網上工程缺口**（權威／Intent／驗收未勾）：[`docs/alpha/multiplayer-local-vs-online-gap.md`](alpha/multiplayer-local-vs-online-gap.md)
 - **工程路徑：** Demo／Alpha 專案目錄已凍結；v1 只改 `godot/game`（`docs/versioning.md`）。平台商務／Godot 釘版見 `docs/alpha/console-business.md`、`docs/alpha/godot-middleware-pin.md`（非玩法規則）
 
 # 已有檔但仍寫不進程式的數值

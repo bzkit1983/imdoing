@@ -55,6 +55,7 @@
 | 多人 M1 本機雙人 | **`docs/systemdesign/multiplayer.md`** §11 | **已實作**。`SeatTable`／`InteractLock`／`SessionService`（`transport=local`）；prep 1｜2；訪客槽；日結 XP 平分＋`support_rating` |
 | 多人 M2 LAN／ENet | **`docs/systemdesign/multiplayer.md`** §12 | **首刀～M2.9 已交**：含 **收銀指令 UI**（`checkout_seq` `agent_state`；`prompt_state` RPC；`apply_net_checkout_prompt`；client 禁雙重 randi） |
 | 多人 M3 Steam | **`docs/systemdesign/multiplayer.md`** §13 | **§13.4 已驗收**（2026-11-11）。GodotSteam 4.24；`host_with_lobby`／`connect_to_lobby`；雙帳邀請進混合房＋開日／日結。正式 App ID／Cloud／成就可後補 |
+| 本機 vs 網上缺口審計 | **[`multiplayer-local-vs-online-gap.md`](multiplayer-local-vs-online-gap.md)** | **文件已交**（2026-11-22）。P0：Client 時鐘／提早關店、樂觀庫存、InteractLock、Intent 缺 aim／toss；驗收未勾 §8.4／§12.10／§13.6。**未改玩法碼** |
 | 中期美術 v1.5.0 | **`docs/systemdesign/art-interim-v1.5.md`**；`voxel-hires-scale-plan.md`；`ops-sku-icon-ui.md` | 非玩家體素、補貨架高度、SKU／技能／prep 圖示、地板牆污物；玩家四套 Look／CELL／碰撞／技能數值凍結。**放置／換皮暫交美術**；工程驗收見 art-interim「美術放置驗收清單」 |
 | 收銀取消 Circle＋INT／技能重做（2026-11-18） | **`cashiersystem.md`**、`playerstats.md`、`playeractiveskills.md`、`playerpassiveskills.md`；日誌 [`Bzho_log/20261118_….md`](../Bzho_log/20261118_收銀取消Circle與INT技能重做.md) | 指令完成即入帳（無 Loading Circle）；INT 減次數＋親收加錢；`checkout_rush`／`checkout_speed`／`senior_cashier` 重做；店員／影分身／Dark Side 就緒即收 |
 | EA 範圍聲明（H3） | **`docs/versioning.md`**；`docs/alpha/design.md`；tech-review v0.2 H3／v0.3 | **已拍板：** Steam EA／現行＝純日循環；不做失敗／過關／提早關店敘事；敘事／事件留 Beta（劇情框架見 `storysystem.md`，活線未做） |
@@ -66,4 +67,4 @@
 | Steam Cloud／成就接線（H1 半程） | **`docs/alpha/steam-productization.md`**；`godotsteam-setup.md` | `steam_platform.gd`：`fileWrite`／`fileRead`／`setAchievement`＋`storeStats`；正式 App ID 仍 Open（480） |
 | 完整設定頁＋首日引導（H2） | **`docs/alpha/steam-productization.md`**；`pausemenu.md`；`tutorial.md` | 暫停「設定」子選單＋準備「系統工具→設定」；新檔開始／跳過教學；`tutorial_skipped`＋模態跳過；暫停可重溫 |
 
-仍缺（非 §6）：完整設定頁、**第一日引導打磨**（教學框架已落地）、技能演出鎖輸入、正式 App ID／Cloud／成就、M4 Web——見 `docs/alpha/design.md`、`multiplayer.md` §13／§15。事件 SFX／BGM 音量已在暫停選單（BGM 亦在準備系統工具）。prep UI 已拆為 `scenes/prep_menu.tscn` + `scripts/prep/`。**教學框架**已落地（`docs/systemdesign/tutorial.md`）；劇本 5 開局鏈已有 prep 購入家具／採購罐頭／店鋪設計／角色能力配點／裝備技能／開發商品／採購新貨／擴充商店物品／擴充店鋪設計／第二台收銀機／招募店員（教學鏈終點）與 ops 上架／清潔／收銀／捉小偷／客人交付／完成一日／空貨架提示／第二日使用技能／第三日評價點數（OP-TUT-001 練習＋完美交付 tip）。
+仍缺（非 §6）：完整設定頁、**第一日引導打磨**（教學框架已落地）、技能演出鎖輸入、正式 App ID／Cloud／成就、M4 Web——見 `docs/alpha/design.md`、`multiplayer.md` §13／§15。本機／網上權威缺口見 [`multiplayer-local-vs-online-gap.md`](multiplayer-local-vs-online-gap.md)（修 bug 另 PR）。事件 SFX／BGM 音量已在暫停選單（BGM 亦在準備系統工具）。prep UI 已拆為 `scenes/prep_menu.tscn` + `scripts/prep/`。**教學框架**已落地（`docs/systemdesign/tutorial.md`）；劇本 5 開局鏈已有 prep 購入家具／採購罐頭／店鋪設計／角色能力配點／裝備技能／開發商品／採購新貨／擴充商店物品／擴充店鋪設計／第二台收銀機／招募店員（教學鏈終點）與 ops 上架／清潔／收銀／捉小偷／客人交付／完成一日／空貨架提示／第二日使用技能／第三日評價點數（OP-TUT-001 練習＋完美交付 tip）。
