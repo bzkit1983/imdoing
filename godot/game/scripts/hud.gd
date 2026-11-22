@@ -840,7 +840,7 @@ func _sync_left() -> void:
 		return
 	_left_hud_rev = rev
 	_left_hour_bucket = hour_bucket
-	var clock_parts: Dictionary = game.clock_hm_ampm() if game.has_method("clock_hm_ampm") else {}
+	var clock_parts: Dictionary = game.clock_hm_ampm()
 	var hm_txt := String(clock_parts.get("hm", game.clock_text()))
 	var ampm_txt := String(clock_parts.get("ampm", ""))
 	var rev_n := int(game.revenue)
