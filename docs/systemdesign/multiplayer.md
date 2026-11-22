@@ -4,6 +4,7 @@
 - **範圍：** 本機合作、線上合作、以及兩者混合的同一 Session 模型；技術分層與平台差異
 - **產品錨點：** 活線 `godot/game`（Godot 4.7）；版控見 `docs/versioning.md`
 - **對照：** `docs/alpha/tech-review-v0.1.md`、`docs/systemdesign/ecosystem.md`、`docs/systemdesign/playerexport.md`、`docs/systemdesign/control.md`、`docs/systemdesign/savesystem.md`、`docs/systemdesign/pausemenu.md`、`godot/game/scripts/platform_services.gd`
+- **本機 vs 網上工程缺口：** [`docs/alpha/multiplayer-local-vs-online-gap.md`](../alpha/multiplayer-local-vs-online-gap.md)（2026-11-22；契約×活線對照，非玩法規格）
 - **產出／更新：** 2026-11-05（初稿＋§10 拍板＋§11 M1）；**2026-11-09 定稿 §12 M2 LAN**；**2026-11-10 claim2／M2.1～M2.9**；**2026-11-10 定稿 §13 M3 Steam（含 Win／Linux／macOS depot）**；**2026-11-11 §13.4 驗收通過**；**2026-11-14 §13.6 邀請免手打 Lobby ID**；**2026-11-14 §12.10 日結後留房連開**；**2026-11-15 §8.4 Client 表現與網頻**
 
 ---
@@ -827,6 +828,7 @@ Guest → join_requested｜+connect_lobby → pending → claim UI → join_stea
 - `docs/systemdesign/customerdelivery.md` — 交付；多人 COMBO 見 §11.7  
 - `docs/systemdesign/fetchcombo.md` — COMBO 達標與 HUD  
 - `docs/alpha/implementation-status.md` — 工程對照  
+- `docs/alpha/multiplayer-local-vs-online-gap.md` — 本機 vs 網上權威／Intent／驗收缺口審計  
 
 - `godot/game/scripts/platform_services.gd` — 平台 facade  
 - Godot 文件：High-level multiplayer、`MultiplayerPeer`；GodotSteam／Steamworks  

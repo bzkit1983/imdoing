@@ -2,7 +2,8 @@
 
 - **目的：** 最短路徑確認「Host＋Client 意圖 → 開日 → 日結」沒斷。  
 - **性質：** **手動**回歸（可先不做無頭自動化）。規格細節仍以 [`docs/systemdesign/multiplayer.md`](../systemdesign/multiplayer.md) 為準。  
-- **靜態錨點：** `python3 tools/test_multiplayer_smoke_contract.py`（CI 會跑；不替代本清單）。
+- **靜態錨點：** `python3 tools/test_multiplayer_smoke_contract.py`（CI 會跑；不替代本清單）。  
+- **已知本機／網上缺口：** [`multiplayer-local-vs-online-gap.md`](multiplayer-local-vs-online-gap.md)（測前可掃 P0；本清單不替代修 bug）。
 
 ## 前置
 
