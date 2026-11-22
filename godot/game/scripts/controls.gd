@@ -44,8 +44,15 @@ const BAG_SLOT_ACTIONS: Array[String] = [
 	BAG_SLOT_UP, BAG_SLOT_RIGHT, BAG_SLOT_DOWN, BAG_SLOT_LEFT,
 ]
 
-## Analog trigger "pressed" threshold (Xbox LT/RT), after normalize to 0..1.
-const TRIGGER_DEADZONE := 0.5
+## Analog trigger press threshold (Xbox LT/RT), after normalize to 0..1.
+## ~20% travel — typical action-game digitalize for snappy RT dash/run.
+const TRIGGER_PRESS := 0.20
+## Release hysteresis: stay down until below this (avoids chatter near press).
+const TRIGGER_RELEASE := 0.08
+## Must stay below RELEASE this long before a press cycle ends (kills 1-frame axis dips).
+const TRIGGER_RELEASE_CONFIRM_SEC := 0.05
+## Alias for older call sites; prefer TRIGGER_PRESS + trigger_latched().
+const TRIGGER_DEADZONE := TRIGGER_PRESS
 ## Solo LT/RT waits this long before casting so LT+RT can form an ult chord.
 const TRIGGER_SKILL_GRACE := 0.1
 ## HTML5 Standard Gamepad: buttons[6]/[7] are LT/RT (Godot uses the same indices on Web).
@@ -175,6 +182,13 @@ func trigger_values_for(seat: int) -> Vector2:
 	if joy < 0:
 		return Vector2.ZERO
 	return _trigger_values_on_device(joy)
+
+
+## Digitalize analog LT/RT with press/release hysteresis.
+func trigger_latched(value: float, was_down: bool) -> bool:
+	if was_down:
+		return value >= TRIGGER_RELEASE
+	return value >= TRIGGER_PRESS
 
 
 ## True if this event should drive the given seat (coop) or any seat (solo).

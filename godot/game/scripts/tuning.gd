@@ -71,7 +71,7 @@ const RUN_SPEED_MULT := 1.75
 const DASH_DISTANCE := 140.0
 const DASH_TIME := 0.12
 ## Tap-release shorter than this → dash; hold past this → run (no dash on that press).
-const RUN_HOLD_THRESHOLD := 0.18
+const RUN_HOLD_THRESHOLD := 0.12
 ## Long-press cancel (B or ;) enters drop aim. A tap tosses focused pieces.
 const DROP_HOLD_SEC := 0.2
 ## Player toss distance (10 身位 = 2× legacy 5). Future drop-range skills multiply via player.drop_toss_dist().

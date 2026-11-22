@@ -137,6 +137,11 @@ var _bag_release_ignore: bool = false
 ## RT dash/run (pad); keyboard still uses InputMap dash / _k_held.
 var _rt_dash_held: bool = false
 var _rt_dash_time: float = 0.0
+## Hold crossed run threshold this press → release must never dash (survives axis flicker).
+var _rt_run_committed: bool = false
+var _k_run_committed: bool = false
+## Time RT has sat below release while still in a press cycle (debounce).
+var _rt_release_arm: float = 0.0
 ## Second skill press already confirmed the center; ignore that press's release.
 var _skill_release_ignore: bool = false
 ## True when this skill press came from Xbox Y (short = cast slot 0; keyboard/touch short = menu).
@@ -817,13 +822,15 @@ func set_hold(action: String, pressed: bool) -> void:
 					return
 				_k_held = true
 				_k_time = 0.0
+				_k_run_committed = false
 			else:
 				if not _k_held:
 					return
-				## 輕放＝衝刺；已過門檻變成奔跑的這次按鍵不再補衝（起跑不會先衝一記）。
-				if not _running and _k_time < Tuning.RUN_HOLD_THRESHOLD:
+				## 輕放＝衝刺；已過門檻／committed 的這次按鍵不再補衝（起跑不會先衝一記）。
+				if not _k_run_committed and not _running and _k_time < Tuning.RUN_HOLD_THRESHOLD:
 					_try_dash()
 				_k_held = false
+				_k_run_committed = false
 				_running = false
 		"skill":
 			## Level intents from LAN must not re-enter press every tick (resets _l_time).
@@ -1201,13 +1208,19 @@ func _physics_process(delta: float) -> void:
 	if (_k_held or _rt_dash_held) and not _lt_held and not _cancel_held and not _cancel_drop_ready and not command_lock and not skill_menu_open and not bag_menu_open and not ult_prep and not _fighting and _stun_left <= 0.0 and _slip_left <= 0.0:
 		if _k_held:
 			_k_time += delta
-		if _rt_dash_held:
+		## Freeze RT timer while release-debounce is arming (don't turn taps into runs).
+		if _rt_dash_held and _rt_release_arm <= 0.0:
 			_rt_dash_time += delta
 		var hold_t := _k_time if _k_held else _rt_dash_time
 		if _k_held and _rt_dash_held:
 			hold_t = maxf(_k_time, _rt_dash_time)
 		if hold_t >= Tuning.RUN_HOLD_THRESHOLD:
 			_running = _dasher_active() or stamina > 1.0
+			## Sticky: even if stamina/_running flickers off, this press never dashes.
+			if _k_held:
+				_k_run_committed = true
+			if _rt_dash_held:
+				_rt_run_committed = true
 	if _cancel_held:
 		_tick_cancel_hold(delta)
 	if _toss_move_pause_left > 0.0:
@@ -3534,15 +3547,25 @@ func cast_skill_hotkey(slot: int) -> void:
 
 func _tick_triggers(delta: float) -> void:
 	var tr := Controls.trigger_values_for(seat_id)
-	var lt := tr.x >= Controls.TRIGGER_DEADZONE
-	var rt := tr.y >= Controls.TRIGGER_DEADZONE
+	var lt := Controls.trigger_latched(tr.x, _lt_held)
+	var rt_axis := Controls.trigger_latched(tr.y, _rt_held or _rt_dash_held)
+	## Analog dips below RELEASE for 1–2 frames must not end the press (false dash).
+	var rt := rt_axis
+	if (_rt_held or _rt_dash_held) and not rt_axis:
+		_rt_release_arm += delta
+		if _rt_release_arm < Controls.TRIGGER_RELEASE_CONFIRM_SEC:
+			rt = true
+	else:
+		_rt_release_arm = 0.0
 	if lt and not _lt_held:
 		_lt_held = true
 		_lt_time = 0.0
 		_lt_fired = false
 		## Running on RT then press LT → stop run, enter ult path.
-		if _rt_dash_held or _running:
+		if _rt_dash_held or _running or _rt_run_committed:
 			_rt_dash_held = false
+			_rt_run_committed = false
+			_rt_release_arm = 0.0
 			_running = false
 	if rt and not _rt_held:
 		_rt_held = true
@@ -3557,6 +3580,8 @@ func _tick_triggers(delta: float) -> void:
 		_trigger_chord_block = true
 		_both_trigger_time += delta
 		_rt_dash_held = false
+		_rt_run_committed = false
+		_rt_release_arm = 0.0
 		_running = false
 		if not _ult_chord_active and not ult_prep and _both_trigger_time >= Skills.HOLD_MENU_SEC:
 			_on_ult_hold(true)
@@ -3571,15 +3596,23 @@ func _tick_triggers(delta: float) -> void:
 	if rt and not lt and not ult_prep and not skill_menu_open and not bag_menu_open and not command_lock and not _fighting:
 		if not _rt_dash_held:
 			_rt_dash_held = true
-			_rt_dash_time = 0.0
+			## Keep timer if re-latching a committed run after a soft dip.
+			if not _rt_run_committed:
+				_rt_dash_time = 0.0
+		elif _rt_run_committed and not _running:
+			_running = _dasher_active() or stamina > 1.0
 	elif not rt and _rt_dash_held:
-		## Release RT: short = dash; long run already active (no extra dash).
-		if not _running and _rt_dash_time < Tuning.RUN_HOLD_THRESHOLD:
+		## Confirmed release: short = dash; committed／long run never dash.
+		if not _rt_run_committed and not _running and _rt_dash_time < Tuning.RUN_HOLD_THRESHOLD:
 			_try_dash()
 		_rt_dash_held = false
+		_rt_run_committed = false
+		_rt_release_arm = 0.0
 		_running = false
 	if not rt:
 		_rt_dash_held = false
+		_rt_run_committed = false
+		_rt_release_arm = 0.0
 	if not lt and _lt_held:
 		_lt_held = false
 	if not rt and _rt_held:
