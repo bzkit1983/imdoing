@@ -32,6 +32,16 @@ const SCALE_MAX_LV := 6
 ## Default grid side after expand (floor √area). Kept as SCALE_MAX for callers.
 const SCALE_MAX := {1: 10, 2: 13, 3: 16, 4: 20, 5: 23, 6: 26}
 const CULTIVATION_WAIT := [0, 2, 4, 8]
+## Preview weights in hundredths of a percent. Reward pools are not active yet.
+const CULTIVATION_REWARD_WEIGHTS := {
+	"ultimate": 1,
+	"skill": 5,
+	"facility": 10,
+	"appearance": 10,
+	"consumable": 2000,
+	"goods": 3000,
+	"ingredient": 4974,
+}
 ## Keys contain sorted SKU IDs, including duplicate pieces.
 const CULTIVATION_RECIPES := {
 	"can": ["drink", "icecream"],

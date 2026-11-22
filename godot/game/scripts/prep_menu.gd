@@ -479,9 +479,9 @@ func can_access_cultivation() -> bool:
 
 
 func _show_page(page: String) -> void:
-	if page in ["hub_minigames", "cultivate", "cultivate_pick", "light_intro", "light_outro", "light_quiz"] and not can_access_cultivation():
+	if page in ["hub_minigames", "cultivate", "cultivate_pick", "cultivate_rewards", "light_intro", "light_outro", "light_quiz"] and not can_access_cultivation():
 		page = "home"
-	if page not in ["cultivate", "cultivate_pick"]:
+	if page not in ["cultivate", "cultivate_pick", "cultivate_rewards"]:
 		_cultivation_slots = ["", "", ""]
 	## Soft-lock: bounce out of pages outside the active prep tutorial path.
 	var tut := _tutorial()

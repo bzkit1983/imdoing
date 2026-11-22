@@ -32,7 +32,7 @@ static func parent_page(page: String) -> String:
 			return "home"
 		"cultivate", "light_intro", "light_quiz":
 			return "hub_minigames"
-		"cultivate_pick":
+		"cultivate_pick", "cultivate_rewards":
 			return "cultivate"
 		"hub_char", "hub_goods", "hub_shop", "hub_sys", "clerks", "confirm", "elite_test", "rating_history", "lobby", "lan_join", "steam_join", "tasks", "home":
 			if in_room_lobby and page != "lobby" and page != "lan_join" and page != "steam_join" and page != "confirm":
@@ -201,6 +201,8 @@ static func fill(menu: CanvasLayer, page: String) -> void:
 			_cultivate(menu)
 		"cultivate_pick":
 			_cultivate_pick(menu)
+		"cultivate_rewards":
+			_cultivate_rewards(menu)
 		"hub_shop":
 			_hub_shop(menu)
 		"hub_sys":
@@ -925,6 +927,7 @@ static func _cultivate(menu: CanvasLayer) -> void:
 			menu._add(Loc.t("prep.cultivate.slot", [index + 1, name]), "cultivate_pick", index, SkuIcons.row_texture(sku) if sku != "" else null)
 		if count > 0:
 			menu._add(Loc.t("prep.cultivate.start"), "cultivate_start")
+		menu._add(Loc.t("prep.cultivate.rewards"), "go", "cultivate_rewards")
 	else:
 		var names := PackedStringArray()
 		for sku in batch["inputs"]:
@@ -935,6 +938,19 @@ static func _cultivate(menu: CanvasLayer) -> void:
 		if remaining == 0:
 			menu._add(Loc.t("prep.cultivate.harvest"), "cultivate_harvest")
 	menu._add(Loc.t("prep.back"), "go", "hub_minigames")
+
+
+static func _cultivate_rewards(menu: CanvasLayer) -> void:
+	menu._title.text = Loc.t("prep.cultivate.rewards")
+	menu._info.text = Loc.t("prep.cultivate.rewards_preview")
+	var total := 0
+	for category in menu.state.CULTIVATION_REWARD_WEIGHTS:
+		var weight: int = menu.state.CULTIVATION_REWARD_WEIGHTS[category]
+		var name := Loc.t("prep.cultivate.reward." + category)
+		menu._add(Loc.t("prep.cultivate.reward_row", [name, weight / 100.0]), "noop")
+		total += weight
+	menu._add(Loc.t("prep.cultivate.reward_total", [total / 100.0]), "noop")
+	menu._add(Loc.t("prep.back"), "go", "cultivate")
 
 
 static func _cultivate_pick(menu: CanvasLayer) -> void:

@@ -833,6 +833,17 @@ prep.cultivate.harvest_new,解鎖咗%s，已送 1 件入倉。,%s unlocked. Adde
 prep.cultivate.harvest_done,%s ×1 已送入倉。,Added 1 %s to the warehouse.,%s ×1 已送入仓。,%sを倉庫に1個追加しました。
 prep.cultivate.stock_short,倉庫冇足夠材料。,There are not enough items in the warehouse.,仓库没有足够材料。,倉庫の材料が足りません。
 prep.cultivate.unavailable,而家未可以進行呢個操作。,This action is unavailable right now.,现在无法进行此操作。,今はこの操作ができません。
+prep.cultivate.rewards,獎勵機率,Reward odds,奖励概率,報酬の確率
+prep.cultivate.rewards_preview,預覽・獎勵抽選尚未啟用。啟用後，只有冇抽中新開發貨品先會用以下機率。,Preview · Reward draws are inactive. Once active these odds apply only when no new product is discovered.,预览・奖励抽选尚未启用。启用后，只有没抽中新开发商品才会使用以下概率。,プレビュー・報酬抽選は準備中です。開始後は未開発の商品が当たらなかった場合にのみ以下の確率が適用されます。
+prep.cultivate.reward_row,%s　%.2f%%,%s · %.2f%%,%s　%.2f%%,%s　%.2f%%
+prep.cultivate.reward_total,合計　%.2f%%,Total · %.2f%%,合计　%.2f%%,合計　%.2f%%
+prep.cultivate.reward.ultimate,超強奧義,Top-tier ultimate,超强奥义,最上位の奥義
+prep.cultivate.reward.skill,強技能,Powerful skill,强技能,強力なスキル
+prep.cultivate.reward.facility,特別店舖設施,Special store fixture,特别店铺设施,特別な店舗設備
+prep.cultivate.reward.appearance,特別外觀,Special appearance,特别外观,特別な外見
+prep.cultivate.reward.consumable,一次性消耗品,Single-use consumable,一次性消耗品,使い切りアイテム
+prep.cultivate.reward.goods,Lv. 4–8 商品,Lv. 4–8 product,Lv. 4–8 商品,Lv. 4–8の商品
+prep.cultivate.reward.ingredient,退回一件投入原料,One input item returned,退回一件投入原料,投入した材料を1個返却
 prep.light_quiz.god,神,God,神,神
 prep.light_quiz.player,玩家,Player,玩家,プレイヤー
 prep.light_quiz.line1,你要相信我!,You have to believe in me!,你要相信我!,私を信じなさい！
