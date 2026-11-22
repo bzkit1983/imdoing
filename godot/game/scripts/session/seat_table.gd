@@ -13,7 +13,7 @@ signal seat_count_changed(count: int)
 
 ## 1 = solo (default), 2 = local coop (M1). LAN may rise toward ROOM_MAX_SEATS.
 var seat_count: int = 1
-## Optional in-memory character sheet for seat 1 (M1 local P2).
+## This machine's claim2 / local_index=1 character sheet (not global seat_id==1).
 var guest_stats = null
 ## Index into GuestSlots (0..2), or -1 if ephemeral clone.
 var guest_slot_index: int = -1
@@ -67,7 +67,9 @@ func configure_local(count: int, guest = null, slot_index: int = -1) -> void:
 		row["ready"] = true
 		row["role_flags"] = 0
 	if guest_stats != null:
+		## Local coop claim2 always occupies seat 1 on this machine.
 		_sheets[1] = guest_stats
+	_sync_guest_stats_pointer()
 	seat_count_changed.emit(seat_count)
 
 
@@ -135,19 +137,38 @@ func remove_seat(seat_id: int) -> void:
 	if not _seats.has(0):
 		_ensure_seat(0)
 		seat_count = 1
-	## Keep guest_stats pointer if seat 1 still local guest.
-	if seat_count < 2:
-		guest_stats = null
+	if local_guest_seat_id() < 0:
 		guest_slot_index = -1
-	elif _sheets.has(1):
-		guest_stats = _sheets[1]
+	_sync_guest_stats_pointer()
 	seat_count_changed.emit(seat_count)
+
+
+## Seat id owned locally with local_index==1 (claim2), or -1.
+func local_guest_seat_id() -> int:
+	for s in seat_count:
+		if not seat_owned_locally(s):
+			continue
+		if local_index_of(s) == 1:
+			return s
+	return -1
+
+
+func _sync_guest_stats_pointer() -> void:
+	var gid := local_guest_seat_id()
+	if gid < 0:
+		guest_stats = null
+		return
+	if _sheets.has(gid):
+		guest_stats = _sheets[gid]
+	elif guest_stats != null:
+		_sheets[gid] = guest_stats
 
 
 func sheet_of(seat_id: int):
 	if _sheets.has(seat_id):
 		return _sheets[seat_id]
-	if seat_id == 1 and guest_stats != null:
+	## Fallback only for this machine's claim2 seat, not any global seat 1.
+	if seat_id == local_guest_seat_id() and guest_stats != null:
 		return guest_stats
 	return null
 
@@ -157,7 +178,7 @@ func set_sheet(seat_id: int, sheet) -> void:
 		_sheets.erase(seat_id)
 	else:
 		_sheets[seat_id] = sheet
-	if seat_id == 1:
+	if seat_id == local_guest_seat_id():
 		guest_stats = sheet
 
 
@@ -224,7 +245,8 @@ func apply_lobby_payload(payload: Dictionary) -> void:
 				_frozen[int(k)] = true
 	if not _seats.has(0):
 		_ensure_seat(0)
-	guest_stats = _sheets.get(1, guest_stats)
+	## Do not treat remote seat 1 as this machine's guest_slots sheet.
+	_sync_guest_stats_pointer()
 	seat_count_changed.emit(seat_count)
 
 
