@@ -875,6 +875,21 @@ prep.light_quiz.save,重試存檔,Retry save,重试存档,保存をやり直す
 prep.light_quiz.retry,再試一次,Try again,再试一次,もう一度挑戦する
 prep.light_quiz.locked,完成「小遊戲」入面嘅奧義問答先可以裝備。,Pass this ultimate's quiz in Minigames to equip it.,完成「小游戏」里的奥义问答才能装备。,「ミニゲーム」の奥義クイズをクリアすると装備できます。
 prep.light_quiz.source,經文出處：創世記 1:3、1:4、1:5、1:3–5、1:14–19,"Scripture: Genesis 1:3, 1:4, 1:5, 1:3–5, 1:14–19",经文出处：创世记 1:3、1:4、1:5、1:3–5、1:14–19,聖書：創世記 1:3、1:4、1:5、1:3–5、1:14–19
+prep.cashier_duel.rules,15 秒內計出兩件貨品總額後嘅找續，連續答對 5 題通關。可用鍵盤輸入，亦可用下方數字鍵盤；按確認送出。,Calculate the change for two items within 15 seconds. Get 5 correct in a row to pass. Type on the keyboard or use the keypad below, then submit.,15 秒内算出两件商品总额后的找零，连续答对 5 题通关。可用键盘输入，也可用下方数字键盘；按确认提交。,15秒以内に2品の合計からおつりを計算します。5問連続正解でクリア。キーボード入力または下の数字キーで入力し、決定してください。
+prep.cashier_duel.start,開始挑戰,Start challenge,开始挑战,挑戦開始
+prep.cashier_duel.retry,再挑戰一次,Try again,再挑战一次,もう一度挑戦
+prep.cashier_duel.progress,答對 %d／5,Correct %d/5,答对 %d／5,正解 %d／5
+prep.cashier_duel.timer,剩餘 %.1f 秒,%.1f seconds left,剩余 %.1f 秒,残り %.1f 秒
+prep.cashier_duel.prompt,貨品價格：$%s ＋ $%s\n客人付款：$%s,"Item prices: $%s + $%s\nCustomer pays: $%s",商品价格：$%s ＋ $%s\n顾客付款：$%s,商品の価格：$%s ＋ $%s\nお客さまのお支払い：$%s
+prep.cashier_duel.answer,找續金額,Change due,找零金额,おつり
+prep.cashier_duel.delete,刪除,Delete,删除,削除
+prep.cashier_duel.decimal,小數點,Decimal,小数点,小数点
+prep.cashier_duel.submit,確認,Submit,确认,決定
+prep.cashier_duel.success,挑戰成功！,Challenge passed!,挑战成功！,チャレンジ成功！
+prep.cashier_duel.failed,挑戰失敗,Challenge failed,挑战失败,チャレンジ失敗
+prep.cashier_duel.result,本局答對 %d／%d 題,Correct answers: %d/%d,本局答对 %d／%d 题,正解数：%d／%d
+prep.cashier_duel.reward_title,獲得技能,Skill acquired,获得技能,スキル獲得
+prep.cashier_duel.reward,已獲得技能：%s,Skill acquired: %s,已获得技能：%s,スキルを獲得：%s
 prep.light_quiz.q1,神說「要有光」之後，發生咩事？,"What happened after God said, “Let there be light”?",神说「要有光」之后，发生了什么？,神が「光あれ」と言った後、何が起きましたか？
 prep.light_quiz.q1.a,陸地出現,Dry land appeared,陆地出现,陸地が現れた
 prep.light_quiz.q1.b,就有了光,There was light,就有了光,光があった

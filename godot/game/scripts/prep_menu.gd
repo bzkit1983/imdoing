@@ -10,6 +10,7 @@ const PrepWidgets = preload("res://scripts/prep/prep_widgets.gd")
 const SkillIcons = preload("res://scripts/skill_icons.gd")
 const PrepPages = preload("res://scripts/prep/prep_pages.gd")
 const DasherTrial = preload("res://scenes/dasher_trial.tscn")
+const CashierDuel = preload("res://scenes/cashier_duel.tscn")
 const PrepGridView = preload("res://scripts/prep/prep_grid_view.gd")
 const ProductVersion = preload("res://scripts/product_version.gd")
 const SkinCatalog = preload("res://scripts/session/skin_catalog.gd")
@@ -1213,6 +1214,12 @@ func _activate() -> void:
 				trial.exited.connect(_return_from_dasher)
 				hide()
 				add_child(trial)
+		"cashier_duel":
+			if can_access_cultivation():
+				var game := CashierDuel.instantiate()
+				game.exited.connect(_return_from_cashier_duel)
+				hide()
+				add_child(game)
 		"cultivate_material":
 			_cultivation_slots[_cultivation_slot] = String(arg)
 			_show_page("cultivate")
@@ -2604,6 +2611,11 @@ func _back() -> void:
 
 
 func _return_from_dasher() -> void:
+	show()
+	_show_page("hub_minigames")
+
+
+func _return_from_cashier_duel() -> void:
 	show()
 	_show_page("hub_minigames")
 
