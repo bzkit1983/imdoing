@@ -7,10 +7,11 @@ const UiFont = preload("res://scripts/ui_font.gd")
 const SkillIcons = preload("res://scripts/skill_icons.gd")
 
 const AIM_CANCEL := -1
-const OUTER_R := 150.0
-const SLOT_R := 36.0
-const CANCEL_R := 28.0
-const CD_RING_R := 40.0
+## Ring diameter tightened for Ambient Peek (was 300px / OUTER_R 150).
+const OUTER_R := 105.0
+const SLOT_R := 30.0
+const CANCEL_R := 22.0
+const CD_RING_R := 34.0
 ## Stick length below this → cancel aim.
 const DEADZONE := 0.42
 const CD_COL := Color("c45c26")
@@ -180,7 +181,8 @@ func _draw_skill_slot(p: Vector2, slot: int) -> void:
 		draw_arc(p, CD_RING_R, start, start + sweep, 40, CD_COL, w, true)
 	var icon := SkillIcons.texture(ids[slot])
 	if icon != null:
-		draw_texture_rect(icon, Rect2(p - Vector2(18, 18), Vector2(36, 36)), false)
+		var isz := 28.0
+		draw_texture_rect(icon, Rect2(p - Vector2(isz, isz) * 0.5, Vector2(isz, isz)), false)
 	var font := UiFont.font()
 	var label := "%d" % (slot + 1)
 	draw_string(font, p + Vector2(-6, SLOT_R + 16), label, HORIZONTAL_ALIGNMENT_LEFT, 20, UiFont.px(16), col)

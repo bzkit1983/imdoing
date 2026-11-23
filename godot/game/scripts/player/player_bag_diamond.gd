@@ -8,10 +8,10 @@ const OpsItemIcons = preload("res://scripts/ops_item_icons.gd")
 var host: CharacterBody2D
 var _linger_until: float = 0.0
 
-const WELL := 22.0
-const ARM := 28.0
-## Hip / side offset (left of clerk).
-const ORIGIN := Vector2(-52.0, 8.0)
+const WELL := 16.0
+const ARM := 18.0
+## Hip / side offset (left of clerk); kept tight to the body.
+const ORIGIN := Vector2(-30.0, 4.0)
 ## up, right, down, left — matches bag slot indices 0–3.
 const _OFF := [
 	Vector2(0.0, -ARM),
