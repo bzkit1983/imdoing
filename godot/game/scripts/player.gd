@@ -17,6 +17,7 @@ const TossControllerScript = preload("res://scripts/player/toss_controller.gd")
 const FightControllerScript = preload("res://scripts/player/fight_controller.gd")
 const SkillCasterScript = preload("res://scripts/player/skill_caster.gd")
 const BagCasterScript = preload("res://scripts/player/bag_caster.gd")
+const CarryCasterScript = preload("res://scripts/player/carry_caster.gd")
 const FloorBarsScript = preload("res://scripts/player/player_floor_bars.gd")
 const CarryStripScript = preload("res://scripts/player/player_carry_strip.gd")
 const CustomerScript = preload("res://scripts/customer.gd")
@@ -67,6 +68,7 @@ var _checkout_prefill_charge: int = 0
 var _last_checkout_grade: String = ""
 var skill_menu_open: bool = false
 var bag_menu_open: bool = false
+var carry_menu_open: bool = false
 var ult_prep: bool = false
 var stick_axis: Vector2 = Vector2.ZERO
 var clock_scale: float = 1.0
@@ -131,32 +133,36 @@ var _arrow: Polygon2D
 var _no_queue_logged: bool = false
 var _l_held: bool = false
 var _l_time: float = 0.0
-## Short tap left the menu up. Direction fires now; skill key again fires the center.
+## Short tap left the menu up. Direction fires now; skill key again closes.
 var _skill_latch: bool = false
 ## Slot that a held menu will cast on release. -1 = center ❌ cancel; 0–4 loadout.
 var _skill_aim: int = -1
-## Bag radial hold (X / I).
+## Bag radial (RB / I) — short-press latch.
 var _bag_held: bool = false
 var _bag_time: float = 0.0
 var _bag_aim: int = -1
+var _bag_latch: bool = false
 var _bag_release_ignore: bool = false
-## RT dash/run (pad); keyboard still uses InputMap dash / _k_held.
+## Carry radial (face Y / U) — short-press latch.
+var _carry_held: bool = false
+var _carry_time: float = 0.0
+var _carry_aim: int = -1
+var _carry_latch: bool = false
+var _carry_release_ignore: bool = false
+## Legacy RT dash fields kept cleared (dash is face X / Space via InputMap).
 var _rt_dash_held: bool = false
 var _rt_dash_time: float = 0.0
-## Hold crossed run threshold this press → release must never dash (survives axis flicker).
 var _rt_run_committed: bool = false
 var _k_run_committed: bool = false
-## Time RT has sat below release while still in a press cycle (debounce).
 var _rt_release_arm: float = 0.0
-## Second skill press already confirmed the center; ignore that press's release.
+## Second skill press already closed latch; ignore that press's release.
 var _skill_release_ignore: bool = false
-## True when this skill press came from Xbox Y (short = cast slot 0; keyboard/touch short = menu).
+## Legacy pad hint (no longer short-casts skill1).
 var _skill_from_pad: bool = false
-## Staged by _unhandled_input before set_hold so touch/default stays false.
 var _skill_pad_hint: bool = false
 var _u_held: bool = false
 var _ult_index: int = 0
-## Xbox LT/RT: both held → ult chord; RT alone → dash/run (Y+trigger skill chords off).
+## Xbox LT/RT: both held → ult chord (RT no longer dashes).
 var _lt_held: bool = false
 var _rt_held: bool = false
 var _lt_time: float = 0.0
@@ -261,6 +267,7 @@ var _toss = TossControllerScript.new()
 var _fight_ctrl = FightControllerScript.new()
 var _skills = SkillCasterScript.new()
 var _bags
+var _carries
 var _floor_bars: Node2D
 var _carry_strip: Node2D
 
@@ -311,6 +318,8 @@ func _ready() -> void:
 	_skills.bind(self)
 	_bags = BagCasterScript.new(self)
 	_bags.ensure_menu()
+	_carries = CarryCasterScript.new(self)
+	_carries.ensure_menu()
 	_floor_bars = FloorBarsScript.new()
 	_floor_bars.setup(self)
 	add_child(_floor_bars)
@@ -561,9 +570,10 @@ func carry_cap() -> int:
 
 
 func _cycle_carry_focus(delta: int) -> void:
+	## Optional API; pad/keyboard defaults use carry radial instead of ±1.
 	if not _round_active() or inventory.is_empty():
 		return
-	if skill_menu_open or bag_menu_open or ult_prep or _cancel_drop_ready or _in_dir_mode():
+	if skill_menu_open or bag_menu_open or carry_menu_open or ult_prep or _cancel_drop_ready or _in_dir_mode():
 		return
 	inventory.cycle_focus(delta)
 	if _carry_strip != null and _carry_strip.has_method("pulse"):
@@ -826,7 +836,7 @@ func set_hold(action: String, pressed: bool) -> void:
 				_pickup_used = false
 				_no_queue_logged = false
 		"dash":
-			if command_lock or skill_menu_open or bag_menu_open or ult_prep or _fighting:
+			if command_lock or skill_menu_open or bag_menu_open or carry_menu_open or ult_prep or _fighting:
 				return
 			if pressed:
 				if _k_held:
@@ -847,17 +857,19 @@ func set_hold(action: String, pressed: bool) -> void:
 			## Level intents from LAN must not re-enter press every tick (resets _l_time).
 			if pressed and _l_held:
 				return
-			if pressed:
-				_skill_from_pad = _skill_pad_hint
-				_skill_pad_hint = false
 			_on_skill_hold(pressed)
 		"bag_menu":
 			if pressed and _bag_held:
 				return
 			if _bags != null:
 				_bags.on_bag_hold(pressed)
+		"carry_menu":
+			if pressed and _carry_held:
+				return
+			if _carries != null:
+				_carries.on_carry_hold(pressed)
 		"ult":
-			## Keyboard U / touch RB button. Xbox pad uses LT+RT chord instead.
+			## Keyboard K / touch ult button. Xbox pad uses LT+RT chord instead.
 			## Edge-only: repeat ult=true intents must not re-fire prep.
 			if pressed and _u_held:
 				return
@@ -905,7 +917,9 @@ func move_state() -> String:
 	if skill_menu_open:
 		return Loc.t("hud.move.skill_menu")
 	if bag_menu_open:
-		return Loc.t("hud.move.skill_menu")
+		return Loc.t("hud.move.bag_menu")
+	if carry_menu_open:
+		return Loc.t("hud.move.carry_menu")
 	if _restock_picking:
 		return Loc.t("hud.move.pick_sku")
 	if _cleaning():
@@ -991,7 +1005,7 @@ func _in_dir_mode() -> bool:
 	## Restock SKU list is covered by `_restock_picking` only. Holding Interact on a
 	## restock point for a short-tap pull must NOT count as dir mode — otherwise
 	## `_move_locked_until_neutral` arms and held WASD/stick cannot walk until release.
-	if ult_prep or skill_menu_open or bag_menu_open or _restock_picking or _l_held or _bag_held or _u_held:
+	if ult_prep or skill_menu_open or bag_menu_open or carry_menu_open or _restock_picking or _l_held or _bag_held or _carry_held or _u_held:
 		return true
 	if _j_held and is_instance_valid(target):
 		if _obj_str(target, "kind") == "cashier":
@@ -1052,8 +1066,6 @@ func _input(event: InputEvent) -> void:
 				return
 	for action in Controls.HOLD_ACTIONS:
 		if event.is_action(action) and (event is InputEventKey or event is InputEventJoypadButton):
-			if action == Controls.SKILL and event.is_pressed():
-				_skill_pad_hint = event is InputEventJoypadButton
 			set_hold(action, event.is_pressed())
 			get_viewport().set_input_as_handled()
 			return
@@ -1154,6 +1166,10 @@ func _cancel_input() -> void:
 		_close_bag_menu()
 		SfxBus.play("sfx_skill_menu_cancel")
 		used = true
+	if carry_menu_open or _carry_held:
+		_close_carry_menu()
+		SfxBus.play("sfx_skill_menu_cancel")
+		used = true
 	if ult_prep:
 		_on_ult_hold(false)
 		used = true
@@ -1216,22 +1232,12 @@ func _physics_process(delta: float) -> void:
 	command_lock = _long_committed and _j_held and is_instance_valid(target) and _obj_str(target, "kind") == "cashier" and not skill_menu_open and not ult_prep
 	if not command_lock and not ult_prep:
 		_prompt.active = false
-	if (_k_held or _rt_dash_held) and not _lt_held and not _cancel_held and not _cancel_drop_ready and not command_lock and not skill_menu_open and not bag_menu_open and not ult_prep and not _fighting and _stun_left <= 0.0 and _slip_left <= 0.0:
-		if _k_held:
-			_k_time += delta
-		## Freeze RT timer while release-debounce is arming (don't turn taps into runs).
-		if _rt_dash_held and _rt_release_arm <= 0.0:
-			_rt_dash_time += delta
-		var hold_t := _k_time if _k_held else _rt_dash_time
-		if _k_held and _rt_dash_held:
-			hold_t = maxf(_k_time, _rt_dash_time)
-		if hold_t >= Tuning.RUN_HOLD_THRESHOLD:
+	## Dash/run via InputMap (face X / Space) — no RT dash.
+	if _k_held and not _cancel_held and not _cancel_drop_ready and not command_lock and not skill_menu_open and not bag_menu_open and not carry_menu_open and not ult_prep and not _fighting and _stun_left <= 0.0 and _slip_left <= 0.0:
+		_k_time += delta
+		if _k_time >= Tuning.RUN_HOLD_THRESHOLD:
 			_running = _dasher_active() or stamina > 1.0
-			## Sticky: even if stamina/_running flickers off, this press never dashes.
-			if _k_held:
-				_k_run_committed = true
-			if _rt_dash_held:
-				_rt_run_committed = true
+			_k_run_committed = true
 	if _cancel_held:
 		_tick_cancel_hold(delta)
 	if _toss_move_pause_left > 0.0:
@@ -1246,13 +1252,11 @@ func _physics_process(delta: float) -> void:
 		velocity = Vector2.ZERO
 	if _l_held and _sick_left <= 0.0 and _stun_left <= 0.0:
 		_l_time += delta
-		if not skill_menu_open and _l_time >= Skills.HOLD_MENU_SEC:
-			_open_skill_menu(false)
-		if skill_menu_open and not _skill_latch:
-			_sync_hold_aim()
 	if _bags != null:
 		_bags.tick(delta)
-	## Pad LT/RT only on locally owned seats; remote seats get skill/ult via Intent (M2.5).
+	if _carries != null:
+		_carries.tick(delta)
+	## Pad LT/RT ult chord only on locally owned seats.
 	if controls_locally() and _round_active() and not _asking_early():
 		_tick_triggers(delta)
 	## Skill / ult / checkout dir modes: hard-stop so held WASD cannot coast.
@@ -2278,7 +2282,7 @@ func _detach_interact_glow() -> void:
 func _glow_host_now() -> Node2D:
 	if not _round_active() or _asking_early():
 		return null
-	if skill_menu_open or ult_prep or _stun_left > 0.0 or _slip_left > 0.0 or _elite_focus_left > 0.0:
+	if skill_menu_open or bag_menu_open or carry_menu_open or ult_prep or _stun_left > 0.0 or _slip_left > 0.0 or _elite_focus_left > 0.0:
 		return null
 	if _cancel_drop_ready:
 		return null
@@ -3372,8 +3376,39 @@ func _try_dir(dir: int) -> void:
 		var bslot: int = BagMenu.aim_from_stick(bstick)
 		if bslot < 0:
 			return
+		if _bag_latch:
+			SfxBus.play("sfx_skill_menu_move")
+			if _bags != null and _bags.has_method("confirm_bag"):
+				_bags.confirm_bag(bslot)
+			return
 		if _bags != null and _bags.has_method("set_bag_aim"):
 			_bags.set_bag_aim(bslot)
+		return
+	if carry_menu_open:
+		var cstick := Vector2.ZERO
+		match dir:
+			Skills.DIR_UP:
+				cstick = Vector2(0, -1)
+			Skills.DIR_DOWN:
+				cstick = Vector2(0, 1)
+			Skills.DIR_LEFT:
+				cstick = Vector2(-1, 0)
+			Skills.DIR_RIGHT:
+				cstick = Vector2(1, 0)
+			_:
+				return
+		var CarryMenu = preload("res://scripts/carry_menu.gd")
+		var count := inventory.grouped().size() if inventory != null else 0
+		var cslot: int = CarryMenu.aim_from_stick(cstick, count)
+		if cslot < 0:
+			return
+		if _carry_latch:
+			SfxBus.play("sfx_skill_menu_move")
+			if _carries != null and _carries.has_method("confirm_carry"):
+				_carries.confirm_carry(cslot)
+			return
+		if _carries != null and _carries.has_method("set_carry_aim"):
+			_carries.set_carry_aim(cslot)
 		return
 	if command_lock:
 		_try_command(dir)
@@ -3677,27 +3712,14 @@ func cast_skill_hotkey(slot: int) -> void:
 
 
 func _tick_triggers(delta: float) -> void:
+	## LT+RT ult chord only — RT no longer drives dash/run.
 	var tr := Controls.trigger_values_for(seat_id)
 	var lt := Controls.trigger_latched(tr.x, _lt_held)
-	var rt_axis := Controls.trigger_latched(tr.y, _rt_held or _rt_dash_held)
-	## Analog dips below RELEASE for 1–2 frames must not end the press (false dash).
-	var rt := rt_axis
-	if (_rt_held or _rt_dash_held) and not rt_axis:
-		_rt_release_arm += delta
-		if _rt_release_arm < Controls.TRIGGER_RELEASE_CONFIRM_SEC:
-			rt = true
-	else:
-		_rt_release_arm = 0.0
+	var rt := Controls.trigger_latched(tr.y, _rt_held)
 	if lt and not _lt_held:
 		_lt_held = true
 		_lt_time = 0.0
 		_lt_fired = false
-		## Running on RT then press LT → stop run, enter ult path.
-		if _rt_dash_held or _running or _rt_run_committed:
-			_rt_dash_held = false
-			_rt_run_committed = false
-			_rt_release_arm = 0.0
-			_running = false
 	if rt and not _rt_held:
 		_rt_held = true
 		_rt_time = 0.0
@@ -3706,14 +3728,9 @@ func _tick_triggers(delta: float) -> void:
 		_lt_time += delta
 	if rt:
 		_rt_time += delta
-	## Ult chord LT+RT (Y combos removed — no skill-on-trigger).
 	if lt and rt:
 		_trigger_chord_block = true
 		_both_trigger_time += delta
-		_rt_dash_held = false
-		_rt_run_committed = false
-		_rt_release_arm = 0.0
-		_running = false
 		if not _ult_chord_active and not ult_prep and _both_trigger_time >= Skills.HOLD_MENU_SEC:
 			_on_ult_hold(true)
 			if ult_prep:
@@ -3721,29 +3738,7 @@ func _tick_triggers(delta: float) -> void:
 				_lt_fired = true
 				_rt_fired = true
 	else:
-		if not (lt and rt):
-			_both_trigger_time = 0.0
-	## RT alone = dash/run (suppressed while LT held or menus open).
-	if rt and not lt and not ult_prep and not skill_menu_open and not bag_menu_open and not command_lock and not _fighting:
-		if not _rt_dash_held:
-			_rt_dash_held = true
-			## Keep timer if re-latching a committed run after a soft dip.
-			if not _rt_run_committed:
-				_rt_dash_time = 0.0
-		elif _rt_run_committed and not _running:
-			_running = _dasher_active() or stamina > 1.0
-	elif not rt and _rt_dash_held:
-		## Confirmed release: short = dash; committed／long run never dash.
-		if not _rt_run_committed and not _running and _rt_dash_time < Tuning.RUN_HOLD_THRESHOLD:
-			_try_dash()
-		_rt_dash_held = false
-		_rt_run_committed = false
-		_rt_release_arm = 0.0
-		_running = false
-	if not rt:
-		_rt_dash_held = false
-		_rt_run_committed = false
-		_rt_release_arm = 0.0
+		_both_trigger_time = 0.0
 	if not lt and _lt_held:
 		_lt_held = false
 	if not rt and _rt_held:
@@ -3758,10 +3753,14 @@ func _tick_triggers(delta: float) -> void:
 		_rt_fired = false
 
 
-
 func _close_bag_menu() -> void:
 	if _bags != null:
 		_bags.close_bag_menu()
+
+
+func _close_carry_menu() -> void:
+	if _carries != null:
+		_carries.close_carry_menu()
 
 
 func _on_carry_changed_for_strip() -> void:
@@ -3903,12 +3902,12 @@ func _note_delivery_combo(guests: Array, _pieces: int) -> void:
 
 
 func _handle_hotkey_actions(event: InputEvent) -> void:
-	## LB/RB = carry focus only (Y+shoulder skill chords disabled).
-	if event.is_action_pressed(Controls.CARRY_PREV) or event.is_action_pressed(Controls.SKILL_2):
+	## Carry ±1 unbound by default; radial is the main path.
+	if event.is_action_pressed(Controls.CARRY_PREV):
 		_cycle_carry_focus(-1)
 		get_viewport().set_input_as_handled()
 		return
-	if event.is_action_pressed(Controls.CARRY_NEXT) or event.is_action_pressed(Controls.SKILL_3):
+	if event.is_action_pressed(Controls.CARRY_NEXT):
 		_cycle_carry_focus(1)
 		get_viewport().set_input_as_handled()
 		return

@@ -22,15 +22,13 @@
 #**輕放／長按門檻（跟活線）**
 | 操作 | 門檻 |
 | --- | --- |
-| 衝刺鍵輕放＝衝刺／長按＝奔跑 | 0.12 秒（`Tuning.RUN_HOLD_THRESHOLD`）；長按起跑不會先衝一記 |
-| Xbox LT／RT 數位化 | 按下 ≥0.20、釋放 ＜0.08（`TRIGGER_PRESS`／`TRIGGER_RELEASE`）；釋放須持續約 0.05 秒才算鬆手（`TRIGGER_RELEASE_CONFIRM_SEC`）；達起跑門檻後本輪按壓不再衝刺 |
+| 衝刺鍵輕放＝衝刺／長按＝奔跑（面鍵 X／Space） | 0.12 秒（`Tuning.RUN_HOLD_THRESHOLD`）；長按起跑不會先衝一記 |
+| Xbox LT／RT 數位化（奧義 chord） | 按下 ≥0.20、釋放 ＜0.08（`TRIGGER_PRESS`／`TRIGGER_RELEASE`） |
 | 取消鍵長按丟掉進入瞄準 | 0.2 秒（`Tuning.DROP_HOLD_SEC`） |
 | 補貨點長按彈清單 | 0.18 秒（`Tuning.SKU_PICK_HOLD`） |
-| 技能鍵長按開選單 | 0.18 秒（`Skills.HOLD_MENU_SEC`） |
-| Xbox LT／RT 單邊直放技能前等待（讓 LT+RT 可組奧義） | 0.1 秒（`Controls.TRIGGER_SKILL_GRACE`） |
 | Xbox 長按 LT+RT 進奧義準備 | 0.18 秒（同 `Skills.HOLD_MENU_SEC`） |
 
-微調日後再提；長線以活線常數為準。Xbox 技能快捷見 `control.md`（Y 短＝技能1；LB／RB／LT／RT＝技能2–5）。
+微調日後再提；長線以活線常數為準。技能／道具／持貨環見 `control.md`（短按 LB／RB／面鍵 Y）。
 
 #**移動速度上限**
 最終位移（含 AGI 倍率、移動技能 %、奔跑）最高為 **AGI 10 基值的 5 倍**（15 身位/秒）。

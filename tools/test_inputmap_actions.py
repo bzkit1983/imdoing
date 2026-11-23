@@ -19,6 +19,8 @@ REQUIRED_ACTIONS = [
     "cancel",
     "dash",
     "skill",
+    "bag_menu",
+    "carry_menu",
     "ult",
     "rotate",
 ]
@@ -44,6 +46,10 @@ def main() -> int:
     assert "JOY_ALL_DEVICES" in controls
     assert "ev.device = JOY_ALL_DEVICES" in controls
     assert "get_connected_joypads" in controls
+    assert "KEY_H" in controls and "KEY_SPACE" in controls and "KEY_K" in controls
+    assert "CARRY_MENU" in controls
+    assert "_joy_btn(JOY_BUTTON_DPAD_UP)" not in controls
+    assert "JOY_BUTTON_LEFT_SHOULDER" in controls and "JOY_BUTTON_RIGHT_SHOULDER" in controls
     prep = (GAME / "scripts" / "prep_menu.gd").read_text(encoding="utf-8")
     assert "Controls.ROTATE" in prep
     assert "KEY_J" not in prep
