@@ -74,8 +74,8 @@ const DASH_TIME := 0.12
 const RUN_HOLD_THRESHOLD := 0.12
 ## Long-press cancel (B or ;) enters drop aim. A tap tosses focused pieces.
 const DROP_HOLD_SEC := 0.2
-## Player toss distance (10 身位 = 2× legacy 5). Future drop-range skills multiply via player.drop_toss_dist().
-const DROP_TOSS_BODY_LENGTHS := 10.0
+## Player toss distance (15 身位 = 1.5× prior 10). Future drop-range skills multiply via player.drop_toss_dist().
+const DROP_TOSS_BODY_LENGTHS := 15.0
 const DROP_TOSS_DIST := DROP_TOSS_BODY_LENGTHS * BODY_LENGTH
 const DROP_DIR_DEADZONE := 0.35
 ## Legacy / cannon default flight time (small arc era). Player toss uses player_drop_flight_sec().

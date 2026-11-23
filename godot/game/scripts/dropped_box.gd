@@ -43,7 +43,6 @@ func setup(id: String, n: int) -> void:
 	add_child(spr)
 	BoxFaceplate.attach_carton_face(self, id, BoxFaceplate.FLOOR_ICON_PX, Vector2(0.0, -2.0))
 	var lab := Label.new()
-	lab.text = _count_label_text(id, n)
 	lab.position = Vector2(-28, -28)
 	lab.z_index = 3
 	UiFont.apply_label(lab, UiFont.WORLD)
@@ -51,6 +50,7 @@ func setup(id: String, n: int) -> void:
 	lab.add_theme_color_override("font_outline_color", Color("121212"))
 	lab.add_theme_constant_override("outline_size", 5)
 	add_child(lab)
+	_refresh_label()
 
 
 func take_all() -> int:
@@ -78,6 +78,8 @@ func take_count(n: int) -> int:
 
 
 func _count_label_text(id: String, n: int) -> String:
+	if n <= 1:
+		return ""
 	if PlatformServices.is_show_dev_hud():
 		return "%s×%d" % [Tuning.sku_name(id), n]
 	return Loc.t("world.drop.count", [n])
@@ -90,5 +92,7 @@ func refresh_dev_labels() -> void:
 func _refresh_label() -> void:
 	for c in get_children():
 		if c is Label:
-			c.text = _count_label_text(sku, count)
+			c.visible = count > 1
+			if count > 1:
+				c.text = _count_label_text(sku, count)
 			return
