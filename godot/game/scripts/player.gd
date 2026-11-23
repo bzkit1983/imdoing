@@ -611,6 +611,9 @@ func _on_carry_select_hold(pressed: bool) -> void:
 			return
 		if skill_menu_open:
 			_close_skill_menu()
+		## LB select wins over B drop-aim — abort without tossing.
+		if _cancel_held or _cancel_drop_ready:
+			_abort_cancel_drop()
 		_carry_select_held = true
 		_carry_select_time = 0.0
 		_carry_select_on = false
@@ -631,6 +634,8 @@ func _tick_carry_select(delta: float) -> void:
 		return
 	_carry_select_time += delta
 	if not _carry_select_on and _carry_select_time >= Controls.HOLD_OPEN_SEC:
+		if _cancel_held or _cancel_drop_ready:
+			_abort_cancel_drop()
 		_carry_select_on = true
 		if _carry_strip != null and _carry_strip.has_method("set_select_expand"):
 			_carry_strip.set_select_expand(true, true)
@@ -1154,8 +1159,11 @@ func _input(event: InputEvent) -> void:
 			return
 	for action in Controls.HOLD_ACTIONS:
 		if event.is_action(action) and (event is InputEventKey or event is InputEventJoypadButton):
-			## While carry-select, ignore dash/cancel holds (borrowed).
+			## While carry-select, borrow dash/cancel presses; always forward releases
+			## so sticky B drop-aim / X run holds can clear.
 			if _carry_select_on and (action == Controls.DASH or action == Controls.CANCEL):
+				if not event.is_pressed():
+					set_hold(action, false)
 				get_viewport().set_input_as_handled()
 				return
 			set_hold(action, event.is_pressed())
@@ -1173,6 +1181,16 @@ func _tick_cancel_hold(delta: float) -> void:
 
 func _on_cancel_release() -> void:
 	_toss.on_cancel_release()
+
+func _abort_cancel_drop() -> void:
+	if _toss != null:
+		_toss.abort_cancel_hold()
+	else:
+		_cancel_held = false
+		_cancel_time = 0.0
+		_cancel_drop_ready = false
+		_cancel_dropped = false
+		_cancel_drop_dir = Vector2.ZERO
 
 func _sample_cancel_drop_dir() -> void:
 	_toss.sample_cancel_drop_dir()
@@ -1261,6 +1279,10 @@ func _cancel_input() -> void:
 	if carry_menu_open or _carry_held:
 		_close_carry_menu()
 		SfxBus.play("sfx_skill_menu_cancel")
+		used = true
+	if _carry_select_on or _carry_select_held:
+		_carry_select_held = false
+		_end_carry_select()
 		used = true
 	if ult_prep:
 		_on_ult_hold(false)

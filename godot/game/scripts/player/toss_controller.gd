@@ -115,6 +115,18 @@ func on_cancel_release() -> void:
 	host._cancel_drop_dir = Vector2.ZERO
 	_charge_n = 1.0
 
+
+func abort_cancel_hold() -> void:
+	## Leave drop-aim without tossing (e.g. LB carry-select took over).
+	host._cancel_held = false
+	host._cancel_time = 0.0
+	host._cancel_drop_ready = false
+	host._cancel_dropped = false
+	host._cancel_drop_dir = Vector2.ZERO
+	hide_drop_aim()
+	_charge_n = 1.0
+
+
 func sample_cancel_drop_dir() -> void:
 	## Direction keys retarget aim; standing still keeps / seeds facing.
 	var v = host._move_vector() + host.stick_axis
