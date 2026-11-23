@@ -879,8 +879,9 @@ prep.light_quiz.locked,完成「小遊戲」入面嘅奧義問答先可以裝備
 prep.light_quiz.source,經文出處：創世記 1:3、1:4、1:5、1:3–5、1:14–19,"Scripture: Genesis 1:3, 1:4, 1:5, 1:3–5, 1:14–19",经文出处：创世记 1:3、1:4、1:5、1:3–5、1:14–19,聖書：創世記 1:3、1:4、1:5、1:3–5、1:14–19
 prep.cashier_duel.rules,15 秒內計出兩件貨品總額後嘅找續，連續答對 5 題通關。可用鍵盤輸入，亦可用下方數字鍵盤；按確認送出。,Calculate the change for two items within 15 seconds. Get 5 correct in a row to pass. Type on the keyboard or use the keypad below, then submit.,15 秒内算出两件商品总额后的找零，连续答对 5 题通关。可用键盘输入，也可用下方数字键盘；按确认提交。,15秒以内に2品の合計からおつりを計算します。5問連続正解でクリア。キーボード入力または下の数字キーで入力し、決定してください。
 prep.cashier_duel.start,開始挑戰,Start challenge,开始挑战,挑戦開始
+prep.cashier_duel.pad_controls,手掣：方向掣／左搖桿揀數字・A 輸入・X 刪除・Y 提交・B 返回,Controller: D-pad or left stick to select · A enter · X delete · Y submit · B back,手柄：方向键／左摇杆选数字・A 输入・X 删除・Y 提交・B 返回,パッド：十字キーか左スティックで選択・Aで入力・Xで削除・Yで送信・Bで戻る
 prep.cashier_duel.retry,再挑戰一次,Try again,再挑战一次,もう一度挑戦
-prep.cashier_duel.progress,答對 %d／5,Correct %d/5,答对 %d／5,正解 %d／5
+prep.cashier_duel.progress,答對 %d／%d,Correct %d/%d,答对 %d／%d,正解 %d／%d
 prep.cashier_duel.timer,剩餘 %.1f 秒,%.1f seconds left,剩余 %.1f 秒,残り %.1f 秒
 prep.cashier_duel.prompt,貨品價格：$%s ＋ $%s\n客人付款：$%s,"Item prices: $%s + $%s\nCustomer pays: $%s",商品价格：$%s ＋ $%s\n顾客付款：$%s,商品の価格：$%s ＋ $%s\nお客さまのお支払い：$%s
 prep.cashier_duel.answer,找續金額,Change due,找零金额,おつり
@@ -930,7 +931,7 @@ prep.bun_duel.loss,電腦贏咗！,CPU wins!,电脑赢了！,CPUの勝ち！
 prep.bun_duel.reward,獲得技能：%s（試玩提示）,Skill earned: %s (trial),获得技能：%s（试玩提示）,スキル獲得：%s（体験版）
 prep.bun_duel.ok,確認,OK,确认,決定
 prep.metal_trial.title,金屬狂潮：節奏挑戰,Metal Rush: Rhythm Challenge,金属狂潮：节奏挑战,メタルラッシュ：リズムチャレンジ
-prep.metal_trial.controls,左至右 D F J K／手掣 X Y A B｜Esc 或返回鍵離開,Left to right D F J K / pad X Y A B · Esc or Back to exit,从左到右 D F J K／手柄 X Y A B｜Esc 或返回键退出,左から D F J K／パッド X Y A B｜Esc または Back で終了
+prep.metal_trial.controls,左至右 D F J K／手掣 RT RB LT LB｜Esc 或返回鍵離開,Left to right D F J K / pad RT RB LT LB · Esc or Back to exit,从左到右 D F J K／手柄 RT RB LT LB｜Esc 或返回键退出,左から D F J K／パッド RT RB LT LB｜Esc または Back で終了
 prep.metal_trial.retry,再玩（R／Start）,Retry (R / Start),再玩（R／Start）,再挑戦（R／Start）
 prep.metal_trial.ready,預備 %d,Ready %d,准备 %d,準備 %d
 prep.metal_trial.live,分數 %d｜連擊 %d,Score %d · Combo %d,分数 %d｜连击 %d,スコア %d｜コンボ %d

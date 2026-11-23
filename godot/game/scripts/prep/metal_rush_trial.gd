@@ -8,7 +8,8 @@ const Stage = preload("res://scripts/prep/metal_rush_stage.gd")
 const FontStyle = preload("res://scripts/ui_font.gd")
 const COPY := "prep.metal_trial."
 const KEYS := [KEY_D, KEY_F, KEY_J, KEY_K]
-const PAD := [JOY_BUTTON_X, JOY_BUTTON_Y, JOY_BUTTON_A, JOY_BUTTON_B]
+const TRIGGER_PRESS := 0.55
+const TRIGGER_RELEASE := 0.35
 
 var chart: Chart
 var stage: Stage
@@ -203,9 +204,18 @@ func _input(event: InputEvent) -> void:
 			restart()
 			get_viewport().set_input_as_handled()
 			return
-		lane = PAD.find(event.button_index)
+		match event.button_index:
+			JOY_BUTTON_RIGHT_SHOULDER: lane = 1
+			JOY_BUTTON_LEFT_SHOULDER: lane = 3
 		source = "pad:%d:%d" % [event.device, lane]
 		pressed = event.pressed
+	elif event is InputEventJoypadMotion:
+		match event.axis:
+			JOY_AXIS_TRIGGER_RIGHT: lane = 0
+			JOY_AXIS_TRIGGER_LEFT: lane = 2
+			_: return
+		source = "pad:%d:%d" % [event.device, lane]
+		pressed = event.axis_value > TRIGGER_RELEASE if held.has(source) else event.axis_value >= TRIGGER_PRESS
 	if lane < 0:
 		return
 	if not pressed:

@@ -222,7 +222,7 @@ func _localize(_locale: String = "") -> void:
 		_details.text = Loc.t("prep.cashier_duel.result", [_score, QUESTION_COUNT])
 	else:
 		_heading.text = Loc.t("skill.checkout_rush.name")
-		_details.text = Loc.t("prep.cashier_duel.rules")
+		_details.text = Loc.t("prep.cashier_duel.rules") + "\n" + Loc.t("prep.cashier_duel.pad_controls")
 	var submit := _view.find_child("SubmitButton", true, false) as Button
 	if submit != null:
 		submit.text = Loc.t("prep.cashier_duel.submit")
@@ -361,6 +361,17 @@ func _format_money(tenths: int) -> String:
 	return "%d.%d" % [floori(float(tenths) / 10.0), tenths % 10]
 
 
+var _pad_cell := 0
+var _pad_axes := Vector2i.ZERO
+
+
+func _move_pad_cursor(direction: Vector2i) -> void:
+	var cell := Vector2i(_pad_cell % 3, floori(_pad_cell / 3.0))
+	cell = (cell + direction).clamp(Vector2i.ZERO, Vector2i(2, 3))
+	_pad_cell = cell.y * 3 + cell.x
+	(_keypad.get_child(_pad_cell) as Button).grab_focus()
+
+
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		var key := (event as InputEventKey).physical_keycode
@@ -383,12 +394,49 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 	elif event is InputEventJoypadButton:
 		var pad := event as InputEventJoypadButton
-		if pad.pressed and pad.button_index == JOY_BUTTON_B:
-			_exit()
-			get_viewport().set_input_as_handled()
+		if not pad.pressed or _reward_dialog.visible:
+			return
+		match pad.button_index:
+			JOY_BUTTON_B: _exit()
+			JOY_BUTTON_A:
+				if _running:
+					(_keypad.get_child(_pad_cell) as Button).pressed.emit()
+				else:
+					_start_or_restart()
+			JOY_BUTTON_X:
+				if _running: _press_key("backspace")
+			JOY_BUTTON_Y, JOY_BUTTON_START:
+				if _running: _submit_answer()
+			JOY_BUTTON_DPAD_LEFT:
+				if _running: _move_pad_cursor(Vector2i.LEFT)
+			JOY_BUTTON_DPAD_RIGHT:
+				if _running: _move_pad_cursor(Vector2i.RIGHT)
+			JOY_BUTTON_DPAD_UP:
+				if _running: _move_pad_cursor(Vector2i.UP)
+			JOY_BUTTON_DPAD_DOWN:
+				if _running: _move_pad_cursor(Vector2i.DOWN)
+			_: return
+		get_viewport().set_input_as_handled()
+	elif event is InputEventJoypadMotion and _running:
+		var motion := event as InputEventJoypadMotion
+		var axis := motion.axis
+		if axis not in [JOY_AXIS_LEFT_X, JOY_AXIS_LEFT_Y]:
+			return
+		var horizontal := axis == JOY_AXIS_LEFT_X
+		var previous := _pad_axes.x if horizontal else _pad_axes.y
+		var threshold := 0.55 if previous == 0 else 0.35
+		var direction := int(signf(motion.axis_value)) if absf(motion.axis_value) >= threshold else 0
+		if horizontal:
+			_pad_axes.x = direction
+		else:
+			_pad_axes.y = direction
+		if direction != 0 and direction != previous:
+			_move_pad_cursor(Vector2i(direction, 0) if horizontal else Vector2i(0, direction))
+		get_viewport().set_input_as_handled()
 
 
 func _clear_focus() -> void:
+	_pad_axes = Vector2i.ZERO
 	if _view == null:
 		return
 	var focus := get_viewport().gui_get_focus_owner()
@@ -403,6 +451,7 @@ func _focus_restart_button() -> void:
 
 func _focus_first_key() -> void:
 	if _keypad != null and _keypad.get_child_count() > 0:
+		_pad_cell = 0
 		(_keypad.get_child(0) as Button).grab_focus()
 
 

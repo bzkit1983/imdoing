@@ -2,7 +2,7 @@ extends Control
 
 const LANE_COLORS := [Color("78dcb1"), Color("ffd077"), Color("87caff"), Color("f1a5ce")]
 const TRAVEL_TIME := 1.6
-const KEY_HINTS := ["D / X", "F / Y", "J / A", "K / B"]
+const KEY_HINTS := ["D / RT", "F / RB", "J / LT", "K / LB"]
 var chart: RefCounted
 var song_time := -3.0
 var flashes := [0.0, 0.0, 0.0, 0.0]
