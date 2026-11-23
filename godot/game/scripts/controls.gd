@@ -1,7 +1,7 @@
 extends Node
 ## Registers and documents InputMap actions for the living game line.
-## Defaults match the previous hardcoded WASD / J K L U / Xbox layout.
-## If an action already has events (e.g. edited in Project Settings), defaults are left alone.
+## Xbox ↔ keyboard (ops): A/H, B/J, X/Space, Y/U, LB/Y-key, RB/I, LT+RT/K.
+## If an action already has events, migrations rewrite to the current defaults.
 
 const MOVE_DEADZONE := 0.25
 ## InputMap: -1 matches every connected pad. Windows Xbox often is not device 0
@@ -17,13 +17,15 @@ const INTERACT := "interact"
 const CANCEL := "cancel"
 const DASH := "dash"
 const SKILL := "skill"
-## Hold to open ops bag radial (Xbox X / keyboard I).
+## Short-press opens ops bag radial (Xbox RB / keyboard I).
 const BAG_MENU := "bag_menu"
+## Short-press opens carry radial (Xbox face Y / keyboard U).
+const CARRY_MENU := "carry_menu"
 const ULT := "ult"
-## Legacy action names kept for menu/touch; shoulders remapped to carry focus.
+## Legacy action names kept for menu/touch; no default binds.
 const SKILL_2 := "skill_2"
 const SKILL_3 := "skill_3"
-## Carry focus cycle: keyboard [ / ], pad LB / RB (when Y not held).
+## Carry ±1 removed from defaults (select via carry radial). Actions kept for API.
 const CARRY_PREV := "carry_prev"
 const CARRY_NEXT := "carry_next"
 const ROTATE := "rotate"
@@ -32,7 +34,7 @@ const RESTOCK_NEXT := "restock_next"
 const RESTOCK_SLOT_1 := "restock_slot_1"
 const RESTOCK_SLOT_2 := "restock_slot_2"
 const RESTOCK_SLOT_3 := "restock_slot_3"
-## Ops item bag (D-PAD / keys 1–4). Cross: up / right / down / left.
+## Ops item bag slots — keyboard 1–4 only; no D-Pad (main path = bag radial).
 const BAG_SLOT_UP := "bag_slot_up"
 const BAG_SLOT_RIGHT := "bag_slot_right"
 const BAG_SLOT_DOWN := "bag_slot_down"
@@ -45,7 +47,6 @@ const BAG_SLOT_ACTIONS: Array[String] = [
 ]
 
 ## Analog trigger press threshold (Xbox LT/RT), after normalize to 0..1.
-## ~20% travel — typical action-game digitalize for snappy RT dash/run.
 const TRIGGER_PRESS := 0.20
 ## Release hysteresis: stay down until below this (avoids chatter near press).
 const TRIGGER_RELEASE := 0.08
@@ -67,7 +68,7 @@ const WEB_STICK_SUPPRESS_AXIS_TRIGGERS := 0.45
 ## device_id → once true, axis LT/RT stay ignored (buttons 6/7 only on Web).
 var _web_axis_triggers_untrusted: Dictionary = {}
 
-const HOLD_ACTIONS: Array[String] = [INTERACT, CANCEL, DASH, SKILL, BAG_MENU, ULT]
+const HOLD_ACTIONS: Array[String] = [INTERACT, CANCEL, DASH, SKILL, BAG_MENU, CARRY_MENU, ULT]
 const MOVE_ACTIONS: Array[String] = [MOVE_UP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT]
 const SKILL_SLOT_ACTIONS: Array[String] = [SKILL_2, SKILL_3]
 
@@ -77,7 +78,7 @@ func _enter_tree() -> void:
 
 
 func ensure_actions() -> void:
-	## Ops loco: keyboard + left stick only. D-PAD → bag_slot_* (see opsitems.md).
+	## Ops loco: keyboard + left stick only. No D-Pad.
 	_ensure_action(MOVE_UP, MOVE_DEADZONE, [
 		_key(KEY_W), _key(KEY_UP),
 		_joy_axis(JOY_AXIS_LEFT_Y, -1.0),
@@ -94,41 +95,38 @@ func ensure_actions() -> void:
 		_key(KEY_D), _key(KEY_RIGHT),
 		_joy_axis(JOY_AXIS_LEFT_X, 1.0),
 	])
-	_ensure_action(INTERACT, 0.5, [_key(KEY_J), _key(KEY_ENTER), _joy_btn(JOY_BUTTON_A)])
+	_ensure_action(INTERACT, 0.5, [_key(KEY_H), _key(KEY_ENTER), _joy_btn(JOY_BUTTON_A)])
 	_ensure_action(CANCEL, 0.5, [
-		_key(KEY_SEMICOLON), _key(KEY_BACKSPACE),
+		_key(KEY_J), _key(KEY_BACKSPACE),
 		_joy_btn(JOY_BUTTON_B),
 	])
 	## Esc opens pause (pause_menu); must not be cancel or player _input eats it first.
 	_erase_key(CANCEL, KEY_ESCAPE)
-	## Keyboard K dash; pad dash is RT (polled in player). X freed for bag_menu.
-	_ensure_action(DASH, 0.5, [_key(KEY_K)])
-	_erase_joy_btn(DASH, JOY_BUTTON_X)
-	_ensure_action(SKILL, 0.5, [_key(KEY_L), _joy_btn(JOY_BUTTON_Y)])
-	_ensure_action(BAG_MENU, 0.5, [_key(KEY_I), _joy_btn(JOY_BUTTON_X)])
-	## Keyboard U only — Xbox ult is LT+RT long-press (polled). Touch still set_hold("ult").
-	_ensure_action(ULT, 0.5, [_key(KEY_U)])
-	## skill_2/3 empty — Y+shoulder chords disabled (carry owns LB/RB).
+	_ensure_action(DASH, 0.5, [_key(KEY_SPACE), _joy_btn(JOY_BUTTON_X)])
+	_ensure_action(SKILL, 0.5, [_key(KEY_Y), _joy_btn(JOY_BUTTON_LEFT_SHOULDER)])
+	_ensure_action(BAG_MENU, 0.5, [_key(KEY_I), _joy_btn(JOY_BUTTON_RIGHT_SHOULDER)])
+	_ensure_action(CARRY_MENU, 0.5, [_key(KEY_U), _joy_btn(JOY_BUTTON_Y)])
+	## Keyboard K — Xbox ult is LT+RT long-press (polled). Touch still set_hold("ult").
+	_ensure_action(ULT, 0.5, [_key(KEY_K)])
 	_ensure_action(SKILL_2, 0.5, [])
 	_ensure_action(SKILL_3, 0.5, [])
-	_ensure_action(CARRY_PREV, 0.5, [_key(KEY_BRACKETLEFT), _joy_btn(JOY_BUTTON_LEFT_SHOULDER)])
-	_ensure_action(CARRY_NEXT, 0.5, [_key(KEY_BRACKETRIGHT), _joy_btn(JOY_BUTTON_RIGHT_SHOULDER)])
-	_migrate_xbox_skill_bindings()
-	_migrate_shoulders_to_carry_focus()
-	_migrate_move_dpad_to_bag()
-	_migrate_dash_off_face_x()
-	## Prep layout rotate — X still rotates in prep (ops uses X for bag_menu; contexts do not overlap).
-	_ensure_action(ROTATE, 0.5, [_key(KEY_K), _key(KEY_X), _joy_btn(JOY_BUTTON_X)])
+	## Carry ±1 unbound by default.
+	_ensure_action(CARRY_PREV, 0.5, [])
+	_ensure_action(CARRY_NEXT, 0.5, [])
+	## Prep rotate: keyboard R; face Y in prep only (ops face Y = carry_menu).
+	_ensure_action(ROTATE, 0.5, [_key(KEY_R), _joy_btn(JOY_BUTTON_Y)])
 	_ensure_action(RESTOCK_PREV, 0.5, [_key(KEY_Q)])
 	_ensure_action(RESTOCK_NEXT, 0.5, [_key(KEY_E)])
 	_ensure_action(RESTOCK_SLOT_1, 0.5, [_key(KEY_1)])
 	_ensure_action(RESTOCK_SLOT_2, 0.5, [_key(KEY_2)])
 	_ensure_action(RESTOCK_SLOT_3, 0.5, [_key(KEY_3)])
-	_ensure_action(BAG_SLOT_UP, 0.5, [_key(KEY_1), _joy_btn(JOY_BUTTON_DPAD_UP)])
-	_ensure_action(BAG_SLOT_RIGHT, 0.5, [_key(KEY_2), _joy_btn(JOY_BUTTON_DPAD_RIGHT)])
-	_ensure_action(BAG_SLOT_DOWN, 0.5, [_key(KEY_3), _joy_btn(JOY_BUTTON_DPAD_DOWN)])
-	_ensure_action(BAG_SLOT_LEFT, 0.5, [_key(KEY_4), _joy_btn(JOY_BUTTON_DPAD_LEFT)])
+	## Keyboard digits only — no D-Pad.
+	_ensure_action(BAG_SLOT_UP, 0.5, [_key(KEY_1)])
+	_ensure_action(BAG_SLOT_RIGHT, 0.5, [_key(KEY_2)])
+	_ensure_action(BAG_SLOT_DOWN, 0.5, [_key(KEY_3)])
+	_ensure_action(BAG_SLOT_LEFT, 0.5, [_key(KEY_4)])
 	_ensure_action(CAMERA_VIEW, 0.5, [_key(KEY_V), _joy_btn(JOY_BUTTON_BACK)])
+	_migrate_ops_remap_v2()
 
 
 func move_vector() -> Vector2:
@@ -208,13 +206,6 @@ func event_for_seat(event: InputEvent, seat: int) -> bool:
 func dir_just_pressed_for(seat: int) -> int:
 	if not _coop():
 		return dir_just_pressed()
-	## Poll discrete edges per device / keyboard.
-	if SeatTable.keyboard_owns_seat(seat):
-		if Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP):
-			## just_pressed needs edge; use InputMap only when keyboard owns seat — but
-			## global just_pressed fires for everyone. Use raw echo-free via Input.
-			pass
-	## Fall back: use event path in player._input with event_for_seat filter.
 	return -1
 
 
@@ -245,6 +236,7 @@ func _stick_on_device(device: int, axis_x: JoyAxis, axis_y: JoyAxis) -> Vector2:
 
 
 func _dpad_on_device(device: int) -> Vector2:
+	## Kept for rare debug callers; ops InputMap does not bind D-Pad.
 	var x := 0.0
 	var y := 0.0
 	if Input.is_joy_button_pressed(device, JOY_BUTTON_DPAD_LEFT):
@@ -311,57 +303,29 @@ func _best_stick_vector(axis_x: JoyAxis, axis_y: JoyAxis) -> Vector2:
 
 
 ## Checkout / skill-menu / prep cardinal: 0 up, 1 down, 2 left, 3 right. -1 if none.
-## Joypad D-PAD (bag_slot_*) is included for mode-steal / UI nav. Keyboard 1–4 are NOT
-## treated as directions (those keys are bag-only in ops; prep uses WASD／arrows).
+## Stick + keyboard / arrows only — no D-Pad InputMap.
 func dir_just_pressed() -> int:
-	if Input.is_action_just_pressed(MOVE_UP) or _bag_dpad_just_pressed(BAG_SLOT_UP):
+	if Input.is_action_just_pressed(MOVE_UP):
 		return 0
-	if Input.is_action_just_pressed(MOVE_DOWN) or _bag_dpad_just_pressed(BAG_SLOT_DOWN):
+	if Input.is_action_just_pressed(MOVE_DOWN):
 		return 1
-	if Input.is_action_just_pressed(MOVE_LEFT) or _bag_dpad_just_pressed(BAG_SLOT_LEFT):
+	if Input.is_action_just_pressed(MOVE_LEFT):
 		return 2
-	if Input.is_action_just_pressed(MOVE_RIGHT) or _bag_dpad_just_pressed(BAG_SLOT_RIGHT):
+	if Input.is_action_just_pressed(MOVE_RIGHT):
 		return 3
 	return -1
 
 
 func dir_from_event(event: InputEvent) -> int:
-	if event.is_action_pressed(MOVE_UP) or _bag_dpad_event(event, BAG_SLOT_UP):
+	if event.is_action_pressed(MOVE_UP):
 		return 0
-	if event.is_action_pressed(MOVE_DOWN) or _bag_dpad_event(event, BAG_SLOT_DOWN):
+	if event.is_action_pressed(MOVE_DOWN):
 		return 1
-	if event.is_action_pressed(MOVE_LEFT) or _bag_dpad_event(event, BAG_SLOT_LEFT):
+	if event.is_action_pressed(MOVE_LEFT):
 		return 2
-	if event.is_action_pressed(MOVE_RIGHT) or _bag_dpad_event(event, BAG_SLOT_RIGHT):
+	if event.is_action_pressed(MOVE_RIGHT):
 		return 3
 	return -1
-
-
-func _bag_dpad_just_pressed(action: String) -> bool:
-	## Only joypad edges — ignore keyboard digit bindings on bag_slot_*.
-	if not Input.is_action_just_pressed(action):
-		return false
-	for device in Input.get_connected_joypads():
-		match action:
-			BAG_SLOT_UP:
-				if Input.is_joy_button_pressed(device, JOY_BUTTON_DPAD_UP):
-					return true
-			BAG_SLOT_DOWN:
-				if Input.is_joy_button_pressed(device, JOY_BUTTON_DPAD_DOWN):
-					return true
-			BAG_SLOT_LEFT:
-				if Input.is_joy_button_pressed(device, JOY_BUTTON_DPAD_LEFT):
-					return true
-			BAG_SLOT_RIGHT:
-				if Input.is_joy_button_pressed(device, JOY_BUTTON_DPAD_RIGHT):
-					return true
-	return false
-
-
-func _bag_dpad_event(event: InputEvent, action: String) -> bool:
-	if not (event is InputEventJoypadButton):
-		return false
-	return event.is_action_pressed(action)
 
 
 ## Bag cross index: 0 up, 1 right, 2 down, 3 left. -1 if none.
@@ -395,12 +359,62 @@ func _ensure_action(action: String, deadzone: float, events: Array) -> void:
 				ev.device = JOY_ALL_DEVICES
 
 
-## Strip legacy D-PAD from move_* so ops loco is stick/keys only.
-func _migrate_move_dpad_to_bag() -> void:
+## Full ops remap: Xbox face/shoulders + aligned keyboard; strip D-Pad everywhere.
+func _migrate_ops_remap_v2() -> void:
+	_strip_all_dpad_binds()
+	## Interact: A / H / Enter (was J).
+	_erase_key(INTERACT, KEY_J)
+	_ensure_key(INTERACT, KEY_H)
+	_ensure_key(INTERACT, KEY_ENTER)
+	_ensure_joy_btn(INTERACT, JOY_BUTTON_A)
+	## Cancel: B / J / Backspace (was ;).
+	_erase_key(CANCEL, KEY_SEMICOLON)
+	_ensure_key(CANCEL, KEY_J)
+	_ensure_key(CANCEL, KEY_BACKSPACE)
+	_ensure_joy_btn(CANCEL, JOY_BUTTON_B)
+	_erase_key(CANCEL, KEY_ESCAPE)
+	## Dash: X / Space (was K; pad was RT poll).
+	_erase_key(DASH, KEY_K)
+	_ensure_key(DASH, KEY_SPACE)
+	_ensure_joy_btn(DASH, JOY_BUTTON_X)
+	## Skill: LB / letter Y (was face Y / L).
+	_erase_joy_btn(SKILL, JOY_BUTTON_Y)
+	_erase_key(SKILL, KEY_L)
+	_ensure_key(SKILL, KEY_Y)
+	_ensure_joy_btn(SKILL, JOY_BUTTON_LEFT_SHOULDER)
+	## Bag: RB / I (was face X).
+	_erase_joy_btn(BAG_MENU, JOY_BUTTON_X)
+	_ensure_key(BAG_MENU, KEY_I)
+	_ensure_joy_btn(BAG_MENU, JOY_BUTTON_RIGHT_SHOULDER)
+	## Carry radial: face Y / U.
+	_ensure_key(CARRY_MENU, KEY_U)
+	_ensure_joy_btn(CARRY_MENU, JOY_BUTTON_Y)
+	## Ult: K only on keyboard (was U); pad stays LT+RT poll.
+	_erase_key(ULT, KEY_U)
+	_erase_joy_btn(ULT, JOY_BUTTON_RIGHT_SHOULDER)
+	_ensure_key(ULT, KEY_K)
+	## Clear carry ±1 and shoulder leftovers.
+	_clear_action_events(CARRY_PREV)
+	_clear_action_events(CARRY_NEXT)
+	_erase_joy_btn(SKILL_2, JOY_BUTTON_LEFT_SHOULDER)
+	_erase_joy_btn(SKILL_3, JOY_BUTTON_RIGHT_SHOULDER)
+	## Rotate: R + face Y (prep); drop old K / face X.
+	_erase_key(ROTATE, KEY_K)
+	_erase_key(ROTATE, KEY_X)
+	_erase_joy_btn(ROTATE, JOY_BUTTON_X)
+	_ensure_key(ROTATE, KEY_R)
+	_ensure_joy_btn(ROTATE, JOY_BUTTON_Y)
+
+
+func _strip_all_dpad_binds() -> void:
 	var dpad_btns: Array[int] = [
 		JOY_BUTTON_DPAD_UP, JOY_BUTTON_DPAD_DOWN, JOY_BUTTON_DPAD_LEFT, JOY_BUTTON_DPAD_RIGHT,
 	]
-	for action in MOVE_ACTIONS:
+	var actions: Array[String] = []
+	actions.append_array(MOVE_ACTIONS)
+	actions.append_array(BAG_SLOT_ACTIONS)
+	actions.append_array([CARRY_PREV, CARRY_NEXT, SKILL, BAG_MENU, CARRY_MENU, DASH, INTERACT, CANCEL, ULT, ROTATE])
+	for action in actions:
 		if not InputMap.has_action(action):
 			continue
 		var drop: Array[InputEvent] = []
@@ -411,39 +425,11 @@ func _migrate_move_dpad_to_bag() -> void:
 			InputMap.action_erase_event(action, ev2)
 
 
-## RB used to be ult; now RB=skill3 and Xbox ult is LT+RT. Fix saved Project Settings.
-func _migrate_xbox_skill_bindings() -> void:
-	if InputMap.has_action(ULT):
-		var drop: Array[InputEvent] = []
-		var has_u := false
-		for ev in InputMap.action_get_events(ULT):
-			if ev is InputEventJoypadButton and ev.button_index == JOY_BUTTON_RIGHT_SHOULDER:
-				drop.append(ev)
-			elif ev is InputEventKey and (ev as InputEventKey).physical_keycode == KEY_U:
-				has_u = true
-		for ev2 in drop:
-			InputMap.action_erase_event(ULT, ev2)
-		if not has_u:
-			InputMap.action_add_event(ULT, _key(KEY_U))
-	## Do not re-bind shoulders to skill_2/3 — carry focus owns LB/RB.
-
-
-func _migrate_shoulders_to_carry_focus() -> void:
-	## Strip legacy LB/RB from skill hotkeys; ensure carry_prev/next own them.
-	_erase_joy_btn(SKILL_2, JOY_BUTTON_LEFT_SHOULDER)
-	_erase_joy_btn(SKILL_3, JOY_BUTTON_RIGHT_SHOULDER)
-	_ensure_joy_btn(CARRY_PREV, JOY_BUTTON_LEFT_SHOULDER)
-	_ensure_joy_btn(CARRY_NEXT, JOY_BUTTON_RIGHT_SHOULDER)
-	_ensure_key(CARRY_PREV, KEY_BRACKETLEFT)
-	_ensure_key(CARRY_NEXT, KEY_BRACKETRIGHT)
-
-
-func _migrate_dash_off_face_x() -> void:
-	## Ops dash moved to RT poll; face X is bag_menu. Strip leftover Project Settings binds.
-	_erase_joy_btn(DASH, JOY_BUTTON_X)
-	_ensure_key(DASH, KEY_K)
-	_ensure_joy_btn(BAG_MENU, JOY_BUTTON_X)
-	_ensure_key(BAG_MENU, KEY_I)
+func _clear_action_events(action: String) -> void:
+	if not InputMap.has_action(action):
+		return
+	for ev in InputMap.action_get_events(action):
+		InputMap.action_erase_event(action, ev)
 
 
 func _erase_joy_btn(action: String, button: JoyButton) -> void:

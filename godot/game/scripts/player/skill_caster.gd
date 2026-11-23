@@ -144,6 +144,7 @@ func cast_force_sell(lv: int) -> bool:
 
 
 func on_skill_hold(pressed: bool) -> void:
+	## Short-press latch only (no hold-to-open; no pad short = skill1).
 	if pressed:
 		if host._sick_left > 0.0 or host._stun_left > 0.0 or host._fighting:
 			host.log_line.emit(Loc.t("log.player.cant_skill"))
@@ -167,6 +168,8 @@ func on_skill_hold(pressed: bool) -> void:
 			return
 		if host.bag_menu_open and host.has_method("_close_bag_menu"):
 			host._close_bag_menu()
+		if host.carry_menu_open and host.has_method("_close_carry_menu"):
+			host._close_carry_menu()
 		host._l_held = true
 		host._l_time = 0.0
 		host._skill_aim = -1
@@ -177,30 +180,28 @@ func on_skill_hold(pressed: bool) -> void:
 		return
 	if not host._l_held:
 		return
+	## Latch open: releasing the skill key does not confirm — stick / B does.
+	if host.skill_menu_open and host._skill_latch:
+		host._l_held = false
+		return
 	if host.skill_menu_open:
 		if SessionService.is_networked() and SessionService.is_server() and not host.controls_locally():
 			close_skill_menu()
 			return
-		if not host._skill_latch:
-			sync_hold_aim()
+		sync_hold_aim()
 		confirm_skill(host._skill_aim)
 		return
-	var short = host._l_time < Skills.HOLD_MENU_SEC
-	var from_pad = host._skill_from_pad
 	host._l_held = false
 	host._skill_from_pad = false
-	if short:
-		if not host.controls_locally():
-			return
-		if from_pad:
-			confirm_skill(0)
-		else:
-			open_skill_menu(true)
+	if host.controls_locally():
+		open_skill_menu(true)
 
 
 func open_skill_menu(latch: bool) -> void:
 	if host.bag_menu_open and host.has_method("_close_bag_menu"):
 		host._close_bag_menu()
+	if host.carry_menu_open and host.has_method("_close_carry_menu"):
+		host._close_carry_menu()
 	host.skill_menu_open = true
 	host._skill_latch = latch
 	host._skill_aim = -1
@@ -218,10 +219,7 @@ func open_skill_menu(latch: bool) -> void:
 		host._cardinal_armed = false
 	if host.controls_locally():
 		SfxBus.play("sfx_skill_menu_open")
-		if latch:
-			host.log_line.emit(Loc.t("log.player.skill_menu_tap"))
-		else:
-			host.log_line.emit(Loc.t("log.player.skill_menu_hold"))
+		host.log_line.emit(Loc.t("log.player.skill_menu_tap"))
 
 
 func sync_hold_aim() -> void:
