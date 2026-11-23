@@ -4,6 +4,7 @@ extends RefCounted
 
 const Skills = preload("res://scripts/skills.gd")
 const XpRules = preload("res://scripts/session/xp_rules.gd")
+const CharacterSheetScript = preload("res://scripts/session/character_sheet.gd")
 
 const TINT_COUNT := 4
 const TINT_COLORS: Array[Color] = [
@@ -44,7 +45,7 @@ static func tint_color(index: int) -> Color:
 
 
 static func blank() -> RefCounted:
-	var sheet = load("res://scripts/session/character_sheet.gd").new()
+	var sheet := CharacterSheetScript.new()
 	sheet.xp = 0
 	sheet.level = 1
 	sheet.unspent = 0
@@ -73,7 +74,7 @@ static func blank() -> RefCounted:
 
 
 static func from_game_state(src) -> RefCounted:
-	var sheet = load("res://scripts/session/character_sheet.gd").new()
+	var sheet := CharacterSheetScript.new()
 	if src == null:
 		return sheet
 	sheet.xp = int(src.xp)
@@ -110,7 +111,7 @@ static func from_game_state(src) -> RefCounted:
 
 
 static func from_dict(data: Dictionary) -> RefCounted:
-	var sheet = load("res://scripts/session/character_sheet.gd").new()
+	var sheet := CharacterSheetScript.new()
 	if data.is_empty():
 		return blank()
 	sheet.xp = maxi(0, int(data.get("xp", 0)))

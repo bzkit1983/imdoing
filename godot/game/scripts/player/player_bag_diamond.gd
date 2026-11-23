@@ -13,7 +13,7 @@ const ARM := 18.0
 ## Hip / side offset (left of clerk); kept tight to the body.
 const ORIGIN := Vector2(-30.0, 4.0)
 ## up, right, down, left — matches bag slot indices 0–3.
-const _OFF := [
+const _OFF: Array[Vector2] = [
 	Vector2(0.0, -ARM),
 	Vector2(ARM, 0.0),
 	Vector2(0.0, ARM),

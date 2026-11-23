@@ -1,7 +1,6 @@
 extends HBoxContainer
-## One ops-HUD skill row: [dark skill slot] name.
-## Slot: charcoal plate (gold rim reads on dark). CD: dark veil clock over full-color art.
-## Active buff / passive: gold rim with ink understroke outside the plate edge.
+## One ops-HUD skill row: [Cozy skill slot] name — imdoing-pause-ui-chrome.
+## Slot: parchment plate + sand edge; gold rim; CD veil over art.
 
 const SkillIcons = preload("res://scripts/skill_icons.gd")
 const UiFont = preload("res://scripts/ui_font.gd")
@@ -10,12 +9,11 @@ const ICON := 32.0
 const PAD := 5.0
 const RING_W := 2.75
 const RING_INK_W := 4.25
-## Dark skill well — gold and CD veil both need a dark ground, not a light plate.
-const PLATE := Color(0.07, 0.09, 0.10, 0.96)
-const PLATE_EDGE := Color(0.32, 0.36, 0.34, 0.90)
-const GOLD := Color(1.0, 0.86, 0.32, 1.0)
-const GOLD_DIM := Color(0.78, 0.62, 0.18, 0.85)
-const RING_INK := Color(0.02, 0.03, 0.03, 0.92)
+const PLATE := Color(0.969, 0.933, 0.839, 0.96) ## Warm Parchment
+const PLATE_EDGE := Color(0.875, 0.827, 0.722, 1.0) ## Soft Sand
+const GOLD := Color(1.0, 0.831, 0.231, 1.0) ## Sunlit Gold
+const GOLD_DIM := Color(0.878, 0.675, 0.086, 0.85) ## E0AC16-ish
+const RING_INK := Color(0.361, 0.286, 0.220, 0.92) ## Cocoa
 
 var skill_id: String = ""
 var kind: String = "active"

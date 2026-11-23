@@ -73,7 +73,7 @@ func _draw() -> void:
 				_draw_ghost(float(k) * GAP)
 				continue
 		var x := float(k) * GAP
-		var dist := abs(k)
+		var dist := absi(k)
 		var sc := 1.0
 		if dist == 0:
 			sc = 1.08 if _focus_boost else 1.0

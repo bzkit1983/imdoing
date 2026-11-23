@@ -71,10 +71,10 @@ func rebuild_must_deliver_ring(radius: float) -> void:
 func finish_must_deliver_aim() -> void:
 	if not host._must_deliver_aim:
 		return
-	var lv = host._must_deliver_lv
-	var sid = host._must_deliver_sid
-	var name = host._must_deliver_name
-	var cd_base = host._must_deliver_cd
+	var lv: int = host._must_deliver_lv
+	var sid: String = host._must_deliver_sid
+	var skill_name: String = host._must_deliver_name
+	var cd_base: float = host._must_deliver_cd
 	if not cast_must_deliver(lv):
 		host._must_deliver_aim = false
 		if host._must_deliver_ring:
@@ -87,9 +87,9 @@ func finish_must_deliver_aim() -> void:
 	host._buffs.erase(sid)
 	host._buff_cache_valid = false
 	SfxBus.play("sfx_skill_cast")
-	host.log_line.emit(Loc.t("log.player.cast", [name, lv]))
+	host.log_line.emit(Loc.t("log.player.cast", [skill_name, lv]))
 	orc.begin_cast_pose(false)
-	host.skill_cast.emit(name, false)
+	host.skill_cast.emit(skill_name, false)
 	orc.play_zoom(false)
 
 
@@ -311,10 +311,10 @@ func rebuild_magneto_ring(radius: float) -> void:
 func finish_magneto_aim() -> void:
 	if not host._magneto_aim:
 		return
-	var lv = host._magneto_lv
-	var sid = host._magneto_sid
-	var name = host._magneto_name
-	var cd_base = host._magneto_cd
+	var lv: int = host._magneto_lv
+	var sid: String = host._magneto_sid
+	var skill_name: String = host._magneto_name
+	var cd_base: float = host._magneto_cd
 	if host.inventory.count() >= host.carry_cap():
 		host._magneto_aim = false
 		if host._magneto_ring:
@@ -329,9 +329,9 @@ func finish_magneto_aim() -> void:
 	host._buffs.erase(sid)
 	host._buff_cache_valid = false
 	SfxBus.play("sfx_skill_cast")
-	host.log_line.emit(Loc.t("log.player.cast", [name, lv]))
+	host.log_line.emit(Loc.t("log.player.cast", [skill_name, lv]))
 	orc.begin_cast_pose(false)
-	host.skill_cast.emit(name, false)
+	host.skill_cast.emit(skill_name, false)
 	orc.play_zoom(false)
 
 

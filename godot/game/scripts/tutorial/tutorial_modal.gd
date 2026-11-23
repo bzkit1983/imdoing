@@ -30,17 +30,17 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	visible = false
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.07, 0.09, 0.10, 0.96)
-	sb.border_color = Color(0.96, 0.83, 0.37, 0.85)
+	sb.bg_color = Color(1.0, 0.992, 0.949, 0.96) ## Cream
+	sb.border_color = Color(0.875, 0.827, 0.722, 1.0) ## Sand
 	sb.set_border_width_all(2)
 	sb.set_corner_radius_all(12)
 	_card.add_theme_stylebox_override("panel", sb)
 	UiFont.apply_label(_title, 32)
-	_title.add_theme_color_override("font_color", Color(0.96, 0.83, 0.37, 1))
+	_title.add_theme_color_override("font_color", Color(0.361, 0.286, 0.220, 1)) ## Cocoa
 	UiFont.apply_label(_body, 22)
-	_body.add_theme_color_override("font_color", Color(0.97, 0.96, 0.93, 1))
+	_body.add_theme_color_override("font_color", Color(0.361, 0.286, 0.220, 1))
 	UiFont.apply_label(_page_lab, 18)
-	_page_lab.add_theme_color_override("font_color", Color(0.78, 0.80, 0.76, 1))
+	_page_lab.add_theme_color_override("font_color", Color(0.612, 0.545, 0.478, 1)) ## Taupe
 	UiFont.apply_button(_prev_btn, 20)
 	UiFont.apply_button(_next_btn, 20)
 	_prev_btn.focus_mode = Control.FOCUS_NONE
