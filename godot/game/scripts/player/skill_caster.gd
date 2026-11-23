@@ -144,13 +144,12 @@ func cast_force_sell(lv: int) -> bool:
 
 
 func on_skill_hold(pressed: bool) -> void:
-	## Short-press latch only (no hold-to-open; no pad short = skill1).
+	## Long-press RB (≥ HOLD_OPEN_SEC) opens skill ring; release closes if unused.
 	if pressed:
 		if host._sick_left > 0.0 or host._stun_left > 0.0 or host._fighting:
 			host.log_line.emit(Loc.t("log.player.cant_skill"))
 			return
 		if host._must_deliver_aim:
-			## Client: local chrome + aim_confirm intent; Host finishes authority cast.
 			if SessionService.is_networked() and SessionService.is_client():
 				host.pending_aim_confirm = true
 			finish_must_deliver_aim()
@@ -162,17 +161,19 @@ func on_skill_hold(pressed: bool) -> void:
 			finish_magneto_aim()
 			host._skill_release_ignore = true
 			return
-		if host._skill_latch:
+		if host.skill_menu_open:
 			close_skill_menu()
 			host._skill_release_ignore = true
 			return
-		if host.bag_menu_open and host.has_method("_close_bag_menu"):
-			host._close_bag_menu()
 		if host.carry_menu_open and host.has_method("_close_carry_menu"):
 			host._close_carry_menu()
+		if host.get("_carry_select_on"):
+			if host.has_method("_end_carry_select"):
+				host.call("_end_carry_select")
 		host._l_held = true
 		host._l_time = 0.0
 		host._skill_aim = -1
+		host._skill_latch = true
 		return
 	if host._skill_release_ignore:
 		host._skill_release_ignore = false
@@ -180,34 +181,32 @@ func on_skill_hold(pressed: bool) -> void:
 		return
 	if not host._l_held:
 		return
-	## Latch open: releasing the skill key does not confirm — stick / B does.
-	if host.skill_menu_open and host._skill_latch:
-		host._l_held = false
-		return
-	if host.skill_menu_open:
-		if SessionService.is_networked() and SessionService.is_server() and not host.controls_locally():
-			close_skill_menu()
-			return
-		sync_hold_aim()
-		confirm_skill(host._skill_aim)
-		return
 	host._l_held = false
 	host._skill_from_pad = false
-	if host.controls_locally():
+	## Release RB: close ring without casting.
+	if host.skill_menu_open:
+		close_skill_menu()
+
+
+func tick_hold_open(delta: float) -> void:
+	## Call from player while _l_held: open ring after HOLD_OPEN_SEC.
+	if not host._l_held or host.skill_menu_open:
+		return
+	host._l_time += delta
+	if host._l_time >= Controls.HOLD_OPEN_SEC and host.controls_locally():
 		open_skill_menu(true)
 
 
 func open_skill_menu(latch: bool) -> void:
-	if host.bag_menu_open and host.has_method("_close_bag_menu"):
-		host._close_bag_menu()
 	if host.carry_menu_open and host.has_method("_close_carry_menu"):
 		host._close_carry_menu()
 	host.skill_menu_open = true
 	host._skill_latch = latch
 	host._skill_aim = -1
-	host._move_locked_until_neutral = true
+	## Require RS return-to-deadzone before first cast (avoids instant fire if already tilted).
+	host._skill_rs_armed = false
+	## Keep walking with left stick; right stick aims.
 	host._running = false
-	host.velocity = Vector2.ZERO
 	if host._menu:
 		host._menu.open = host.controls_locally()
 		if host.controls_locally():
@@ -215,8 +214,6 @@ func open_skill_menu(latch: bool) -> void:
 			if host._menu.has_method("set_aim"):
 				host._menu.call("set_aim", -1)
 	host._menu_fp = "%s|%s" % [str(host._cd), str(host._loadout())]
-	if latch and (host.stick_axis.length() >= 0.42 or host._joy_stick_vector().length() >= 0.42):
-		host._cardinal_armed = false
 	if host.controls_locally():
 		SfxBus.play("sfx_skill_menu_open")
 		host.log_line.emit(Loc.t("log.player.skill_menu_tap"))
@@ -228,8 +225,7 @@ func sync_hold_aim() -> void:
 
 func skill_aim_slot() -> int:
 	var SkillMenu = preload("res://scripts/skill_menu.gd")
-	var v = host._move_vector() + host.stick_axis
-	return SkillMenu.aim_from_stick(v)
+	return SkillMenu.aim_from_stick(Controls.right_stick_vector())
 
 
 func set_skill_aim(slot: int) -> void:
@@ -250,24 +246,24 @@ func _queue_client_skill_intent(slot: int) -> void:
 
 
 func confirm_skill(slot: int) -> void:
+	## `slot` is ring hole 0–4 while the menu is open; map to loadout index.
+	var loadout_i := slot
+	if host.skill_menu_open and host._menu != null and host._menu.has_method("loadout_index_for_aim"):
+		loadout_i = int(host._menu.call("loadout_index_for_aim", slot))
 	close_skill_menu()
-	if slot < 0:
-		host._move_locked_until_neutral = true
-		host.velocity = Vector2.ZERO
+	if loadout_i < 0:
 		return
-	_queue_client_skill_intent(slot)
-	cast_slot(slot)
-	host._move_locked_until_neutral = true
-	host.velocity = Vector2.ZERO
+	_queue_client_skill_intent(loadout_i)
+	cast_slot(loadout_i)
 
 
 func try_skill_hotkey(slot: int) -> void:
+	## `slot` is already a loadout index (keyboard 1–5 maps hole→active first).
 	if host._sick_left > 0.0 or host._stun_left > 0.0 or host._fighting:
 		host.log_line.emit(Loc.t("log.player.cant_skill"))
 		return
 	if host.ult_prep or host._elite_focus_left > 0.0:
 		return
-	_queue_client_skill_intent(slot)
 	if host._must_deliver_aim:
 		if SessionService.is_networked() and SessionService.is_client():
 			host.pending_aim_confirm = true
@@ -278,7 +274,10 @@ func try_skill_hotkey(slot: int) -> void:
 			host.pending_aim_confirm = true
 		finish_magneto_aim()
 		return
-	confirm_skill(slot)
+	if host.skill_menu_open:
+		close_skill_menu()
+	_queue_client_skill_intent(slot)
+	cast_slot(slot)
 
 
 func close_skill_menu() -> void:

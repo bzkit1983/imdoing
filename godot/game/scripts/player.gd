@@ -20,6 +20,8 @@ const BagCasterScript = preload("res://scripts/player/bag_caster.gd")
 const CarryCasterScript = preload("res://scripts/player/carry_caster.gd")
 const FloorBarsScript = preload("res://scripts/player/player_floor_bars.gd")
 const CarryStripScript = preload("res://scripts/player/player_carry_strip.gd")
+const BagDiamondScript = preload("res://scripts/player/player_bag_diamond.gd")
+const SkillPipsScript = preload("res://scripts/player/player_skill_pips.gd")
 const CustomerScript = preload("res://scripts/customer.gd")
 const OpsItems = preload("res://scripts/ops_items.gd")
 
@@ -270,6 +272,15 @@ var _bags
 var _carries
 var _floor_bars: Node2D
 var _carry_strip: Node2D
+var _bag_diamond: Node2D
+var _skill_pips: Node2D
+## LB carry-select (expand strip; borrow X/B).
+var _carry_select_held: bool = false
+var _carry_select_on: bool = false
+var _carry_select_time: float = 0.0
+var _carry_select_x_edge: bool = false
+var _carry_select_b_edge: bool = false
+var _skill_rs_armed: bool = true
 
 
 func controls_locally() -> bool:
@@ -326,6 +337,12 @@ func _ready() -> void:
 	_carry_strip = CarryStripScript.new()
 	_carry_strip.setup(self)
 	add_child(_carry_strip)
+	_bag_diamond = BagDiamondScript.new()
+	_bag_diamond.setup(self)
+	add_child(_bag_diamond)
+	_skill_pips = SkillPipsScript.new()
+	_skill_pips.setup(self)
+	add_child(_skill_pips)
 	_setup_drop_aim()
 	_setup_must_deliver_ring()
 	_setup_magneto_ring()
@@ -570,15 +587,77 @@ func carry_cap() -> int:
 
 
 func _cycle_carry_focus(delta: int) -> void:
-	## Optional API; pad/keyboard defaults use carry radial instead of ±1.
+	## Keyboard Y/I or LB+X/B while carry-select.
 	if not _round_active() or inventory.is_empty():
 		return
-	if skill_menu_open or bag_menu_open or carry_menu_open or ult_prep or _cancel_drop_ready or _in_dir_mode():
+	if skill_menu_open or ult_prep or _cancel_drop_ready:
+		return
+	if not _carry_select_on and (bag_menu_open or carry_menu_open):
 		return
 	inventory.cycle_focus(delta)
-	if _carry_strip != null and _carry_strip.has_method("pulse"):
-		_carry_strip.pulse()
+	if _carry_strip != null:
+		if _carry_select_on and _carry_strip.has_method("set_select_expand"):
+			_carry_strip.set_select_expand(true, true)
+		elif _carry_strip.has_method("pulse"):
+			_carry_strip.pulse()
 	_mark_hud_dirty()
+
+
+func _on_carry_select_hold(pressed: bool) -> void:
+	if pressed:
+		if _sick_left > 0.0 or _stun_left > 0.0 or _fighting or ult_prep:
+			return
+		if inventory == null or inventory.is_empty():
+			return
+		if skill_menu_open:
+			_close_skill_menu()
+		_carry_select_held = true
+		_carry_select_time = 0.0
+		_carry_select_on = false
+		return
+	_carry_select_held = false
+	_end_carry_select()
+
+
+func _end_carry_select() -> void:
+	_carry_select_on = false
+	_carry_select_time = 0.0
+	if _carry_strip != null and _carry_strip.has_method("set_select_expand"):
+		_carry_strip.set_select_expand(false, false)
+
+
+func _tick_carry_select(delta: float) -> void:
+	if not _carry_select_held:
+		return
+	_carry_select_time += delta
+	if not _carry_select_on and _carry_select_time >= Controls.HOLD_OPEN_SEC:
+		_carry_select_on = true
+		if _carry_strip != null and _carry_strip.has_method("set_select_expand"):
+			_carry_strip.set_select_expand(true, true)
+		SfxBus.play("sfx_skill_menu_open")
+
+
+func _tick_skill_right_stick() -> void:
+	## Right stick flick → aim + confirm (same latch as old left-stick cardinal).
+	if not skill_menu_open or not _skill_latch or not controls_locally():
+		_skill_rs_armed = true
+		return
+	_skills.sync_hold_aim()
+	var v := Controls.right_stick_vector()
+	if v.length() < 0.42:
+		_skill_rs_armed = true
+		return
+	if not _skill_rs_armed:
+		return
+	_skill_rs_armed = false
+	var SkillMenu = preload("res://scripts/skill_menu.gd")
+	var slot_i: int = SkillMenu.aim_from_stick(v)
+	if slot_i < 0:
+		return
+	if _menu != null and _menu.has_method("loadout_index_for_aim"):
+		if int(_menu.call("loadout_index_for_aim", slot_i)) < 0:
+			return
+	_confirm_skill(slot_i)
 
 
 func move_speed_rate() -> float:
@@ -854,20 +933,18 @@ func set_hold(action: String, pressed: bool) -> void:
 				_k_run_committed = false
 				_running = false
 		"skill":
-			## Level intents from LAN must not re-enter press every tick (resets _l_time).
+			## LB → carry-select hold (expand strip; X/B cycle).
+			if pressed and _carry_select_held:
+				return
+			_on_carry_select_hold(pressed)
+		"bag_menu":
+			## RB → skill ring long-press (action name historical).
 			if pressed and _l_held:
 				return
 			_on_skill_hold(pressed)
-		"bag_menu":
-			if pressed and _bag_held:
-				return
-			if _bags != null:
-				_bags.on_bag_hold(pressed)
 		"carry_menu":
-			if pressed and _carry_held:
-				return
-			if _carries != null:
-				_carries.on_carry_hold(pressed)
+			## Face Y / U spare in ops.
+			return
 		"ult":
 			## Keyboard K / touch ult button. Xbox pad uses LT+RT chord instead.
 			## Edge-only: repeat ult=true intents must not re-fire prep.
@@ -1005,7 +1082,8 @@ func _in_dir_mode() -> bool:
 	## Restock SKU list is covered by `_restock_picking` only. Holding Interact on a
 	## restock point for a short-tap pull must NOT count as dir mode — otherwise
 	## `_move_locked_until_neutral` arms and held WASD/stick cannot walk until release.
-	if ult_prep or skill_menu_open or bag_menu_open or carry_menu_open or _restock_picking or _l_held or _bag_held or _carry_held or _u_held:
+	## Skill ring (RB) + LB carry-select allow left-stick walk — not dir mode.
+	if ult_prep or bag_menu_open or carry_menu_open or _restock_picking or _bag_held or _carry_held or _u_held:
 		return true
 	if _j_held and is_instance_valid(target):
 		if _obj_str(target, "kind") == "cashier":
@@ -1057,15 +1135,29 @@ func _input(event: InputEvent) -> void:
 			_try_dir(dir)
 			get_viewport().set_input_as_handled()
 			return
-	## D-PAD / 1–4 direct bag use paused — main path is bag_menu radial (player-context-ui).
-	if false and event.is_pressed() and (event is InputEventKey or event is InputEventJoypadButton):
+	## D-Pad / arrows → ops bag slots (main path).
+	if event.is_pressed() and (event is InputEventKey or event is InputEventJoypadButton):
 		var bag_slot := Controls.bag_slot_from_event(event)
 		if bag_slot >= 0:
 			if _try_use_ops_bag_slot(bag_slot):
 				get_viewport().set_input_as_handled()
 				return
+	## LB carry-select borrows X / B (dash / cancel).
+	if _carry_select_on and event.is_pressed() and (event is InputEventKey or event is InputEventJoypadButton):
+		if event.is_action_pressed(Controls.DASH):
+			_cycle_carry_focus(-1)
+			get_viewport().set_input_as_handled()
+			return
+		if event.is_action_pressed(Controls.CANCEL):
+			_cycle_carry_focus(1)
+			get_viewport().set_input_as_handled()
+			return
 	for action in Controls.HOLD_ACTIONS:
 		if event.is_action(action) and (event is InputEventKey or event is InputEventJoypadButton):
+			## While carry-select, ignore dash/cancel holds (borrowed).
+			if _carry_select_on and (action == Controls.DASH or action == Controls.CANCEL):
+				get_viewport().set_input_as_handled()
+				return
 			set_hold(action, event.is_pressed())
 			get_viewport().set_input_as_handled()
 			return
@@ -1250,8 +1342,13 @@ func _physics_process(delta: float) -> void:
 		_running = false
 		_dashing = false
 		velocity = Vector2.ZERO
+	_tick_carry_select(delta)
 	if _l_held and _sick_left <= 0.0 and _stun_left <= 0.0:
-		_l_time += delta
+		if _skills != null and _skills.has_method("tick_hold_open"):
+			_skills.tick_hold_open(delta)
+		else:
+			_l_time += delta
+	_tick_skill_right_stick()
 	if _bags != null:
 		_bags.tick(delta)
 	if _carries != null:
@@ -3172,14 +3269,6 @@ func _bag_use_suppressed() -> bool:
 func _try_use_ops_bag_slot(slot: int) -> bool:
 	if _bag_use_suppressed():
 		return false
-	## Facing restock: let 1–3 fall through to restock hotkeys (handled later).
-	if (
-		is_instance_valid(target)
-		and _obj_str(target, "kind") == "restock"
-		and slot >= 0
-		and slot <= 2
-	):
-		return false
 	_ensure_ops_bag()
 	if slot < 0 or slot >= OpsItems.unlocked_count():
 		return true
@@ -3195,10 +3284,21 @@ func _try_use_ops_bag_slot(slot: int) -> bool:
 		_ensure_ops_bag()
 		ops_bag[slot] = ""
 		stats_changed.emit()
+		_pulse_bag_diamond_if_empty()
 		return true
 	if bool(game.use_ops_item(seat_id, slot)):
 		stats_changed.emit()
+		_pulse_bag_diamond_if_empty()
 	return true
+
+
+func _pulse_bag_diamond_if_empty() -> void:
+	_ensure_ops_bag()
+	for i in ops_bag.size():
+		if String(ops_bag[i]) != "":
+			return
+	if _bag_diamond != null and _bag_diamond.has_method("pulse_empty"):
+		_bag_diamond.pulse_empty()
 
 
 func _clear_clean_hint() -> void:
@@ -3604,6 +3704,24 @@ func _confirm_skill(slot: int) -> void:
 
 func _try_skill_hotkey(slot: int) -> void:
 	_skills.try_skill_hotkey(slot)
+
+
+func _try_skill_hotkey_ring(hole: int) -> void:
+	## hole 0–4 = active skills in loadout order (same as skill ring).
+	var actives: Array[int] = []
+	var loadout: Array = _loadout()
+	for i in loadout.size():
+		var sk: Variant = loadout[i]
+		if not (sk is Dictionary):
+			continue
+		if String(sk.get("kind", "")) != "active":
+			continue
+		if String(sk.get("id", "")) == "":
+			continue
+		actives.append(i)
+	if hole < 0 or hole >= actives.size():
+		return
+	_try_skill_hotkey(actives[hole])
 func take_pending_skill_hotkey() -> int:
 	var slot := pending_skill_hotkey
 	pending_skill_hotkey = -1
@@ -3902,7 +4020,7 @@ func _note_delivery_combo(guests: Array, _pieces: int) -> void:
 
 
 func _handle_hotkey_actions(event: InputEvent) -> void:
-	## Carry ±1 unbound by default; radial is the main path.
+	## Keyboard Y / I = carry focus ±1.
 	if event.is_action_pressed(Controls.CARRY_PREV):
 		_cycle_carry_focus(-1)
 		get_viewport().set_input_as_handled()
@@ -3911,7 +4029,7 @@ func _handle_hotkey_actions(event: InputEvent) -> void:
 		_cycle_carry_focus(1)
 		get_viewport().set_input_as_handled()
 		return
-	## Restock 1–3 wins over bag keys while facing a restock point.
+	## Restock Q/E while facing a restock point.
 	if target != null and _obj_str(target, "kind") == "restock":
 		if event.is_action_pressed(Controls.RESTOCK_PREV):
 			target.call("cycle", -1)
@@ -3921,16 +4039,10 @@ func _handle_hotkey_actions(event: InputEvent) -> void:
 			target.call("cycle", 1)
 			get_viewport().set_input_as_handled()
 			return
-		if event.is_action_pressed(Controls.RESTOCK_SLOT_1):
-			target.call("set_highlight", 0)
-			get_viewport().set_input_as_handled()
-			return
-		if event.is_action_pressed(Controls.RESTOCK_SLOT_2):
-			target.call("set_highlight", 1)
-			get_viewport().set_input_as_handled()
-			return
-		if event.is_action_pressed(Controls.RESTOCK_SLOT_3):
-			target.call("set_highlight", 2)
+	## Keyboard 1–5 = skill ring holes (active loadout order).
+	for hi in Controls.SKILL_HOT_ACTIONS.size():
+		if event.is_action_pressed(Controls.SKILL_HOT_ACTIONS[hi]):
+			_try_skill_hotkey_ring(hi)
 			get_viewport().set_input_as_handled()
 			return
 
