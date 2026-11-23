@@ -3806,6 +3806,10 @@ func _broadcast_day_hud_state() -> void:
 	_day_chrome.broadcast_day_hud_state()
 
 
+func _dump_all_skill_cds() -> void:
+	_day_chrome.dump_all_skill_cds()
+
+
 func _apply_prompt_state_payload(payload: Dictionary) -> void:
 	var rows = payload.get("seats", [])
 	if not (rows is Array):
