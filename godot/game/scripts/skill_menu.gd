@@ -1,7 +1,7 @@
 extends Node2D
 ## Skill radial around the clerk.
-## aim -1 = center cancel (❌); 0–4 = loadout slots at sketch positions
-## 1 up, 2 UL, 3 UR, 4 LL, 5 LR.
+## aim -1 = center cancel (❌); 0–4 = active-only holes:
+## 1 up, 2 right, 3 down, 4 left, 5 upper-right. Passives omitted.
 
 const UiFont = preload("res://scripts/ui_font.gd")
 const SkillIcons = preload("res://scripts/skill_icons.gd")
@@ -16,32 +16,51 @@ const DEADZONE := 0.42
 const CD_COL := Color("c45c26")
 
 var open: bool = false
-## -1 cancel; 0–4 loadout index.
+## -1 cancel; 0–4 ring hole (not raw loadout index).
 var aim: int = AIM_CANCEL
 var dim: Array[bool] = [false, false, false, false, false]
 var names: Array[String] = ["", "", "", "", ""]
 var ids: Array[String] = ["", "", "", "", ""]
 var cds: Array[float] = [0.0, 0.0, 0.0, 0.0, 0.0]
 var cd_maxs: Array[float] = [0.0, 0.0, 0.0, 0.0, 0.0]
+## Ring hole → original loadout index (−1 empty).
+var loadout_idx: Array[int] = [-1, -1, -1, -1, -1]
 var _cd_peak: Dictionary = {} ## skill id → peak remaining this cool cycle
 
-## Screen offsets for loadout 0–4 (up, UL, UR, LL, LR).
+## Screen offsets: up, right, down, left, UR (5th hole).
 const _POS := [
 	Vector2(0, -OUTER_R),
-	Vector2(-OUTER_R * 0.85, -OUTER_R * 0.55),
+	Vector2(OUTER_R, 0),
+	Vector2(0, OUTER_R),
+	Vector2(-OUTER_R, 0),
 	Vector2(OUTER_R * 0.85, -OUTER_R * 0.55),
-	Vector2(-OUTER_R * 0.85, OUTER_R * 0.55),
-	Vector2(OUTER_R * 0.85, OUTER_R * 0.55),
 ]
 
 
 func set_slots(equipped: Array, cd_map: Dictionary) -> void:
 	var live: Dictionary = {}
+	var actives: Array = []
+	for li in equipped.size():
+		var sk0: Dictionary = equipped[li] if equipped[li] is Dictionary else {}
+		if String(sk0.get("kind", "")) != "active":
+			continue
+		if String(sk0.get("id", "")) == "":
+			continue
+		actives.append({"sk": sk0, "li": li})
 	for i in 5:
-		var sk: Dictionary = equipped[i] if i < equipped.size() and equipped[i] is Dictionary else {}
+		names[i] = ""
+		ids[i] = ""
+		dim[i] = false
+		cds[i] = 0.0
+		cd_maxs[i] = 0.0
+		loadout_idx[i] = -1
+		if i >= actives.size():
+			continue
+		var sk: Dictionary = actives[i]["sk"]
+		loadout_idx[i] = int(actives[i]["li"])
 		names[i] = String(sk.get("name", ""))
 		ids[i] = String(sk.get("id", ""))
-		dim[i] = names[i] != "" and String(sk.get("kind", "")) != "active"
+		dim[i] = false
 		var sid := ids[i]
 		var left := float(cd_map.get(sid, 0.0)) if sid != "" else 0.0
 		cds[i] = left
@@ -61,6 +80,12 @@ func set_slots(equipped: Array, cd_map: Dictionary) -> void:
 	queue_redraw()
 
 
+func loadout_index_for_aim(ring_aim: int) -> int:
+	if ring_aim < 0 or ring_aim >= 5:
+		return -1
+	return int(loadout_idx[ring_aim])
+
+
 func set_aim(slot: int) -> void:
 	if slot < AIM_CANCEL:
 		slot = AIM_CANCEL
@@ -70,19 +95,19 @@ func set_aim(slot: int) -> void:
 	queue_redraw()
 
 
-## Map stick vector → aim (-1 cancel, 0–4 slot).
+## Map stick vector → aim (-1 cancel, 0–4 hole: up/right/down/left/UR).
 static func aim_from_stick(v: Vector2) -> int:
 	if v.length() < DEADZONE:
 		return AIM_CANCEL
 	## atan2(-y, x): 0=right, +pi/2=up, ±pi=left, -pi/2=down.
 	var ang := atan2(-v.y, v.x)
-	## Sector centers (radians): up, UL, UR, LL, LR.
+	## Sector centers: up, right, down, left, UR.
 	var centers := [
 		PI * 0.5,
-		PI * 0.5 + PI * 0.4,
-		PI * 0.5 - PI * 0.4,
-		PI * 0.5 + PI * 0.8,
-		PI * 0.5 - PI * 0.8,
+		0.0,
+		-PI * 0.5,
+		PI,
+		PI * 0.25,
 	]
 	var best := 0
 	var best_d := 99.0
@@ -134,35 +159,34 @@ func _draw_cancel() -> void:
 
 
 func _draw_skill_slot(p: Vector2, slot: int) -> void:
-	var passive := dim[slot]
+	if names[slot] == "" or ids[slot] == "":
+		return
 	var cd := cds[slot]
-	var title := names[slot] if names[slot] != "" else Loc.t("world.guest_slot.empty")
-	var col := Color("8a8a8a") if passive or names[slot] == "" else Color("f4d35e")
-	if cd > 0.05 and not passive and names[slot] != "":
+	var title := names[slot]
+	var col := Color("f4d35e")
+	if cd > 0.05:
 		col = Color("c45c26")
 	var chosen := slot == aim
-	if chosen and not passive and names[slot] != "" and cd <= 0.05:
+	if chosen and cd <= 0.05:
 		col = Color("fff4c2")
 	var bg := Color(0.16, 0.2, 0.14, 0.94) if chosen else Color(0.05, 0.07, 0.06, 0.88)
 	draw_circle(p, SLOT_R, bg)
 	draw_arc(p, SLOT_R, 0.0, TAU, 28, col, 3.5 if chosen else 2.0, true)
-	## Remaining CD as emptying ring outside the slot rim.
-	if cd > 0.05 and not passive and names[slot] != "":
+	if cd > 0.05:
 		var frac := clampf(cd / maxf(cd_maxs[slot], 0.01), 0.0, 1.0)
 		var start := deg_to_rad(-90.0)
 		var sweep := -TAU * frac
 		var w := 4.5 if chosen else 3.25
 		draw_arc(p, CD_RING_R, start, start + sweep, 40, CD_COL, w, true)
-	if ids[slot] != "":
-		var icon := SkillIcons.texture(ids[slot])
-		if icon != null:
-			draw_texture_rect(icon, Rect2(p - Vector2(18, 18), Vector2(36, 36)), false)
+	var icon := SkillIcons.texture(ids[slot])
+	if icon != null:
+		draw_texture_rect(icon, Rect2(p - Vector2(18, 18), Vector2(36, 36)), false)
 	var font := UiFont.font()
 	var label := "%d" % (slot + 1)
 	draw_string(font, p + Vector2(-6, SLOT_R + 16), label, HORIZONTAL_ALIGNMENT_LEFT, 20, UiFont.px(16), col)
 	if chosen and title != "":
 		var shown := title
-		if cd > 0.05 and not passive:
+		if cd > 0.05:
 			shown = "%s  %.0f" % [title, cd]
 		draw_string(
 			font,

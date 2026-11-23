@@ -1,7 +1,7 @@
 # 營運道具（道具袋）
 
 - 此檔定義營運回合地上生成的**道具**與每 seat **道具袋**
-- 交叉：`control.md`（D-PAD／鍵盤 1–4）、`storeoperationphase.md`、`ratingsystem.md`、`cleaningsystem.md`、`thiefsystem.md`、`customer.md`／`playeractiveskills.md`（安撫對象）、`multiplayer.md`、`playeraction.md`
+- 交叉：`control.md`（D-Pad／方向鍵）、[`player-context-ui.md`](player-context-ui.md)、`storeoperationphase.md`、`ratingsystem.md`、`cleaningsystem.md`、`thiefsystem.md`、`customer.md`／`playeractiveskills.md`（安撫對象）、`multiplayer.md`、`playeraction.md`
 - 內部 id 前綴：`ops_item`（勿與 `shopitem.md` 傢俬、SKU `inventory` 混淆）
 - 玩家字串：`data.csv`（`ops_item.<id>.name`／`.blurb`）、HUD／提示見 `strings.csv`
 
@@ -18,25 +18,25 @@
 
 # 介面
 
-- **主路徑：** 短按 **RB**（鍵盤 **I**）打開圍角色**道具圓盤**（中心 ❌ 取消；外圈上／左／右／下＝袋格）。見 [`player-context-ui.md`](player-context-ui.md)
-- 螢幕常駐十字 HUD：**不再作為主顯示**
-- **觸控測試版：** 之後對齊短按開盤
+- **主路徑顯示：** 角色旁**斜十字 Ambient**（`player_bag_diamond.gd`；上右下左＝袋格 0–3）。`StyleBox`／Flat 井語意同任務欄——**廢道具環 ≠ 刪預視**
+- **顯示規則：** 袋 ≥1 顯示；清空隱藏；用盡 linger ~1.2s；空格＝幽靈井；有貨＝`OpsItemIcons`
+- 螢幕常駐十字 HUD（`OpsBagCross`）：**非主顯示**
+- **道具圓盤（舊 RB 短按）：** 取消主路徑
+- **觸控：** 本輪未對齊
 
 # 操作
 
-見 `control.md` 營運道具段。摘要：
+見 `control.md`。摘要：
 
 | 裝置 | 使用 |
 | --- | --- |
-| Xbox | **短按 RB** → 道具圓盤；左搖桿揀外圈即用；中心 ❌／B 取消 |
-| 鍵盤 | **短按 I** → 同上 |
-| D-PAD／1–4 | D-Pad 營運無綁定；鍵盤 1–4 **暫非主路徑** |
+| Xbox | **D-Pad** 上／右／下／左＝即用對應袋格 |
+| 鍵盤 | **↑→↓←**＝同上 |
 | 觸控 | 本輪未對齊 |
 
-- **Mode-steal：** 技能／道具／持貨圓盤／奧義準備／收銀指令／補貨清單開啟時，方向改為該模式（唔依賴 D-Pad InputMap）
 - **抑制使用：** 打擊、清潔、上架 Circle、丟掉瞄準／投出飛行中、暫停／準備／教學 modal／提早關店對話
-- 空格或未解鎖格：外圈可高亮但放手無效
-- 鍵盤 **1–3** 在補貨快捷會生效時優先給 `restock_slot_*`
+- 空格或未解鎖格：按下無效
+- 鍵盤 **1–5**＝技能熱鍵（唔再綁道具／補貨快捷）
 
 # 出場與生成
 

@@ -71,4 +71,4 @@
 
 ## 工程掛載
 
-`res://art/ui/hud/<檔名>` → `hud.gd`／`skill_menu`／`bag_menu`／`player_floor_bars`／`player_carry_strip`（另開工程）。
+`res://art/ui/hud/<檔名>` → `hud.gd`／`skill_menu`／`player_floor_bars`／`player_carry_strip`／`player_bag_diamond`／`player_skill_pips`（行為已落地程式 Flat；此處待換皮）。道具環主路徑已廢，**唔刪**斜十字預視。

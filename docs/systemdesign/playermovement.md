@@ -28,7 +28,7 @@
 | 補貨點長按彈清單 | 0.18 秒（`Tuning.SKU_PICK_HOLD`） |
 | Xbox 長按 LT+RT 進奧義準備 | 0.18 秒（同 `Skills.HOLD_MENU_SEC`） |
 
-微調日後再提；長線以活線常數為準。技能／道具／持貨環見 `control.md`（短按 LB／RB／面鍵 Y）。
+微調日後再提；長線以活線常數為準。持貨／道具／技能 Ambient 見 `control.md`／`player-context-ui.md`（長按 LB／RB；D-Pad 道具；1–5 技能）。
 
 #**移動速度上限**
 最終位移（含 AGI 倍率、移動技能 %、奔跑）最高為 **AGI 10 基值的 5 倍**（15 身位/秒）。

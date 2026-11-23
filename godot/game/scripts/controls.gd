@@ -1,7 +1,11 @@
 extends Node
 ## Registers and documents InputMap actions for the living game line.
-## Xbox ↔ keyboard (ops): A/H, B/J, X/Space, Y/U, LB/Y-key, RB/I, LT+RT/K.
+## Xbox ↔ keyboard (ops): A/H, B/J, X/Space, LB=carry-select, RB=skill-ring,
+## D-Pad/arrows=bag, Y/I=carry focus, 1–5=skill hotkeys, LT+RT/K=ult.
 ## If an action already has events, migrations rewrite to the current defaults.
+
+## Long-press open for LB carry-select / RB skill ring (seconds).
+const HOLD_OPEN_SEC := 0.22
 
 const MOVE_DEADZONE := 0.25
 ## InputMap: -1 matches every connected pad. Windows Xbox often is not device 0
@@ -17,15 +21,20 @@ const INTERACT := "interact"
 const CANCEL := "cancel"
 const DASH := "dash"
 const SKILL := "skill"
-## Short-press opens ops bag radial (Xbox RB / keyboard I).
+## Pad RB: long-press opens skill ring (action name historical).
 const BAG_MENU := "bag_menu"
-## Short-press opens carry radial (Xbox face Y / keyboard U).
+## Face Y / U: spare in ops (action kept for API / prep rotate).
 const CARRY_MENU := "carry_menu"
 const ULT := "ult"
-## Legacy action names kept for menu/touch; no default binds.
+## Legacy / touch; keyboard 1–5 skill hotkeys.
 const SKILL_2 := "skill_2"
 const SKILL_3 := "skill_3"
-## Carry ±1 removed from defaults (select via carry radial). Actions kept for API.
+const SKILL_HOT_1 := "skill_hot_1"
+const SKILL_HOT_2 := "skill_hot_2"
+const SKILL_HOT_3 := "skill_hot_3"
+const SKILL_HOT_4 := "skill_hot_4"
+const SKILL_HOT_5 := "skill_hot_5"
+## Keyboard Y / I = carry focus ±1.
 const CARRY_PREV := "carry_prev"
 const CARRY_NEXT := "carry_next"
 const ROTATE := "rotate"
@@ -34,7 +43,7 @@ const RESTOCK_NEXT := "restock_next"
 const RESTOCK_SLOT_1 := "restock_slot_1"
 const RESTOCK_SLOT_2 := "restock_slot_2"
 const RESTOCK_SLOT_3 := "restock_slot_3"
-## Ops item bag slots — keyboard 1–4 only; no D-Pad (main path = bag radial).
+## Ops bag: D-Pad + arrow keys (WASD = move only).
 const BAG_SLOT_UP := "bag_slot_up"
 const BAG_SLOT_RIGHT := "bag_slot_right"
 const BAG_SLOT_DOWN := "bag_slot_down"
@@ -71,6 +80,9 @@ var _web_axis_triggers_untrusted: Dictionary = {}
 const HOLD_ACTIONS: Array[String] = [INTERACT, CANCEL, DASH, SKILL, BAG_MENU, CARRY_MENU, ULT]
 const MOVE_ACTIONS: Array[String] = [MOVE_UP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT]
 const SKILL_SLOT_ACTIONS: Array[String] = [SKILL_2, SKILL_3]
+const SKILL_HOT_ACTIONS: Array[String] = [
+	SKILL_HOT_1, SKILL_HOT_2, SKILL_HOT_3, SKILL_HOT_4, SKILL_HOT_5,
+]
 
 
 func _enter_tree() -> void:
@@ -78,21 +90,21 @@ func _enter_tree() -> void:
 
 
 func ensure_actions() -> void:
-	## Ops loco: keyboard + left stick only. No D-Pad.
+	## Ops loco: WASD + left stick only (arrows = bag).
 	_ensure_action(MOVE_UP, MOVE_DEADZONE, [
-		_key(KEY_W), _key(KEY_UP),
+		_key(KEY_W),
 		_joy_axis(JOY_AXIS_LEFT_Y, -1.0),
 	])
 	_ensure_action(MOVE_DOWN, MOVE_DEADZONE, [
-		_key(KEY_S), _key(KEY_DOWN),
+		_key(KEY_S),
 		_joy_axis(JOY_AXIS_LEFT_Y, 1.0),
 	])
 	_ensure_action(MOVE_LEFT, MOVE_DEADZONE, [
-		_key(KEY_A), _key(KEY_LEFT),
+		_key(KEY_A),
 		_joy_axis(JOY_AXIS_LEFT_X, -1.0),
 	])
 	_ensure_action(MOVE_RIGHT, MOVE_DEADZONE, [
-		_key(KEY_D), _key(KEY_RIGHT),
+		_key(KEY_D),
 		_joy_axis(JOY_AXIS_LEFT_X, 1.0),
 	])
 	_ensure_action(INTERACT, 0.5, [_key(KEY_H), _key(KEY_ENTER), _joy_btn(JOY_BUTTON_A)])
@@ -103,30 +115,36 @@ func ensure_actions() -> void:
 	## Esc opens pause (pause_menu); must not be cancel or player _input eats it first.
 	_erase_key(CANCEL, KEY_ESCAPE)
 	_ensure_action(DASH, 0.5, [_key(KEY_SPACE), _joy_btn(JOY_BUTTON_X)])
-	_ensure_action(SKILL, 0.5, [_key(KEY_Y), _joy_btn(JOY_BUTTON_LEFT_SHOULDER)])
-	_ensure_action(BAG_MENU, 0.5, [_key(KEY_I), _joy_btn(JOY_BUTTON_RIGHT_SHOULDER)])
+	## LB = carry-select hold; RB = skill-ring hold (action names historical).
+	_ensure_action(SKILL, 0.5, [_joy_btn(JOY_BUTTON_LEFT_SHOULDER)])
+	_ensure_action(BAG_MENU, 0.5, [_joy_btn(JOY_BUTTON_RIGHT_SHOULDER)])
 	_ensure_action(CARRY_MENU, 0.5, [_key(KEY_U), _joy_btn(JOY_BUTTON_Y)])
 	## Keyboard K — Xbox ult is LT+RT long-press (polled). Touch still set_hold("ult").
 	_ensure_action(ULT, 0.5, [_key(KEY_K)])
 	_ensure_action(SKILL_2, 0.5, [])
 	_ensure_action(SKILL_3, 0.5, [])
-	## Carry ±1 unbound by default.
-	_ensure_action(CARRY_PREV, 0.5, [])
-	_ensure_action(CARRY_NEXT, 0.5, [])
-	## Prep rotate: keyboard R; face Y in prep only (ops face Y = carry_menu).
+	_ensure_action(SKILL_HOT_1, 0.5, [_key(KEY_1)])
+	_ensure_action(SKILL_HOT_2, 0.5, [_key(KEY_2)])
+	_ensure_action(SKILL_HOT_3, 0.5, [_key(KEY_3)])
+	_ensure_action(SKILL_HOT_4, 0.5, [_key(KEY_4)])
+	_ensure_action(SKILL_HOT_5, 0.5, [_key(KEY_5)])
+	_ensure_action(CARRY_PREV, 0.5, [_key(KEY_Y)])
+	_ensure_action(CARRY_NEXT, 0.5, [_key(KEY_I)])
+	## Prep rotate: keyboard R; face Y in prep only.
 	_ensure_action(ROTATE, 0.5, [_key(KEY_R), _joy_btn(JOY_BUTTON_Y)])
 	_ensure_action(RESTOCK_PREV, 0.5, [_key(KEY_Q)])
 	_ensure_action(RESTOCK_NEXT, 0.5, [_key(KEY_E)])
-	_ensure_action(RESTOCK_SLOT_1, 0.5, [_key(KEY_1)])
-	_ensure_action(RESTOCK_SLOT_2, 0.5, [_key(KEY_2)])
-	_ensure_action(RESTOCK_SLOT_3, 0.5, [_key(KEY_3)])
-	## Keyboard digits only — no D-Pad.
-	_ensure_action(BAG_SLOT_UP, 0.5, [_key(KEY_1)])
-	_ensure_action(BAG_SLOT_RIGHT, 0.5, [_key(KEY_2)])
-	_ensure_action(BAG_SLOT_DOWN, 0.5, [_key(KEY_3)])
-	_ensure_action(BAG_SLOT_LEFT, 0.5, [_key(KEY_4)])
+	## Restock highlight: no digit keys (1–5 = skills).
+	_ensure_action(RESTOCK_SLOT_1, 0.5, [])
+	_ensure_action(RESTOCK_SLOT_2, 0.5, [])
+	_ensure_action(RESTOCK_SLOT_3, 0.5, [])
+	_ensure_action(BAG_SLOT_UP, 0.5, [_key(KEY_UP), _joy_btn(JOY_BUTTON_DPAD_UP)])
+	_ensure_action(BAG_SLOT_RIGHT, 0.5, [_key(KEY_RIGHT), _joy_btn(JOY_BUTTON_DPAD_RIGHT)])
+	_ensure_action(BAG_SLOT_DOWN, 0.5, [_key(KEY_DOWN), _joy_btn(JOY_BUTTON_DPAD_DOWN)])
+	_ensure_action(BAG_SLOT_LEFT, 0.5, [_key(KEY_LEFT), _joy_btn(JOY_BUTTON_DPAD_LEFT)])
 	_ensure_action(CAMERA_VIEW, 0.5, [_key(KEY_V), _joy_btn(JOY_BUTTON_BACK)])
 	_migrate_ops_remap_v2()
+	_migrate_ambient_peek_v1()
 
 
 func move_vector() -> Vector2:
@@ -357,6 +375,59 @@ func _ensure_action(action: String, deadzone: float, events: Array) -> void:
 		if ev is InputEventJoypadButton or ev is InputEventJoypadMotion:
 			if ev.device != JOY_ALL_DEVICES:
 				ev.device = JOY_ALL_DEVICES
+
+
+## Ambient peek controls: LB carry-select, RB skill ring, D-Pad/arrows bag, Y/I focus, 1–5 skills.
+func _migrate_ambient_peek_v1() -> void:
+	## Move: WASD + left stick only (arrows belong to bag).
+	_erase_key(MOVE_UP, KEY_UP)
+	_erase_key(MOVE_DOWN, KEY_DOWN)
+	_erase_key(MOVE_LEFT, KEY_LEFT)
+	_erase_key(MOVE_RIGHT, KEY_RIGHT)
+	## LB = carry-select (no letter Y on skill action).
+	_erase_key(SKILL, KEY_Y)
+	_erase_key(SKILL, KEY_L)
+	_ensure_joy_btn(SKILL, JOY_BUTTON_LEFT_SHOULDER)
+	## RB = skill ring (no letter I on bag_menu action).
+	_erase_key(BAG_MENU, KEY_I)
+	_ensure_joy_btn(BAG_MENU, JOY_BUTTON_RIGHT_SHOULDER)
+	## Carry focus keyboard.
+	_clear_action_events(CARRY_PREV)
+	_clear_action_events(CARRY_NEXT)
+	_ensure_key(CARRY_PREV, KEY_Y)
+	_ensure_key(CARRY_NEXT, KEY_I)
+	## Bag: arrows + D-Pad; strip digit keys.
+	_clear_action_events(BAG_SLOT_UP)
+	_clear_action_events(BAG_SLOT_RIGHT)
+	_clear_action_events(BAG_SLOT_DOWN)
+	_clear_action_events(BAG_SLOT_LEFT)
+	_ensure_key(BAG_SLOT_UP, KEY_UP)
+	_ensure_key(BAG_SLOT_RIGHT, KEY_RIGHT)
+	_ensure_key(BAG_SLOT_DOWN, KEY_DOWN)
+	_ensure_key(BAG_SLOT_LEFT, KEY_LEFT)
+	_ensure_joy_btn(BAG_SLOT_UP, JOY_BUTTON_DPAD_UP)
+	_ensure_joy_btn(BAG_SLOT_RIGHT, JOY_BUTTON_DPAD_RIGHT)
+	_ensure_joy_btn(BAG_SLOT_DOWN, JOY_BUTTON_DPAD_DOWN)
+	_ensure_joy_btn(BAG_SLOT_LEFT, JOY_BUTTON_DPAD_LEFT)
+	## Skill hotkeys 1–5; clear restock digit binds.
+	_clear_action_events(RESTOCK_SLOT_1)
+	_clear_action_events(RESTOCK_SLOT_2)
+	_clear_action_events(RESTOCK_SLOT_3)
+	_ensure_action(SKILL_HOT_1, 0.5, [_key(KEY_1)])
+	_ensure_action(SKILL_HOT_2, 0.5, [_key(KEY_2)])
+	_ensure_action(SKILL_HOT_3, 0.5, [_key(KEY_3)])
+	_ensure_action(SKILL_HOT_4, 0.5, [_key(KEY_4)])
+	_ensure_action(SKILL_HOT_5, 0.5, [_key(KEY_5)])
+	_clear_action_events(SKILL_HOT_1)
+	_clear_action_events(SKILL_HOT_2)
+	_clear_action_events(SKILL_HOT_3)
+	_clear_action_events(SKILL_HOT_4)
+	_clear_action_events(SKILL_HOT_5)
+	_ensure_key(SKILL_HOT_1, KEY_1)
+	_ensure_key(SKILL_HOT_2, KEY_2)
+	_ensure_key(SKILL_HOT_3, KEY_3)
+	_ensure_key(SKILL_HOT_4, KEY_4)
+	_ensure_key(SKILL_HOT_5, KEY_5)
 
 
 ## Full ops remap: Xbox face/shoulders + aligned keyboard; strip D-Pad everywhere.
