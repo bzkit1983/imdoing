@@ -173,19 +173,12 @@ func make_cashier(r: Rect2, rot: int, index: int) -> Node2D:
 func make_portal(r: Rect2, rot: int, pair_id: String, tint: Color) -> Node2D:
 	host._obstacles.append(r)
 	var node: StaticBody2D = PortalScript.new()
-	node.collision_layer = 2
-	node.collision_mask = 0
-	node.position = r.position + r.size * 0.5
+	fit_body(node, r, "portal", rot, 2)
 	node.pair_id = pair_id
 	node.set_facing(facing(rot))
 	node.net_portal_id = host._next_net_portal_id
 	host._next_net_portal_id += 1
-	var col := CollisionShape2D.new()
-	var shape := RectangleShape2D.new()
-	shape.size = r.size
-	col.shape = shape
-	node.add_child(col)
-	node.build_visual(r.size, tint)
+	node.apply_pair_tint(tint)
 	host._world.add_child(node)
 	host.portals.append(node)
 	return node

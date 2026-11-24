@@ -407,7 +407,7 @@ func _scenario_skill() -> void:
 		stock[sku] = 50 * Tuning.BOX_SIZE
 	for type in FURNITURE.keys():
 		owned[type] = 2
-	## Scenario 4／6：傳送門 2 對已放好（左右一對＋上下一對）；可於店舖設計改位。
+	## Scenario 4／6：傳送門 2 對對角（左上↔右下、右上↔左下）；可於店舖設計改位。
 	owned["portal"] = 4
 	# Door is cells (8,0) and (9,0). Cashiers one row below, one cell away.
 	_place("cashier", 6, 1, 0)
@@ -420,10 +420,12 @@ func _scenario_skill() -> void:
 	_place("shelf_frozen_12", 4, 6, 0)
 	_place("shelf_dry_12", 12, 3, 0)
 	_place("shelf_dry_12", 12, 6, 0)
-	_place("portal", 1, 8, 0, "", "p1")
-	_place("portal", 15, 8, 0, "", "p1")
-	_place("portal", 8, 3, 1, "", "p2")
-	_place("portal", 8, 7, 3, "", "p2")
+	## p1: top-left → bottom-right. Face into the floor.
+	_place("portal", 2, 1, 2, "", "p1")
+	_place("portal", 14, 8, 0, "", "p1")
+	## p2: top-right → bottom-left.
+	_place("portal", 14, 1, 2, "", "p2")
+	_place("portal", 2, 8, 0, "", "p2")
 	clerks.append({"role": "restock", "register": 0})
 	clerks.append({"role": "cashier", "register": 0})
 

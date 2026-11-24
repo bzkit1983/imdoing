@@ -70,35 +70,20 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_pulse += delta * 3.0
 	if _body != null and is_instance_valid(_body):
-		var glow := 0.85 + 0.15 * sin(_pulse)
-		_body.modulate = Color(pair_tint.r * glow, pair_tint.g * glow, pair_tint.b * glow, 1.0)
+		var glow := 0.92 + 0.08 * sin(_pulse)
+		## Soft pair tint — keep cyan VOX beam readable.
+		var t := 0.28
+		_body.modulate = Color(
+			lerpf(1.0, pair_tint.r, t) * glow,
+			lerpf(1.0, pair_tint.g, t) * glow,
+			lerpf(1.0, pair_tint.b, t) * glow,
+			1.0
+		)
 
 
-func build_visual(size: Vector2, tint: Color) -> void:
+func apply_pair_tint(tint: Color) -> void:
 	pair_tint = tint
-	## Procedural sci-fi arch (placeholder until art lands).
-	var frame := ColorRect.new()
-	frame.name = "Body"
-	frame.size = size
-	frame.position = -size * 0.5
-	frame.color = Color(tint.r * 0.35, tint.g * 0.45, tint.b * 0.55, 0.92)
-	add_child(frame)
-	_body = frame
-	var rim := ColorRect.new()
-	rim.size = Vector2(maxi(8, int(size.x * 0.18)), size.y)
-	rim.position = Vector2(-size.x * 0.5, -size.y * 0.5)
-	rim.color = Color(tint.r, tint.g, tint.b, 0.95)
-	add_child(rim)
-	var rim2 := ColorRect.new()
-	rim2.size = rim.size
-	rim2.position = Vector2(size.x * 0.5 - rim.size.x, -size.y * 0.5)
-	rim2.color = rim.color
-	add_child(rim2)
-	var core := ColorRect.new()
-	core.size = Vector2(size.x * 0.45, size.y * 0.7)
-	core.position = -core.size * 0.5
-	core.color = Color(0.55, 0.95, 1.0, 0.55)
-	add_child(core)
+	_body = get_node_or_null("Body") as CanvasItem
 
 
 func _ensure_burst() -> void:

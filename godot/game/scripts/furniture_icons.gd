@@ -57,6 +57,8 @@ static func row_texture(type: String) -> Texture2D:
 static func _sprite_path(type: String) -> String:
 	if type == "cashier":
 		return "res://art/sprites/register_0.png"
+	if type == "portal":
+		return "res://art/sprites/portal_0.png"
 	if type.begins_with("restock_"):
 		var cat := _category(type)
 		return "res://art/sprites/restock_%s_0.png" % cat
