@@ -72,6 +72,7 @@ var _pause: CanvasLayer
 var _world: Node2D
 var _door_caption: Label = null
 var cashiers: Array[Node2D] = []
+var portals: Array[Node2D] = []
 ## SKU id → Array of stocked shelves (maintained via shelf.stock_sku_changed).
 var _shelves_by_sku: Dictionary = {}
 var real_time: float = 0.0
@@ -158,6 +159,7 @@ var _skill_cd_net_fp: String = ""
 var _day_clock_net_fp: String = ""
 var _day_clock_accum: float = 0.0
 var _next_net_restock_id: int = 0
+var _next_net_portal_id: int = 0
 var _dirt_spawn_in: float = Tuning.DIRT_SPAWN_SEC
 var _thief_spawn_in: float = Tuning.THIEF_SPAWN_FIRST
 var _early_open: bool = false
@@ -535,6 +537,8 @@ func _clear_world() -> void:
 	_guest_n = 0
 	_active_thief_n = 0
 	cashiers.clear()
+	portals.clear()
+	_next_net_portal_id = 0
 	_dirts.clear()
 	_ops_items.clear()
 	_clerks.clear()

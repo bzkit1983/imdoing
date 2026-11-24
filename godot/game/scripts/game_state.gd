@@ -70,6 +70,8 @@ const FURNITURE := {
 	"shelf_ice_8": {"price": 200, "w": 2, "h": 1, "unlock": 7, "cap": 8},
 	"shelf_ice_12": {"price": 300, "w": 2, "h": 1, "unlock": 7, "cap": 12},
 	"shelf_ice_24": {"price": 600, "w": 2, "h": 1, "unlock": 7, "cap": 24},
+	## Event-grant only (shopitem.md). Cap 4 ends = 2 pairs. Test: grant owned freely.
+	"portal": {"price": 0, "w": 2, "h": 1, "unlock": 1, "grant_only": true, "owned_cap": 4},
 }
 
 ## Warehouse `stock` dict changed (restock pull / closeout credit). Demo broadcasts on LAN.
@@ -187,6 +189,7 @@ func apply_scenario(id: int) -> void:
 			_scenario_skill()
 		_:
 			_scenario_new()
+	_ensure_test_portal_owned()
 	_grant_initial_goods()
 	_default_for_sale_for_developed()
 
@@ -216,17 +219,41 @@ func _scenario_new() -> void:
 	shop_scale = 1
 	grid_w = 10
 	grid_h = 10
+	## Test／ALPHA：傳送門事件授予（4 端＝2 對），未預放；店舖設計可自由配置。
+	## 劇本 5 教學不加（見 `_ensure_test_portal_owned`）。
+	_ensure_test_portal_owned()
 
 
 ## Test-only tutorial campaign: empty shop like new game, $3000 (tutorial.md).
 ## Can stock comes from prep buy-stock lesson (no free gift).
 ## Skill loadouts start empty so equip-skills lesson teaches from a blank slate.
 ## Always 簡易（persist difficulty + prep play difficulty forced in demo／prep_menu）.
+## No portals — tutorial stay focused on core prep／ops.
 func _scenario_tutorial() -> void:
 	_scenario_new()
 	money = 3000
 	difficulty = RatingRules.DIFF_EASY
 	_install_blank_skill_sets()
+	_clear_portals_for_tutorial()
+
+
+## ALPHA／測試：非教學劇本可擁有最多 4 端傳送門以便店舖設計配置。劇本 5 不加。
+func _ensure_test_portal_owned() -> void:
+	if scenario == 5:
+		_clear_portals_for_tutorial()
+		return
+	var cap := furniture_owned_cap("portal")
+	if int(owned.get("portal", 0)) < cap:
+		owned["portal"] = cap
+
+
+func _clear_portals_for_tutorial() -> void:
+	owned.erase("portal")
+	var i := placed.size() - 1
+	while i >= 0:
+		if is_portal_type(String(placed[i].get("type", ""))):
+			placed.remove_at(i)
+		i -= 1
 
 
 func is_intro_scenario() -> bool:
@@ -298,7 +325,10 @@ func _scenario_mid() -> void:
 	for sku in ["can", "snack", "cup", "drink", "milk"]:
 		developed[sku] = true
 		stock[sku] = 50 * Tuning.BOX_SIZE
-	owned = {"cashier": 1, "restock_dry": 1, "restock_frozen": 1, "shelf_dry_12": 2, "shelf_frozen_12": 2}
+	owned = {
+		"cashier": 1, "restock_dry": 1, "restock_frozen": 1,
+		"shelf_dry_12": 2, "shelf_frozen_12": 2, "portal": 4,
+	}
 	_place("restock_frozen", 1, 1, 0)
 	_place("restock_dry", 1, 5, 0)
 	_place("shelf_frozen_12", 5, 2, 0)
@@ -306,6 +336,8 @@ func _scenario_mid() -> void:
 	_place("shelf_dry_12", 5, 6, 0)
 	_place("shelf_dry_12", 8, 6, 0)
 	_place("cashier", 10, 12, 0)
+	_place("portal", 3, 12, 0, "", "p1")
+	_place("portal", 12, 3, 0, "", "p1")
 	clerks.append({"role": "restock", "register": 0})
 
 
@@ -330,6 +362,7 @@ func _scenario_late() -> void:
 		"cashier": 2,
 		"restock_dry": 1, "restock_frozen": 1, "restock_ice": 1,
 		"shelf_dry_12": 2, "shelf_frozen_12": 2, "shelf_ice_12": 2,
+		"portal": 4,
 	}
 	_place("restock_ice", 1, 1, 0)
 	_place("restock_frozen", 1, 4, 0)
@@ -342,6 +375,8 @@ func _scenario_late() -> void:
 	_place("shelf_dry_12", 8, 8, 0)
 	_place("cashier", 14, 16, 0)
 	_place("cashier", 14, 18, 0)
+	_place("portal", 16, 2, 1, "", "p1")
+	_place("portal", 16, 16, 1, "", "p1")
 	clerks.append({"role": "cashier", "register": 0})
 	clerks.append({"role": "restock", "register": 0})
 
@@ -352,6 +387,7 @@ func _scenario_late() -> void:
 ## two cashiers beside the door, two frozen restock racks on the left,
 ## two dry restock racks on the right, and a matching pair of 12-slot shelves
 ## for each of those categories (the open check needs a shelf with its restock).
+## Also grants／pre-places 2 portal pairs (4 ends) for travel tests.
 func _scenario_skill() -> void:
 	money = 99999
 	level = 10
@@ -371,6 +407,8 @@ func _scenario_skill() -> void:
 		stock[sku] = 50 * Tuning.BOX_SIZE
 	for type in FURNITURE.keys():
 		owned[type] = 2
+	## Scenario 4／6：傳送門 2 對已放好（左右一對＋上下一對）；可於店舖設計改位。
+	owned["portal"] = 4
 	# Door is cells (8,0) and (9,0). Cashiers one row below, one cell away.
 	_place("cashier", 6, 1, 0)
 	_place("cashier", 10, 1, 0)
@@ -382,15 +420,21 @@ func _scenario_skill() -> void:
 	_place("shelf_frozen_12", 4, 6, 0)
 	_place("shelf_dry_12", 12, 3, 0)
 	_place("shelf_dry_12", 12, 6, 0)
+	_place("portal", 1, 8, 0, "", "p1")
+	_place("portal", 15, 8, 0, "", "p1")
+	_place("portal", 8, 3, 1, "", "p2")
+	_place("portal", 8, 7, 3, "", "p2")
 	clerks.append({"role": "restock", "register": 0})
 	clerks.append({"role": "cashier", "register": 0})
 
 
-func _place(type: String, x: int, y: int, rot: int, default_sku: String = "") -> void:
+func _place(type: String, x: int, y: int, rot: int, default_sku: String = "", pair_id: String = "") -> void:
 	var fp := footprint(type, rot)
 	var row := {"type": type, "x": x, "y": y, "rot": rot, "w": fp.x, "h": fp.y}
 	if is_restock_type(type):
 		row["default_sku"] = String(default_sku)
+	if is_portal_type(type) and pair_id != "":
+		row["pair_id"] = pair_id
 	placed.append(row)
 
 
@@ -660,20 +704,110 @@ func credit_unsold_pieces(pieces_by_sku: Dictionary) -> int:
 
 
 func furniture_unlocked(type: String) -> bool:
+	if not FURNITURE.has(type):
+		return false
+	## Grant-only pieces appear in layout when owned; buy page handles them separately.
+	if bool(FURNITURE[type].get("grant_only", false)):
+		return true
 	return level >= int(FURNITURE[type]["unlock"])
+
+
+func is_grant_only_furniture(type: String) -> bool:
+	return FURNITURE.has(type) and bool(FURNITURE[type].get("grant_only", false))
+
+
+func furniture_owned_cap(type: String) -> int:
+	if not FURNITURE.has(type):
+		return 0
+	if FURNITURE[type].has("owned_cap"):
+		return int(FURNITURE[type]["owned_cap"])
+	return 99
 
 
 func buy_furniture(type: String) -> String:
 	if not FURNITURE.has(type):
 		return Loc.t("err.no_such_item")
+	if is_grant_only_furniture(type):
+		return Loc.t("err.furniture_event_only")
 	if not furniture_unlocked(type):
 		return Loc.t("err.locked_level")
 	var price := int(FURNITURE[type]["price"])
 	if money < price:
 		return Loc.t("err.funds")
+	var cap := furniture_owned_cap(type)
+	if int(owned.get(type, 0)) >= cap:
+		return Loc.t("err.furniture_cap")
 	money -= price
 	owned[type] = int(owned.get(type, 0)) + 1
 	return ""
+
+
+func grant_furniture(type: String, amount: int = 1) -> void:
+	if not FURNITURE.has(type) or amount <= 0:
+		return
+	var cap := furniture_owned_cap(type)
+	owned[type] = mini(cap, int(owned.get(type, 0)) + amount)
+
+
+func is_portal_type(type: String) -> bool:
+	return String(type) == "portal"
+
+
+func alloc_portal_pair_id() -> String:
+	var used := {}
+	for it in placed:
+		var pid := String(it.get("pair_id", ""))
+		if pid != "":
+			used[pid] = true
+	var n := 1
+	while used.has("p%d" % n):
+		n += 1
+	return "p%d" % n
+
+
+func portal_pair_color_index(pair_id: String) -> int:
+	## Stable 0/1 tint for up to two pairs (red / blue).
+	if pair_id == "":
+		return -1
+	var ids: Array[String] = []
+	for it in placed:
+		var pid := String(it.get("pair_id", ""))
+		if pid == "" or pid in ids:
+			continue
+		ids.append(pid)
+	ids.sort()
+	return ids.find(pair_id)
+
+
+func orphan_portal_partner(index: int) -> void:
+	if index < 0 or index >= placed.size():
+		return
+	var it: Dictionary = placed[index]
+	if not is_portal_type(String(it.get("type", ""))):
+		return
+	var pid := String(it.get("pair_id", ""))
+	if pid == "":
+		return
+	for i in placed.size():
+		if i == index:
+			continue
+		var other: Dictionary = placed[i]
+		if not is_portal_type(String(other.get("type", ""))):
+			continue
+		if String(other.get("pair_id", "")) != pid:
+			continue
+		placed[i].erase("pair_id")
+
+
+func remove_portals_with_pair_id(pair_id: String) -> void:
+	if pair_id == "":
+		return
+	var i := placed.size() - 1
+	while i >= 0:
+		var it: Dictionary = placed[i]
+		if is_portal_type(String(it.get("type", ""))) and String(it.get("pair_id", "")) == pair_id:
+			placed.remove_at(i)
+		i -= 1
 
 
 func unplaced(type: String) -> int:
@@ -727,13 +861,15 @@ func can_place(type: String, x: int, y: int, rot: int, ignore: int = -1) -> bool
 	return true
 
 
-func place_item(type: String, x: int, y: int, rot: int, default_sku: String = "") -> String:
+func place_item(type: String, x: int, y: int, rot: int, default_sku: String = "", pair_id: String = "") -> String:
 	if not can_place(type, x, y, rot):
 		return Loc.t("err.no_fit")
 	var fp := footprint(type, rot)
 	var row := {"type": type, "x": x, "y": y, "rot": rot, "w": fp.x, "h": fp.y}
 	if is_restock_type(type):
 		row["default_sku"] = String(default_sku)
+	if is_portal_type(type) and pair_id != "":
+		row["pair_id"] = pair_id
 	placed.append(row)
 	return ""
 
@@ -754,8 +890,10 @@ func move_item(index: int, x: int, y: int, rot: int) -> String:
 
 
 func remove_at(index: int) -> void:
-	if index >= 0 and index < placed.size():
-		placed.remove_at(index)
+	if index < 0 or index >= placed.size():
+		return
+	orphan_portal_partner(index)
+	placed.remove_at(index)
 
 
 func item_at(x: int, y: int) -> int:
@@ -1331,6 +1469,10 @@ func to_dict() -> Dictionary:
 		}
 		if is_restock_type(String(row["type"])):
 			row["default_sku"] = String(it.get("default_sku", ""))
+		if is_portal_type(String(row["type"])):
+			var pid := String(it.get("pair_id", ""))
+			if pid != "":
+				row["pair_id"] = pid
 		placed_list.append(row)
 	var clerk_list: Array = []
 	for c in clerks:
@@ -1422,6 +1564,7 @@ func from_dict(data: Dictionary) -> String:
 		for sku_v in stock.keys():
 			stock[sku_v] = int(stock[sku_v]) * Tuning.BOX_SIZE
 	owned = _string_int_dict(data.get("owned", {}))
+	_ensure_test_portal_owned()
 	placed.clear()
 	var raw_placed = data.get("placed", [])
 	if raw_placed is Array:
@@ -1444,6 +1587,10 @@ func from_dict(data: Dictionary) -> String:
 			}
 			if is_restock_type(t):
 				row["default_sku"] = String(d.get("default_sku", ""))
+			if is_portal_type(t):
+				var pid := String(d.get("pair_id", ""))
+				if pid != "":
+					row["pair_id"] = pid
 			placed.append(row)
 	shop_scale = clampi(int(data.get("shop_scale", 1)), 1, SCALE_MAX_LV)
 	grid_w = maxi(8, int(data.get("grid_w", 10)))

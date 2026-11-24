@@ -451,6 +451,7 @@ InputRouter
 | A7 | 親手交付 | L（交付結束） |
 | A8 | 撿地上貨堆 | L（取完） |
 | A9 | 撿地上營運道具 | L（取完） |
+| A10 | 傳送門 BEAM（短按已配對 `portal`） | L（鎖**入口端**至約 1s BEAM 完；同端序列化排隊，見 `playeraction.md`） |
 | B1–B4 | 掉貨瞄準／腳邊丟／飛箱／命中 | N |
 | C1–C4 | 移動／衝刺撞／踩污 | N |
 | D1 | 自身／全店瞬發 buff | N |
@@ -538,7 +539,7 @@ Host → 全員可靠下發一次（之後靠意圖＋事件，不整店 `Multip
 | `seed`／時鐘起點 | 可重播／對齊 RNG 與日時計 |
 | `difficulty` | Host 店難度 |
 | `shop_scale`／格線／地板 | 店規模與可走範圍 |
-| `furniture`／layout | 貨架／收銀／補貨點等擺放 |
+| `furniture`／layout | 貨架／收銀／補貨點／傳送門等擺放（`portal` 含 `pair_id`；見 `shopitem.md`／`shopsetup.md`） |
 | `stock` | 倉庫件數（開日快照） |
 | `shelf_stocks` | 各架當下陳列（若開日前已有） |
 | `clerks` | 崗位／綁定收銀 |

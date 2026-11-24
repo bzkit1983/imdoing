@@ -332,6 +332,18 @@ R("sfx_skill_clone_vanish", lambda: overlay(
     tone(0.16, 140, kind="tri", vol=0.16, a=0.005, d=0.05, s=0.15, r=0.08, slide=-0.2, seed=152),
 ))
 
+# --- portals ---
+R("sfx_portal_up", lambda: overlay(
+    tone(0.35, 220, kind="saw", vol=0.32, a=0.01, d=0.08, s=0.3, r=0.12, slide=0.85, seed=180),
+    tone(0.28, 880, kind="sine", vol=0.2, a=0.005, d=0.06, s=0.2, r=0.1, slide=1.2, seed=181),
+    tone(0.2, 1400, kind="sine", vol=0.12, a=0.002, d=0.05, s=0.1, r=0.08, noise_mix=0.25, seed=182),
+))
+R("sfx_portal_down", lambda: overlay(
+    tone(0.32, 980, kind="sine", vol=0.28, a=0.005, d=0.08, s=0.25, r=0.12, slide=-0.7, seed=183),
+    tone(0.26, 320, kind="tri", vol=0.22, a=0.01, d=0.06, s=0.2, r=0.1, slide=-0.4, seed=184),
+    tone(0.14, 1600, kind="sine", vol=0.12, a=0.001, d=0.04, s=0.1, r=0.06, seed=185),
+))
+
 # --- clerks ---
 R("sfx_clerk_pull", lambda: tone(0.12, 170, kind="tri", vol=0.22, a=0.002, d=0.04, s=0.15, r=0.05, slide=0.2, seed=160))
 R("sfx_clerk_stock", lambda: tone(0.12, 480, kind="sine", vol=0.2, a=0.003, d=0.04, s=0.15, r=0.06, seed=161))
@@ -413,6 +425,7 @@ PRIORITY = {
     "sfx_guest_angry_leave": "P1", "sfx_guest_dash_land": "P1",
     "sfx_skill_menu_open": "P1", "sfx_skill_cd_deny": "P1", "sfx_ult_prep": "P1",
     "sfx_ult_the_world_end": "P1", "sfx_skill_soothe": "P1", "sfx_skill_clone_vanish": "P1",
+    "sfx_portal_up": "P1", "sfx_portal_down": "P1",
     "sfx_phase_restock": "P1", "sfx_phase_open": "P1", "sfx_early_close_ask": "P1",
     "sfx_ui_move": "P1", "sfx_ui_confirm": "P1", "sfx_ui_cancel": "P1",
     "sfx_ui_purchase": "P1", "sfx_ui_place": "P1", "sfx_ui_pause_open": "P1",

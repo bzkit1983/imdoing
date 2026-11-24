@@ -7,6 +7,7 @@ const StateScript = preload("res://scripts/game_state.gd")
 const RestockScript = preload("res://scripts/restock_point.gd")
 const ShelfScript = preload("res://scripts/shelf.gd")
 const CashierScript = preload("res://scripts/cashier.gd")
+const PortalScript = preload("res://scripts/portal.gd")
 const ClerkScript = preload("res://scripts/clerk.gd")
 const FloorTilesScript = preload("res://scripts/floor_tiles.gd")
 const UiFont = preload("res://scripts/ui_font.gd")
@@ -169,6 +170,59 @@ func make_cashier(r: Rect2, rot: int, index: int) -> Node2D:
 	host.cashiers.append(node)
 	return node
 
+func make_portal(r: Rect2, rot: int, pair_id: String, tint: Color) -> Node2D:
+	host._obstacles.append(r)
+	var node: StaticBody2D = PortalScript.new()
+	node.collision_layer = 2
+	node.collision_mask = 0
+	node.position = r.position + r.size * 0.5
+	node.pair_id = pair_id
+	node.set_facing(facing(rot))
+	node.net_portal_id = host._next_net_portal_id
+	host._next_net_portal_id += 1
+	var col := CollisionShape2D.new()
+	var shape := RectangleShape2D.new()
+	shape.size = r.size
+	col.shape = shape
+	node.add_child(col)
+	node.build_visual(r.size, tint)
+	host._world.add_child(node)
+	host.portals.append(node)
+	return node
+
+func _portal_tint(pair_id: String) -> Color:
+	var idx := 0
+	if host.state != null and host.state.has_method("portal_pair_color_index"):
+		idx = int(host.state.portal_pair_color_index(pair_id))
+	match idx:
+		0:
+			return Color("e74c3c")
+		1:
+			return Color("3498db")
+		_:
+			return Color("95a5a6")
+
+func _link_portal_partners() -> void:
+	var by_pair: Dictionary = {}
+	for p in host.portals:
+		if p == null or not is_instance_valid(p):
+			continue
+		var pid := String(p.get("pair_id"))
+		if pid == "":
+			p.partner = null
+			continue
+		if not by_pair.has(pid):
+			by_pair[pid] = []
+		(by_pair[pid] as Array).append(p)
+	for pid in by_pair.keys():
+		var group: Array = by_pair[pid]
+		if group.size() == 2:
+			group[0].partner = group[1]
+			group[1].partner = group[0]
+		else:
+			for p in group:
+				p.partner = null
+
 func build_furniture(nodes: Array[Node2D]) -> void:
 	var shelf_i := 1
 	var reg_i := 0
@@ -197,6 +251,11 @@ func build_furniture(nodes: Array[Node2D]) -> void:
 			var node := make_cashier(r, rot, reg_i)
 			nodes.append(node)
 			reg_i += 1
+		elif t == "portal":
+			var pid := String(it.get("pair_id", ""))
+			var node := make_portal(r, rot, pid, _portal_tint(pid))
+			nodes.append(node)
+	_link_portal_partners()
 	if not host.cashiers.is_empty():
 		host.cashier = host.cashiers[0]
 

@@ -352,7 +352,7 @@ prep.scenario.s6,劇本6　頭目戰　藍本同劇本4（測試）,Scenario 6 �
 prep.scenario.s1,劇本1　從新開始　資金 $10000　LV1　空店,Scenario 1 · Fresh start · $10000 · LV1 · empty,剧本1　从新开始　资金 $10000　LV1　空店,シナリオ1　新規スタート　資金 $10000　LV1　空き店
 prep.scenario.s2,劇本2　LV5　資金 $10000　店規模 2　1 名店員,Scenario 2 · LV5 · $10000 · scale 2 · 1 clerk,剧本2　LV5　资金 $10000　店规模 2　1 名店员,シナリオ2　LV5　資金 $10000　店規模 2　店員 1名
 prep.scenario.s3,劇本3　LV10　資金 $99999　三圍 30　店規模 3　2 名店員,Scenario 3 · LV10 · $99999 · stats 30 · scale 3 · 2 clerks,剧本3　LV10　资金 $99999　三围 30　店规模 3　2 名店员,シナリオ3　LV10　資金 $99999　三能力 30　店規模 3　店員 2名
-prep.scenario.s4,劇本4　技能測試　LV10　三圍20　$99999　規模3　18×10,Scenario 4 · Skill test · LV10 · stats 20 · $99999 · scale 3 · 18×10,剧本4　技能测试　LV10　三围20　$99999　规模3　18×10,シナリオ4　スキルテスト　LV10　三能力20　$99999　規模3　18×10
+prep.scenario.s4,劇本4　技能測試　LV10　三圍20　$99999　規模3　18×10　傳送門×2對,Scenario 4 · Skill test · LV10 · stats 20 · $99999 · scale 3 · 18×10 · 2 portal pairs,剧本4　技能测试　LV10　三围20　$99999　规模3　18×10　传送门×2对,シナリオ4　スキルテスト　LV10　三能力20　$99999　規模3　18×10　ポータル×2対
 boss.hud.progress,頭目進度 %d／%d,Boss progress %d/%d,头目进度 %d／%d,ボス進行 %d／%d
 boss.hud.mission_complete,任務完成,Mission complete,任务完成,ミッション完了
 boss.hud.fail_title,頭目戰失敗,Boss battle failed,头目战失败,ボス戦失敗
@@ -677,11 +677,13 @@ prep.sku.confirm_buy,確定購買,Confirm purchase,确定购买,購入を確定
 prep.sku.qty,%02d 件,%02d pcs,%02d 件,%02d 個
 prep.furn.locked_row,%s　LV%d 開放　$%d,%s  LV%d  $%d,%s　LV%d 开放　$%d,%s　LV%d で開放　$%d
 prep.furn.buy_row,購入 %s　$%d　擁有 %d　未放置 %d,Buy %s  $%d  owned %d  unplaced %d,购入 %s　$%d　拥有 %d　未放置 %d,購入 %s　$%d　所持 %d　未配置 %d
+prep.furn.event_row,%s　事件獲得　擁有 %d　未放置 %d,%s  event unlock  owned %d  unplaced %d,%s　事件获得　拥有 %d　未放置 %d,%s　イベント取得　所持 %d　未配置 %d
 prep.expand.row,擴張到規模 LV%d　$%d,Expand to scale LV%d  $%d,扩张到规模 LV%d　$%d,規模 LV%d へ拡張　$%d
 prep.layout.width,闊度,Width,阔度,幅
 prep.layout.height,長度,Depth,长度,奥行き
 prep.layout.area,總面積  %d／%d,Area  %d/%d,总面积  %d／%d,総面積  %d／%d
 prep.layout.drag,拖放 %s　×%d,Place %s  ×%d,拖放 %s　×%d,配置 %s　×%d
+prep.layout.portal_pair,放置 %s 第二端（同對出口）。確定放下；取消收回第一端。,Place the second %s end (pair exit). Confirm to place; cancel recalls the first end.,放置 %s 第二端（同对出口）。确定放下；取消收回第一端。,%sのもう一方（ペア出口）を配置。決定で置く。キャンセルで一端を回収。
 prep.hire.info,現有 %d／上限 %d　每日開工每人扣 $%d\n人數不能多過已放置的收銀機，也不能超過店舖規模。,Staff %d/%d  wage $%d each day start\nCannot exceed placed registers or shop scale.,现有 %d／上限 %d　每日开工每人扣 $%d\n人数不能多过已放置的收银机，也不能超过店铺规模。,現在 %d／上限 %d　開店ごとに一人あたり $%d\n人数は配置済みレジ台数および店舗規模を超えられません。
 prep.hire.recruit,召募,Hire,召募,募集
 prep.role.cashier,收銀,Checkout,收银,レジ
@@ -740,6 +742,10 @@ prep.msg.ok,知道了,OK,知道了,了解
 prep.msg.picked_up,已收回,Picked up,已收回,回収しました
 prep.msg.moved,已移動,Moved,已移动,移動しました
 prep.msg.placed,已放置,Placed,已放置,配置しました
+prep.msg.portal_pair_next,已放第一端，請放置配對出口,First end placed — place the paired exit,已放第一端，请放置配对出口,一端を配置しました。ペア出口を置いてください
+prep.msg.portal_pair_cancel,已取消配對並收回第一端,Pair cancelled; first end recalled,已取消配对并收回第一端,ペアをキャンセルし、一端を回収しました
+prep.msg.event_furn_title,事件獲得,Event unlock,事件获得,イベント取得
+prep.msg.event_furn_body,%s 由事件授予，不能用資金購入。到店舖設計放置。,%s is event-granted — cannot buy with cash. Place it in Layout.,%s 由事件授予，不能用资金购入。到店铺设计放置。,%sはイベントで付与され、資金では買えません。店舗設計で配置してください。
 prep.msg.cursor_empty,游標上沒有物品,Nothing on cursor,游标上没有物品,カーソルにアイテムがありません
 prep.msg.put_back,已放回,Put back,已放回,戻しました
 prep.msg.cat_locked,尚未開發此類貨品,This category not developed,尚未开发此类货品,この商品カテゴリは未開発です

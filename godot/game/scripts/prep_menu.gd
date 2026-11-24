@@ -58,6 +58,8 @@ var _hold_from_map: bool = false
 var _hold_origin := Vector2i.ZERO
 ## Preserved when picking up a restock rack so place/cancel keeps its default SKU.
 var _hold_default_sku: String = ""
+## Portal pair-in-progress: after placing first end, keep hold until second is placed.
+var _hold_pair_id: String = ""
 ## Layout interact hold: short = pick up / place; long on restock = default SKU picker.
 var _layout_act_held: bool = false
 var _layout_act_time: float = 0.0
@@ -1351,6 +1353,8 @@ func _activate() -> void:
 			_popup_info(Loc.t("tut.gate.title"), Loc.t("tut.prep.restrict.furn_cap"))
 		"locked_furn":
 			_popup_locked_furn(String(arg))
+		"event_furn":
+			_popup_info(Loc.t("prep.msg.event_furn_title"), Loc.t("prep.msg.event_furn_body", [state.furniture_name(String(arg))]))
 		"expand":
 			if tutorial_shop_hub_locked("expand"):
 				_popup_info(Loc.t("tut.gate.title"), Loc.t("tut.prep.restrict.hub"))
@@ -2781,11 +2785,33 @@ func _release_layout(screen: Vector2) -> void:
 		_msg = state.move_item(from, cell.x, cell.y, rot)
 		if _msg == "":
 			_msg = Loc.t("prep.msg.moved")
+		_clear_hold()
 	else:
-		_msg = state.place_item(typ, cell.x, cell.y, rot)
+		var pair_id := ""
+		var keep_pair := false
+		if state.is_portal_type(typ):
+			if _hold_pair_id != "":
+				pair_id = _hold_pair_id
+			else:
+				pair_id = state.alloc_portal_pair_id()
+				keep_pair = true
+		_msg = state.place_item(typ, cell.x, cell.y, rot, "", pair_id)
 		if _msg == "":
-			_msg = Loc.t("prep.msg.placed")
-	_clear_hold()
+			if keep_pair and state.unplaced(typ) > 0:
+				_hold_type = typ
+				_hold_rot = rot
+				_hold_from_map = false
+				_hold_pair_id = pair_id
+				_hold_default_sku = ""
+				_layout_focus = "map"
+				_msg = Loc.t("prep.msg.portal_pair_next")
+			else:
+				if keep_pair:
+					_orphan_last_portal_pair(pair_id)
+				_clear_hold()
+				_msg = Loc.t("prep.msg.placed")
+		else:
+			_clear_hold()
 	_cursor = cell
 	_refresh()
 
@@ -2846,13 +2872,46 @@ func try_place() -> void:
 		return
 	var from_map := _hold_from_map
 	var def := _hold_default_sku
-	_msg = state.place_item(_hold_type, _cursor.x, _cursor.y, _hold_rot, def)
+	var pair_id := ""
+	var keep_hold_for_pair := false
+	if state.is_portal_type(_hold_type):
+		if _hold_pair_id == "":
+			pair_id = state.alloc_portal_pair_id()
+			## After first end, keep holding if another unplaced portal remains for the pair.
+			keep_hold_for_pair = true
+		else:
+			pair_id = _hold_pair_id
+	_msg = state.place_item(_hold_type, _cursor.x, _cursor.y, _hold_rot, def, pair_id)
 	if _msg == "":
 		SfxBus.play("sfx_ui_place")
-		_clear_hold()
-		_layout_focus = "map"
-		_msg = Loc.t("prep.msg.moved") if from_map else Loc.t("prep.msg.placed")
+		if keep_hold_for_pair and state.unplaced(_hold_type) > 0:
+			_hold_pair_id = pair_id
+			_hold_from_map = false
+			_hold_origin = Vector2i.ZERO
+			_layout_focus = "map"
+			_msg = Loc.t("prep.msg.portal_pair_next")
+		else:
+			if keep_hold_for_pair and state.unplaced(_hold_type) <= 0:
+				## Odd leftover end — leave as orphan (clear pair_id on the lonely end).
+				_orphan_last_portal_pair(pair_id)
+			_clear_hold()
+			_layout_focus = "map"
+			_msg = Loc.t("prep.msg.moved") if from_map else Loc.t("prep.msg.placed")
 	_refresh()
+
+
+func _orphan_last_portal_pair(pair_id: String) -> void:
+	if pair_id == "" or state == null:
+		return
+	var n := 0
+	var last_i := -1
+	for i in state.placed.size():
+		var it: Dictionary = state.placed[i]
+		if state.is_portal_type(String(it.get("type", ""))) and String(it.get("pair_id", "")) == pair_id:
+			n += 1
+			last_i = i
+	if n == 1 and last_i >= 0:
+		state.placed[last_i].erase("pair_id")
 
 
 func _begin_hold_from_list(type: String) -> void:
@@ -2861,6 +2920,7 @@ func _begin_hold_from_list(type: String) -> void:
 	_hold_from_map = false
 	_hold_origin = Vector2i.ZERO
 	_hold_default_sku = ""
+	_hold_pair_id = ""
 	_layout_focus = "map"
 	_on_size_btns = false
 	_msg = ""
@@ -2890,6 +2950,14 @@ func _pickup_at_cursor() -> void:
 func _cancel_hold() -> void:
 	if _hold_type == "":
 		return
+	## Mid portal pair: pull back the first end already on the map.
+	if _hold_pair_id != "" and state.is_portal_type(_hold_type):
+		state.remove_portals_with_pair_id(_hold_pair_id)
+		_clear_hold()
+		_layout_focus = "map"
+		_msg = Loc.t("prep.msg.portal_pair_cancel")
+		_refresh()
+		return
 	if _hold_from_map:
 		var err := state.place_item(_hold_type, _hold_origin.x, _hold_origin.y, _hold_rot, _hold_default_sku)
 		if err != "":
@@ -2911,6 +2979,8 @@ func _cancel_hold() -> void:
 func _discard_hold() -> void:
 	if _hold_type == "":
 		return
+	if _hold_pair_id != "" and state.is_portal_type(_hold_type):
+		state.remove_portals_with_pair_id(_hold_pair_id)
 	_msg = Loc.t("prep.msg.picked_up")
 	SfxBus.play("sfx_ui_pickup_item")
 	_clear_hold()
@@ -2924,6 +2994,7 @@ func _clear_hold() -> void:
 	_hold_from_map = false
 	_hold_origin = Vector2i.ZERO
 	_hold_default_sku = ""
+	_hold_pair_id = ""
 	_layout_cancel_held = false
 	_layout_cancel_time = 0.0
 	_layout_cancel_long = false

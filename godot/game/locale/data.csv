@@ -32,6 +32,7 @@ furniture.shelf_ice_4,冰櫃類貨架（4件）,Freezer shelf (4),冰柜类货�
 furniture.shelf_ice_8,冰櫃類貨架（8件）,Freezer shelf (8),冰柜类货架（8件）,冷凍棚（8個）
 furniture.shelf_ice_12,冰櫃類貨架（12件）,Freezer shelf (12),冰柜类货架（12件）,冷凍棚（12個）
 furniture.shelf_ice_24,冰櫃類貨架（24件）,Freezer shelf (24),冰柜类货架（24件）,冷凍棚（24個）
+furniture.portal,傳送門,Portal,传送门,ポータル
 skill_set.default,自訂技能組合%d,Custom Skill Set %d,自订技能组合%d,カスタムスキルセット%d
 skill.carry_boost.name,頂硬上,Shoulder Through,顶硬上,無理押し
 skill.carry_boost.blurb,負重 +240 件，20 秒,Carry +240 pieces for 20s,负重 +240 件，20 秒,所持 +240 個、20 秒
@@ -249,6 +250,8 @@ err.not_developed,尚未開發,Not developed,尚未开发,未開発
 err.not_for_sale,此貨品目前不可售,This good is not for sale,此货品目前不可售,この商品はいま非売です
 err.last_for_sale,至少要保留一項可售貨品,Keep at least one sellable good,至少要保留一项可售货品,販売中の商品を少なくとも1つ残してください
 err.no_such_item,沒有這件,Unknown item,没有这件,該当なし
+err.furniture_event_only,此物品只能由事件獲得，不能購入,This item is event-only; cannot buy,此物品只能由事件获得，不能购入,このアイテムはイベント専用で購入できません
+err.furniture_cap,已達擁有上限,Owned cap reached,已达拥有上限,所持上限に達しています
 err.no_fit,放不下,Doesn't fit,放不下,入らない
 err.grid_min,闊度和長度最少是 8。,Width and height must be at least 8.,阔度和长度最少是 8。,幅と長さは最低 8 必要。
 err.area_cap,總面積超過規模上限,Total area exceeds scale cap,总面积超过规模上限,総面積が規模上限を超えている

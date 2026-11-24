@@ -31,6 +31,10 @@ func lock_key_of(target: Object) -> String:
 		var reg := int(target.get("register_index"))
 		if reg >= 0:
 			return "register:%d" % reg
+	if target.get("net_portal_id") != null:
+		var pid := int(target.get("net_portal_id"))
+		if pid >= 0:
+			return "portal:%d" % pid
 	## Dirt / ops pickups often only have instance identity locally.
 	var kind := str(target.get("kind")) if target.get("kind") != null else ""
 	if kind != "":

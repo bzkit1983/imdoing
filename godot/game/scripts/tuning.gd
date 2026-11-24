@@ -244,6 +244,9 @@ const ELITE_INCITE_RADIUS := 5.0 * BODY_LENGTH
 const ELITE_AFFIX_CD_MIN := 5.0
 const ELITE_AFFIX_CD_MAX := 15.0
 const ELITE_ZOOM_SEC := 1.0
+## Portal BEAM UP → warp → BEAM DOWN total lock (playeraction.md).
+const PORTAL_BEAM_SEC := 1.0
+const PORTAL_WARP_AT := 0.45
 const ELITE_REVENUE_MULT := 2
 const ELITE_LIST_MULT := {1: 2.0, 2: 2.5, 3: 3.0, 4: 3.5, 5: 4.0, 6: 5.0}
 const ELITE_AFFIX_IDS: Array[String] = [

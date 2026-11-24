@@ -1149,6 +1149,15 @@ static func _furn(menu: CanvasLayer) -> void:
 		if not tut_caps.is_empty() and not tut_caps.has(type):
 			continue
 		var icon := FurnitureIcons.row_texture(type)
+		if menu.state.is_grant_only_furniture(type):
+			var owned_g := int(menu.state.owned.get(type, 0))
+			menu._add(
+				Loc.t("prep.furn.event_row", [fname, owned_g, menu.state.unplaced(type)]),
+				"event_furn",
+				type,
+				icon,
+			)
+			continue
 		if not menu.state.furniture_unlocked(type):
 			menu._add(Loc.t("prep.furn.locked_row", [fname, int(spec["unlock"]), int(spec["price"])]), "locked_furn", type, icon)
 			continue
@@ -1187,7 +1196,10 @@ static func _layout(menu: CanvasLayer) -> void:
 			cur = Tuning.sku_name(String(list[cidx]))
 		menu._info.text = Loc.t("prep.layout.sku_pick", [cur])
 	elif menu._hold_type != "":
-		menu._info.text = Loc.t("prep.layout.holding", [menu.state.furniture_name(menu._hold_type)])
+		if String(menu.get("_hold_pair_id")) != "" and menu.state.is_portal_type(menu._hold_type):
+			menu._info.text = Loc.t("prep.layout.portal_pair", [menu.state.furniture_name(menu._hold_type)])
+		else:
+			menu._info.text = Loc.t("prep.layout.holding", [menu.state.furniture_name(menu._hold_type)])
 	elif menu._msg != "":
 		menu._info.text = menu._msg
 	else:

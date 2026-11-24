@@ -130,6 +130,13 @@
 | `sfx_clerk_pull` | 補貨店員取箱（可共用 `sfx_box_pull` 降音量；分身補貨同） | 紙箱 | P2 | `clerksystem.md`／`shadowclone.md` |
 | `sfx_clerk_stock` | 補貨店員上架完成（分身補貨同） | 入架淡 | P2 | `clerksystem.md`／`shadowclone.md` |
 
+## 8b. 傳送門
+
+| ID | 觸發（設計） | 建議質感 | 優先 | 來源檔 |
+| --- | --- | --- | --- | --- |
+| `sfx_portal_up` | 玩家短按已配對傳送門：入口 BEAM UP／粒子 | 科幻吸入／光束上升 | P1 | `playeraction.md`／`shopitem.md` |
+| `sfx_portal_down` | 出口 BEAM DOWN 出現 | 光束落下／落地 chime | P1 | `playeraction.md`／`shopitem.md` |
+
 ## 9. 回合／世界事件（非 BGM）
 
 | ID | 觸發（設計） | 建議質感 | 優先 | 來源檔 |
@@ -180,4 +187,5 @@
 - 小偷：`thiefsystem.md` · 客人：`customer.md` · 店員：`clerksystem.md`
 - 技能：`playeractiveskills.md` · 奧義：`playerultimateskills.md` · 多重影分身：`shadowclone.md`
 - 回合：`storeoperationphase.md` · 準備：`storepreparationphase.md` · 暫停：`pausemenu.md` · BGM：`bgm.md`
+- 商店物品／傳送門：`shopitem.md` · 店舖設計：`shopsetup.md`
 - 動畫插座（視覺對齊）：`docs/alpha/animation-v1.0.md`；plan 註明本階段原不做音效：`docs/alpha/plan.md`

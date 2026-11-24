@@ -124,6 +124,14 @@ func _world_to_cell(p: Vector2) -> Vector2i:
 	)
 
 
+## World position of the nearest non-solid cell (portal exit squeeze).
+func nearest_open_world(p: Vector2) -> Vector2:
+	var id := _open_cell(p)
+	if id == Vector2i(-999, -999):
+		return p
+	return origin + (Vector2(id) + Vector2(0.5, 0.5)) * CELL
+
+
 func _open_cell(p: Vector2) -> Vector2i:
 	var id := _world_to_cell(p)
 	if _is_open(id):

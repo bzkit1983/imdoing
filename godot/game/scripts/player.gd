@@ -202,6 +202,13 @@ var _net_puppet_pos: Vector2 = Vector2.INF
 var _net_puppet_moving: bool = false
 ## EliteCustomer intro ZOOM — locks player actions (~1s).
 var _elite_focus_left: float = 0.0
+## Portal BEAM teleport lock (~1s).
+var _portal_beam_left: float = 0.0
+var _portal_entry: Node2D
+var _portal_exit: Node2D
+var _portal_warped: bool = false
+var _portal_restore_overview: bool = false
+var _portal_body_mod: Color = Color.WHITE
 var _shake_left: float = 0.0
 var _shake_mag: float = 0.0
 var _stun_pending: float = Tuning.STUN_SEC
@@ -1329,6 +1336,15 @@ func _physics_process(delta: float) -> void:
 		_tick_camera_shake(delta)
 		_sync_interact_glow()
 		return
+	if _portal_beam_left > 0.0:
+		_tick_portal_beam(delta)
+		velocity = Vector2.ZERO
+		_tick_buffs(delta)
+		_tick_status(delta)
+		_tick_camera_shake(delta)
+		_sync_interact_glow()
+		_update_visuals()
+		return
 	if has_meta("boss_cutscene_lock"):
 		velocity = Vector2.ZERO
 		_tick_buffs(delta)
@@ -1673,7 +1689,7 @@ func _move_axis() -> Vector2:
 	## Short toss hitch: keep feet planted briefly so walk does not overtake the box.
 	if _toss_move_pause_left > 0.0:
 		return Vector2.ZERO
-	if _elite_focus_left > 0.0:
+	if _elite_focus_left > 0.0 or _portal_beam_left > 0.0:
 		return Vector2.ZERO
 	if _stun_left > 0.0 or _slip_left > 0.0 or _fighting or _shelving() or _cleaning():
 		return Vector2.ZERO
@@ -2033,6 +2049,9 @@ func _preview_target() -> Node2D:
 			return _nearest_kind("shelf")
 		"cashier":
 			return _nearest_kind("cashier")
+	var portal := _nearest_usable_portal()
+	if portal != null:
+		return portal
 	return null
 
 
@@ -2095,6 +2114,10 @@ func _do_short_interact() -> void:
 		target = drop
 		_pickup_used = false
 		_tick_drop()
+		return
+	var portal := _nearest_usable_portal()
+	if portal != null:
+		_try_portal_teleport(portal)
 		return
 	if _store_open() and not inventory.is_empty() and not _faced_guests().is_empty():
 		log_line.emit(Loc.t("log.player.hold_deliver_hint"))
@@ -2401,7 +2424,7 @@ func _detach_interact_glow() -> void:
 func _glow_host_now() -> Node2D:
 	if not _round_active() or _asking_early():
 		return null
-	if skill_menu_open or bag_menu_open or carry_menu_open or ult_prep or _stun_left > 0.0 or _slip_left > 0.0 or _elite_focus_left > 0.0:
+	if skill_menu_open or bag_menu_open or carry_menu_open or ult_prep or _stun_left > 0.0 or _slip_left > 0.0 or _elite_focus_left > 0.0 or _portal_beam_left > 0.0:
 		return null
 	if _cancel_drop_ready:
 		return null
@@ -2434,6 +2457,8 @@ func _interact_available(node: Node2D) -> bool:
 		return true
 	if kind == "cashier":
 		return node.has_method("ready_customer") and node.call("ready_customer") != null
+	if kind == "portal":
+		return _portal_interactable(node)
 	if kind == "elite" or kind == "":
 		if not _store_open() or inventory.is_empty():
 			return false
@@ -2441,6 +2466,134 @@ func _interact_available(node: Node2D) -> bool:
 			return false
 		return bool(node.call("can_receive_delivery"))
 	return false
+
+
+func _portal_interactable(node: Node2D) -> bool:
+	if _portal_beam_left > 0.0 or _fighting or _long_committed or _cancel_drop_ready:
+		return false
+	if skill_menu_open or bag_menu_open or carry_menu_open or ult_prep:
+		return false
+	if _stun_left > 0.0 or _slip_left > 0.0 or _elite_focus_left > 0.0:
+		return false
+	if node == null or not node.has_method("can_use"):
+		return false
+	return bool(node.call("can_use"))
+
+
+func _nearest_usable_portal() -> Node2D:
+	var best: Node2D = null
+	var best_d := 1000000.0
+	for node in interactables:
+		if node == null or not is_instance_valid(node):
+			continue
+		if _obj_str(node, "kind") != "portal":
+			continue
+		if not _portal_interactable(node):
+			continue
+		var d := InteractScan.interact_dist(self, node, facing, _dirt_areas)
+		if d < 0.0 or d >= best_d:
+			continue
+		best_d = d
+		best = node
+	return best
+
+
+func _try_portal_teleport(entry: Node2D) -> void:
+	if entry == null or not is_instance_valid(entry):
+		return
+	if not _portal_interactable(entry):
+		return
+	if not _interact_try(entry):
+		return
+	if not bool(entry.call("try_begin_use")):
+		_interact_release(entry)
+		return
+	_portal_entry = entry
+	_portal_exit = entry.get("partner") as Node2D
+	if _portal_exit == null or not is_instance_valid(_portal_exit):
+		entry.call("end_use")
+		_interact_release(entry)
+		return
+	_portal_beam_left = Tuning.PORTAL_BEAM_SEC
+	_portal_warped = false
+	_portal_restore_overview = PlatformServices.get_camera_view() == PlatformServices.CAMERA_VIEW_OVERVIEW
+	_portal_body_mod = modulate
+	if entry.has_method("play_entry_burst"):
+		entry.call("play_entry_burst")
+	SfxBus.play("sfx_portal_up")
+	## Leave overview lock so the arrival jump is readable.
+	if _portal_restore_overview:
+		_prepare_camera_for_local_focus()
+		if camera != null:
+			camera.global_position = global_position
+
+
+func _tick_portal_beam(delta: float) -> void:
+	var total := Tuning.PORTAL_BEAM_SEC
+	var prev := _portal_beam_left
+	_portal_beam_left = maxf(0.0, _portal_beam_left - delta)
+	var elapsed := total - _portal_beam_left
+	## BEAM UP: shrink / fade toward white-cyan.
+	if not _portal_warped:
+		var t := clampf(elapsed / Tuning.PORTAL_WARP_AT, 0.0, 1.0)
+		var s := lerpf(1.0, 0.15, t)
+		scale = Vector2(s, s)
+		modulate = Color(0.55, 0.95, 1.0, lerpf(1.0, 0.15, t))
+		if elapsed >= Tuning.PORTAL_WARP_AT:
+			_portal_apply_warp()
+	else:
+		var down_t := clampf((elapsed - Tuning.PORTAL_WARP_AT) / maxf(0.001, total - Tuning.PORTAL_WARP_AT), 0.0, 1.0)
+		var s2 := lerpf(0.15, 1.0, down_t)
+		scale = Vector2(s2, s2)
+		modulate = Color(0.55, 0.95, 1.0, lerpf(0.15, 1.0, down_t))
+	if _portal_beam_left <= 0.0 and prev > 0.0:
+		_portal_finish_beam()
+
+
+func _portal_apply_warp() -> void:
+	_portal_warped = true
+	var exit := _portal_exit
+	if exit == null or not is_instance_valid(exit):
+		return
+	var dest: Vector2 = exit.global_position
+	if exit.has_method("stand_position"):
+		dest = exit.call("stand_position") as Vector2
+	var g := _game()
+	if g != null and g.get("pathfinder") != null and g.pathfinder.has_method("nearest_open_world"):
+		dest = g.pathfinder.nearest_open_world(dest)
+	## Optimistic local presentation; Host pose reconciles online.
+	global_position = dest
+	var exit_facing = exit.get("facing")
+	if exit_facing is Vector2 and (exit_facing as Vector2).length_squared() > 0.01:
+		facing = (exit_facing as Vector2).normalized()
+	if exit.has_method("play_exit_burst"):
+		exit.call("play_exit_burst")
+	SfxBus.play("sfx_portal_down")
+	## Snap camera to exit for arrival beat.
+	if controls_locally():
+		_focus_camera_toward(global_position, 0.0)
+		if camera != null:
+			if camera.get_parent() != self:
+				camera.top_level = true
+				camera.global_position = global_position
+			else:
+				_prepare_camera_for_local_focus()
+				camera.position = Vector2.ZERO
+
+
+func _portal_finish_beam() -> void:
+	scale = Vector2.ONE
+	modulate = _portal_body_mod
+	if is_instance_valid(_portal_entry):
+		_portal_entry.call("end_use")
+		_interact_release(_portal_entry)
+	_portal_entry = null
+	_portal_exit = null
+	_portal_beam_left = 0.0
+	_portal_warped = false
+	if controls_locally():
+		restore_base_camera()
+	_portal_restore_overview = false
 
 
 func _shelf_interactable(node: Node2D) -> bool:
@@ -2468,7 +2621,7 @@ const GLOW_SPAN_SCALE := 0.85
 func _glow_span(node: Node2D) -> Vector2:
 	var kind := _obj_str(node, "kind")
 	var span := Vector2(150.0, 150.0)
-	if kind == "shelf" or kind == "cashier" or kind == "restock":
+	if kind == "shelf" or kind == "cashier" or kind == "restock" or kind == "portal":
 		span = Vector2(240.0, 150.0)
 		for child in node.get_children():
 			if child is CollisionShape2D and child.shape is RectangleShape2D:
@@ -3275,7 +3428,7 @@ func _bag_use_suppressed() -> bool:
 		return true
 	if _cancel_held or _cancel_drop_ready:
 		return true
-	if _stun_left > 0.0 or _slip_left > 0.0 or _elite_focus_left > 0.0:
+	if _stun_left > 0.0 or _slip_left > 0.0 or _elite_focus_left > 0.0 or _portal_beam_left > 0.0:
 		return true
 	## Restock hotkeys 1–3 own the digit keys while facing restock.
 	if (

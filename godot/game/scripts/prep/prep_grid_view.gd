@@ -59,8 +59,18 @@ func _draw() -> void:
 				col = Color("dde4f7")
 			else:
 				col = Color("c45c26")
+		elif t == "portal":
+			var pid := String(it.get("pair_id", ""))
+			if pid == "":
+				col = Color("7f8c8d")
+			else:
+				var cidx: int = int(st.portal_pair_color_index(pid))
+				col = Color("e74c3c") if cidx == 0 else Color("3498db") if cidx == 1 else Color("9b59b6")
 		var rect := Rect2(Vector2(int(it["x"]), int(it["y"])) * cell, Vector2(int(it["w"]), int(it["h"])) * cell - Vector2(2, 2))
 		draw_rect(rect, col)
+		if t == "portal":
+			var border := Color("f4d35e") if String(it.get("pair_id", "")) != "" else Color("95a5a6")
+			draw_rect(rect, border, false, 2.0)
 		if t.begins_with("restock"):
 			var sku := String(it.get("default_sku", ""))
 			if pick_i == i:
