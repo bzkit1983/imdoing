@@ -2,7 +2,7 @@
 
 - 此檔案定義營運／事件／劇情三種任務的共用條件語意、狀態、掛載、存檔與內容接口
 - 內容組合流水號見：`taskcontent-ops-test.md`、`taskcontent-event-stub.md`、`taskcontent-story-stub.md`
-- 劇情章節框架與各章開檔：`storysystem.md`、`story/`
+- 劇情框架（選章＋破局；`story_slot` × `theme_id`）與開檔：`storysystem.md`、`story/`、`story/themes/`
 - 評價條件語意見 `ratingsystem.md`；生態系統進度欄見 `ecosystem.md`
 - 事件規則修飾器屬事件系統（`eventsystem.md` 待建）；本檔只消費任務條件列
 - 工程活線尚未實作；掛點見文末

@@ -4,6 +4,7 @@
 - 工程活線：`godot/game`（見 `docs/versioning.md`）
 - 實作：`game_state.gd` 的 `to_dict`／`from_dict`／`save_to_disk`／`load_from_disk`
 - I/O 經 Autoload **`PlatformServices`**（Desktop：`scripts/platform/desktop_platform.gd` → `user://save.json`）
+- **劇情選章（設計先行／未實作）：** 將來需存 `story_slot`、`active_theme_id`、`themes_cleared[]`、`theme_run_flags` 等（形狀見 `storysystem.md` §存檔欄位）；落地時升 `SAVE_VERSION` 並在本檔補 migration
 
 # 路徑與格式
 

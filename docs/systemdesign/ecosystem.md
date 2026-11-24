@@ -43,8 +43,10 @@
 商店會有劇情進度,有表單記錄遊戲進度
 - 現在劇情進度
 - 已完成劇情
-- **劇情模式框架**（10 章＋後日談、混合解鎖）：見 `storysystem.md`、`story/`
+- **劇情模式框架**（選章＋破局：`story_slot` × `theme_id`；六主題全清→終章→後日談）：見 `storysystem.md`、`story/`
+- 設計欄位意圖（未實作）：`story_slot`／`story_chapter_id`、`active_theme_id`、`themes_cleared[]`、`theme_run_flags`、`story_flags`、`story_blocked`、`completed_story_packs`
 - 劇情任務（一次性、失敗擋推進）見 `tasksystem.md`、`taskcontent-story-stub.md`
+- 精英店員進度見 `eliteclerk.md`
 
 #事件進度
 商店會有事件發生,有表單記錄事件詳情

@@ -4,7 +4,8 @@
 > 本文僅供腦力激盪與節奏感討論。**不得**視為產品路線圖、實作規格、或對 `docs/systemdesign/*`／`docs/beta/*`／`godot/game` 的變更指示。  
 > 章節主題只寫**方向**，不固定世界名。數字皆為概念假設，可整表推翻。  
 >  
-> **正式產品框架與成長分析已另開：** [`docs/systemdesign/storysystem.md`](../systemdesign/storysystem.md)、[`growth-character.md`](../systemdesign/story/growth-character.md)、[`growth-economy.md`](../systemdesign/story/growth-economy.md)、[`growth-skills.md`](../systemdesign/story/growth-skills.md)。本沙盒僅作節奏對照，衝突時以 systemdesign 為準。
+> **正式產品框架已改為選章＋破局**（`story_slot` × `theme_id`；第2章固定破局→六主題自選填槽3–8→終章）：[`docs/systemdesign/storysystem.md`](../systemdesign/storysystem.md)、[`story/themes/`](../systemdesign/story/themes/)、[`growth-*.md`](../systemdesign/story/growth-character.md)。  
+> **本沙盒的「ch2–8 各鎖死一世界」線性方向已被產品框架取代**；僅作歷史節奏對照，衝突時以 systemdesign 為準。
 
 配套視覺：
 - Cursor Canvas「十章成長概念藍圖」（分元素進程圖 + 整合路線圖；需 Cursor）
