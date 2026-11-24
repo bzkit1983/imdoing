@@ -346,9 +346,10 @@ hud.combo_coop,COMBO P1 %d  ·  P2 %d  ·  TEAM %d,COMBO P1 %d  ·  P2 %d  ·  T
 hud.seat,P%d,P%d,P%d,P%d
 prep.back,返回,Back,返回,戻る
 prep.scenario.title,選擇劇本,Choose scenario,选择剧本,シナリオ選択
-prep.scenario.info,劇本1 從空店開始，資金 $10000。劇本2、3 帶現成店面和店員。劇本4 用來試技能。測試版另有劇本5 教學模式（$3000）、劇本6 頭目戰（藍本同劇本4）。,Scenario 1 starts empty with $10000. 2 and 3 include a shop and clerks. 4 is for trying skills. Test builds also list Scenario 5 Tutorial ($3000) and Scenario 6 Boss battle (same blueprint as 4).,剧本1 从空店开始，资金 $10000。剧本2、3 带现成店面和店员。剧本4 用来试技能。测试版另有剧本5 教学模式（$3000）、剧本6 头目战（蓝本同剧本4）。,シナリオ1は空の店から開始、資金 $10000。シナリオ2・3は店舗と店員付き。シナリオ4はスキル試し用。テスト版にはシナリオ5 チュートリアル（$3000）とシナリオ6 ボス戦（シナリオ4と同構成）もあります。
+prep.scenario.info,劇本1 從空店開始，資金 $10000。劇本2、3 帶現成店面和店員。劇本4 用來試技能。測試版另有劇本5 教學模式（$3000）、劇本6 頭目戰（藍本同劇本4）、劇本7 新商店物品測試（藍本同劇本4、一台自助收銀機）。,Scenario 1 starts empty with $10000. 2 and 3 include a shop and clerks. 4 is for trying skills. Test builds also list Scenario 5 Tutorial ($3000); Scenario 6 Boss battle (same as 4); Scenario 7 new furniture test (same as 4 · one self-checkout).,剧本1 从空店开始，资金 $10000。剧本2、3 带现成店面和店员。剧本4 用来试技能。测试版另有剧本5 教学模式（$3000）、剧本6 头目战（蓝本同剧本4）、剧本7 新商店物品测试（蓝本同剧本4、一台自助收银机）。,シナリオ1は空の店から開始、資金 $10000。シナリオ2・3は店舗と店員付き。シナリオ4はスキル試し用。テスト版にはシナリオ5 チュートリアル（$3000）、シナリオ6 ボス戦（シナリオ4と同構成）、シナリオ7 新店舗アイテムテスト（シナリオ4＋セルフレジ1台）もあります。
 prep.scenario.s5,劇本5　教學模式　LV1　$3000　空店（測試）,Scenario 5 · Tutorial · LV1 · $3000 · empty shop (test),剧本5　教学模式　LV1　$3000　空店（测试）,シナリオ5　チュートリアル　LV1　$3000　空店舗（テスト）
 prep.scenario.s6,劇本6　頭目戰　藍本同劇本4（測試）,Scenario 6 · Boss battle · same as Scenario 4 (test),剧本6　头目战　蓝本同剧本4（测试）,シナリオ6　ボス戦　シナリオ4と同構成（テスト）
+prep.scenario.s7,劇本7　新商店物品測試　藍本同劇本4　自助收銀×1（測試）,Scenario 7 · New furniture test · same as 4 · 1 self-checkout (test),剧本7　新商店物品测试　蓝本同剧本4　自助收银×1（测试）,シナリオ7　新店舗アイテムテスト　シナリオ4構成　セルフレジ×1（テスト）
 prep.scenario.s1,劇本1　從新開始　資金 $10000　LV1　空店,Scenario 1 · Fresh start · $10000 · LV1 · empty,剧本1　从新开始　资金 $10000　LV1　空店,シナリオ1　新規スタート　資金 $10000　LV1　空き店
 prep.scenario.s2,劇本2　LV5　資金 $10000　店規模 2　1 名店員,Scenario 2 · LV5 · $10000 · scale 2 · 1 clerk,剧本2　LV5　资金 $10000　店规模 2　1 名店员,シナリオ2　LV5　資金 $10000　店規模 2　店員 1名
 prep.scenario.s3,劇本3　LV10　資金 $99999　三圍 30　店規模 3　2 名店員,Scenario 3 · LV10 · $99999 · stats 30 · scale 3 · 2 clerks,剧本3　LV10　资金 $99999　三围 30　店规模 3　2 名店员,シナリオ3　LV10　資金 $99999　三能力 30　店規模 3　店員 2名

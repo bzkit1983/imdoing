@@ -140,10 +140,12 @@ skill.let_there_be_light.blurb,即時為貨架補貨；空架隨機選同類有�
 world.cashier.status,收銀機 %d\n排隊 %d 人,Register %d\nQueue %d,收银机 %d\n排队 %d 人,レジ %d\n列 %d 人
 world.self_cashier.status,自助機 %d\n排隊 %d｜運作 %d,Self-checkout %d\nQueue %d | HP %d,自助机 %d\n排队 %d｜运作 %d,セルフレジ %d\n列 %d｜稼働 %d
 world.self_cashier.broken,故障・需維修,Broken — needs repair,故障・需维修,故障・要修理
+world.self_cashier.worn,運作下降・可維修,Wear — can repair,运作下降・可维修,稼働低下・修理可
 world.self_cashier.loading,自助付款 %.0f%%,Self-checkout %.0f%%,自助付款 %.0f%%,セルフ会計 %.0f%%
 world.self_cashier.repairing,維修中…,Repairing…,维修中…,修理中…
 log.player.self_cashier_repair,自助機維修 +%d,Self-checkout repaired +%d,自助机维修 +%d,セルフレジ修理 +%d
 log.player.self_cashier_repair_enter,開始維修自助機,Repairing self-checkout,开始维修自助机,セルフレジを修理
+log.player.self_cashier_busy,客人使用中，暫時不能維修,Guest is using it — cannot repair now,客人使用中，暂时不能维修,客が利用中のため修理できません
 world.clerk.cashier,店員收銀,Clerk checkout,店员收银,店員レジ
 world.clerk.restock,店員補貨,Clerk restock,店员补货,店員補充
 world.clerk.security,店員保安,Clerk security,店员保安,店員警備

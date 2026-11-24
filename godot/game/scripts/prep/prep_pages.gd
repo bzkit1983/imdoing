@@ -333,6 +333,7 @@ static func _scenario(menu: CanvasLayer) -> void:
 	if ProductVersion.test_tools_enabled():
 		menu._add(Loc.t("prep.scenario.s5"), "sc", 5)
 		menu._add(Loc.t("prep.scenario.s6"), "sc", 6)
+		menu._add(Loc.t("prep.scenario.s7"), "sc", 7)
 
 
 static func _in_room_lobby() -> bool:

@@ -189,6 +189,9 @@ func apply_scenario(id: int) -> void:
 		6:
 			## Boss-battle test day — same shop blueprint as skill sandbox (scenario 4).
 			_scenario_skill()
+		7:
+			## New furniture test: scenario 4 blueprint, one self-checkout instead of cashiers.
+			_scenario_self_cashier_test()
 		_:
 			_scenario_new()
 	_ensure_test_portal_owned()
@@ -430,6 +433,27 @@ func _scenario_skill() -> void:
 	_place("portal", 2, 8, 0, "", "p2")
 	clerks.append({"role": "restock", "register": 0})
 	clerks.append({"role": "cashier", "register": 0})
+
+
+## Scenario 7：劇本4 藍本；收起普通收銀機，門口下一台自助收銀機。無收銀店員（自助機不可綁）。
+func _scenario_self_cashier_test() -> void:
+	_scenario_skill()
+	var kept: Array[Dictionary] = []
+	for it in placed:
+		if String(it.get("type", "")) == "cashier":
+			continue
+		kept.append(it)
+	placed = kept
+	## Door cells (8,0)–(9,0); one self-checkout three rows below the door.
+	_place("self_cashier", 8, 4, 0)
+	if int(owned.get("self_cashier", 0)) < 1:
+		owned["self_cashier"] = 1
+	var kept_clerks: Array[Dictionary] = []
+	for c in clerks:
+		if String(c.get("role", "")) == "cashier":
+			continue
+		kept_clerks.append(c)
+	clerks = kept_clerks
 
 
 func _place(type: String, x: int, y: int, rot: int, default_sku: String = "", pair_id: String = "") -> void:

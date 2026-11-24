@@ -102,13 +102,25 @@ func back_position() -> Vector2:
 	return global_position - facing * 52.0
 
 
+func needs_repair() -> bool:
+	return durability + 0.001 < Tuning.SELF_CASHIER_DURABILITY_MAX
+
+
+## Guest currently in the ~10s auto-pay window.
+func is_guest_using() -> bool:
+	return is_instance_valid(_pay_customer)
+
+
 func can_repair() -> bool:
-	return is_broken() and not _repairing
+	## Dropped durability OK — but not while a guest is paying, and not re-enter mid-session.
+	return needs_repair() and not _repairing and not is_guest_using()
 
 
 func begin_repair(seat: int) -> bool:
 	if not can_repair():
 		return false
+	## Safety: never overlap guest pay with repair.
+	_clear_pay_customer()
 	_repairing = true
 	_repair_seat = seat
 	_repair_t = 0.0
@@ -128,6 +140,7 @@ func cancel_repair(seat: int = -1) -> void:
 	_refresh_label()
 
 
+## One BAR hit. Returns true if input accepted. Keeps repairing until full or cancel.
 func try_repair_hit(seat: int) -> bool:
 	if not _repairing:
 		return false
@@ -136,12 +149,21 @@ func try_repair_hit(seat: int) -> bool:
 	var zone := _cursor_zone()
 	var heal := Tuning.self_cashier_repair_heal(zone)
 	durability = minf(Tuning.SELF_CASHIER_DURABILITY_MAX, durability + float(heal))
-	_repairing = false
-	_repair_seat = -1
-	_hide_repair_draw()
 	_broken_sfx_armed = durability <= 0.0
+	if durability + 0.001 >= Tuning.SELF_CASHIER_DURABILITY_MAX:
+		durability = Tuning.SELF_CASHIER_DURABILITY_MAX
+		_repairing = false
+		_repair_seat = -1
+		_hide_repair_draw()
+	else:
+		## Next attempt — keep BAR; reset cursor phase so the next swing is readable.
+		_repair_t = 0.0
 	_refresh_label()
 	return true
+
+
+func is_repairing() -> bool:
+	return _repairing
 
 
 func _cursor_zone() -> String:
@@ -192,6 +214,10 @@ func _physics_process(delta: float) -> void:
 
 
 func _tick_auto_pay(delta: float) -> void:
+	## Repair locks out guest use (queue may remain; no pay progress).
+	if _repairing:
+		_clear_pay_customer()
+		return
 	if is_broken():
 		if _pay_customer != null:
 			_fail_pay_break()
@@ -207,7 +233,7 @@ func _tick_auto_pay(delta: float) -> void:
 		_pay_customer = cust
 		_pay_progress = 0.0
 	_pay_progress += delta
-	## Continuous durability drain while paying (~10 over full pay window).
+	## Continuous durability drain while paying (~20／guest → ~5 guests per bar).
 	var drain := Tuning.SELF_CASHIER_DRAIN_PER_SEC * delta
 	durability = maxf(0.0, durability - drain)
 	if _pay_progress + 0.00001 >= Tuning.SELF_CASHIER_PAY_SEC:
@@ -256,13 +282,15 @@ func _refresh_label() -> void:
 	var n: int = queue.size()
 	var hp := int(ceil(durability))
 	var text := Loc.t("world.self_cashier.status", [register_index + 1, n, hp])
-	if is_broken():
+	if _repairing:
+		text += "\n" + Loc.t("world.self_cashier.repairing")
+	elif is_broken():
 		text += "\n" + Loc.t("world.self_cashier.broken")
 	elif is_instance_valid(_pay_customer):
 		var pct := 100.0 * _pay_progress / Tuning.SELF_CASHIER_PAY_SEC
 		text += "\n" + Loc.t("world.self_cashier.loading", [pct])
-	if _repairing:
-		text += "\n" + Loc.t("world.self_cashier.repairing")
+	elif needs_repair():
+		text += "\n" + Loc.t("world.self_cashier.worn")
 	label.text = text
 	_label_n = n
 

@@ -230,7 +230,9 @@ const DISSAT_DIRT_PER_SEC := 8.0
 ## Self-checkout furniture (`self_cashier`) — see cashiersystem.md / shopitem.md.
 const SELF_CASHIER_PAY_SEC := 10.0
 const SELF_CASHIER_DURABILITY_MAX := 100.0
-const SELF_CASHIER_DRAIN_PER_SEC := 10.0 / SELF_CASHIER_PAY_SEC
+## ~5 guests per full bar (100 / 20).
+const SELF_CASHIER_DRAIN_PER_GUEST := 20.0
+const SELF_CASHIER_DRAIN_PER_SEC := SELF_CASHIER_DRAIN_PER_GUEST / SELF_CASHIER_PAY_SEC
 const SELF_CASHIER_BREAK_DISSAT := 50.0
 const SELF_CASHIER_REPAIR_HZ := 1.5  ## full L↔R round-trips per second
 

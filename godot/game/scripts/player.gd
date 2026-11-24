@@ -2167,6 +2167,9 @@ func _do_short_interact() -> void:
 func _try_self_cashier_repair_begin(reg: Node2D) -> void:
 	if reg == null or not is_instance_valid(reg) or not reg.has_method("begin_repair"):
 		return
+	if reg.has_method("is_guest_using") and bool(reg.call("is_guest_using")):
+		log_line.emit(Loc.t("log.player.self_cashier_busy"))
+		return
 	if not bool(reg.call("can_repair")):
 		return
 	if not _interact_try(reg):
@@ -2191,6 +2194,10 @@ func _try_self_cashier_repair_hit() -> void:
 	var after := float(reg.get("durability"))
 	var gained := int(round(after - before))
 	log_line.emit(Loc.t("log.player.self_cashier_repair", [maxi(0, gained)]))
+	## Chain until fully repaired; cancel still exits mid-session.
+	var still := bool(reg.call("is_repairing")) if reg.has_method("is_repairing") else bool(reg.get("_repairing"))
+	if still:
+		return
 	_interact_release(reg)
 	_self_repair_reg = null
 
