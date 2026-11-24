@@ -2211,7 +2211,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if not event.is_pressed() or event is InputEventJoypadMotion:
 		return
-	## D-PAD lives on bag_slot_* (ops); prep UI still accepts it via dir_from_event.
+	## D-PAD／arrows live on bag_slot_*; dir_from_event maps them to cardinals.
 	var prep_dir := Controls.dir_from_event(event)
 	if prep_dir == 0:
 		_move(0, -1)

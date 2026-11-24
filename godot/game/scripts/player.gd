@@ -1138,7 +1138,8 @@ func _input(event: InputEvent) -> void:
 	if not _round_active() and (event.is_action(Controls.INTERACT) or event.is_action(Controls.CANCEL)):
 		return
 	# Discrete directions only here; analog stick uses _poll_stick_cardinal.
-	# Mode-steal: while command mode open, D-PAD / bag_slot feeds QTEs (not bag use).
+	# Mode-steal: while command mode open, D-PAD / arrows (bag_slot_*) feed QTEs
+	# — not bag use (see Controls.dir_from_event + _bag_use_suppressed).
 	if _in_dir_mode() and event.is_pressed() and (
 		event is InputEventKey or event is InputEventJoypadButton
 	):
@@ -1147,7 +1148,7 @@ func _input(event: InputEvent) -> void:
 			_try_dir(dir)
 			get_viewport().set_input_as_handled()
 			return
-	## D-Pad / arrows → ops bag slots (main path).
+	## D-Pad / arrows → ops bag slots (free ops only; suppressed in dir mode).
 	if event.is_pressed() and (event is InputEventKey or event is InputEventJoypadButton):
 		var bag_slot := Controls.bag_slot_from_event(event)
 		if bag_slot >= 0:
@@ -2686,11 +2687,29 @@ func _tick_action(delta: float) -> void:
 			_long_committed = true
 			_tick_cannon(delta, turret)
 		return
-	var thief := _nearest_active_thief()
-	if thief != null:
-		target = thief
-		_begin_fight()
-		return
+	## Sticky long actions: a passing thief (or other higher-priority target)
+	## must not yank checkout / clean / shelve mid-hold. Thief still wins when
+	## *starting* an Interact press (`playeraction.md` priority).
+	if _long_committed and is_instance_valid(target):
+		match _obj_str(target, "kind"):
+			"cashier":
+				_tick_cashier(delta)
+				return
+			"dirt":
+				_tick_clean(delta)
+				return
+			"shelf":
+				if _shelve_done:
+					_long_committed = false
+				else:
+					_tick_restock(delta)
+					return
+	if not _long_committed and not _restock_picking:
+		var thief := _nearest_active_thief()
+		if thief != null:
+			target = thief
+			_begin_fight()
+			return
 	var long_kind := _long_kind()
 	if long_kind == "restock":
 		target = _nearest_kind("restock")
@@ -3424,6 +3443,15 @@ func _bag_use_suppressed() -> bool:
 		return true
 	if _in_dir_mode():
 		return true
+	## Active personal checkout (before／without command_lock edge) — no bag.
+	if (
+		_long_committed
+		and _j_held
+		and not _checkout_hold_idle
+		and is_instance_valid(target)
+		and _obj_str(target, "kind") == "cashier"
+	):
+		return true
 	if _fighting or _cleaning() or _shelving():
 		return true
 	if _cancel_held or _cancel_drop_ready:
@@ -3685,7 +3713,14 @@ func _try_dir(dir: int) -> void:
 		if _carries != null and _carries.has_method("set_carry_aim"):
 			_carries.set_carry_aim(cslot)
 		return
-	if command_lock:
+	## Prefer command_lock; also accept sticky checkout before lock flips this frame.
+	if command_lock or (
+		_long_committed
+		and _j_held
+		and not _checkout_hold_idle
+		and is_instance_valid(target)
+		and _obj_str(target, "kind") == "cashier"
+	):
 		_try_command(dir)
 
 

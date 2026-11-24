@@ -321,7 +321,7 @@ func _best_stick_vector(axis_x: JoyAxis, axis_y: JoyAxis) -> Vector2:
 
 
 ## Checkout / skill-menu / prep cardinal: 0 up, 1 down, 2 left, 3 right. -1 if none.
-## Stick + keyboard / arrows only — no D-Pad InputMap.
+## Stick + WASD on move_*; arrows / D-Pad live on bag_slot_* and map via dir_from_bag_slot.
 func dir_just_pressed() -> int:
 	if Input.is_action_just_pressed(MOVE_UP):
 		return 0
@@ -330,6 +330,15 @@ func dir_just_pressed() -> int:
 	if Input.is_action_just_pressed(MOVE_LEFT):
 		return 2
 	if Input.is_action_just_pressed(MOVE_RIGHT):
+		return 3
+	## Ops InputMap: arrows / D-Pad are bag_slot_* (stolen by command modes).
+	if Input.is_action_just_pressed(BAG_SLOT_UP):
+		return 0
+	if Input.is_action_just_pressed(BAG_SLOT_DOWN):
+		return 1
+	if Input.is_action_just_pressed(BAG_SLOT_LEFT):
+		return 2
+	if Input.is_action_just_pressed(BAG_SLOT_RIGHT):
 		return 3
 	return -1
 
@@ -343,7 +352,8 @@ func dir_from_event(event: InputEvent) -> int:
 		return 2
 	if event.is_action_pressed(MOVE_RIGHT):
 		return 3
-	return -1
+	## Arrows / D-Pad → bag_slot_*; map to the same cardinal as move_*.
+	return dir_from_bag_slot(bag_slot_from_event(event))
 
 
 ## Bag cross index: 0 up, 1 right, 2 down, 3 left. -1 if none.
@@ -357,6 +367,21 @@ func bag_slot_from_event(event: InputEvent) -> int:
 	if event.is_action_pressed(BAG_SLOT_LEFT):
 		return 3
 	return -1
+
+
+## bag_slot (0 up, 1 right, 2 down, 3 left) → dir (0 up, 1 down, 2 left, 3 right).
+func dir_from_bag_slot(slot: int) -> int:
+	match slot:
+		0:
+			return 0
+		1:
+			return 3
+		2:
+			return 1
+		3:
+			return 2
+		_:
+			return -1
 
 
 func _ensure_action(action: String, deadzone: float, events: Array) -> void:
