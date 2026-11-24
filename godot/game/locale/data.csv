@@ -17,6 +17,7 @@ dir.down,下,Down,下,下
 dir.left,左,Left,左,左
 dir.right,右,Right,右,右
 furniture.cashier,收銀機,Cash register,收银机,レジ
+furniture.self_cashier,自助收銀機,Self-checkout,自助收银机,セルフレジ
 furniture.restock_dry,乾貨補貨架,Dry restock rack,干货补货架,常温補充棚
 furniture.restock_frozen,凍櫃補貨架,Chiller restock rack,冻柜补货架,冷蔵補充棚
 furniture.restock_ice,冰櫃補貨架,Freezer restock rack,冰柜补货架,冷凍補充棚
@@ -137,6 +138,12 @@ skill.three_volley.blurb,全店掃射三波：立即／2／4秒開火；客人�
 skill.let_there_be_light.name,我說有光就有光！,Let there be light!,我说有光就有光！,光あれ！
 skill.let_there_be_light.blurb,即時為貨架補貨；空架隨機選同類有貨商品。消耗後倉存貨，單階 CD60。指令右右左左上下下上,"Instantly restock shelves; empty shelves randomly get an in-stock item of the same category. Uses warehouse stock. Single-tier CD60. Input: right right left left up down down up",即时为货架补货；空架随机选同类有货商品。消耗后仓存货，单阶 CD60。指令右右左左上下下上,棚を即時補充。空の棚には同じカテゴリの在庫商品をランダムに補充。在庫を消費。単段階 CD60。コマンド：右右左左上下下上
 world.cashier.status,收銀機 %d\n排隊 %d 人,Register %d\nQueue %d,收银机 %d\n排队 %d 人,レジ %d\n列 %d 人
+world.self_cashier.status,自助機 %d\n排隊 %d｜運作 %d,Self-checkout %d\nQueue %d | HP %d,自助机 %d\n排队 %d｜运作 %d,セルフレジ %d\n列 %d｜稼働 %d
+world.self_cashier.broken,故障・需維修,Broken — needs repair,故障・需维修,故障・要修理
+world.self_cashier.loading,自助付款 %.0f%%,Self-checkout %.0f%%,自助付款 %.0f%%,セルフ会計 %.0f%%
+world.self_cashier.repairing,維修中…,Repairing…,维修中…,修理中…
+log.player.self_cashier_repair,自助機維修 +%d,Self-checkout repaired +%d,自助机维修 +%d,セルフレジ修理 +%d
+log.player.self_cashier_repair_enter,開始維修自助機,Repairing self-checkout,开始维修自助机,セルフレジを修理
 world.clerk.cashier,店員收銀,Clerk checkout,店员收银,店員レジ
 world.clerk.restock,店員補貨,Clerk restock,店员补货,店員補充
 world.clerk.security,店員保安,Clerk security,店员保安,店員警備

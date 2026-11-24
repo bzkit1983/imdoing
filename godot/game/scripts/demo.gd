@@ -72,6 +72,8 @@ var _pause: CanvasLayer
 var _world: Node2D
 var _door_caption: Label = null
 var cashiers: Array[Node2D] = []
+## Self-checkout furniture (not clerk-bindable). Merged in pick_register.
+var self_cashiers: Array[Node2D] = []
 var portals: Array[Node2D] = []
 ## SKU id → Array of stocked shelves (maintained via shelf.stock_sku_changed).
 var _shelves_by_sku: Dictionary = {}
@@ -537,6 +539,7 @@ func _clear_world() -> void:
 	_guest_n = 0
 	_active_thief_n = 0
 	cashiers.clear()
+	self_cashiers.clear()
 	portals.clear()
 	_next_net_portal_id = 0
 	_dirts.clear()
@@ -893,14 +896,26 @@ func _player_lock_register():
 func _checkout_locked_guest():
 	_clerk_cast._checkout_locked_guest()
 
+func all_registers() -> Array[Node2D]:
+	var out: Array[Node2D] = []
+	for c in cashiers:
+		if c != null and is_instance_valid(c):
+			out.append(c)
+	for c in self_cashiers:
+		if c != null and is_instance_valid(c):
+			out.append(c)
+	return out
+
+
 func pick_register(cust: Node) -> Node2D:
-	if cashiers.is_empty():
+	var regs := all_registers()
+	if regs.is_empty():
 		return null
 	var best_n := 999
-	for c in cashiers:
+	for c in regs:
 		best_n = mini(best_n, int(c.queue.size()))
 	var tied: Array[Node2D] = []
-	for c in cashiers:
+	for c in regs:
 		if int(c.queue.size()) == best_n:
 			tied.append(c)
 	if tied.size() == 1:
@@ -1568,7 +1583,7 @@ func _restocks_cleared() -> bool:
 
 
 func _registers_idle() -> bool:
-	for c in cashiers:
+	for c in all_registers():
 		if c != null and is_instance_valid(c) and c.queue.size() > 0:
 			return false
 	return true
@@ -2877,16 +2892,19 @@ func _on_paid(
 	var body: Node2D = actor if actor != null and is_instance_valid(actor) else _seat_actor(seat)
 	if body == null:
 		body = _player
+	var actor_kind := str(actor.get("kind")) if actor != null and is_instance_valid(actor) else ""
 	var FloatText = preload("res://scripts/ui/float_text.gd")
 	if body != null and is_instance_valid(body):
 		var stagger := 0
 		if amount > 0:
 			FloatText.spawn_money(body, amount, stagger)
 			stagger += 1
-		FloatText.spawn_xp(body, _xp_float("serve", seat), stagger)
-		stagger += 1
-		if from_elite:
-			FloatText.spawn_xp(body, _xp_float("elite", seat), stagger)
+		## Furniture self-checkout: money pop only (no seat XP float).
+		if actor_kind != "self_cashier":
+			FloatText.spawn_xp(body, _xp_float("serve", seat), stagger)
+			stagger += 1
+			if from_elite:
+				FloatText.spawn_xp(body, _xp_float("elite", seat), stagger)
 	## Client: presentation only — Host absolute day_hud overwrites revenue／ops.
 	if SessionService.is_networked() and SessionService.is_client():
 		apply_ops_rating(RatingRules.checkout_delta(from_elite, perfect), body)
@@ -2895,21 +2913,28 @@ func _on_paid(
 		_source_waste_after_checkout(seat, paid_customer)
 	revenue += amount
 	served += 1
-	_seat_bump(seat_served, seat, 1)
+	if actor_kind != "self_cashier":
+		_seat_bump(seat_served, seat, 1)
 	if from_elite:
 		elite_served += 1
-		_seat_bump(seat_elite, seat, 1)
+		if actor_kind != "self_cashier":
+			_seat_bump(seat_elite, seat, 1)
 	bump_hud()
 	apply_ops_rating(RatingRules.checkout_delta(from_elite, perfect), body)
-	## Checkout task credit: player seat only — player body or that seat's self-checkout ring.
-	## Skip clerk NPC and skill mass-pay (actor null).
+	## Checkout task credit: player seat only — player body or that seat's skill SCO ring.
+	## Furniture self_cashier credits seat 0 metric only (no seat XP). Skip clerk／mass-pay null actor.
 	if _tasks != null:
 		_tasks.sync_absolute_for_all_seats("sales_revenue", revenue)
 		_tasks.sync_absolute_for_all_seats("ops_rating", ops_rating)
-		var kind := str(actor.get("kind")) if actor != null and is_instance_valid(actor) else ""
-		var credit := _is_player_seat(seat) and (
-			_is_player_actor(actor) or kind == "cashier"
-		)
+		var kind := actor_kind
+		var credit := false
+		if kind == "self_cashier":
+			credit = true
+			seat = 0
+		else:
+			credit = _is_player_seat(seat) and (
+				_is_player_actor(actor) or kind == "cashier"
+			)
 		if credit:
 			_tasks.note_metric(seat, "checkout_count", 1)
 			if perfect:
@@ -2923,7 +2948,7 @@ func _on_paid(
 	if _player != null:
 		var FxBurst = preload("res://scripts/fx_burst.gd")
 		var at: Vector2 = _player.global_position + Vector2(0, -28)
-		if body != null and str(body.get("kind")) == "cashier":
+		if body != null and str(body.get("kind")) in ["cashier", "self_cashier"]:
 			at = body.global_position + Vector2(0, -24)
 		elif _player.get("target") != null and is_instance_valid(_player.target):
 			at = _player.target.global_position + Vector2(0, -24)

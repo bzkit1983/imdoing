@@ -7,6 +7,7 @@ const StateScript = preload("res://scripts/game_state.gd")
 const RestockScript = preload("res://scripts/restock_point.gd")
 const ShelfScript = preload("res://scripts/shelf.gd")
 const CashierScript = preload("res://scripts/cashier.gd")
+const SelfCashierScript = preload("res://scripts/self_cashier.gd")
 const PortalScript = preload("res://scripts/portal.gd")
 const ClerkScript = preload("res://scripts/clerk.gd")
 const FloorTilesScript = preload("res://scripts/floor_tiles.gd")
@@ -170,6 +171,20 @@ func make_cashier(r: Rect2, rot: int, index: int) -> Node2D:
 	host.cashiers.append(node)
 	return node
 
+func make_self_cashier(r: Rect2, rot: int, index: int) -> Node2D:
+	host._obstacles.append(r)
+	var node: StaticBody2D = SelfCashierScript.new()
+	fit_body(node, r, "self_cashier", rot, 2)
+	node.register_index = index
+	node.set_facing(facing(rot))
+	node.label = caption(r.position + Vector2(8, 4), "")
+	if node.has_method("bind_host"):
+		node.bind_host(host)
+	host._world.add_child(node)
+	## Separate from ordinary `cashiers` so clerk／SCO／Dark Side indexes stay clean.
+	host.self_cashiers.append(node)
+	return node
+
 func make_portal(r: Rect2, rot: int, pair_id: String, tint: Color) -> Node2D:
 	host._obstacles.append(r)
 	var node: StaticBody2D = PortalScript.new()
@@ -242,6 +257,10 @@ func build_furniture(nodes: Array[Node2D]) -> void:
 			shelf_i += 1
 		elif t == "cashier":
 			var node := make_cashier(r, rot, reg_i)
+			nodes.append(node)
+			reg_i += 1
+		elif t == "self_cashier":
+			var node := make_self_cashier(r, rot, reg_i)
 			nodes.append(node)
 			reg_i += 1
 		elif t == "portal":

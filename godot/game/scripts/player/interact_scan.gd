@@ -41,6 +41,9 @@ static func interact_dist(
 		if host.global_position.y < node.global_position.y - 8.0:
 			return -1.0
 		dot = 1.0
+	elif kind == &"self_cashier":
+		## Repair from any facing within range (broken only — availability gates elsewhere).
+		dot = 1.0
 	elif dot < Tuning.FACE_DOT:
 		return -1.0
 	return dist

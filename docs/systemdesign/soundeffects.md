@@ -58,6 +58,12 @@
 | `sfx_checkout_circle_done` | 完成收銀入帳（沿用舊 id） | 收銀鈴／錢匣 | P0 | `cashiersystem.md` |
 | `sfx_checkout_cash_pop2` | 完成後彈出 $ 圖示；店員／Dark Side 臨時收銀／影分身自動收銀完成同 | 硬幣／錢音 | P0 | `cashiersystem.md`／`clerksystem.md`／`shadowclone.md` |
 | `sfx_checkout_release_reset` | 收銀中放手重置指令 | 短取消 | P2 | `cashiersystem.md` |
+| `sfx_self_cashier_pay_tick` | 自助機付款倒數進行中（可節流） | 輕掃碼／滴答 | P2 | `cashiersystem.md` |
+| `sfx_self_cashier_pay_done` | 自助機成功入帳 | 自助結帳音（可輕於手收鈴） | P1 | `cashiersystem.md` |
+| `sfx_self_cashier_break` | 自助機運作值歸零壞機 | 故障 buzz／當機 | P0 | `cashiersystem.md` |
+| `sfx_self_cashier_repair_enter` | 進入維修 BAR | 開面板／工具 | P2 | `cashiersystem.md` |
+| `sfx_self_cashier_repair_hit` | 維修命中一區並完成 | 成功敲擊／修復 chime | P0 | `cashiersystem.md` |
+| `sfx_self_cashier_repair_cancel` | 維修中取消離開 | 短取消 | P2 | `cashiersystem.md` |
 
 ## 4. 清潔
 

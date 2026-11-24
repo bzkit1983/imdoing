@@ -226,6 +226,28 @@ const DISSAT_MAX := 100.0
 const DISSAT_MISS := 18.0
 const DISSAT_QUEUE_PER_SEC := 100.0 / 15.0
 const DISSAT_DIRT_PER_SEC := 8.0
+
+## Self-checkout furniture (`self_cashier`) — see cashiersystem.md / shopitem.md.
+const SELF_CASHIER_PAY_SEC := 10.0
+const SELF_CASHIER_DURABILITY_MAX := 100.0
+const SELF_CASHIER_DRAIN_PER_SEC := 10.0 / SELF_CASHIER_PAY_SEC
+const SELF_CASHIER_BREAK_DISSAT := 50.0
+const SELF_CASHIER_REPAIR_HZ := 1.5  ## full L↔R round-trips per second
+
+
+static func self_cashier_repair_heal(zone: String) -> int:
+	match String(zone):
+		"green":
+			return 40
+		"yellow":
+			return 20
+		"red", "blank":
+			return 10
+		"white":
+			return 5
+		_:
+			return 5
+
 const CUSTOMER_ARRIVE_DIST := 40.0
 ## Must stay below cashier `slot_gap` (48): otherwise a one-slot advance is
 ## already "arrived" and queued guests never step forward after dequeue.

@@ -55,6 +55,8 @@ const CULTIVATION_RECIPES := {
 ## Display names live in locale/data.csv (`furniture.<id>`).
 const FURNITURE := {
 	"cashier": {"price": 1000, "w": 2, "h": 1, "unlock": 1},
+	## Test: fully buyable. Story place_cap later; afterstory uncapped (shopitem.md).
+	"self_cashier": {"price": 2500, "w": 2, "h": 1, "unlock": 1},
 	"restock_dry": {"price": 500, "w": 2, "h": 2, "unlock": 1},
 	"restock_frozen": {"price": 700, "w": 2, "h": 2, "unlock": 4},
 	"restock_ice": {"price": 800, "w": 2, "h": 2, "unlock": 7},
@@ -944,11 +946,20 @@ func cashier_count() -> int:
 	return placed_count("cashier")
 
 
+func self_cashier_count() -> int:
+	return placed_count("self_cashier")
+
+
+## Ordinary + self-checkout counts for open gate (shopitem.md).
+func register_kind_count() -> int:
+	return cashier_count() + self_cashier_count()
+
+
 ## Reasons the operate round cannot start. Empty means the layout is ready.
 ## A pair is one placed restock point plus one placed shelf of the same category.
 func open_blockers() -> PackedStringArray:
 	var out: PackedStringArray = []
-	if cashier_count() < 1:
+	if register_kind_count() < 1:
 		out.append(Loc.t("err.need_cashier"))
 	if not _has_matching_pair():
 		out.append(Loc.t("err.need_restock_pair"))

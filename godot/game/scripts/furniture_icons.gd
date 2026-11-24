@@ -57,6 +57,8 @@ static func row_texture(type: String) -> Texture2D:
 static func _sprite_path(type: String) -> String:
 	if type == "cashier":
 		return "res://art/sprites/register_0.png"
+	if type == "self_cashier":
+		return "res://art/sprites/self_cashier_0.png"
 	if type == "portal":
 		return "res://art/sprites/portal_0.png"
 	if type.begins_with("restock_"):
@@ -100,6 +102,8 @@ static func _procedural(type: String) -> Texture2D:
 	var col := Color("5c4033")
 	if type == "cashier":
 		col = Color("5c4033")
+	elif type == "self_cashier":
+		col = Color("4a90a4")
 	elif type.begins_with("restock"):
 		if type.ends_with("frozen"):
 			col = Color("148a9e")

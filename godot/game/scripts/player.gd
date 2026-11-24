@@ -209,6 +209,8 @@ var _portal_exit: Node2D
 var _portal_warped: bool = false
 var _portal_restore_overview: bool = false
 var _portal_body_mod: Color = Color.WHITE
+## Broken self-checkout repair minigame (furniture `self_cashier`).
+var _self_repair_reg: Node2D = null
 var _shake_left: float = 0.0
 var _shake_mag: float = 0.0
 var _stun_pending: float = Tuning.STUN_SEC
@@ -1263,6 +1265,9 @@ func _drop_dir_label(dir: Vector2) -> String:
 	return _toss.drop_dir_label(dir)
 func _cancel_input() -> void:
 	var used := _fighting or _stun_left > 0.0 or _slip_left > 0.0 or _long_committed or command_lock
+	if is_instance_valid(_self_repair_reg):
+		_end_self_cashier_repair()
+		used = true
 	if _restock_picking:
 		_abort_restock_pick()
 		_restock_aborted = true
@@ -1360,7 +1365,10 @@ func _physics_process(delta: float) -> void:
 		_cast_pose_left = maxf(0.0, _cast_pose_left - delta)
 	if _deliver_pose_left > 0.0:
 		_deliver_pose_left = maxf(0.0, _deliver_pose_left - delta)
-	command_lock = _long_committed and _j_held and is_instance_valid(target) and _obj_str(target, "kind") == "cashier" and not skill_menu_open and not ult_prep
+	command_lock = (
+		(_long_committed and _j_held and is_instance_valid(target) and _obj_str(target, "kind") == "cashier")
+		or is_instance_valid(_self_repair_reg)
+	) and not skill_menu_open and not ult_prep
 	if not command_lock and not ult_prep:
 		_prompt.active = false
 	## Dash/run via InputMap (face X / Space) — no RT dash.
@@ -1989,6 +1997,8 @@ func _long_kind() -> String:
 		return "shelf"
 	if _nearest_kind("cashier") != null:
 		return "cashier"
+	if _nearest_repairable_self_cashier() != null:
+		return "self_cashier"
 	if _nearest_kind("restock") != null:
 		return "restock"
 	if _nearest_kind("drop") != null:
@@ -2050,10 +2060,33 @@ func _preview_target() -> Node2D:
 			return _nearest_kind("shelf")
 		"cashier":
 			return _nearest_kind("cashier")
+		"self_cashier":
+			return _nearest_repairable_self_cashier()
+	var sco := _nearest_repairable_self_cashier()
+	if sco != null:
+		return sco
 	var portal := _nearest_usable_portal()
 	if portal != null:
 		return portal
 	return null
+
+
+func _nearest_repairable_self_cashier() -> Node2D:
+	var best: Node2D = null
+	var best_d := 1000000.0
+	for node in interactables:
+		if node == null or not is_instance_valid(node):
+			continue
+		if _obj_str(node, "kind") != "self_cashier":
+			continue
+		if not _interact_available(node):
+			continue
+		var d := _interact_dist(node)
+		if d < 0.0 or d >= best_d:
+			continue
+		best_d = d
+		best = node
+	return best
 
 
 func _release_interact() -> void:
@@ -2116,12 +2149,59 @@ func _do_short_interact() -> void:
 		_pickup_used = false
 		_tick_drop()
 		return
+	if is_instance_valid(_self_repair_reg):
+		_try_self_cashier_repair_hit()
+		return
+	var broken_sco := _nearest_repairable_self_cashier()
+	if broken_sco != null:
+		_try_self_cashier_repair_begin(broken_sco)
+		return
 	var portal := _nearest_usable_portal()
 	if portal != null:
 		_try_portal_teleport(portal)
 		return
 	if _store_open() and not inventory.is_empty() and not _faced_guests().is_empty():
 		log_line.emit(Loc.t("log.player.hold_deliver_hint"))
+
+
+func _try_self_cashier_repair_begin(reg: Node2D) -> void:
+	if reg == null or not is_instance_valid(reg) or not reg.has_method("begin_repair"):
+		return
+	if not bool(reg.call("can_repair")):
+		return
+	if not _interact_try(reg):
+		return
+	if not bool(reg.call("begin_repair", seat_id)):
+		_interact_release(reg)
+		return
+	_self_repair_reg = reg
+	target = reg
+	log_line.emit(Loc.t("log.player.self_cashier_repair_enter"))
+	velocity = Vector2.ZERO
+
+
+func _try_self_cashier_repair_hit() -> void:
+	var reg := _self_repair_reg
+	if reg == null or not is_instance_valid(reg) or not reg.has_method("try_repair_hit"):
+		_end_self_cashier_repair()
+		return
+	var before := float(reg.get("durability"))
+	if not bool(reg.call("try_repair_hit", seat_id)):
+		return
+	var after := float(reg.get("durability"))
+	var gained := int(round(after - before))
+	log_line.emit(Loc.t("log.player.self_cashier_repair", [maxi(0, gained)]))
+	_interact_release(reg)
+	_self_repair_reg = null
+
+
+func _end_self_cashier_repair() -> void:
+	var reg := _self_repair_reg
+	_self_repair_reg = null
+	if reg != null and is_instance_valid(reg):
+		if reg.has_method("cancel_repair"):
+			reg.call("cancel_repair", seat_id)
+		_interact_release(reg)
 
 
 func _take_shelf_piece(shelf: Node2D) -> void:
@@ -2458,6 +2538,10 @@ func _interact_available(node: Node2D) -> bool:
 		return true
 	if kind == "cashier":
 		return node.has_method("ready_customer") and node.call("ready_customer") != null
+	if kind == "self_cashier":
+		if node.has_method("can_repair") and bool(node.call("can_repair")):
+			return true
+		return bool(node.get("_repairing")) and int(node.get("_repair_seat")) == seat_id
 	if kind == "portal":
 		return _portal_interactable(node)
 	if kind == "elite" or kind == "":
@@ -2622,7 +2706,7 @@ const GLOW_SPAN_SCALE := 0.85
 func _glow_span(node: Node2D) -> Vector2:
 	var kind := _obj_str(node, "kind")
 	var span := Vector2(150.0, 150.0)
-	if kind == "shelf" or kind == "cashier" or kind == "restock" or kind == "portal":
+	if kind == "shelf" or kind == "cashier" or kind == "self_cashier" or kind == "restock" or kind == "portal":
 		span = Vector2(240.0, 150.0)
 		for child in node.get_children():
 			if child is CollisionShape2D and child.shape is RectangleShape2D:
@@ -2643,7 +2727,7 @@ func _update_target() -> void:
 		return
 	## Aim / slip / held interact: keep the action target (no full rescan).
 	## In-flight toss does not freeze target scan.
-	if _j_held or _cancel_drop_ready or _slip_left > 0.0:
+	if _j_held or _cancel_drop_ready or _slip_left > 0.0 or is_instance_valid(_self_repair_reg):
 		return
 	var best := _preview_target()
 	if target != best:

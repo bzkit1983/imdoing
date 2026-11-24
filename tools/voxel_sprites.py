@@ -143,6 +143,7 @@ CHAR_WAY = {
 EIGHT_WAY = CHAR_WAY
 FOUR_WAY = CHAR_WAY | {
     "register",
+    "self_cashier",
     "restock_dry",
     "restock_frozen",
     "restock_ice",

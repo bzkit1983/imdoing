@@ -16,6 +16,14 @@
 條件:
 - 角色等級 1
 
+##開放功能（產品；章節後補）
+- 能購入／放置自助收銀機（`self_cashier`）
+- 放置台數受劇情章數 `place_cap` 限制（表由劇情／事件設計時填）；後日談解放上限
+條件:
+- 產品＝劇情／事件任務資格（登場章未定）
+- **測試版：** 全開放購入／放置（不套章表）
+交叉: `shopitem.md`、`cashiersystem.md`、[`story/growth-economy.md`](story/growth-economy.md)、[`story/afterstory.md`](story/afterstory.md)
+
 ##開放功能
 - 能開發乾貨類零食
 條件:

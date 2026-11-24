@@ -961,7 +961,10 @@ func _tick_queue(delta: float, td: float) -> void:
 		velocity = Vector2.ZERO
 	var blocked := _game and bool(_game.queue_dissat_blocked())
 	if not is_thief and not blocked:
-		gain_dissat(Tuning.DISSAT_QUEUE_PER_SEC * td)
+		var mult := 1.0
+		if reg != null and reg.has_method("queue_dissat_mult"):
+			mult = float(reg.call("queue_dissat_mult"))
+		gain_dissat(Tuning.DISSAT_QUEUE_PER_SEC * mult * td)
 	mood = Loc.t("mood.queue")
 
 

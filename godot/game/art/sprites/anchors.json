@@ -31949,5 +31949,33 @@
     "fw": 56.0,
     "fh": 80.0,
     "hires": true
+  },
+  "self_cashier_0": {
+    "ax": 36.0,
+    "ay": 108.0,
+    "fw": 72.0,
+    "fh": 56.0,
+    "hires": true
+  },
+  "self_cashier_1": {
+    "ax": 28.0,
+    "ay": 116.0,
+    "fw": 56.0,
+    "fh": 72.0,
+    "hires": true
+  },
+  "self_cashier_2": {
+    "ax": 36.0,
+    "ay": 108.0,
+    "fw": 72.0,
+    "fh": 56.0,
+    "hires": true
+  },
+  "self_cashier_3": {
+    "ax": 28.0,
+    "ay": 116.0,
+    "fw": 56.0,
+    "fh": 72.0,
+    "hires": true
   }
 }
