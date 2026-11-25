@@ -31977,5 +31977,131 @@
     "fw": 56.0,
     "fh": 72.0,
     "hires": true
+  },
+  "aji_0": {
+    "ax": 18.0,
+    "ay": 30.0,
+    "fw": 36.0,
+    "fh": 20.0,
+    "hires": true
+  },
+  "ayu_0": {
+    "ax": 16.0,
+    "ay": 27.0,
+    "fw": 32.0,
+    "fh": 18.0,
+    "hires": true
+  },
+  "cooked_stall_0": {
+    "ax": 64.0,
+    "ay": 104.0,
+    "fw": 128.0,
+    "fh": 64.0,
+    "hires": true
+  },
+  "cooked_stall_1": {
+    "ax": 32.0,
+    "ay": 136.0,
+    "fw": 64.0,
+    "fh": 128.0,
+    "hires": true
+  },
+  "cooked_stall_2": {
+    "ax": 64.0,
+    "ay": 104.0,
+    "fw": 128.0,
+    "fh": 64.0,
+    "hires": true
+  },
+  "cooked_stall_3": {
+    "ax": 32.0,
+    "ay": 136.0,
+    "fw": 64.0,
+    "fh": 128.0,
+    "hires": true
+  },
+  "fish_tank_0": {
+    "ax": 60.0,
+    "ay": 72.0,
+    "fw": 120.0,
+    "fh": 72.0,
+    "hires": true
+  },
+  "fish_tank_1": {
+    "ax": 36.0,
+    "ay": 96.0,
+    "fw": 72.0,
+    "fh": 120.0,
+    "hires": true
+  },
+  "fish_tank_2": {
+    "ax": 60.0,
+    "ay": 72.0,
+    "fw": 120.0,
+    "fh": 72.0,
+    "hires": true
+  },
+  "fish_tank_3": {
+    "ax": 36.0,
+    "ay": 96.0,
+    "fw": 72.0,
+    "fh": 120.0,
+    "hires": true
+  },
+  "grain_0": {
+    "ax": 18.0,
+    "ay": 46.0,
+    "fw": 36.0,
+    "fh": 28.0,
+    "hires": true
+  },
+  "nigiri_0": {
+    "ax": 16.0,
+    "ay": 32.0,
+    "fw": 32.0,
+    "fh": 24.0,
+    "hires": true
+  },
+  "onigiri_0": {
+    "ax": 16.0,
+    "ay": 44.0,
+    "fw": 32.0,
+    "fh": 24.0,
+    "hires": true
+  },
+  "saba_0": {
+    "ax": 20.0,
+    "ay": 30.0,
+    "fw": 40.0,
+    "fh": 20.0,
+    "hires": true
+  },
+  "sanma_0": {
+    "ax": 24.0,
+    "ay": 24.0,
+    "fw": 48.0,
+    "fh": 16.0,
+    "hires": true
+  },
+  "soy_sauce_0": {
+    "ax": 12.0,
+    "ay": 52.0,
+    "fw": 24.0,
+    "fh": 24.0,
+    "hires": true
+  },
+  "tai_0": {
+    "ax": 18.0,
+    "ay": 34.0,
+    "fw": 36.0,
+    "fh": 20.0,
+    "hires": true
+  },
+  "yakimochi_0": {
+    "ax": 20.0,
+    "ay": 36.0,
+    "fw": 40.0,
+    "fh": 24.0,
+    "hires": true
   }
 }

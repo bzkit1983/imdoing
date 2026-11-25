@@ -69,6 +69,11 @@ const SKU_COLOR := {
 	"onigiri": Color("f5f0e1"),
 	"yakimochi": Color("e8b86d"),
 	"nigiri": Color("f2c4b0"),
+	"saba": Color("9eb8c8"),
+	"tai": Color("c0392b"),
+	"sanma": Color("5d90a6"),
+	"aji": Color("8f9c3a"),
+	"ayu": Color("a9d6e5"),
 }
 const SKU_PRICE := {
 	"can": 30, "snack": 15, "cup": 8,

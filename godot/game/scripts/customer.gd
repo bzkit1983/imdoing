@@ -79,7 +79,6 @@ var _temp_box_n: int = 0
 var _temp_job_cd: float = 0.0
 var _dissat_track: ColorRect
 ## Throttle for dirt-step float text (ops float popups).
-var _dirt_float_cd: float = 0.0
 var _path: PackedVector2Array = PackedVector2Array()
 var _path_i: int = 0
 var _goal: Vector2 = Vector2.ZERO
@@ -90,6 +89,11 @@ var _mood_label: Label
 ## Pictogram row for pending shopping (P0 ops SKU UI).
 var _list_icons: Node2D
 var _list_icons_fp: String = "\u0001"
+## WAITING_CRAFT: speech bubble + requested cooked SKU (art/ui/guest/request_bubble.png).
+var _request_bubble: Node2D
+var _request_sku_spr: Sprite2D
+var _request_sku_shown: String = "\u0001"
+const REQUEST_BUBBLE_TEX := preload("res://art/ui/guest/request_bubble.png")
 var _bar: ColorRect
 var _hp_track: ColorRect
 var _hp_bar: ColorRect
@@ -445,12 +449,8 @@ func gain_dissat(amount: float, reason: String = "") -> void:
 	if amount <= 0.0 or temp_clerk:
 		return
 	var easy := _game != null and bool(_game.play_is_easy())
-	var before := dissatisfaction
+	## Dissat bar updates in _sync_labels; no floating “-N” text.
 	dissatisfaction = minf(Tuning.DISSAT_MAX, dissatisfaction + Tuning.dissat_gain(amount, easy))
-	var applied := dissatisfaction - before
-	if applied > 0.05 and reason in ["miss", "dash", "toss_wrong", "drive_off"]:
-		var FloatText = preload("res://scripts/ui/float_text.gd")
-		FloatText.spawn_dissat(self, applied)
 
 
 func _dirt_dissat_rate() -> float:
@@ -740,12 +740,6 @@ func _physics_process(delta: float) -> void:
 		var dirt_rate := _dirt_dissat_rate()
 		gain_dissat(dirt_rate * td)
 		mood = _dirt_mood()
-		_dirt_float_cd = maxf(0.0, _dirt_float_cd - td)
-		if dirt_rate > 0.01 and _dirt_float_cd <= 0.0:
-			_dirt_float_cd = 1.0
-			var easy := _game != null and bool(_game.play_is_easy())
-			var FloatText = preload("res://scripts/ui/float_text.gd")
-			FloatText.spawn_dissat(self, Tuning.dissat_gain(dirt_rate, easy))
 	if is_elite and state != State.LEAVE and state != State.FLEE and state != State.FIGHT:
 		_tick_elite_affixes(delta, td)
 	if _lord_pull():
@@ -840,6 +834,10 @@ func _tick_seek(delta: float) -> void:
 
 
 func _tick_seek_cooked(delta: float, want: String) -> void:
+	## Thieves never queue at cooked stalls — drop cooked wants and keep stealing shelves.
+	if is_thief:
+		_skip_cooked_want_as_thief(want)
+		return
 	if stall != null and is_instance_valid(stall) and stall.has_method("enqueue"):
 		## Already joined — resume queue tick.
 		state = State.QUEUE_STALL
@@ -873,14 +871,30 @@ func _tick_seek_cooked(delta: float, want: String) -> void:
 		_clear_route()
 
 
+func _skip_cooked_want_as_thief(want: String) -> void:
+	if not shopping.is_empty() and String(shopping[0]) == want:
+		shopping.remove_at(0)
+		_bump_list()
+	_leave_stall_queue()
+	_target_shelf = null
+	if shopping.is_empty():
+		_try_finish_shopping(Loc.t("mood.to_pay"))
+	else:
+		state = State.SEEK
+	_sync_labels()
+
+
 func _join_stall(stall_node: Node2D) -> void:
+	if is_thief:
+		return
 	if stall_node == null or not stall_node.has_method("enqueue"):
 		return
 	stall = stall_node
 	stall.enqueue(self)
 	_stall_queue_idx = int(stall.call("queue_index_of", self)) if stall.has_method("queue_index_of") else 0
 	state = State.QUEUE_STALL
-	mood = Loc.t("mood.stall_queue")
+	## Stall queue: no “排隊中” mood text — request bubble only while WAITING_CRAFT.
+	mood = ""
 	SfxBus.play("sfx_guest_queue")
 
 
@@ -919,7 +933,7 @@ func _tick_queue_stall(delta: float, td: float) -> void:
 		velocity = Vector2.ZERO
 	## Only the front guest takes or waits for craft.
 	if idx != 0:
-		mood = Loc.t("mood.stall_queue")
+		mood = ""
 		return
 	if _stall_face_has(stall, want):
 		state = State.LINGER
@@ -927,8 +941,7 @@ func _tick_queue_stall(delta: float, td: float) -> void:
 		mood = Loc.t("mood.picking")
 		return
 	state = State.WAITING_CRAFT
-	mood = Loc.t("mood.stall_wait", [Tuning.sku_name(want)])
-	_sku_popup(want, SkuIcons.KIND_MISS)
+	mood = ""
 
 
 func _stall_face_has(stall_node: Node2D, sku: String) -> bool:
@@ -960,7 +973,7 @@ func _tick_waiting_craft(delta: float, td: float) -> void:
 		var blocked := _game and bool(_game.queue_dissat_blocked())
 		if not blocked:
 			gain_dissat(Tuning.DISSAT_STALL_WAIT_PER_SEC * td)
-	mood = Loc.t("mood.stall_wait", [Tuning.sku_name(want)])
+	mood = ""
 
 
 func _resolve_stall_queue_idx() -> int:
@@ -1031,6 +1044,9 @@ func _take_current() -> void:
 
 
 func _take_current_cooked(want: String) -> void:
+	if is_thief:
+		_skip_cooked_want_as_thief(want)
+		return
 	var stall_node: Node2D = stall if stall != null and is_instance_valid(stall) else _target_shelf
 	if stall_node == null or String(stall_node.get("kind")) != "cooked_stall":
 		if _game.has_method("find_cooked_stall"):
@@ -1057,8 +1073,7 @@ func _take_current_cooked(want: String) -> void:
 			_leave_stall_queue()
 			_join_stall(stall_node)
 		state = State.WAITING_CRAFT
-		mood = Loc.t("mood.stall_wait", [Tuning.sku_name(want)])
-		_sku_popup(want, SkuIcons.KIND_MISS)
+		mood = ""
 		return
 	state = State.THINK
 	_timer = Tuning.THINK_SEC
@@ -2318,9 +2333,7 @@ func elite_drive_off(add: float) -> void:
 
 
 func _roll_list() -> Array[String]:
-	var pool: Array[String] = []
-	if _game:
-		pool = _game.sellable()
+	var pool: Array[String] = _sellable_pool_for_roll()
 	if pool.is_empty():
 		return []
 	var lo := Tuning.LIST_MIN
@@ -2342,12 +2355,24 @@ func _roll_list() -> Array[String]:
 
 
 func _roll_list_n(n: int) -> Array[String]:
-	var pool: Array[String] = []
-	if _game:
-		pool = _game.sellable()
+	var pool: Array[String] = _sellable_pool_for_roll()
 	if pool.is_empty():
 		return []
 	return _fill_list_from_pool(pool, maxi(1, n))
+
+
+## Thieves never roll cooked SKUs (no cooked-stall queue).
+func _sellable_pool_for_roll() -> Array[String]:
+	var pool: Array[String] = []
+	if _game:
+		pool = _game.sellable()
+	if not is_thief:
+		return pool
+	var dry: Array[String] = []
+	for sku in pool:
+		if Tuning.category_of(String(sku)) != Tuning.CAT_COOKED:
+			dry.append(String(sku))
+	return dry
 
 
 func _fill_list_from_pool(pool: Array[String], n: int) -> Array[String]:
@@ -2389,6 +2414,25 @@ func _build_visual() -> void:
 	_list_icons.position = Vector2(0, -84)
 	_list_icons.z_index = 3
 	add_child(_list_icons)
+	_request_bubble = Node2D.new()
+	_request_bubble.name = "RequestBubble"
+	_request_bubble.position = Vector2(0, -118)
+	_request_bubble.z_index = 4
+	_request_bubble.visible = false
+	add_child(_request_bubble)
+	var bubble := Sprite2D.new()
+	bubble.texture = REQUEST_BUBBLE_TEX
+	bubble.centered = true
+	bubble.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	bubble.scale = Vector2(0.72, 0.72)
+	_request_bubble.add_child(bubble)
+	_request_sku_spr = Sprite2D.new()
+	_request_sku_spr.centered = true
+	_request_sku_spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	## Sit in the white oval; tail hangs below-right.
+	_request_sku_spr.position = Vector2(-2, -6)
+	_request_sku_spr.scale = Vector2(1.35, 1.35)
+	_request_bubble.add_child(_request_sku_spr)
 	_dissat_track = ColorRect.new()
 	_dissat_track.size = Vector2(28, 4)
 	_dissat_track.position = Vector2(-14, 14)
@@ -2509,6 +2553,10 @@ func _sync_list_icons() -> void:
 	if temp_clerk:
 		_list_icons.visible = false
 		return
+	## While requesting craft, speech bubble carries the SKU — hide pictogram row.
+	if state == State.WAITING_CRAFT:
+		_list_icons.visible = false
+		return
 	## Guests and thieves: pending shopping as pictograms. Empty list hides the row.
 	_list_icons.visible = true
 	var bits: PackedStringArray = []
@@ -2547,8 +2595,25 @@ func _sync_list_icons() -> void:
 		_list_icons.add_child(spr)
 
 
+func _sync_request_bubble() -> void:
+	if _request_bubble == null or _request_sku_spr == null:
+		return
+	var show := state == State.WAITING_CRAFT and not shopping.is_empty() and not temp_clerk
+	if not show:
+		_request_bubble.visible = false
+		_request_sku_shown = "\u0001"
+		return
+	var sku := String(shopping[0])
+	_request_bubble.visible = true
+	if sku == _request_sku_shown:
+		return
+	_request_sku_shown = sku
+	_request_sku_spr.texture = SkuIcons.texture(sku)
+
+
 func _sync_labels() -> void:
 	_sync_list_icons()
+	_sync_request_bubble()
 	var list_txt := _list_label_text()
 	if _list_label and list_txt != _shown_list:
 		_shown_list = list_txt

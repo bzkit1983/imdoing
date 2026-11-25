@@ -347,10 +347,11 @@ hud.combo_coop,COMBO P1 %d  ·  P2 %d  ·  TEAM %d,COMBO P1 %d  ·  P2 %d  ·  T
 hud.seat,P%d,P%d,P%d,P%d
 prep.back,返回,Back,返回,戻る
 prep.scenario.title,選擇劇本,Choose scenario,选择剧本,シナリオ選択
-prep.scenario.info,劇情模式序章（劇本8）空店、$2500、內容閘門。劇本1 從空店開始，資金 $10000。劇本2、3 帶現成店面和店員。劇本4 用來試技能。測試版另有劇本5 教學模式（$3000）、劇本6 頭目戰（藍本同劇本4）、劇本7 新商店物品測試（藍本同劇本4、一台自助收銀機）。,Story-mode prologue (scenario 8): empty shop · $2500 · content gates. Scenario 1 starts empty with $10000. 2 and 3 include a shop and clerks. 4 is for trying skills. Test builds also list Scenario 5 Tutorial ($3000); Scenario 6 Boss battle (same as 4); Scenario 7 new furniture test (same as 4 · one self-checkout).,剧情模式序章（剧本8）空店、$2500、内容闸门。剧本1 从空店开始，资金 $10000。剧本2、3 带现成店面和店员。剧本4 用来试技能。测试版另有剧本5 教学模式（$3000）、剧本6 头目战（蓝本同剧本4）、剧本7 新商店物品测试（蓝本同剧本4、一台自助收银机）。,ストーリー序章（シナリオ8）は空き店・$2500・コンテンツゲート。シナリオ1は空の店から開始、資金 $10000。シナリオ2・3は店舗と店員付き。シナリオ4はスキル試し用。テスト版にはシナリオ5 チュートリアル（$3000）、シナリオ6 ボス戦（シナリオ4と同構成）、シナリオ7 新店舗アイテムテスト（シナリオ4＋セルフレジ1台）もあります。
+prep.scenario.info,"劇情模式序章（劇本8）空店、$2500、內容閘門。劇本1 從空店開始，資金 $10000。劇本2、3 帶現成店面和店員。劇本4 用來試技能。測試版另有劇本5 教學、劇本6 頭目戰、劇本7 自助收銀、劇本9 安桃山時代（熟食檔）。","Story-mode prologue (scenario 8): empty shop · $2500 · content gates. Scenario 1 starts empty with $10000. 2 and 3 include a shop and clerks. 4 is for skills. Test builds also list 5 Tutorial, 6 Boss, 7 self-checkout, 9 Antaoshan (cooked stall).","剧情模式序章（剧本8）空店、$2500、内容闸门。剧本1 从空店开始，资金 $10000。剧本2、3 带现成店面和店员。剧本4 用来试技能。测试版另有剧本5 教学、剧本6 头目战、剧本7 自助收银、剧本9 安桃山时代（熟食档）。","ストーリー序章（シナリオ8）は空き店・$2500・コンテンツゲート。シナリオ1は空の店・$10000。2・3は店舗と店員付き。4はスキル試し。テスト版は5チュートリアル、6ボス、7セルフレジ、9安桃山（惣菜屋台）もあります。"
 prep.scenario.s5,劇本5　教學模式　LV1　$3000　空店（測試）,Scenario 5 · Tutorial · LV1 · $3000 · empty shop (test),剧本5　教学模式　LV1　$3000　空店（测试）,シナリオ5　チュートリアル　LV1　$3000　空店舗（テスト）
 prep.scenario.s6,劇本6　頭目戰　藍本同劇本4（測試）,Scenario 6 · Boss battle · same as Scenario 4 (test),剧本6　头目战　蓝本同剧本4（测试）,シナリオ6　ボス戦　シナリオ4と同構成（テスト）
 prep.scenario.s7,劇本7　新商店物品測試　藍本同劇本4　自助收銀×1（測試）,Scenario 7 · New furniture test · same as 4 · 1 self-checkout (test),剧本7　新商店物品测试　蓝本同剧本4　自助收银×1（测试）,シナリオ7　新店舗アイテムテスト　シナリオ4構成　セルフレジ×1（テスト）
+prep.scenario.s9,劇本9　安桃山時代　熟食檔測試　藍本同劇本4　米／醬油／零食＋熟食　魚缸　無凍櫃／傳送門　收銀×1,Scenario 9 · Antaoshan · cooked-stall test · same as 4 · grain/soy/snack+cooked · fish tank · no freezer/portals · 1 register,剧本9　安桃山时代　熟食档测试　蓝本同剧本4　米／酱油／零食＋熟食　鱼缸　无冻柜／传送门　收银×1,シナリオ9　安桃山時代　惣菜屋台テスト　シナリオ4構成　米／醤油／おやつ＋惣菜　水槽　冷凍／ポータルなし　レジ×1
 prep.scenario.s1,劇本1　從新開始　資金 $10000　LV1　空店,Scenario 1 · Fresh start · $10000 · LV1 · empty,剧本1　从新开始　资金 $10000　LV1　空店,シナリオ1　新規スタート　資金 $10000　LV1　空き店
 prep.scenario.s2,劇本2　LV5　資金 $10000　店規模 2　1 名店員,Scenario 2 · LV5 · $10000 · scale 2 · 1 clerk,剧本2　LV5　资金 $10000　店规模 2　1 名店员,シナリオ2　LV5　資金 $10000　店規模 2　店員 1名
 prep.scenario.s3,劇本3　LV10　資金 $99999　三圍 30　店規模 3　2 名店員,Scenario 3 · LV10 · $99999 · stats 30 · scale 3 · 2 clerks,剧本3　LV10　资金 $99999　三围 30　店规模 3　2 名店员,シナリオ3　LV10　資金 $99999　三能力 30　店規模 3　店員 2名
@@ -981,7 +982,7 @@ prep.fishing_taro.session_done,本趟拋竿用完,Out of casts,本趟抛竿用�
 prep.fishing_taro.session_summary,釣獲 %d 條（共拋 %d 次）。可再釣或離開。,Caught %d fish (%d casts). Fish again or leave.,钓获 %d 条（共抛 %d 次）。可再钓或离开。,%d 匹ゲット（%d 投）。再挑戦か終了。
 prep.fishing_taro.reward_tank,已解鎖商店物品：魚缸！,Unlocked shop item: Fish tank!,已解锁商店物品：鱼缸！,店舗アイテム「水槽」を解放！
 prep.fish_tank_gallery.title,魚缸欣賞,Fish tank gallery,鱼缸欣赏,水槽ギャラリー
-prep.fish_tank_gallery.info,右側魚缸會依魚倉游動。營運中可從已放置的魚缸提取魚材做壽司。,The tank on the right swims with your stock. During ops, pull fish from a placed tank for nigiri.,右侧鱼缸会依鱼仓游动。营运中可从已放置的鱼缸提取鱼材做寿司。,右の水槽は在庫どおりに泳ぎます。営業中は設置した水槽からネタを取れます。
-prep.fish_tank_gallery.empty,魚倉還是空的 — 去釣魚太郎釣幾條吧。右側是空缸。,Tank stock is empty — try Fishing Taro. The tank on the right is empty.,鱼仓还是空的 — 去钓鱼太郎钓几条吧。右侧是空缸。,在庫は空です。釣り太郎へ。右は空の水槽です。
+prep.fish_tank_gallery.info,魚倉游動欣賞。營運中可從已放置的魚缸提取魚材做壽司。,Watch your stock swim. During ops, pull fish from a placed tank for nigiri.,鱼仓游动欣赏。营运中可从已放置的鱼缸提取鱼材做寿司。,在庫の魚が泳ぎます。営業中は設置した水槽からネタを取れます。
+prep.fish_tank_gallery.empty,魚倉還是空的 — 去釣魚太郎釣幾條吧。,Tank stock is empty — try Fishing Taro.,鱼仓还是空的 — 去钓鱼太郎钓几条吧。,在庫は空です。釣り太郎へ。
 prep.fish_tank_gallery.go_fish,前往釣魚太郎,Go to Fishing Taro,前往钓鱼太郎,釣り太郎へ
 prep.fish_tank_gallery.row,%s　%d 條,%s · %d,%s　%d 条,%s　%d匹

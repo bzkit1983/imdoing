@@ -30,6 +30,8 @@ const PROLOGUE_START_MONEY_MIN := 2290
 const PROLOGUE_START_MONEY := 2500
 const PROLOGUE_BOSS_FUND_REWARD := 2000
 const SCENARIO_PROLOGUE := 8
+## Test: theme_historic cooked-stall sandbox (blueprint from scenario 4).
+const SCENARIO_HISTORIC_COOKED := 9
 
 const CELL := 64.0
 const WAGE := 100
@@ -225,6 +227,9 @@ func apply_scenario(id: int) -> void:
 		7:
 			## New furniture test: scenario 4 blueprint, one self-checkout instead of cashiers.
 			_scenario_self_cashier_test()
+		SCENARIO_HISTORIC_COOKED:
+			## 安桃山時代：熟食檔測試（藍本同劇本4，乾貨／魚缸／熟食檔）。
+			_scenario_historic_cooked()
 		SCENARIO_PROLOGUE:
 			_scenario_prologue()
 		_:
@@ -233,6 +238,8 @@ func apply_scenario(id: int) -> void:
 	_grant_initial_goods()
 	_seed_content_unlocks_for_scenario()
 	_default_for_sale_for_developed()
+	if scenario == SCENARIO_HISTORIC_COOKED:
+		_finalize_historic_cooked_scenario()
 
 
 func is_boss_test_scenario() -> bool:
@@ -644,6 +651,77 @@ func _scenario_self_cashier_test() -> void:
 			continue
 		kept_clerks.append(c)
 	clerks = kept_clerks
+
+
+## Scenario 9：安桃山時代 — 熟食檔功能測試。藍本同劇本4 規模／三圍／資金；無凍櫃／傳送門。
+func _scenario_historic_cooked() -> void:
+	money = 99999
+	level = 10
+	xp = 0
+	unspent = 15
+	base_str = 10
+	base_agi = 10
+	base_int = 10
+	str_stat = 20
+	agi_stat = 20
+	int_stat = 20
+	shop_scale = 3
+	grid_w = 18
+	grid_h = 10
+	## Shelf retail: grain／soy／snack. Cooked three developed for stall guests.
+	for sku in ["grain", "soy_sauce", "snack", "onigiri", "yakimochi", "nigiri"]:
+		developed[sku] = true
+		if not Tuning.is_craft_only(sku):
+			stock[sku] = 50 * Tuning.BOX_SIZE
+	for fid in Tuning.FISH_IDS:
+		fish_stock[fid] = 12
+	fishing_taro_played = true
+	owned.clear()
+	owned["cashier"] = 1
+	owned["restock_dry"] = 3
+	owned["shelf_dry_12"] = 3
+	owned["cooked_stall"] = 1
+	owned["fish_tank"] = 1
+	## Door (8,0)–(9,0). Layout from live 安桃山 prep save (2026-11-25).
+	_place("cashier", 8, 1, 0)
+	_place("restock_dry", 16, 2, 0, "snack")
+	_place("restock_dry", 1, 3, 0, "grain")
+	_place("restock_dry", 1, 6, 0, "soy_sauce")
+	_place("shelf_dry_12", 12, 3, 0)
+	_place("shelf_dry_12", 4, 5, 0)
+	_place("shelf_dry_12", 4, 7, 0)
+	_place("cooked_stall", 8, 5, 0)
+	_place("fish_tank", 8, 8, 0)
+	clerks.append({"role": "cashier", "register": 0})
+	clerks.append({"role": "restock", "register": 0})
+
+
+## After shared apply_scenario helpers: no portals, can 不可售, lock for_sale set.
+func _finalize_historic_cooked_scenario() -> void:
+	_clear_portals_for_tutorial()
+	## Starter can stays developed (採購／庫存可用) but not for sale this scenario.
+	developed["can"] = true
+	if not stock.has("can"):
+		stock["can"] = 0
+	## User retail list + cooked craft SKUs (needed for stall guest lists).
+	var allow := {
+		"can": false,
+		"grain": true,
+		"soy_sauce": true,
+		"snack": true,
+		"onigiri": true,
+		"yakimochi": true,
+		"nigiri": true,
+	}
+	for sku in Tuning.SELLABLE_SKUS:
+		if developed.has(sku):
+			for_sale[sku] = bool(allow.get(sku, false))
+		else:
+			for_sale.erase(sku)
+	if int(owned.get("fish_tank", 0)) < 1:
+		owned["fish_tank"] = 1
+	if int(owned.get("cooked_stall", 0)) < 1:
+		owned["cooked_stall"] = 1
 
 
 func _place(type: String, x: int, y: int, rot: int, default_sku: String = "", pair_id: String = "") -> void:

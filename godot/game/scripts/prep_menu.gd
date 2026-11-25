@@ -3065,10 +3065,10 @@ func _ensure_fish_gallery() -> void:
 		return
 	_fish_gallery_root = Node2D.new()
 	_fish_gallery_root.name = "FishTankGallery"
-	## Right of the Prep list — same band as look preview.
-	_fish_gallery_root.position = Vector2(780, 210)
+	## Near-fullscreen under title; action list sits below (see PrepPages layout).
+	_fish_gallery_root.position = Vector2(80, 88)
 	_fish_gallery_root.z_index = 5
-	_fish_gallery_root.scale = Vector2(1.35, 1.35)
+	_fish_gallery_root.scale = Vector2.ONE
 	add_child(_fish_gallery_root)
 	_fish_gallery_art = FishTankGalleryArt.new()
 	_fish_gallery_root.add_child(_fish_gallery_art)

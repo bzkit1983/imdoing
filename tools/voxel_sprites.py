@@ -150,6 +150,8 @@ FOUR_WAY = CHAR_WAY | {
     "shelf_dry",
     "shelf_frozen",
     "shelf_ice",
+    "cooked_stall",
+    "fish_tank",
     "portal",
     "wall",
     "door",

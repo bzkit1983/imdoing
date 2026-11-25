@@ -297,22 +297,26 @@ func _fit_color_body(body: StaticBody2D, r: Rect2, color: Color) -> void:
 
 
 func make_cooked_stall(r: Rect2, rot: int, cap: int) -> Node2D:
+	host._obstacles.append(r)
 	var node: StaticBody2D = CookedStallScript.new()
-	_fit_color_body(node, r, Color("c4783a"))
 	node.capacity_total = maxi(1, cap)
 	node.set_facing(facing(rot))
+	fit_body(node, r, "cooked_stall", rot, 2)
 	node.label = caption(r.position + Vector2(8, 4), Loc.t("furniture.cooked_stall"))
 	node.setup_overlay()
 	node._refresh_label()
+	host._world.add_child(node)
 	if host.get("cooked_stalls") is Array:
 		host.cooked_stalls.append(node)
 	return node
 
 
-func make_fish_tank(r: Rect2, _rot: int) -> Node2D:
+func make_fish_tank(r: Rect2, rot: int) -> Node2D:
+	host._obstacles.append(r)
 	var node: StaticBody2D = FishTankScript.new()
-	_fit_color_body(node, r, Color("2a7bb0"))
+	fit_body(node, r, "fish_tank", rot, 2)
 	node.label = caption(r.position + Vector2(8, 4), Loc.t("furniture.fish_tank"))
+	host._world.add_child(node)
 	node.setup_default_fish(host.state)
 	return node
 

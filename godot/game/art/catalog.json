@@ -673,6 +673,30 @@
           ],
           "voxels": 230687,
           "note": "測試版自助收銀亭（立柱＋檯面＋直式螢幕＋掛袋勾）。佔格 2×1。"
+        },
+        {
+          "id": "cooked_stall",
+          "name": "熟食檔攤",
+          "file": "cooked_stall.vox",
+          "size": [
+            256,
+            128,
+            144
+          ],
+          "voxels": 1827824,
+          "note": "theme_historic：屋台攤（2×1）。佔格不變。"
+        },
+        {
+          "id": "fish_tank",
+          "name": "魚缸",
+          "file": "fish_tank.vox",
+          "size": [
+            240,
+            144,
+            72
+          ],
+          "voxels": 1503082,
+          "note": "theme_historic：矮寬桌上魚缸（2×2）。佔格不變。"
         }
       ]
     },
@@ -799,6 +823,126 @@
           ],
           "voxels": 59099,
           "note": "v1.5：雙格微波盒。正面剪影即 UI／貨架圖。"
+        },
+        {
+          "id": "grain",
+          "name": "米糧",
+          "file": "grain.vox",
+          "size": [
+            72,
+            56,
+            64
+          ],
+          "voxels": 82647,
+          "note": "theme_historic：米袋。正面剪影即 UI。"
+        },
+        {
+          "id": "soy_sauce",
+          "name": "醬油",
+          "file": "soy_sauce.vox",
+          "size": [
+            48,
+            48,
+            80
+          ],
+          "voxels": 41466,
+          "note": "theme_historic：陶瓷醬油瓶。正面剪影即 UI。"
+        },
+        {
+          "id": "onigiri",
+          "name": "飯糰",
+          "file": "onigiri.vox",
+          "size": [
+            64,
+            48,
+            64
+          ],
+          "voxels": 50122,
+          "note": "theme_historic：三角飯糰海苔。正面剪影即 UI。"
+        },
+        {
+          "id": "yakimochi",
+          "name": "烤麻糬",
+          "file": "yakimochi.vox",
+          "size": [
+            80,
+            48,
+            48
+          ],
+          "voxels": 35245,
+          "note": "theme_historic：串燒麻糬。正面剪影即 UI。"
+        },
+        {
+          "id": "nigiri",
+          "name": "握壽司",
+          "file": "nigiri.vox",
+          "size": [
+            64,
+            48,
+            40
+          ],
+          "voxels": 18254,
+          "note": "theme_historic：握壽司。正面剪影即 UI。"
+        },
+        {
+          "id": "saba",
+          "name": "鯖",
+          "file": "saba.vox",
+          "size": [
+            80,
+            40,
+            40
+          ],
+          "voxels": 5773,
+          "note": "theme_historic：鯖魚圖示模型。"
+        },
+        {
+          "id": "tai",
+          "name": "鯛",
+          "file": "tai.vox",
+          "size": [
+            72,
+            40,
+            48
+          ],
+          "voxels": 8107,
+          "note": "theme_historic：鯛魚圖示模型。"
+        },
+        {
+          "id": "sanma",
+          "name": "秋刀魚",
+          "file": "sanma.vox",
+          "size": [
+            96,
+            32,
+            32
+          ],
+          "voxels": 3951,
+          "note": "theme_historic：秋刀魚圖示模型。"
+        },
+        {
+          "id": "aji",
+          "name": "鰺",
+          "file": "aji.vox",
+          "size": [
+            72,
+            40,
+            40
+          ],
+          "voxels": 4754,
+          "note": "theme_historic：鰺魚圖示模型。"
+        },
+        {
+          "id": "ayu",
+          "name": "鮎",
+          "file": "ayu.vox",
+          "size": [
+            64,
+            36,
+            36
+          ],
+          "voxels": 3062,
+          "note": "theme_historic：鮎魚圖示模型。"
         }
       ]
     },

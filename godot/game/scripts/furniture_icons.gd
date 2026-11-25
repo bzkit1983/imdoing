@@ -66,6 +66,10 @@ static func _sprite_path(type: String) -> String:
 		return "res://art/sprites/restock_%s_0.png" % cat
 	if type.begins_with("shelf_"):
 		return "res://art/sprites/shelf_%s_0.png" % _category(type)
+	if type == "cooked_stall":
+		return "res://art/sprites/cooked_stall_0.png"
+	if type == "fish_tank":
+		return "res://art/sprites/fish_tank_0.png"
 	return ""
 
 
