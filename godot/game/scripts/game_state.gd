@@ -12,7 +12,8 @@ const XpRules = preload("res://scripts/session/xp_rules.gd")
 ## 5+: pending goods cultivation.
 ## 6+: completion of the Genesis quiz.
 ## 7+: unlocked_skus / unlocked_furniture / prologue_boss_unlocked (content gates).
-const SAVE_VERSION := 7
+## 8+: fish_stock / fishing_taro_played (theme_historic fish tank).
+const SAVE_VERSION := 8
 const LIGHT_ULTIMATE := "let_there_be_light"
 const RatingRules = preload("res://scripts/session/rating_rules.gd")
 
@@ -89,6 +90,9 @@ const FURNITURE := {
 	"shelf_ice_24": {"price": 600, "w": 2, "h": 1, "unlock": 7, "cap": 24},
 	## Event-grant only (shopitem.md). Cap 4 ends = 2 pairs. Test: grant owned freely.
 	"portal": {"price": 0, "w": 2, "h": 1, "unlock": 1, "grant_only": true, "owned_cap": 4},
+	## theme_historic: cooked stall (buy after unlock) + fish tank (grant after fishing).
+	"cooked_stall": {"price": 1000, "w": 2, "h": 1, "unlock": 99, "cap": 8},
+	"fish_tank": {"price": 0, "w": 2, "h": 2, "unlock": 1, "grant_only": true, "owned_cap": 1},
 }
 
 ## Warehouse `stock` dict changed (restock pull / closeout credit). Demo broadcasts on LAN.
@@ -115,6 +119,10 @@ var developed: Dictionary = {}
 ## Per developed SKU: true = offer for sale this ops round. Missing key ⇒ sellable.
 var for_sale: Dictionary = {}
 var stock: Dictionary = {}
+## theme_historic fish materials: fish_id → piece count (not sellable SKUs).
+var fish_stock: Dictionary = {}
+## First completed fishing_taro visit grants fish_tank.
+var fishing_taro_played: bool = false
 var owned: Dictionary = {}
 var placed: Array[Dictionary] = []
 var shop_scale: int = 1
@@ -174,6 +182,8 @@ func apply_scenario(id: int) -> void:
 	developed.clear()
 	for_sale.clear()
 	stock.clear()
+	fish_stock.clear()
+	fishing_taro_played = false
 	owned.clear()
 	placed.clear()
 	clerks.clear()
@@ -810,7 +820,11 @@ func start_cultivation(inputs: Array[String]) -> String:
 	var required := {}
 	for sku in inputs:
 		required[sku] = int(required.get(sku, 0)) + 1
-		if not Tuning.SELLABLE_SKUS.has(sku) or int(stock.get(sku, 0)) < int(required[sku]):
+		if (
+			not Tuning.SELLABLE_SKUS.has(sku)
+			or Tuning.is_craft_only(sku)
+			or int(stock.get(sku, 0)) < int(required[sku])
+		):
 			return Loc.t("prep.cultivate.stock_short")
 	var sorted_inputs := inputs.duplicate()
 	sorted_inputs.sort()
@@ -874,6 +888,8 @@ func harvest_cultivation() -> Dictionary:
 func buy_stock(sku: String, pieces: int) -> String:
 	if not developed.has(sku):
 		return Loc.t("err.not_developed")
+	if Tuning.is_craft_only(sku):
+		return Loc.t("err.craft_only")
 	if not is_for_sale(sku):
 		return Loc.t("err.not_for_sale")
 	pieces = clampi(pieces, 1, Tuning.RESTOCK_PIECES)
@@ -904,6 +920,7 @@ func consume_box(sku: String) -> bool:
 
 
 ## Credit unsold shop pieces back to warehouse at closeout (exact pieces).
+## Fish ids return to fish_stock (fishingtaro.md §4.2); others to stock.
 ## Returns total pieces added.
 func credit_unsold_pieces(pieces_by_sku: Dictionary) -> int:
 	var total := 0
@@ -912,7 +929,10 @@ func credit_unsold_pieces(pieces_by_sku: Dictionary) -> int:
 		var pieces := int(pieces_by_sku[sku_v])
 		if sku == "" or pieces <= 0:
 			continue
-		stock[sku] = int(stock.get(sku, 0)) + pieces
+		if Tuning.is_fish_id(sku):
+			fish_stock[sku] = int(fish_stock.get(sku, 0)) + pieces
+		else:
+			stock[sku] = int(stock.get(sku, 0)) + pieces
 		total += pieces
 	if total > 0:
 		warehouse_changed.emit()
@@ -964,6 +984,120 @@ func grant_furniture(type: String, amount: int = 1) -> void:
 		return
 	var cap := furniture_owned_cap(type)
 	owned[type] = mini(cap, int(owned.get(type, 0)) + amount)
+
+
+## Mark fishing minigame played; grants `fish_tank` once (fishingtaro.md).
+func mark_fishing_taro_played() -> bool:
+	var first := not fishing_taro_played
+	fishing_taro_played = true
+	if first:
+		grant_furniture("fish_tank", 1)
+	return first
+
+
+func add_fish(fish_id: String, n: int = 1) -> bool:
+	if not Tuning.is_fish_id(fish_id) or n <= 0:
+		return false
+	fish_stock[fish_id] = int(fish_stock.get(fish_id, 0)) + n
+	warehouse_changed.emit()
+	return true
+
+
+func consume_fish(fish_id: String, n: int = 1) -> bool:
+	if not Tuning.is_fish_id(fish_id) or n <= 0:
+		return false
+	if int(fish_stock.get(fish_id, 0)) < n:
+		return false
+	fish_stock[fish_id] = int(fish_stock[fish_id]) - n
+	warehouse_changed.emit()
+	return true
+
+
+func fish_count(fish_id: String) -> int:
+	return int(fish_stock.get(fish_id, 0))
+
+
+## First fish_id with stock, else "".
+func first_fish_with_stock() -> String:
+	for fid in Tuning.FISH_IDS:
+		if fish_count(fid) > 0:
+			return fid
+	return ""
+
+
+## True when warehouse／fish_stock (+ optional held fish) cover the cooked recipe.
+## `held_fish` = pieces of `fish_id` already in the clerk's hands.
+func can_afford_cooked_recipe(sku: String, fish_id: String = "", held_fish: int = 0) -> bool:
+	if not Tuning.is_craft_only(sku):
+		return false
+	if not developed.has(sku) or not is_for_sale(sku):
+		return false
+	for raw in Tuning.cooked_recipe(sku):
+		if not (raw is Dictionary):
+			continue
+		var kind := String(raw.get("kind", ""))
+		var n := int(raw.get("n", 1))
+		if kind == "sku":
+			if int(stock.get(String(raw.get("id", "")), 0)) < n:
+				return false
+		elif kind == "fish":
+			var fid := fish_id if fish_id != "" else first_fish_with_stock()
+			if fid == "" or fish_count(fid) + maxi(0, held_fish) < n:
+				return false
+		else:
+			return false
+	return true
+
+
+## Deduct recipe inputs. `use_held_fish` skips fish_stock for that many pieces
+## (caller already removed them from inventory). Returns "" on success.
+func consume_cooked_ingredients(sku: String, fish_id: String = "", use_held_fish: int = 0) -> String:
+	if not can_afford_cooked_recipe(sku, fish_id, use_held_fish):
+		return Loc.t("err.cooked_ingredients")
+	for raw in Tuning.cooked_recipe(sku):
+		if not (raw is Dictionary):
+			continue
+		var kind := String(raw.get("kind", ""))
+		var n := int(raw.get("n", 1))
+		if kind == "sku":
+			var sid := String(raw.get("id", ""))
+			if not consume_stock(sid, n):
+				return Loc.t("err.cooked_ingredients")
+		elif kind == "fish":
+			var used_fish := fish_id if fish_id != "" else first_fish_with_stock()
+			var need := n - clampi(use_held_fish, 0, n)
+			if need > 0 and not consume_fish(used_fish, need):
+				return Loc.t("err.cooked_ingredients")
+	return ""
+
+
+## Refund after cancelled craft. Pass the same fish_id used at consume time.
+func refund_cooked_ingredients(sku: String, fish_id: String = "") -> void:
+	for raw in Tuning.cooked_recipe(sku):
+		if not (raw is Dictionary):
+			continue
+		var kind := String(raw.get("kind", ""))
+		var n := int(raw.get("n", 1))
+		if kind == "sku":
+			var sid := String(raw.get("id", ""))
+			stock[sid] = int(stock.get(sid, 0)) + n
+		elif kind == "fish" and fish_id != "":
+			add_fish(fish_id, n)
+	warehouse_changed.emit()
+
+
+## Put finished cooked piece on stall face, else warehouse stock.
+func deposit_cooked_result(stall: Object, sku: String) -> String:
+	if not Tuning.is_craft_only(sku):
+		return Loc.t("err.cooked_ingredients")
+	if stall != null and is_instance_valid(stall) and stall.has_method("add_face"):
+		if int(stall.call("add_face", sku, 1)) > 0:
+			return ""
+	stock[sku] = int(stock.get(sku, 0)) + 1
+	if not developed.has(sku):
+		developed[sku] = true
+	warehouse_changed.emit()
+	return ""
 
 
 func is_portal_type(type: String) -> bool:
@@ -1176,7 +1310,16 @@ func open_blockers() -> PackedStringArray:
 		out.append(Loc.t("err.need_cashier"))
 	if not _has_matching_pair():
 		out.append(Loc.t("err.need_restock_pair"))
+	if _cooked_for_sale_active() and placed_count("cooked_stall") < 1:
+		out.append(Loc.t("err.need_cooked_stall"))
 	return out
+
+
+func _cooked_for_sale_active() -> bool:
+	for sku in Tuning.COOKED_SKUS:
+		if developed.has(sku) and is_for_sale(sku):
+			return true
+	return false
 
 
 func shelf_capacity(type: String) -> int:
@@ -1662,9 +1805,14 @@ func fight_damage_mult() -> float:
 
 func sellable() -> Array[String]:
 	var out: Array[String] = []
+	var has_cooked_stall := placed_count("cooked_stall") >= 1
 	for sku in Tuning.SELLABLE_SKUS:
-		if developed.has(sku) and is_for_sale(sku):
-			out.append(sku)
+		if not developed.has(sku) or not is_for_sale(sku):
+			continue
+		## Cooked goods need a placed stall (cookedfoodsystem.md).
+		if Tuning.category_of(sku) == Tuning.CAT_COOKED and not has_cooked_stall:
+			continue
+		out.append(sku)
 	return out
 
 
@@ -1747,6 +1895,8 @@ func to_dict() -> Dictionary:
 		"developed": developed.duplicate(true),
 		"for_sale": for_sale.duplicate(true),
 		"stock": stock.duplicate(true),
+		"fish_stock": fish_stock.duplicate(true),
+		"fishing_taro_played": fishing_taro_played,
 		"cultivation": cultivation.duplicate(true),
 		"light_quiz_passed": light_quiz_passed,
 		"owned": owned.duplicate(true),
@@ -1814,7 +1964,16 @@ func from_dict(data: Dictionary) -> String:
 		## v1 stock was warehouse boxes; v2+ is pieces.
 		for sku_v in stock.keys():
 			stock[sku_v] = int(stock[sku_v]) * Tuning.BOX_SIZE
+	fish_stock = {}
+	var raw_fish = data.get("fish_stock", {})
+	if raw_fish is Dictionary:
+		for fid in raw_fish.keys():
+			var id := String(fid)
+			if Tuning.is_fish_id(id):
+				fish_stock[id] = maxi(0, int(raw_fish[fid]))
+	fishing_taro_played = bool(data.get("fishing_taro_played", false))
 	owned = _string_int_dict(data.get("owned", {}))
+	## Pre-v8 saves never had the tank; keep grant_only owned as-is after fishing flag.
 	if unlocked_skus.is_empty() and unlocked_furniture.is_empty():
 		## Pre-v7 saves: rebuild gates from legacy level table + developed.
 		_migrate_unlocks_from_level()

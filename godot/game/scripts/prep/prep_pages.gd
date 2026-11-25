@@ -30,7 +30,7 @@ static func parent_page(page: String) -> String:
 			return "light_quiz"
 		"hub_minigames":
 			return "home"
-		"cultivate", "light_intro", "light_quiz":
+		"cultivate", "light_intro", "light_quiz", "fish_tank_gallery":
 			return "hub_minigames"
 		"cultivate_pick", "cultivate_rewards":
 			return "cultivate"
@@ -184,7 +184,8 @@ static func fill(menu: CanvasLayer, page: String) -> void:
 		"hub_goods":
 			_hub_goods(menu)
 		"hub_minigames":
-			menu._hub_cols = 1
+			## Grid tiles (not single-column rows); HubScroll when content exceeds viewport.
+			menu._hub_cols = 3
 			menu._title.text = Loc.t("prep.minigames")
 			menu._info.text = menu._header()
 			menu._add_hub(Loc.t("prep.cultivate.title"), "go", "cultivate", "goods")
@@ -193,7 +194,12 @@ static func fill(menu: CanvasLayer, page: String) -> void:
 			menu._add_hub(Loc.t("skill.checkout_rush.name"), "cashier_duel", null, "skills")
 			menu._add_hub(Loc.t("prep.bun_duel.title"), "bun_duel", null, "skills")
 			menu._add_hub(Loc.t("prep.metal_trial.title"), "metal_rush_trial", null, "skills")
+			menu._add_hub(Loc.t("prep.fishing_taro.title"), "fishing_taro", null, "skills")
+			if int(menu.state.owned.get("fish_tank", 0)) > 0:
+				menu._add_hub(Loc.t("prep.fish_tank_gallery.title"), "go", "fish_tank_gallery", "goods")
 			menu._rebuild_hub_tiles()
+		"fish_tank_gallery":
+			_fish_tank_gallery(menu)
 		"light_intro", "light_outro":
 			menu._light_intro.set_line(menu._light_line, page == "light_outro")
 			menu._back_btn.visible = menu._light_intro.ready_for_dialogue
@@ -966,6 +972,8 @@ static func _cultivate_pick(menu: CanvasLayer) -> void:
 	if current != "":
 		menu._add(Loc.t("prep.cultivate.remove"), "cultivate_material", "")
 	for sku in Tuning.SELLABLE_SKUS:
+		if Tuning.is_craft_only(sku):
+			continue
 		var stock: int = menu.state.stock.get(sku, 0)
 		var reserved: int = menu._cultivation_slots.count(sku)
 		if sku == current:
@@ -974,6 +982,24 @@ static func _cultivate_pick(menu: CanvasLayer) -> void:
 		var key := "prep.cultivate.stock" if stock > reserved else "prep.cultivate.stock_unavailable"
 		menu._add(Loc.t(key, [Tuning.sku_name(sku), stock]), action, sku, SkuIcons.row_texture(sku))
 	menu._add(Loc.t("prep.back"), "go", "cultivate")
+
+
+static func _fish_tank_gallery(menu: CanvasLayer) -> void:
+	menu._title.text = Loc.t("prep.fish_tank_gallery.title")
+	var info := Loc.t("prep.fish_tank_gallery.info")
+	var empty := true
+	for fid in Tuning.FISH_IDS:
+		if int(menu.state.fish_count(fid)) > 0:
+			empty = false
+			break
+	if empty:
+		info = Loc.t("prep.fish_tank_gallery.empty")
+	menu._info.text = menu._pair(menu._header(), info)
+	for fid in Tuning.FISH_IDS:
+		var n: int = int(menu.state.fish_count(fid))
+		menu._add(Loc.t("prep.fish_tank_gallery.row", [Tuning.fish_name(fid), n]), "noop")
+	menu._add(Loc.t("prep.fish_tank_gallery.go_fish"), "fishing_taro")
+	menu._add(Loc.t("prep.back"), "go", "hub_minigames")
 
 
 static func _develop(menu: CanvasLayer) -> void:
@@ -1018,6 +1044,9 @@ static func _buy(menu: CanvasLayer) -> void:
 	for sku in Tuning.SELLABLE_SKUS:
 		## Buy tutorial: only show allowlisted SKUs.
 		if sku_lock and not menu.tutorial_goods_sku_allowed(sku):
+			continue
+		## Craft-only cooked SKUs never appear in procurement.
+		if Tuning.is_craft_only(sku):
 			continue
 		## Content gate: undeveloped＋locked SKUs hidden.
 		if not menu.state.developed.has(sku) and not menu.state.sku_unlocked(sku):

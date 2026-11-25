@@ -84,6 +84,8 @@ The World! 發動時，客人移動、思考、逗留、排隊與不滿累積都
 玩家**方向丟掉**把清單上需要的貨直接交給客人、且因此**清單清空**時，客人也立刻去收銀排隊（不要停在「找不到貨品」思考）。見 `playeraction.md`。
 v1.2 親手交付、貨架單件、丟一件、衝刺交付、狙擊手（客人）見 `customerdelivery.md`／`playeractiveskills.md`（已實作）。
 
+**熟食（`theme_historic`）：** 清單頭為 `cooked` SKU 時改找 `cooked_stall`、檔攤排隊／等待加工；規則見 [`cookedfoodsystem.md`](cookedfoodsystem.md)。主題進行中一般客人模型改 `customer_sengoku*`（見主題檔）。
+
 ## 被衝刺撞倒後
 Screen KO 原地落地、停 2 秒、+50 不滿（禮貌衝撞 +0）後：**購物清單不變**（不重抽）；已取貨原地掉落可撿，並把已取貨放回清單後從頭尋貨。見 `playermovement.md`。
 

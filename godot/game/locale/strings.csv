@@ -782,6 +782,8 @@ hud.move.skill_menu,技能選單,Skill menu,技能选单,スキルメニュー
 hud.move.bag_menu,道具選單,Bag menu,道具选单,アイテムメニュー
 hud.move.carry_menu,持貨選單,Carry menu,持货选单,所持メニュー
 hud.move.pick_sku,選貨,Picking SKU,选货,商品選択
+hud.move.cooked_craft,選食譜,Picking recipe,选食谱,レシピ選択
+hud.move.cooked_busy,製作中,Cooking,制作中,調理中
 hud.move.clean,清潔,Cleaning,清洁,清掃
 hud.move.fight,打擊,Fight,打击,攻撃
 hud.move.checkout_cmd,收銀指令,Checkout inputs,收银指令,レジコマンド
@@ -951,3 +953,35 @@ prep.metal_trial.fail,未達 70%,Below 70%,未达 70%,70% 未満
 prep.metal_trial.summary,%.1f%%｜最高連擊 %d｜完美 %d・良好 %d・漏拍 %d,%.1f%% · Best combo %d · Perfect %d · Good %d · Miss %d,%.1f%%｜最高连击 %d｜完美 %d・良好 %d・漏拍 %d,%.1f%%｜最大コンボ %d｜パーフェクト %d・グッド %d・ミス %d
 prep.metal_trial.reward,獲得技能：%s（試玩提示）,Skill earned: %s (trial),获得技能：%s（试玩提示）,スキル獲得：%s（体験版）
 prep.metal_trial.audio_error,測試曲未能載入。,Could not load the trial track.,测试曲无法载入。,テスト曲を読み込めませんでした。
+ui.cooked.craft_title,熟食加工（檔內原料）,Cooked craft (stall pantry),熟食加工（档内原料）,惣菜づくり（屋台内材料）
+ui.cooked.crafting,製作中：%s,Cooking: %s,制作中：%s,調理中：%s
+ui.cooked.fish_pick,魚材：%s（左右選）,Fish: %s (left/right),鱼材：%s（左右选）,ネタ：%s（左右で選択）
+ui.cooked.need_fish,（需要魚）,（need fish）,（需要鱼）,（魚が必要）
+ui.cooked.stall_label,檔面 %s｜原料 %s,Face %s｜Pantry %s,档面 %s｜原料 %s,陳列 %s｜材料 %s
+prep.fishing_taro.title,釣魚太郎,Fishing Taro,钓鱼太郎,釣り太郎
+prep.fishing_taro.hint,左右移動找魚影，靠近後行動鍵拋竿；浮標晃動時再按一次收竿。,"Move to a fish shadow, cast with the action button, then reel when the bobber dips.",左右移动找鱼影，靠近后行动键抛竿；浮标晃动时再按一次收竿。,左右で魚影へ近づき行動ボタンで投げる。浮きが沈んだらもう一度で取り込む。
+prep.fishing_taro.rules,"左右移動找魚影 → 行動鍵拋竿（落在影上才咬鉤）→ 浮標急沉時再按收竿。\n本趟最多拋竿 %d 次。","Move to a shadow → cast (must land on it) → reel on the bite flash.\nMax %d casts this visit.","左右移动找鱼影 → 行动键抛竿（落在影上才咬钩）→ 浮标急沉时再按收竿。\n本趟最多抛竿 %d 次。","左右で魚影へ → 投げる（影に当てる）→ 食い付きで取り込む。\nこの訪問は最大 %d 回。"
+prep.fishing_taro.start,開始釣魚,Start fishing,开始钓鱼,釣り開始
+prep.fishing_taro.start_again,再釣一趟,Fish again,再钓一趟,もう一度
+prep.fishing_taro.catch,拋竿,Cast,抛竿,投げる
+prep.fishing_taro.exit,離開,Leave,离开,終了
+prep.fishing_taro.stock,魚倉：%s,Tank stock: %s,鱼仓：%s,水槽在庫：%s
+prep.fishing_taro.casts,拋竿剩餘 %d／%d,Casts left %d/%d,抛竿剩余 %d／%d,残り投数 %d／%d
+prep.fishing_taro.caught,釣到：%s！,Caught: %s!,钓到：%s！,釣果：%s！
+prep.fishing_taro.bite,咬鉤！！,Bite!!,咬钩！！,食い付き！！
+prep.fishing_taro.fail_early,太早收竿…,Reeled too early…,太早收竿…,早すぎ…
+prep.fishing_taro.fail_late,太慢了…,Too late…,太慢了…,遅すぎ…
+prep.fishing_taro.fail_miss,空竿（影外）,Missed the shadow,空竿（影外）,空振り（影の外）
+prep.fishing_taro.hint_move,左右靠近魚影,Move toward the shadow,左右靠近鱼影,左右で魚影へ
+prep.fishing_taro.hint_cast,A／互動拋竿！,A / Interact to cast!,A／互动抛竿！,A／決定で投げる！
+prep.fishing_taro.hint_wait,等咬鉤…（別早收）,Wait for the bite…,等咬钩…（别早收）,食い付き待ち…
+prep.fishing_taro.hint_bite,現在 A／互動收竿！！,A / Interact to reel!!,现在 A／互动收竿！！,今 A／決定で取り込め！！
+prep.fishing_taro.hint_continue,A／互動繼續,A / Interact to continue,A／互动继续,A／決定で続行
+prep.fishing_taro.session_done,本趟拋竿用完,Out of casts,本趟抛竿用完,投数が尽きた
+prep.fishing_taro.session_summary,釣獲 %d 條（共拋 %d 次）。可再釣或離開。,Caught %d fish (%d casts). Fish again or leave.,钓获 %d 条（共抛 %d 次）。可再钓或离开。,%d 匹ゲット（%d 投）。再挑戦か終了。
+prep.fishing_taro.reward_tank,已解鎖商店物品：魚缸！,Unlocked shop item: Fish tank!,已解锁商店物品：鱼缸！,店舗アイテム「水槽」を解放！
+prep.fish_tank_gallery.title,魚缸欣賞,Fish tank gallery,鱼缸欣赏,水槽ギャラリー
+prep.fish_tank_gallery.info,右側魚缸會依魚倉游動。營運中可從已放置的魚缸提取魚材做壽司。,The tank on the right swims with your stock. During ops, pull fish from a placed tank for nigiri.,右侧鱼缸会依鱼仓游动。营运中可从已放置的鱼缸提取鱼材做寿司。,右の水槽は在庫どおりに泳ぎます。営業中は設置した水槽からネタを取れます。
+prep.fish_tank_gallery.empty,魚倉還是空的 — 去釣魚太郎釣幾條吧。右側是空缸。,Tank stock is empty — try Fishing Taro. The tank on the right is empty.,鱼仓还是空的 — 去钓鱼太郎钓几条吧。右侧是空缸。,在庫は空です。釣り太郎へ。右は空の水槽です。
+prep.fish_tank_gallery.go_fish,前往釣魚太郎,Go to Fishing Taro,前往钓鱼太郎,釣り太郎へ
+prep.fish_tank_gallery.row,%s　%d 條,%s · %d,%s　%d 条,%s　%d匹

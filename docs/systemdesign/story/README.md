@@ -11,7 +11,7 @@
 | [`chapter-01.md`](chapter-01.md) | 第1章（一般營運實踐） |
 | [`chapter-02.md`](chapter-02.md) | 第2章（固定破局 `theme_break`） |
 | [`chapter-03.md`](chapter-03.md) … [`chapter-08.md`](chapter-08.md) | 第3–8**進程槽**（選主題填入） |
-| [`themes/`](themes/) | 主題目錄：`theme_break`＋六可選 stub |
+| [`themes/`](themes/) | 主題目錄：`theme_break`＋六可選；**`theme_historic` 玩法／id 已定稿** |
 | [`finale.md`](finale.md) | 終章（六主題全清後） |
 | [`afterstory.md`](afterstory.md) | 後日談 |
 | [`progression-crossref.md`](progression-crossref.md) | 現有設計對照、決策、開放問題 |

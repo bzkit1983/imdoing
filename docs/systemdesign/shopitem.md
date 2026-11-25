@@ -100,3 +100,23 @@
 - 測試版: 可直接授予 `owned["portal"]=4`，不走資金、不走事件
 - 視覺（暫）: 高科技傳送門外觀占位（與暖系 Cozy 母本並存時標「暫用科幻皮」）；進入噴科幻粒子，角色洛克人式 BEAM UP／出口 BEAM DOWN
 - 音效: `sfx_portal_up`／`sfx_portal_down`（見 `soundeffects.md`）
+
+#熟食檔攤（`theme_historic`）
+- 程式 id: `cooked_stall`
+- 顯示名 locale: `furniture.cooked_stall`
+- 說明: 熟食類專用檔攤（類似貨架系列）。支援**多 SKU 檔面預補**；客人排隊點指定熟食；玩家在檔上依食譜加工。詳見 [`cookedfoodsystem.md`](cookedfoodsystem.md)
+- 價格: **$1,000**（建議；資格由 `theme_historic` 任務發）
+- 取得: 任務資格後資金購入
+- 佔格: **2×1**
+- 開店: 當日若有熟食列入可售，須已放置 ≥1（見 cookedfoodsystem）；不取代乾／凍／冰配對檢查
+- 類別: 服務 `cooked`；**無**對應 `restock_cooked`
+
+#魚缸（`theme_historic`）
+- 程式 id: `fish_tank`
+- 顯示名 locale: `furniture.fish_tank`
+- 說明: 存放釣魚太郎釣獲的魚材；營運中作魚倉提取口（不可零售上架）。Prep 可開魚缸欣賞頁。詳見 [`fishingtaro.md`](fishingtaro.md)
+- 價格: **$0**（不可資金購入）
+- 取得: 首次遊玩並退出小遊戲 `fishing_taro` 後自動寫入 `owned["fish_tank"]=1`
+- 擁有上限: **1**
+- 佔格: **2×2**
+- 開店檢查: **不**列入必要 `open_blockers`；未放置則不能提取 `fish_stock`

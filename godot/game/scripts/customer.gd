@@ -9,7 +9,22 @@ const BoxFaceplate = preload("res://scripts/box_faceplate.gd")
 const SkuIcons = preload("res://scripts/sku_icons.gd")
 const SkuPopup = preload("res://scripts/sku_popup.gd")
 
-enum State { ENTER, SEEK, LINGER, THINK, TO_CASHIER, QUEUE, PAYING, LEAVE, FIGHT, FLEE, RAID, TEMP }
+enum State {
+	ENTER,
+	SEEK,
+	LINGER,
+	THINK,
+	TO_CASHIER,
+	QUEUE,
+	PAYING,
+	LEAVE,
+	FIGHT,
+	FLEE,
+	RAID,
+	TEMP,
+	QUEUE_STALL,
+	WAITING_CRAFT,
+}
 
 var state: int = State.ENTER
 var shopping: Array[String] = []
@@ -43,6 +58,9 @@ var _pace_speed: float = 1.0
 
 var _timer: float = 0.0
 var _target_shelf: Node2D
+## Cooked stall the guest is queued at (independent of cashier `register`).
+var stall: Node2D
+var _stall_queue_idx: int = -1
 var _game: Node
 var register: Node2D
 ## Dark Side temp clerk. Timer is real seconds and is not refreshed by a recast.
@@ -493,6 +511,7 @@ func finish_paid() -> void:
 	## Drop register ref so a glitch back to QUEUE cannot re-enqueue via _tick_queue.
 	register = null
 	_queue_idx = -1
+	_leave_stall_queue()
 
 
 ## 落閘放狗：空車被趕離；有貨清 shopping 去排隊（已在隊則保留）。回傳 "leave" | "queue" | "skip"。
@@ -557,6 +576,9 @@ func can_receive_delivery() -> bool:
 	match state:
 		State.QUEUE, State.PAYING, State.LEAVE, State.FLEE, State.FIGHT, State.TO_CASHIER:
 			return false
+		## Stall queue／waiting craft: allow toss of already-made cooked goods.
+		State.QUEUE_STALL, State.WAITING_CRAFT:
+			return true
 	return true
 
 
@@ -765,6 +787,10 @@ func _physics_process(delta: float) -> void:
 				_clear_route()
 		State.QUEUE:
 			_tick_queue(delta, td)
+		State.QUEUE_STALL:
+			_tick_queue_stall(delta, td)
+		State.WAITING_CRAFT:
+			_tick_waiting_craft(delta, td)
 		State.PAYING:
 			velocity = Vector2.ZERO
 		State.FIGHT:
@@ -788,6 +814,9 @@ func _tick_seek(delta: float) -> void:
 		_tick_elite_passive_wander(delta)
 		return
 	var want := shopping[0]
+	if Tuning.category_of(want) == Tuning.CAT_COOKED:
+		_tick_seek_cooked(delta, want)
+		return
 	_seek_shelf_refresh -= delta
 	if _target_shelf == null or not is_instance_valid(_target_shelf) or not _game.shelf_has(_target_shelf, want) or _seek_shelf_refresh <= 0.0:
 		_target_shelf = _game.find_shelf(want)
@@ -810,8 +839,174 @@ func _tick_seek(delta: float) -> void:
 		_clear_route()
 
 
+func _tick_seek_cooked(delta: float, want: String) -> void:
+	if stall != null and is_instance_valid(stall) and stall.has_method("enqueue"):
+		## Already joined — resume queue tick.
+		state = State.QUEUE_STALL
+		_clear_route()
+		return
+	_seek_shelf_refresh -= delta
+	if (
+		_target_shelf == null
+		or not is_instance_valid(_target_shelf)
+		or String(_target_shelf.get("kind")) != "cooked_stall"
+		or _seek_shelf_refresh <= 0.0
+	):
+		if _game.has_method("find_cooked_stall"):
+			_target_shelf = _game.find_cooked_stall(want, global_position)
+		else:
+			_target_shelf = null
+		_seek_shelf_refresh = Tuning.SEEK_SHELF_REFRESH_SEC
+	var stall_node: Node2D = _target_shelf
+	if stall_node == null:
+		state = State.THINK
+		_timer = Tuning.THINK_SEC
+		SfxBus.play("sfx_guest_think")
+		if not is_thief:
+			gain_dissat(Tuning.DISSAT_MISS, "miss")
+		mood = Loc.t("mood.cant_find", [Tuning.sku_name(want)])
+		_sku_popup(want, SkuIcons.KIND_MISS)
+		return
+	var stand: Vector2 = _game.shelf_stand(stall_node)
+	if _follow_to(stand, delta):
+		_join_stall(stall_node)
+		_clear_route()
+
+
+func _join_stall(stall_node: Node2D) -> void:
+	if stall_node == null or not stall_node.has_method("enqueue"):
+		return
+	stall = stall_node
+	stall.enqueue(self)
+	_stall_queue_idx = int(stall.call("queue_index_of", self)) if stall.has_method("queue_index_of") else 0
+	state = State.QUEUE_STALL
+	mood = Loc.t("mood.stall_queue")
+	SfxBus.play("sfx_guest_queue")
+
+
+func _leave_stall_queue() -> void:
+	if stall != null and is_instance_valid(stall) and stall.has_method("dequeue"):
+		stall.dequeue(self)
+	stall = null
+	_stall_queue_idx = -1
+
+
+func snap_to_stall_slot(pos: Vector2) -> void:
+	global_position = pos
+	velocity = Vector2.ZERO
+
+
+func _tick_queue_stall(delta: float, td: float) -> void:
+	if stall == null or not is_instance_valid(stall):
+		_leave_stall_queue()
+		state = State.SEEK
+		return
+	if shopping.is_empty():
+		_leave_stall_queue()
+		_try_finish_shopping(Loc.t("mood.to_pay"))
+		return
+	var want := shopping[0]
+	if Tuning.category_of(want) != Tuning.CAT_COOKED:
+		_leave_stall_queue()
+		state = State.SEEK
+		return
+	if _stall_queue_idx < 0:
+		stall.enqueue(self)
+	var idx := _resolve_stall_queue_idx()
+	_stall_queue_idx = idx
+	var slot: Vector2 = stall.slot_position(idx) if stall.has_method("slot_position") else stall.global_position
+	if _follow_queue_slot(slot, delta):
+		velocity = Vector2.ZERO
+	## Only the front guest takes or waits for craft.
+	if idx != 0:
+		mood = Loc.t("mood.stall_queue")
+		return
+	if _stall_face_has(stall, want):
+		state = State.LINGER
+		_timer = Tuning.LINGER_SEC
+		mood = Loc.t("mood.picking")
+		return
+	state = State.WAITING_CRAFT
+	mood = Loc.t("mood.stall_wait", [Tuning.sku_name(want)])
+	_sku_popup(want, SkuIcons.KIND_MISS)
+
+
+func _stall_face_has(stall_node: Node2D, sku: String) -> bool:
+	if stall_node == null or not is_instance_valid(stall_node):
+		return false
+	if stall_node.has_method("face_count_of"):
+		return int(stall_node.call("face_count_of", sku)) > 0
+	return false
+
+
+func _tick_waiting_craft(delta: float, td: float) -> void:
+	if stall == null or not is_instance_valid(stall):
+		_leave_stall_queue()
+		state = State.SEEK
+		return
+	if shopping.is_empty():
+		_leave_stall_queue()
+		_try_finish_shopping(Loc.t("mood.to_pay"))
+		return
+	var want := shopping[0]
+	velocity = Vector2.ZERO
+	## Face restocked while waiting → linger take.
+	if _stall_face_has(stall, want):
+		state = State.LINGER
+		_timer = Tuning.LINGER_SEC
+		mood = Loc.t("mood.picking")
+		return
+	if not is_thief:
+		var blocked := _game and bool(_game.queue_dissat_blocked())
+		if not blocked:
+			gain_dissat(Tuning.DISSAT_STALL_WAIT_PER_SEC * td)
+	mood = Loc.t("mood.stall_wait", [Tuning.sku_name(want)])
+
+
+func _resolve_stall_queue_idx() -> int:
+	if stall == null:
+		return -1
+	var q: Array = stall.queue if stall.get("queue") != null else []
+	if _stall_queue_idx >= 0 and _stall_queue_idx < q.size() and q[_stall_queue_idx] == self:
+		return _stall_queue_idx
+	var idx := int(stall.call("queue_index_of", self)) if stall.has_method("queue_index_of") else int(q.find(self))
+	if idx < 0:
+		stall.enqueue(self)
+		idx = int(stall.call("queue_index_of", self)) if stall.has_method("queue_index_of") else int(q.find(self))
+	return idx
+
+
+## Craft complete at this stall → cart the order and leave the stall line.
+func receive_stall_craft(sku: String) -> bool:
+	if state != State.WAITING_CRAFT and state != State.QUEUE_STALL:
+		return false
+	if shopping.is_empty() or String(shopping[0]) != sku:
+		return false
+	## Must be front of this stall.
+	if stall == null or not is_instance_valid(stall):
+		return false
+	if stall.has_method("front_customer") and stall.call("front_customer") != self:
+		return false
+	cart.append(sku)
+	shopping.remove_at(0)
+	_bump_list()
+	mood = Loc.t("mood.got", [Tuning.sku_name(sku)])
+	SfxBus.play("sfx_guest_take")
+	_leave_stall_queue()
+	_target_shelf = null
+	if shopping.is_empty():
+		_try_finish_shopping(Loc.t("mood.to_pay"))
+	else:
+		state = State.SEEK
+	return true
+
+
 func _take_current() -> void:
 	var want := shopping[0]
+	## Cooked: take from stall face while at front of stall queue.
+	if Tuning.category_of(want) == Tuning.CAT_COOKED:
+		_take_current_cooked(want)
+		return
 	var shelf: Node2D = _target_shelf
 	if shelf == null or not bool(_game.shelf_has(shelf, want)):
 		shelf = _game.find_shelf(want)
@@ -833,6 +1028,46 @@ func _take_current() -> void:
 		mood = Loc.t("mood.cant_find", [Tuning.sku_name(want)])
 		_sku_popup(want, SkuIcons.KIND_MISS)
 		_target_shelf = null
+
+
+func _take_current_cooked(want: String) -> void:
+	var stall_node: Node2D = stall if stall != null and is_instance_valid(stall) else _target_shelf
+	if stall_node == null or String(stall_node.get("kind")) != "cooked_stall":
+		if _game.has_method("find_cooked_stall"):
+			stall_node = _game.find_cooked_stall(want, global_position)
+	var took := false
+	if stall_node != null and stall_node.has_method("take_face"):
+		took = int(stall_node.call("take_face", want, 1)) > 0
+	if took:
+		cart.append(want)
+		shopping.remove_at(0)
+		_bump_list()
+		mood = Loc.t("mood.got", [Tuning.sku_name(want)])
+		SfxBus.play("sfx_guest_take")
+		_leave_stall_queue()
+		_target_shelf = null
+		if shopping.is_empty():
+			_try_finish_shopping(Loc.t("mood.to_pay"))
+		else:
+			state = State.SEEK
+		return
+	## No face stock at linger end → wait for craft at this stall.
+	if stall_node != null and stall_node.has_method("enqueue"):
+		if stall != stall_node:
+			_leave_stall_queue()
+			_join_stall(stall_node)
+		state = State.WAITING_CRAFT
+		mood = Loc.t("mood.stall_wait", [Tuning.sku_name(want)])
+		_sku_popup(want, SkuIcons.KIND_MISS)
+		return
+	state = State.THINK
+	_timer = Tuning.THINK_SEC
+	SfxBus.play("sfx_guest_think")
+	if not is_thief:
+		gain_dissat(Tuning.DISSAT_MISS, "miss")
+	mood = Loc.t("mood.cant_find", [Tuning.sku_name(want)])
+	_sku_popup(want, SkuIcons.KIND_MISS)
+	_target_shelf = null
 
 
 func _after_think() -> void:
@@ -891,6 +1126,7 @@ func _begin_checkout(pay_mood: String = Loc.t("mood.to_pay")) -> void:
 	if state == State.TO_CASHIER or state == State.QUEUE or state == State.PAYING:
 		mood = pay_mood
 		return
+	_leave_stall_queue()
 	_clear_route()
 	if not _join_register():
 		mood = Loc.t("mood.no_register")
@@ -1084,6 +1320,7 @@ func _leave(angry: bool) -> void:
 	if _reg():
 		_reg().dequeue(self)
 	_queue_idx = -1
+	_leave_stall_queue()
 	_notify_unoccupy()
 	state = State.LEAVE
 	_leave_elapsed = 0.0
@@ -1311,14 +1548,7 @@ func accept_must_deliver(pieces: Array) -> int:
 		return 0
 	_bump_list()
 	_target_shelf = null
-	if shopping.is_empty():
-		_try_finish_shopping(Loc.t("mood.thanks_pay"))
-	else:
-		mood = Loc.t("mood.thanks_bang")
-		if state == State.THINK or state == State.LINGER:
-			state = State.SEEK
-			_timer = 0.0
-			_clear_route()
+	_after_delivery_resume()
 	_sync_labels()
 	return taken
 
@@ -1344,14 +1574,7 @@ func accept_force_sell(pieces: Array) -> int:
 		return 0
 	_bump_list()
 	_target_shelf = null
-	if shopping.is_empty():
-		_try_finish_shopping(Loc.t("mood.thanks_pay"))
-	else:
-		mood = Loc.t("mood.thanks_bang")
-		if state == State.THINK or state == State.LINGER:
-			state = State.SEEK
-			_timer = 0.0
-			_clear_route()
+	_after_delivery_resume()
 	_sync_labels()
 	return taken
 
@@ -1385,13 +1608,26 @@ func accept_toss_box(sku: String, n: int) -> int:
 		_try_finish_shopping(Loc.t("mood.thanks_pay"))
 	else:
 		mood = Loc.t("mood.thanks_bang")
-		if state == State.THINK or state == State.LINGER:
-			state = State.SEEK
-			_timer = 0.0
-			_clear_route()
+		_resume_seek_after_delivery()
 	_sku_popup(sku, SkuIcons.KIND_OK)
 	_sync_labels()
 	return take
+
+
+func _after_delivery_resume() -> void:
+	if shopping.is_empty():
+		_try_finish_shopping(Loc.t("mood.thanks_pay"))
+	else:
+		mood = Loc.t("mood.thanks_bang")
+		_resume_seek_after_delivery()
+
+
+func _resume_seek_after_delivery() -> void:
+	if state == State.THINK or state == State.LINGER or state == State.QUEUE_STALL or state == State.WAITING_CRAFT:
+		_leave_stall_queue()
+		state = State.SEEK
+		_timer = 0.0
+		_clear_route()
 
 
 func apply_toss_reject(sku: String = "") -> void:

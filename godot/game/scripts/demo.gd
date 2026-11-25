@@ -40,6 +40,7 @@ const ClerkCastScript = preload("res://scripts/host/clerk_cast.gd")
 const OpsWorldScript = preload("res://scripts/host/ops_world.gd")
 const WorldSpawnScript = preload("res://scripts/host/world_spawn.gd")
 const TossWorldScript = preload("res://scripts/host/toss_world.gd")
+const CookedWorldScript = preload("res://scripts/host/cooked_world.gd")
 const BossWorldScript = preload("res://scripts/host/boss_world.gd")
 const NetPresentationScript = preload("res://scripts/session/net_presentation.gd")
 const TaskCatalog = preload("res://scripts/session/task_catalog.gd")
@@ -99,6 +100,8 @@ var thieves_caught: int = 0
 var thieves_escaped: int = 0
 var cashier: Node2D
 var shelves: Array[Node2D] = []
+## theme_historic cooked stalls (not in shelves／_shelves_by_sku).
+var cooked_stalls: Array[Node2D] = []
 var pathfinder
 var _obstacles: Array[Rect2] = []
 var _spawn_in: float = 2.0
@@ -192,6 +195,7 @@ var _clerk_cast = ClerkCastScript.new()
 var _ops_world = OpsWorldScript.new()
 var _world_spawn = WorldSpawnScript.new()
 var _toss_world = TossWorldScript.new()
+var _cooked_world = CookedWorldScript.new()
 var _boss_world = BossWorldScript.new()
 
 
@@ -222,6 +226,7 @@ func _ready() -> void:
 	_ops_world.bind(self)
 	_world_spawn.bind(self)
 	_toss_world.bind(self)
+	_cooked_world.bind(self)
 	_boss_world.bind(self)
 	_net.connect_session()
 	_day_chrome.connect_session()
@@ -532,6 +537,7 @@ func _clear_world() -> void:
 	_door_caption = null
 	_hud = null
 	shelves.clear()
+	cooked_stalls.clear()
 	_shelves_by_sku.clear()
 	_empty_by_cat.clear()
 	_dirt_block_cells.clear()
@@ -1036,7 +1042,7 @@ func sync_stock() -> void:
 			if n == null or not is_instance_valid(n) or seen.has(n):
 				continue
 			seen[n] = true
-			if str(n.get("kind")) == "restock" and n.has_method("pull_stock"):
+			if str(n.get("kind")) in ["restock", "fish_tank"] and n.has_method("pull_stock"):
 				n.call("pull_stock")
 
 
@@ -2645,6 +2651,9 @@ func shelf_stand(shelf: Node2D) -> Vector2:
 		return shelf.stand_position()
 	return shelf.global_position + Vector2(0, -58)
 
+
+func find_cooked_stall(sku: String, from: Vector2 = Vector2.ZERO) -> Node2D:
+	return _cooked_world.find_cooked_stall(sku, from)
 
 func find_path(from: Vector2, to: Vector2) -> PackedVector2Array:
 	if pathfinder == null:

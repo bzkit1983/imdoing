@@ -9,6 +9,8 @@ const ShelfScript = preload("res://scripts/shelf.gd")
 const CashierScript = preload("res://scripts/cashier.gd")
 const SelfCashierScript = preload("res://scripts/self_cashier.gd")
 const PortalScript = preload("res://scripts/portal.gd")
+const CookedStallScript = preload("res://scripts/cooked_stall.gd")
+const FishTankScript = preload("res://scripts/fish_tank.gd")
 const ClerkScript = preload("res://scripts/clerk.gd")
 const FloorTilesScript = preload("res://scripts/floor_tiles.gd")
 const UiFont = preload("res://scripts/ui_font.gd")
@@ -267,9 +269,52 @@ func build_furniture(nodes: Array[Node2D]) -> void:
 			var pid := String(it.get("pair_id", ""))
 			var node := make_portal(r, rot, pid, _portal_tint(pid))
 			nodes.append(node)
+		elif t == "cooked_stall":
+			nodes.append(make_cooked_stall(r, rot, host.state.shelf_capacity(t)))
+		elif t == "fish_tank":
+			nodes.append(make_fish_tank(r, rot))
 	_link_portal_partners()
 	if not host.cashiers.is_empty():
 		host.cashier = host.cashiers[0]
+
+
+func _fit_color_body(body: StaticBody2D, r: Rect2, color: Color) -> void:
+	host._obstacles.append(r)
+	body.collision_layer = 1
+	body.collision_mask = 0
+	body.position = r.position + r.size * 0.5
+	var rect := ColorRect.new()
+	rect.color = color
+	rect.size = r.size
+	rect.position = -r.size * 0.5
+	body.add_child(rect)
+	var col := CollisionShape2D.new()
+	var shape := RectangleShape2D.new()
+	shape.size = r.size
+	col.shape = shape
+	body.add_child(col)
+	host._world.add_child(body)
+
+
+func make_cooked_stall(r: Rect2, rot: int, cap: int) -> Node2D:
+	var node: StaticBody2D = CookedStallScript.new()
+	_fit_color_body(node, r, Color("c4783a"))
+	node.capacity_total = maxi(1, cap)
+	node.set_facing(facing(rot))
+	node.label = caption(r.position + Vector2(8, 4), Loc.t("furniture.cooked_stall"))
+	node.setup_overlay()
+	node._refresh_label()
+	if host.get("cooked_stalls") is Array:
+		host.cooked_stalls.append(node)
+	return node
+
+
+func make_fish_tank(r: Rect2, _rot: int) -> Node2D:
+	var node: StaticBody2D = FishTankScript.new()
+	_fit_color_body(node, r, Color("2a7bb0"))
+	node.label = caption(r.position + Vector2(8, 4), Loc.t("furniture.fish_tank"))
+	node.setup_default_fish(host.state)
+	return node
 
 func spawn_clerks() -> void:
 	var i := 0

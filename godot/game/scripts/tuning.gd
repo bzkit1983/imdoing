@@ -8,48 +8,99 @@ const INT := 20
 const CAT_DRY := "dry"
 const CAT_FROZEN := "frozen"
 const CAT_ICE := "ice"
+## theme_historic cooked line (craft-only; see cookedfoodsystem.md).
+const CAT_COOKED := "cooked"
 
-const DRY_SKUS: Array[String] = ["can", "snack", "cup"]
+const DRY_SKUS: Array[String] = ["can", "snack", "cup", "grain", "soy_sauce"]
 const FROZEN_SKUS: Array[String] = ["drink", "milk", "soda"]
 const ICE_SKUS: Array[String] = ["icecream", "meat", "rice"]
-const SELLABLE_SKUS: Array[String] = ["can", "snack", "cup", "drink", "milk", "soda", "icecream", "meat", "rice"]
+const COOKED_SKUS: Array[String] = ["onigiri", "yakimochi", "nigiri"]
+const SELLABLE_SKUS: Array[String] = [
+	"can", "snack", "cup", "grain", "soy_sauce",
+	"drink", "milk", "soda",
+	"icecream", "meat", "rice",
+	"onigiri", "yakimochi", "nigiri",
+]
+## Fish materials (not sellable). Display: locale `fish.<id>`.
+const FISH_IDS: Array[String] = ["saba", "tai", "sanma", "aji", "ayu"]
+## Catch weights for fishing_taro (relative; fishingtaro.md §2).
+const FISH_WEIGHTS := {
+	"saba": 28,
+	"tai": 12,
+	"sanma": 22,
+	"aji": 22,
+	"ayu": 16,
+}
+## Cooked SKUs: no procurement. Recipes consume stall pantry (not warehouse directly).
+const CRAFT_ONLY_SKUS: Array[String] = ["onigiri", "yakimochi", "nigiri"]
+## Ingredients that can be deposited into cooked_stall pantry.
+const COOKED_INGREDIENT_SKUS: Array[String] = ["grain", "soy_sauce"]
+## Each recipe yields 1 cooked piece. Fish ingredient uses kind "fish" + id "any".
+const COOKED_RECIPES := {
+	"onigiri": [{"kind": "sku", "id": "grain", "n": 2}],
+	"yakimochi": [
+		{"kind": "sku", "id": "grain", "n": 1},
+		{"kind": "sku", "id": "soy_sauce", "n": 1},
+	],
+	"nigiri": [
+		{"kind": "sku", "id": "grain", "n": 1},
+		{"kind": "fish", "id": "any", "n": 1},
+	],
+}
 
 ## Display names live in locale/data.csv (`sku.<id>`).
 const SKU_IDS: Array[String] = [
-	"can", "snack", "cup", "drink", "milk", "soda", "icecream", "meat", "rice",
+	"can", "snack", "cup", "grain", "soy_sauce",
+	"drink", "milk", "soda", "icecream", "meat", "rice",
+	"onigiri", "yakimochi", "nigiri",
 ]
 const SKU_COLOR := {
 	"can": Color("c45c26"),
 	"snack": Color("e8c36a"),
 	"cup": Color("3d7ea6"),
+	"grain": Color("f0e6c8"),
+	"soy_sauce": Color("3b2a1e"),
 	"drink": Color("7ec8e3"),
 	"milk": Color("3a7ca5"),
 	"soda": Color("c0392b"),
 	"icecream": Color("f4a4c0"),
 	"meat": Color("7a3048"),
 	"rice": Color("e07a3d"),
+	"onigiri": Color("f5f0e1"),
+	"yakimochi": Color("e8b86d"),
+	"nigiri": Color("f2c4b0"),
 }
 const SKU_PRICE := {
 	"can": 30, "snack": 15, "cup": 8,
+	"grain": 12, "soy_sauce": 14,
 	"drink": 8, "milk": 10, "soda": 20,
 	"icecream": 50, "meat": 45, "rice": 70,
+	"onigiri": 36, "yakimochi": 40, "nigiri": 55,
 }
 ## Price for BOX_SIZE pieces (legacy per-box). Charge with cost_for_pieces().
+## Craft-only cooked SKUs keep 0 cost (cannot buy_stock).
 const SKU_COST := {
 	"can": 10, "snack": 5, "cup": 3,
+	"grain": 24, "soy_sauce": 28,
 	"drink": 2, "milk": 3, "soda": 6,
 	"icecream": 20, "meat": 15, "rice": 50,
+	"onigiri": 0, "yakimochi": 0, "nigiri": 0,
 }
 const SKU_DEVELOP := {
 	"can": 0, "snack": 200, "cup": 300,
+	"grain": 400, "soy_sauce": 450,
 	"drink": 400, "milk": 500, "soda": 600,
 	"icecream": 700, "meat": 800, "rice": 900,
+	"onigiri": 500, "yakimochi": 550, "nigiri": 650,
 }
 ## Canned goods are initial stock: no develop fee. Microwave rice unlocks at character LV10.
+## Historic SKUs: high legacy LV; product unlocks via story／sandbox unlock_all_content.
 const SKU_UNLOCK_LV := {
 	"can": 1, "snack": 2, "cup": 3,
+	"grain": 99, "soy_sauce": 99,
 	"drink": 4, "milk": 5, "soda": 6,
 	"icecream": 7, "meat": 8, "rice": 10,
+	"onigiri": 99, "yakimochi": 99, "nigiri": 99,
 }
 
 ## Visual chunk / legacy save scale. Gameplay units are pieces.
@@ -191,6 +242,8 @@ const SECURITY_CHASE_SPEED_MULT := 1.25
 const CLEANER_DETECT_PX := 160.0
 const CLEANER_ARRIVE_PX := 36.0
 const SKU_PICK_HOLD := 0.18
+## Cooked stall craft Circle（cookedfoodsystem.md §4.1）.
+const COOKED_CRAFT_SEC := 2.0
 const RESTOCK_SECONDS_AT_10 := 2.0
 const RESTOCK_SECONDS_AT_50 := 0.2
 const CLEAN_SECONDS_AT_10 := 5.0
@@ -225,6 +278,8 @@ const THINK_SEC := 3.0
 const DISSAT_MAX := 100.0
 const DISSAT_MISS := 18.0
 const DISSAT_QUEUE_PER_SEC := 100.0 / 15.0
+## Cooked stall WAITING_CRAFT — slower than cashier queue (cookedfoodsystem.md).
+const DISSAT_STALL_WAIT_PER_SEC := DISSAT_QUEUE_PER_SEC * 0.5
 const DISSAT_DIRT_PER_SEC := 8.0
 
 ## Self-checkout furniture (`self_cashier`) — see cashiersystem.md / shopitem.md.
@@ -414,7 +469,49 @@ static func cd_seconds(listed: float, int_stat: int = INT) -> float:
 static func sku_name(id: String) -> String:
 	if id == "":
 		return id
+	## Held fish pieces reuse inventory SKU chrome (fishingtaro ops pull).
+	if is_fish_id(id):
+		return fish_name(id)
 	return Loc.t("sku.%s" % id)
+
+
+static func fish_name(id: String) -> String:
+	if id == "":
+		return id
+	return Loc.t("fish.%s" % id)
+
+
+static func is_craft_only(sku: String) -> bool:
+	return CRAFT_ONLY_SKUS.has(sku)
+
+
+static func is_fish_id(id: String) -> bool:
+	return FISH_IDS.has(id)
+
+
+static func is_cooked_ingredient(id: String) -> bool:
+	return COOKED_INGREDIENT_SKUS.has(id) or is_fish_id(id)
+
+
+## Weighted random fish_id for Fishing Taro catches.
+static func roll_fish_id() -> String:
+	var total := 0
+	for fid in FISH_IDS:
+		total += int(FISH_WEIGHTS.get(fid, 1))
+	if total <= 0:
+		return String(FISH_IDS[0]) if not FISH_IDS.is_empty() else ""
+	var roll := randi() % total
+	var acc := 0
+	for fid in FISH_IDS:
+		acc += int(FISH_WEIGHTS.get(fid, 1))
+		if roll < acc:
+			return fid
+	return String(FISH_IDS[FISH_IDS.size() - 1])
+
+
+static func cooked_recipe(sku: String) -> Array:
+	var raw = COOKED_RECIPES.get(sku, [])
+	return raw if raw is Array else []
 
 
 static func sku_price(id: String) -> int:
@@ -428,6 +525,8 @@ static func category_of(sku: String) -> String:
 		return CAT_FROZEN
 	if sku in ICE_SKUS:
 		return CAT_ICE
+	if sku in COOKED_SKUS:
+		return CAT_COOKED
 	return ""
 
 
@@ -436,6 +535,8 @@ static func skus_for(category: String) -> Array[String]:
 		return FROZEN_SKUS
 	if category == CAT_ICE:
 		return ICE_SKUS
+	if category == CAT_COOKED:
+		return COOKED_SKUS
 	return DRY_SKUS
 
 

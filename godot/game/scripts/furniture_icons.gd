@@ -120,6 +120,10 @@ static func _procedural(type: String) -> Texture2D:
 			col = Color("2f5d50")
 	elif type == "portal":
 		col = Color("4ecdc4")
+	elif type == "cooked_stall":
+		col = Color("c4783a")
+	elif type == "fish_tank":
+		col = Color("2a7bb0")
 	for y in range(6, SIZE - 6):
 		for x in range(6, SIZE - 6):
 			img.set_pixel(x, y, col)
