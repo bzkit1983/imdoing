@@ -19,7 +19,7 @@
 | `player_alt2` | `skin.player_alt2` | 維京人 |
 | `player_sengoku` | `skin.player_sengoku` | 安桃山半纏（`theme_historic` 解鎖；**設計定稿／未 bake**） |
 
-**客人／場所（非 Look 頁；主題進行中覆寫）：** `customer_sengoku`／`customer_sengoku_hurry`／`customer_sengoku_slow`；`floor_tile_sengoku`／`wall_sengoku` — 見 [`story/themes/theme-historic.md`](story/themes/theme-historic.md)。
+**客人／場所（非 Look 頁；主題進行中覆寫）：** `customer_sengoku_samurai`／`customer_sengoku_civilian`／`customer_sengoku_merchant`；`thief_sengoku`；`floor_tile_sengoku`／`wall_sengoku` — 見 [`story/themes/theme-historic.md`](story/themes/theme-historic.md)。急／慢只改行速。
 
 - 目錄模組：`godot/game/scripts/session/skin_catalog.gd`
 - Bake：`tools/voxel_sprites.py`（`CHAR_WAY`）、`tools/voxel_character_anims.py`（`CHARS`）、`godot/game/art/catalog.json`

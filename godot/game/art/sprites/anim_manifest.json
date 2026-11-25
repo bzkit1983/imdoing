@@ -20,6 +20,82 @@
   ],
   "facings": 16,
   "characters": {
+    "customer_sengoku_samurai": {
+      "idle": {
+        "frames": 2,
+        "fps": 2
+      },
+      "walk": {
+        "frames": 4,
+        "fps": 8
+      },
+      "angry": {
+        "frames": 3,
+        "fps": 5
+      },
+      "leave": {
+        "frames": 4,
+        "fps": 8
+      }
+    },
+    "customer_sengoku_civilian": {
+      "idle": {
+        "frames": 2,
+        "fps": 2
+      },
+      "walk": {
+        "frames": 4,
+        "fps": 8
+      },
+      "angry": {
+        "frames": 3,
+        "fps": 5
+      },
+      "leave": {
+        "frames": 4,
+        "fps": 8
+      }
+    },
+    "customer_sengoku_merchant": {
+      "idle": {
+        "frames": 2,
+        "fps": 2
+      },
+      "walk": {
+        "frames": 4,
+        "fps": 8
+      },
+      "angry": {
+        "frames": 3,
+        "fps": 5
+      },
+      "leave": {
+        "frames": 4,
+        "fps": 8
+      }
+    },
+    "thief_sengoku": {
+      "idle": {
+        "frames": 2,
+        "fps": 2
+      },
+      "walk": {
+        "frames": 4,
+        "fps": 8
+      },
+      "fight": {
+        "frames": 4,
+        "fps": 12
+      },
+      "leave": {
+        "frames": 4,
+        "fps": 8
+      },
+      "fly": {
+        "frames": 4,
+        "fps": 12
+      }
+    },
     "player": {
       "idle": {
         "frames": 2,
@@ -378,6 +454,10 @@
     }
   },
   "sources": {
+    "customer_sengoku_samurai": "designer_vox",
+    "customer_sengoku_civilian": "designer_vox",
+    "customer_sengoku_merchant": "designer_vox",
+    "thief_sengoku": "designer_vox",
     "player": "designer_vox",
     "player_alt1": "designer_vox",
     "player_alt2": "designer_vox",

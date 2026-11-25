@@ -133,7 +133,11 @@ CHAR_WAY = {
     "player_alt2",
     "player_alt3",
     "customer",
+    "customer_sengoku_samurai",
+    "customer_sengoku_civilian",
+    "customer_sengoku_merchant",
     "thief",
+    "thief_sengoku",
     "clerk_cashier",
     "clerk_restock",
     "clerk_security",
@@ -154,6 +158,7 @@ FOUR_WAY = CHAR_WAY | {
     "fish_tank",
     "portal",
     "wall",
+    "wall_sengoku",
     "door",
 }
 

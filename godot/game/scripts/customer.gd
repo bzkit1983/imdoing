@@ -8,6 +8,7 @@ const Vox = preload("res://scripts/voxel_sprite.gd")
 const BoxFaceplate = preload("res://scripts/box_faceplate.gd")
 const SkuIcons = preload("res://scripts/sku_icons.gd")
 const SkuPopup = preload("res://scripts/sku_popup.gd")
+const PlaceShell = preload("res://scripts/session/place_shell.gd")
 
 enum State {
 	ENTER,
@@ -46,7 +47,7 @@ var boss_id: String = ""
 ## Boss: cart size at the start of the current list stage (earlier stages stay banked).
 var _boss_cart_checkpoint: int = 0
 var kind: String = ""
-## Alpha pace variant: normal / hurry / slow → distinct model (not full recolor).
+## Pace: normal / hurry / slow → walk-speed only (historic theme uses archetype mesh).
 var pace: String = "normal"
 var _model_id: String = "customer"
 var _elite_affix_cd: Dictionary = {}
@@ -264,10 +265,11 @@ func setup(game: Node, door: Vector2, thief: bool = false) -> void:
 	kind = "thief" if thief else ""
 	if thief:
 		pace = "normal"
-		_model_id = "thief"
 		_pace_speed = 1.0
+		_model_id = _resolve_thief_model()
 	else:
 		_roll_pace()
+		_roll_guest_appearance()
 	global_position = door + Vector2(randf_range(-20, 20), -40)
 	shopping = _roll_list()
 	mood = Loc.t("mood.shop")
@@ -404,21 +406,47 @@ func apply_combo_bonus() -> void:
 
 
 func _roll_pace() -> void:
+	## Speed only — mesh comes from _roll_guest_appearance / theme archetypes.
 	var roll := randf()
 	if roll < 0.34:
 		pace = "hurry"
-		_model_id = "customer_hurry"
 		_pace_speed = 1.22
 	elif roll < 0.67:
 		pace = "slow"
-		_model_id = "customer_slow"
 		_pace_speed = 0.78
 	else:
 		pace = "normal"
-		_model_id = "customer"
 		_pace_speed = 1.0
+
+
+func _guest_state() -> Object:
+	if _game == null:
+		return null
+	return _game.get("state")
+
+
+func _roll_guest_appearance() -> void:
+	var st := _guest_state()
+	if PlaceShell.uses_historic_place_shell(st):
+		var preferred := PlaceShell.roll_guest_model_id(st)
+		_model_id = PlaceShell.resolve_model_with_fallback(preferred, "customer")
+		return
+	## Modern shop: pace still maps to hurry/slow meshes when baked.
+	match pace:
+		"hurry":
+			_model_id = "customer_hurry"
+		"slow":
+			_model_id = "customer_slow"
+		_:
+			_model_id = "customer"
 	if not Vox.has_anim(_model_id, "walk"):
 		_model_id = "customer"
+
+
+func _resolve_thief_model() -> String:
+	var st := _guest_state()
+	var preferred := PlaceShell.thief_model_id(st)
+	return PlaceShell.resolve_model_with_fallback(preferred, "thief")
 
 
 func add_dirt(delta_count: int) -> void:
@@ -598,16 +626,13 @@ func apply_kind_cannon_conversion() -> bool:
 	dissatisfaction = 0.0
 	fight_hp = 100.0
 	fight_left = 0.0
-	_model_id = "customer"
+	_roll_guest_appearance()
 	_occupy_counted = not net_puppet
 	collision_layer = Tuning.LAYER_CUSTOMERS
 	collision_mask = Tuning.LAYER_WALLS
 	modulate.a = 1.0
 	z_index = 0
-	if _body is AnimatedSprite2D:
-		Vox.play_anim(_body as AnimatedSprite2D, _model_id, "idle", Vector2.DOWN)
-	elif _body is Sprite2D:
-		Vox.apply(_body as Sprite2D, _model_id, 0)
+	_swap_body_model(_model_id)
 	if _body != null:
 		_body.modulate = Color.WHITE
 		_shown_tint = Color(0, 0, 0, 0)
@@ -2379,9 +2404,34 @@ func _fill_list_from_pool(pool: Array[String], n: int) -> Array[String]:
 	var out: Array[String] = []
 	if pool.is_empty() or n <= 0:
 		return out
-	for i in n:
-		out.append(pool[randi() % pool.size()])
+	var historic := PlaceShell.uses_historic_place_shell(_guest_state())
+	for _i in n:
+		out.append(_pick_sku_from_pool(pool, historic))
 	return out
+
+
+func _pick_sku_from_pool(pool: Array[String], historic_cooked_downweight: bool) -> String:
+	if not historic_cooked_downweight or pool.size() <= 1:
+		return pool[randi() % pool.size()]
+	var total := 0.0
+	var weights: Array[float] = []
+	weights.resize(pool.size())
+	for i in pool.size():
+		var sku := String(pool[i])
+		var w := 1.0
+		if Tuning.category_of(sku) == Tuning.CAT_COOKED:
+			w = Tuning.HISTORIC_COOKED_LIST_WEIGHT
+		weights[i] = w
+		total += w
+	if total <= 0.0:
+		return pool[randi() % pool.size()]
+	var roll := randf() * total
+	var acc := 0.0
+	for i in pool.size():
+		acc += weights[i]
+		if roll <= acc:
+			return String(pool[i])
+	return String(pool[pool.size() - 1])
 
 
 func _build_visual() -> void:

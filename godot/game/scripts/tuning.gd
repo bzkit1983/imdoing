@@ -272,6 +272,9 @@ const CUSTOMER_CAP := 15
 const LIST_MIN := 2
 const LIST_MAX := 8
 const LIST_HARD_MAX := 15
+## theme_historic guest list: relative weight for each cooked SKU vs 1.0 for dry／other.
+## With 3 dry + 3 cooked at 0.25 → cooked ≈ 20% of picks (was ~50% uniform).
+const HISTORIC_COOKED_LIST_WEIGHT := 0.25
 ## Test-build「簡易」. Normal keeps the scenario rules. See storepreparationphase.md.
 const EASY_LIST_CAP := 5
 const EASY_DIRT_INTERVAL_MULT := 2.0

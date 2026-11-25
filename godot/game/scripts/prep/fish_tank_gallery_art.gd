@@ -49,12 +49,14 @@ func setup_from_state(state: RefCounted) -> void:
 		_refresh_stock_labels()
 		queue_redraw()
 		return
+	## Counts always cover every fish_id (stock plate), even if swim sprites cap out.
+	for fid in Tuning.FISH_IDS:
+		_counts[fid] = int(state.fish_count(fid))
 	var total := 0
 	for fid in Tuning.FISH_IDS:
-		var have := int(state.fish_count(fid))
-		_counts[fid] = have
+		var have := int(_counts.get(fid, 0))
 		var n := mini(have, MAX_PER_SPECIES)
-		for i in n:
+		for _i in n:
 			if total >= MAX_TOTAL:
 				break
 			school.append({

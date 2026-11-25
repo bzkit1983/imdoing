@@ -2171,8 +2171,11 @@ func _spawn_customer_puppet(aid: int, thief: bool, pos: Vector2, payload: Dictio
 	if puppet_elite:
 		c.call("become_elite", int(payload.get("elite_lv", 1)))
 	var model := String(payload.get("model", ""))
-	if model != "":
-		c._model_id = model
+	if model != "" and model != String(c._model_id):
+		if c.has_method("_swap_body_model"):
+			c.call("_swap_body_model", model)
+		else:
+			c._model_id = model
 	## Host absolute shopping — overwrite local setup/elite re-roll (M2.7).
 	if c.has_method("apply_net_shopping"):
 		c.call("apply_net_shopping", payload.get("shopping", []))

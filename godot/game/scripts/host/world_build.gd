@@ -13,10 +13,12 @@ const CookedStallScript = preload("res://scripts/cooked_stall.gd")
 const FishTankScript = preload("res://scripts/fish_tank.gd")
 const ClerkScript = preload("res://scripts/clerk.gd")
 const FloorTilesScript = preload("res://scripts/floor_tiles.gd")
+const PlaceShell = preload("res://scripts/session/place_shell.gd")
 const UiFont = preload("res://scripts/ui_font.gd")
 const Vox = preload("res://scripts/voxel_sprite.gd")
 
 var host: Node
+var _wall_model_id: String = "wall"
 
 
 func bind(day_host: Node) -> void:
@@ -80,8 +82,11 @@ func run_wall(a: Vector2, b: Vector2, k: int) -> void:
 	var dir := delta / length
 	var count := maxi(1, int(round(length / 64.0)))
 	var each := length / float(count)
+	var wall_id := _wall_model_id if _wall_model_id != "" else "wall"
+	if Vox.texture(wall_id, k) == null:
+		wall_id = "wall"
 	for i in count:
-		var spr := Vox.sprite("wall", k)
+		var spr := Vox.sprite(wall_id, k)
 		spr.z_index = -5
 		spr.position = a + dir * (each * (float(i) + 0.5))
 		host._world.add_child(spr)
@@ -92,9 +97,11 @@ func build_floor() -> void:
 	floor.name = "Floor"
 	floor.z_index = -8
 	host._world.add_child(floor)
-	floor.call("setup", host.FLOOR_ORIGIN, host.FLOOR_SIZE, StateScript.CELL)
+	var floor_id := PlaceShell.floor_model_id(host.state)
+	floor.call("setup", host.FLOOR_ORIGIN, host.FLOOR_SIZE, StateScript.CELL, floor_id)
 
 func walls_and_door() -> void:
+	_wall_model_id = PlaceShell.wall_model_id(host.state)
 	var t := 18.0
 	## `host` is typed Node — annotate Vector2 so `:=` can infer north_y / mid / etc.
 	var o: Vector2 = host.FLOOR_ORIGIN

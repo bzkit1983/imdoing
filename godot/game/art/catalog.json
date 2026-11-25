@@ -559,6 +559,54 @@
           ],
           "voxels": 122715,
           "note": "v1.5 Q 版。黃背心、工作帽、側持拖把。"
+        },
+        {
+          "id": "customer_sengoku_samurai",
+          "name": "戰國武士",
+          "file": "customer_sengoku_samurai.vox",
+          "size": [
+            12,
+            10,
+            20
+          ],
+          "voxels": 786,
+          "note": "theme_historic：一般客人—武士。"
+        },
+        {
+          "id": "customer_sengoku_civilian",
+          "name": "戰國平民",
+          "file": "customer_sengoku_civilian.vox",
+          "size": [
+            12,
+            10,
+            20
+          ],
+          "voxels": 684,
+          "note": "theme_historic：一般客人—古裝平民。"
+        },
+        {
+          "id": "customer_sengoku_merchant",
+          "name": "戰國商人",
+          "file": "customer_sengoku_merchant.vox",
+          "size": [
+            12,
+            10,
+            20
+          ],
+          "voxels": 714,
+          "note": "theme_historic：一般客人—古裝商人。"
+        },
+        {
+          "id": "thief_sengoku",
+          "name": "戰國小偷",
+          "file": "thief_sengoku.vox",
+          "size": [
+            12,
+            10,
+            20
+          ],
+          "voxels": 846,
+          "note": "theme_historic：喜劇風藍忍小偷。"
         }
       ]
     },
@@ -1021,6 +1069,30 @@
           ],
           "voxels": 12921,
           "note": "v1.5 中期稿。比水漬厚、顏色分開。"
+        },
+        {
+          "id": "floor_tile_sengoku",
+          "name": "戰國地板",
+          "file": "floor_tile_sengoku.vox",
+          "size": [
+            128,
+            128,
+            8
+          ],
+          "voxels": 49152,
+          "note": "theme_historic：素面木地板一格。"
+        },
+        {
+          "id": "wall_sengoku",
+          "name": "戰國牆",
+          "file": "wall_sengoku.vox",
+          "size": [
+            128,
+            16,
+            128
+          ],
+          "voxels": 262144,
+          "note": "theme_historic：白壁土牆一格段。"
         }
       ]
     }

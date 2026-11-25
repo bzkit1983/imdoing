@@ -9,6 +9,7 @@
 - 新貨類 id：`cooked`（熟食）
 - **不可**經準備回合「採購」購入倉庫件數
 - 客人可把已開發且 `for_sale` 的熟食 SKU 抽進購物清單（同既有 `sellable()` 規則）
+- **難度（`theme_historic`／劇本 9）：** 清單抽選對 `cooked` 降權（`Tuning.HISTORIC_COOKED_LIST_WEIGHT`，預設 0.25；非熟食權重 1）→ 熟食出現率明顯低於均勻抽
 - 取得唯一路徑：營運中（或開日前預製，見 §4）在 **`cooked_stall`** 依食譜消耗原料加工
 
 對既有冰櫃 SKU **`rice`（叮叮飯）無影響**。本主題乾貨「米」為 **`grain`**。

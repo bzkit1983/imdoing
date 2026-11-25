@@ -32103,5 +32103,6424 @@
     "fw": 40.0,
     "fh": 24.0,
     "hires": true
+  },
+  "floor_tile_sengoku_0": {
+    "ax": 32.0,
+    "ay": 36.0,
+    "fw": 64.0,
+    "fh": 64.0,
+    "hires": true
+  },
+  "wall_sengoku_0": {
+    "ax": 32.0,
+    "ay": 68.0,
+    "fw": 64.0,
+    "fh": 8.0,
+    "hires": true
+  },
+  "wall_sengoku_1": {
+    "ax": 4.0,
+    "ay": 96.0,
+    "fw": 8.0,
+    "fh": 64.0,
+    "hires": true
+  },
+  "wall_sengoku_2": {
+    "ax": 32.0,
+    "ay": 68.0,
+    "fw": 64.0,
+    "fh": 8.0,
+    "hires": true
+  },
+  "wall_sengoku_3": {
+    "ax": 4.0,
+    "ay": 96.0,
+    "fw": 8.0,
+    "fh": 64.0,
+    "hires": true
+  },
+  "customer_sengoku_samurai_idle_0_0": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_idle_1_0": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_idle_2_0": {
+    "ax": 20.0,
+    "ay": 100.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_idle_3_0": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_idle_4_0": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_idle_5_0": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_idle_6_0": {
+    "ax": 20.0,
+    "ay": 100.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_idle_7_0": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_idle_8_0": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_idle_9_0": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_idle_10_0": {
+    "ax": 20.0,
+    "ay": 100.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_idle_11_0": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_idle_12_0": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_idle_13_0": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_idle_14_0": {
+    "ax": 20.0,
+    "ay": 100.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_idle_15_0": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_idle_0_1": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_idle_1_1": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_idle_2_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_idle_3_1": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_idle_4_1": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_idle_5_1": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_idle_6_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_idle_7_1": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_idle_8_1": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_idle_9_1": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_idle_10_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_idle_11_1": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_idle_12_1": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_idle_13_1": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_idle_14_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_idle_15_1": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_0_0": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_1_0": {
+    "ax": 26.0,
+    "ay": 100.0,
+    "fw": 52.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_2_0": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_3_0": {
+    "ax": 20.0,
+    "ay": 102.0,
+    "fw": 40.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_4_0": {
+    "ax": 20.0,
+    "ay": 102.0,
+    "fw": 40.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_5_0": {
+    "ax": 20.0,
+    "ay": 106.0,
+    "fw": 40.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_6_0": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_7_0": {
+    "ax": 22.0,
+    "ay": 100.0,
+    "fw": 44.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_8_0": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_9_0": {
+    "ax": 26.0,
+    "ay": 100.0,
+    "fw": 52.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_10_0": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_11_0": {
+    "ax": 20.0,
+    "ay": 102.0,
+    "fw": 40.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_12_0": {
+    "ax": 20.0,
+    "ay": 106.0,
+    "fw": 40.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_13_0": {
+    "ax": 20.0,
+    "ay": 106.0,
+    "fw": 40.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_14_0": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_15_0": {
+    "ax": 22.0,
+    "ay": 100.0,
+    "fw": 44.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_0_1": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_1_1": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_2_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_3_1": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_4_1": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_5_1": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_6_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_7_1": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_8_1": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_9_1": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_10_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_11_1": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_12_1": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_13_1": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_14_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_15_1": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_0_2": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_1_2": {
+    "ax": 22.0,
+    "ay": 100.0,
+    "fw": 44.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_2_2": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_3_2": {
+    "ax": 20.0,
+    "ay": 106.0,
+    "fw": 40.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_4_2": {
+    "ax": 20.0,
+    "ay": 106.0,
+    "fw": 40.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_5_2": {
+    "ax": 20.0,
+    "ay": 102.0,
+    "fw": 40.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_6_2": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_7_2": {
+    "ax": 26.0,
+    "ay": 100.0,
+    "fw": 52.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_8_2": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_9_2": {
+    "ax": 22.0,
+    "ay": 100.0,
+    "fw": 44.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_10_2": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_11_2": {
+    "ax": 20.0,
+    "ay": 106.0,
+    "fw": 40.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_12_2": {
+    "ax": 20.0,
+    "ay": 102.0,
+    "fw": 40.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_13_2": {
+    "ax": 20.0,
+    "ay": 102.0,
+    "fw": 40.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_14_2": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_15_2": {
+    "ax": 26.0,
+    "ay": 100.0,
+    "fw": 52.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_0_3": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_1_3": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_2_3": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_3_3": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_4_3": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_5_3": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_6_3": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_7_3": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_8_3": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_9_3": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_10_3": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_11_3": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_12_3": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_13_3": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_14_3": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_walk_15_3": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_0_0": {
+    "ax": 24.0,
+    "ay": 112.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_1_0": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_2_0": {
+    "ax": 22.0,
+    "ay": 110.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_3_0": {
+    "ax": 20.0,
+    "ay": 112.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_4_0": {
+    "ax": 20.0,
+    "ay": 112.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_5_0": {
+    "ax": 20.0,
+    "ay": 112.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_6_0": {
+    "ax": 22.0,
+    "ay": 110.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_7_0": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_8_0": {
+    "ax": 24.0,
+    "ay": 112.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_9_0": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_10_0": {
+    "ax": 22.0,
+    "ay": 110.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_11_0": {
+    "ax": 20.0,
+    "ay": 112.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_12_0": {
+    "ax": 20.0,
+    "ay": 112.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_13_0": {
+    "ax": 20.0,
+    "ay": 112.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_14_0": {
+    "ax": 22.0,
+    "ay": 110.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_15_0": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_0_1": {
+    "ax": 24.0,
+    "ay": 120.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_1_1": {
+    "ax": 24.0,
+    "ay": 116.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_2_1": {
+    "ax": 22.0,
+    "ay": 118.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_3_1": {
+    "ax": 20.0,
+    "ay": 120.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_4_1": {
+    "ax": 20.0,
+    "ay": 120.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_5_1": {
+    "ax": 20.0,
+    "ay": 120.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_6_1": {
+    "ax": 22.0,
+    "ay": 118.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_7_1": {
+    "ax": 24.0,
+    "ay": 116.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_8_1": {
+    "ax": 24.0,
+    "ay": 120.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_9_1": {
+    "ax": 24.0,
+    "ay": 116.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_10_1": {
+    "ax": 22.0,
+    "ay": 118.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_11_1": {
+    "ax": 20.0,
+    "ay": 120.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_12_1": {
+    "ax": 20.0,
+    "ay": 120.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_13_1": {
+    "ax": 20.0,
+    "ay": 120.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_14_1": {
+    "ax": 22.0,
+    "ay": 118.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_15_1": {
+    "ax": 24.0,
+    "ay": 116.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_0_2": {
+    "ax": 24.0,
+    "ay": 116.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_1_2": {
+    "ax": 24.0,
+    "ay": 112.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_2_2": {
+    "ax": 22.0,
+    "ay": 114.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_3_2": {
+    "ax": 20.0,
+    "ay": 116.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_4_2": {
+    "ax": 20.0,
+    "ay": 116.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_5_2": {
+    "ax": 20.0,
+    "ay": 116.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_6_2": {
+    "ax": 22.0,
+    "ay": 114.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_7_2": {
+    "ax": 24.0,
+    "ay": 112.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_8_2": {
+    "ax": 24.0,
+    "ay": 116.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_9_2": {
+    "ax": 24.0,
+    "ay": 112.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_10_2": {
+    "ax": 22.0,
+    "ay": 114.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_11_2": {
+    "ax": 20.0,
+    "ay": 116.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_12_2": {
+    "ax": 20.0,
+    "ay": 116.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_13_2": {
+    "ax": 20.0,
+    "ay": 116.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_14_2": {
+    "ax": 22.0,
+    "ay": 114.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_angry_15_2": {
+    "ax": 24.0,
+    "ay": 112.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_0_0": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_1_0": {
+    "ax": 26.0,
+    "ay": 100.0,
+    "fw": 52.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_2_0": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_3_0": {
+    "ax": 20.0,
+    "ay": 102.0,
+    "fw": 40.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_4_0": {
+    "ax": 20.0,
+    "ay": 102.0,
+    "fw": 40.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_5_0": {
+    "ax": 20.0,
+    "ay": 106.0,
+    "fw": 40.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_6_0": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_7_0": {
+    "ax": 22.0,
+    "ay": 100.0,
+    "fw": 44.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_8_0": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_9_0": {
+    "ax": 26.0,
+    "ay": 100.0,
+    "fw": 52.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_10_0": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_11_0": {
+    "ax": 20.0,
+    "ay": 102.0,
+    "fw": 40.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_12_0": {
+    "ax": 20.0,
+    "ay": 106.0,
+    "fw": 40.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_13_0": {
+    "ax": 20.0,
+    "ay": 106.0,
+    "fw": 40.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_14_0": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_15_0": {
+    "ax": 22.0,
+    "ay": 100.0,
+    "fw": 44.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_0_1": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_1_1": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_2_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_3_1": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_4_1": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_5_1": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_6_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_7_1": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_8_1": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_9_1": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_10_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_11_1": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_12_1": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_13_1": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_14_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_15_1": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_0_2": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_1_2": {
+    "ax": 22.0,
+    "ay": 100.0,
+    "fw": 44.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_2_2": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_3_2": {
+    "ax": 20.0,
+    "ay": 106.0,
+    "fw": 40.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_4_2": {
+    "ax": 20.0,
+    "ay": 106.0,
+    "fw": 40.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_5_2": {
+    "ax": 20.0,
+    "ay": 102.0,
+    "fw": 40.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_6_2": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_7_2": {
+    "ax": 26.0,
+    "ay": 100.0,
+    "fw": 52.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_8_2": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_9_2": {
+    "ax": 22.0,
+    "ay": 100.0,
+    "fw": 44.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_10_2": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_11_2": {
+    "ax": 20.0,
+    "ay": 106.0,
+    "fw": 40.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_12_2": {
+    "ax": 20.0,
+    "ay": 102.0,
+    "fw": 40.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_13_2": {
+    "ax": 20.0,
+    "ay": 102.0,
+    "fw": 40.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_14_2": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_15_2": {
+    "ax": 26.0,
+    "ay": 100.0,
+    "fw": 52.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_0_3": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_1_3": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_2_3": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_3_3": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_4_3": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_5_3": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_6_3": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_7_3": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_8_3": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_9_3": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_10_3": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_11_3": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_12_3": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_13_3": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_14_3": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_samurai_leave_15_3": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_idle_0_0": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_idle_1_0": {
+    "ax": 24.0,
+    "ay": 96.0,
+    "fw": 48.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_idle_2_0": {
+    "ax": 20.0,
+    "ay": 100.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_idle_3_0": {
+    "ax": 16.0,
+    "ay": 104.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_idle_4_0": {
+    "ax": 16.0,
+    "ay": 104.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_idle_5_0": {
+    "ax": 16.0,
+    "ay": 104.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_idle_6_0": {
+    "ax": 20.0,
+    "ay": 100.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_idle_7_0": {
+    "ax": 24.0,
+    "ay": 96.0,
+    "fw": 48.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_idle_8_0": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_idle_9_0": {
+    "ax": 24.0,
+    "ay": 96.0,
+    "fw": 48.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_idle_10_0": {
+    "ax": 20.0,
+    "ay": 100.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_idle_11_0": {
+    "ax": 16.0,
+    "ay": 104.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_idle_12_0": {
+    "ax": 16.0,
+    "ay": 104.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_idle_13_0": {
+    "ax": 16.0,
+    "ay": 104.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_idle_14_0": {
+    "ax": 20.0,
+    "ay": 100.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_idle_15_0": {
+    "ax": 24.0,
+    "ay": 96.0,
+    "fw": 48.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_idle_0_1": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_idle_1_1": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_idle_2_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_idle_3_1": {
+    "ax": 16.0,
+    "ay": 108.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_idle_4_1": {
+    "ax": 16.0,
+    "ay": 108.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_idle_5_1": {
+    "ax": 16.0,
+    "ay": 108.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_idle_6_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_idle_7_1": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_idle_8_1": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_idle_9_1": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_idle_10_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_idle_11_1": {
+    "ax": 16.0,
+    "ay": 108.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_idle_12_1": {
+    "ax": 16.0,
+    "ay": 108.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_idle_13_1": {
+    "ax": 16.0,
+    "ay": 108.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_idle_14_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_idle_15_1": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_0_0": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_1_0": {
+    "ax": 26.0,
+    "ay": 96.0,
+    "fw": 52.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_2_0": {
+    "ax": 24.0,
+    "ay": 98.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_3_0": {
+    "ax": 18.0,
+    "ay": 102.0,
+    "fw": 36.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_4_0": {
+    "ax": 18.0,
+    "ay": 102.0,
+    "fw": 36.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_5_0": {
+    "ax": 16.0,
+    "ay": 106.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_6_0": {
+    "ax": 18.0,
+    "ay": 104.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_7_0": {
+    "ax": 22.0,
+    "ay": 98.0,
+    "fw": 44.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_8_0": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_9_0": {
+    "ax": 26.0,
+    "ay": 96.0,
+    "fw": 52.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_10_0": {
+    "ax": 24.0,
+    "ay": 98.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_11_0": {
+    "ax": 18.0,
+    "ay": 102.0,
+    "fw": 36.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_12_0": {
+    "ax": 16.0,
+    "ay": 106.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_13_0": {
+    "ax": 16.0,
+    "ay": 106.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_14_0": {
+    "ax": 18.0,
+    "ay": 104.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_15_0": {
+    "ax": 22.0,
+    "ay": 98.0,
+    "fw": 44.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_0_1": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_1_1": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_2_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_3_1": {
+    "ax": 16.0,
+    "ay": 108.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_4_1": {
+    "ax": 16.0,
+    "ay": 108.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_5_1": {
+    "ax": 16.0,
+    "ay": 108.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_6_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_7_1": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_8_1": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_9_1": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_10_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_11_1": {
+    "ax": 16.0,
+    "ay": 108.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_12_1": {
+    "ax": 16.0,
+    "ay": 108.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_13_1": {
+    "ax": 16.0,
+    "ay": 108.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_14_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_15_1": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_0_2": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_1_2": {
+    "ax": 22.0,
+    "ay": 98.0,
+    "fw": 44.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_2_2": {
+    "ax": 18.0,
+    "ay": 104.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_3_2": {
+    "ax": 16.0,
+    "ay": 106.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_4_2": {
+    "ax": 16.0,
+    "ay": 106.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_5_2": {
+    "ax": 18.0,
+    "ay": 102.0,
+    "fw": 36.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_6_2": {
+    "ax": 24.0,
+    "ay": 98.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_7_2": {
+    "ax": 26.0,
+    "ay": 96.0,
+    "fw": 52.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_8_2": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_9_2": {
+    "ax": 22.0,
+    "ay": 98.0,
+    "fw": 44.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_10_2": {
+    "ax": 18.0,
+    "ay": 104.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_11_2": {
+    "ax": 16.0,
+    "ay": 106.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_12_2": {
+    "ax": 18.0,
+    "ay": 102.0,
+    "fw": 36.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_13_2": {
+    "ax": 18.0,
+    "ay": 102.0,
+    "fw": 36.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_14_2": {
+    "ax": 24.0,
+    "ay": 98.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_15_2": {
+    "ax": 26.0,
+    "ay": 96.0,
+    "fw": 52.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_0_3": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_1_3": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_2_3": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_3_3": {
+    "ax": 16.0,
+    "ay": 108.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_4_3": {
+    "ax": 16.0,
+    "ay": 108.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_5_3": {
+    "ax": 16.0,
+    "ay": 108.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_6_3": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_7_3": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_8_3": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_9_3": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_10_3": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_11_3": {
+    "ax": 16.0,
+    "ay": 108.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_12_3": {
+    "ax": 16.0,
+    "ay": 108.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_13_3": {
+    "ax": 16.0,
+    "ay": 108.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_14_3": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_walk_15_3": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_0_0": {
+    "ax": 24.0,
+    "ay": 112.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_1_0": {
+    "ax": 24.0,
+    "ay": 106.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_2_0": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_3_0": {
+    "ax": 18.0,
+    "ay": 112.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_4_0": {
+    "ax": 16.0,
+    "ay": 112.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_5_0": {
+    "ax": 18.0,
+    "ay": 112.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_6_0": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_7_0": {
+    "ax": 24.0,
+    "ay": 106.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_8_0": {
+    "ax": 24.0,
+    "ay": 112.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_9_0": {
+    "ax": 24.0,
+    "ay": 106.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_10_0": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_11_0": {
+    "ax": 18.0,
+    "ay": 112.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_12_0": {
+    "ax": 16.0,
+    "ay": 112.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_13_0": {
+    "ax": 18.0,
+    "ay": 112.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_14_0": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_15_0": {
+    "ax": 24.0,
+    "ay": 106.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_0_1": {
+    "ax": 24.0,
+    "ay": 120.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_1_1": {
+    "ax": 24.0,
+    "ay": 114.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_2_1": {
+    "ax": 20.0,
+    "ay": 116.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_3_1": {
+    "ax": 18.0,
+    "ay": 120.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_4_1": {
+    "ax": 16.0,
+    "ay": 120.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_5_1": {
+    "ax": 18.0,
+    "ay": 120.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_6_1": {
+    "ax": 20.0,
+    "ay": 116.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_7_1": {
+    "ax": 24.0,
+    "ay": 114.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_8_1": {
+    "ax": 24.0,
+    "ay": 120.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_9_1": {
+    "ax": 24.0,
+    "ay": 114.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_10_1": {
+    "ax": 20.0,
+    "ay": 116.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_11_1": {
+    "ax": 18.0,
+    "ay": 120.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_12_1": {
+    "ax": 16.0,
+    "ay": 120.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_13_1": {
+    "ax": 18.0,
+    "ay": 120.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_14_1": {
+    "ax": 20.0,
+    "ay": 116.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_15_1": {
+    "ax": 24.0,
+    "ay": 114.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_0_2": {
+    "ax": 24.0,
+    "ay": 116.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_1_2": {
+    "ax": 24.0,
+    "ay": 110.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_2_2": {
+    "ax": 20.0,
+    "ay": 112.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_3_2": {
+    "ax": 18.0,
+    "ay": 116.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_4_2": {
+    "ax": 16.0,
+    "ay": 116.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_5_2": {
+    "ax": 18.0,
+    "ay": 116.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_6_2": {
+    "ax": 20.0,
+    "ay": 112.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_7_2": {
+    "ax": 24.0,
+    "ay": 110.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_8_2": {
+    "ax": 24.0,
+    "ay": 116.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_9_2": {
+    "ax": 24.0,
+    "ay": 110.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_10_2": {
+    "ax": 20.0,
+    "ay": 112.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_11_2": {
+    "ax": 18.0,
+    "ay": 116.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_12_2": {
+    "ax": 16.0,
+    "ay": 116.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_13_2": {
+    "ax": 18.0,
+    "ay": 116.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_14_2": {
+    "ax": 20.0,
+    "ay": 112.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_angry_15_2": {
+    "ax": 24.0,
+    "ay": 110.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_0_0": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_1_0": {
+    "ax": 26.0,
+    "ay": 96.0,
+    "fw": 52.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_2_0": {
+    "ax": 24.0,
+    "ay": 98.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_3_0": {
+    "ax": 18.0,
+    "ay": 102.0,
+    "fw": 36.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_4_0": {
+    "ax": 18.0,
+    "ay": 102.0,
+    "fw": 36.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_5_0": {
+    "ax": 16.0,
+    "ay": 106.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_6_0": {
+    "ax": 18.0,
+    "ay": 104.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_7_0": {
+    "ax": 22.0,
+    "ay": 98.0,
+    "fw": 44.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_8_0": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_9_0": {
+    "ax": 26.0,
+    "ay": 96.0,
+    "fw": 52.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_10_0": {
+    "ax": 24.0,
+    "ay": 98.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_11_0": {
+    "ax": 18.0,
+    "ay": 102.0,
+    "fw": 36.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_12_0": {
+    "ax": 16.0,
+    "ay": 106.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_13_0": {
+    "ax": 16.0,
+    "ay": 106.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_14_0": {
+    "ax": 18.0,
+    "ay": 104.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_15_0": {
+    "ax": 22.0,
+    "ay": 98.0,
+    "fw": 44.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_0_1": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_1_1": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_2_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_3_1": {
+    "ax": 16.0,
+    "ay": 108.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_4_1": {
+    "ax": 16.0,
+    "ay": 108.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_5_1": {
+    "ax": 16.0,
+    "ay": 108.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_6_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_7_1": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_8_1": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_9_1": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_10_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_11_1": {
+    "ax": 16.0,
+    "ay": 108.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_12_1": {
+    "ax": 16.0,
+    "ay": 108.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_13_1": {
+    "ax": 16.0,
+    "ay": 108.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_14_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_15_1": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_0_2": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_1_2": {
+    "ax": 22.0,
+    "ay": 98.0,
+    "fw": 44.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_2_2": {
+    "ax": 18.0,
+    "ay": 104.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_3_2": {
+    "ax": 16.0,
+    "ay": 106.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_4_2": {
+    "ax": 16.0,
+    "ay": 106.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_5_2": {
+    "ax": 18.0,
+    "ay": 102.0,
+    "fw": 36.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_6_2": {
+    "ax": 24.0,
+    "ay": 98.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_7_2": {
+    "ax": 26.0,
+    "ay": 96.0,
+    "fw": 52.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_8_2": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_9_2": {
+    "ax": 22.0,
+    "ay": 98.0,
+    "fw": 44.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_10_2": {
+    "ax": 18.0,
+    "ay": 104.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_11_2": {
+    "ax": 16.0,
+    "ay": 106.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_12_2": {
+    "ax": 18.0,
+    "ay": 102.0,
+    "fw": 36.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_13_2": {
+    "ax": 18.0,
+    "ay": 102.0,
+    "fw": 36.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_14_2": {
+    "ax": 24.0,
+    "ay": 98.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_15_2": {
+    "ax": 26.0,
+    "ay": 96.0,
+    "fw": 52.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_0_3": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_1_3": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_2_3": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_3_3": {
+    "ax": 16.0,
+    "ay": 108.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_4_3": {
+    "ax": 16.0,
+    "ay": 108.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_5_3": {
+    "ax": 16.0,
+    "ay": 108.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_6_3": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_7_3": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_8_3": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_9_3": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_10_3": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_11_3": {
+    "ax": 16.0,
+    "ay": 108.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_12_3": {
+    "ax": 16.0,
+    "ay": 108.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_13_3": {
+    "ax": 16.0,
+    "ay": 108.0,
+    "fw": 32.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_14_3": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_civilian_leave_15_3": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_idle_0_0": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_idle_1_0": {
+    "ax": 26.0,
+    "ay": 96.0,
+    "fw": 52.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_idle_2_0": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_idle_3_0": {
+    "ax": 18.0,
+    "ay": 104.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_idle_4_0": {
+    "ax": 18.0,
+    "ay": 104.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_idle_5_0": {
+    "ax": 16.0,
+    "ay": 106.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_idle_6_0": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_idle_7_0": {
+    "ax": 24.0,
+    "ay": 98.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_idle_8_0": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_idle_9_0": {
+    "ax": 26.0,
+    "ay": 96.0,
+    "fw": 52.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_idle_10_0": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_idle_11_0": {
+    "ax": 18.0,
+    "ay": 104.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_idle_12_0": {
+    "ax": 16.0,
+    "ay": 106.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_idle_13_0": {
+    "ax": 16.0,
+    "ay": 106.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_idle_14_0": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_idle_15_0": {
+    "ax": 24.0,
+    "ay": 98.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_idle_0_1": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_idle_1_1": {
+    "ax": 26.0,
+    "ay": 100.0,
+    "fw": 52.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_idle_2_1": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_idle_3_1": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_idle_4_1": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_idle_5_1": {
+    "ax": 16.0,
+    "ay": 110.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_idle_6_1": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_idle_7_1": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_idle_8_1": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_idle_9_1": {
+    "ax": 26.0,
+    "ay": 100.0,
+    "fw": 52.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_idle_10_1": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_idle_11_1": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_idle_12_1": {
+    "ax": 16.0,
+    "ay": 110.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_idle_13_1": {
+    "ax": 16.0,
+    "ay": 110.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_idle_14_1": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_idle_15_1": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_0_0": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_1_0": {
+    "ax": 26.0,
+    "ay": 96.0,
+    "fw": 52.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_2_0": {
+    "ax": 26.0,
+    "ay": 98.0,
+    "fw": 52.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_3_0": {
+    "ax": 22.0,
+    "ay": 102.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_4_0": {
+    "ax": 20.0,
+    "ay": 102.0,
+    "fw": 40.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_5_0": {
+    "ax": 16.0,
+    "ay": 106.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_6_0": {
+    "ax": 18.0,
+    "ay": 106.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_7_0": {
+    "ax": 22.0,
+    "ay": 102.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_8_0": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_9_0": {
+    "ax": 26.0,
+    "ay": 96.0,
+    "fw": 52.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_10_0": {
+    "ax": 26.0,
+    "ay": 98.0,
+    "fw": 52.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_11_0": {
+    "ax": 22.0,
+    "ay": 102.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_12_0": {
+    "ax": 16.0,
+    "ay": 106.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_13_0": {
+    "ax": 16.0,
+    "ay": 106.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_14_0": {
+    "ax": 18.0,
+    "ay": 106.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_15_0": {
+    "ax": 22.0,
+    "ay": 102.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_0_1": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_1_1": {
+    "ax": 26.0,
+    "ay": 100.0,
+    "fw": 52.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_2_1": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_3_1": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_4_1": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_5_1": {
+    "ax": 16.0,
+    "ay": 110.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_6_1": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_7_1": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_8_1": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_9_1": {
+    "ax": 26.0,
+    "ay": 100.0,
+    "fw": 52.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_10_1": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_11_1": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_12_1": {
+    "ax": 16.0,
+    "ay": 110.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_13_1": {
+    "ax": 16.0,
+    "ay": 110.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_14_1": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_15_1": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_0_2": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_1_2": {
+    "ax": 24.0,
+    "ay": 98.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_2_2": {
+    "ax": 22.0,
+    "ay": 104.0,
+    "fw": 44.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_3_2": {
+    "ax": 18.0,
+    "ay": 106.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_4_2": {
+    "ax": 18.0,
+    "ay": 106.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_5_2": {
+    "ax": 18.0,
+    "ay": 104.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_6_2": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_7_2": {
+    "ax": 26.0,
+    "ay": 98.0,
+    "fw": 52.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_8_2": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_9_2": {
+    "ax": 24.0,
+    "ay": 98.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_10_2": {
+    "ax": 22.0,
+    "ay": 104.0,
+    "fw": 44.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_11_2": {
+    "ax": 18.0,
+    "ay": 106.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_12_2": {
+    "ax": 18.0,
+    "ay": 104.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_13_2": {
+    "ax": 18.0,
+    "ay": 104.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_14_2": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_15_2": {
+    "ax": 26.0,
+    "ay": 98.0,
+    "fw": 52.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_0_3": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_1_3": {
+    "ax": 26.0,
+    "ay": 100.0,
+    "fw": 52.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_2_3": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_3_3": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_4_3": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_5_3": {
+    "ax": 16.0,
+    "ay": 110.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_6_3": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_7_3": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_8_3": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_9_3": {
+    "ax": 26.0,
+    "ay": 100.0,
+    "fw": 52.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_10_3": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_11_3": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_12_3": {
+    "ax": 16.0,
+    "ay": 110.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_13_3": {
+    "ax": 16.0,
+    "ay": 110.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_14_3": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_walk_15_3": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_0_0": {
+    "ax": 24.0,
+    "ay": 112.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_1_0": {
+    "ax": 26.0,
+    "ay": 106.0,
+    "fw": 52.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_2_0": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_3_0": {
+    "ax": 20.0,
+    "ay": 112.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_4_0": {
+    "ax": 18.0,
+    "ay": 112.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_5_0": {
+    "ax": 18.0,
+    "ay": 114.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_6_0": {
+    "ax": 20.0,
+    "ay": 112.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_7_0": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_8_0": {
+    "ax": 24.0,
+    "ay": 112.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_9_0": {
+    "ax": 26.0,
+    "ay": 106.0,
+    "fw": 52.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_10_0": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_11_0": {
+    "ax": 20.0,
+    "ay": 112.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_12_0": {
+    "ax": 16.0,
+    "ay": 114.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_13_0": {
+    "ax": 18.0,
+    "ay": 114.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_14_0": {
+    "ax": 20.0,
+    "ay": 112.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_15_0": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_0_1": {
+    "ax": 24.0,
+    "ay": 120.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_1_1": {
+    "ax": 26.0,
+    "ay": 114.0,
+    "fw": 52.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_2_1": {
+    "ax": 24.0,
+    "ay": 116.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_3_1": {
+    "ax": 20.0,
+    "ay": 120.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_4_1": {
+    "ax": 18.0,
+    "ay": 120.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_5_1": {
+    "ax": 18.0,
+    "ay": 122.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_6_1": {
+    "ax": 20.0,
+    "ay": 120.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_7_1": {
+    "ax": 24.0,
+    "ay": 116.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_8_1": {
+    "ax": 24.0,
+    "ay": 120.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_9_1": {
+    "ax": 26.0,
+    "ay": 114.0,
+    "fw": 52.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_10_1": {
+    "ax": 24.0,
+    "ay": 116.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_11_1": {
+    "ax": 20.0,
+    "ay": 120.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_12_1": {
+    "ax": 16.0,
+    "ay": 122.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_13_1": {
+    "ax": 18.0,
+    "ay": 122.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_14_1": {
+    "ax": 20.0,
+    "ay": 120.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_15_1": {
+    "ax": 24.0,
+    "ay": 116.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_0_2": {
+    "ax": 24.0,
+    "ay": 116.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_1_2": {
+    "ax": 26.0,
+    "ay": 110.0,
+    "fw": 52.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_2_2": {
+    "ax": 24.0,
+    "ay": 112.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_3_2": {
+    "ax": 20.0,
+    "ay": 116.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_4_2": {
+    "ax": 18.0,
+    "ay": 116.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_5_2": {
+    "ax": 18.0,
+    "ay": 118.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_6_2": {
+    "ax": 20.0,
+    "ay": 116.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_7_2": {
+    "ax": 24.0,
+    "ay": 112.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_8_2": {
+    "ax": 24.0,
+    "ay": 116.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_9_2": {
+    "ax": 26.0,
+    "ay": 110.0,
+    "fw": 52.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_10_2": {
+    "ax": 24.0,
+    "ay": 112.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_11_2": {
+    "ax": 20.0,
+    "ay": 116.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_12_2": {
+    "ax": 16.0,
+    "ay": 118.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_13_2": {
+    "ax": 18.0,
+    "ay": 118.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_14_2": {
+    "ax": 20.0,
+    "ay": 116.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_angry_15_2": {
+    "ax": 24.0,
+    "ay": 112.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_0_0": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_1_0": {
+    "ax": 26.0,
+    "ay": 96.0,
+    "fw": 52.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_2_0": {
+    "ax": 26.0,
+    "ay": 98.0,
+    "fw": 52.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_3_0": {
+    "ax": 22.0,
+    "ay": 102.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_4_0": {
+    "ax": 20.0,
+    "ay": 102.0,
+    "fw": 40.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_5_0": {
+    "ax": 16.0,
+    "ay": 106.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_6_0": {
+    "ax": 18.0,
+    "ay": 106.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_7_0": {
+    "ax": 22.0,
+    "ay": 102.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_8_0": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_9_0": {
+    "ax": 26.0,
+    "ay": 96.0,
+    "fw": 52.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_10_0": {
+    "ax": 26.0,
+    "ay": 98.0,
+    "fw": 52.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_11_0": {
+    "ax": 22.0,
+    "ay": 102.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_12_0": {
+    "ax": 16.0,
+    "ay": 106.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_13_0": {
+    "ax": 16.0,
+    "ay": 106.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_14_0": {
+    "ax": 18.0,
+    "ay": 106.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_15_0": {
+    "ax": 22.0,
+    "ay": 102.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_0_1": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_1_1": {
+    "ax": 26.0,
+    "ay": 100.0,
+    "fw": 52.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_2_1": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_3_1": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_4_1": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_5_1": {
+    "ax": 16.0,
+    "ay": 110.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_6_1": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_7_1": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_8_1": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_9_1": {
+    "ax": 26.0,
+    "ay": 100.0,
+    "fw": 52.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_10_1": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_11_1": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_12_1": {
+    "ax": 16.0,
+    "ay": 110.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_13_1": {
+    "ax": 16.0,
+    "ay": 110.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_14_1": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_15_1": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_0_2": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_1_2": {
+    "ax": 24.0,
+    "ay": 98.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_2_2": {
+    "ax": 22.0,
+    "ay": 104.0,
+    "fw": 44.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_3_2": {
+    "ax": 18.0,
+    "ay": 106.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_4_2": {
+    "ax": 18.0,
+    "ay": 106.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_5_2": {
+    "ax": 18.0,
+    "ay": 104.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_6_2": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_7_2": {
+    "ax": 26.0,
+    "ay": 98.0,
+    "fw": 52.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_8_2": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_9_2": {
+    "ax": 24.0,
+    "ay": 98.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_10_2": {
+    "ax": 22.0,
+    "ay": 104.0,
+    "fw": 44.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_11_2": {
+    "ax": 18.0,
+    "ay": 106.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_12_2": {
+    "ax": 18.0,
+    "ay": 104.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_13_2": {
+    "ax": 18.0,
+    "ay": 104.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_14_2": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_15_2": {
+    "ax": 26.0,
+    "ay": 98.0,
+    "fw": 52.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_0_3": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_1_3": {
+    "ax": 26.0,
+    "ay": 100.0,
+    "fw": 52.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_2_3": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_3_3": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_4_3": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_5_3": {
+    "ax": 16.0,
+    "ay": 110.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_6_3": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_7_3": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_8_3": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_9_3": {
+    "ax": 26.0,
+    "ay": 100.0,
+    "fw": 52.0,
+    "fh": 32.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_10_3": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_11_3": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_12_3": {
+    "ax": 16.0,
+    "ay": 110.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_13_3": {
+    "ax": 16.0,
+    "ay": 110.0,
+    "fw": 32.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_14_3": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "customer_sengoku_merchant_leave_15_3": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_idle_0_0": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_idle_1_0": {
+    "ax": 24.0,
+    "ay": 98.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_idle_2_0": {
+    "ax": 20.0,
+    "ay": 100.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_idle_3_0": {
+    "ax": 18.0,
+    "ay": 104.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_idle_4_0": {
+    "ax": 18.0,
+    "ay": 104.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_idle_5_0": {
+    "ax": 18.0,
+    "ay": 104.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_idle_6_0": {
+    "ax": 20.0,
+    "ay": 100.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_idle_7_0": {
+    "ax": 24.0,
+    "ay": 98.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_idle_8_0": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_idle_9_0": {
+    "ax": 24.0,
+    "ay": 98.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_idle_10_0": {
+    "ax": 20.0,
+    "ay": 100.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_idle_11_0": {
+    "ax": 18.0,
+    "ay": 104.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_idle_12_0": {
+    "ax": 18.0,
+    "ay": 104.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_idle_13_0": {
+    "ax": 18.0,
+    "ay": 104.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_idle_14_0": {
+    "ax": 20.0,
+    "ay": 100.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_idle_15_0": {
+    "ax": 24.0,
+    "ay": 98.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_idle_0_1": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_idle_1_1": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_idle_2_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_idle_3_1": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_idle_4_1": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_idle_5_1": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_idle_6_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_idle_7_1": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_idle_8_1": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_idle_9_1": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_idle_10_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_idle_11_1": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_idle_12_1": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_idle_13_1": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_idle_14_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_idle_15_1": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_0_0": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_1_0": {
+    "ax": 26.0,
+    "ay": 98.0,
+    "fw": 52.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_2_0": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_3_0": {
+    "ax": 18.0,
+    "ay": 102.0,
+    "fw": 36.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_4_0": {
+    "ax": 18.0,
+    "ay": 102.0,
+    "fw": 36.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_5_0": {
+    "ax": 18.0,
+    "ay": 106.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_6_0": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_7_0": {
+    "ax": 22.0,
+    "ay": 98.0,
+    "fw": 44.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_8_0": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_9_0": {
+    "ax": 26.0,
+    "ay": 98.0,
+    "fw": 52.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_10_0": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_11_0": {
+    "ax": 18.0,
+    "ay": 102.0,
+    "fw": 36.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_12_0": {
+    "ax": 18.0,
+    "ay": 106.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_13_0": {
+    "ax": 18.0,
+    "ay": 106.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_14_0": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_15_0": {
+    "ax": 22.0,
+    "ay": 98.0,
+    "fw": 44.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_0_1": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_1_1": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_2_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_3_1": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_4_1": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_5_1": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_6_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_7_1": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_8_1": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_9_1": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_10_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_11_1": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_12_1": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_13_1": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_14_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_15_1": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_0_2": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_1_2": {
+    "ax": 22.0,
+    "ay": 98.0,
+    "fw": 44.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_2_2": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_3_2": {
+    "ax": 18.0,
+    "ay": 106.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_4_2": {
+    "ax": 18.0,
+    "ay": 106.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_5_2": {
+    "ax": 18.0,
+    "ay": 102.0,
+    "fw": 36.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_6_2": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_7_2": {
+    "ax": 26.0,
+    "ay": 98.0,
+    "fw": 52.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_8_2": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_9_2": {
+    "ax": 22.0,
+    "ay": 98.0,
+    "fw": 44.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_10_2": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_11_2": {
+    "ax": 18.0,
+    "ay": 106.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_12_2": {
+    "ax": 18.0,
+    "ay": 102.0,
+    "fw": 36.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_13_2": {
+    "ax": 18.0,
+    "ay": 102.0,
+    "fw": 36.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_14_2": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_15_2": {
+    "ax": 26.0,
+    "ay": 98.0,
+    "fw": 52.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_0_3": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_1_3": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_2_3": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_3_3": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_4_3": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_5_3": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_6_3": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_7_3": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_8_3": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_9_3": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_10_3": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_11_3": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_12_3": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_13_3": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_14_3": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_walk_15_3": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_0_0": {
+    "ax": 24.0,
+    "ay": 110.0,
+    "fw": 48.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_1_0": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_2_0": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_3_0": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_4_0": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_5_0": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_6_0": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_7_0": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_8_0": {
+    "ax": 24.0,
+    "ay": 110.0,
+    "fw": 48.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_9_0": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_10_0": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_11_0": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_12_0": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_13_0": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_14_0": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_15_0": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_0_1": {
+    "ax": 24.0,
+    "ay": 106.0,
+    "fw": 48.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_1_1": {
+    "ax": 22.0,
+    "ay": 102.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_2_1": {
+    "ax": 22.0,
+    "ay": 104.0,
+    "fw": 44.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_3_1": {
+    "ax": 18.0,
+    "ay": 106.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_4_1": {
+    "ax": 18.0,
+    "ay": 106.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_5_1": {
+    "ax": 22.0,
+    "ay": 102.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_6_1": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_7_1": {
+    "ax": 26.0,
+    "ay": 98.0,
+    "fw": 52.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_8_1": {
+    "ax": 24.0,
+    "ay": 106.0,
+    "fw": 48.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_9_1": {
+    "ax": 22.0,
+    "ay": 102.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_10_1": {
+    "ax": 22.0,
+    "ay": 104.0,
+    "fw": 44.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_11_1": {
+    "ax": 18.0,
+    "ay": 106.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_12_1": {
+    "ax": 22.0,
+    "ay": 102.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_13_1": {
+    "ax": 22.0,
+    "ay": 102.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_14_1": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_15_1": {
+    "ax": 26.0,
+    "ay": 98.0,
+    "fw": 52.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_0_2": {
+    "ax": 24.0,
+    "ay": 112.0,
+    "fw": 48.0,
+    "fh": 56.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_1_2": {
+    "ax": 26.0,
+    "ay": 102.0,
+    "fw": 52.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_2_2": {
+    "ax": 24.0,
+    "ay": 106.0,
+    "fw": 48.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_3_2": {
+    "ax": 22.0,
+    "ay": 106.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_4_2": {
+    "ax": 22.0,
+    "ay": 106.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_5_2": {
+    "ax": 18.0,
+    "ay": 110.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_6_2": {
+    "ax": 22.0,
+    "ay": 108.0,
+    "fw": 44.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_7_2": {
+    "ax": 22.0,
+    "ay": 106.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_8_2": {
+    "ax": 24.0,
+    "ay": 112.0,
+    "fw": 48.0,
+    "fh": 56.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_9_2": {
+    "ax": 26.0,
+    "ay": 102.0,
+    "fw": 52.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_10_2": {
+    "ax": 24.0,
+    "ay": 106.0,
+    "fw": 48.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_11_2": {
+    "ax": 22.0,
+    "ay": 106.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_12_2": {
+    "ax": 18.0,
+    "ay": 110.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_13_2": {
+    "ax": 18.0,
+    "ay": 110.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_14_2": {
+    "ax": 22.0,
+    "ay": 108.0,
+    "fw": 44.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_15_2": {
+    "ax": 22.0,
+    "ay": 106.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_0_3": {
+    "ax": 24.0,
+    "ay": 110.0,
+    "fw": 48.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_1_3": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_2_3": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_3_3": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_4_3": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_5_3": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_6_3": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_7_3": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_8_3": {
+    "ax": 24.0,
+    "ay": 110.0,
+    "fw": 48.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_9_3": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_10_3": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_11_3": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_12_3": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_13_3": {
+    "ax": 20.0,
+    "ay": 108.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_14_3": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_fight_15_3": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_0_0": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_1_0": {
+    "ax": 26.0,
+    "ay": 98.0,
+    "fw": 52.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_2_0": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_3_0": {
+    "ax": 18.0,
+    "ay": 102.0,
+    "fw": 36.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_4_0": {
+    "ax": 18.0,
+    "ay": 102.0,
+    "fw": 36.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_5_0": {
+    "ax": 18.0,
+    "ay": 106.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_6_0": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_7_0": {
+    "ax": 22.0,
+    "ay": 98.0,
+    "fw": 44.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_8_0": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_9_0": {
+    "ax": 26.0,
+    "ay": 98.0,
+    "fw": 52.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_10_0": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_11_0": {
+    "ax": 18.0,
+    "ay": 102.0,
+    "fw": 36.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_12_0": {
+    "ax": 18.0,
+    "ay": 106.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_13_0": {
+    "ax": 18.0,
+    "ay": 106.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_14_0": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_15_0": {
+    "ax": 22.0,
+    "ay": 98.0,
+    "fw": 44.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_0_1": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_1_1": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_2_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_3_1": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_4_1": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_5_1": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_6_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_7_1": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_8_1": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_9_1": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_10_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_11_1": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_12_1": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_13_1": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_14_1": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_15_1": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_0_2": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_1_2": {
+    "ax": 22.0,
+    "ay": 98.0,
+    "fw": 44.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_2_2": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_3_2": {
+    "ax": 18.0,
+    "ay": 106.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_4_2": {
+    "ax": 18.0,
+    "ay": 106.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_5_2": {
+    "ax": 18.0,
+    "ay": 102.0,
+    "fw": 36.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_6_2": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_7_2": {
+    "ax": 26.0,
+    "ay": 98.0,
+    "fw": 52.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_8_2": {
+    "ax": 24.0,
+    "ay": 104.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_9_2": {
+    "ax": 22.0,
+    "ay": 98.0,
+    "fw": 44.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_10_2": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_11_2": {
+    "ax": 18.0,
+    "ay": 106.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_12_2": {
+    "ax": 18.0,
+    "ay": 102.0,
+    "fw": 36.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_13_2": {
+    "ax": 18.0,
+    "ay": 102.0,
+    "fw": 36.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_14_2": {
+    "ax": 24.0,
+    "ay": 100.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_15_2": {
+    "ax": 26.0,
+    "ay": 98.0,
+    "fw": 52.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_0_3": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_1_3": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_2_3": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_3_3": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_4_3": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_5_3": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_6_3": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_7_3": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_8_3": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_9_3": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_10_3": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_11_3": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_12_3": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_13_3": {
+    "ax": 18.0,
+    "ay": 108.0,
+    "fw": 36.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_14_3": {
+    "ax": 20.0,
+    "ay": 104.0,
+    "fw": 40.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_leave_15_3": {
+    "ax": 24.0,
+    "ay": 102.0,
+    "fw": 48.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_0_0": {
+    "ax": 24.0,
+    "ay": 118.0,
+    "fw": 48.0,
+    "fh": 60.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_1_0": {
+    "ax": 26.0,
+    "ay": 108.0,
+    "fw": 52.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_2_0": {
+    "ax": 26.0,
+    "ay": 108.0,
+    "fw": 52.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_3_0": {
+    "ax": 22.0,
+    "ay": 108.0,
+    "fw": 44.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_4_0": {
+    "ax": 22.0,
+    "ay": 110.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_5_0": {
+    "ax": 20.0,
+    "ay": 114.0,
+    "fw": 40.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_6_0": {
+    "ax": 20.0,
+    "ay": 114.0,
+    "fw": 40.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_7_0": {
+    "ax": 20.0,
+    "ay": 110.0,
+    "fw": 40.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_8_0": {
+    "ax": 24.0,
+    "ay": 118.0,
+    "fw": 48.0,
+    "fh": 60.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_9_0": {
+    "ax": 26.0,
+    "ay": 108.0,
+    "fw": 52.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_10_0": {
+    "ax": 26.0,
+    "ay": 108.0,
+    "fw": 52.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_11_0": {
+    "ax": 22.0,
+    "ay": 108.0,
+    "fw": 44.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_12_0": {
+    "ax": 20.0,
+    "ay": 114.0,
+    "fw": 40.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_13_0": {
+    "ax": 20.0,
+    "ay": 114.0,
+    "fw": 40.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_14_0": {
+    "ax": 20.0,
+    "ay": 114.0,
+    "fw": 40.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_15_0": {
+    "ax": 20.0,
+    "ay": 110.0,
+    "fw": 40.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_0_1": {
+    "ax": 24.0,
+    "ay": 122.0,
+    "fw": 48.0,
+    "fh": 60.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_1_1": {
+    "ax": 20.0,
+    "ay": 116.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_2_1": {
+    "ax": 20.0,
+    "ay": 118.0,
+    "fw": 40.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_3_1": {
+    "ax": 18.0,
+    "ay": 118.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_4_1": {
+    "ax": 18.0,
+    "ay": 118.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_5_1": {
+    "ax": 24.0,
+    "ay": 112.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_6_1": {
+    "ax": 26.0,
+    "ay": 112.0,
+    "fw": 52.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_7_1": {
+    "ax": 26.0,
+    "ay": 110.0,
+    "fw": 52.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_8_1": {
+    "ax": 24.0,
+    "ay": 122.0,
+    "fw": 48.0,
+    "fh": 60.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_9_1": {
+    "ax": 20.0,
+    "ay": 116.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_10_1": {
+    "ax": 20.0,
+    "ay": 118.0,
+    "fw": 40.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_11_1": {
+    "ax": 18.0,
+    "ay": 118.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_12_1": {
+    "ax": 24.0,
+    "ay": 114.0,
+    "fw": 48.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_13_1": {
+    "ax": 24.0,
+    "ay": 112.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_14_1": {
+    "ax": 26.0,
+    "ay": 112.0,
+    "fw": 52.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_15_1": {
+    "ax": 26.0,
+    "ay": 110.0,
+    "fw": 52.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_0_2": {
+    "ax": 24.0,
+    "ay": 116.0,
+    "fw": 48.0,
+    "fh": 56.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_1_2": {
+    "ax": 26.0,
+    "ay": 106.0,
+    "fw": 52.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_2_2": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_3_2": {
+    "ax": 22.0,
+    "ay": 110.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_4_2": {
+    "ax": 20.0,
+    "ay": 110.0,
+    "fw": 40.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_5_2": {
+    "ax": 18.0,
+    "ay": 114.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_6_2": {
+    "ax": 20.0,
+    "ay": 112.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_7_2": {
+    "ax": 22.0,
+    "ay": 110.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_8_2": {
+    "ax": 24.0,
+    "ay": 116.0,
+    "fw": 48.0,
+    "fh": 56.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_9_2": {
+    "ax": 26.0,
+    "ay": 106.0,
+    "fw": 52.0,
+    "fh": 36.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_10_2": {
+    "ax": 24.0,
+    "ay": 108.0,
+    "fw": 48.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_11_2": {
+    "ax": 22.0,
+    "ay": 110.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_12_2": {
+    "ax": 18.0,
+    "ay": 114.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_13_2": {
+    "ax": 18.0,
+    "ay": 114.0,
+    "fw": 36.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_14_2": {
+    "ax": 20.0,
+    "ay": 112.0,
+    "fw": 40.0,
+    "fh": 48.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_15_2": {
+    "ax": 22.0,
+    "ay": 110.0,
+    "fw": 44.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_0_3": {
+    "ax": 24.0,
+    "ay": 126.0,
+    "fw": 48.0,
+    "fh": 60.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_1_3": {
+    "ax": 26.0,
+    "ay": 116.0,
+    "fw": 52.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_2_3": {
+    "ax": 26.0,
+    "ay": 118.0,
+    "fw": 52.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_3_3": {
+    "ax": 22.0,
+    "ay": 116.0,
+    "fw": 44.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_4_3": {
+    "ax": 20.0,
+    "ay": 118.0,
+    "fw": 40.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_5_3": {
+    "ax": 20.0,
+    "ay": 122.0,
+    "fw": 40.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_6_3": {
+    "ax": 22.0,
+    "ay": 122.0,
+    "fw": 44.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_7_3": {
+    "ax": 20.0,
+    "ay": 118.0,
+    "fw": 40.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_8_3": {
+    "ax": 24.0,
+    "ay": 126.0,
+    "fw": 48.0,
+    "fh": 60.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_9_3": {
+    "ax": 26.0,
+    "ay": 116.0,
+    "fw": 52.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_10_3": {
+    "ax": 26.0,
+    "ay": 118.0,
+    "fw": 52.0,
+    "fh": 44.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_11_3": {
+    "ax": 22.0,
+    "ay": 116.0,
+    "fw": 44.0,
+    "fh": 40.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_12_3": {
+    "ax": 20.0,
+    "ay": 122.0,
+    "fw": 40.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_13_3": {
+    "ax": 20.0,
+    "ay": 122.0,
+    "fw": 40.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_14_3": {
+    "ax": 22.0,
+    "ay": 122.0,
+    "fw": 44.0,
+    "fh": 52.0,
+    "hires": false
+  },
+  "thief_sengoku_fly_15_3": {
+    "ax": 20.0,
+    "ay": 118.0,
+    "fw": 40.0,
+    "fh": 44.0,
+    "hires": false
   }
 }

@@ -15,7 +15,7 @@
 - 進入：選章綁定；首次通關記入 `themes_cleared`
 - 解鎖持久：本主題學會／獲得的技能、貨種、傢俬資格、外觀、精英店員等可**跨槽攜帶**
 - 首次通關：標記完成；**不**因回訪重發首次解鎖
-- 進行中外觀覆寫：一般客人改戰國平民造型；店舖牆／地板改戰國模式（見 §外觀）
+- 進行中外觀覆寫：一般客人隨機武士／平民／商人造型；小偷用戰國皮；店舖牆／地板改戰國模式（見 §外觀）
 
 # 主線推進條件（形狀）
 
@@ -79,10 +79,14 @@
 
 | 用途 | id |
 |------|-----|
-| 一般客人（常／急／慢） | `customer_sengoku`／`customer_sengoku_hurry`／`customer_sengoku_slow` |
-| 小偷（可選同皮或另皮） | `thief_sengoku`（後補；暫可沿用既有 thief＋tint） |
+| 一般客人（武士／平民／商人） | `customer_sengoku_samurai`／`customer_sengoku_civilian`／`customer_sengoku_merchant` |
+| 小偷 | `thief_sengoku` |
 | 地板／牆 | `floor_tile_sengoku`／`wall_sengoku` |
 | 主角外觀（首次通關或節點獎） | `player_sengoku`（半纏／短袴；tint＝藩色） |
+
+- 一般客人三外觀**隨機抽**；急／慢／常只改行速，**不**另 bake mesh。
+- 缺 bake／anim 時 fallback：`customer`／`thief`／`floor_tile`／`wall`。
+- 門沿用既有 `door`；SKU／傢俬造型不隨主題換。
 
 # 主題元素槽位
 

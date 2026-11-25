@@ -251,10 +251,13 @@ func is_prologue_story_scenario() -> bool:
 
 
 func _grant_initial_goods() -> void:
+	## Starter SKU always developed; stock key may be 0.
+	## Do NOT force for_sale on — prep／scenario may set can 不可售 (e.g. 安桃山).
 	developed["can"] = true
 	if not stock.has("can"):
 		stock["can"] = 0
-	for_sale["can"] = true
+	if not for_sale.has("can"):
+		for_sale["can"] = true
 
 
 ## Intro／序章-like scenarios use gated unlocks; demo sandboxes unlock everything.
@@ -1905,18 +1908,21 @@ func _default_for_sale_for_developed() -> void:
 func _ensure_one_for_sale() -> void:
 	_default_for_sale_for_developed()
 	if not developed.is_empty() and sellable().is_empty():
-		if developed.has("can"):
-			for_sale["can"] = true
-		else:
-			var fixed := false
-			for sku in Tuning.SELLABLE_SKUS:
-				if developed.has(sku):
-					for_sale[sku] = true
+		## Prefer any developed sellable SKU; do not specially force `can`
+		## (historic／prep may keep cans off while other goods sell).
+		var fixed := false
+		for sku in Tuning.SELLABLE_SKUS:
+			if developed.has(sku):
+				for_sale[sku] = true
+				## Cooked still needs a stall — retry if still empty.
+				if not sellable().is_empty():
 					fixed = true
 					break
-			if not fixed:
-				for sku in developed.keys():
-					for_sale[String(sku)] = true
+				for_sale[sku] = false
+		if not fixed:
+			for sku in developed.keys():
+				for_sale[String(sku)] = true
+				if not sellable().is_empty():
 					break
 	_sanitize_restock_defaults()
 

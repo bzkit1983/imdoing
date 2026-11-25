@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""theme_historic interim art: SKUs, fish icons, cooked_stall, fish_tank.
+"""theme_historic interim art: SKUs, fish, furniture, place shell, guest skins.
 
 Writes godot/game/art/src/<id>.vox, art/ui/sku/<id>.png (64²),
 art/ui/furniture/<id>.png (64²), and patches catalog.json.
@@ -7,8 +7,10 @@ Does not overwrite unrelated v1.5 models.
 
 Run:
   python3 tools/voxel_historic_theme.py
-  VOXEL_BAKE_IDS=cooked_stall,fish_tank,grain,soy_sauce,onigiri,yakimochi,nigiri,saba,tai,sanma,aji,ayu \\
+  VOXEL_BAKE_IDS=cooked_stall,fish_tank,grain,soy_sauce,onigiri,yakimochi,nigiri,saba,tai,sanma,aji,ayu,floor_tile_sengoku,wall_sengoku \\
     python3 tools/voxel_sprites.py
+  VOXEL_BAKE_IDS=customer_sengoku_samurai,customer_sengoku_civilian,customer_sengoku_merchant,thief_sengoku \\
+    python3 tools/voxel_character_anims.py
 """
 
 from __future__ import annotations
@@ -44,6 +46,13 @@ front_icon = v15.front_icon
 SKU_IDS = ("grain", "soy_sauce", "onigiri", "yakimochi", "nigiri")
 FISH_IDS = ("saba", "tai", "sanma", "aji", "ayu")
 FURN_IDS = ("cooked_stall", "fish_tank")
+PLACE_IDS = ("floor_tile_sengoku", "wall_sengoku")
+CHAR_IDS = (
+	"customer_sengoku_samurai",
+	"customer_sengoku_civilian",
+	"customer_sengoku_merchant",
+	"thief_sengoku",
+)
 ALL_ICON_IDS = SKU_IDS + FISH_IDS
 
 
@@ -346,6 +355,99 @@ def _fish_tank() -> vb.Model:
 	return m
 
 
+def _floor_tile_sengoku() -> vb.Model:
+	"""Quiet wood floor — solid warm fill, sparse plank seams only (no stripes／knots)."""
+	m = vb.Model(128, 128, 8)
+	fill(m, 0, 0, 0, 127, 127, 2, "wood")
+	# Wide plank seams every 32 (same cadence as v1.5 grout), thin and soft.
+	for y in range(0, 128, 32):
+		fill(m, 0, y, 0, 127, min(y, 127), 2, "wood_dark")
+	return m
+
+
+def _wall_sengoku() -> vb.Model:
+	"""White plaster wall + dark timber frame (same envelope as v1.5 wall)."""
+	m = vb.Model(128, 16, 128)
+	fill(m, 0, 0, 0, 127, 15, 127, "white")
+	# Timber posts every 32.
+	for x in range(0, 128, 32):
+		fill(m, x, 0, 0, min(x + 5, 127), 15, 127, "wood_dark")
+	# Mid rail + base + crown.
+	fill(m, 0, 0, 0, 127, 15, 12, "wood")
+	fill(m, 0, 10, 56, 127, 15, 68, "wood")
+	fill(m, 0, 0, 116, 127, 15, 127, "wood_dark")
+	# Soft plaster wash on face.
+	fill(m, 8, 12, 14, 120, 15, 112, "milk")
+	# Small noren hook plate.
+	fill(m, 48, 14, 88, 80, 15, 104, "wood")
+	fill(m, 52, 15, 92, 76, 15, 100, "soda")
+	return m
+
+
+def _customer_sengoku_samurai() -> vb.Model:
+	"""Armored guest — metal torso, kabuto silhouette."""
+	m = vb.person("metal", "wood_dark", "hair", bag=False)
+	# Kabuto dome + crest.
+	m.fill(2, 2, 16, 9, 8, 19, "metal")
+	m.fill(4, 1, 18, 7, 3, 19, "soda")
+	m.fill(5, 0, 17, 6, 2, 19, "metal")
+	# Face slit.
+	m.fill(4, 7, 14, 7, 9, 16, "skin")
+	m.set(4, 8, 15, "eye")
+	m.set(7, 8, 15, "eye")
+	# Breastplate ridge.
+	m.fill(4, 7, 8, 7, 7, 11, "metal")
+	m.fill(3, 3, 9, 8, 3, 11, "wood_dark")
+	return m
+
+
+def _customer_sengoku_civilian() -> vb.Model:
+	"""Kimono commoner — warm wrap, no bag."""
+	m = vb.person("rice", "wood", "hair_brown", bag=False)
+	# Obis sash.
+	m.fill(2, 3, 7, 9, 7, 8, "wood_dark")
+	m.fill(5, 7, 7, 6, 8, 9, "snack")
+	# Collar V.
+	m.fill(5, 7, 11, 6, 7, 12, "white")
+	return m
+
+
+def _customer_sengoku_merchant() -> vb.Model:
+	"""Haori merchant — darker wrap + money bag."""
+	m = vb.person("customer", "customer_dark", "hair", bag=True)
+	# Haori hem stripe.
+	m.fill(2, 3, 7, 9, 7, 8, "wood")
+	m.fill(4, 7, 9, 7, 7, 11, "white")
+	# Ledger pouch accent on bag.
+	m.fill(10, 6, 8, 11, 8, 10, "cardboard")
+	return m
+
+
+def _thief_sengoku() -> vb.Model:
+	"""Comic blue ninja — round nose, open face, white sash (Ebisumaru-inspired, not IP copy)."""
+	m = vb.person("clerk", "clerk_dark", "hair", hood=True, mask=False, bag=False)
+	# Blue hood (overwrite dark hood with clerk blues).
+	m.fill(2, 2, 12, 9, 8, 19, "clerk")
+	m.fill(2, 2, 12, 9, 3, 19, "clerk_dark")
+	# Open face window + big round nose.
+	m.fill(4, 7, 14, 7, 9, 16, "skin")
+	m.set(4, 8, 15, "eye")
+	m.set(7, 8, 15, "eye")
+	m.fill(5, 9, 14, 6, 9, 15, "skin")
+	m.set(5, 9, 14, "skin_shade")
+	m.set(6, 9, 14, "skin_shade")
+	# White sash.
+	m.fill(2, 3, 7, 9, 7, 8, "white")
+	# Mesh chest suggestion.
+	m.fill(4, 4, 9, 7, 6, 11, "screen")
+	# Tabi feet.
+	m.fill(3, 4, 0, 5, 6, 0, "white")
+	m.fill(7, 4, 0, 9, 6, 0, "white")
+	m.fill(3, 4, 0, 3, 6, 0, "soda")
+	m.fill(9, 4, 0, 9, 6, 0, "soda")
+	return m
+
+
 MODELS: dict[str, tuple[str, object, str]] = {
 	"grain": ("米糧", _grain, "theme_historic：米袋。正面剪影即 UI。"),
 	"soy_sauce": ("醬油", _soy_sauce, "theme_historic：陶瓷醬油瓶。正面剪影即 UI。"),
@@ -359,8 +461,13 @@ MODELS: dict[str, tuple[str, object, str]] = {
 	"ayu": ("鮎", _ayu, "theme_historic：鮎魚圖示模型。"),
 	"cooked_stall": ("熟食檔攤", _cooked_stall, "theme_historic：屋台攤（2×1）。佔格不變。"),
 	"fish_tank": ("魚缸", _fish_tank, "theme_historic：矮寬桌上魚缸（2×2）。佔格不變。"),
+	"floor_tile_sengoku": ("戰國地板", _floor_tile_sengoku, "theme_historic：木地板一格。"),
+	"wall_sengoku": ("戰國牆", _wall_sengoku, "theme_historic：白壁土牆一格段。"),
+	"customer_sengoku_samurai": ("戰國武士", _customer_sengoku_samurai, "theme_historic：一般客人—武士。"),
+	"customer_sengoku_civilian": ("戰國平民", _customer_sengoku_civilian, "theme_historic：一般客人—古裝平民。"),
+	"customer_sengoku_merchant": ("戰國商人", _customer_sengoku_merchant, "theme_historic：一般客人—古裝商人。"),
+	"thief_sengoku": ("戰國小偷", _thief_sengoku, "theme_historic：喜劇風藍忍小偷。"),
 }
-
 
 def _check_icon_distinct(icons: dict[str, list]) -> None:
 	def luma16(px: list, n: int) -> list[float]:
@@ -415,8 +522,14 @@ def upsert_catalog(stats: dict[str, tuple]) -> None:
 	groups = {str(g.get("id")): g for g in data.get("groups", [])}
 	goods = groups.get("goods")
 	furniture = groups.get("furniture")
-	if goods is None or furniture is None:
-		raise SystemExit("catalog missing goods/furniture group")
+	place = groups.get("place")
+	characters = groups.get("characters")
+	if goods is None or furniture is None or place is None:
+		raise SystemExit("catalog missing goods/furniture/place group")
+	if characters is None:
+		characters = {"id": "characters", "name": "人物", "models": []}
+		data.setdefault("groups", []).append(characters)
+		groups["characters"] = characters
 
 	def upsert(group: dict, mid: str, name: str, size, voxels: int, note: str) -> None:
 		entry = {
@@ -436,7 +549,14 @@ def upsert_catalog(stats: dict[str, tuple]) -> None:
 
 	for mid, (name, _builder, note) in MODELS.items():
 		size, voxels = stats[mid]
-		group = furniture if mid in FURN_IDS else goods
+		if mid in FURN_IDS:
+			group = furniture
+		elif mid in PLACE_IDS:
+			group = place
+		elif mid in CHAR_IDS:
+			group = characters
+		else:
+			group = goods
 		upsert(group, mid, name, size, voxels, note)
 	CATALOG.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
@@ -454,7 +574,8 @@ def main() -> None:
 		vb.write_vox(path, model)
 		stats[mid] = (model.size, len(model.cells))
 		print(f"wrote {mid} {model.size} voxels={len(model.cells)} — {note}")
-	write_icons(built)
+	icon_models = {k: built[k] for k in list(ALL_ICON_IDS) + list(FURN_IDS)}
+	write_icons(icon_models)
 	upsert_catalog(stats)
 	print(f"catalog {CATALOG}")
 

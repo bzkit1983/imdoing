@@ -14,12 +14,16 @@ var _tile_ax := _FALLBACK_AX
 var _tile_ay := _FALLBACK_AY
 
 
-func setup(origin: Vector2, size: Vector2, step: float) -> void:
+func setup(origin: Vector2, size: Vector2, step: float, floor_id: String = "floor_tile") -> void:
 	_origin = origin
 	_size = size
 	_step = maxf(1.0, step)
-	_tex = Vox.texture("floor_tile", 0)
-	var info := Vox.anchor_info("floor_tile", 0)
+	var id := floor_id if floor_id != "" else "floor_tile"
+	_tex = Vox.texture(id, 0)
+	if _tex == null and id != "floor_tile":
+		id = "floor_tile"
+		_tex = Vox.texture(id, 0)
+	var info := Vox.anchor_info(id, 0)
 	_tile_ax = float(info.get("ax", _FALLBACK_AX))
 	_tile_ay = float(info.get("ay", _FALLBACK_AY))
 	queue_redraw()

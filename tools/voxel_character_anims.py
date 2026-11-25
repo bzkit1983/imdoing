@@ -71,12 +71,23 @@ CHARS = {
     "customer": dict(shirt="customer", shirt_dark="customer_dark", hair="hair_brown", bag=True),
     "customer_hurry": dict(shirt="soda", shirt_dark="thief", hair="hair", bag=True),
     "customer_slow": dict(shirt="clerk", shirt_dark="clerk_dark", hair="hair_brown", bag=True),
+    "customer_sengoku_samurai": dict(shirt="metal", shirt_dark="wood_dark", hair="hair"),
+    "customer_sengoku_civilian": dict(shirt="rice", shirt_dark="wood", hair="hair_brown"),
+    "customer_sengoku_merchant": dict(shirt="customer", shirt_dark="customer_dark", hair="hair", bag=True),
     "thief": dict(shirt="thief", shirt_dark="hood", hair="hair", hood=True, mask=True),
+    "thief_sengoku": dict(shirt="clerk", shirt_dark="clerk_dark", hair="hair", hood=True),
     "clerk_cashier": dict(shirt="clerk", shirt_dark="clerk_dark", hair="hair", badge=True),
     "clerk_restock": dict(shirt="clerk_stock", shirt_dark="player_dark", hair="hair_brown"),
     "clerk_security": dict(shirt="pants", shirt_dark="hood", hair="hair", badge=True),
     "clerk_cleaner": dict(shirt="white", shirt_dark="snack", hair="hair_brown"),
 }
+
+SENGOKU_GUEST_IDS = [
+    "customer_sengoku_samurai",
+    "customer_sengoku_civilian",
+    "customer_sengoku_merchant",
+]
+THIEF_IDS = ["thief", "thief_sengoku"]
 
 # anim -> list of pose dicts (one per frame)
 # Pose keys move limbs relative to idle person() layout.
@@ -104,9 +115,17 @@ def _walk_carry_frames() -> list[dict]:
     ]
 
 
-CUSTOMER_IDS = ["customer", "customer_hurry", "customer_slow"]
+CUSTOMER_IDS = [
+    "customer",
+    "customer_hurry",
+    "customer_slow",
+    "customer_sengoku_samurai",
+    "customer_sengoku_civilian",
+    "customer_sengoku_merchant",
+]
 
 # Pace variants share the customer mesh and only swap shirt colors.
+# Sengoku guests / thief_sengoku use designer art/src/{id}.vox when present.
 RECOLOR_FROM = {
     "customer_hurry": ("customer", {"customer": "soda", "customer_dark": "thief"}),
     "customer_slow": ("customer", {"customer": "clerk", "customer_dark": "clerk_dark"}),
@@ -154,7 +173,7 @@ ANIMS: dict[str, dict] = {
             {"arm_l_y": 2, "arm_r_y": 2, "arm_l_z": 1, "arm_r_z": 1, "lean": 1},
         ],
         "fps": 12,
-        "chars": list(PLAYER_IDS) + ["thief", "clerk_security"],
+        "chars": list(PLAYER_IDS) + THIEF_IDS + ["clerk_security"],
     },
     # button / card tap
     "checkout": {
@@ -202,7 +221,7 @@ ANIMS: dict[str, dict] = {
         "fps": 5,
         "chars": CUSTOMER_IDS,
     },
-    "leave": {"frames": _walk_frames(1), "fps": 8, "chars": CUSTOMER_IDS + ["thief"]},
+    "leave": {"frames": _walk_frames(1), "fps": 8, "chars": CUSTOMER_IDS + THIEF_IDS},
     "fly": {
         "frames": [
             {"lean": 3, "leg_l_y": -1, "leg_r_y": 1, "arm_l_y": -2, "arm_r_y": 2, "bob": 2},
@@ -211,7 +230,7 @@ ANIMS: dict[str, dict] = {
             {"lean": 3, "leg_l_y": 0, "leg_r_y": 0, "arm_l_y": -2, "arm_r_y": 2, "bob": 4},
         ],
         "fps": 12,
-        "chars": ["thief"],
+        "chars": THIEF_IDS,
     },
     # skill / ult cast (arms up)
     "cast": {

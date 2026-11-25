@@ -8,6 +8,7 @@ signal exited
 const Art = preload("res://scripts/prep/fishing_taro_art.gd")
 const Tuning = preload("res://scripts/tuning.gd")
 const UiFont = preload("res://scripts/ui_font.gd")
+const SkuIcons = preload("res://scripts/sku_icons.gd")
 
 const MAX_CASTS := 20
 const CAST_RANGE := 42.0
@@ -17,6 +18,8 @@ const WAIT_MIN := 1.1
 const WAIT_MAX := 2.6
 const CAST_FLIGHT := 0.32
 const SHOW_SEC := 1.35
+const SHOW_CATCH_SEC := 1.85
+const CATCH_ICON_PX := 96
 const SHADOW_SPAWN_MIN := 1.4
 const SHADOW_SPAWN_MAX := 3.2
 
@@ -46,6 +49,9 @@ var _hud_casts: Label
 var _hud_stock: Label
 var _hud_hint: Label
 var _notice: Label
+var _catch_card: PanelContainer
+var _catch_icon: TextureRect
+var _catch_name: Label
 var _cover: CenterContainer
 var _heading: Label
 var _details: Label
@@ -131,6 +137,31 @@ func _build() -> void:
 	_notice.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	_notice.offset_top = -40
 	_notice.offset_bottom = 40
+
+	## Catch reveal card (fishingtaro.md §3.2 成功：出示魚種卡片).
+	_catch_card = PanelContainer.new()
+	_catch_card.visible = false
+	_catch_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_catch_card.add_theme_stylebox_override("panel", _panel("FFFDF2", 18, 14))
+	view.add_child(_catch_card)
+	_catch_card.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	_catch_card.offset_left = -90
+	_catch_card.offset_right = 90
+	_catch_card.offset_top = -110
+	_catch_card.offset_bottom = 70
+	var catch_col := VBoxContainer.new()
+	catch_col.add_theme_constant_override("separation", 10)
+	catch_col.alignment = BoxContainer.ALIGNMENT_CENTER
+	_catch_card.add_child(catch_col)
+	_catch_icon = TextureRect.new()
+	_catch_icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_catch_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_catch_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_catch_icon.custom_minimum_size = Vector2(CATCH_ICON_PX, CATCH_ICON_PX)
+	_catch_icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	catch_col.add_child(_catch_icon)
+	_catch_name = _label(catch_col, UiFont.SIZE_BODY)
+	_catch_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 
 	_cover = CenterContainer.new()
 	_cover.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -346,8 +377,10 @@ func _tick_bite(delta: float) -> void:
 
 func _tick_show(delta: float) -> void:
 	_phase_t += delta
-	if _phase_t < SHOW_SEC:
+	var hold := SHOW_CATCH_SEC if _show_ok else SHOW_SEC
+	if _phase_t < hold:
 		return
+	_hide_catch_card()
 	if _casts_left <= 0:
 		_end_session_cover()
 		return
@@ -367,7 +400,7 @@ func _try_action() -> void:
 		Phase.BITE:
 			_succeed()
 		Phase.SHOW:
-			_phase_t = SHOW_SEC
+			_phase_t = SHOW_CATCH_SEC if _show_ok else SHOW_SEC
 		Phase.CASTING:
 			pass
 
@@ -408,9 +441,11 @@ func _succeed() -> void:
 	art.bobber_visible = false
 	art.rod_cast = false
 	art.bite_flash = 0.0
+	art.splash = 0.55
 	phase = Phase.SHOW
 	_phase_t = 0.0
-	_notice.text = Loc.t("prep.fishing_taro.caught", [Tuning.fish_name(fid)])
+	_notice.text = ""
+	_show_catch_card(fid)
 	_refresh_hud()
 
 
@@ -424,8 +459,34 @@ func _fail(msg: String) -> void:
 	art.bite_flash = 0.0
 	phase = Phase.SHOW
 	_phase_t = 0.0
+	_hide_catch_card()
 	_notice.text = msg
 	_refresh_hud()
+
+
+func _show_catch_card(fid: String) -> void:
+	if _catch_card == null:
+		return
+	_catch_icon.texture = _fish_catch_texture(fid)
+	_catch_name.text = Loc.t("prep.fishing_taro.caught", [Tuning.fish_name(fid)])
+	_catch_card.visible = true
+
+
+func _hide_catch_card() -> void:
+	if _catch_card != null:
+		_catch_card.visible = false
+	if _catch_icon != null:
+		_catch_icon.texture = null
+
+
+## Prefer full 64² sku art; fall back to SkuIcons procedural／cached 32².
+func _fish_catch_texture(fid: String) -> Texture2D:
+	var path := "res://art/ui/sku/%s.png" % fid
+	if FileAccess.file_exists(path):
+		var img := Image.new()
+		if img.load(path) == OK:
+			return ImageTexture.create_from_image(img)
+	return SkuIcons.texture(fid)
 
 
 func _end_session_cover() -> void:
@@ -445,6 +506,7 @@ func _refresh_hud() -> void:
 	_hud_stock.text = _stock_line()
 	match phase:
 		Phase.IDLE:
+			_hide_catch_card()
 			var near: bool = bool(art.shadow_visible) and absf(art.player_x - art.shadow_x) <= CAST_RANGE
 			_hud_hint.text = (
 				Loc.t("prep.fishing_taro.hint_cast")
@@ -453,17 +515,23 @@ func _refresh_hud() -> void:
 			)
 			_notice.text = ""
 		Phase.CASTING:
+			_hide_catch_card()
 			_hud_hint.text = Loc.t("prep.fishing_taro.hint_wait")
 			_notice.text = ""
 		Phase.WAITING:
+			_hide_catch_card()
 			_hud_hint.text = Loc.t("prep.fishing_taro.hint_wait")
 			_notice.text = ""
 		Phase.BITE:
+			_hide_catch_card()
 			_hud_hint.text = Loc.t("prep.fishing_taro.hint_bite")
 			_notice.text = Loc.t("prep.fishing_taro.bite")
 		Phase.SHOW:
 			_hud_hint.text = Loc.t("prep.fishing_taro.hint_continue")
+			if not _show_ok:
+				_hide_catch_card()
 		Phase.INTRO:
+			_hide_catch_card()
 			_hud_hint.text = ""
 			_notice.text = ""
 
