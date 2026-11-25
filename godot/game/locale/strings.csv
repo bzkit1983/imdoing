@@ -950,3 +950,63 @@ prep.metal_trial.fail,未達 70%,Below 70%,未达 70%,70% 未満
 prep.metal_trial.summary,%.1f%%｜最高連擊 %d｜完美 %d・良好 %d・漏拍 %d,%.1f%% · Best combo %d · Perfect %d · Good %d · Miss %d,%.1f%%｜最高连击 %d｜完美 %d・良好 %d・漏拍 %d,%.1f%%｜最大コンボ %d｜パーフェクト %d・グッド %d・ミス %d
 prep.metal_trial.reward,獲得技能：%s（試玩提示）,Skill earned: %s (trial),获得技能：%s（试玩提示）,スキル獲得：%s（体験版）
 prep.metal_trial.audio_error,測試曲未能載入。,Could not load the trial track.,测试曲无法载入。,テスト曲を読み込めませんでした。
+prep.swiss_lung.title,瑞士山區肺｜三個騙子,Swiss Mountain Lung · Three Hustlers,瑞士山区肺｜三个骗子,スイス山岳肺｜三人のペテン師
+prep.swiss_lung.speaker_player,你,You,你,あなた
+prep.swiss_lung.speaker_a,騙子 A,Hustler A,骗子 A,ペテン師 A
+prep.swiss_lung.speaker_b,騙子 B,Hustler B,骗子 B,ペテン師 B
+prep.swiss_lung.speaker_c,騙子 C,Hustler C,骗子 C,ペテン師 C
+prep.swiss_lung.intro_0,哥仔，見你咁好人先講畀你知。我入咗批好肺。,"Between you and me, pal. I got a shipment of fine lungs.",哥仔，见你这么好人才告诉你。我进了一批好肺。,兄ちゃん、いい人そうだから教えるよ。上物の肺が入ったんだ。
+prep.swiss_lung.intro_1,肺？,Lungs?,肺？,肺？
+prep.swiss_lung.intro_2,冇錯，係肺。,That's right. Lungs.,没错，是肺。,そう。肺だよ。
+prep.swiss_lung.intro_3,咩嚟㗎？係咪犯法㗎？,What do you mean? Is that even legal?,什么东西？这合法吗？,どういうこと？ それ合法なの？
+prep.swiss_lung.intro_4,我啱啱有個樣板喺度。呢個肺係瑞士山區嘅善長仁翁捐出嚟㗎。,Here's a sample. Donated by a kind soul from the Swiss mountains.,我正好有个样品。这肺是瑞士山区的善心人士捐的。,見本がある。スイスの山に住む慈善家からの寄付さ。
+prep.swiss_lung.intro_5,佢哋呼吸嘅空氣冇污染、冇添加。你睇吓個肺幾乾乾淨淨，攞嚟賣真係冇得頂！,They breathe pure mountain air. Look how clean it is! It practically sells itself.,他们呼吸的空气无污染、无添加。你看多干净，拿去卖绝对抢手！,汚染も添加物もない空気を吸ってる。見ろ、このきれいさ！ 売れるぞ。
+prep.swiss_lung.intro_6,咁咪好貴？,Sounds expensive.,那不是很贵？,高そうだね。
+prep.swiss_lung.intro_7,識人嘅話，攞一打唔使一百萬。轉手起碼賺三五七百萬！,"With my connections a dozen costs under a million. Resell them for three, five, seven million in profit!",有门路的话一打不到一百万。转手至少赚三五七百万！,ツテを使えば一ダースで百万未満。転売すりゃ三百万、五百万、七百万は儲かる！
+prep.swiss_lung.intro_8,咁好搵？,That easy?,这么好赚？,そんなに儲かる？
+prep.swiss_lung.intro_9,係呀，哥、哥仔，有興趣就一人一半吖！五十萬之嘛。,"Sure, b-buddy. We split it fifty-fifty. Just half a million from you.",对啊，哥、哥仔，有兴趣就一人一半！五十万而已。,そうさ、に、兄ちゃん。折半しよう。たった五十万だ。
+prep.swiss_lung.intro_10,我呢輪真係賺夠啦。我、我真係好想畀人賺吓。,I've made enough lately. I-I just want someone else to make a little.,我这阵子真赚够了。我、我真想让别人也赚点。,ここんとこ十分稼いだ。ほ、ほかの人にも儲けてほしくてさ。
+prep.swiss_lung.intro_11,呢個咪瑞士山區肺？,Is that a Swiss Mountain Lung?,这不是瑞士山区肺吗？,それ、スイス山岳肺じゃない？
+prep.swiss_lung.intro_12,呢位小姐真係識貨！你有興趣我同你夾份吖，我唔同呢位哥仔夾啦。,"You know quality, miss! I'll split it with you instead. Sorry, pal.",这位小姐真识货！有兴趣我跟你合伙，不跟这位哥仔合了。,お嬢さん、お目が高い！ あなたと組もう。兄ちゃんはなしだ。
+prep.swiss_lung.intro_13,等陣先。你哋頭先講嗰套，同我聽到嘅唔一樣喎。,Hang on. That's not the version I heard.,等一下。你们说的跟我听到的不一样。,待った。俺が聞いた話と違うぞ。
+prep.swiss_lung.intro_14,我有興趣，不過想問清楚。你哋逐個講。,"I'm interested. Let's clear a few things up, one at a time.",我有兴趣，不过想问清楚。你们一个个说。,興味はある。少し確認したいから、一人ずつ話して。
+prep.swiss_lung.offer_0,頭先五十萬唔算啦。你出三十萬，利潤四成歸你。,"Forget the half million. Put in 300,000 and take 40% of the profit.",刚才的五十万不算了。你出三十万，利润四成归你。,さっきの五十万はなし。三十万出せば利益の四割をやる。
+prep.swiss_lung.offer_1,你、我同 C 一齊做，每人出十萬，分三成。,"The three of us put in 100,000 each and each get 30%.",你、我和 C 一起做，每人出十万，分三成。,あなたと私とCで十万ずつ出す。取り分は各三割よ。
+prep.swiss_lung.offer_2,四個人一齊做，每人每日十五萬。我喺中間收佣。,"Four partners, 150,000 each per day. I take a commission.",四个人一起做，每人每天十五万。我从中收佣。,四人でやる。一人一日十五万。俺は仲介料をもらう。
+prep.swiss_lung.progress,拆穿 %d／2　證詞 %d,Exposed %d/2 · Statements %d,拆穿 %d／2　证词 %d,暴いた矛盾 %d/2｜証言 %d
+prep.swiss_lung.continue,繼續,Continue,继续,続ける
+prep.swiss_lung.ask,扮有興趣，逐個問清楚。記低兩句互相矛盾嘅證詞，再攞去對質。,Act interested and ask around. Collect two statements that contradict each other and confront the hustlers.,假装有兴趣，逐个问清楚。记下两句互相矛盾的证词，再拿去对质。,興味があるふりをして聞き出そう。矛盾する二つの証言を突きつけよう。
+prep.swiss_lung.question,問 %s · %s,Ask %s · %s,问 %s · %s,%s に聞く｜%s
+prep.swiss_lung.topic_0,邊個真係出錢？,Who paid in?,谁真的出钱？,誰が出資した？
+prep.swiss_lung.topic_1,買家究竟係邊個？,Who is the buyer?,买家到底是谁？,買い手は誰？
+prep.swiss_lung.topic_2,張報價包唔包佣？,Does the quote include fees?,报价包不包佣金？,見積もりに手数料は含まれる？
+prep.swiss_lung.aside_0,出錢？最緊要係有誠意。,Money? What really matters is sincerity.,出钱？最重要的是有诚意。,出資？ 大事なのは誠意だ。
+prep.swiss_lung.aside_1,買家？呢單最唔缺就係人。,A buyer? We're never short of people.,买家？这单最不缺的就是人。,買い手？ 人ならいくらでもいるさ。
+prep.swiss_lung.aside_2,佣金呢啲小數目，飲啖茶再講啦。,Fees are pocket change. Let's have tea first.,佣金这点小钱，喝口茶再说吧。,手数料なんて小銭よ。まずお茶にしましょう。
+prep.swiss_lung.original,等佢本人答,Let them answer,让本人回答,本人に答えてもらう
+prep.swiss_lung.added,已記低呢句證詞。,Statement added.,已记下这句证词。,証言を記録した。
+prep.swiss_lung.card_0,C 已經交咗十萬。,"C already put in 100,000.",C 已经交了十万。,Cはもう十万出したよ。
+prep.swiss_lung.card_1,我一蚊都未交。我淨係負責收佣。,I haven't paid a cent. I only collect commission.,我一分钱都没交。我只负责收佣。,俺は一銭も出してない。手数料をもらうだけだ。
+prep.swiss_lung.card_2,個買家已經確定，佢叫陳生，仲落咗訂。,The buyer is confirmed. Mr. Chan already put down a deposit.,买家已经确定，姓陈，还付了订金。,買い手は決まってる。陳さんが手付金も入れた。
+prep.swiss_lung.card_3,陳生就係我。我冇落過訂，頭先只係入嚟叫你夾份。,I'm Mr. Chan. I paid no deposit. I came to get you to invest.,陈先生就是我。我没付订金，刚才只进来拉你入伙。,陳とは私のこと。手付金は払ってない。出資に誘いに来ただけ。
+prep.swiss_lung.card_4,每日十五萬包晒所有佣。,"The 150,000 per day covers all fees.",每天十五万包所有佣金。,一日十五万で手数料も全部込みだ。
+prep.swiss_lung.card_5,C 啱啱另外叫我哋每人再畀兩萬佣。,"C just asked each of us for another 20,000 in fees.",C 刚才另外要我们每人再付两万佣金。,Cはさっき、一人二万の手数料を別に払えと言った。
+prep.swiss_lung.cards,睇證詞卡,View statements,查看证词卡,証言を見る
+prep.swiss_lung.pair,揀兩張互相矛盾嘅證詞卡，再對質。,"Select two conflicting statements, then confront them.",选择两张互相矛盾的证词卡，再对质。,矛盾する証言を二つ選んで突きつけよう。
+prep.swiss_lung.challenge,攞呢兩張卡對質,Confront with these two,拿这两张卡对质,この二枚を突きつける
+prep.swiss_lung.more,繼續追問,Ask more questions,继续追问,さらに聞く
+prep.swiss_lung.wrong,你想話我邊句有問題？,Which part of what I said is supposed to be wrong?,你想说我哪句有问题？,俺のどの話がおかしいって？
+prep.swiss_lung.hint,試吓對返同一件事、同一個人或同一筆錢。,"Compare claims about the same event, person or payment.",试试对照同一件事、同一个人或同一笔钱。,同じ出来事・人物・支払いについて比べよう。
+prep.swiss_lung.reveal_0,B 扮聽唔到。C 向 B 伸手：「咁你嗰份佣幾時畀？」,B pretends not to hear. C holds out a hand. “So when do I get your commission?”,B 装没听见。C 向 B 伸手：「那你的佣金什么时候给？」,Bは聞こえないふり。Cが手を差し出す。「で、お前の手数料はいつ？」
+prep.swiss_lung.reveal_1,你將「已落訂」推畀 B。B：「我連買家嗰份人工都未收。」,You slide the deposit card to B. “I haven't even been paid to play the buyer.”,你把「已付订金」推给 B。B：「我扮买家的工钱都没收到。」,「手付金済み」のカードをBに押しやる。「買い手役のバイト代すらまだよ。」
+prep.swiss_lung.reveal_2,C 將牌反轉，背面寫住「另收服務費」。A：「你一早印定㗎？」,"C flips the sign. It says “SERVICE FEE EXTRA.” A asks, “You printed that in advance?”",C 把牌翻过来，背面写着「另收服务费」。A：「你早就印好了？」,Cが札を裏返す。「サービス料別途」。A「先に印刷してたのかよ？」
+prep.swiss_lung.offer_item,推介店內擺設,Offer the store ornament,推介店内摆设,店の置物を勧める
+prep.swiss_lung.price,A 想拎走個殘舊樣板。你攞起店內同款擺設。,A starts packing up the worn sample. You pick up the store's matching ornament.,A 想拿走破旧样品。你拿起店内同款摆设。,Aが古い見本を片づけ始める。あなたは店の同じ形の置物を手に取る。
+prep.swiss_lung.set_price,反轉價牌 · $20,Flip the price tag · $20,翻转价牌 · $20,値札を裏返す｜$20
+prep.swiss_lung.sale,做擺設啫，二十蚊，唔使夾份。,It's an ornament. Twenty bucks. No partnership needed.,就是个摆设，二十块，不用合伙。,ただの置物。二十ドル。出資は要らないよ。
+prep.swiss_lung.give_offer,將擺設推畀 A,Slide the ornament to A,把摆设推给 A,置物をAに差し出す
+prep.swiss_lung.bag_line,……有冇袋？,…Got a bag?,……有袋吗？,……袋ある？
+prep.swiss_lung.bag,遞個袋畀 A,Hand A a bag,递个袋给 A,Aに袋を渡す
+prep.swiss_lung.punchline,我都賺夠啦，比啲你賺。,I've made enough. You take some.,我都赚够啦，比啲你赚。,もう十分稼いだ。お裾分けだよ。
+prep.swiss_lung.reward,獲得技能：%s（試玩提示）,Skill earned: %s (trial),获得技能：%s（试玩提示）,スキル獲得：%s（体験版）
+prep.swiss_lung.retry,再玩 · 跳過開場,Retry · Skip intro,再玩 · 跳过开场,再挑戦｜導入を飛ばす
