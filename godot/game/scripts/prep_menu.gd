@@ -171,6 +171,8 @@ func setup(host: Node) -> void:
 			tut.gate_changed.connect(_on_tutorial_gate_changed)
 	var load_err := state.load_from_disk()
 	if load_err == "":
+		if state.has_method("sync_prologue_progress_grants"):
+			state.sync_prologue_progress_grants()
 		_msg = Loc.t("prep.msg.loaded", [state.scenario, state.level, state.money])
 		_show_page("home")
 	else:

@@ -66,6 +66,9 @@ func fight_tap() -> void:
 	if not is_instance_valid(host.target) or host._fight_ko:
 		return
 	var dmg = Tuning.hit_damage(host._str_now())
+	var game = host._game()
+	if game != null and game.get("state") != null and game.state.has_method("fight_damage_mult"):
+		dmg *= float(game.state.fight_damage_mult())
 	if host.controls_locally():
 		host._shake_camera(Tuning.FIGHT_HIT_SHAKE, Tuning.FIGHT_HIT_SHAKE_SEC)
 	SfxBus.play("sfx_fight_hit")

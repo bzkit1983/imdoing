@@ -19,9 +19,10 @@ pause.settings.back,返回,Back,返回,戻る
 prep.settings,設定,Settings,设定,設定
 prep.settings.title,設定,Settings,设定,設定
 prep.settings.info,音效／音樂／語言／鏡頭／觸控搖桿。音量列用 A／D（←／→）加減，寫入本機設定跨局保留。,SFX / BGM / language / camera / touch stick. On a volume row, A/D (←/→) changes level. Saved locally across sessions.,音效／音乐／语言／镜头／触控摇杆。音量列用 A／D（←／→）加减，写入本机设定跨局保留。,効果音／BGM／言語／カメラ／タッチスティック。音量行は A／D（←／→）で調整。端末設定に保存され引き継がれます。
-prep.scenario.offer_body,新檔先選：開始教學，或跳過教學直接開店。也可選其他劇本。,New save: start the tutorial, or skip and open the shop. Other scenarios are listed below.,新档先选：开始教学，或跳过教学直接开店。也可选其他剧本。,新規セーブ：チュートリアル開始、またはスキップして開店。他のシナリオも選べます。
+prep.scenario.offer_body,新檔先選：開始教學、劇情模式序章，或跳過教學直接開店。也可選其他劇本。,New save: start the tutorial, story-mode prologue, or skip and open the shop. Other scenarios are listed below.,新档先选：开始教学、剧情模式序章，或跳过教学直接开店。也可选其他剧本。,新規セーブ：チュートリアル、ストーリー序章、またはスキップして開店。他のシナリオも選べます。
 prep.scenario.start_tutorial,開始教學　LV1　$3000　空店（簡易）,Start tutorial · LV1 · $3000 · empty shop (Easy),开始教学　LV1　$3000　空店（简易）,チュートリアル開始　LV1　$3000　空き店（簡易）
 prep.scenario.skip_tutorial,跳過教學　從新開始　$10000　LV1　空店,Skip tutorial · Fresh start · $10000 · LV1 · empty,跳过教学　从新开始　$10000　LV1　空店,チュートリアルをスキップ　新規　$10000　LV1　空き店
+prep.scenario.s8,劇情模式：序章　LV1　$2500　空店　內容閘門,Story mode: Prologue · LV1 · $2500 · empty · content gates,剧情模式：序章　LV1　$2500　空店　内容闸门,ストーリーモード：序章　LV1　$2500　空き店　コンテンツゲート
 tut.skip,跳過教學,Skip tutorial,跳过教学,チュートリアルをスキップ
 tut.skip.confirm,確定跳過其餘教學？,Skip the rest of the tutorial?,确定跳过其余教学？,残りのチュートリアルをスキップしますか？
 tut.skip.done,已跳過教學,Tutorial skipped,已跳过教学,チュートリアルをスキップしました
@@ -346,7 +347,7 @@ hud.combo_coop,COMBO P1 %d  ·  P2 %d  ·  TEAM %d,COMBO P1 %d  ·  P2 %d  ·  T
 hud.seat,P%d,P%d,P%d,P%d
 prep.back,返回,Back,返回,戻る
 prep.scenario.title,選擇劇本,Choose scenario,选择剧本,シナリオ選択
-prep.scenario.info,劇本1 從空店開始，資金 $10000。劇本2、3 帶現成店面和店員。劇本4 用來試技能。測試版另有劇本5 教學模式（$3000）、劇本6 頭目戰（藍本同劇本4）、劇本7 新商店物品測試（藍本同劇本4、一台自助收銀機）。,Scenario 1 starts empty with $10000. 2 and 3 include a shop and clerks. 4 is for trying skills. Test builds also list Scenario 5 Tutorial ($3000); Scenario 6 Boss battle (same as 4); Scenario 7 new furniture test (same as 4 · one self-checkout).,剧本1 从空店开始，资金 $10000。剧本2、3 带现成店面和店员。剧本4 用来试技能。测试版另有剧本5 教学模式（$3000）、剧本6 头目战（蓝本同剧本4）、剧本7 新商店物品测试（蓝本同剧本4、一台自助收银机）。,シナリオ1は空の店から開始、資金 $10000。シナリオ2・3は店舗と店員付き。シナリオ4はスキル試し用。テスト版にはシナリオ5 チュートリアル（$3000）、シナリオ6 ボス戦（シナリオ4と同構成）、シナリオ7 新店舗アイテムテスト（シナリオ4＋セルフレジ1台）もあります。
+prep.scenario.info,劇情模式序章（劇本8）空店、$2500、內容閘門。劇本1 從空店開始，資金 $10000。劇本2、3 帶現成店面和店員。劇本4 用來試技能。測試版另有劇本5 教學模式（$3000）、劇本6 頭目戰（藍本同劇本4）、劇本7 新商店物品測試（藍本同劇本4、一台自助收銀機）。,Story-mode prologue (scenario 8): empty shop · $2500 · content gates. Scenario 1 starts empty with $10000. 2 and 3 include a shop and clerks. 4 is for trying skills. Test builds also list Scenario 5 Tutorial ($3000); Scenario 6 Boss battle (same as 4); Scenario 7 new furniture test (same as 4 · one self-checkout).,剧情模式序章（剧本8）空店、$2500、内容闸门。剧本1 从空店开始，资金 $10000。剧本2、3 带现成店面和店员。剧本4 用来试技能。测试版另有剧本5 教学模式（$3000）、剧本6 头目战（蓝本同剧本4）、剧本7 新商店物品测试（蓝本同剧本4、一台自助收银机）。,ストーリー序章（シナリオ8）は空き店・$2500・コンテンツゲート。シナリオ1は空の店から開始、資金 $10000。シナリオ2・3は店舗と店員付き。シナリオ4はスキル試し用。テスト版にはシナリオ5 チュートリアル（$3000）、シナリオ6 ボス戦（シナリオ4と同構成）、シナリオ7 新店舗アイテムテスト（シナリオ4＋セルフレジ1台）もあります。
 prep.scenario.s5,劇本5　教學模式　LV1　$3000　空店（測試）,Scenario 5 · Tutorial · LV1 · $3000 · empty shop (test),剧本5　教学模式　LV1　$3000　空店（测试）,シナリオ5　チュートリアル　LV1　$3000　空店舗（テスト）
 prep.scenario.s6,劇本6　頭目戰　藍本同劇本4（測試）,Scenario 6 · Boss battle · same as Scenario 4 (test),剧本6　头目战　蓝本同剧本4（测试）,シナリオ6　ボス戦　シナリオ4と同構成（テスト）
 prep.scenario.s7,劇本7　新商店物品測試　藍本同劇本4　自助收銀×1（測試）,Scenario 7 · New furniture test · same as 4 · 1 self-checkout (test),剧本7　新商店物品测试　蓝本同剧本4　自助收银×1（测试）,シナリオ7　新店舗アイテムテスト　シナリオ4構成　セルフレジ×1（テスト）

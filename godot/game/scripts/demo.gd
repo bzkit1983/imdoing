@@ -3228,6 +3228,9 @@ func _finish_day() -> void:
 			"shop_rating": maxi(0, int(state.shop_rating) + pending_grade),
 			"angry_leave": angry_left,
 		})
+		_tasks.apply_pending_rewards(state)
+		if state.has_method("sync_prologue_progress_grants"):
+			state.sync_prologue_progress_grants()
 		state.active_tasks_by_seat = _tasks.to_save()
 	var result: Dictionary = state.settle(
 		revenue, served, thieves_caught, cleaned, _skip_xp, elite_served, shared_xp, ops_rating

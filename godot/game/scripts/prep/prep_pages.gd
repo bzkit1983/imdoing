@@ -325,6 +325,8 @@ static func _scenario(menu: CanvasLayer) -> void:
 	## H2 product entry: tutorial ask first (not gated by TEST_TOOLS).
 	menu._add(Loc.t("prep.scenario.start_tutorial"), "sc_tutorial", null)
 	menu._add(Loc.t("prep.scenario.skip_tutorial"), "sc_skip_tutorial", null)
+	## Story-mode prologue (content gates + design start cash). Always listed.
+	menu._add(Loc.t("prep.scenario.s8"), "sc", menu.state.SCENARIO_PROLOGUE)
 	menu._add(Loc.t("prep.scenario.s1"), "sc", 1)
 	menu._add(Loc.t("prep.scenario.s2"), "sc", 2)
 	menu._add(Loc.t("prep.scenario.s3"), "sc", 3)
@@ -985,11 +987,12 @@ static func _develop(menu: CanvasLayer) -> void:
 		## Develop tutorial: only show allowlisted SKUs.
 		if sku_lock and not menu.tutorial_goods_sku_allowed(sku):
 			continue
+		## Content gate: locked SKUs are hidden (not grey LV rows).
+		if not menu.state.developed.has(sku) and not menu.state.sku_unlocked(sku):
+			continue
 		var icon := SkuIcons.row_texture(sku)
 		if menu.state.developed.has(sku):
 			menu._add(Loc.t("prep.sku.developed", [Tuning.sku_name(sku)]), "noop", sku, icon)
-		elif not menu.state.sku_unlocked(sku):
-			menu._add(Loc.t("prep.sku.locked", [Tuning.sku_name(sku), int(Tuning.SKU_UNLOCK_LV[sku])]), "locked_sku", sku, icon)
 		else:
 			menu._add(Loc.t("prep.sku.develop_row", [Tuning.sku_name(sku), int(Tuning.SKU_DEVELOP[sku])]), "dev", sku, icon)
 	menu._add(Loc.t("prep.back"), "go", "hub_goods")
@@ -1016,10 +1019,11 @@ static func _buy(menu: CanvasLayer) -> void:
 		## Buy tutorial: only show allowlisted SKUs.
 		if sku_lock and not menu.tutorial_goods_sku_allowed(sku):
 			continue
-		var icon := SkuIcons.row_texture(sku)
+		## Content gate: undeveloped＋locked SKUs hidden.
 		if not menu.state.developed.has(sku) and not menu.state.sku_unlocked(sku):
-			menu._add(Loc.t("prep.sku.locked", [Tuning.sku_name(sku), int(Tuning.SKU_UNLOCK_LV[sku])]), "locked_sku", sku, icon)
-		elif not menu.state.developed.has(sku):
+			continue
+		var icon := SkuIcons.row_texture(sku)
+		if not menu.state.developed.has(sku):
 			menu._add(Loc.t("prep.sku.need_dev", [Tuning.sku_name(sku)]), "need_develop", sku, icon)
 		elif not menu.state.is_for_sale(sku):
 			menu._add(Loc.t("prep.sku.buy_not_for_sale", [Tuning.sku_name(sku)]), "not_for_sale", sku, icon)
@@ -1151,6 +1155,9 @@ static func _furn(menu: CanvasLayer) -> void:
 			continue
 		var icon := FurnitureIcons.row_texture(type)
 		if menu.state.is_grant_only_furniture(type):
+			## Hide grant-only unless already owned (event-granted).
+			if int(menu.state.owned.get(type, 0)) <= 0:
+				continue
 			var owned_g := int(menu.state.owned.get(type, 0))
 			menu._add(
 				Loc.t("prep.furn.event_row", [fname, owned_g, menu.state.unplaced(type)]),
@@ -1159,8 +1166,8 @@ static func _furn(menu: CanvasLayer) -> void:
 				icon,
 			)
 			continue
+		## Content gate: locked furniture hidden (not grey LV rows).
 		if not menu.state.furniture_unlocked(type):
-			menu._add(Loc.t("prep.furn.locked_row", [fname, int(spec["unlock"]), int(spec["price"])]), "locked_furn", type, icon)
 			continue
 		var owned_n := int(menu.state.owned.get(type, 0))
 		var row_label := Loc.t("prep.furn.buy_row", [fname, int(spec["price"]), owned_n, menu.state.unplaced(type)])

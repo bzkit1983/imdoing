@@ -431,6 +431,14 @@ quest.op_man_002_a.name,三日清潔,Three-day cleaning,三日清洁,3日清掃
 quest.op_man_002_a.desc,於 3 個營業日內累計完成清潔 20 次。,Clean 20 times within 3 ops days.,于 3 个营业日内累计完成清洁 20 次。,3営業日以内に清掃を累計20回行う。
 quest.op_man_002_b.name,商店評價,Shop rating,商店评价,店舗評価
 quest.op_man_002_b.desc,將商店評價提升至 5 或以上。,Raise shop rating to 5 or higher.,将商店评价提升至 5 或以上。,店舗評価を5以上にする。
+quest.st_prologue_money_1.name,資金儲備（凍櫃線）,Cash reserve (frozen line),资金储备（冻柜线）,資金储备（冷凍ライン）
+quest.st_prologue_money_1.desc,持有資金達到 3500，解鎖支裝凍飲開發與凍櫃傢俬。,Hold at least $3500 to unlock bottled drinks and frozen furniture.,持有资金达到 3500，解锁支装冻饮开发与冻柜家具。,所持金3500以上でボトル飲料開発と冷凍什器を解放。
+quest.st_prologue_money_2.name,資金儲備（牛奶）,Cash reserve (milk),资金储备（牛奶）,資金储备（牛乳）
+quest.st_prologue_money_2.desc,持有資金達到 4500，解鎖牛奶開發。,Hold at least $4500 to unlock milk development.,持有资金达到 4500，解锁牛奶开发。,所持金4500以上で牛乳開発を解放。
+quest.st_prologue_money_3.name,資金儲備（頭目）,Cash reserve (boss),资金储备（头目）,資金储备（ボス）
+quest.st_prologue_money_3.desc,持有資金達到 5500，解鎖序章頭目日。,Hold at least $5500 to unlock the prologue boss day.,持有资金达到 5500，解锁序章头目日。,所持金5500以上で序章ボス日を解放。
+quest.metric.shop_money.name,持有資金,Shop funds,持有资金,所持金
+quest.metric.shop_money.floor,持有資金達到 %d 或以上,hold shop funds of %d or more,持有资金达到 %d 或以上,所持金を%d以上にする
 quest.op_rand_generic.name,隨機營運任務,Random ops task,随机营运任务,ランダム営業タスク
 quest.op_rand_generic.desc,完成產生器指定的營運條件（進度見數字）。,Complete the generated ops goal (see progress).,完成生成器指定的营运条件（进度见数字）。,生成された営業条件を達成する（進捗は数値）。
 quest.op_rand.scope.day,本日內%s。,%s today.,本日%s。,本日中に%s。
@@ -475,6 +483,7 @@ quest.metric.sold_count.floor,售出商品共 %d 件,sell %d items,售出商品�
 quest.pack.op_tut_001.name,序章教學包,Prologue tutorial pack,序章教学包,序章チュートリアル
 quest.pack.op_man_001.name,營業額與評級,Revenue & day grade,营业额与评级,売上と当日評価
 quest.pack.op_man_002.name,跨日累計,Cross-day accumulate,跨日累计,日またぎ累計
+quest.pack.st_prologue_money.name,序章資金目標,Prologue money goals,序章资金目标,序章資金目標
 quest.pack.op_rand.name,隨機營運包,Random ops pack,随机营运包,ランダム営業パック
 ops_item.comfort_bomb.name,安慰炸彈,Comfort Bomb,安慰炸弹,なぐさめ爆弾
 ops_item.comfort_bomb.blurb,全店客人不滿歸零（已離店不拉回）,Clear all guest dissatisfaction (leaving guests stay gone),全店客人不满归零（已离店不拉回）,店内の客の不満を全消去（退店中は戻さない）

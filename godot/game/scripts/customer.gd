@@ -1133,7 +1133,10 @@ func _leave_near_exit(exit_p: Vector2) -> bool:
 func begin_fight() -> void:
 	state = State.FIGHT
 	fight_hp = 100.0
-	fight_left = Tuning.FIGHT_SEC
+	var fight_window := Tuning.FIGHT_SEC
+	if _game != null and _game.get("state") != null and _game.state.has_method("fight_sec"):
+		fight_window = float(_game.state.fight_sec())
+	fight_left = fight_window
 	velocity = Vector2.ZERO
 	mood = Loc.t("mood.caught")
 	## Restore full presence if grabbed while walking out.

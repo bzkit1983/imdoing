@@ -11,9 +11,24 @@ const XpRules = preload("res://scripts/session/xp_rules.gd")
 ## 4+: day_index / active_tasks_by_seat / task test selection (tasksystem.md).
 ## 5+: pending goods cultivation.
 ## 6+: completion of the Genesis quiz.
-const SAVE_VERSION := 6
+## 7+: unlocked_skus / unlocked_furniture / prologue_boss_unlocked (content gates).
+const SAVE_VERSION := 7
 const LIGHT_ULTIMATE := "let_there_be_light"
 const RatingRules = preload("res://scripts/session/rating_rules.gd")
+
+## Prologue hold-cash goals (story/prologue.md). Evaluated as shop_money.
+## Must stay strictly above PROLOGUE_START_MONEY so day-1 shop_money tasks do not auto-clear.
+const PROLOGUE_MONEY_GOAL_1 := 3500
+const PROLOGUE_MONEY_GOAL_2 := 4500
+const PROLOGUE_MONEY_GOAL_3 := 5500
+const PROLOGUE_PROCURE_CAN_PIECES := 4
+## Bare open path before money_goal_1:
+## cashier 1000 + restock_dry×2 1000 + shelf_dry_4×2 80 + snack develop 200 + can×4 10 = 2290.
+## Start uses rounded floor above that bare min, and below goal_1.
+const PROLOGUE_START_MONEY_MIN := 2290
+const PROLOGUE_START_MONEY := 2500
+const PROLOGUE_BOSS_FUND_REWARD := 2000
+const SCENARIO_PROLOGUE := 8
 
 const CELL := 64.0
 const WAGE := 100
@@ -143,6 +158,11 @@ var task_test_seed: int = 1
 var tutorial_progress: Dictionary = {}
 ## Product H2: player declined／skipped the tutorial campaign (persist across days).
 var tutorial_skipped: bool = false
+## Content gates (product: level never unlocks directly). Missing key ⇒ locked.
+var unlocked_skus: Dictionary = {}
+var unlocked_furniture: Dictionary = {}
+## Prologue money_goal_3 cleared → boss ops day eligible.
+var prologue_boss_unlocked: bool = false
 
 
 func _init() -> void:
@@ -176,6 +196,9 @@ func apply_scenario(id: int) -> void:
 	support_rating = 0
 	tutorial_progress.clear()
 	tutorial_skipped = false
+	unlocked_skus.clear()
+	unlocked_furniture.clear()
+	prologue_boss_unlocked = false
 	_install_new_game_sets()
 	match id:
 		2:
@@ -192,10 +215,13 @@ func apply_scenario(id: int) -> void:
 		7:
 			## New furniture test: scenario 4 blueprint, one self-checkout instead of cashiers.
 			_scenario_self_cashier_test()
+		SCENARIO_PROLOGUE:
+			_scenario_prologue()
 		_:
 			_scenario_new()
 	_ensure_test_portal_owned()
 	_grant_initial_goods()
+	_seed_content_unlocks_for_scenario()
 	_default_for_sale_for_developed()
 
 
@@ -203,11 +229,154 @@ func is_boss_test_scenario() -> bool:
 	return scenario == 6
 
 
+func is_prologue_story_scenario() -> bool:
+	return scenario == SCENARIO_PROLOGUE
+
+
 func _grant_initial_goods() -> void:
 	developed["can"] = true
 	if not stock.has("can"):
 		stock["can"] = 0
 	for_sale["can"] = true
+
+
+## Intro／序章-like scenarios use gated unlocks; demo sandboxes unlock everything.
+func uses_prologue_content_gates() -> bool:
+	return scenario == 1 or scenario == 5 or scenario == SCENARIO_PROLOGUE
+
+
+func _seed_content_unlocks_for_scenario() -> void:
+	unlocked_skus.clear()
+	unlocked_furniture.clear()
+	prologue_boss_unlocked = false
+	if uses_prologue_content_gates():
+		_seed_prologue_starter_unlocks()
+	else:
+		unlock_all_content()
+
+
+func _seed_prologue_starter_unlocks() -> void:
+	unlock_sku("can")
+	unlock_furniture("cashier")
+	unlock_furniture("restock_dry")
+	unlock_furniture("shelf_dry_4")
+
+
+func unlock_all_content() -> void:
+	for sku in Tuning.SELLABLE_SKUS:
+		unlocked_skus[sku] = true
+	for type in FURNITURE.keys():
+		if bool(FURNITURE[type].get("grant_only", false)):
+			continue
+		unlocked_furniture[type] = true
+	prologue_boss_unlocked = true
+
+
+func unlock_sku(sku: String) -> bool:
+	if sku == "" or not Tuning.SELLABLE_SKUS.has(sku):
+		return false
+	if unlocked_skus.has(sku):
+		return false
+	unlocked_skus[sku] = true
+	return true
+
+
+func unlock_furniture(type: String) -> bool:
+	if type == "" or not FURNITURE.has(type):
+		return false
+	if bool(FURNITURE[type].get("grant_only", false)):
+		return false
+	if unlocked_furniture.has(type):
+		return false
+	unlocked_furniture[type] = true
+	return true
+
+
+func unlock_prologue_boss() -> bool:
+	if prologue_boss_unlocked:
+		return false
+	prologue_boss_unlocked = true
+	return true
+
+
+## Apply task／story reward rows: {type, id?} — unlock_sku｜unlock_furniture｜unlock_prologue_boss.
+func apply_content_rewards(rewards: Array) -> void:
+	for raw in rewards:
+		if not (raw is Dictionary):
+			continue
+		var row: Dictionary = raw
+		var kind := String(row.get("type", ""))
+		match kind:
+			"unlock_sku":
+				unlock_sku(String(row.get("id", "")))
+			"unlock_furniture":
+				unlock_furniture(String(row.get("id", "")))
+			"unlock_prologue_boss":
+				unlock_prologue_boss()
+			_:
+				pass
+
+
+func _prologue_essentials_owned() -> bool:
+	return (
+		int(owned.get("cashier", 0)) >= 1
+		and int(owned.get("restock_dry", 0)) >= 1
+		and int(owned.get("shelf_dry_4", 0)) >= 1
+	)
+
+
+## Mirror prologue.md step grants when story packs are not yet driving unlocks.
+## Safe to call often from Prep after buy／develop／load.
+func sync_prologue_progress_grants() -> void:
+	if not uses_prologue_content_gates():
+		return
+	_seed_prologue_starter_unlocks()
+	for sku_v in developed.keys():
+		unlock_sku(String(sku_v))
+	## Step 2→3: procure can → snack develop eligibility.
+	if _prologue_essentials_owned() and int(stock.get("can", 0)) >= PROLOGUE_PROCURE_CAN_PIECES:
+		unlock_sku("snack")
+	## money_goal_1 → drink + frozen 4-slot line (after snack＋dry expand).
+	if (
+		developed.has("snack")
+		and int(owned.get("shelf_dry_4", 0)) >= 2
+		and int(owned.get("restock_dry", 0)) >= 2
+		and money >= PROLOGUE_MONEY_GOAL_1
+	):
+		unlock_sku("drink")
+		unlock_furniture("shelf_frozen_4")
+		unlock_furniture("restock_frozen")
+	## money_goal_2 → milk (after drink＋first frozen set).
+	if (
+		developed.has("drink")
+		and int(owned.get("shelf_frozen_4", 0)) >= 1
+		and int(owned.get("restock_frozen", 0)) >= 1
+		and money >= PROLOGUE_MONEY_GOAL_2
+	):
+		unlock_sku("milk")
+	## money_goal_3 → boss day (after milk＋second frozen set).
+	if (
+		developed.has("milk")
+		and int(owned.get("shelf_frozen_4", 0)) >= 2
+		and int(owned.get("restock_frozen", 0)) >= 2
+		and money >= PROLOGUE_MONEY_GOAL_3
+	):
+		unlock_prologue_boss()
+
+
+func _migrate_unlocks_from_level() -> void:
+	for sku in Tuning.SELLABLE_SKUS:
+		if level >= int(Tuning.SKU_UNLOCK_LV.get(sku, 99)):
+			unlocked_skus[sku] = true
+	for type in FURNITURE.keys():
+		if bool(FURNITURE[type].get("grant_only", false)):
+			continue
+		if level >= int(FURNITURE[type].get("unlock", 99)):
+			unlocked_furniture[type] = true
+	for sku_v in developed.keys():
+		unlocked_skus[String(sku_v)] = true
+	if unlocked_skus.is_empty():
+		_seed_content_unlocks_for_scenario()
 
 
 func _scenario_new() -> void:
@@ -242,9 +411,20 @@ func _scenario_tutorial() -> void:
 	_clear_portals_for_tutorial()
 
 
-## ALPHA／測試：非教學劇本可擁有最多 4 端傳送門以便店舖設計配置。劇本 5 不加。
+## Story-mode prologue (story/prologue.md): empty shop, design start cash, content gates.
+## Skips tutorial campaign; money goals／SKU／furniture progress via sync＋ST-PROLOGUE-MONEY.
+func _scenario_prologue() -> void:
+	_scenario_new()
+	money = PROLOGUE_START_MONEY
+	_clear_portals_for_tutorial()
+	task_test_mode = "pack"
+	task_test_pack_id = "ST-PROLOGUE-MONEY"
+	task_test_seed = 1
+
+
+## ALPHA／測試：非序章閘劇本可擁有最多 4 端傳送門以便店舖設計配置。序章／教學不加。
 func _ensure_test_portal_owned() -> void:
-	if scenario == 5:
+	if uses_prologue_content_gates():
 		_clear_portals_for_tutorial()
 		return
 	var cap := furniture_owned_cap("portal")
@@ -262,7 +442,7 @@ func _clear_portals_for_tutorial() -> void:
 
 
 func is_intro_scenario() -> bool:
-	return scenario == 1 or scenario == 5
+	return scenario == 1 or scenario == 5 or scenario == SCENARIO_PROLOGUE
 
 
 func tutorial_status(lesson_id: String) -> String:
@@ -596,13 +776,14 @@ func _base_value(stat: String) -> int:
 
 
 func sku_unlocked(sku: String) -> bool:
-	return level >= int(Tuning.SKU_UNLOCK_LV.get(sku, 99))
+	return unlocked_skus.has(sku)
 
 
 func develop(sku: String) -> String:
 	if sku == "can":
 		developed["can"] = true
 		for_sale["can"] = true
+		unlock_sku("can")
 		if not stock.has("can"):
 			stock["can"] = 0
 		return Loc.t("err.can_free")
@@ -616,8 +797,10 @@ func develop(sku: String) -> String:
 	money -= fee
 	developed[sku] = true
 	for_sale[sku] = true
+	unlock_sku(sku)
 	if not stock.has(sku):
 		stock[sku] = 0
+	sync_prologue_progress_grants()
 	return ""
 
 
@@ -661,9 +844,11 @@ func harvest_cultivation() -> Dictionary:
 	var is_new := not developed.has(sku)
 	var previous_stock = stock.get(sku)
 	var previous_for_sale = for_sale.get(sku)
+	var granted_unlock := false
 	if is_new:
 		developed[sku] = true
 		for_sale[sku] = true
+		granted_unlock = unlock_sku(sku)
 	stock[sku] = int(stock.get(sku, 0)) + 1
 	cultivation = {}
 	var err := save_to_disk()
@@ -675,6 +860,8 @@ func harvest_cultivation() -> Dictionary:
 			stock[sku] = previous_stock
 		if is_new:
 			developed.erase(sku)
+			if granted_unlock:
+				unlocked_skus.erase(sku)
 			if previous_for_sale == null:
 				for_sale.erase(sku)
 			else:
@@ -696,6 +883,7 @@ func buy_stock(sku: String, pieces: int) -> String:
 	money -= cost
 	stock[sku] = int(stock.get(sku, 0)) + pieces
 	day_procurement += cost
+	sync_prologue_progress_grants()
 	return ""
 
 
@@ -737,7 +925,7 @@ func furniture_unlocked(type: String) -> bool:
 	## Grant-only pieces appear in layout when owned; buy page handles them separately.
 	if bool(FURNITURE[type].get("grant_only", false)):
 		return true
-	return level >= int(FURNITURE[type]["unlock"])
+	return unlocked_furniture.has(type)
 
 
 func is_grant_only_furniture(type: String) -> bool:
@@ -767,6 +955,7 @@ func buy_furniture(type: String) -> String:
 		return Loc.t("err.furniture_cap")
 	money -= price
 	owned[type] = int(owned.get(type, 0)) + 1
+	sync_prologue_progress_grants()
 	return ""
 
 
@@ -1445,11 +1634,30 @@ func dirt_spawn_sec() -> float:
 
 
 func thief_spawn_first() -> float:
+	## Story prologue: even softer than generic intro (STR 10 mash is harsh).
+	if is_prologue_story_scenario():
+		return Tuning.THIEF_SPAWN_FIRST * 3.0
 	return Tuning.THIEF_SPAWN_FIRST * 2.0 if is_intro_scenario() else Tuning.THIEF_SPAWN_FIRST
 
 
 func thief_spawn_sec() -> float:
+	if is_prologue_story_scenario():
+		return Tuning.THIEF_SPAWN_SEC * 3.0
 	return Tuning.THIEF_SPAWN_SEC * 2.0 if is_intro_scenario() else Tuning.THIEF_SPAWN_SEC
+
+
+func thief_cap() -> int:
+	return 1 if is_prologue_story_scenario() else Tuning.THIEF_CAP
+
+
+## Near-fight mash window (reality seconds). Prologue gives more time at low STR.
+func fight_sec() -> float:
+	return Tuning.FIGHT_SEC * 1.6 if is_prologue_story_scenario() else Tuning.FIGHT_SEC
+
+
+## Multiplier on Tuning.hit_damage during mash. Prologue ≈ STR10 → ~7／hit.
+func fight_damage_mult() -> float:
+	return 2.0 if is_prologue_story_scenario() else 1.0
 
 
 func sellable() -> Array[String]:
@@ -1533,6 +1741,9 @@ func to_dict() -> Dictionary:
 		"tint": clampi(tint, 0, 3),
 		"skin_id": _normalized_skin_id(),
 		"unlocked_skins": _parsed_unlocked_skins(),
+		"unlocked_skus": unlocked_skus.duplicate(true),
+		"unlocked_furniture": unlocked_furniture.duplicate(true),
+		"prologue_boss_unlocked": prologue_boss_unlocked,
 		"developed": developed.duplicate(true),
 		"for_sale": for_sale.duplicate(true),
 		"stock": stock.duplicate(true),
@@ -1593,6 +1804,9 @@ func from_dict(data: Dictionary) -> String:
 	tint = clampi(int(data.get("tint", 0)), 0, 3)
 	skin_id = _normalize_skin_id(String(data.get("skin_id", "player")))
 	unlocked_skins = _parse_unlocked_skins(data.get("unlocked_skins", []))
+	unlocked_skus = _string_bool_dict(data.get("unlocked_skus", {}))
+	unlocked_furniture = _string_bool_dict(data.get("unlocked_furniture", {}))
+	prologue_boss_unlocked = bool(data.get("prologue_boss_unlocked", false))
 	developed = _string_bool_dict(data.get("developed", {}))
 	for_sale = _string_bool_dict(data.get("for_sale", {}))
 	stock = _string_int_dict(data.get("stock", {}))
@@ -1601,7 +1815,14 @@ func from_dict(data: Dictionary) -> String:
 		for sku_v in stock.keys():
 			stock[sku_v] = int(stock[sku_v]) * Tuning.BOX_SIZE
 	owned = _string_int_dict(data.get("owned", {}))
+	if unlocked_skus.is_empty() and unlocked_furniture.is_empty():
+		## Pre-v7 saves: rebuild gates from legacy level table + developed.
+		_migrate_unlocks_from_level()
+	else:
+		for sku_v in developed.keys():
+			unlocked_skus[String(sku_v)] = true
 	_ensure_test_portal_owned()
+	sync_prologue_progress_grants()
 	placed.clear()
 	var raw_placed = data.get("placed", [])
 	if raw_placed is Array:
