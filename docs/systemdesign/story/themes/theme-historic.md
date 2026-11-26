@@ -24,7 +24,7 @@
 | 主題主線任務鏈 | `ST-HISTORIC-*` 一次性劇情推進 |
 | 新貨種／商店物品導入 | 乾貨 `grain`／`soy_sauce`；熟食三款；`cooked_stall`；釣魚→`fish_tank` |
 | 能力推進事件 | 解鎖本主題技能（既定：`shelf_sniper` `must_deliver` `magneto`） |
-| 精英店員 | 通關或主線節點獲得（暫名對齊腦暴「彌生」；詳 [`../../eliteclerk.md`](../../eliteclerk.md)） |
+| 精英店員 | 通關或主線節點獲得（`yayoi`／彌生；詳 [`../../eliteclerk.md`](../../eliteclerk.md)／`elite_clerk_catalog.gd`） |
 | 資金／評價等達標 | 閾值跟當前 story_slot 節奏（growth-economy） |
 | 主題末頭目 | 首次通關解鎖奧義 `fundraise` |
 

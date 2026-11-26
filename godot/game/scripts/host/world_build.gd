@@ -352,6 +352,62 @@ func spawn_clerks() -> void:
 			"role": role,
 		})
 		i += 1
+	_spawn_elite_clerks(i, skip_cashier)
+
+
+func _spawn_elite_clerks(start_i: int, skip_cashier: bool) -> void:
+	var EliteClerkCatalog = load("res://scripts/session/elite_clerk_catalog.gd")
+	var Skills = load("res://scripts/skills.gd")
+	var i := start_i
+	var origin: Vector2 = host.FLOOR_ORIGIN
+	var floor_size: Vector2 = host.FLOOR_SIZE
+	for row in host.state.on_duty_elite_clerks():
+		var eid := String(row.get("id", ""))
+		if eid == "" or EliteClerkCatalog == null or not EliteClerkCatalog.exists(eid):
+			continue
+		var raw_roles = row.get("roles", [])
+		var job_roles: Array = []
+		if raw_roles is Array:
+			for r in raw_roles:
+				var rs := String(r)
+				if skip_cashier and rs == "cashier":
+					continue
+				job_roles.append(rs)
+		if job_roles.is_empty():
+			continue
+		var reg: Node2D = null
+		if job_roles.has("cashier") and not host.cashiers.is_empty():
+			reg = host.cashiers[mini(int(row.get("register", 0)), host.cashiers.size() - 1)]
+		var stats: Dictionary = host.state.elite_stats(eid)
+		var skill_tags: Dictionary = {}
+		var sid := String(EliteClerkCatalog.skill_id(eid))
+		if sid != "":
+			var def: Dictionary = EliteClerkCatalog.skill_def(sid)
+			if def.is_empty() and Skills != null and Skills.has_method("by_id"):
+				def = Skills.by_id(sid)
+			if not def.is_empty():
+				if def.has("restock_pct"):
+					skill_tags["restock_pct"] = float(def.get("restock_pct", 0.0))
+				if def.has("move_pct"):
+					skill_tags["move_pct"] = float(def.get("move_pct", 0.0))
+		var clerk: CharacterBody2D = ClerkScript.new()
+		host._world.add_child(clerk)
+		clerk.setup_elite(
+			host,
+			origin + Vector2(80 + i * 36, floor_size.y - 120),
+			job_roles,
+			reg,
+			eid,
+			stats,
+			skill_tags,
+			EliteClerkCatalog.model_id(eid)
+		)
+		host._clerks.append(clerk)
+		host._register_net_agent(clerk, "clerk", {
+			"role": String(job_roles[0]),
+			"elite_id": eid,
+		})
+		i += 1
 
 func index_shelf_sku(sku: String, shelf: Node) -> void:
 	if sku == "" or shelf == null:

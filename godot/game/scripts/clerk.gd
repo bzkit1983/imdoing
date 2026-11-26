@@ -9,6 +9,10 @@ const Vox = preload("res://scripts/voxel_sprite.gd")
 const BoxFaceplate = preload("res://scripts/box_faceplate.gd")
 
 var role: String = "restock"
+## Elite multi-post: assigned role ids; empty ⇒ single `role` only.
+var roles: Array[String] = []
+var elite_id: String = ""
+var is_elite: bool = false
 var register: Node2D
 var _game: Node
 var _path: PackedVector2Array = PackedVector2Array()
@@ -24,6 +28,12 @@ var _name_lab: Label
 var _model_id: String = "clerk_restock"
 var _job_search_cd: float = 0.0
 var _shown_anim: String = ""
+## Elite work stats (general hire keeps AGI 10).
+var _str_stat: int = 10
+var _agi_stat: int = 10
+var _int_stat: int = 10
+var _restock_pct: float = 0.0
+var _move_pct: float = 0.0
 ## Security patrol / chase.
 var _patrol_i: int = 0
 var _patrol_pts: PackedVector2Array = PackedVector2Array()
@@ -57,7 +67,49 @@ func apply_net_pose(pos: Vector2, facing: Vector2) -> void:
 func setup(game: Node, at: Vector2, job: String, reg: Node2D) -> void:
 	_game = game
 	role = job
+	roles = [job] if job != "" else []
 	register = reg
+	is_elite = false
+	elite_id = ""
+	_str_stat = 10
+	_agi_stat = 10
+	_int_stat = 10
+	_restock_pct = 0.0
+	_move_pct = 0.0
+	_finish_setup(at, "")
+
+
+func setup_elite(
+	game: Node,
+	at: Vector2,
+	job_roles: Array,
+	reg: Node2D,
+	id: String,
+	stats: Dictionary,
+	skill_tags: Dictionary,
+	model_override: String = "",
+) -> void:
+	_game = game
+	elite_id = String(id)
+	is_elite = true
+	roles.clear()
+	for r in job_roles:
+		var s := String(r)
+		if s != "" and not roles.has(s):
+			roles.append(s)
+	if roles.is_empty():
+		roles.append("restock")
+	role = roles[0]
+	register = reg
+	_str_stat = int(stats.get("str", 10))
+	_agi_stat = int(stats.get("agi", 10))
+	_int_stat = int(stats.get("int", 10))
+	_restock_pct = float(skill_tags.get("restock_pct", 0.0))
+	_move_pct = float(skill_tags.get("move_pct", 0.0))
+	_finish_setup(at, model_override)
+
+
+func _finish_setup(at: Vector2, model_override: String) -> void:
 	global_position = at
 	motion_mode = MOTION_MODE_FLOATING
 	collision_layer = 0
@@ -67,15 +119,18 @@ func setup(game: Node, at: Vector2, job: String, reg: Node2D) -> void:
 	rect.size = Vector2(22, 22)
 	shape.shape = rect
 	add_child(shape)
-	match role:
-		"cashier":
-			_model_id = "clerk_cashier"
-		"security":
-			_model_id = "clerk_security"
-		"cleaner":
-			_model_id = "clerk_cleaner"
-		_:
-			_model_id = "clerk_restock"
+	if model_override != "":
+		_model_id = model_override
+	else:
+		match role:
+			"cashier":
+				_model_id = "clerk_cashier"
+			"security":
+				_model_id = "clerk_security"
+			"cleaner":
+				_model_id = "clerk_cleaner"
+			_:
+				_model_id = "clerk_restock"
 	_sprite = Vox.animated(_model_id)
 	_sprite.name = "Body"
 	add_child(_sprite)
@@ -90,7 +145,34 @@ func setup(game: Node, at: Vector2, job: String, reg: Node2D) -> void:
 	add_child(_name_lab)
 
 
+func _has_role(job: String) -> bool:
+	if roles.is_empty():
+		return role == job
+	return roles.has(job)
+
+
+func _is_multi() -> bool:
+	return roles.size() > 1
+
+
+func _work_agi() -> int:
+	return _agi_stat if is_elite else 10
+
+
+func _restock_need_sec() -> float:
+	var base := Tuning.restock_seconds(_work_agi())
+	return maxf(0.05, base * (1.0 - clampf(_restock_pct, 0.0, 0.9)))
+
+
+func _clean_need_sec() -> float:
+	return Tuning.clean_seconds(_work_agi())
+
+
 func _role_label() -> String:
+	if is_elite and elite_id != "":
+		var EliteClerkCatalog = load("res://scripts/session/elite_clerk_catalog.gd")
+		if EliteClerkCatalog != null:
+			return EliteClerkCatalog.display_name(elite_id)
 	match role:
 		"cashier":
 			return Loc.t("world.clerk.cashier")
@@ -125,20 +207,23 @@ func _physics_process(delta: float) -> void:
 		velocity = Vector2.ZERO
 		_sync_visual("idle", Vector2.DOWN)
 		return
-	match role:
-		"cashier":
-			_tick_cashier(delta)
-		"security":
-			_tick_security(delta)
-		"cleaner":
-			_tick_cleaner(delta)
-		_:
-			_tick_restock(delta)
+	if _is_multi():
+		_tick_multi(delta)
+	else:
+		match role:
+			"cashier":
+				_tick_cashier(delta)
+			"security":
+				_tick_security(delta)
+			"cleaner":
+				_tick_cleaner(delta)
+			_:
+				_tick_restock(delta)
 	if velocity.length() <= 8.0:
 		var face := Vector2.UP if role == "cashier" else Vector2.DOWN
 		if role == "cashier" and _timer > 0.0:
 			_sync_visual("checkout", face)
-		elif role == "restock" and _box_n > 0:
+		elif (_has_role("restock") or role == "restock") and _box_n > 0:
 			_sync_visual("restock", face)
 		elif role == "security" and _fight_flash > 0.0:
 			_sync_visual("fight", face)
@@ -146,6 +231,60 @@ func _physics_process(delta: float) -> void:
 			_sync_visual("clean", face)
 		else:
 			_sync_visual("idle", face)
+
+
+func _tick_multi(delta: float) -> void:
+	## Priority: security interrupt → finish scrub/box → cleaner → cashier → restock.
+	if _has_role("security"):
+		if not _chase_target_valid(_chase_target):
+			_chase_target = _nearest_catchable_thief()
+		if _chase_target != null:
+			if _box_n > 0:
+				_drop_box()
+			if _scrubbing:
+				_abort_clean_target()
+			role = "security"
+			_tick_security(delta)
+			return
+	if _scrubbing and _has_role("cleaner"):
+		role = "cleaner"
+		_tick_cleaner(delta)
+		return
+	if _box_n > 0 and _has_role("restock"):
+		role = "restock"
+		_tick_restock(delta)
+		return
+	if _has_role("cleaner"):
+		if not _clean_target_valid(_clean_target):
+			_clean_target = _nearest_cleanable_dirt()
+		if _clean_target != null:
+			role = "cleaner"
+			_tick_cleaner(delta)
+			return
+	if _has_role("cashier") and register != null and is_instance_valid(register):
+		var cust = register.call("ready_customer")
+		if cust != null and cust.get("is_boss") != true:
+			if not (cust.has_method("blocks_auto_checkout") and bool(cust.call("blocks_auto_checkout"))):
+				role = "cashier"
+				_tick_cashier(delta)
+				return
+	if _has_role("restock"):
+		role = "restock"
+		_tick_restock(delta)
+		return
+	if _has_role("cashier"):
+		role = "cashier"
+		_tick_cashier(delta)
+		return
+	if _has_role("security"):
+		role = "security"
+		_tick_security(delta)
+		return
+	if _has_role("cleaner"):
+		role = "cleaner"
+		_tick_cleaner(delta)
+		return
+	velocity = Vector2.ZERO
 
 
 func _tick_security(delta: float) -> void:
@@ -283,7 +422,7 @@ func _tick_cleaner_scrub(delta: float) -> void:
 		_abort_clean_target()
 		return
 	velocity = Vector2.ZERO
-	var need := Tuning.clean_seconds(10)
+	var need := _clean_need_sec()
 	_scrub_timer += delta
 	var meter := clampf((_scrub_timer / maxf(need, 0.05)) * 100.0, 0.0, 100.0)
 	if target.has_method("set_cleaning"):
@@ -380,7 +519,7 @@ func _tick_restock(delta: float) -> void:
 		if not _follow(stand, delta):
 			return
 		_timer += delta
-		if _timer < Tuning.restock_seconds(10):
+		if _timer < _restock_need_sec():
 			return
 		var placed := int(_shelf.call("add_items", _box_sku, _box_n))
 		if placed > 0:
@@ -569,7 +708,7 @@ func _follow(pos: Vector2, delta: float, speed_mult: float = 1.0) -> bool:
 	var to := next - global_position
 	if to.length_squared() < 1.0:
 		return global_position.distance_squared_to(pos) <= arrive_sq
-	var spd := Tuning.WALK_SPEED * Tuning.agi_mult(10) * maxf(speed_mult, 0.01)
+	var spd := Tuning.WALK_SPEED * Tuning.agi_mult(_work_agi()) * (1.0 + maxf(_move_pct, 0.0)) * maxf(speed_mult, 0.01)
 	spd *= float(_game.customer_move_mult())
 	velocity = to.normalized() * maxf(spd, 1.0)
 	var walk_anim := "walk"

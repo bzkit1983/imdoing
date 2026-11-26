@@ -9,7 +9,7 @@
 # 路徑與格式
 
 - 本機檔：`user://save.json`（**店主＋店舖**完整進度）
-- JSON 物件。頂層必有整數欄 **`version`**（與產品 SemVer tag 分開；目前實作 `SAVE_VERSION = 4`：商店評價／評級歷史／難度／last_*／教學進度等；見 `docs/versioning.md`）
+- JSON 物件。頂層必有整數欄 **`version`**（與產品 SemVer tag 分開；目前實作 `SAVE_VERSION = 9`：含精英店員 `elite_clerks` 等；見 `docs/versioning.md`／`game_state.gd`）
 - `version` 過新：拒絕載入並提示更新遊戲。之後升版時在此檔補 migration 規則
 
 ## 訪客角色槽（本機雙人 M1）
@@ -55,6 +55,7 @@
 - STR／AGI／INT 與劇本基底  
 - 已開發貨、**可售旗標**（`for_sale`；缺省＝可售；至少一項可售）、倉庫**件數**、已購傢俬、店舖擺放、店規模與格線  
 - 店員崗位、技能裝備格、奧義。另有五組 `skill_sets` 和選中編號 `skill_set_index`（`SAVE_VERSION` 仍是 1）。`slots`／`ult_id` 是目前選中那一組的副本。每組可另存 `levels`（Dark Side、多重影分身準備頁選等；沒選預設 LV3）。見 `customizedskillset.md`、`darkside.md`、`shadowclone.md`  
+- **精英店員（`SAVE_VERSION` ≥9）：** `elite_clerks` 陣列；每項 `id`／`level`／`on_duty`／`roles`／`register`／`source`。另占欄、不扣日薪；見 [`eliteclerk.md`](eliteclerk.md)  
 - 外觀：`tint`、`skin_id`、`unlocked_skins`（空＝全開）。見 [`appearance.md`](appearance.md)  
 - 當日進貨支出累計、上一局是否虧損、升級備註  
 - **評價／難度（`SAVE_VERSION` ≥3）：** `shop_rating`（商店評價，下限 0）、`rating_history`（最近最多 30 筆日結評級）、`difficulty`（easy／normal／hard，見 `difficulty.md`）、`last_ops_rating`／`last_grade`、`difficulty_prompt_acked`。規則見 `ratingsystem.md`  

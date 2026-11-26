@@ -524,3 +524,28 @@ ops_item.clean_bomb.blurb,全店污物清除（每團結算清潔評價）,Clear
 ops_item.villain_bomb.name,壞人炸彈,Villain Bomb,坏人炸弹,悪人爆弾
 ops_item.villain_bomb.blurb,全店小偷趕走（每名算抓住）,Blow away all thieves (each counts as a catch),全店小偷赶走（每名算抓住）,店内の泥棒を吹き飛ばす（1人ごとに捕獲扱い）
 mood.ops_happy,開心！,Happy!,开心！,うれしい！
+elite_clerk.alan.name,阿蘭,Alan,阿兰,アラン
+elite_clerk.alan.bio,原對面連鎖離職員工；懂企業話術，擅安撫與識破假促銷客。,Ex-rival chain staff; reads corporate spin and calms guests.,原对面连锁离职员工；懂企业话术，擅安抚与识破假促销客。,向かいのチェーン元店員。企業話術と客なだめが得意。
+elite_clerk.yayoi.name,彌生,Yayoi,弥生,やよい
+elite_clerk.yayoi.bio,前藩庫書記；收銀精準，擅識破官差小偷。,Ex-domain ledger clerk; precise checkout and spots official thieves.,前藩库书记；收银精准，擅识破官差小偷。,元藩庫書記。精密な会計と官差泥棒の看破が得意。
+elite_clerk.sumi.name,墨,Sumi,墨,すみ
+elite_clerk.sumi.bio,落跑神官／前心靈商品部；擅清潔穢物與安撫被詛客人。,Runaway cleric; cleans ritual filth and soothes cursed guests.,落跑神官／前心灵商品部；擅清洁秽物与安抚被诅客人。,元神官。穢れ清掃と呪われた客のなだめが得意。
+elite_clerk.griffin.name,格里芬,Griffin,格里芬,グリフィン
+elite_clerk.griffin.bio,退役坦克／半龍人；擅保安與重貨搬運。,Ex-tank half-dragon; security and heavy restock.,退役坦克／半龙人；擅保安与重货搬运。,元タンクの半竜人。警備と重い補充が得意。
+elite_clerk.nul.name,NUL,NUL,NUL,NUL
+elite_clerk.nul.bio,離線店務 AI 人格；可同時負擔多崗位微自動化。,Offline store AI persona; micro-automates multiple posts.,离线店务 AI 人格；可同时负担多岗位微自动化。,オフライン店務AI。複数役割のマイクロ自動化。
+elite_clerk.ran.name,嵐,Ran,岚,らん
+elite_clerk.ran.bio,前救難隊員；擅清潔災害污物與安撫恐慌客。,Ex-rescuer; disaster cleanup and calming panicked guests.,前救难队员；擅清洁灾害污物与安抚恐慌客。,元救助隊員。災害汚れ清掃とパニック客のなだめ。
+elite_clerk.mirror_you.name,你？,You?,你？,あなた？
+elite_clerk.mirror_you.bio,鏡像宇宙的併購版店主叛逃回來；擅西客與規則陷阱。,"Mirror-universe franchise you, defected back; handles elite guests and rule traps.",镜像宇宙的并购版店主叛逃回来；擅西客与规则陷阱。,鏡像宇宙の買収版店主が帰還。クレーマーとルール罠に強い。
+elite_clerk.kiko.name,紀子,Kiko,纪子,きこ
+elite_clerk.kiko.bio,小遊戲獎勵的勤快補貨能手；可兼清潔。,Minigame-reward restocker who can also clean.,小游戏奖励的勤快补货能手；可兼清洁。,ミニゲーム報酬の補充上手。清掃も可。
+skill.npc_multi_micro.name,多崗位微自動化,Multi-post micro-auto,多岗位微自动化,複数役割マイクロ自動化
+skill.npc_multi_micro.blurb,補貨與移動略快；適合同回合多崗位切換。,Slightly faster restock and move; fits multi-post switching.,补货与移动略快；适合同回合多岗位切换。,補充と移動が少し速い。複数役割切替向き。
+err.elite_clerk_unknown,未知精英店員：%s,Unknown elite clerk: %s,未知精英店员：%s,不明なエリート店員：%s
+err.elite_clerk_not_owned,尚未擁有此精英店員,Elite clerk not owned,尚未拥有此精英店员,このエリート店員は未所持
+err.elite_clerk_max_level,已達等級上限,Already at max level,已达等级上限,レベル上限に達している
+err.elite_clerk_no_money,資金不足（需要 $%d）,Not enough money (need $%d),资金不足（需要 $%d）,資金不足（必要 $%d）
+err.elite_clerk_role_blocked,此店員不能擔任該崗位,This elite cannot take that post,此店员不能担任该岗位,その役割には就けない
+err.elite_clerk_need_one_role,至少保留一個崗位,Keep at least one post,至少保留一个岗位,役割は最低1つ必要
+err.elite_clerk_max_posts,同時崗位已達上限（%d）,Post cap reached (%d),同时岗位已达上限（%d）,役割上限（%d）

@@ -34,6 +34,10 @@ static func parent_page(page: String) -> String:
 			return "hub_minigames"
 		"cultivate_pick", "cultivate_rewards":
 			return "cultivate"
+		"elite_clerk":
+			return "elite_clerks"
+		"elite_clerks":
+			return "clerks"
 		"hub_char", "hub_goods", "hub_shop", "hub_sys", "clerks", "confirm", "elite_test", "rating_history", "lobby", "lan_join", "steam_join", "tasks", "home":
 			if in_room_lobby and page != "lobby" and page != "lan_join" and page != "steam_join" and page != "confirm":
 				return "lobby"
@@ -254,6 +258,10 @@ static func fill(menu: CanvasLayer, page: String) -> void:
 			_layout(menu)
 		"clerks":
 			_clerks(menu)
+		"elite_clerks":
+			_elite_clerks(menu)
+		"elite_clerk":
+			_elite_clerk_detail(menu)
 		"confirm":
 			_confirm(menu)
 		"lobby":
@@ -400,7 +408,9 @@ static func _home(menu: CanvasLayer) -> void:
 			menu.tutorial_home_hub_locked("hub_shop")
 		)
 		menu._add_hub(
-			Loc.t("prep.hub.staff", [menu.state.clerks.size()]), "go", "clerks", "staff",
+			Loc.t("prep.hub.staff", [
+				menu.state.clerks.size() + menu.state.on_duty_elite_clerks().size()
+			]), "go", "clerks", "staff",
 			menu.tutorial_home_hub_locked("clerks")
 		)
 		menu._add_hub(
@@ -1311,26 +1321,141 @@ static func _add_size_row(menu: CanvasLayer, title: String, axis: String, value:
 	menu._size_panel.add_child(line)
 
 
+static func _staff_tabs(menu: CanvasLayer, active: String) -> void:
+	var general := Loc.t("prep.staff.tab_general")
+	var elite := Loc.t("prep.staff.tab_elite")
+	if active == "clerks":
+		general = Loc.t("prep.staff.tab_general_on")
+	else:
+		elite = Loc.t("prep.staff.tab_elite_on")
+	menu._add(general, "go", "clerks")
+	menu._add(elite, "go", "elite_clerks")
+
+
+static func _role_label(role_id: String) -> String:
+	match String(role_id):
+		"cashier":
+			return Loc.t("prep.role.cashier")
+		"security":
+			return Loc.t("prep.role.security")
+		"cleaner":
+			return Loc.t("prep.role.cleaner")
+		_:
+			return Loc.t("prep.role.restock")
+
+
 static func _clerks(menu: CanvasLayer) -> void:
 	menu._title.text = Loc.t("prep.clerks.title")
 	menu._info.text = Loc.t("prep.hire.info", [menu.state.clerks.size(), menu.state.hire_limit(), menu.state.WAGE])
+	_staff_tabs(menu, "clerks")
 	menu._add(Loc.t("prep.hire.recruit"), "hire", null)
 	for i in menu.state.clerks.size():
 		var c: Dictionary = menu.state.clerks[i]
 		var role_id := String(c["role"])
-		var role := Loc.t("prep.role.restock")
-		match role_id:
-			"cashier":
-				role = Loc.t("prep.role.cashier")
-			"security":
-				role = Loc.t("prep.role.security")
-			"cleaner":
-				role = Loc.t("prep.role.cleaner")
+		var role := _role_label(role_id)
 		menu._add(Loc.t("prep.hire.clerk_row", [i + 1, role, int(c["register"]) + 1]), "role", i)
 		if role_id == "cashier":
 			menu._add(Loc.t("prep.hire.reassign"), "reg", i)
 		menu._add(Loc.t("prep.hire.fire", [(i + 1)]), "fire", i)
 	menu._add(Loc.t("prep.back"), "go", parent_page("clerks"))
+
+
+static func _elite_clerks(menu: CanvasLayer) -> void:
+	var EliteClerkCatalog = load("res://scripts/session/elite_clerk_catalog.gd")
+	menu._title.text = Loc.t("prep.elite_clerks.title")
+	menu._info.text = Loc.t("prep.elite_clerks.info", [menu.state.elite_clerks.size()])
+	_staff_tabs(menu, "elite_clerks")
+	if menu.state.elite_clerks.is_empty():
+		menu._add(Loc.t("prep.elite_clerks.empty"), "noop", null)
+	else:
+		for row in menu.state.elite_clerks:
+			var eid := String(row.get("id", ""))
+			var lv := int(row.get("level", 1))
+			var duty := Loc.t("prep.elite_clerks.on_duty" if bool(row.get("on_duty", true)) else "prep.elite_clerks.off_duty")
+			var roles_txt := _elite_roles_text(row.get("roles", []))
+			menu._add(
+				Loc.t("prep.elite_clerks.row", [EliteClerkCatalog.display_name(eid), lv, duty, roles_txt]),
+				"elite_open_detail",
+				eid
+			)
+	if ProductVersion.test_tools_enabled():
+		menu._add(Loc.t("prep.elite_clerks.debug_unlock"), "elite_debug_unlock", null)
+	menu._add(Loc.t("prep.back"), "go", "home")
+
+
+static func _elite_roles_text(raw) -> String:
+	var parts: PackedStringArray = PackedStringArray()
+	if raw is Array:
+		for r in raw:
+			parts.append(_role_label(String(r)))
+	if parts.is_empty():
+		return Loc.t("prep.elite_clerks.no_roles")
+	return ", ".join(parts)
+
+
+static func _elite_clerk_detail(menu: CanvasLayer) -> void:
+	var EliteClerkCatalog = load("res://scripts/session/elite_clerk_catalog.gd")
+	var eid := String(menu.get("_elite_focus_id"))
+	var row: Dictionary = menu.state.elite_clerk_row(eid)
+	if row.is_empty():
+		menu._title.text = Loc.t("prep.elite_clerks.title")
+		menu._info.text = Loc.t("err.elite_clerk_not_owned")
+		menu._add(Loc.t("prep.back"), "go", "elite_clerks")
+		return
+	var lv := int(row.get("level", 1))
+	var lv_max := EliteClerkCatalog.level_max(eid)
+	var stats: Dictionary = menu.state.elite_stats(eid)
+	var skill := EliteClerkCatalog.skill_id(eid)
+	var cost := menu.state.elite_upgrade_cost(eid)
+	menu._title.text = EliteClerkCatalog.display_name(eid)
+	var info := Loc.t("prep.elite_clerk.detail_info", [
+		EliteClerkCatalog.bio(eid),
+		lv,
+		lv_max,
+		int(stats.get("str", 0)),
+		int(stats.get("agi", 0)),
+		int(stats.get("int", 0)),
+		EliteClerkCatalog.skill_name(skill),
+		EliteClerkCatalog.skill_blurb(skill),
+		_elite_roles_text(row.get("roles", [])),
+		EliteClerkCatalog.max_posts(eid),
+	])
+	if menu._msg != "":
+		info = menu._pair(info, menu._msg)
+	menu._info.text = info
+	var duty_label := Loc.t(
+		"prep.elite_clerk.toggle_duty_off" if bool(row.get("on_duty", true))
+		else "prep.elite_clerk.toggle_duty_on"
+	)
+	menu._add(duty_label, "elite_toggle_duty", eid)
+	for role_id in EliteClerkCatalog.allowed_roles(eid):
+		var roles: Array = []
+		var raw = row.get("roles", [])
+		if raw is Array:
+			for x in raw:
+				roles.append(String(x))
+		var marked := roles.has(role_id)
+		var label := Loc.t(
+			"prep.elite_clerk.role_on" if marked else "prep.elite_clerk.role_off",
+			[_role_label(role_id)]
+		)
+		menu._add(label, "elite_toggle_role", {"id": eid, "role": role_id})
+	var roles_now: Array = []
+	var raw_roles = row.get("roles", [])
+	if raw_roles is Array:
+		for x in raw_roles:
+			roles_now.append(String(x))
+	if roles_now.has("cashier"):
+		menu._add(
+			Loc.t("prep.elite_clerk.reassign", [int(row.get("register", 0)) + 1]),
+			"elite_reg",
+			eid
+		)
+	if lv < lv_max:
+		menu._add(Loc.t("prep.elite_clerk.upgrade", [cost]), "elite_upgrade", eid)
+	else:
+		menu._add(Loc.t("prep.elite_clerk.upgrade_max"), "noop", null)
+	menu._add(Loc.t("prep.back"), "go", "elite_clerks")
 
 
 static func _confirm(menu: CanvasLayer) -> void:
