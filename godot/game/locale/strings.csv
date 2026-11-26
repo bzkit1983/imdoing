@@ -1046,3 +1046,26 @@ prep.fish_tank_gallery.info,魚倉游動欣賞。營運中可從已放置的魚�
 prep.fish_tank_gallery.empty,魚倉還是空的 — 去釣魚太郎釣幾條吧。,Tank stock is empty — try Fishing Taro.,鱼仓还是空的 — 去钓鱼太郎钓几条吧。,在庫は空です。釣り太郎へ。
 prep.fish_tank_gallery.go_fish,前往釣魚太郎,Go to Fishing Taro,前往钓鱼太郎,釣り太郎へ
 prep.fish_tank_gallery.row,%s　%d 條,%s · %d,%s　%d 条,%s　%d匹
+prep.staff.tab_general,一般店員,Regular staff,一般店员,一般店員
+prep.staff.tab_general_on,▶ 一般店員,▶ Regular staff,▶ 一般店员,▶ 一般店員
+prep.staff.tab_elite,精英店員,Elite staff,精英店员,エリート店員
+prep.staff.tab_elite_on,▶ 精英店員,▶ Elite staff,▶ 精英店员,▶ エリート店員
+prep.elite_clerks.title,精英店員,Elite staff,精英店员,エリート店員
+prep.elite_clerks.info,已解鎖 %d 人。另占欄、不佔一般雇員上限、不扣日薪。不可招聘。,Unlocked: %d. Separate roster (not hire cap); no daily wage; cannot hire.,已解锁 %d 人。另占栏、不占一般雇员上限、不扣日薪。不可招聘。,解除済み %d 人。別枠（雇用上限外）・日給なし・募集不可。
+prep.elite_clerks.empty,尚未解鎖精英店員（劇情／事件／小遊戲）,No elite staff unlocked yet (story / events / minigames),尚未解锁精英店员（剧情／事件／小游戏）,エリート店員は未解除（物語／イベント／ミニゲーム）
+prep.elite_clerks.row,%s　Lv%d　%s　%s,%s  Lv%d  %s  %s,%s　Lv%d　%s　%s,%s　Lv%d　%s　%s
+prep.elite_clerks.on_duty,出勤,On duty,出勤,出勤
+prep.elite_clerks.off_duty,休息,Off duty,休息,休憩
+prep.elite_clerks.no_roles,（無崗位）, (no posts),（无岗位）,（役割なし）
+prep.elite_clerks.debug_unlock,（測試）解鎖下一位精英, (Test) Unlock next elite,（测试）解锁下一位精英,（テスト）次のエリートを解除
+prep.elite_clerks.debug_unlocked,已解鎖：%s,Unlocked: %s,已解锁：%s,解除：%s
+prep.elite_clerks.debug_all_owned,目錄內精英已全部解鎖,All catalog elites already owned,目录内精英已全部解锁,カタログのエリートは全員解除済み
+prep.elite_clerk.detail_info,%s\n等級 %d／%d　STR %d　AGI %d　INT %d\n固有技能：%s\n%s\n崗位：%s（最多 %d）,%s\nLevel %d/%d  STR %d  AGI %d  INT %d\nInherent skill: %s\n%s\nPosts: %s (max %d),%s\n等级 %d／%d　STR %d　AGI %d　INT %d\n固有技能：%s\n%s\n岗位：%s（最多 %d）,%s\nレベル %d／%d　STR %d　AGI %d　INT %d\n固有スキル：%s\n%s\n役割：%s（最大 %d）
+prep.elite_clerk.toggle_duty_off,設為休息,Set off duty,设为休息,休憩にする
+prep.elite_clerk.toggle_duty_on,設為出勤,Set on duty,设为出勤,出勤にする
+prep.elite_clerk.role_on,✓ 崗位：%s（確定取消）,✓ Post: %s (confirm to remove),✓ 岗位：%s（确定取消）,✓ 役割：%s（確定で解除）
+prep.elite_clerk.role_off,○ 崗位：%s（確定加入）,○ Post: %s (confirm to add),○ 岗位：%s（确定加入）,○ 役割：%s（確定で追加）
+prep.elite_clerk.reassign,改派收銀機（目前 #%d）,Reassign register (now #%d),改派收银机（目前 #%d）,レジ再割当（現在 #%d）
+prep.elite_clerk.upgrade,升級（$%d）,Upgrade ($%d),升级（$%d）,レベルアップ（$%d）
+prep.elite_clerk.upgrade_max,已達等級上限,Max level reached,已达等级上限,レベル上限
+prep.elite_clerk.upgraded,升級成功,Upgraded,升级成功,レベルアップ成功

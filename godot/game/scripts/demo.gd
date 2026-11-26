@@ -3948,56 +3948,39 @@ func deploy_universal_cannon(at: Vector2, level: int, seat: int) -> Node2D:
 
 func deploy_shelf_cannon(at: Vector2, level: int, seat: int) -> Node2D:
 	return _skill_deploy.deploy_shelf_cannon(at, level, seat)
-
 func deploy_kind_cannon(at: Vector2, level: int, seat: int) -> Node2D:
 	return _skill_deploy.deploy_kind_cannon(at, level, seat)
-
 func deploy_elite_guest_cannon(at: Vector2, level: int, seat: int) -> Node2D:
 	return _skill_deploy.deploy_elite_guest_cannon(at, level, seat)
-
 func deploy_elite_guest_specialist(at: Vector2, level: int, seat: int) -> Node2D:
 	return _skill_deploy.deploy_elite_guest_specialist(at, level, seat)
-
 func deliver_elite_guest_specialist_item(guest: Node, sku: String, seat: int) -> bool:
 	return _skill_deploy.deliver_elite_guest_specialist_item(guest, sku, seat)
-
 func elite_guest_cannon_reserved_count(guest: Node, sku: String) -> int:
 	return _skill_deploy.elite_guest_cannon_reserved_count(guest, sku)
-
 func reserve_elite_guest_cannon_need(guest: Node, sku: String) -> bool:
 	return _skill_deploy.reserve_elite_guest_cannon_need(guest, sku)
-
 func release_elite_guest_cannon_need(target_id: int, sku: String) -> void:
 	_skill_deploy.release_elite_guest_cannon_need(target_id, sku)
-
 func resolve_elite_guest_cannon_delivery(
 	guest: Node, sku: String, seat: int, target_id: int
 ) -> bool:
 	return _skill_deploy.resolve_elite_guest_cannon_delivery(guest, sku, seat, target_id)
-
 func deploy_calm_zone(at: Vector2, level: int, seat: int) -> Node2D:
 	return _skill_deploy.deploy_calm_zone(at, level, seat)
-
 func _remove_cannon_interactable(cannon: Node2D) -> void:
 	_skill_deploy._remove_cannon_interactable(cannon)
-
 func dismiss_universal_cannons() -> void:
 	_skill_deploy.dismiss_universal_cannons()
-
 func dismiss_shelf_cannons() -> void:
 	_skill_deploy.dismiss_shelf_cannons()
-
 func dismiss_kind_cannons() -> void:
 	_skill_deploy.dismiss_kind_cannons()
-
 func dismiss_elite_guest_cannons() -> void:
 	_skill_deploy.dismiss_elite_guest_cannons()
-
 func _resolve_net_kind_conversion(thief: Node) -> void:
 	_skill_deploy._resolve_net_kind_conversion(thief)
-
 func convert_thief_to_guest(thief: Node2D, seat: int) -> bool:
 	return _skill_deploy.convert_thief_to_guest(thief, seat)
-
 func cannon_hit_thief(thief: Node2D, seat: int, direction: Vector2) -> void:
 	_skill_deploy.cannon_hit_thief(thief, seat, direction)

@@ -48,6 +48,8 @@ var _index: int = 0
 var _skill_set: int = 0
 var _rename_draft: String = ""
 var _rename_lower: bool = false
+## Elite clerk detail focus id (prep elite_clerk page).
+var _elite_focus_id: String = ""
 var _rows: Array[Dictionary] = []
 var _qty_sku: String = ""
 var _qty_boxes: int = 1
@@ -1410,6 +1412,33 @@ func _activate() -> void:
 		"fire":
 			state.fire(int(arg))
 			_refresh()
+		"elite_open_detail":
+			_elite_focus_id = String(arg)
+			_msg = ""
+			_show_page("elite_clerk")
+		"elite_toggle_duty":
+			state.toggle_elite_on_duty(String(arg))
+			_msg = ""
+			_refresh()
+		"elite_toggle_role":
+			if arg is Dictionary:
+				var err_role := state.toggle_elite_role(String(arg.get("id", "")), String(arg.get("role", "")))
+				_msg = err_role
+			_refresh()
+		"elite_reg":
+			state.cycle_elite_register(String(arg))
+			_msg = ""
+			_refresh()
+		"elite_upgrade":
+			var err_up := state.upgrade_elite_clerk(String(arg))
+			_msg = err_up if err_up != "" else Loc.t("prep.elite_clerk.upgraded")
+			if err_up == "":
+				state.save_to_disk()
+			_refresh()
+		"elite_debug_unlock":
+			_elite_debug_unlock_next()
+		"noop":
+			pass
 		"try_open":
 			if demo != null and demo.has_method("clear_elite_test"):
 				demo.call("clear_elite_test")
@@ -1997,6 +2026,24 @@ func _ask_expand() -> void:
 		Loc.t("prep.msg.expand_ask", [nxt, area, side, side, price]),
 		{"action": "expand"},
 	)
+
+
+func _elite_debug_unlock_next() -> void:
+	var EliteClerkCatalog = preload("res://scripts/session/elite_clerk_catalog.gd")
+	for eid in EliteClerkCatalog.all_ids():
+		if state.has_elite_clerk(eid):
+			continue
+		var err := state.unlock_elite_clerk(eid, "debug")
+		if err == "":
+			SfxBus.play("sfx_ui_purchase")
+			_msg = Loc.t("prep.elite_clerks.debug_unlocked", [EliteClerkCatalog.display_name(eid)])
+			state.save_to_disk()
+		else:
+			_msg = err
+		_refresh()
+		return
+	_msg = Loc.t("prep.elite_clerks.debug_all_owned")
+	_refresh()
 
 
 func _try_hire() -> void:

@@ -13,7 +13,9 @@ const XpRules = preload("res://scripts/session/xp_rules.gd")
 ## 6+: completion of the Genesis quiz.
 ## 7+: unlocked_skus / unlocked_furniture / prologue_boss_unlocked (content gates).
 ## 8+: fish_stock / fishing_taro_played (theme_historic fish tank).
-const SAVE_VERSION := 8
+## 9+: elite_clerks (named upgradeable staff; see eliteclerk.md).
+const SAVE_VERSION := 9
+const EliteClerkCatalog = preload("res://scripts/session/elite_clerk_catalog.gd")
 const LIGHT_ULTIMATE := "let_there_be_light"
 const RatingRules = preload("res://scripts/session/rating_rules.gd")
 
@@ -131,6 +133,8 @@ var shop_scale: int = 1
 var grid_w: int = 10
 var grid_h: int = 10
 var clerks: Array[Dictionary] = []
+## Owned elite clerks: {id, level, on_duty, roles, register, source}. See eliteclerk.md.
+var elite_clerks: Array[Dictionary] = []
 ## Selected set, mirrored for older readers. Source of truth is skill_sets.
 var slots: Array[String] = ["", "", "", "", ""]
 var ult_id: String = "the_world"
@@ -189,6 +193,7 @@ func apply_scenario(id: int) -> void:
 	owned.clear()
 	placed.clear()
 	clerks.clear()
+	elite_clerks.clear()
 	day_procurement = 0
 	last_loss = false
 	level_note = ""
@@ -633,6 +638,10 @@ func _scenario_skill() -> void:
 	_place("portal", 2, 8, 0, "", "p2")
 	clerks.append({"role": "restock", "register": 0})
 	clerks.append({"role": "cashier", "register": 0})
+	## Elite clerk sandbox: multi-post NUL + theme sample Yayoi.
+	unlock_elite_clerk("nul", "debug")
+	unlock_elite_clerk("yayoi", "debug")
+	unlock_elite_clerk("kiko", "debug")
 
 
 ## Scenario 7：劇本4 藍本；收起普通收銀機，門口下一台自助收銀機。無收銀店員（自助機不可綁）。
@@ -1477,6 +1486,152 @@ func cycle_register(index: int) -> void:
 	clerks[index]["register"] = (int(clerks[index]["register"]) + 1) % n
 
 
+func has_elite_clerk(elite_id: String) -> bool:
+	return _elite_index(elite_id) >= 0
+
+
+func elite_clerk_row(elite_id: String) -> Dictionary:
+	var i := _elite_index(elite_id)
+	if i < 0:
+		return {}
+	return elite_clerks[i]
+
+
+func unlock_elite_clerk(elite_id: String, source: String = "event") -> String:
+	var id := String(elite_id)
+	if not EliteClerkCatalog.exists(id):
+		return Loc.t("err.elite_clerk_unknown", [id])
+	if has_elite_clerk(id):
+		return ""
+	elite_clerks.append({
+		"id": id,
+		"level": 1,
+		"on_duty": true,
+		"roles": EliteClerkCatalog.default_roles(id),
+		"register": 0,
+		"source": String(source),
+	})
+	return ""
+
+
+func elite_upgrade_cost(elite_id: String) -> int:
+	var row := elite_clerk_row(elite_id)
+	if row.is_empty():
+		return 0
+	return EliteClerkCatalog.upgrade_cost(elite_id, int(row.get("level", 1)))
+
+
+func upgrade_elite_clerk(elite_id: String) -> String:
+	var i := _elite_index(elite_id)
+	if i < 0:
+		return Loc.t("err.elite_clerk_not_owned")
+	var id := String(elite_clerks[i].get("id", ""))
+	var lv := int(elite_clerks[i].get("level", 1))
+	var lv_max := EliteClerkCatalog.level_max(id)
+	if lv >= lv_max:
+		return Loc.t("err.elite_clerk_max_level")
+	var cost := EliteClerkCatalog.upgrade_cost(id, lv)
+	if cost <= 0:
+		return Loc.t("err.elite_clerk_max_level")
+	if money < cost:
+		return Loc.t("err.elite_clerk_no_money", [cost])
+	money -= cost
+	elite_clerks[i]["level"] = lv + 1
+	return ""
+
+
+func set_elite_on_duty(elite_id: String, on: bool) -> void:
+	var i := _elite_index(elite_id)
+	if i < 0:
+		return
+	elite_clerks[i]["on_duty"] = on
+
+
+func toggle_elite_on_duty(elite_id: String) -> void:
+	var i := _elite_index(elite_id)
+	if i < 0:
+		return
+	elite_clerks[i]["on_duty"] = not bool(elite_clerks[i].get("on_duty", true))
+
+
+func toggle_elite_role(elite_id: String, role: String) -> String:
+	var i := _elite_index(elite_id)
+	if i < 0:
+		return Loc.t("err.elite_clerk_not_owned")
+	var id := String(elite_clerks[i].get("id", ""))
+	var r := String(role)
+	var allowed := EliteClerkCatalog.allowed_roles(id)
+	if not allowed.has(r):
+		return Loc.t("err.elite_clerk_role_blocked")
+	var roles: Array = []
+	var raw = elite_clerks[i].get("roles", [])
+	if raw is Array:
+		for x in raw:
+			roles.append(String(x))
+	if roles.has(r):
+		if roles.size() <= 1:
+			return Loc.t("err.elite_clerk_need_one_role")
+		roles.erase(r)
+	else:
+		var cap := EliteClerkCatalog.max_posts(id)
+		if roles.size() >= cap:
+			return Loc.t("err.elite_clerk_max_posts", [cap])
+		roles.append(r)
+	elite_clerks[i]["roles"] = roles
+	return ""
+
+
+func cycle_elite_register(elite_id: String) -> void:
+	var i := _elite_index(elite_id)
+	if i < 0:
+		return
+	var n := maxi(1, cashier_count())
+	elite_clerks[i]["register"] = (int(elite_clerks[i].get("register", 0)) + 1) % n
+
+
+func elite_stats(elite_id: String) -> Dictionary:
+	var row := elite_clerk_row(elite_id)
+	if row.is_empty():
+		return {"str": 0, "agi": 0, "int": 0}
+	return EliteClerkCatalog.stats_at(elite_id, int(row.get("level", 1)))
+
+
+func on_duty_elite_clerks() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for row in elite_clerks:
+		if not bool(row.get("on_duty", true)):
+			continue
+		var roles = row.get("roles", [])
+		if not (roles is Array) or roles.is_empty():
+			continue
+		out.append(row)
+	return out
+
+
+func _elite_index(elite_id: String) -> int:
+	var id := String(elite_id)
+	for i in elite_clerks.size():
+		if String(elite_clerks[i].get("id", "")) == id:
+			return i
+	return -1
+
+
+func _normalize_elite_roles(elite_id: String, raw) -> Array[String]:
+	var allowed := EliteClerkCatalog.allowed_roles(elite_id)
+	var out: Array[String] = []
+	if raw is Array:
+		for x in raw:
+			var s := String(x)
+			if allowed.has(s) and not out.has(s):
+				out.append(s)
+	var cap := EliteClerkCatalog.max_posts(elite_id)
+	while out.size() > cap:
+		out.pop_back()
+	if out.is_empty():
+		return EliteClerkCatalog.default_roles(elite_id)
+	return out
+
+
 func default_skill_set_name(i: int) -> String:
 	return Loc.t("skill_set.default", [i + 1])
 
@@ -1957,6 +2112,21 @@ func to_dict() -> Dictionary:
 			"role": String(c.get("role", "restock")),
 			"register": int(c.get("register", 0)),
 		})
+	var elite_list: Array = []
+	for e in elite_clerks:
+		var roles_out: Array = []
+		var raw_roles = e.get("roles", [])
+		if raw_roles is Array:
+			for r in raw_roles:
+				roles_out.append(String(r))
+		elite_list.append({
+			"id": String(e.get("id", "")),
+			"level": int(e.get("level", 1)),
+			"on_duty": bool(e.get("on_duty", true)),
+			"roles": roles_out,
+			"register": int(e.get("register", 0)),
+			"source": String(e.get("source", "")),
+		})
 	return {
 		"version": SAVE_VERSION,
 		"scenario": scenario,
@@ -1989,6 +2159,7 @@ func to_dict() -> Dictionary:
 		"grid_w": grid_w,
 		"grid_h": grid_h,
 		"clerks": clerk_list,
+		"elite_clerks": elite_list,
 		"slots": slot_list,
 		"ult_id": ult_id,
 		"skill_sets": _skill_sets_for_save(),
@@ -2106,6 +2277,24 @@ func from_dict(data: Dictionary) -> String:
 			if role != "cashier" and role != "restock" and role != "security" and role != "cleaner":
 				role = "restock"
 			clerks.append({"role": role, "register": maxi(0, int(c.get("register", 0)))})
+	elite_clerks.clear()
+	var raw_elites = data.get("elite_clerks", [])
+	if raw_elites is Array:
+		for e in raw_elites:
+			if not (e is Dictionary):
+				continue
+			var eid := String(e.get("id", ""))
+			if not EliteClerkCatalog.exists(eid):
+				continue
+			var lv := clampi(int(e.get("level", 1)), 1, EliteClerkCatalog.level_max(eid))
+			elite_clerks.append({
+				"id": eid,
+				"level": lv,
+				"on_duty": bool(e.get("on_duty", true)),
+				"roles": _normalize_elite_roles(eid, e.get("roles", [])),
+				"register": maxi(0, int(e.get("register", 0))),
+				"source": String(e.get("source", "")),
+			})
 	var loaded_slots: Array[String] = ["", "", "", "", ""]
 	var raw_slots = data.get("slots", [])
 	if raw_slots is Array:
