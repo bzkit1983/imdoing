@@ -6,6 +6,7 @@ This file is the **vendor-neutral entry point** for Cursor, Claude Code, Codex, 
 
 - Live game project: `godot/game` (Godot 4.7). Do not add features in frozen `godot/demo_*` / `godot/alpha_v0_1`.
 - Design docs under `docs/systemdesign/` stay **Chinese-first**. Do not translate design markdown into other languages.
+- 新小遊戲及現有小遊戲大改版，設計與評審須對照[小遊戲設計原則](docs/systemdesign/minigame-design.md)。
 - Player-facing strings belong in locale CSV tables, not as hard-coded display text in `.gd` / `.tscn`.
 - Growing `demo.gd`／`player.gd`／`skill_caster.gd`: follow [`docs/alpha/monolith-merge-gate.md`](docs/alpha/monolith-merge-gate.md) (new world/skill logic goes in `host/` or `player/skill_*_caster.gd`).
 
