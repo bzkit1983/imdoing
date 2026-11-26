@@ -153,6 +153,30 @@ static func _draw_sku(img: Image, sku: String, col: Color) -> void:
 			_stroke_rect(img, 7, 10, 18, 14, ink)
 			_hline(img, 7, 17, 18, ink)
 			_vline(img, 16, 10, 14, ink)
+		"grain":
+			_fill_ellipse(img, 16, 18, 9, 10, fill)
+			_fill_rect(img, 12, 6, 8, 6, ink)
+			_stroke_ellipse(img, 16, 18, 9, 10, ink)
+		"soy_sauce":
+			_fill_ellipse(img, 16, 20, 7, 8, fill)
+			_fill_rect(img, 13, 6, 6, 8, fill)
+			_fill_rect(img, 12, 4, 8, 3, Color("c0392b"))
+			_stroke_ellipse(img, 16, 20, 7, 8, ink)
+		"onigiri":
+			_fill_triangle(img, 16, 5, 6, 26, 26, 26, fill)
+			_fill_rect(img, 10, 16, 12, 10, ink)
+		"yakimochi":
+			_hline(img, 4, 16, 24, ink)
+			_fill_rect(img, 6, 10, 6, 10, fill)
+			_fill_rect(img, 14, 10, 6, 10, fill)
+			_fill_rect(img, 22, 10, 6, 10, fill)
+		"nigiri":
+			_fill_ellipse(img, 16, 20, 10, 5, fill)
+			_fill_ellipse(img, 16, 14, 11, 5, Color("7a3048"))
+		"saba", "tai", "sanma", "aji", "ayu":
+			_fill_ellipse(img, 16, 16, 12, 6, fill)
+			_fill_triangle(img, 4, 16, 10, 12, 10, 20, ink)
+			_fill_circle(img, 24, 15, 1, ink)
 		_:
 			_fill_rect(img, 8, 8, 16, 16, fill)
 			_stroke_rect(img, 8, 8, 16, 16, ink)

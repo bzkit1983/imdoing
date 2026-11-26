@@ -21,6 +21,10 @@
 - `on_complete`／`on_fail` 為劇情側鉤子占位（正式欄位名由劇情檔定）
 - Host／訪客共同解決與進度落後判定：**劇情設計補完**（見 `tasksystem.md`）
 
+# ST-PROLOGUE-MONEY — 序章資金目標（進程；活線已接）
+
+活線 pack id：`ST-PROLOGUE-MONEY`（`task_catalog.pack_st_prologue_money`）。三個累計 `shop_money` 任務＋`rewards` 解鎖凍飲／凍櫃傢俬、牛奶、頭目日。閾值見 [`story/prologue.md`](story/prologue.md)。與 `GameState.sync_prologue_progress_grants` 雙軌（無 pack 時仍可依進程旗標解鎖）。
+
 # ST-PROLOGUE-001 — 序章占位（測試）
 
 可與營運教學包 `OP-TUT-001` 並行掛載；劇情是否要求教學全清由劇情檔定。

@@ -30,7 +30,7 @@ static func parent_page(page: String) -> String:
 			return "light_quiz"
 		"hub_minigames":
 			return "home"
-		"cultivate", "light_intro", "light_quiz":
+		"cultivate", "light_intro", "light_quiz", "fish_tank_gallery":
 			return "hub_minigames"
 		"cultivate_pick", "cultivate_rewards":
 			return "cultivate"
@@ -73,6 +73,7 @@ static func apply_panel_layout(menu: CanvasLayer) -> void:
 	menu._stats_panel.visible = menu._page == "stats"
 	menu._size_panel.visible = menu._page == "layout"
 	menu._qty_panel.visible = qty_on
+	var gallery: bool = menu._page == "fish_tank_gallery"
 	menu._list.visible = not qty_on and not hub and menu._page != "stats"
 	if menu._hub_scroll:
 		menu._hub_scroll.visible = hub
@@ -92,7 +93,15 @@ static func apply_panel_layout(menu: CanvasLayer) -> void:
 		menu._card.position = Vector2(16, content_top - 8)
 		menu._card.size = Vector2(1248, content_bottom - content_top + 16)
 	menu._list.z_index = 1
-	if menu._page == "stats":
+	## Gallery: hide shop header blurb; slim action list under the fullscreen tank.
+	if menu._info:
+		menu._info.visible = not gallery
+	if gallery:
+		var act_h := 96.0
+		menu._list.position = Vector2(margin, content_bottom - act_h)
+		menu._list.size = Vector2(content_w, act_h)
+		menu._list.z_index = 8
+	elif menu._page == "stats":
 		menu._stats_panel.position = Vector2(margin, content_top)
 		menu._stats_panel.size = Vector2(760, content_bottom - content_top)
 	elif menu._page == "layout":
@@ -184,7 +193,8 @@ static func fill(menu: CanvasLayer, page: String) -> void:
 		"hub_goods":
 			_hub_goods(menu)
 		"hub_minigames":
-			menu._hub_cols = 1
+			## Grid tiles (not single-column rows); HubScroll when content exceeds viewport.
+			menu._hub_cols = 3
 			menu._title.text = Loc.t("prep.minigames")
 			menu._info.text = menu._header()
 			menu._add_hub(Loc.t("prep.cultivate.title"), "go", "cultivate", "goods")
@@ -194,7 +204,12 @@ static func fill(menu: CanvasLayer, page: String) -> void:
 			menu._add_hub(Loc.t("skill.checkout_rush.name"), "cashier_duel", null, "skills")
 			menu._add_hub(Loc.t("prep.bun_duel.title"), "bun_duel", null, "skills")
 			menu._add_hub(Loc.t("prep.metal_trial.title"), "metal_rush_trial", null, "skills")
+			menu._add_hub(Loc.t("prep.fishing_taro.title"), "fishing_taro", null, "fishing_taro")
+			if int(menu.state.owned.get("fish_tank", 0)) > 0:
+				menu._add_hub(Loc.t("prep.fish_tank_gallery.title"), "go", "fish_tank_gallery", "fish_tank_gallery")
 			menu._rebuild_hub_tiles()
+		"fish_tank_gallery":
+			_fish_tank_gallery(menu)
 		"light_intro", "light_outro":
 			menu._light_intro.set_line(menu._light_line, page == "light_outro")
 			menu._back_btn.visible = menu._light_intro.ready_for_dialogue
@@ -326,6 +341,8 @@ static func _scenario(menu: CanvasLayer) -> void:
 	## H2 product entry: tutorial ask first (not gated by TEST_TOOLS).
 	menu._add(Loc.t("prep.scenario.start_tutorial"), "sc_tutorial", null)
 	menu._add(Loc.t("prep.scenario.skip_tutorial"), "sc_skip_tutorial", null)
+	## Story-mode prologue (content gates + design start cash). Always listed.
+	menu._add(Loc.t("prep.scenario.s8"), "sc", menu.state.SCENARIO_PROLOGUE)
 	menu._add(Loc.t("prep.scenario.s1"), "sc", 1)
 	menu._add(Loc.t("prep.scenario.s2"), "sc", 2)
 	menu._add(Loc.t("prep.scenario.s3"), "sc", 3)
@@ -335,6 +352,7 @@ static func _scenario(menu: CanvasLayer) -> void:
 		menu._add(Loc.t("prep.scenario.s5"), "sc", 5)
 		menu._add(Loc.t("prep.scenario.s6"), "sc", 6)
 		menu._add(Loc.t("prep.scenario.s7"), "sc", 7)
+		menu._add(Loc.t("prep.scenario.s9"), "sc", menu.state.SCENARIO_HISTORIC_COOKED)
 
 
 static func _in_room_lobby() -> bool:
@@ -965,6 +983,8 @@ static func _cultivate_pick(menu: CanvasLayer) -> void:
 	if current != "":
 		menu._add(Loc.t("prep.cultivate.remove"), "cultivate_material", "")
 	for sku in Tuning.SELLABLE_SKUS:
+		if Tuning.is_craft_only(sku):
+			continue
 		var stock: int = menu.state.stock.get(sku, 0)
 		var reserved: int = menu._cultivation_slots.count(sku)
 		if sku == current:
@@ -973,6 +993,15 @@ static func _cultivate_pick(menu: CanvasLayer) -> void:
 		var key := "prep.cultivate.stock" if stock > reserved else "prep.cultivate.stock_unavailable"
 		menu._add(Loc.t(key, [Tuning.sku_name(sku), stock]), action, sku, SkuIcons.row_texture(sku))
 	menu._add(Loc.t("prep.back"), "go", "cultivate")
+
+
+static func _fish_tank_gallery(menu: CanvasLayer) -> void:
+	## Fullscreen tank + stock plate on art; no shop header／fish list rows.
+	menu._title.text = Loc.t("prep.fish_tank_gallery.title")
+	if menu._info:
+		menu._info.text = ""
+	menu._add(Loc.t("prep.fish_tank_gallery.go_fish"), "fishing_taro")
+	menu._add(Loc.t("prep.back"), "go", "hub_minigames")
 
 
 static func _develop(menu: CanvasLayer) -> void:
@@ -986,11 +1015,12 @@ static func _develop(menu: CanvasLayer) -> void:
 		## Develop tutorial: only show allowlisted SKUs.
 		if sku_lock and not menu.tutorial_goods_sku_allowed(sku):
 			continue
+		## Content gate: locked SKUs are hidden (not grey LV rows).
+		if not menu.state.developed.has(sku) and not menu.state.sku_unlocked(sku):
+			continue
 		var icon := SkuIcons.row_texture(sku)
 		if menu.state.developed.has(sku):
 			menu._add(Loc.t("prep.sku.developed", [Tuning.sku_name(sku)]), "noop", sku, icon)
-		elif not menu.state.sku_unlocked(sku):
-			menu._add(Loc.t("prep.sku.locked", [Tuning.sku_name(sku), int(Tuning.SKU_UNLOCK_LV[sku])]), "locked_sku", sku, icon)
 		else:
 			menu._add(Loc.t("prep.sku.develop_row", [Tuning.sku_name(sku), int(Tuning.SKU_DEVELOP[sku])]), "dev", sku, icon)
 	menu._add(Loc.t("prep.back"), "go", "hub_goods")
@@ -1017,10 +1047,14 @@ static func _buy(menu: CanvasLayer) -> void:
 		## Buy tutorial: only show allowlisted SKUs.
 		if sku_lock and not menu.tutorial_goods_sku_allowed(sku):
 			continue
-		var icon := SkuIcons.row_texture(sku)
+		## Craft-only cooked SKUs never appear in procurement.
+		if Tuning.is_craft_only(sku):
+			continue
+		## Content gate: undeveloped＋locked SKUs hidden.
 		if not menu.state.developed.has(sku) and not menu.state.sku_unlocked(sku):
-			menu._add(Loc.t("prep.sku.locked", [Tuning.sku_name(sku), int(Tuning.SKU_UNLOCK_LV[sku])]), "locked_sku", sku, icon)
-		elif not menu.state.developed.has(sku):
+			continue
+		var icon := SkuIcons.row_texture(sku)
+		if not menu.state.developed.has(sku):
 			menu._add(Loc.t("prep.sku.need_dev", [Tuning.sku_name(sku)]), "need_develop", sku, icon)
 		elif not menu.state.is_for_sale(sku):
 			menu._add(Loc.t("prep.sku.buy_not_for_sale", [Tuning.sku_name(sku)]), "not_for_sale", sku, icon)
@@ -1152,6 +1186,9 @@ static func _furn(menu: CanvasLayer) -> void:
 			continue
 		var icon := FurnitureIcons.row_texture(type)
 		if menu.state.is_grant_only_furniture(type):
+			## Hide grant-only unless already owned (event-granted).
+			if int(menu.state.owned.get(type, 0)) <= 0:
+				continue
 			var owned_g := int(menu.state.owned.get(type, 0))
 			menu._add(
 				Loc.t("prep.furn.event_row", [fname, owned_g, menu.state.unplaced(type)]),
@@ -1160,8 +1197,8 @@ static func _furn(menu: CanvasLayer) -> void:
 				icon,
 			)
 			continue
+		## Content gate: locked furniture hidden (not grey LV rows).
 		if not menu.state.furniture_unlocked(type):
-			menu._add(Loc.t("prep.furn.locked_row", [fname, int(spec["unlock"]), int(spec["price"])]), "locked_furn", type, icon)
 			continue
 		var owned_n := int(menu.state.owned.get(type, 0))
 		var row_label := Loc.t("prep.furn.buy_row", [fname, int(spec["price"]), owned_n, menu.state.unplaced(type)])

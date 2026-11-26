@@ -188,6 +188,12 @@ var _passive_checkout_prefill_lv: int = 0
 var _restock_picking: bool = false
 var _restock_hold: float = 0.0
 var _restock_aborted: bool = false
+## Cooked stall craft pick（mirrors restock SKU list）.
+var _cooked_picking: bool = false
+var _cooked_hold: float = 0.0
+var _cooked_aborted: bool = false
+## Stall currently running craft Circle after commit.
+var _cooked_craft_stall: Node2D = null
 var _fighting: bool = false
 var _fight_release: bool = false
 ## After fight ends, ignore Interact until the physical key/button goes up
@@ -1013,6 +1019,10 @@ func move_state() -> String:
 		return Loc.t("hud.move.carry_menu")
 	if _restock_picking:
 		return Loc.t("hud.move.pick_sku")
+	if _cooked_picking:
+		return Loc.t("hud.move.cooked_craft")
+	if _cooked_craft_stall != null:
+		return Loc.t("hud.move.cooked_busy")
 	if _cleaning():
 		return Loc.t("hud.move.clean")
 	if _fighting:
@@ -1097,7 +1107,16 @@ func _in_dir_mode() -> bool:
 	## restock point for a short-tap pull must NOT count as dir mode — otherwise
 	## `_move_locked_until_neutral` arms and held WASD/stick cannot walk until release.
 	## Skill ring (RB) + LB carry-select allow left-stick walk — not dir mode.
-	if ult_prep or bag_menu_open or carry_menu_open or _restock_picking or _bag_held or _carry_held or _u_held:
+	if (
+		ult_prep
+		or bag_menu_open
+		or carry_menu_open
+		or _restock_picking
+		or _cooked_picking
+		or _bag_held
+		or _carry_held
+		or _u_held
+	):
 		return true
 	if _j_held and is_instance_valid(target):
 		if _obj_str(target, "kind") == "cashier":
@@ -1274,6 +1293,15 @@ func _cancel_input() -> void:
 		_j_held = false
 		log_line.emit(Loc.t("log.player.cancel_pick"))
 		used = true
+	if _cooked_picking:
+		_abort_cooked_pick()
+		_cooked_aborted = true
+		_j_held = false
+		log_line.emit(Loc.t("log.player.cancel_pick"))
+		used = true
+	if _cooked_craft_stall != null:
+		_cancel_cooked_craft()
+		used = true
 	if _must_deliver_aim:
 		_cancel_must_deliver_aim()
 		used = true
@@ -1419,6 +1447,7 @@ func _physics_process(delta: float) -> void:
 	_poll_stick_cardinal()
 	_regen(delta)
 	_update_target()
+	_tick_cooked_craft(delta)
 	_tick_action(delta)
 	_tick_sweeping_monk(delta)
 	_sync_interact_glow()
@@ -1708,7 +1737,14 @@ func _move_axis() -> Vector2:
 		_j_held
 		and not _restock_picking
 		and is_instance_valid(target)
-		and _obj_str(target, "kind") == "restock"
+		and _obj_str(target, "kind") in ["restock", "fish_tank"]
+	):
+		return Vector2.ZERO
+	if (
+		_j_held
+		and not _cooked_picking
+		and is_instance_valid(target)
+		and _obj_str(target, "kind") == "cooked_stall"
 	):
 		return Vector2.ZERO
 	if _in_dir_mode():
@@ -2001,6 +2037,10 @@ func _long_kind() -> String:
 		return "self_cashier"
 	if _nearest_kind("restock") != null:
 		return "restock"
+	if _nearest_kind("fish_tank") != null:
+		return "fish_tank"
+	if _nearest_kind("cooked_stall") != null:
+		return "cooked_stall"
 	if _nearest_kind("drop") != null:
 		return "drop"
 	return ""
@@ -2044,6 +2084,12 @@ func _preview_target() -> Node2D:
 	var restock := _nearest_kind("restock")
 	if restock != null:
 		return restock
+	var tank := _nearest_kind("fish_tank")
+	if tank != null:
+		return tank
+	var cooked := _nearest_kind("cooked_stall")
+	if cooked != null and (_cooked_stall_craftable(cooked) or _cooked_deposit_sku() != ""):
+		return cooked
 	var ops := _nearest_kind("ops_item")
 	if ops != null:
 		return ops
@@ -2062,6 +2108,10 @@ func _preview_target() -> Node2D:
 			return _nearest_kind("cashier")
 		"self_cashier":
 			return _nearest_repairable_self_cashier()
+		"fish_tank":
+			return _nearest_kind("fish_tank")
+		"cooked_stall":
+			return _nearest_kind("cooked_stall")
 	var sco := _nearest_repairable_self_cashier()
 	if sco != null:
 		return sco
@@ -2097,23 +2147,39 @@ func _release_interact() -> void:
 		_restock_picking = false
 		_restock_hold = 0.0
 		return
-	if _fighting or _long_committed or _deliver_done or _shelve_done or _restock_picking:
-		if _restock_picking and target != null and _obj_str(target, "kind") == "restock":
+	if _cooked_aborted:
+		_cooked_aborted = false
+		_cooked_picking = false
+		_cooked_hold = 0.0
+		return
+	if _fighting or _long_committed or _deliver_done or _shelve_done or _restock_picking or _cooked_picking:
+		if _restock_picking and target != null and _obj_str(target, "kind") in ["restock", "fish_tank"]:
 			if _world_authority():
 				var sku := String(target.call("commit_pick"))
 				SfxBus.play("sfx_box_sku_confirm")
-				log_line.emit(Loc.t("log.player.restock_set", [Tuning.sku_name(sku)]))
+				var set_key := (
+					"log.player.fish_set"
+					if _obj_str(target, "kind") == "fish_tank"
+					else "log.player.restock_set"
+				)
+				log_line.emit(Loc.t(set_key, [Tuning.sku_name(sku)]))
 			else:
 				## Client: close local pick chrome; Host commits via restock_commit intent.
 				pending_restock_commit = true
 				target.picking = false
 				SfxBus.play("sfx_box_sku_confirm")
+		elif _cooked_picking and target != null and _obj_str(target, "kind") == "cooked_stall":
+			_commit_cooked_craft()
 		_restock_picking = false
 		_restock_hold = 0.0
+		_cooked_picking = false
+		_cooked_hold = 0.0
 		return
 	_do_short_interact()
 	_restock_picking = false
 	_restock_hold = 0.0
+	_cooked_picking = false
+	_cooked_hold = 0.0
 
 
 ## Tap: thief (already grabbed), else one piece off a stocked shelf, else a restock box, else ops item / floor box.
@@ -2136,6 +2202,16 @@ func _do_short_interact() -> void:
 		target = restock
 		_pickup_used = false
 		_try_pickup()
+		return
+	var tank := _nearest_kind("fish_tank")
+	if tank != null:
+		target = tank
+		_pickup_used = false
+		_try_pickup()
+		return
+	var stall := _nearest_kind("cooked_stall")
+	if stall != null and _cooked_deposit_sku() != "":
+		_deposit_to_cooked_stall(stall)
 		return
 	var ops := _nearest_kind("ops_item")
 	if ops != null:
@@ -2535,6 +2611,10 @@ func _interact_available(node: Node2D) -> bool:
 		return _shelf_interactable(node)
 	if kind == "restock":
 		return _restock_interactable(node)
+	if kind == "fish_tank":
+		return true
+	if kind == "cooked_stall":
+		return _cooked_stall_interactable(node)
 	if kind == "drop":
 		var n := _obj_int(node, "count")
 		return n > 0 and inventory.count() + n <= carry_cap()
@@ -2713,7 +2793,15 @@ const GLOW_SPAN_SCALE := 0.85
 func _glow_span(node: Node2D) -> Vector2:
 	var kind := _obj_str(node, "kind")
 	var span := Vector2(150.0, 150.0)
-	if kind == "shelf" or kind == "cashier" or kind == "self_cashier" or kind == "restock" or kind == "portal":
+	if (
+		kind == "shelf"
+		or kind == "cashier"
+		or kind == "self_cashier"
+		or kind == "restock"
+		or kind == "fish_tank"
+		or kind == "cooked_stall"
+		or kind == "portal"
+	):
 		span = Vector2(240.0, 150.0)
 		for child in node.get_children():
 			if child is CollisionShape2D and child.shape is RectangleShape2D:
@@ -2738,10 +2826,15 @@ func _update_target() -> void:
 		return
 	var best := _preview_target()
 	if target != best:
-		if _restock_picking and target != null and _obj_str(target, "kind") == "restock":
+		if _restock_picking and target != null and _obj_str(target, "kind") in ["restock", "fish_tank"]:
 			target.call("abort_pick")
+		if _cooked_picking and target != null and _obj_str(target, "kind") == "cooked_stall":
+			if target.has_method("abort_pick"):
+				target.call("abort_pick")
 		_restock_picking = false
 		_restock_hold = 0.0
+		_cooked_picking = false
+		_cooked_hold = 0.0
 		_reset_hold()
 		_pickup_used = false
 		_hud_dirty = true
@@ -2795,16 +2888,20 @@ func _tick_action(delta: float) -> void:
 				else:
 					_tick_restock(delta)
 					return
-	if not _long_committed and not _restock_picking:
+	if not _long_committed and not _restock_picking and not _cooked_picking:
 		var thief := _nearest_active_thief()
 		if thief != null:
 			target = thief
 			_begin_fight()
 			return
 	var long_kind := _long_kind()
-	if long_kind == "restock":
-		target = _nearest_kind("restock")
+	if long_kind == "restock" or long_kind == "fish_tank":
+		target = _nearest_kind(long_kind)
 		_tick_sku_pick(delta)
+		return
+	if long_kind == "cooked_stall":
+		target = _nearest_kind("cooked_stall")
+		_tick_cooked_pick(delta)
 		return
 	if _j_time < Tuning.SKU_PICK_HOLD:
 		return
@@ -3194,8 +3291,160 @@ func _tick_sku_pick(delta: float) -> void:
 	log_line.emit(Loc.t("log.player.sku_list_hint"))
 
 
+func _cooked_stall_interactable(node: Node2D) -> bool:
+	if _cooked_craft_stall != null:
+		return false
+	if node == null or not is_instance_valid(node):
+		return false
+	if bool(node.get("crafting")):
+		return false
+	if node.has_method("has_craftable") and bool(node.call("has_craftable")):
+		return true
+	return _cooked_deposit_sku() != ""
+
+
+func _cooked_stall_craftable(node: Node2D) -> bool:
+	if not _cooked_stall_interactable(node):
+		return false
+	return node.has_method("has_craftable") and bool(node.call("has_craftable"))
+
+
+func _cooked_deposit_sku() -> String:
+	if inventory == null or inventory.is_empty():
+		return ""
+	var focused := inventory.focused_sku()
+	if Tuning.is_cooked_ingredient(focused) and inventory.count_of(focused) > 0:
+		return focused
+	for slot in inventory.slots:
+		if not (slot is Dictionary):
+			continue
+		var sid := String(slot.get("id", ""))
+		if Tuning.is_cooked_ingredient(sid) and int(slot.get("count", 0)) > 0:
+			return sid
+	return ""
+
+
+func _deposit_to_cooked_stall(stall: Node2D) -> void:
+	if stall == null or not is_instance_valid(stall) or bool(stall.get("crafting")):
+		return
+	var id := _cooked_deposit_sku()
+	if id == "":
+		return
+	if not _world_authority():
+		SfxBus.play("sfx_box_pull")
+		return
+	if not stall.has_method("add_ingredient") or not stall.has_method("can_accept_ingredient"):
+		return
+	if not bool(stall.call("can_accept_ingredient", id, 1)):
+		SfxBus.play("sfx_box_pull_fail")
+		log_line.emit(Loc.t("log.player.cooked_pantry_full"))
+		return
+	var room := 1
+	if stall.get("pantry_capacity") != null and stall.has_method("pantry_total"):
+		room = maxi(0, int(stall.get("pantry_capacity")) - int(stall.call("pantry_total")))
+	var want := mini(_manual_pickup_limit(), mini(inventory.count_of(id), room))
+	if want <= 0:
+		SfxBus.play("sfx_box_pull_fail")
+		log_line.emit(Loc.t("log.player.cooked_pantry_full"))
+		return
+	var taken := int(stall.call("add_ingredient", id, want))
+	if taken <= 0:
+		SfxBus.play("sfx_box_pull_fail")
+		log_line.emit(Loc.t("log.player.cooked_pantry_full"))
+		return
+	inventory.remove_sku(id, taken)
+	_spawn_fx("spray", stall.global_position + Vector2(0, -20))
+	SfxBus.play("sfx_shelf_stock_done")
+	log_line.emit(Loc.t("log.player.cooked_deposit", [Tuning.sku_name(id), taken]))
+
+
+func _tick_cooked_pick(delta: float) -> void:
+	_cooked_hold += delta
+	if _cooked_picking or _cooked_hold < Tuning.SKU_PICK_HOLD:
+		return
+	if not is_instance_valid(target) or not _cooked_stall_craftable(target):
+		_j_held = false
+		_cooked_hold = 0.0
+		return
+	if not _interact_try(target):
+		log_line.emit(Loc.t("log.player.cooked_busy"))
+		_j_held = false
+		_cooked_hold = 0.0
+		return
+	_cooked_picking = true
+	target.call("begin_pick", seat_id)
+	SfxBus.play("sfx_box_sku_open")
+	log_line.emit(Loc.t("log.player.cooked_hint"))
+
+
+func _abort_cooked_pick() -> void:
+	if target != null and _obj_str(target, "kind") == "cooked_stall":
+		if target.has_method("abort_pick"):
+			target.call("abort_pick")
+		SfxBus.play("sfx_box_sku_cancel")
+		_interact_release(target)
+	_cooked_picking = false
+	_cooked_hold = 0.0
+
+
+func _commit_cooked_craft() -> void:
+	if target == null or _obj_str(target, "kind") != "cooked_stall":
+		return
+	if not _world_authority():
+		## Solo／Host craft for now; net intents later.
+		if target.has_method("abort_pick"):
+			target.call("abort_pick")
+		_interact_release(target)
+		return
+	var err := String(target.call("commit_craft"))
+	if err != "":
+		SfxBus.play("sfx_box_sku_cancel")
+		log_line.emit(err)
+		_interact_release(target)
+		return
+	_cooked_craft_stall = target
+	SfxBus.play("sfx_box_sku_confirm")
+	log_line.emit(Loc.t("log.player.cooked_start", [Tuning.sku_name(String(target.get("craft_sku")))]))
+
+
+func _tick_cooked_craft(delta: float) -> void:
+	if _cooked_craft_stall == null:
+		return
+	if not is_instance_valid(_cooked_craft_stall):
+		_cooked_craft_stall = null
+		hold_progress = 0.0
+		return
+	## Move cancels craft and refunds ingredients.
+	var move := _move_vector() + stick_axis
+	if move.length() >= Controls.MOVE_DEADZONE:
+		_cancel_cooked_craft()
+		return
+	if _cooked_craft_stall.has_method("craft_progress"):
+		hold_progress = float(_cooked_craft_stall.call("craft_progress"))
+	if _cooked_craft_stall.has_method("tick_craft") and bool(_cooked_craft_stall.call("tick_craft", delta)):
+		SfxBus.play("sfx_box_sku_confirm")
+		log_line.emit(Loc.t("log.player.cooked_done"))
+		_interact_release(_cooked_craft_stall)
+		_cooked_craft_stall = null
+		hold_progress = 0.0
+		_hud_dirty = true
+
+
+func _cancel_cooked_craft() -> void:
+	if _cooked_craft_stall == null:
+		return
+	if is_instance_valid(_cooked_craft_stall) and _cooked_craft_stall.has_method("cancel_craft"):
+		_cooked_craft_stall.call("cancel_craft")
+		_interact_release(_cooked_craft_stall)
+	SfxBus.play("sfx_box_sku_cancel")
+	log_line.emit(Loc.t("log.player.cooked_cancel"))
+	_cooked_craft_stall = null
+	hold_progress = 0.0
+	_hud_dirty = true
+
+
 func _abort_restock_pick() -> void:
-	if target != null and _obj_str(target, "kind") == "restock":
+	if target != null and _obj_str(target, "kind") in ["restock", "fish_tank"]:
 		if _world_authority():
 			target.call("abort_pick")
 		else:
@@ -3225,12 +3474,22 @@ func _try_pickup() -> void:
 	var taken := int(target.call("take_pieces", requested))
 	if taken <= 0:
 		SfxBus.play("sfx_box_pull_fail")
-		log_line.emit(Loc.t("log.player.restock_empty", [Tuning.sku_name(sku)]))
+		var empty_key := (
+			"log.player.fish_empty"
+			if _obj_str(target, "kind") == "fish_tank"
+			else "log.player.restock_empty"
+		)
+		log_line.emit(Loc.t(empty_key, [Tuning.sku_name(sku)]))
 		return
 	inventory.take_pieces(sku, taken)
 	_spawn_fx("suck", target.global_position)
 	SfxBus.play("sfx_box_pull")
-	log_line.emit(Loc.t("log.player.pull_instant", [Tuning.sku_name(sku), taken]))
+	var pull_key := (
+		"log.player.fish_pull"
+		if _obj_str(target, "kind") == "fish_tank"
+		else "log.player.pull_instant"
+	)
+	log_line.emit(Loc.t(pull_key, [Tuning.sku_name(sku), taken]))
 
 
 func _tick_restock(delta: float) -> void:
@@ -3549,11 +3808,17 @@ func _bag_use_suppressed() -> bool:
 		return true
 	if _stun_left > 0.0 or _slip_left > 0.0 or _elite_focus_left > 0.0 or _portal_beam_left > 0.0:
 		return true
-	## Restock hotkeys 1–3 own the digit keys while facing restock.
+	## Restock／fish-tank pick own the digit keys while facing the mouth.
 	if (
 		is_instance_valid(target)
-		and _obj_str(target, "kind") == "restock"
+		and _obj_str(target, "kind") in ["restock", "fish_tank"]
 		and (_restock_picking or _j_held)
+	):
+		return true
+	if (
+		is_instance_valid(target)
+		and _obj_str(target, "kind") == "cooked_stall"
+		and (_cooked_picking or _j_held or _cooked_craft_stall != null)
 	):
 		return true
 	return false
@@ -3718,12 +3983,28 @@ func _ensure_seq(cust) -> void:
 
 func _try_dir(dir: int) -> void:
 	if _restock_picking:
-		if target != null and _obj_str(target, "kind") == "restock":
+		if target != null and _obj_str(target, "kind") in ["restock", "fish_tank"]:
 			if dir == 0:
 				target.call("move_pick", -1)
 				SfxBus.play("sfx_box_sku_move")
 			elif dir == 1:
 				target.call("move_pick", 1)
+				SfxBus.play("sfx_box_sku_move")
+		return
+	if _cooked_picking:
+		if target != null and _obj_str(target, "kind") == "cooked_stall":
+			## UP/DOWN cycle recipes; LEFT/RIGHT cycle fish for nigiri.
+			if dir == Skills.DIR_UP:
+				target.call("move_pick", -1)
+				SfxBus.play("sfx_box_sku_move")
+			elif dir == Skills.DIR_DOWN:
+				target.call("move_pick", 1)
+				SfxBus.play("sfx_box_sku_move")
+			elif dir == Skills.DIR_LEFT:
+				target.call("move_fish", -1)
+				SfxBus.play("sfx_box_sku_move")
+			elif dir == Skills.DIR_RIGHT:
+				target.call("move_fish", 1)
 				SfxBus.play("sfx_box_sku_move")
 		return
 	if ult_prep:
@@ -4085,7 +4366,7 @@ func apply_toss_intent(d: Dictionary) -> void:
 
 func restock_intent_snapshot() -> Dictionary:
 	var cursor := -1
-	if _restock_picking and target != null and _obj_str(target, "kind") == "restock":
+	if _restock_picking and target != null and _obj_str(target, "kind") in ["restock", "fish_tank"]:
 		cursor = int(target.get("cursor")) if target.get("cursor") != null else -1
 	var commit := pending_restock_commit
 	var abort := pending_restock_abort
@@ -4095,26 +4376,30 @@ func restock_intent_snapshot() -> Dictionary:
 
 
 func apply_restock_intent(d: Dictionary) -> void:
-	## Host remote seat: sync restock SKU pick cursor／commit／abort from Client.
-	if target == null or not is_instance_valid(target) or _obj_str(target, "kind") != "restock":
+	## Host remote seat: sync restock／fish-tank pick cursor／commit／abort from Client.
+	if target == null or not is_instance_valid(target) or _obj_str(target, "kind") not in ["restock", "fish_tank"]:
 		return
 	var cursor := int(d.get("cursor", -1))
 	if cursor >= 0 and target.get("picking") == true:
 		target.cursor = cursor
 		if target.has_method("_refresh"):
 			target.call("_refresh")
+		if target.has_method("_refresh_label"):
+			target.call("_refresh_label")
 		if target.get("_list") != null:
 			target._list.queue_redraw()
 	if bool(d.get("abort", false)):
 		_abort_restock_pick()
 		return
 	if bool(d.get("commit", false)) and target.get("picking") == true:
+		var was_tank := _obj_str(target, "kind") == "fish_tank"
 		var sku := String(target.call("commit_pick"))
 		_restock_picking = false
 		_restock_hold = 0.0
 		_interact_release(target)
 		SfxBus.play("sfx_box_sku_confirm")
-		log_line.emit(Loc.t("log.player.restock_set", [Tuning.sku_name(sku)]))
+		var set_key := "log.player.fish_set" if was_tank else "log.player.restock_set"
+		log_line.emit(Loc.t(set_key, [Tuning.sku_name(sku)]))
 
 
 func apply_aim_confirm_intent() -> void:
@@ -4330,8 +4615,8 @@ func _handle_hotkey_actions(event: InputEvent) -> void:
 		_cycle_carry_focus(1)
 		get_viewport().set_input_as_handled()
 		return
-	## Restock Q/E while facing a restock point.
-	if target != null and _obj_str(target, "kind") == "restock":
+	## Restock／fish-tank Q/E while facing the mouth.
+	if target != null and _obj_str(target, "kind") in ["restock", "fish_tank"]:
 		if event.is_action_pressed(Controls.RESTOCK_PREV):
 			target.call("cycle", -1)
 			get_viewport().set_input_as_handled()

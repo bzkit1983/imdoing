@@ -26,7 +26,7 @@
 
 | 項目 | 建議 |
 |------|------|
-| 開局資金 | **$3,500**（介於舊設計 2,500 與 Demo 偏鬆之間） |
+| 開局資金 | **$2,500**（序章劇本 8；理論下限 $2,290，見 [`prologue.md`](prologue.md)） |
 | 序章健康日營收 | 800–1,800 |
 | 第1章 | 1,200–2,500 |
 | 破局＋第3槽 | 2,000–4,500 |
@@ -80,10 +80,10 @@
 
 | 鍵 | 新貨束方向 | 代表毛利帶 | 備註 |
 |----|------------|------------|------|
-| `prologue` | 三種乾貨 | 65–70% | 主線開發任務 |
-| `chapter_01` | 第二類（零食／杯裝向）→ 約六款可售 | 55–65% | 新貨架種 |
+| `prologue` | `can`＋`snack`＋`drink`＋`milk`（凍櫃提前教學；spoil 暫關） | 65–70% | 主線開發＋傢俬＋`money_goal_1/2/3`（3500／4500／5500）；見 [`prologue.md`](prologue.md) |
+| `chapter_01` | 延續解鎖 `cup`／`soda` 等 → 約六款可售；更大容量架 | 55–65% | 擴店／增收銀；見 [`chapter-01.md`](chapter-01.md) |
 | `theme_break` | 傳統日用／乾貨延伸（破局導入） | 45–55% | |
-| `theme_historic` | 凍櫃線正式壓力／城下町貨 | 40–50% | 性狀時限開始痛 |
+| `theme_historic` | 安桃山熟食束：`grain`／`soy_sauce`＋`onigiri`／`yakimochi`／`nigiri`；魚材五種（非可售）；可並行凍櫃 spoil 痛 | 40–50% | 詳 [`themes/theme-historic.md`](themes/theme-historic.md)、[`../cookedfoodsystem.md`](../cookedfoodsystem.md)；**`rice` 叮叮飯不變** |
 | `theme_ritual` | 高價特貨／禁忌貨 | 40–50% | |
 | `theme_fantasy` | 奇幻特貨 | 35–50% | |
 | `theme_tech` | 科技／便利耗材 | 35–50% | |
@@ -91,6 +91,19 @@
 | `theme_mirror` | 規則貨（條件價） | 波動 | 修飾器改價／需求 |
 | `finale` | 終章限定 | 30–45% | 頭目日可負毛利壓力 |
 | `afterstory` | 輪換挑戰束 | 挑戰規則 | |
+
+## 4.3 `theme_historic` 建議價帶（定稿方向；實測可微調）
+
+| `sku_id`／材 | 箱成本（4件）或單件 | 件售價 | 開發費 | 備註 |
+|--------------|---------------------|--------|--------|------|
+| `grain` | 成本／4件 ~24 | 12 | 400 | 乾貨；採購入倉 |
+| `soy_sauce` | ~28 | 14 | 450 | 乾貨 |
+| `onigiri` | —（無採購） | 36 | 500（解鎖配方） | `grain`×2；毛利看米成本 |
+| `yakimochi` | — | 40 | 550 | `grain`＋`soy_sauce` |
+| `nigiri` | — | 55 | 650 | `grain`＋1 魚；魚無金成本、時間成本在小遊戲 |
+| 魚材 | — | 不可售 | — | `fish_stock` only |
+
+傢俬：`cooked_stall` 建議購入 **$1,000**；`fish_tank` **$0** 授予。詳 [`themes/theme-historic.md`](themes/theme-historic.md)。
 
 # 5. 通用貨品性狀 schema（草案）
 
@@ -119,6 +132,7 @@ EventModifier.trait_overrides: ...      # 事件級（當日或事件期間）
 | `spoil_on_shelf` | `shelf_life_sec`（可選） | 架上亦限時（後段才用） |
 | `fragile` | `break_on_dash_pct` | 衝刺持貨有機率損毀 |
 | `heat_before_sell` | — | 需微波／加工才可售（後補系統） |
+| `craft_only` | — | 禁採購；僅配方產出（熟食 `onigiri`／`yakimochi`／`nigiri`） |
 
 凍櫃／冰櫃類 SKU **預設**掛 `spoil_unshelved`（冰櫃秒數更短，例凍櫃 45s、冰櫃 25s——實測調）。
 
@@ -140,7 +154,7 @@ EventModifier.trait_overrides: ...      # 事件級（當日或事件期間）
 
 | 鍵（slot 深度／破局；可選主題頭目跟**當前 slot** 量級） | 頭目資金獎勵 |
 |----|-------------:|
-| `prologue` | 500 |
+| `prologue` | 2000 |
 | `chapter_01` | 1,000 |
 | `chapter_02`／`theme_break` | 1,500 |
 | 第3槽（任一主題） | 2,000 |
@@ -159,9 +173,15 @@ EventModifier.trait_overrides: ...      # 事件級（當日或事件期間）
 
 | 內容 | 建議發放時機 | 任務類型 |
 |------|--------------|----------|
-| 三種乾貨開發 | 序章主線 | 劇情 |
-| S2＋第二貨線／六款目標 | 第1章 | 劇情 |
-| 凍櫃架＋凍櫃 SKU | `theme_historic`（預設遷移）或第3槽節奏 | 劇情或事件 |
+| `can` 可售；乾線必要傢俬（收銀／乾補／`shelf_dry_4`） | 序章開局 | — |
+| `snack` 可開發 | 序章主線（採購後） | 劇情 |
+| `drink` 可開發＋`shelf_frozen_4`／`restock_frozen` | 序章 `money_goal_1`（$3,500）後 | 劇情 |
+| `milk` 可開發 | 序章 `money_goal_2`（$4,500）後 | 劇情 |
+| 序章頭目日 | `money_goal_3`（$5,500）後 | 劇情 |
+| `cup`／`soda`／更大容量架／六款目標＋S2 | 第1章 | 劇情 |
+| 凍櫃 spoil 正式壓力 | 第3槽節奏（可與任一主題並行；historic 常疊） | 劇情或事件 |
+| `grain`／`soy_sauce` 可開發；`cooked_stall` 可購入；熟食三配方 | `theme_historic` 主線 H1–H2 | 劇情 |
+| `fishing_taro`＋自動授予 `fish_tank` | `theme_historic` H3（首次遊玩小遊戲） | 劇情＋遊玩 |
 | 冰櫃線 | 主題事件／第3–4槽節奏 | 事件／劇情 |
 | S3–S6 | 見 §3（跟 slot） | 劇情為主 |
 | 麻煩 LV 上限 | 第 N **slot**＝LV N（至 6） | 劇情或事件旗標 |
@@ -176,9 +196,11 @@ EventModifier.trait_overrides: ...      # 事件級（當日或事件期間）
 | `shopsetup.md`／`clerksystem.md` | S1–S6、雇員、日薪 |
 | `shopprogress.md` | 標過渡；指向本檔 §7 |
 | 各章貨品槽 | 引用 §4.2＋性狀例 |
+| `cookedfoodsystem.md`／`fishingtaro.md` | historic 熟食／釣魚合約 |
 
 # 9. 預設（未決）
 
 - 章級客人行為 × 麻煩：可疊加
 - 後日談回訪：繼承資金／等級
 - `heat_before_sell` 完整操作：另開系統檔後再釘秒數
+- 熟食檔雇員代工：v1 不做（見 cookedfoodsystem）

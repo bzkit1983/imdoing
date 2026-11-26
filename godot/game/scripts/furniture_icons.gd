@@ -66,6 +66,10 @@ static func _sprite_path(type: String) -> String:
 		return "res://art/sprites/restock_%s_0.png" % cat
 	if type.begins_with("shelf_"):
 		return "res://art/sprites/shelf_%s_0.png" % _category(type)
+	if type == "cooked_stall":
+		return "res://art/sprites/cooked_stall_0.png"
+	if type == "fish_tank":
+		return "res://art/sprites/fish_tank_0.png"
 	return ""
 
 
@@ -120,6 +124,10 @@ static func _procedural(type: String) -> Texture2D:
 			col = Color("2f5d50")
 	elif type == "portal":
 		col = Color("4ecdc4")
+	elif type == "cooked_stall":
+		col = Color("c4783a")
+	elif type == "fish_tank":
+		col = Color("2a7bb0")
 	for y in range(6, SIZE - 6):
 		for x in range(6, SIZE - 6):
 			img.set_pixel(x, y, col)

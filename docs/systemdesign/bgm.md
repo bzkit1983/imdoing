@@ -14,6 +14,8 @@
 | `Operation1.mp3`／`Operation2.mp3` | 營運日（含 restock／open／結算畫面）隨機一首 |
 | `EliteCustomer1.mp3`／`EliteCustomer2.mp3` | 麻煩客人在場時覆蓋 |
 | `BossBattle1.mp3`（另有 `BossBattle2.mp3` 備用） | 頭目戰進場後覆蓋（見 `bossbattle.md`） |
+| `metal_rush_trial.wav` | Prep 小遊戲金屬潮（節奏譜；暫停 `BgmBus`） |
+| `fishing_taro.wav` | Prep 小遊戲釣魚太郎（8-bit 河畔 loop；暫停 `BgmBus`） |
 
 ## 切換規則
 

@@ -9,12 +9,16 @@ const ShelfScript = preload("res://scripts/shelf.gd")
 const CashierScript = preload("res://scripts/cashier.gd")
 const SelfCashierScript = preload("res://scripts/self_cashier.gd")
 const PortalScript = preload("res://scripts/portal.gd")
+const CookedStallScript = preload("res://scripts/cooked_stall.gd")
+const FishTankScript = preload("res://scripts/fish_tank.gd")
 const ClerkScript = preload("res://scripts/clerk.gd")
 const FloorTilesScript = preload("res://scripts/floor_tiles.gd")
+const PlaceShell = preload("res://scripts/session/place_shell.gd")
 const UiFont = preload("res://scripts/ui_font.gd")
 const Vox = preload("res://scripts/voxel_sprite.gd")
 
 var host: Node
+var _wall_model_id: String = "wall"
 
 
 func bind(day_host: Node) -> void:
@@ -78,8 +82,11 @@ func run_wall(a: Vector2, b: Vector2, k: int) -> void:
 	var dir := delta / length
 	var count := maxi(1, int(round(length / 64.0)))
 	var each := length / float(count)
+	var wall_id := _wall_model_id if _wall_model_id != "" else "wall"
+	if Vox.texture(wall_id, k) == null:
+		wall_id = "wall"
 	for i in count:
-		var spr := Vox.sprite("wall", k)
+		var spr := Vox.sprite(wall_id, k)
 		spr.z_index = -5
 		spr.position = a + dir * (each * (float(i) + 0.5))
 		host._world.add_child(spr)
@@ -90,9 +97,11 @@ func build_floor() -> void:
 	floor.name = "Floor"
 	floor.z_index = -8
 	host._world.add_child(floor)
-	floor.call("setup", host.FLOOR_ORIGIN, host.FLOOR_SIZE, StateScript.CELL)
+	var floor_id := PlaceShell.floor_model_id(host.state)
+	floor.call("setup", host.FLOOR_ORIGIN, host.FLOOR_SIZE, StateScript.CELL, floor_id)
 
 func walls_and_door() -> void:
+	_wall_model_id = PlaceShell.wall_model_id(host.state)
 	var t := 18.0
 	## `host` is typed Node — annotate Vector2 so `:=` can infer north_y / mid / etc.
 	var o: Vector2 = host.FLOOR_ORIGIN
@@ -267,9 +276,56 @@ func build_furniture(nodes: Array[Node2D]) -> void:
 			var pid := String(it.get("pair_id", ""))
 			var node := make_portal(r, rot, pid, _portal_tint(pid))
 			nodes.append(node)
+		elif t == "cooked_stall":
+			nodes.append(make_cooked_stall(r, rot, host.state.shelf_capacity(t)))
+		elif t == "fish_tank":
+			nodes.append(make_fish_tank(r, rot))
 	_link_portal_partners()
 	if not host.cashiers.is_empty():
 		host.cashier = host.cashiers[0]
+
+
+func _fit_color_body(body: StaticBody2D, r: Rect2, color: Color) -> void:
+	host._obstacles.append(r)
+	body.collision_layer = 1
+	body.collision_mask = 0
+	body.position = r.position + r.size * 0.5
+	var rect := ColorRect.new()
+	rect.color = color
+	rect.size = r.size
+	rect.position = -r.size * 0.5
+	body.add_child(rect)
+	var col := CollisionShape2D.new()
+	var shape := RectangleShape2D.new()
+	shape.size = r.size
+	col.shape = shape
+	body.add_child(col)
+	host._world.add_child(body)
+
+
+func make_cooked_stall(r: Rect2, rot: int, cap: int) -> Node2D:
+	host._obstacles.append(r)
+	var node: StaticBody2D = CookedStallScript.new()
+	node.capacity_total = maxi(1, cap)
+	node.set_facing(facing(rot))
+	fit_body(node, r, "cooked_stall", rot, 2)
+	node.label = caption(r.position + Vector2(8, 4), Loc.t("furniture.cooked_stall"))
+	node.setup_overlay()
+	node._refresh_label()
+	host._world.add_child(node)
+	if host.get("cooked_stalls") is Array:
+		host.cooked_stalls.append(node)
+	return node
+
+
+func make_fish_tank(r: Rect2, rot: int) -> Node2D:
+	host._obstacles.append(r)
+	var node: StaticBody2D = FishTankScript.new()
+	fit_body(node, r, "fish_tank", rot, 2)
+	node.label = caption(r.position + Vector2(8, 4), Loc.t("furniture.fish_tank"))
+	host._world.add_child(node)
+	node.setup_default_fish(host.state)
+	return node
 
 func spawn_clerks() -> void:
 	var i := 0

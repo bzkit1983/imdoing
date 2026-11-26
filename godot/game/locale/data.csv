@@ -8,6 +8,16 @@ sku.soda,汽水,Soda,汽水,ソーダ
 sku.icecream,雪糕,Ice cream,雪糕,アイスクリーム
 sku.meat,凍肉,Frozen meat,冻肉,冷凍肉
 sku.rice,叮叮飯,Microwave rice,叮叮饭,レンジご飯
+sku.grain,米,Rice grain,米,米
+sku.soy_sauce,醬油,Soy sauce,酱油,醤油
+sku.onigiri,飯團,Onigiri,饭团,おにぎり
+sku.yakimochi,烤年糕,Grilled mochi,烤年糕,焼き餅
+sku.nigiri,手握壽司,Nigiri sushi,手握寿司,握り寿司
+fish.saba,鯖魚,Mackerel,鲭鱼,サバ
+fish.tai,鯛魚,Sea bream,鲷鱼,タイ
+fish.sanma,秋刀魚,Pacific saury,秋刀鱼,サンマ
+fish.aji,竹筴魚,Horse mackerel,竹荚鱼,アジ
+fish.ayu,香魚,Sweetfish,香鱼,アユ
 dirt.trash,垃圾,Trash,垃圾,ゴミ
 dirt.puddle,水漬,Puddle,水渍,水たまり
 dirt.vomit,嘔吐物,Vomit,呕吐物,嘔吐物
@@ -34,6 +44,8 @@ furniture.shelf_ice_8,冰櫃類貨架（8件）,Freezer shelf (8),冰柜类货�
 furniture.shelf_ice_12,冰櫃類貨架（12件）,Freezer shelf (12),冰柜类货架（12件）,冷凍棚（12個）
 furniture.shelf_ice_24,冰櫃類貨架（24件）,Freezer shelf (24),冰柜类货架（24件）,冷凍棚（24個）
 furniture.portal,傳送門,Portal,传送门,ポータル
+furniture.cooked_stall,熟食檔攤,Cooked-food stall,熟食档摊,惣菜屋台
+furniture.fish_tank,魚缸,Fish tank,鱼缸,水槽
 skill_set.default,自訂技能組合%d,Custom Skill Set %d,自订技能组合%d,カスタムスキルセット%d
 skill.carry_boost.name,頂硬上,Shoulder Through,顶硬上,無理押し
 skill.carry_boost.blurb,負重 +240 件，20 秒,Carry +240 pieces for 20s,负重 +240 件，20 秒,所持 +240 個、20 秒
@@ -165,6 +177,10 @@ world.restock.undeveloped,%s\n尚未開發,%s\nNot developed,%s\n尚未开发,%s
 world.restock.undeveloped_only,尚未開發,Not developed,尚未开发,未開発
 world.restock.count,%s\n%d件,%s\n%d pcs,%s\n%d件,%s\n%d個
 world.restock.count_only,%d件,%d pcs,%d件,%d個
+world.fish_tank.pick,選魚  ↑↓,Pick fish  ↑↓,选鱼  ↑↓,魚選択  ↑↓
+world.fish_tank.stock_line,%s  %d條,%s  ×%d,%s  %d条,%s  %d匹
+world.fish_tank.count,%s\n%d條,%s\n×%d,%s\n%d条,%s\n%d匹
+world.fish_tank.empty,魚缸（空）,Fish tank (empty),鱼缸（空）,水槽（空）
 world.shelf.dry,乾貨架,Dry shelf,干货架,常温棚
 world.shelf.frozen,凍櫃貨架,Chiller shelf,冻柜货架,冷蔵棚
 world.shelf.ice,冰櫃貨架,Freezer shelf,冰柜货架,冷凍棚
@@ -186,6 +202,8 @@ mood.stepped_on,踩到%s！,Stepped in %s!,踩到%s！,%sを踏んだ！
 mood.stepped_dirt,踩到污物！,Stepped in a mess!,踩到污物！,汚れを踏んだ！
 mood.paying,付款中,Paying,付款中,支払い中
 mood.queue,排隊中,Queuing,排队中,列待ち中
+mood.stall_queue,熟食檔排隊中,Queuing at cooked stall,熟食档排队中,惣菜屋台で列待ち
+mood.stall_wait,等候%s製作中,Waiting for %s,等候%s制作中,%sの調理待ち
 mood.thanks,謝謝,Thanks,谢谢,ありがとう
 mood.driven_off,被趕離,Driven off,被赶离,追い払い
 mood.to_pay,去付款,Going to pay,去付款,支払いに向かう
@@ -269,6 +287,10 @@ err.max_scale,已是最大規模,Already max scale,已是最大规模,すでに�
 err.need_level,角色要到 LV%d,Need character LV%d,角色要到 LV%d,キャラクターが LV%d 必要
 err.need_cashier,店舖內要放置至少一台收銀機。,Place at least one register in the shop.,店铺内要放置至少一台收银机。,店内にレジを少なくとも1台置いてください。
 err.need_restock_pair,店舖內要放置至少一組同類型的補貨架和貨架。乾貨、凍櫃、冰櫃都可以，但補貨架和貨架要同一類。,"Place at least one matching restock rack + shelf pair (dry, chiller, or freezer).",店铺内要放置至少一组同类型的补货架和货架。干货、冻柜、冰柜都可以，但补货架和货架要同一类。,店内に同じ種類の補充棚と陳列棚を少なくとも1組置いてください。ドライ・チルド・冷凍いずれでも可ですが、補充棚と陳列棚は同種である必要があります。
+err.need_cooked_stall,販售熟食前要在店舖內放置至少一座熟食檔攤。,Place at least one cooked-food stall before selling cooked goods.,贩售熟食前要在店铺内放置至少一座熟食档摊。,惣菜を売る前に店内に惣菜屋台を少なくとも1つ置いてください。
+err.craft_only,此貨品不能採購，請在熟食檔攤加工。,This good cannot be purchased — craft it at the cooked-food stall.,此货品不能采购，请在熟食档摊加工。,この商品は仕入れできません。惣菜屋台で作ってください。
+err.cooked_ingredients,檔內原料不足（請先投米／醬油／魚）,Not enough stall ingredients (deposit grain / soy / fish first),档内原料不足（请先投米／酱油／鱼）,屋台内の材料不足（先に米／醤油／魚を入れる）
+err.cooked_busy,熟食檔正在使用中,Cooked stall is busy,熟食档正在使用中,惣菜屋台は使用中です
 err.hire_full,店舖規模雇員已滿,Hire cap for this shop scale,店铺规模雇员已满,店舗規模の雇用上限に達している
 err.clerks_gt_registers,店員不能多過收銀機,Clerks cannot exceed registers,店员不能多过收银机,店員はレジ台数より多くできない
 err.no_skill,沒有這招,Unknown skill,没有这招,その技はない
@@ -312,8 +334,18 @@ log.player.dash_polite,衝刺撞到客人 — 禮貌衝撞，不滿不增加,"Da
 log.player.dash_clone,衝刺撞到分身 — 暈眩 2 秒，箱子掉落,"Dash hit clone — stun 2s, drop boxes",冲刺撞到分身 — 晕眩 2 秒，箱子掉落,ダッシュが分身に当たった — 2 秒スタン、箱が落下
 log.player.restock_busy,補貨點使用中,Restock point busy,补货点使用中,補充ポイント使用中
 log.player.sku_list_hint,貨品清單 — 上下選擇，放手確定，B／; 取消,"SKU list — up/down, release confirm, B/; cancel",货品清单 — 上下选择，放手确定，B／; 取消,商品リスト — 上下で選択、放して確定、B／; でキャンセル
+log.player.cooked_hint,熟食加工 — 上下選食譜，左右選魚（須已投料），放手開始，B／; 取消,"Cooked craft — up/down recipe, left/right fish (deposit first), release to start, B/; cancel",熟食加工 — 上下选食谱，左右选鱼（须已投料），放手开始，B／; 取消,惣菜づくり — 上下でレシピ、左右で魚（先に材料投入）、放して開始、B／; でキャンセル
+log.player.cooked_busy,熟食檔使用中,Cooked stall busy,熟食档使用中,惣菜屋台使用中
+log.player.cooked_start,開始製作 %s…,Cooking %s…,开始制作 %s…,%s を調理中…
+log.player.cooked_done,熟食完成，已放到檔面／倉庫。,Cooked food ready — on stall face or in stock.,熟食完成，已放到档面／仓库。,惣菜完成。屋台か倉庫へ。
+log.player.cooked_cancel,取消製作，原料已退回檔內。,Craft cancelled — ingredients returned to stall.,取消制作，原料已退回档内。,調理キャンセル。材料を屋台に戻しました。
+log.player.cooked_deposit,投入原料 %s ×%d,Deposit ingredient %s ×%d,投入原料 %s ×%d,材料投入 %s ×%d
+log.player.cooked_pantry_full,熟食檔原料位已滿,Cooked stall pantry full,熟食档原料位已满,惣菜屋台の材料置き場が満杯
 log.player.carry_need,負重不足：%d/%d 件,Carry short: %d/%d pcs,负重不足：%d/%d 件,所持不足：%d/%d 個
 log.player.restock_empty,%s 補貨點已空,%s restock point empty,%s 补货点已空,%s の補充ポイントは空
+log.player.fish_empty,%s 魚缸已空,%s fish tank empty,%s 鱼缸已空,%s の水槽は空
+log.player.fish_set,魚缸改選 %s,Fish tank set to %s,鱼缸改选 %s,水槽を %s に変更
+log.player.fish_pull,取魚 %s %d條,Take fish %s ×%d,取鱼 %s %d条,魚を取る %s %d匹
 log.player.pull_instant,執貨（即時）%s %d件,Pull (instant) %s ×%d,执货（即时）%s %d件,取荷（即時）%s %d個
 log.player.empty_hands_shelf,空手 — 不能上架,Empty hands — cannot restock,空手 — 不能上架,素手 — 陳列できない
 log.player.shelf_busy,貨架使用中,Shelf busy,货架使用中,棚使用中
@@ -431,6 +463,14 @@ quest.op_man_002_a.name,三日清潔,Three-day cleaning,三日清洁,3日清掃
 quest.op_man_002_a.desc,於 3 個營業日內累計完成清潔 20 次。,Clean 20 times within 3 ops days.,于 3 个营业日内累计完成清洁 20 次。,3営業日以内に清掃を累計20回行う。
 quest.op_man_002_b.name,商店評價,Shop rating,商店评价,店舗評価
 quest.op_man_002_b.desc,將商店評價提升至 5 或以上。,Raise shop rating to 5 or higher.,将商店评价提升至 5 或以上。,店舗評価を5以上にする。
+quest.st_prologue_money_1.name,資金儲備（凍櫃線）,Cash reserve (frozen line),资金储备（冻柜线）,資金储备（冷凍ライン）
+quest.st_prologue_money_1.desc,持有資金達到 3500，解鎖支裝凍飲開發與凍櫃傢俬。,Hold at least $3500 to unlock bottled drinks and frozen furniture.,持有资金达到 3500，解锁支装冻饮开发与冻柜家具。,所持金3500以上でボトル飲料開発と冷凍什器を解放。
+quest.st_prologue_money_2.name,資金儲備（牛奶）,Cash reserve (milk),资金储备（牛奶）,資金储备（牛乳）
+quest.st_prologue_money_2.desc,持有資金達到 4500，解鎖牛奶開發。,Hold at least $4500 to unlock milk development.,持有资金达到 4500，解锁牛奶开发。,所持金4500以上で牛乳開発を解放。
+quest.st_prologue_money_3.name,資金儲備（頭目）,Cash reserve (boss),资金储备（头目）,資金储备（ボス）
+quest.st_prologue_money_3.desc,持有資金達到 5500，解鎖序章頭目日。,Hold at least $5500 to unlock the prologue boss day.,持有资金达到 5500，解锁序章头目日。,所持金5500以上で序章ボス日を解放。
+quest.metric.shop_money.name,持有資金,Shop funds,持有资金,所持金
+quest.metric.shop_money.floor,持有資金達到 %d 或以上,hold shop funds of %d or more,持有资金达到 %d 或以上,所持金を%d以上にする
 quest.op_rand_generic.name,隨機營運任務,Random ops task,随机营运任务,ランダム営業タスク
 quest.op_rand_generic.desc,完成產生器指定的營運條件（進度見數字）。,Complete the generated ops goal (see progress).,完成生成器指定的营运条件（进度见数字）。,生成された営業条件を達成する（進捗は数値）。
 quest.op_rand.scope.day,本日內%s。,%s today.,本日%s。,本日中に%s。
@@ -475,6 +515,7 @@ quest.metric.sold_count.floor,售出商品共 %d 件,sell %d items,售出商品�
 quest.pack.op_tut_001.name,序章教學包,Prologue tutorial pack,序章教学包,序章チュートリアル
 quest.pack.op_man_001.name,營業額與評級,Revenue & day grade,营业额与评级,売上と当日評価
 quest.pack.op_man_002.name,跨日累計,Cross-day accumulate,跨日累计,日またぎ累計
+quest.pack.st_prologue_money.name,序章資金目標,Prologue money goals,序章资金目标,序章資金目標
 quest.pack.op_rand.name,隨機營運包,Random ops pack,随机营运包,ランダム営業パック
 ops_item.comfort_bomb.name,安慰炸彈,Comfort Bomb,安慰炸弹,なぐさめ爆弾
 ops_item.comfort_bomb.blurb,全店客人不滿歸零（已離店不拉回）,Clear all guest dissatisfaction (leaving guests stay gone),全店客人不满归零（已离店不拉回）,店内の客の不満を全消去（退店中は戻さない）

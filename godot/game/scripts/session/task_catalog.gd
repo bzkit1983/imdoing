@@ -251,6 +251,50 @@ static func pack_op_man_002() -> Dictionary:
 	])
 
 
+## Prologue money goals (story/prologue.md). Rewards unlock content gates.
+## Thresholds mirror GameState.PROLOGUE_MONEY_GOAL_1/2/3 (above start cash).
+static func pack_st_prologue_money() -> Dictionary:
+	return pack("ST-PROLOGUE-MONEY", "story", [
+		task(
+			"ST-PROLOGUE-MONEY-1",
+			"shop_money",
+			">=",
+			3500,
+			{"type": "accumulate"},
+			{},
+			"",
+			"",
+			[
+				{"type": "unlock_sku", "id": "drink"},
+				{"type": "unlock_furniture", "id": "shelf_frozen_4"},
+				{"type": "unlock_furniture", "id": "restock_frozen"},
+			],
+		),
+		task(
+			"ST-PROLOGUE-MONEY-2",
+			"shop_money",
+			">=",
+			4500,
+			{"type": "accumulate"},
+			{},
+			"",
+			"",
+			[{"type": "unlock_sku", "id": "milk"}],
+		),
+		task(
+			"ST-PROLOGUE-MONEY-3",
+			"shop_money",
+			">=",
+			5500,
+			{"type": "accumulate"},
+			{},
+			"",
+			"",
+			[{"type": "unlock_prologue_boss"}],
+		),
+	])
+
+
 static func pack_by_id(pack_id: String) -> Dictionary:
 	match String(pack_id):
 		"OP-TUT-001", "pack_tutorial_prologue":
@@ -259,12 +303,14 @@ static func pack_by_id(pack_id: String) -> Dictionary:
 			return pack_op_man_001()
 		"OP-MAN-002", "pack_manual_OP-MAN-002":
 			return pack_op_man_002()
+		"ST-PROLOGUE-MONEY", "pack_st_prologue_money":
+			return pack_st_prologue_money()
 		_:
 			return {}
 
 
 static func list_test_pack_ids() -> Array[String]:
-	return ["OP-TUT-001", "OP-MAN-001", "OP-MAN-002"]
+	return ["OP-TUT-001", "OP-MAN-001", "OP-MAN-002", "ST-PROLOGUE-MONEY"]
 
 
 ## Random ops templates: metric, op, base, min, max, default filters, wired flag.

@@ -116,7 +116,10 @@ func _spawn_thief(force: bool = false) -> void:
 		return
 	if not force and randf() > host.thief_appear_rate():
 		return
-	if host.thief_count() >= Tuning.THIEF_CAP:
+	var thief_cap := Tuning.THIEF_CAP
+	if host.state != null and host.state.has_method("thief_cap"):
+		thief_cap = int(host.state.thief_cap())
+	if host.thief_count() >= thief_cap:
 		return
 	var c: CharacterBody2D = CustomerScript.new()
 	host._customers.add_child(c)

@@ -648,12 +648,27 @@ func _ensure_lesson_prereqs(id: String) -> void:
 		if state.has_method("ensure_min_level"):
 			state.ensure_min_level(2)
 		return
-	## develop_goods: LV4 unlocks snack／drink／凍櫃家具；資金不足則補到 $3000.
+	## develop_goods: content gates for snack／drink／凍櫃家具；資金不足則補到 $3000.
 	if id == "tut.prep.develop_goods":
-		if state.has_method("ensure_min_level"):
-			state.ensure_min_level(4)
+		if state.has_method("unlock_sku"):
+			state.unlock_sku("snack")
+			state.unlock_sku("drink")
+		if state.has_method("unlock_furniture"):
+			state.unlock_furniture("shelf_frozen_4")
+			state.unlock_furniture("restock_frozen")
 		if state.has_method("ensure_min_money"):
 			state.ensure_min_money(3000)
+		return
+	## buy_new_furn: ensure dry＋frozen 4-slot lines are purchasable.
+	if id == "tut.prep.buy_new_furn":
+		if state.has_method("unlock_furniture"):
+			state.unlock_furniture("cashier")
+			state.unlock_furniture("restock_dry")
+			state.unlock_furniture("shelf_dry_4")
+			state.unlock_furniture("shelf_frozen_4")
+			state.unlock_furniture("restock_frozen")
+		if state.has_method("ensure_min_money"):
+			state.ensure_min_money(2000)
 		return
 	## buy_cashier: scale 2 so HIRE_CAP allows 1 clerk；cash for second cashier.
 	if id == "tut.prep.buy_cashier":

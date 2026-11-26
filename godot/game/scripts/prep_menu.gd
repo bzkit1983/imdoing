@@ -13,6 +13,8 @@ const DasherTrial = preload("res://scenes/dasher_trial.tscn")
 const CashierDuel = preload("res://scenes/cashier_duel.tscn")
 const BunDuel = preload("res://scenes/bun_duel.tscn")
 const SwissLungTrial = preload("res://scenes/swiss_lung_trial.tscn")
+const FishingTaroScript = preload("res://scripts/prep/fishing_taro.gd")
+const FishTankGalleryArt = preload("res://scripts/prep/fish_tank_gallery_art.gd")
 const MetalRushTrial = preload("res://scenes/metal_rush_trial.tscn")
 const PrepGridView = preload("res://scripts/prep/prep_grid_view.gd")
 const ProductVersion = preload("res://scripts/product_version.gd")
@@ -149,6 +151,9 @@ var _suppress_select: bool = false
 var _look_preview_root: Node2D = null
 var _look_preview_spr: AnimatedSprite2D = null
 var _look_preview_id: String = ""
+## Prep fish_tank_gallery aquarium (8-bit swim).
+var _fish_gallery_root: Node2D = null
+var _fish_gallery_art: Node2D = null
 
 
 func setup(host: Node) -> void:
@@ -172,6 +177,8 @@ func setup(host: Node) -> void:
 			tut.gate_changed.connect(_on_tutorial_gate_changed)
 	var load_err := state.load_from_disk()
 	if load_err == "":
+		if state.has_method("sync_prologue_progress_grants"):
+			state.sync_prologue_progress_grants()
 		_msg = Loc.t("prep.msg.loaded", [state.scenario, state.level, state.money])
 		_show_page("home")
 	else:
@@ -485,7 +492,7 @@ func can_access_cultivation() -> bool:
 
 
 func _show_page(page: String) -> void:
-	if page in ["hub_minigames", "cultivate", "cultivate_pick", "cultivate_rewards", "light_intro", "light_outro", "light_quiz"] and not can_access_cultivation():
+	if page in ["hub_minigames", "cultivate", "cultivate_pick", "cultivate_rewards", "light_intro", "light_outro", "light_quiz", "fish_tank_gallery"] and not can_access_cultivation():
 		page = "home"
 	if page not in ["cultivate", "cultivate_pick", "cultivate_rewards"]:
 		_cultivation_slots = ["", "", ""]
@@ -500,6 +507,8 @@ func _show_page(page: String) -> void:
 		page = "hub_goods"
 	if page != "look":
 		_clear_look_preview()
+	if page != "fish_tank_gallery":
+		_clear_fish_gallery()
 	if page != "lan_join":
 		_hide_lan_address_edit()
 	if page == "steam_join":
@@ -601,6 +610,8 @@ func _refresh() -> void:
 	_building = false
 	if _page == "look":
 		_refresh_look_preview_from_index()
+	if _page == "fish_tank_gallery":
+		_show_fish_gallery()
 	_grid.queue_redraw()
 	_notify_tutorial_prep()
 
@@ -1243,6 +1254,18 @@ func _activate() -> void:
 				game.exited.connect(_return_from_prep_minigame)
 				hide()
 				add_child(game)
+		"fishing_taro":
+			if can_access_cultivation():
+				var fish_game = FishingTaroScript.new()
+				fish_game.setup(state)
+				fish_game.exited.connect(_return_from_prep_minigame)
+				hide()
+				## Sibling of Prep (not child) so hidden CanvasLayer does not block pad input.
+				var host := get_parent()
+				if host != null:
+					host.add_child(fish_game)
+				else:
+					add_child(fish_game)
 		"cultivate_material":
 			_cultivation_slots[_cultivation_slot] = String(arg)
 			_show_page("cultivate")
@@ -3042,6 +3065,35 @@ func _ensure_look_preview() -> void:
 	add_child(_look_preview_root)
 	_look_preview_spr = null
 	_look_preview_id = ""
+
+
+func _ensure_fish_gallery() -> void:
+	if _fish_gallery_root != null and is_instance_valid(_fish_gallery_root):
+		return
+	_fish_gallery_root = Node2D.new()
+	_fish_gallery_root.name = "FishTankGallery"
+	## Near-fullscreen under title; action list sits below (see PrepPages layout).
+	_fish_gallery_root.position = Vector2(80, 88)
+	_fish_gallery_root.z_index = 5
+	_fish_gallery_root.scale = Vector2.ONE
+	add_child(_fish_gallery_root)
+	_fish_gallery_art = FishTankGalleryArt.new()
+	_fish_gallery_root.add_child(_fish_gallery_art)
+
+
+func _show_fish_gallery() -> void:
+	_ensure_fish_gallery()
+	if _fish_gallery_art != null and _fish_gallery_art.has_method("setup_from_state"):
+		_fish_gallery_art.call("setup_from_state", state)
+	if _fish_gallery_root != null:
+		_fish_gallery_root.visible = true
+
+
+func _clear_fish_gallery() -> void:
+	if _fish_gallery_root != null and is_instance_valid(_fish_gallery_root):
+		_fish_gallery_root.queue_free()
+	_fish_gallery_root = null
+	_fish_gallery_art = null
 
 
 func _clear_look_preview() -> void:

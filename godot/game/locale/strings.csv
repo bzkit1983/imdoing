@@ -19,9 +19,10 @@ pause.settings.back,返回,Back,返回,戻る
 prep.settings,設定,Settings,设定,設定
 prep.settings.title,設定,Settings,设定,設定
 prep.settings.info,音效／音樂／語言／鏡頭／觸控搖桿。音量列用 A／D（←／→）加減，寫入本機設定跨局保留。,SFX / BGM / language / camera / touch stick. On a volume row, A/D (←/→) changes level. Saved locally across sessions.,音效／音乐／语言／镜头／触控摇杆。音量列用 A／D（←／→）加减，写入本机设定跨局保留。,効果音／BGM／言語／カメラ／タッチスティック。音量行は A／D（←／→）で調整。端末設定に保存され引き継がれます。
-prep.scenario.offer_body,新檔先選：開始教學，或跳過教學直接開店。也可選其他劇本。,New save: start the tutorial, or skip and open the shop. Other scenarios are listed below.,新档先选：开始教学，或跳过教学直接开店。也可选其他剧本。,新規セーブ：チュートリアル開始、またはスキップして開店。他のシナリオも選べます。
+prep.scenario.offer_body,新檔先選：開始教學、劇情模式序章，或跳過教學直接開店。也可選其他劇本。,New save: start the tutorial, story-mode prologue, or skip and open the shop. Other scenarios are listed below.,新档先选：开始教学、剧情模式序章，或跳过教学直接开店。也可选其他剧本。,新規セーブ：チュートリアル、ストーリー序章、またはスキップして開店。他のシナリオも選べます。
 prep.scenario.start_tutorial,開始教學　LV1　$3000　空店（簡易）,Start tutorial · LV1 · $3000 · empty shop (Easy),开始教学　LV1　$3000　空店（简易）,チュートリアル開始　LV1　$3000　空き店（簡易）
 prep.scenario.skip_tutorial,跳過教學　從新開始　$10000　LV1　空店,Skip tutorial · Fresh start · $10000 · LV1 · empty,跳过教学　从新开始　$10000　LV1　空店,チュートリアルをスキップ　新規　$10000　LV1　空き店
+prep.scenario.s8,劇情模式：序章　LV1　$2500　空店　內容閘門,Story mode: Prologue · LV1 · $2500 · empty · content gates,剧情模式：序章　LV1　$2500　空店　内容闸门,ストーリーモード：序章　LV1　$2500　空き店　コンテンツゲート
 tut.skip,跳過教學,Skip tutorial,跳过教学,チュートリアルをスキップ
 tut.skip.confirm,確定跳過其餘教學？,Skip the rest of the tutorial?,确定跳过其余教学？,残りのチュートリアルをスキップしますか？
 tut.skip.done,已跳過教學,Tutorial skipped,已跳过教学,チュートリアルをスキップしました
@@ -346,10 +347,11 @@ hud.combo_coop,COMBO P1 %d  ·  P2 %d  ·  TEAM %d,COMBO P1 %d  ·  P2 %d  ·  T
 hud.seat,P%d,P%d,P%d,P%d
 prep.back,返回,Back,返回,戻る
 prep.scenario.title,選擇劇本,Choose scenario,选择剧本,シナリオ選択
-prep.scenario.info,劇本1 從空店開始，資金 $10000。劇本2、3 帶現成店面和店員。劇本4 用來試技能。測試版另有劇本5 教學模式（$3000）、劇本6 頭目戰（藍本同劇本4）、劇本7 新商店物品測試（藍本同劇本4、一台自助收銀機）。,Scenario 1 starts empty with $10000. 2 and 3 include a shop and clerks. 4 is for trying skills. Test builds also list Scenario 5 Tutorial ($3000); Scenario 6 Boss battle (same as 4); Scenario 7 new furniture test (same as 4 · one self-checkout).,剧本1 从空店开始，资金 $10000。剧本2、3 带现成店面和店员。剧本4 用来试技能。测试版另有剧本5 教学模式（$3000）、剧本6 头目战（蓝本同剧本4）、剧本7 新商店物品测试（蓝本同剧本4、一台自助收银机）。,シナリオ1は空の店から開始、資金 $10000。シナリオ2・3は店舗と店員付き。シナリオ4はスキル試し用。テスト版にはシナリオ5 チュートリアル（$3000）、シナリオ6 ボス戦（シナリオ4と同構成）、シナリオ7 新店舗アイテムテスト（シナリオ4＋セルフレジ1台）もあります。
+prep.scenario.info,"劇情模式序章（劇本8）空店、$2500、內容閘門。劇本1 從空店開始，資金 $10000。劇本2、3 帶現成店面和店員。劇本4 用來試技能。測試版另有劇本5 教學、劇本6 頭目戰、劇本7 自助收銀、劇本9 安桃山時代（熟食檔）。","Story-mode prologue (scenario 8): empty shop · $2500 · content gates. Scenario 1 starts empty with $10000. 2 and 3 include a shop and clerks. 4 is for skills. Test builds also list 5 Tutorial, 6 Boss, 7 self-checkout, 9 Antaoshan (cooked stall).","剧情模式序章（剧本8）空店、$2500、内容闸门。剧本1 从空店开始，资金 $10000。剧本2、3 带现成店面和店员。剧本4 用来试技能。测试版另有剧本5 教学、剧本6 头目战、剧本7 自助收银、剧本9 安桃山时代（熟食档）。","ストーリー序章（シナリオ8）は空き店・$2500・コンテンツゲート。シナリオ1は空の店・$10000。2・3は店舗と店員付き。4はスキル試し。テスト版は5チュートリアル、6ボス、7セルフレジ、9安桃山（惣菜屋台）もあります。"
 prep.scenario.s5,劇本5　教學模式　LV1　$3000　空店（測試）,Scenario 5 · Tutorial · LV1 · $3000 · empty shop (test),剧本5　教学模式　LV1　$3000　空店（测试）,シナリオ5　チュートリアル　LV1　$3000　空店舗（テスト）
 prep.scenario.s6,劇本6　頭目戰　藍本同劇本4（測試）,Scenario 6 · Boss battle · same as Scenario 4 (test),剧本6　头目战　蓝本同剧本4（测试）,シナリオ6　ボス戦　シナリオ4と同構成（テスト）
 prep.scenario.s7,劇本7　新商店物品測試　藍本同劇本4　自助收銀×1（測試）,Scenario 7 · New furniture test · same as 4 · 1 self-checkout (test),剧本7　新商店物品测试　蓝本同剧本4　自助收银×1（测试）,シナリオ7　新店舗アイテムテスト　シナリオ4構成　セルフレジ×1（テスト）
+prep.scenario.s9,劇本9　安桃山時代　熟食檔測試　藍本同劇本4　米／醬油／零食＋熟食　魚缸　無凍櫃／傳送門　收銀×1,Scenario 9 · Antaoshan · cooked-stall test · same as 4 · grain/soy/snack+cooked · fish tank · no freezer/portals · 1 register,剧本9　安桃山时代　熟食档测试　蓝本同剧本4　米／酱油／零食＋熟食　鱼缸　无冻柜／传送门　收银×1,シナリオ9　安桃山時代　惣菜屋台テスト　シナリオ4構成　米／醤油／おやつ＋惣菜　水槽　冷凍／ポータルなし　レジ×1
 prep.scenario.s1,劇本1　從新開始　資金 $10000　LV1　空店,Scenario 1 · Fresh start · $10000 · LV1 · empty,剧本1　从新开始　资金 $10000　LV1　空店,シナリオ1　新規スタート　資金 $10000　LV1　空き店
 prep.scenario.s2,劇本2　LV5　資金 $10000　店規模 2　1 名店員,Scenario 2 · LV5 · $10000 · scale 2 · 1 clerk,剧本2　LV5　资金 $10000　店规模 2　1 名店员,シナリオ2　LV5　資金 $10000　店規模 2　店員 1名
 prep.scenario.s3,劇本3　LV10　資金 $99999　三圍 30　店規模 3　2 名店員,Scenario 3 · LV10 · $99999 · stats 30 · scale 3 · 2 clerks,剧本3　LV10　资金 $99999　三围 30　店规模 3　2 名店员,シナリオ3　LV10　資金 $99999　三能力 30　店規模 3　店員 2名
@@ -781,6 +783,8 @@ hud.move.skill_menu,技能選單,Skill menu,技能选单,スキルメニュー
 hud.move.bag_menu,道具選單,Bag menu,道具选单,アイテムメニュー
 hud.move.carry_menu,持貨選單,Carry menu,持货选单,所持メニュー
 hud.move.pick_sku,選貨,Picking SKU,选货,商品選択
+hud.move.cooked_craft,選食譜,Picking recipe,选食谱,レシピ選択
+hud.move.cooked_busy,製作中,Cooking,制作中,調理中
 hud.move.clean,清潔,Cleaning,清洁,清掃
 hud.move.fight,打擊,Fight,打击,攻撃
 hud.move.checkout_cmd,收銀指令,Checkout inputs,收银指令,レジコマンド
@@ -1010,3 +1014,35 @@ prep.swiss_lung.bag,遞個袋畀 A,Hand A a bag,递个袋给 A,Aに袋を渡す
 prep.swiss_lung.punchline,我都賺夠啦，比啲你賺。,I've made enough. You take some.,我都赚够啦，比啲你赚。,もう十分稼いだ。お裾分けだよ。
 prep.swiss_lung.reward,獲得技能：%s（試玩提示）,Skill earned: %s (trial),获得技能：%s（试玩提示）,スキル獲得：%s（体験版）
 prep.swiss_lung.retry,再玩 · 跳過開場,Retry · Skip intro,再玩 · 跳过开场,再挑戦｜導入を飛ばす
+ui.cooked.craft_title,熟食加工（檔內原料）,Cooked craft (stall pantry),熟食加工（档内原料）,惣菜づくり（屋台内材料）
+ui.cooked.crafting,製作中：%s,Cooking: %s,制作中：%s,調理中：%s
+ui.cooked.fish_pick,魚材：%s（左右選）,Fish: %s (left/right),鱼材：%s（左右选）,ネタ：%s（左右で選択）
+ui.cooked.need_fish,（需要魚）,（need fish）,（需要鱼）,（魚が必要）
+ui.cooked.stall_label,檔面 %s｜原料 %s,Face %s｜Pantry %s,档面 %s｜原料 %s,陳列 %s｜材料 %s
+prep.fishing_taro.title,釣魚太郎,Fishing Taro,钓鱼太郎,釣り太郎
+prep.fishing_taro.hint,左右移動找魚影，靠近後行動鍵拋竿；浮標晃動時再按一次收竿。,"Move to a fish shadow, cast with the action button, then reel when the bobber dips.",左右移动找鱼影，靠近后行动键抛竿；浮标晃动时再按一次收竿。,左右で魚影へ近づき行動ボタンで投げる。浮きが沈んだらもう一度で取り込む。
+prep.fishing_taro.rules,"左右移動找魚影 → 行動鍵拋竿（落在影上才咬鉤）→ 浮標急沉時再按收竿。\n本趟最多拋竿 %d 次。","Move to a shadow → cast (must land on it) → reel on the bite flash.\nMax %d casts this visit.","左右移动找鱼影 → 行动键抛竿（落在影上才咬钩）→ 浮标急沉时再按收竿。\n本趟最多抛竿 %d 次。","左右で魚影へ → 投げる（影に当てる）→ 食い付きで取り込む。\nこの訪問は最大 %d 回。"
+prep.fishing_taro.start,開始釣魚,Start fishing,开始钓鱼,釣り開始
+prep.fishing_taro.start_again,再釣一趟,Fish again,再钓一趟,もう一度
+prep.fishing_taro.catch,拋竿,Cast,抛竿,投げる
+prep.fishing_taro.exit,離開,Leave,离开,終了
+prep.fishing_taro.stock,魚倉：%s,Tank stock: %s,鱼仓：%s,水槽在庫：%s
+prep.fishing_taro.casts,拋竿剩餘 %d／%d,Casts left %d/%d,抛竿剩余 %d／%d,残り投数 %d／%d
+prep.fishing_taro.caught,釣到：%s！,Caught: %s!,钓到：%s！,釣果：%s！
+prep.fishing_taro.bite,咬鉤！！,Bite!!,咬钩！！,食い付き！！
+prep.fishing_taro.fail_early,太早收竿…,Reeled too early…,太早收竿…,早すぎ…
+prep.fishing_taro.fail_late,太慢了…,Too late…,太慢了…,遅すぎ…
+prep.fishing_taro.fail_miss,空竿（影外）,Missed the shadow,空竿（影外）,空振り（影の外）
+prep.fishing_taro.hint_move,左右靠近魚影,Move toward the shadow,左右靠近鱼影,左右で魚影へ
+prep.fishing_taro.hint_cast,A／互動拋竿！,A / Interact to cast!,A／互动抛竿！,A／決定で投げる！
+prep.fishing_taro.hint_wait,等咬鉤…（別早收）,Wait for the bite…,等咬钩…（别早收）,食い付き待ち…
+prep.fishing_taro.hint_bite,現在 A／互動收竿！！,A / Interact to reel!!,现在 A／互动收竿！！,今 A／決定で取り込め！！
+prep.fishing_taro.hint_continue,A／互動繼續,A / Interact to continue,A／互动继续,A／決定で続行
+prep.fishing_taro.session_done,本趟拋竿用完,Out of casts,本趟抛竿用完,投数が尽きた
+prep.fishing_taro.session_summary,釣獲 %d 條（共拋 %d 次）。可再釣或離開。,Caught %d fish (%d casts). Fish again or leave.,钓获 %d 条（共抛 %d 次）。可再钓或离开。,%d 匹ゲット（%d 投）。再挑戦か終了。
+prep.fishing_taro.reward_tank,已解鎖商店物品：魚缸！,Unlocked shop item: Fish tank!,已解锁商店物品：鱼缸！,店舗アイテム「水槽」を解放！
+prep.fish_tank_gallery.title,魚缸欣賞,Fish tank gallery,鱼缸欣赏,水槽ギャラリー
+prep.fish_tank_gallery.info,魚倉游動欣賞。營運中可從已放置的魚缸提取魚材做壽司。,Watch your stock swim. During ops, pull fish from a placed tank for nigiri.,鱼仓游动欣赏。营运中可从已放置的鱼缸提取鱼材做寿司。,在庫の魚が泳ぎます。営業中は設置した水槽からネタを取れます。
+prep.fish_tank_gallery.empty,魚倉還是空的 — 去釣魚太郎釣幾條吧。,Tank stock is empty — try Fishing Taro.,鱼仓还是空的 — 去钓鱼太郎钓几条吧。,在庫は空です。釣り太郎へ。
+prep.fish_tank_gallery.go_fish,前往釣魚太郎,Go to Fishing Taro,前往钓鱼太郎,釣り太郎へ
+prep.fish_tank_gallery.row,%s　%d 條,%s · %d,%s　%d 条,%s　%d匹

@@ -176,6 +176,7 @@ func _eval_row(row: Dictionary, op: String) -> void:
 	var cur := int(row.get("current", 0))
 	var target = task.get("target", 0)
 	var tnum := int(target) if typeof(target) != TYPE_STRING else int(target)
+	var prev := String(row.get("status", "active"))
 	match op:
 		">=":
 			if cur >= tnum:
@@ -195,6 +196,43 @@ func _eval_row(row: Dictionary, op: String) -> void:
 				row["status"] = "failed"
 		_:
 			pass
+	if prev != "done" and String(row.get("status", "")) == "done":
+		_mark_done(row)
+
+
+func _mark_done(row: Dictionary) -> void:
+	if String(row.get("status", "")) == "done" and bool(row.get("rewards_applied", false)):
+		return
+	row["status"] = "done"
+	if not bool(row.get("rewards_applied", false)):
+		row["rewards_pending"] = true
+
+
+## Apply pending task rewards onto GameState (unlock_sku／furniture／prologue_boss).
+## Returns number of tasks that paid out rewards.
+func apply_pending_rewards(state: Object) -> int:
+	if state == null or not state.has_method("apply_content_rewards"):
+		return 0
+	var n := 0
+	for key in bags.keys():
+		var bag: Array = bags[key]
+		for row in bag:
+			if not (row is Dictionary):
+				continue
+			if not bool(row.get("rewards_pending", false)):
+				continue
+			if String(row.get("status", "")) != "done":
+				continue
+			var task: Dictionary = row.get("task", {})
+			var rewards = task.get("rewards", [])
+			if rewards is Array and not rewards.is_empty():
+				state.apply_content_rewards(rewards)
+				n += 1
+			row["rewards_pending"] = false
+			row["rewards_applied"] = true
+	if n > 0:
+		changed.emit()
+	return n
 
 
 func settle_day(
@@ -229,12 +267,12 @@ func settle_day(
 			## Day-scope floor fail on close.
 			if stype == "day":
 				if _floor_met(op, cur, target):
-					row["status"] = "done"
+					_mark_done(row)
 				elif _is_floor_op(op):
 					row["status"] = "failed"
 				## Cap still active and under target → success for "<".
 				elif op == "<" or op == "<=":
-					row["status"] = "done"
+					_mark_done(row)
 				continue
 			## Accumulate: expire after max_days inclusive of started_day.
 			if stype == "accumulate":
@@ -242,12 +280,15 @@ func settle_day(
 				var days_elapsed := current_day_index - started + 1
 				var window_over := max_days > 0 and days_elapsed >= max_days
 				if _floor_met(op, cur, target):
-					row["status"] = "done"
+					_mark_done(row)
 				elif window_over:
 					if _is_floor_op(op):
 						row["status"] = "failed"
 					elif op == "<" or op == "<=":
-						row["status"] = "done" if _cap_ok(op, cur, target) else "failed"
+						if _cap_ok(op, cur, target):
+							_mark_done(row)
+						else:
+							row["status"] = "failed"
 	changed.emit()
 
 

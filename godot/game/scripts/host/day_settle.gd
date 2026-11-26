@@ -112,6 +112,21 @@ static func collect_unsold_pieces(host) -> Dictionary:
 	add_pieces(out, collect_player_carry_pieces(host))
 	add_pieces(out, collect_clerk_held_pieces(host))
 	add_pieces(out, collect_unpaid_checkout_pieces(host))
+	add_pieces(out, collect_cooked_stall_pieces(host))
+	return out
+
+
+## Cooked stall face stock + deposited pantry ingredients.
+static func collect_cooked_stall_pieces(host) -> Dictionary:
+	var out: Dictionary = {}
+	var stalls: Array = host.cooked_stalls if host.get("cooked_stalls") != null else []
+	for stall in stalls:
+		if stall == null or not is_instance_valid(stall):
+			continue
+		if stall.has_method("take_all_face"):
+			add_pieces(out, stall.call("take_all_face"))
+		if stall.has_method("take_all_pantry"):
+			add_pieces(out, stall.call("take_all_pantry"))
 	return out
 
 static func add_pieces(dst: Dictionary, src: Dictionary) -> void:

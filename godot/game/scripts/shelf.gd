@@ -27,6 +27,9 @@ var _fill_level: int = -1
 
 
 func can_accept(item_sku: String) -> bool:
+	## Fish are fish_stock raw materials — never shelf dry/frozen/ice (fishingtaro.md).
+	if Tuning.is_fish_id(item_sku):
+		return false
 	if Tuning.category_of(item_sku) != category:
 		return false
 	if count >= capacity:

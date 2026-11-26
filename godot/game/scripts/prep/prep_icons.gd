@@ -95,6 +95,16 @@ static func _draw(id: String) -> ImageTexture:
 		"rating":
 			_star(img, 48, 48, 30, Color("f4d35e"))
 			_disk(img, 48, 48, 10, Color("1c241f"))
+		"fishing_taro":
+			_disk(img, 48, 58, 28, Color("2a7bb0"))
+			_box(img, 18, 22, 8, 40, Color("8b5a2b"))
+			_disk(img, 52, 48, 6, Color("c0392b"))
+			_disk(img, 68, 40, 8, Color("9eb8c8"))
+		"fish_tank_gallery":
+			_box(img, 16, 56, 64, 18, Color("5c4033"))
+			_box(img, 22, 20, 52, 40, Color("7ec8e3"))
+			_disk(img, 36, 36, 6, Color("c0392b"))
+			_disk(img, 58, 42, 5, Color("f4f1ea"))
 		_:
 			_disk(img, 48, 48, 20, Color("f4d35e"))
 	img.resize(DISPLAY, DISPLAY, Image.INTERPOLATE_LANCZOS)
