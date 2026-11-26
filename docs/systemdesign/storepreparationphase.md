@@ -51,7 +51,7 @@
 #存檔與劇本
 
 - 啟動時若有合法 `user://save.json`：略過劇本選擇，直接進準備 home  
-- 無存檔：先選劇本。試玩起點含空店／中期／後期，以及 **劇本4「技能測試」**（LV10、三圍各 20、資金 $99999、規模 LV3 闊 18×長 10、商店物品各購入 2、已開發乾貨系＋倉庫各 200 件、店員補貨／收銀各 1、店面已放好可直接開工的左右配置；用來直接試技能，不用從空店買起）。**測試版**另有 **劇本5「教學模式」**（LV1、資金 $3000、空店；流量緩和同劇本1；見 `tutorial.md`）、**劇本6「頭目戰」**（內容藍本＝劇本4；選此劇本後「開始營運」進入頭目日，測 [`bosses/alien_tycoon.md`](bosses/alien_tycoon.md)；見 [`bossbattle.md`](bossbattle.md)），以及 **劇本7「新商店物品測試」**（藍本＝劇本4；普通收銀機收起，門口放 **一台自助收銀機** `self_cashier`；無收銀店員；見 `shopitem.md`／`cashiersystem.md`）
+- 無存檔：先選劇本。試玩起點含空店／中期／後期，以及 **劇本4「技能測試」**（LV10、三圍各 20、資金 $99999、規模 LV3 闊 18×長 10、商店物品各購入 2、已開發乾貨系＋倉庫各 200 件、店員補貨／收銀各 1、店面已放好可直接開工的左右配置；用來直接試技能，不用從空店買起）。**測試版**另有 **劇本5「教學模式」**（LV1、資金 $3000、空店；流量緩和同劇本1；見 `tutorial.md`）、**劇本6「頭目戰」**（內容藍本＝劇本4；選此劇本後「開始營運」進入頭目日，測 [`bosses/alien_tycoon.md`](bosses/alien_tycoon.md)；見 [`bossbattle.md`](bossbattle.md)）、**劇本7「新商店物品測試」**（藍本＝劇本4；普通收銀機收起，門口放 **一台自助收銀機** `self_cashier`；無收銀店員；見 `shopitem.md`／`cashiersystem.md`）、**劇本9「安桃山時代」**（熟食檔；見 `cookedfoodsystem.md`）、以及 **劇本10「精英店員營運日測試」**（安桃山 place shell；店鋪／已開發商品 bake 自活線存檔——米／醬油／零食＋凍／冰＋熟食檔＋魚缸；`elite_clerk_catalog` **全員 debug 解鎖滿級**；見 [`eliteclerk.md`](eliteclerk.md)）
 - 系統工具可「清除存檔並重新選擇劇本」
 - 系統工具可開關**虛擬搖桿**（`user://settings.cfg` → `[ui] virtual_stick`，**預設關**；僅 Web／手機且活躍輸入為觸控時顯示；手掣／鍵盤自動隱藏。營運暫停選單亦可改。見 `inputmodes-vj.md`）
 - 系統工具可開關**背景音樂**與調聲量（`[audio] bgm_muted`／`bgm_volume`；與暫停選單共用。見 `bgm.md`、`pausemenu.md`）

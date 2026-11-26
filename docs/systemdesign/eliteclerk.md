@@ -141,12 +141,49 @@
 - 主題元素槽與通關來源見 `storysystem.md`／各 `story/themes/*`
 - 破局主題是否發精英：見 `story/progression-crossref.md`；目錄已預留 `alan`（暫名）
 
+# 測試劇本 10「精英店員營運日測試」
+
+- **狀態：** 活線已掛（`GameState.SCENARIO_ELITE_CLERK = 10`；僅 `ProductVersion.TEST_TOOLS` 劇本選單可見）
+- **藍本：** 安桃山 place shell；店鋪／商品 **bake 自 2026-11-26 活線存檔**
+- **店面：** 18×13；魚缸、熟食檔、乾貨補貨×3（米／醬油／零食）＋乾貨架×3；凍櫃補貨×2（飲／奶）＋凍貨架 24×2；冰櫃補貨×1（雪糕）＋冰貨架 24×1；收銀×1；**傳送門一對**（右上 `(16,0)` ↔ 右下 `(16,12)`）
+- **已開發／可售：** 米、醬油、零食、飲、奶、雪糕、熟食三品可售；`can` 已開發但不可售
+- **庫存：** 可售乾／凍／冰線各約 50 箱等價；**各魚 id＝40**
+- **差異：** `EliteClerkCatalog` **全員** debug 解鎖並 `level_max`（多數 LV10；`kiko`＝8）；一般雇員補貨／收銀各 1
+- **目的：** 在安桃山＋擴充凍／冰線營運日一次驗收精英店員進度
+
+## 開局後建議驗收（對照現況）
+
+### Prep
+
+1. 員工管理 → **精英店員**分頁：列表顯示全員（名稱／等級／出勤／崗位摘要）
+2. 開詳情：背景、等級上限、三圍、固有技能名／簡述、`max_posts`、可切崗位、出勤開關、升級費用
+3. 升級：扣款成功；滿級／資金不足有錯誤字串
+4. 多崗位：在 `allowed_roles` 內切到 `max_posts`；少於 1 崗／超上限有阻擋
+5. 出勤關：該員不應出現在下一日 `on_duty_elite_clerks()`
+
+### 營運日
+
+1. 開始營運：世界應生成一般雇員＋所有出勤精英（`world_build._spawn_elite_clerks`）
+2. **多崗位優先**（僅已指派集合內）：有賊 → security；否則可清污 → cleaner；機有就緒客 → cashier；否則 restock
+3. 清潔中途污物被清掉／`queue_free`：清潔員不應因 freed 目標型別錯誤當掉（`_clean_target_valid` 未型別參數）
+4. 一般雇員 `setup`：`roles: Array[String]` 指派正常（不再用 untyped `[job]` 字面量）
+5. NUL（`max_posts` 3）等複合崗：觀察是否在補貨／收銀／清潔間切換，而非卡住單一崗
+
+### 工程備註（已修、劇本用來回歸）
+
+| 問題 | 修法摘要 |
+|------|----------|
+| `elite_clerk_catalog` `const ENTRIES` 呼叫 helper → Parse error | 成長／費用改具名 `const` 表再引用 |
+| Prep 詳情 `:=` 推論失敗（`load()`／`menu.state`） | `lv_max`／`skill`／`cost` 顯式型別 |
+| `roles = [job]` → Array 對不上 `Array[String]` | `clear`＋`append` |
+| `_clean_target_valid(d: Node2D)` 傳入已釋放物件 | 參數改未型別；先 `is_instance_valid` 再當 `Node2D` 用 |
+
 # 相關文件
 
 | 文件 | 角色 |
 |------|------|
 | [`clerksystem.md`](clerksystem.md) | 一般雇員 |
-| [`storepreparationphase.md`](storepreparationphase.md) | Prep 員工管理分頁 |
+| [`storepreparationphase.md`](storepreparationphase.md) | Prep 員工管理分頁；劇本 10 列於測試版選單 |
 | [`savesystem.md`](savesystem.md) | `elite_clerks` 存檔 |
 | [`storysystem.md`](storysystem.md) | 主題元素槽含精英店員 |
 | [`story/themes/`](story/themes/) | 各主題主導角色 |

@@ -22,8 +22,11 @@ const GUEST_HISTORIC: Array[String] = [
 static func uses_historic_place_shell(state: Object) -> bool:
 	if state == null:
 		return false
-	## Interim: scenario 9 安桃山熟食測試。Later: story theme_id == theme_historic.
-	return int(state.get("scenario")) == StateScript.SCENARIO_HISTORIC_COOKED
+	## Interim: scenario 9／10 安桃山。Later: story theme_id == theme_historic.
+	if state.has_method("uses_historic_place_scenario"):
+		return bool(state.call("uses_historic_place_scenario"))
+	var sid := int(state.get("scenario"))
+	return sid == StateScript.SCENARIO_HISTORIC_COOKED or sid == StateScript.SCENARIO_ELITE_CLERK
 
 
 static func floor_model_id(state: Object) -> String:

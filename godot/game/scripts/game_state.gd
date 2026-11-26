@@ -34,6 +34,8 @@ const PROLOGUE_BOSS_FUND_REWARD := 2000
 const SCENARIO_PROLOGUE := 8
 ## Test: theme_historic cooked-stall sandbox (blueprint from scenario 4).
 const SCENARIO_HISTORIC_COOKED := 9
+## Test: elite-clerk ops-day on 安桃山 blueprint (scenario 9 layout + full catalog unlocked).
+const SCENARIO_ELITE_CLERK := 10
 
 const CELL := 64.0
 const WAGE := 100
@@ -235,6 +237,9 @@ func apply_scenario(id: int) -> void:
 		SCENARIO_HISTORIC_COOKED:
 			## 安桃山時代：熟食檔測試（藍本同劇本4，乾貨／魚缸／熟食檔）。
 			_scenario_historic_cooked()
+		SCENARIO_ELITE_CLERK:
+			## 精英店員營運日測試（藍本同劇本4；目錄全員 debug 解鎖）。
+			_scenario_elite_clerk()
 		SCENARIO_PROLOGUE:
 			_scenario_prologue()
 		_:
@@ -243,7 +248,9 @@ func apply_scenario(id: int) -> void:
 	_grant_initial_goods()
 	_seed_content_unlocks_for_scenario()
 	_default_for_sale_for_developed()
-	if scenario == SCENARIO_HISTORIC_COOKED:
+	if scenario == SCENARIO_ELITE_CLERK:
+		_finalize_elite_clerk_scenario()
+	elif scenario == SCENARIO_HISTORIC_COOKED:
 		_finalize_historic_cooked_scenario()
 
 
@@ -253,6 +260,11 @@ func is_boss_test_scenario() -> bool:
 
 func is_prologue_story_scenario() -> bool:
 	return scenario == SCENARIO_PROLOGUE
+
+
+## 安桃山 place shell／熟食閘（劇本9、10）。
+func uses_historic_place_scenario() -> bool:
+	return scenario == SCENARIO_HISTORIC_COOKED or scenario == SCENARIO_ELITE_CLERK
 
 
 func _grant_initial_goods() -> void:
@@ -638,10 +650,74 @@ func _scenario_skill() -> void:
 	_place("portal", 2, 8, 0, "", "p2")
 	clerks.append({"role": "restock", "register": 0})
 	clerks.append({"role": "cashier", "register": 0})
-	## Elite clerk sandbox: multi-post NUL + theme sample Yayoi.
-	unlock_elite_clerk("nul", "debug")
-	unlock_elite_clerk("yayoi", "debug")
-	unlock_elite_clerk("kiko", "debug")
+
+
+## Scenario 10：精英店員營運日測試。安桃山 place shell；店鋪／已開發商品 bake 自 2026-11-26 活線存檔。
+func _scenario_elite_clerk() -> void:
+	money = 99999
+	level = 10
+	xp = 0
+	unspent = 15
+	base_str = 10
+	base_agi = 10
+	base_int = 10
+	str_stat = 20
+	agi_stat = 20
+	int_stat = 20
+	shop_scale = 3
+	grid_w = 18
+	grid_h = 13
+	fishing_taro_played = true
+	## Developed retail + cooked craft（can 開發但不可售，見 finalize）。
+	for sku in [
+		"can", "grain", "soy_sauce", "snack", "drink", "milk", "icecream",
+		"onigiri", "yakimochi", "nigiri",
+	]:
+		developed[sku] = true
+		if not Tuning.is_craft_only(sku) and sku != "can":
+			stock[sku] = 50 * Tuning.BOX_SIZE
+	stock["can"] = 0
+	for fid in Tuning.FISH_IDS:
+		fish_stock[fid] = 40
+	owned.clear()
+	owned["cashier"] = 1
+	owned["cooked_stall"] = 1
+	owned["fish_tank"] = 1
+	owned["restock_dry"] = 3
+	owned["restock_frozen"] = 2
+	owned["restock_ice"] = 1
+	owned["shelf_dry_12"] = 3
+	owned["shelf_frozen_24"] = 2
+	owned["shelf_ice_24"] = 1
+	owned["portal"] = 2
+	## Live prep layout（2026-11-26 save）：魚缸門口左、熟食檔、乾貨左排、冷藏／冰櫃右排。
+	_place("fish_tank", 1, 0, 0)
+	_place("cooked_stall", 4, 2, 0)
+	_place("restock_dry", 1, 3, 0, "grain")
+	_place("cashier", 8, 5, 0)
+	_place("shelf_dry_12", 4, 5, 0)
+	_place("shelf_frozen_24", 12, 5, 0)
+	_place("restock_dry", 1, 6, 0, "soy_sauce")
+	_place("restock_frozen", 15, 3, 0, "drink")
+	_place("restock_frozen", 15, 6, 0, "milk")
+	_place("shelf_dry_12", 4, 7, 0)
+	_place("shelf_frozen_24", 12, 7, 0)
+	_place("restock_dry", 1, 9, 0, "snack")
+	_place("shelf_dry_12", 4, 9, 0)
+	_place("shelf_ice_24", 12, 9, 0)
+	_place("restock_ice", 15, 9, 0, "icecream")
+	## 一對傳送門：右上 ↔ 右下（面向店內）。
+	_place("portal", 16, 0, 2, "", "p1")
+	_place("portal", 16, 12, 0, "", "p1")
+	clerks.append({"role": "cashier", "register": 0})
+	clerks.append({"role": "restock", "register": 0})
+	for eid in EliteClerkCatalog.all_ids():
+		var id := String(eid)
+		unlock_elite_clerk(id, "debug")
+		var i := _elite_index(id)
+		if i >= 0:
+			## 多數 level_max＝10；個別（如 kiko＝8）夾在目錄上限。
+			elite_clerks[i]["level"] = EliteClerkCatalog.level_max(id)
 
 
 ## Scenario 7：劇本4 藍本；收起普通收銀機，門口下一台自助收銀機。無收銀店員（自助機不可綁）。
@@ -721,6 +797,34 @@ func _finalize_historic_cooked_scenario() -> void:
 		"grain": true,
 		"soy_sauce": true,
 		"snack": true,
+		"onigiri": true,
+		"yakimochi": true,
+		"nigiri": true,
+	}
+	for sku in Tuning.SELLABLE_SKUS:
+		if developed.has(sku):
+			for_sale[sku] = bool(allow.get(sku, false))
+		else:
+			for_sale.erase(sku)
+	if int(owned.get("fish_tank", 0)) < 1:
+		owned["fish_tank"] = 1
+	if int(owned.get("cooked_stall", 0)) < 1:
+		owned["cooked_stall"] = 1
+
+
+## Scenario 10：安桃山殼＋擴充凍／冰線；for_sale 跟活線存檔。保留預放傳送門。
+func _finalize_elite_clerk_scenario() -> void:
+	developed["can"] = true
+	if not stock.has("can"):
+		stock["can"] = 0
+	var allow := {
+		"can": false,
+		"grain": true,
+		"soy_sauce": true,
+		"snack": true,
+		"drink": true,
+		"milk": true,
+		"icecream": true,
 		"onigiri": true,
 		"yakimochi": true,
 		"nigiri": true,

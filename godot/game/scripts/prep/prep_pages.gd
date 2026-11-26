@@ -361,6 +361,7 @@ static func _scenario(menu: CanvasLayer) -> void:
 		menu._add(Loc.t("prep.scenario.s6"), "sc", 6)
 		menu._add(Loc.t("prep.scenario.s7"), "sc", 7)
 		menu._add(Loc.t("prep.scenario.s9"), "sc", menu.state.SCENARIO_HISTORIC_COOKED)
+		menu._add(Loc.t("prep.scenario.s10"), "sc", menu.state.SCENARIO_ELITE_CLERK)
 
 
 static func _in_room_lobby() -> bool:
