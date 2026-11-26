@@ -9,6 +9,9 @@ const Art = preload("res://scripts/prep/fishing_taro_art.gd")
 const Tuning = preload("res://scripts/tuning.gd")
 const UiFont = preload("res://scripts/ui_font.gd")
 const SkuIcons = preload("res://scripts/sku_icons.gd")
+const BgmBusScript = preload("res://scripts/bgm_bus.gd")
+## Preload like metal_rush — runtime load + mutate import can fail silently.
+const BGM_STREAM: AudioStream = preload("res://audio/bgm/fishing_taro.wav")
 
 const MAX_CASTS := 20
 const CAST_RANGE := 42.0
@@ -58,6 +61,7 @@ var _details: Label
 var _start: Button
 var _back: Button
 var _exit_btn: Button
+var _bgm_override: bool = false
 
 
 func setup(game_state: RefCounted) -> void:
@@ -69,6 +73,7 @@ func _ready() -> void:
 	## Keep ticking／polling even while parent Prep CanvasLayer is hidden.
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_build()
+	_start_minigame_bgm()
 	Loc.locale_changed.connect(_localize)
 	get_window().focus_exited.connect(_clear_input)
 	## Drop Prep list focus so pad A is not eaten by ui_accept on a hidden button.
@@ -553,6 +558,7 @@ func _request_exit() -> void:
 	if _exiting:
 		return
 	_exiting = true
+	_stop_minigame_bgm()
 	if state != null:
 		var first: bool = bool(state.mark_fishing_taro_played())
 		if first:
@@ -561,3 +567,29 @@ func _request_exit() -> void:
 			await get_tree().create_timer(0.9).timeout
 	exited.emit()
 	queue_free()
+
+
+func _start_minigame_bgm() -> void:
+	## Drive Music bus via BgmBus (same player as PrepareShop) so mute/volume apply.
+	if BGM_STREAM == null:
+		push_warning("fishing_taro: missing BGM stream")
+		return
+	var bgm := BgmBusScript.bus()
+	if bgm == null or not bgm.has_method("play_override"):
+		push_warning("fishing_taro: BgmBus.play_override missing")
+		return
+	bgm.play_override(BGM_STREAM)
+	_bgm_override = true
+
+
+func _stop_minigame_bgm() -> void:
+	if not _bgm_override:
+		return
+	_bgm_override = false
+	var bgm := BgmBusScript.bus()
+	if bgm != null and bgm.has_method("clear_override"):
+		bgm.clear_override()
+
+
+func _exit_tree() -> void:
+	_stop_minigame_bgm()

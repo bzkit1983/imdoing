@@ -100,4 +100,4 @@
 - `prep_menu`／`prep_pages` hub 列
 - `GameState.fish_stock`／`unlock_fish_tank_from_fishing()`
 - `fish_tank` 執行時節點（restock 變體或獨立 `fish_tank.gd`）
-- 音效／BGM 鍵後補 `soundeffects.md`／`bgm.md`
+- BGM：`audio/bgm/fishing_taro.wav`（8-bit 河畔 loop；進場暫停 Prep `BgmBus`，離開恢復；見 `bgm.md`）

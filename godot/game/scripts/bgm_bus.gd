@@ -44,6 +44,8 @@ var _elite_track: String = ""
 ## Desired track while muted — resume on unmute.
 var _pending_track: String = ""
 var _suspended := false
+## Minigame bed (e.g. fishing_taro): replaces the Music player until cleared.
+var _override_stream: AudioStream = null
 
 
 func _ready() -> void:
@@ -67,6 +69,11 @@ func set_muted(on: bool) -> void:
 			_player.stop()
 		_kill_fade()
 		_player.volume_db = DEFAULT_VOL_DB
+	elif _override_stream != null:
+		_player.stream = _override_stream
+		_player.volume_db = DEFAULT_VOL_DB
+		_player.stream_paused = false
+		_player.play()
 	elif _pending_track != "":
 		_start_track(_pending_track, false)
 	_save_settings()
@@ -164,6 +171,9 @@ func current_theme() -> String:
 
 
 func set_suspended(suspended: bool) -> void:
+	## Override bed owns the player — ignore pause/resume from other minigames.
+	if _override_stream != null:
+		return
 	if _player == null or _suspended == suspended:
 		return
 	_suspended = suspended
@@ -172,6 +182,63 @@ func set_suspended(suspended: bool) -> void:
 	_player.stream_paused = suspended
 	if not suspended and not _muted and _pending_track != "":
 		_start_track(_pending_track, false)
+
+
+## Swap Music player to a one-off bed (Prep minigames). Call clear_override() on exit.
+func play_override(stream: AudioStream) -> void:
+	if _player == null or stream == null:
+		return
+	_override_stream = _with_loop(stream)
+	_suspended = true
+	_kill_fade()
+	_player.stream_paused = false
+	_player.stream = _override_stream
+	_player.volume_db = DEFAULT_VOL_DB
+	if _muted:
+		_player.stop()
+		return
+	_player.play()
+
+
+func clear_override() -> void:
+	if _override_stream == null:
+		return
+	_override_stream = null
+	_suspended = false
+	_kill_fade()
+	_player.stream_paused = false
+	if _muted:
+		_player.stop()
+		return
+	if _pending_track != "":
+		_start_track(_pending_track, false)
+	elif _player.playing:
+		_player.stop()
+
+
+## Godot 4.7 WAV: loop_end=-1 / unset plays 0 frames (silent). Use sample count.
+func _with_loop(stream: AudioStream) -> AudioStream:
+	if stream is AudioStreamWAV:
+		var wav := (stream as AudioStreamWAV).duplicate() as AudioStreamWAV
+		var bytes_per_frame := 2
+		match wav.format:
+			AudioStreamWAV.FORMAT_8_BITS:
+				bytes_per_frame = 1
+			AudioStreamWAV.FORMAT_IMA_ADPCM:
+				bytes_per_frame = 1
+			_:
+				bytes_per_frame = 2
+		if wav.stereo:
+			bytes_per_frame *= 2
+		wav.loop_begin = 0
+		wav.loop_end = int(wav.data.size() / maxi(bytes_per_frame, 1))
+		wav.loop_mode = AudioStreamWAV.LOOP_FORWARD
+		return wav
+	if stream is AudioStreamMP3:
+		var mp3 := (stream as AudioStreamMP3).duplicate() as AudioStreamMP3
+		mp3.loop = true
+		return mp3
+	return stream
 
 
 ## Settings tip: ensure Music bus briefly audible at current volume.
@@ -207,7 +274,7 @@ func _switch_to(track_id: String) -> void:
 
 
 func _start_track(track_id: String, fade: bool) -> void:
-	if _suspended:
+	if _suspended or _override_stream != null:
 		return
 	var stream: AudioStream = _streams.get(track_id) as AudioStream
 	if stream == null:
