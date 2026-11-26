@@ -4,6 +4,69 @@ extends RefCounted
 
 const LEVEL_MAX_DEFAULT := 10
 
+## Growth / upgrade tables must be consts (not helper calls) so ENTRIES stays a const expression.
+const GROWTH_BALANCED: Array = [
+	{"str": 8, "agi": 8, "int": 8},
+	{"str": 9, "agi": 9, "int": 9},
+	{"str": 10, "agi": 10, "int": 10},
+	{"str": 11, "agi": 11, "int": 11},
+	{"str": 12, "agi": 12, "int": 12},
+	{"str": 13, "agi": 13, "int": 13},
+	{"str": 14, "agi": 14, "int": 14},
+	{"str": 15, "agi": 15, "int": 15},
+	{"str": 16, "agi": 16, "int": 16},
+	{"str": 18, "agi": 18, "int": 18},
+]
+const GROWTH_BALANCED_SHORT: Array = [
+	{"str": 7, "agi": 9, "int": 7},
+	{"str": 8, "agi": 10, "int": 8},
+	{"str": 9, "agi": 11, "int": 9},
+	{"str": 10, "agi": 12, "int": 10},
+	{"str": 11, "agi": 13, "int": 11},
+	{"str": 12, "agi": 14, "int": 12},
+	{"str": 13, "agi": 15, "int": 13},
+	{"str": 14, "agi": 16, "int": 14},
+]
+const GROWTH_STR_LEAN: Array = [
+	{"str": 12, "agi": 7, "int": 6},
+	{"str": 14, "agi": 8, "int": 7},
+	{"str": 16, "agi": 8, "int": 7},
+	{"str": 18, "agi": 9, "int": 8},
+	{"str": 20, "agi": 10, "int": 8},
+	{"str": 22, "agi": 10, "int": 9},
+	{"str": 24, "agi": 11, "int": 9},
+	{"str": 26, "agi": 12, "int": 10},
+	{"str": 28, "agi": 12, "int": 10},
+	{"str": 30, "agi": 13, "int": 11},
+]
+const GROWTH_AGI_LEAN: Array = [
+	{"str": 7, "agi": 12, "int": 7},
+	{"str": 8, "agi": 14, "int": 8},
+	{"str": 8, "agi": 16, "int": 8},
+	{"str": 9, "agi": 18, "int": 9},
+	{"str": 10, "agi": 20, "int": 9},
+	{"str": 10, "agi": 22, "int": 10},
+	{"str": 11, "agi": 24, "int": 10},
+	{"str": 12, "agi": 26, "int": 11},
+	{"str": 12, "agi": 28, "int": 12},
+	{"str": 13, "agi": 30, "int": 12},
+]
+const GROWTH_INT_LEAN: Array = [
+	{"str": 6, "agi": 8, "int": 12},
+	{"str": 7, "agi": 9, "int": 14},
+	{"str": 7, "agi": 9, "int": 16},
+	{"str": 8, "agi": 10, "int": 18},
+	{"str": 8, "agi": 10, "int": 20},
+	{"str": 9, "agi": 11, "int": 22},
+	{"str": 9, "agi": 12, "int": 24},
+	{"str": 10, "agi": 12, "int": 26},
+	{"str": 10, "agi": 13, "int": 28},
+	{"str": 11, "agi": 14, "int": 30},
+]
+const COSTS_STANDARD: Array = [500, 800, 1200, 1800, 2500, 3500, 4800, 6500, 8500]
+const COSTS_PREMIUM: Array = [800, 1200, 1800, 2600, 3600, 5000, 6800, 9000, 12000]
+const COSTS_LIGHT: Array = [300, 500, 800, 1200, 1700, 2300, 3000]
+
 ## Theme-lead placeholders (brainstorm names) + one event / minigame sample.
 const ENTRIES: Array[Dictionary] = [
 	{
@@ -18,8 +81,8 @@ const ENTRIES: Array[Dictionary] = [
 		"default_roles": ["cashier", "cleaner"],
 		"skill_id": "soothe",
 		"level_max": 10,
-		"growth": _growth_agi_lean(),
-		"upgrade_costs": _costs_standard(),
+		"growth": GROWTH_AGI_LEAN,
+		"upgrade_costs": COSTS_STANDARD,
 	},
 	{
 		"id": "yayoi",
@@ -33,8 +96,8 @@ const ENTRIES: Array[Dictionary] = [
 		"default_roles": ["cashier", "security"],
 		"skill_id": "checkout_speed",
 		"level_max": 10,
-		"growth": _growth_int_lean(),
-		"upgrade_costs": _costs_standard(),
+		"growth": GROWTH_INT_LEAN,
+		"upgrade_costs": COSTS_STANDARD,
 	},
 	{
 		"id": "sumi",
@@ -48,8 +111,8 @@ const ENTRIES: Array[Dictionary] = [
 		"default_roles": ["cleaner"],
 		"skill_id": "sweeping_monk",
 		"level_max": 10,
-		"growth": _growth_agi_lean(),
-		"upgrade_costs": _costs_standard(),
+		"growth": GROWTH_AGI_LEAN,
+		"upgrade_costs": COSTS_STANDARD,
 	},
 	{
 		"id": "griffin",
@@ -63,8 +126,8 @@ const ENTRIES: Array[Dictionary] = [
 		"default_roles": ["security", "restock"],
 		"skill_id": "carry_passive",
 		"level_max": 10,
-		"growth": _growth_str_lean(),
-		"upgrade_costs": _costs_standard(),
+		"growth": GROWTH_STR_LEAN,
+		"upgrade_costs": COSTS_STANDARD,
 	},
 	{
 		"id": "nul",
@@ -78,8 +141,8 @@ const ENTRIES: Array[Dictionary] = [
 		"default_roles": ["restock", "cashier", "cleaner"],
 		"skill_id": "npc_multi_micro",
 		"level_max": 10,
-		"growth": _growth_balanced(),
-		"upgrade_costs": _costs_standard(),
+		"growth": GROWTH_BALANCED,
+		"upgrade_costs": COSTS_STANDARD,
 	},
 	{
 		"id": "ran",
@@ -93,8 +156,8 @@ const ENTRIES: Array[Dictionary] = [
 		"default_roles": ["cleaner", "security"],
 		"skill_id": "calm_zone",
 		"level_max": 10,
-		"growth": _growth_agi_lean(),
-		"upgrade_costs": _costs_standard(),
+		"growth": GROWTH_AGI_LEAN,
+		"upgrade_costs": COSTS_STANDARD,
 	},
 	{
 		"id": "mirror_you",
@@ -108,8 +171,8 @@ const ENTRIES: Array[Dictionary] = [
 		"default_roles": ["cashier", "security"],
 		"skill_id": "elite_guest_specialist",
 		"level_max": 10,
-		"growth": _growth_int_lean(),
-		"upgrade_costs": _costs_premium(),
+		"growth": GROWTH_INT_LEAN,
+		"upgrade_costs": COSTS_PREMIUM,
 	},
 	{
 		"id": "kiko",
@@ -123,8 +186,8 @@ const ENTRIES: Array[Dictionary] = [
 		"default_roles": ["restock", "cleaner"],
 		"skill_id": "restock_speed",
 		"level_max": 8,
-		"growth": _growth_balanced_short(),
-		"upgrade_costs": _costs_light(),
+		"growth": GROWTH_BALANCED_SHORT,
+		"upgrade_costs": COSTS_LIGHT,
 	},
 ]
 
@@ -139,91 +202,6 @@ const NPC_SKILLS: Dictionary = {
 		"blurb_key": "skill.npc_multi_micro.blurb",
 	},
 }
-
-
-static func _growth_balanced() -> Array:
-	return [
-		{"str": 8, "agi": 8, "int": 8},
-		{"str": 9, "agi": 9, "int": 9},
-		{"str": 10, "agi": 10, "int": 10},
-		{"str": 11, "agi": 11, "int": 11},
-		{"str": 12, "agi": 12, "int": 12},
-		{"str": 13, "agi": 13, "int": 13},
-		{"str": 14, "agi": 14, "int": 14},
-		{"str": 15, "agi": 15, "int": 15},
-		{"str": 16, "agi": 16, "int": 16},
-		{"str": 18, "agi": 18, "int": 18},
-	]
-
-
-static func _growth_balanced_short() -> Array:
-	return [
-		{"str": 7, "agi": 9, "int": 7},
-		{"str": 8, "agi": 10, "int": 8},
-		{"str": 9, "agi": 11, "int": 9},
-		{"str": 10, "agi": 12, "int": 10},
-		{"str": 11, "agi": 13, "int": 11},
-		{"str": 12, "agi": 14, "int": 12},
-		{"str": 13, "agi": 15, "int": 13},
-		{"str": 14, "agi": 16, "int": 14},
-	]
-
-
-static func _growth_str_lean() -> Array:
-	return [
-		{"str": 12, "agi": 7, "int": 6},
-		{"str": 14, "agi": 8, "int": 7},
-		{"str": 16, "agi": 8, "int": 7},
-		{"str": 18, "agi": 9, "int": 8},
-		{"str": 20, "agi": 10, "int": 8},
-		{"str": 22, "agi": 10, "int": 9},
-		{"str": 24, "agi": 11, "int": 9},
-		{"str": 26, "agi": 12, "int": 10},
-		{"str": 28, "agi": 12, "int": 10},
-		{"str": 30, "agi": 13, "int": 11},
-	]
-
-
-static func _growth_agi_lean() -> Array:
-	return [
-		{"str": 7, "agi": 12, "int": 7},
-		{"str": 8, "agi": 14, "int": 8},
-		{"str": 8, "agi": 16, "int": 8},
-		{"str": 9, "agi": 18, "int": 9},
-		{"str": 10, "agi": 20, "int": 9},
-		{"str": 10, "agi": 22, "int": 10},
-		{"str": 11, "agi": 24, "int": 10},
-		{"str": 12, "agi": 26, "int": 11},
-		{"str": 12, "agi": 28, "int": 12},
-		{"str": 13, "agi": 30, "int": 12},
-	]
-
-
-static func _growth_int_lean() -> Array:
-	return [
-		{"str": 6, "agi": 8, "int": 12},
-		{"str": 7, "agi": 9, "int": 14},
-		{"str": 7, "agi": 9, "int": 16},
-		{"str": 8, "agi": 10, "int": 18},
-		{"str": 8, "agi": 10, "int": 20},
-		{"str": 9, "agi": 11, "int": 22},
-		{"str": 9, "agi": 12, "int": 24},
-		{"str": 10, "agi": 12, "int": 26},
-		{"str": 10, "agi": 13, "int": 28},
-		{"str": 11, "agi": 14, "int": 30},
-	]
-
-
-static func _costs_standard() -> Array:
-	return [500, 800, 1200, 1800, 2500, 3500, 4800, 6500, 8500]
-
-
-static func _costs_premium() -> Array:
-	return [800, 1200, 1800, 2600, 3600, 5000, 6800, 9000, 12000]
-
-
-static func _costs_light() -> Array:
-	return [300, 500, 800, 1200, 1700, 2300, 3000]
 
 
 static func all_ids() -> Array[String]:

@@ -67,7 +67,10 @@ func apply_net_pose(pos: Vector2, facing: Vector2) -> void:
 func setup(game: Node, at: Vector2, job: String, reg: Node2D) -> void:
 	_game = game
 	role = job
-	roles = [job] if job != "" else []
+	## Typed `Array[String]` rejects untyped `[job]` / `[]` literals.
+	roles.clear()
+	if job != "":
+		roles.append(job)
 	register = reg
 	is_elite = false
 	elite_id = ""
@@ -311,11 +314,11 @@ func _tick_security_patrol(delta: float) -> void:
 
 
 func _tick_security_chase(delta: float) -> void:
-	var target: Node2D = _chase_target
-	if not _chase_target_valid(target):
+	if not _chase_target_valid(_chase_target):
 		_chase_target = null
 		_clear_path()
 		return
+	var target: Node2D = _chase_target as Node2D
 	var catch_sq := Tuning.SECURITY_CATCH_PX * Tuning.SECURITY_CATCH_PX
 	if global_position.distance_squared_to(target.global_position) <= catch_sq:
 		_try_catch_thief(target)
@@ -355,8 +358,11 @@ func _nearest_catchable_thief() -> Node2D:
 	return best
 
 
-func _chase_target_valid(t: Node2D) -> bool:
+func _chase_target_valid(t) -> bool:
+	## Untyped arg: freed refs crash typed Node2D params before is_instance_valid.
 	if t == null or not is_instance_valid(t):
+		return false
+	if not (t is Node2D):
 		return false
 	if not t.has_method("is_active_thief") or not bool(t.call("is_active_thief")):
 		return false
@@ -401,10 +407,10 @@ func _tick_cleaner(delta: float) -> void:
 
 
 func _tick_cleaner_approach(delta: float) -> void:
-	var target: Node2D = _clean_target
-	if not _clean_target_valid(target):
+	if not _clean_target_valid(_clean_target):
 		_abort_clean_target()
 		return
+	var target: Node2D = _clean_target as Node2D
 	var arrive_sq := Tuning.CLEANER_ARRIVE_PX * Tuning.CLEANER_ARRIVE_PX
 	if global_position.distance_squared_to(target.global_position) <= arrive_sq:
 		velocity = Vector2.ZERO
@@ -417,10 +423,10 @@ func _tick_cleaner_approach(delta: float) -> void:
 
 
 func _tick_cleaner_scrub(delta: float) -> void:
-	var target: Node2D = _clean_target
-	if not _clean_target_valid(target):
+	if not _clean_target_valid(_clean_target):
 		_abort_clean_target()
 		return
+	var target: Node2D = _clean_target as Node2D
 	velocity = Vector2.ZERO
 	var need := _clean_need_sec()
 	_scrub_timer += delta
@@ -456,8 +462,11 @@ func _nearest_cleanable_dirt() -> Node2D:
 	return best
 
 
-func _clean_target_valid(d: Node2D) -> bool:
+func _clean_target_valid(d) -> bool:
+	## Untyped arg: freed refs crash typed Node2D params before is_instance_valid.
 	if d == null or not is_instance_valid(d):
+		return false
+	if not (d is Node2D):
 		return false
 	if String(d.get("kind")) != "dirt":
 		return false

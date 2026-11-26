@@ -1403,10 +1403,11 @@ static func _elite_clerk_detail(menu: CanvasLayer) -> void:
 		menu._add(Loc.t("prep.back"), "go", "elite_clerks")
 		return
 	var lv := int(row.get("level", 1))
-	var lv_max := EliteClerkCatalog.level_max(eid)
+	## `load()` / `menu.state` are untyped — annotate so `:=` inference does not fail.
+	var lv_max: int = EliteClerkCatalog.level_max(eid)
 	var stats: Dictionary = menu.state.elite_stats(eid)
-	var skill := EliteClerkCatalog.skill_id(eid)
-	var cost := menu.state.elite_upgrade_cost(eid)
+	var skill: String = EliteClerkCatalog.skill_id(eid)
+	var cost: int = menu.state.elite_upgrade_cost(eid)
 	menu._title.text = EliteClerkCatalog.display_name(eid)
 	var info := Loc.t("prep.elite_clerk.detail_info", [
 		EliteClerkCatalog.bio(eid),
