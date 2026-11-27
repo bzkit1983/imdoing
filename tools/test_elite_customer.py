@@ -58,7 +58,8 @@ def main() -> int:
     tun = (ROOT / "godot/game/scripts/tuning.gd").read_text(encoding="utf-8")
     if "ELITE_TEST_SPAWN_CHANCE" not in tun:
         errs.append("tuning missing ELITE_TEST_SPAWN_CHANCE")
-    if "payout_total" not in (ROOT / "godot/game/scripts/player.gd").read_text(encoding="utf-8"):
+    checkout_src = (ROOT / "godot/game/scripts/player/checkout_controller.gd").read_text(encoding="utf-8")
+    if "payout_total" not in checkout_src:
         errs.append("player checkout should use payout_total")
     if "elite_test_need_one" not in SPAWN or "elite_test_need_one = false" not in SPAWN:
         errs.append("guaranteed first elite should clear elite_test_need_one")

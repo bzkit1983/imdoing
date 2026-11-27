@@ -16,6 +16,7 @@ const InteractScan = preload("res://scripts/player/interact_scan.gd")
 const TossControllerScript = preload("res://scripts/player/toss_controller.gd")
 const FightControllerScript = preload("res://scripts/player/fight_controller.gd")
 const SkillCasterScript = preload("res://scripts/player/skill_caster.gd")
+const CheckoutControllerScript = preload("res://scripts/player/checkout_controller.gd")
 const BagCasterScript = preload("res://scripts/player/bag_caster.gd")
 const CarryCasterScript = preload("res://scripts/player/carry_caster.gd")
 const FloorBarsScript = preload("res://scripts/player/player_floor_bars.gd")
@@ -283,6 +284,7 @@ var _wave_vfx_cd: float = 0.0
 var _toss = TossControllerScript.new()
 var _fight_ctrl = FightControllerScript.new()
 var _skills = SkillCasterScript.new()
+var _checkout = CheckoutControllerScript.new()
 var _bags
 var _carries
 var _floor_bars: Node2D
@@ -342,6 +344,7 @@ func _ready() -> void:
 	_toss.bind(self)
 	_fight_ctrl.bind(self)
 	_skills.bind(self)
+	_checkout.bind(self)
 	_bags = BagCasterScript.new(self)
 	_bags.ensure_menu()
 	_carries = CarryCasterScript.new(self)
@@ -3875,383 +3878,35 @@ func _clear_clean_hint() -> void:
 
 
 func _tick_cashier(_delta: float) -> void:
-	if not is_instance_valid(target):
-		return
-	## A4 L — register through whole payment / cancel.
-	if not _interact_try(target):
-		log_line.emit(Loc.t("log.player.register_busy"))
-		hold_progress = 0.0
-		return
-	var cust = target.call("ready_customer")
-	if cust == null:
-		_prompt.active = false
-		## Still holding, but nobody to check out — unlock walk until release / next ready.
-		_enter_checkout_hold_idle()
-		if not _no_queue_logged:
-			if target.call("front_customer") != null:
-				log_line.emit(Loc.t("log.player.guest_en_route"))
-			else:
-				log_line.emit(Loc.t("log.player.no_guest_at_register"))
-			_no_queue_logged = true
-		return
-	target.operator_checkout()
-	_ensure_seq(cust)
-	_prompt.active = true
-	_prompt.sequence = cust.checkout_seq
-	_prompt.index = seq_index
-	## No Loading Circle — last correct arrow (or full prefill) pays immediately.
-	hold_progress = 0.0
-	if not seq_done:
-		_request_prompt_broadcast()
-		return
-	## Boss multi-wave: finish one wave → cutscene／next wave instead of pay.
-	var game_w := _game()
-	if cust.get("is_boss") == true and game_w != null and game_w.has_method("boss_on_checkout_wave_done"):
-		if bool(game_w.call("boss_on_checkout_wave_done", cust)):
-			seq_index = 0
-			seq_done = false
-			cust.checkout_seq.clear()
-			if cust.has_meta("checkout_seq_init"):
-				cust.remove_meta("checkout_seq_init")
-			_prompt.active = true
-			## Typed Array[int] — do not assign bare [].
-			_prompt.sequence.clear()
-			_prompt.index = 0
-			_request_prompt_broadcast(true)
-			return
-	_finish_checkout(cust)
-
-
-func _senior_cashier_lv_now() -> int:
-	if buff_left("senior_cashier") <= 0.05:
-		return 0
-	return _senior_cashier_lv
+	_checkout.tick_cashier(_delta)
 
 
 func _ensure_seq(cust) -> void:
-	if cust.checkout_seq.is_empty():
-		## Client LAN: wait for Host absolute seq — never dual-randi (M2.9).
-		if SessionService.is_networked() and SessionService.is_client():
-			return
-		var n := Tuning.checkout_command_count(cust.cart.size(), _int_now())
-		var game_n := _game()
-		## Boss absolute wave counts (no INT reduce / later prefill).
-		if cust.get("is_boss") == true and game_n != null and game_n.has_method("boss_checkout_wave_count"):
-			var wave_n := int(game_n.call("boss_checkout_wave_count", cust))
-			if wave_n > 0:
-				n = wave_n
-		cust.set_meta("checkout_seq_init", true)
-		seq_index = 0
-		_checkout_had_miss = false
-		var seq: Array[int] = []
-		for i in n:
-			seq.append(randi() % 4)
-		cust.checkout_seq = seq
-		seq_done = false
-		SfxBus.play("sfx_checkout_enter")
-		log_line.emit(Loc.t("log.player.checkout_cmds", [n, cust.cart.size()]))
-		## Perfect-chain prefill: drop first N arrows (only remainder shown); keep full for miss restore.
-		## Boss waves: never prefill.
-		var pref := 0 if cust.get("is_boss") == true else mini(_checkout_prefill_charge, seq.size())
-		if cust.get("is_boss") != true:
-			_checkout_prefill_charge = 0
-		else:
-			_checkout_prefill_charge = 0
-		seq_index = 0
-		if cust.has_meta("checkout_seq_full"):
-			cust.remove_meta("checkout_seq_full")
-		if cust.has_meta("checkout_seq_trimmed"):
-			cust.remove_meta("checkout_seq_trimmed")
-		if pref > 0:
-			var full_copy: Array = []
-			for d in seq:
-				full_copy.append(int(d))
-			cust.set_meta("checkout_seq_full", full_copy)
-			cust.set_meta("checkout_seq_trimmed", true)
-			var remain: Array[int] = []
-			for i in range(pref, seq.size()):
-				remain.append(int(seq[i]))
-			cust.checkout_seq = remain
-			if remain.is_empty():
-				seq_done = true
-				SfxBus.play("sfx_checkout_seq_done")
-				log_line.emit(Loc.t("log.player.cmds_done"))
-			else:
-				log_line.emit(Loc.t("log.player.checkout_prefill", [pref]))
-		if cust.has_method("broadcast_checkout_seq_state"):
-			cust.call("broadcast_checkout_seq_state")
-		## prompt_state 由 _tick_cashier 在寫入 _prompt.sequence 後再廣播。
-	cust.begin_paying()
+	_checkout.ensure_seq(cust)
+
 
 func _try_dir(dir: int) -> void:
-	if _restock_picking:
-		if target != null and _obj_str(target, "kind") in ["restock", "fish_tank"]:
-			if dir == 0:
-				target.call("move_pick", -1)
-				SfxBus.play("sfx_box_sku_move")
-			elif dir == 1:
-				target.call("move_pick", 1)
-				SfxBus.play("sfx_box_sku_move")
-		return
-	if _cooked_picking:
-		if target != null and _obj_str(target, "kind") == "cooked_stall":
-			## UP/DOWN cycle recipes; LEFT/RIGHT cycle fish for nigiri.
-			if dir == Skills.DIR_UP:
-				target.call("move_pick", -1)
-				SfxBus.play("sfx_box_sku_move")
-			elif dir == Skills.DIR_DOWN:
-				target.call("move_pick", 1)
-				SfxBus.play("sfx_box_sku_move")
-			elif dir == Skills.DIR_LEFT:
-				target.call("move_fish", -1)
-				SfxBus.play("sfx_box_sku_move")
-			elif dir == Skills.DIR_RIGHT:
-				target.call("move_fish", 1)
-				SfxBus.play("sfx_box_sku_move")
-		return
-	if ult_prep:
-		_try_ult_dir(dir)
-		return
-	if skill_menu_open:
-		var stick := Vector2.ZERO
-		match dir:
-			Skills.DIR_UP:
-				stick = Vector2(0, -1)
-			Skills.DIR_DOWN:
-				stick = Vector2(0, 1)
-			Skills.DIR_LEFT:
-				stick = Vector2(-1, 0)
-			Skills.DIR_RIGHT:
-				stick = Vector2(1, 0)
-			_:
-				return
-		var SkillMenu = preload("res://scripts/skill_menu.gd")
-		var slot_i: int = SkillMenu.aim_from_stick(stick)
-		if slot_i < 0:
-			return
-		if _skill_latch:
-			SfxBus.play("sfx_skill_menu_move")
-			_confirm_skill(slot_i)
-			return
-		## Hold: the direction only previews. Release of the skill key confirms.
-		_set_skill_aim(slot_i)
-		return
-	if bag_menu_open:
-		var bstick := Vector2.ZERO
-		match dir:
-			Skills.DIR_UP:
-				bstick = Vector2(0, -1)
-			Skills.DIR_DOWN:
-				bstick = Vector2(0, 1)
-			Skills.DIR_LEFT:
-				bstick = Vector2(-1, 0)
-			Skills.DIR_RIGHT:
-				bstick = Vector2(1, 0)
-			_:
-				return
-		var BagMenu = preload("res://scripts/bag_menu.gd")
-		var bslot: int = BagMenu.aim_from_stick(bstick)
-		if bslot < 0:
-			return
-		if _bag_latch:
-			SfxBus.play("sfx_skill_menu_move")
-			if _bags != null and _bags.has_method("confirm_bag"):
-				_bags.confirm_bag(bslot)
-			return
-		if _bags != null and _bags.has_method("set_bag_aim"):
-			_bags.set_bag_aim(bslot)
-		return
-	if carry_menu_open:
-		var cstick := Vector2.ZERO
-		match dir:
-			Skills.DIR_UP:
-				cstick = Vector2(0, -1)
-			Skills.DIR_DOWN:
-				cstick = Vector2(0, 1)
-			Skills.DIR_LEFT:
-				cstick = Vector2(-1, 0)
-			Skills.DIR_RIGHT:
-				cstick = Vector2(1, 0)
-			_:
-				return
-		var CarryMenu = preload("res://scripts/carry_menu.gd")
-		var count := inventory.grouped().size() if inventory != null else 0
-		var cslot: int = CarryMenu.aim_from_stick(cstick, count)
-		if cslot < 0:
-			return
-		if _carry_latch:
-			SfxBus.play("sfx_skill_menu_move")
-			if _carries != null and _carries.has_method("confirm_carry"):
-				_carries.confirm_carry(cslot)
-			return
-		if _carries != null and _carries.has_method("set_carry_aim"):
-			_carries.set_carry_aim(cslot)
-		return
-	## Prefer command_lock; also accept sticky checkout before lock flips this frame.
-	if command_lock or (
-		_long_committed
-		and _j_held
-		and not _checkout_hold_idle
-		and is_instance_valid(target)
-		and _obj_str(target, "kind") == "cashier"
-	):
-		_try_command(dir)
+	_checkout.try_dir(dir)
 
 
 func _try_command(dir: int) -> void:
-	var cust = target.call("ready_customer") if target else null
-	if cust == null or seq_done:
-		return
-	var seq: Array = cust.checkout_seq
-	if seq.is_empty() or seq_index >= seq.size():
-		return
-	if dir == int(seq[seq_index]):
-		_prompt.fail_at = -1
-		seq_index += 1
-		SfxBus.play("sfx_checkout_dir_ok")
-		if seq_index >= seq.size():
-			seq_done = true
-			SfxBus.play("sfx_checkout_seq_done")
-			log_line.emit(Loc.t("log.player.cmds_done"))
-	else:
-		_checkout_had_miss = true
-		## Prefill miss: restore full arrow string so trimmed cmds reappear; chain ends (no Perfect).
-		if cust.has_meta("checkout_seq_trimmed") and bool(cust.get_meta("checkout_seq_trimmed")):
-			var full = cust.get_meta("checkout_seq_full")
-			if full is Array and full.size() > cust.checkout_seq.size():
-				var restored: Array[int] = []
-				for d in full:
-					restored.append(int(d))
-				cust.checkout_seq = restored
-				if cust.has_method("broadcast_checkout_seq_state"):
-					cust.call("broadcast_checkout_seq_state")
-			cust.set_meta("checkout_seq_trimmed", false)
-		_prompt.fail_at = 0
-		seq_index = 0
-		SfxBus.play("sfx_checkout_dir_fail")
-		log_line.emit(Loc.t("log.player.cmds_fail"))
-	if _prompt:
-		_prompt.sequence = cust.checkout_seq
-		_prompt.index = seq_index
-	_request_prompt_broadcast(true)
+	_checkout.try_command(dir)
 
 
 func _finish_checkout(cust) -> void:
-	## Host authority — Client waits for prompt／agent state (M2.9).
-	if not _world_authority():
-		return
-	var reg = target
-	## Peek dual target before primary leaves the queue (index 1 = next in line).
-	## Boss: no senior dual-pay.
-	var dual_guest = null if cust.get("is_boss") == true else _peek_senior_dual_guest(reg, cust)
-	var base: int = int(cust.call("payout_total")) if cust.has_method("payout_total") else int(cust.call("cart_total"))
-	var from_elite: bool = cust.get("is_elite") == true
-	var perfect := not _checkout_had_miss
-	## Grade hook for future rhythm FX (Good/Great/Perfect visuals).
-	_last_checkout_grade = "perfect" if perfect else "ok"
-	var amount := Tuning.checkout_revenue_amount(base, _int_now(), perfect, _checkout_rush_bonus_now())
-	## paid signal → demo._on_paid; pass elite via game helper when connected.
-	var game := _game()
-	if game != null:
-		game._on_paid(amount, from_elite, seat_id, self, perfect, cust, true)
-	else:
-		paid.emit(amount)
-	_checkout_had_miss = false
-	SfxBus.play("sfx_checkout_circle_done")
-	if from_elite:
-		log_line.emit(Loc.t("log.player.elite_pay", [amount]))
-	else:
-		log_line.emit(Loc.t("log.player.pay_done", [amount]))
-	_spawn_dollar()
-	cust.finish_paid()
-	if game != null and cust.get("is_boss") == true and game.has_method("boss_on_paid"):
-		game.call("boss_on_paid", cust)
-	if reg and is_instance_valid(reg) and reg.has_method("dequeue"):
-		reg.dequeue(cust)
-	## Perfect-chain: arm next-guest prefill (one layer; non-Perfect clears).
-	if perfect:
-		_checkout_prefill_charge = _checkout_prefill_n_equipped()
-	else:
-		_checkout_prefill_charge = 0
-	## Senior dual-pay: settle the guest captured before primary left.
-	_try_senior_dual_checkout(reg, dual_guest)
-	if reg:
-		_interact_release(reg)
-	seq_index = 0
-	seq_done = false
-	hold_progress = 0.0
-	_prompt.active = false
-	_prompt.fail_at = -1
-	_request_prompt_broadcast(true)
-	## Chain into the next ready guest while still holding; otherwise idle-walk.
-	if reg != null and is_instance_valid(reg) and _cashier_has_ready(reg):
-		_checkout_hold_idle = false
-		_no_queue_logged = false
-	else:
-		_enter_checkout_hold_idle()
+	_checkout.finish_checkout(cust)
 
 
 func _enter_checkout_hold_idle() -> void:
-	_checkout_hold_idle = true
-	_long_committed = false
-	if is_instance_valid(target) and _obj_str(target, "kind") == "cashier":
-		_interact_release(target)
-	if _prompt and not ult_prep:
-		_prompt.active = false
-		_prompt.fail_at = -1
+	_checkout.enter_checkout_hold_idle()
 
 
-## Next QUEUE／PAYING guest behind `primary` at this register (not TO_CASHIER).
 func _peek_senior_dual_guest(reg, primary) -> Node:
-	if reg == null or not is_instance_valid(reg):
-		return null
-	var q = reg.get("queue")
-	if q == null or not (q is Array) or q.size() < 2:
-		return null
-	var nxt = q[1]
-	if nxt == null or not is_instance_valid(nxt) or nxt == primary:
-		return null
-	var st := int(nxt.get("state"))
-	const CustomerScript = preload("res://scripts/customer.gd")
-	if st != CustomerScript.State.QUEUE and st != CustomerScript.State.PAYING:
-		return null
-	return nxt
+	return _checkout.peek_senior_dual_guest(reg, primary)
 
 
-## While senior_cashier is up, optionally pay the peeked dual guest (no Perfect).
 func _try_senior_dual_checkout(reg, nxt) -> void:
-	var lv := _senior_cashier_lv_now()
-	if lv <= 0:
-		return
-	if SessionService.is_networked() and SessionService.is_client():
-		return
-	if nxt == null or not is_instance_valid(nxt):
-		return
-	var st := int(nxt.get("state"))
-	const CustomerScript = preload("res://scripts/customer.gd")
-	if st == CustomerScript.State.LEAVE or st == CustomerScript.State.FLEE:
-		return
-	if st != CustomerScript.State.QUEUE and st != CustomerScript.State.PAYING:
-		return
-	var proc := Skills.senior_cashier_dual_proc(lv)
-	if proc < 1.0 and randf() > proc:
-		return
-	var base: int = int(nxt.call("payout_total")) if nxt.has_method("payout_total") else int(nxt.call("cart_total"))
-	var from_elite: bool = nxt.get("is_elite") == true
-	## Dual guest: INT + rush money OK; never Perfect ×1.05 / perfect rating.
-	var amount := Tuning.checkout_revenue_amount(base, _int_now(), false, _checkout_rush_bonus_now())
-	var game := _game()
-	if game != null:
-		game._on_paid(amount, from_elite, seat_id, self, false, nxt, true)
-	else:
-		paid.emit(amount)
-	SfxBus.play("sfx_checkout_cash_pop2")
-	log_line.emit(Loc.t("log.player.senior_dual", [amount]))
-	_spawn_dollar()
-	if nxt.has_method("finish_paid"):
-		nxt.finish_paid()
-	if reg != null and is_instance_valid(reg) and reg.has_method("dequeue"):
-		reg.dequeue(nxt)
+	_checkout.try_senior_dual_checkout(reg, nxt)
 
 
 func _spawn_dollar() -> void:
