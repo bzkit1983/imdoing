@@ -4,7 +4,7 @@
 - 拍板：2026-11-08
 - 工程活線：**已接**（`SAVE_VERSION` 3）
 - 實作：`scripts/session/rating_rules.gd`、`game_state.gd`（`shop_rating`／歷史／`difficulty`）、`demo.gd`（`ops_rating`／行為鉤子）、`hud.gd`、`float_text.gd`、`day_settle.gd`、`prep_menu.gd`（難度建議彈窗；暫不改玩法數值）、`character_sheet.gd`（`support_rating`）
-- 交叉：`ecosystem.md`、`storeoperationphase.md`、`savesystem.md`、`multiplayer.md`、`difficulty.md`、`cashiersystem.md`、`float_text`（營運飄字）
+- 交叉：`ecosystem.md`、`storeoperationphase.md`、`savesystem.md`、`multiplayer.md`、`difficulty.md`、`cashiersystem.md`、`float_text`（營運飄字）、[`branchstore.md`](branchstore.md)（分店評價歸屬）
 
 # 總覽
 
@@ -88,11 +88,12 @@ flowchart TD
 
 # 商店評價
 
-- 記錄玩家（**Host 店**）長期總評級點數
+- 記錄玩家（**Host 當前本店**／各主題店快照）長期總評級點數
 - **起始 0**；**下限 0**；**無上限**；**不衰減**
 - 日結：`shop_rating = max(0, shop_rating + 評級)`  
   （評級 −3…+3 各對商店評價 −3…+3；評級 0 → 0）
-- 主要作達成條件：事件、劇情、成就、其他（日後再定）
+- **多主題店（設計）：** 每間起源／可選主題店各自一份 `shop_rating`／`rating_history`。本店即時營運只改本店；分店背景營運**只改該分店**（見 [`branchstore.md`](branchstore.md)）。難度建議窗**只看本店**歷史
+- 主要作達成條件：事件、劇情、成就、其他（日後再定）。任務 metric `shop_rating` 預設＝**本店**
 - **不可**花在開發／擴張
 
 ## 歷史
@@ -129,6 +130,7 @@ flowchart TD
 # 存檔欄位（設計）
 
 店主檔（見 `savesystem.md`）：至少 `shop_rating`、`rating_history`（最多 30 筆評級）、`difficulty`（見難度檔）。  
+多店模型下上述評價欄落在各 `theme_stores`／`origin_store` 快照內（見 [`branchstore.md`](branchstore.md)）。  
 營運點為局內狀態，關店寫入歷史後不需長期保留當日中途值（可選存 `last_ops_rating`／`last_grade` 供 UI）。  
 訪客槽／線上角色：`support_rating`。
 

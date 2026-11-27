@@ -23,4 +23,5 @@
 章／主題檔為概念開檔（劇本詳情後補）。**期望成長帶／貨／技能數字以三份 `growth-*.md` 為準。**
 
 精英店員：[`../eliteclerk.md`](../eliteclerk.md)。  
+分店／主題店快照：[`../branchstore.md`](../branchstore.md)。  
 頭目戰回合框架：[`../bossbattle.md`](../bossbattle.md)；各頭目專檔：[`../bosses/`](../bosses/)。

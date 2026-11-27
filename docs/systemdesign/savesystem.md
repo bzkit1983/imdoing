@@ -5,6 +5,7 @@
 - 實作：`game_state.gd` 的 `to_dict`／`from_dict`／`save_to_disk`／`load_from_disk`
 - I/O 經 Autoload **`PlatformServices`**（Desktop：`scripts/platform/desktop_platform.gd` → `user://save.json`）
 - **劇情選章（設計先行／未實作）：** 將來需存 `story_slot`、`active_theme_id`、`themes_cleared[]`、`theme_run_flags` 等（形狀見 `storysystem.md` §存檔欄位）；落地時升 `SAVE_VERSION` 並在本檔補 migration
+- **分店／主題店（設計先行／未實作）：** `theme_stores`、`origin_store`、精英 `assignment`、每店獨立 `shop_rating`；**共用**頂層 `money`。形狀見 [`branchstore.md`](branchstore.md)
 
 # 路徑與格式
 
@@ -53,12 +54,14 @@
 
 - 劇本、資金、經驗、等級、未分配點數  
 - STR／AGI／INT 與劇本基底  
-- 已開發貨、**可售旗標**（`for_sale`；缺省＝可售；至少一項可售）、倉庫**件數**、已購傢俬、店舖擺放、店規模與格線  
+- 已開發貨、**可售旗標**（`for_sale`；缺省＝可售；至少一項可售）、倉庫**件數**、已購傢俬、店舖擺放、店規模與格線（活線＝單店頂層欄；設計多店時上述店舖欄進 `theme_stores`／`origin_store`，見 [`branchstore.md`](branchstore.md)）  
 - 店員崗位、技能裝備格、奧義。另有五組 `skill_sets` 和選中編號 `skill_set_index`（`SAVE_VERSION` 仍是 1）。`slots`／`ult_id` 是目前選中那一組的副本。每組可另存 `levels`（Dark Side、多重影分身準備頁選等；沒選預設 LV3）。見 `customizedskillset.md`、`darkside.md`、`shadowclone.md`  
-- **精英店員（`SAVE_VERSION` ≥9）：** `elite_clerks` 陣列；每項 `id`／`level`／`on_duty`／`roles`／`register`／`source`。另占欄、不扣日薪；見 [`eliteclerk.md`](eliteclerk.md)  
+- **精英店員（`SAVE_VERSION` ≥9）：** `elite_clerks` 陣列；每項 `id`／`level`／`on_duty`／`roles`／`register`／`source`。另占欄、不扣日薪；見 [`eliteclerk.md`](eliteclerk.md)。**設計擴欄：** `assignment{theme_id, post}` 與本店 `on_duty` 互斥（分店派駐）  
 - 外觀：`tint`、`skin_id`、`unlocked_skins`（空＝全開）。見 [`appearance.md`](appearance.md)  
 - 當日進貨支出累計、上一局是否虧損、升級備註  
-- **評價／難度（`SAVE_VERSION` ≥3）：** `shop_rating`（商店評價，下限 0）、`rating_history`（最近最多 30 筆日結評級）、`difficulty`（easy／normal／hard，見 `difficulty.md`）、`last_ops_rating`／`last_grade`、`difficulty_prompt_acked`。規則見 `ratingsystem.md`  
+- **評價／難度（`SAVE_VERSION` ≥3）：** `shop_rating`（商店評價，下限 0）、`rating_history`（最近最多 30 筆日結評級）、`difficulty`（easy／normal／hard，見 `difficulty.md`）、`last_ops_rating`／`last_grade`、`difficulty_prompt_acked`。規則見 `ratingsystem.md`。**設計多店：** 每間主題店自有評價欄；頂層／本店 hydrate 後的 `shop_rating`＝當前本店  
+- **分店（設計／未實作）：** `theme_stores`、`origin_store`、`policy`／`branch_posts`；細節 [`branchstore.md`](branchstore.md)  
+
 
 訪客槽另可含 **`support_rating`**（支援別店評價；見 `ratingsystem.md`／`multiplayer.md`）。
 

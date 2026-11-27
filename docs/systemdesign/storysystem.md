@@ -25,7 +25,7 @@
 |----|------|
 | `story_slot` | 進程深度：`prologue` → `chapter_01` → `chapter_02` → `chapter_03`…`chapter_08` → `finale` → `afterstory` |
 | `theme_id` | 內容包：破局固定主題＋**六個可選主題**；第 3–8 槽執行時綁定一個 theme |
-| 解鎖持久 | 主題內解鎖的技能／貨／奧義／外觀／精英店員等 **跨槽可帶**（穿越／多元宇宙敘事） |
+| 解鎖持久 | 主題內解鎖的技能／貨／奧義／外觀／精英店員等 **跨槽可帶**（穿越／多元宇宙敘事）；**店舖本體**破局後按主題快照（見 [`branchstore.md`](branchstore.md)），非單店穿越 |
 
 ```text
 序章 → 第1章 → 第2章（theme_break 破局）
@@ -122,7 +122,8 @@
 - **頭目日：** 普通結算＋任務另發大額 XP／資金＋**解鎖奧義**（首次通關）
 - **店舖規模：** **S1–S6**；跟進 **story_slot** 深度（約每 1–2 槽一檔）；任務解鎖資格＋資金付款
 - **教學 vs 序章：** 系統分開，元件可重用
-- **跨主題攜帶：** 已解鎖元素在後續槽／回訪可用（敘事＝穿越）
+- **跨主題攜帶：** 已解鎖元素（技能／貨開發權／奧義／外觀／精英店員等）在後續槽／回訪可用（敘事＝穿越）
+- **店舖實體（破局後）：** 六可選主題各一間**獨立店快照**；回訪該主題＝本店，其餘可進**分店**背景營運；**共用資金**；見 [`branchstore.md`](branchstore.md)。序章＋第1章＋破局＝起源本店（單一路徑）；分店系統於清完第一個可選主題後解鎖
 
 # 等級錨點（框架層）
 
@@ -156,8 +157,10 @@
 | `story_flags` | 全局已完成節點／解鎖旗標 |
 | `story_blocked` | 是否因劇情任務失敗擋推進 |
 | `completed_story_packs` | 已完結的 `ST-*` pack id |
+| `theme_stores`／`origin_store` | 可選主題店／起源店完整快照；見 [`branchstore.md`](branchstore.md) |
+| `money`（頂層共用） | 本店與分店共用資金；分店不另設資金欄 |
 
-精確 schema 與 `SAVE_VERSION` 升級：待實作時改 `savesystem.md`。
+精確 schema 與 `SAVE_VERSION` 升級：待實作時改 `savesystem.md`。分店欄位細節見 `branchstore.md`。
 
 # 頭目（框架定義）
 
@@ -187,6 +190,7 @@
 | [`story/growth-economy.md`](story/growth-economy.md) | 貨品／資金／規模（SKU ↔ theme；規模 ↔ slot） |
 | [`story/growth-skills.md`](story/growth-skills.md) | 技能／奧義（學會 ↔ theme） |
 | [`eliteclerk.md`](eliteclerk.md) | 精英店員 |
+| [`branchstore.md`](branchstore.md) | 分店／主題店快照／背景營運 |
 | [`tasksystem.md`](tasksystem.md) | 任務 kind／失敗擋推進 |
 | [`playerlevel.md`](playerlevel.md) | 等級上限／EXP 來源 |
 | [`shopprogress.md`](shopprogress.md) | 現行等級解鎖表（過渡／作廢中） |

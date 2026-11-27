@@ -201,6 +201,7 @@ EventModifier.trait_overrides: ...      # 事件級（當日或事件期間）
 # 9. 預設（未決）
 
 - 章級客人行為 × 麻煩：可疊加
-- 後日談回訪：繼承資金／等級
+- 後日談回訪：角色／共用資金繼承；店舖按主題快照（見 [`../branchstore.md`](../branchstore.md)）
 - `heat_before_sell` 完整操作：另開系統檔後再釘秒數
 - 熟食檔雇員代工：v1 不做（見 cookedfoodsystem）
+- 分店背景營運基礎營業額／方針係數：見 `branchstore.md`（待平衡）

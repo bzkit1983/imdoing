@@ -37,6 +37,7 @@
 - 準備期決定是否**出勤**（`on_duty`）與本回合**崗位集合**（`roles[]`）
 - 收銀崗位仍需店內已放置普通 `cashier`；多位精英／雇員綁同一機時行為與現況一致（就緒即入帳）
 - 頭目戰日：含 `cashier` 的精英與一般收銀雇員同樣**不派出收銀職責**（其餘已派崗位照常）；配置留在準備／存檔
+- **分店派駐（設計；見 [`branchstore.md`](branchstore.md)）：** 精英為全域解鎖池；可派任分店店長／四崗位（`assignment{theme_id, post}`）。**互斥：** `on_duty`（本店出勤）與任一分店 `assignment` 不可同時成立；同一員只能佔一個分店崗位
 
 # 管理 UI（準備期）
 
@@ -126,13 +127,15 @@
   "on_duty": true,
   "roles": ["cashier", "security"],
   "register": 0,
-  "source": "theme_clear"
+  "source": "theme_clear",
+  "assignment": null
 }
 ```
 
 - `SAVE_VERSION` ≥ 9
 - 未擁有者不在列表中
 - 清除存檔／重選劇本時一併清空（與一般 `clerks` 相同）
+- **設計擴欄 `assignment`：** `{ "theme_id": "theme_historic", "post": "manager" }` 或 `null`；與 `on_duty` 互斥（見 [`branchstore.md`](branchstore.md)）
 
 # 與其他系統
 
@@ -185,6 +188,7 @@
 | [`clerksystem.md`](clerksystem.md) | 一般雇員 |
 | [`storepreparationphase.md`](storepreparationphase.md) | Prep 員工管理分頁；劇本 10 列於測試版選單 |
 | [`savesystem.md`](savesystem.md) | `elite_clerks` 存檔 |
+| [`branchstore.md`](branchstore.md) | 分店派駐／互斥／背景結算 |
 | [`storysystem.md`](storysystem.md) | 主題元素槽含精英店員 |
 | [`story/themes/`](story/themes/) | 各主題主導角色 |
 | [`story/growth-skills.md`](story/growth-skills.md) | 玩家技能；精英固有技能另見本檔／目錄 |

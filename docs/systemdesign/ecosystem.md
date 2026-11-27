@@ -20,12 +20,13 @@
 
 #資金
 - 起始資金 $2500。LV1 開張約用 $1800（收銀機 $1000、乾貨補貨架 $500、乾貨架 12 件 $100、罐頭 20 箱 $200），餘額可再進貨，不夠把店一次買滿
+- **全域共用一份** `money`（本店與分店不另設資金帳戶；見 [`branchstore.md`](branchstore.md)）
 - 用作支付購入商店物品（事件授予品如傳送門不扣資金；見 `shopitem.md`）
-- 用作採購貨品入庫
+- 用作採購貨品入庫（含分店手動採購與自動補貨）
 - 用作開發新貨品
-- 用作招聘員工
-- 主要來源由營運回合結束後獲得。關店時把當日營業額加入資金。被偷金額不入營業額，也不入資金
-- 當日營業額低於當日採購支出時，結算標為虧損。採購支出只計當日買入倉庫的貨，開發費、傢俬和工資不算。遊戲不因此結束
+- 用作招聘員工（含各主題店各自招聘的一般雇員）
+- 主要來源由營運回合結束後獲得。關店時把**本店**當日營業額加入資金；已解鎖分店系統時，合格分店背景營運營業額**同一 settle** 亦加入共用資金。被偷金額不入營業額，也不入資金
+- 當日營業額低於當日採購支出時，結算標為虧損。採購支出只計當日買入倉庫的貨，開發費、傢俬和工資不算。遊戲不因此結束（分店自動補貨預設另列，見 `branchstore.md`）
 - 營運中成功收銀時，在收銀者頭頂綠字飄出當筆營業額（`$+N`）；實際 `state.money` 仍於關店入帳
 
 #經驗值
@@ -44,9 +45,10 @@
 - 現在劇情進度
 - 已完成劇情
 - **劇情模式框架**（選章＋破局：`story_slot` × `theme_id`；六主題全清→終章→後日談）：見 `storysystem.md`、`story/`
-- 設計欄位意圖（未實作）：`story_slot`／`story_chapter_id`、`active_theme_id`、`themes_cleared[]`、`theme_run_flags`、`story_flags`、`story_blocked`、`completed_story_packs`
+- 設計欄位意圖（未實作）：`story_slot`／`story_chapter_id`、`active_theme_id`、`themes_cleared[]`、`theme_run_flags`、`story_flags`、`story_blocked`、`completed_story_packs`、`theme_stores`／`origin_store`（分店／主題店快照，見 [`branchstore.md`](branchstore.md)）
 - 劇情任務（一次性、失敗擋推進）見 `tasksystem.md`、`taskcontent-story-stub.md`
 - 精英店員進度見 `eliteclerk.md`
+- 分店系統見 [`branchstore.md`](branchstore.md)
 
 #事件進度
 商店會有事件發生,有表單記錄事件詳情
@@ -70,14 +72,16 @@
 - 達成條件以開放新功能
 - 店舖進度詳見店舖進度設定
 - **產品方向：** 功能解鎖由**劇情／事件任務**發放（等級不解鎖；可作任務條件）；**不用**商店評價／營運點支付解鎖。過渡等級表見 `shopprogress.md`（作廢中）；規模／貨品建議見 [`story/growth-economy.md`](story/growth-economy.md)
+- **多主題店（設計）：** 破局後六可選主題各一完整店快照；本店／分店見 [`branchstore.md`](branchstore.md)
 - 任務條件：`tasksystem.md`；報酬表細節可標 Beta（`docs/beta/design.md`）
 
 #營運回合評價與商店評價
 - 定義、行為加減、評級帶、30 日歷史、難度建議觸發：見 `ratingsystem.md`
 - 營運點每次開店重設為 50；日結只依最終營運點定評級 −3…+3，再加減商店評價（下限 0）
-- 評價不作貨幣；主要作事件／劇情／成就等達成條件；亦可作任務 metric（見 `tasksystem.md`）
+- **每間主題店／起源店各自** `shop_rating`（破局後多店模型）；本店即時營運改本店；分店背景營運**只改該分店**（見 [`branchstore.md`](branchstore.md)）
+- 評價不作貨幣；主要作事件／劇情／成就等達成條件；亦可作任務 metric（見 `tasksystem.md`）。任務預設 `shop_rating`＝**本店**
 - 正式任務報酬可改 `shop_rating`／發 XP 等（細節 Beta，見 `docs/beta/design.md`）
-- Host 店才累積商店評價；訪客另計「支援別店評價」（`multiplayer.md`）
+- Host 當前本店才累積當日即時營運的商店評價；訪客另計「支援別店評價」（`multiplayer.md`）
 
 #任務進度
 - 營運／事件／劇情任務共用條件語意：見 `tasksystem.md`
@@ -89,7 +93,7 @@
 - 記錄已採購貨品在庫狀態
 
 #店員狀態
-- 記錄已招募店員狀態
+- 記錄已招募店員狀態（**每店**一般雇員各自一份；精英全域＋互斥派駐，見 `clerksystem.md`／`eliteclerk.md`／`branchstore.md`）
 
 #商店物品狀態
 - 記錄已擁有商店物品狀態（資金購入 **或** 事件授予；見 `shopitem.md`）
