@@ -17,6 +17,7 @@ const TossControllerScript = preload("res://scripts/player/toss_controller.gd")
 const FightControllerScript = preload("res://scripts/player/fight_controller.gd")
 const SkillCasterScript = preload("res://scripts/player/skill_caster.gd")
 const CheckoutControllerScript = preload("res://scripts/player/checkout_controller.gd")
+const WorkTickerScript = preload("res://scripts/player/work_ticker.gd")
 const InputControllerScript = preload("res://scripts/player/input_controller.gd")
 const BagCasterScript = preload("res://scripts/player/bag_caster.gd")
 const CarryCasterScript = preload("res://scripts/player/carry_caster.gd")
@@ -286,6 +287,7 @@ var _toss = TossControllerScript.new()
 var _fight_ctrl = FightControllerScript.new()
 var _skills = SkillCasterScript.new()
 var _checkout = CheckoutControllerScript.new()
+var _work = WorkTickerScript.new()
 var _input_ctrl = InputControllerScript.new()
 var _bags
 var _carries
@@ -347,6 +349,7 @@ func _ready() -> void:
 	_fight_ctrl.bind(self)
 	_skills.bind(self)
 	_checkout.bind(self)
+	_work.bind(self)
 	_input_ctrl.bind(self)
 	_bags = BagCasterScript.new(self)
 	_bags.ensure_menu()
@@ -1456,13 +1459,6 @@ func _tick_buffs(delta: float) -> void:
 	customer_move_mult = _cached_cust_mult
 
 
-func _wiggle_axis() -> Vector2:
-	## Clean: left stick / touch VJ / WASD (D-PAD stays bag — opsitems.md).
-	## Same sources as drop aim / walk; `_move_vector` also feeds remote_move on Host.
-	var v := _move_vector() + stick_axis
-	if v.length_squared() > 1.0:
-		v = v.normalized()
-	return v
 
 
 func _move_axis() -> Vector2:
@@ -2549,106 +2545,7 @@ func _update_target() -> void:
 
 
 func _tick_action(delta: float) -> void:
-	blocked_mismatch = false
-	if _fighting:
-		_tick_fight(delta)
-		return
-	if _stun_left > 0.0 or _slip_left > 0.0:
-		if is_instance_valid(target) and _obj_str(target, "kind") == "dirt":
-			target.call("set_cleaning", false, Vector2.ZERO, 0.0, seat_id)
-		return
-	if not _j_held:
-		hold_progress = 0.0
-		_clear_clean_hint()
-		return
-	_j_time += delta
-	var turret := _usable_turret()
-	if _j_held and is_instance_valid(_lock_node) and _obj_str(_lock_node, "kind") in ["universal_cannon", "shelf_cannon", "kind_cannon"]:
-		turret = _lock_node as Node2D
-	if is_instance_valid(_lock_node) and _obj_str(_lock_node, "kind") in ["universal_cannon", "shelf_cannon", "kind_cannon"] and _lock_node != turret:
-		_interact_release_held()
-		hold_progress = 0.0
-		_pickup_used = false
-	if turret != null:
-		target = turret
-		if not _interact_try(turret):
-			hold_progress = 0.0
-			return
-		if _j_time >= Tuning.SKU_PICK_HOLD:
-			_long_committed = true
-			_tick_cannon(delta, turret)
-		return
-	## Sticky long actions: a passing thief (or other higher-priority target)
-	## must not yank checkout / clean / shelve mid-hold. Thief still wins when
-	## *starting* an Interact press (`playeraction.md` priority).
-	if _long_committed and is_instance_valid(target):
-		match _obj_str(target, "kind"):
-			"cashier":
-				_tick_cashier(delta)
-				return
-			"dirt":
-				_tick_clean(delta)
-				return
-			"shelf":
-				if _shelve_done:
-					_long_committed = false
-				else:
-					_tick_restock(delta)
-					return
-	if not _long_committed and not _restock_picking and not _cooked_picking:
-		var thief := _nearest_active_thief()
-		if thief != null:
-			target = thief
-			_begin_fight()
-			return
-	var long_kind := _long_kind()
-	if long_kind == "restock" or long_kind == "fish_tank":
-		target = _nearest_kind(long_kind)
-		_tick_sku_pick(delta)
-		return
-	if long_kind == "cooked_stall":
-		target = _nearest_kind("cooked_stall")
-		_tick_cooked_pick(delta)
-		return
-	if _j_time < Tuning.SKU_PICK_HOLD:
-		return
-	match long_kind:
-		"dirt":
-			_long_committed = true
-			target = _nearest_kind("dirt")
-			_tick_clean(delta)
-		"guest":
-			var guests := _faced_guests()
-			if not guests.is_empty():
-				target = guests[0]
-			## One hand-deliver per Interact hold; leftover hold is idle.
-			if _deliver_done:
-				_long_committed = false
-			else:
-				_long_committed = true
-				_deliver_done = true
-				_hand_deliver(guests, true)
-		"shelf":
-			target = _nearest_kind("shelf")
-			## Hold past a finished Circle is "not released yet", not a new stock attempt.
-			if _shelve_done:
-				_long_committed = false
-			else:
-				_long_committed = true
-				_tick_restock(delta)
-		"cashier":
-			target = _nearest_kind("cashier")
-			## Hold with no payable guest: walk free. A ready guest resumes checkout.
-			if _checkout_hold_idle:
-				if _cashier_has_ready(target):
-					_checkout_hold_idle = false
-					_long_committed = true
-					_tick_cashier(delta)
-				else:
-					_long_committed = false
-			else:
-				_long_committed = true
-				_tick_cashier(delta)
+	_work.tick_action(delta)
 
 
 func _begin_fight() -> void:
@@ -3196,98 +3093,7 @@ func _try_pickup() -> void:
 
 
 func _tick_restock(delta: float) -> void:
-	if inventory.is_empty():
-		log_line.emit(Loc.t("log.player.empty_hands_shelf"))
-		_j_held = false
-		return
-	if not is_instance_valid(target) or not target.has_method("can_accept"):
-		hold_progress = 0.0
-		return
-	var sku := _shelve_sku_for(target)
-	var empty_shelf := true
-	if target.has_method("occupied_sku"):
-		empty_shelf = String(target.call("occupied_sku")) == ""
-	else:
-		empty_shelf = _obj_int(target, "count") <= 0 or _obj_str(target, "sku") == ""
-	var have := inventory.count_of(sku) if sku != "" else 0
-	## A2 L — shelf stocking Circle.
-	if not _interact_try(target):
-		log_line.emit(Loc.t("log.player.shelf_busy"))
-		hold_progress = 0.0
-		return
-	if sku == "" or have <= 0 or not bool(target.call("can_accept", sku)):
-		if _obj_int(target, "count") >= _obj_int(target, "capacity"):
-			SfxBus.play("sfx_shelf_stock_blocked")
-			log_line.emit(Loc.t("log.player.shelf_full"))
-			_j_held = false
-			_reset_hold()
-			return
-		if not blocked_mismatch:
-			SfxBus.play("sfx_shelf_stock_blocked")
-		blocked_mismatch = true
-		hold_progress = 0.0
-		return
-	## Duration: AGI baseline only. Instant ONLY while 瞬間補貨 buff is active.
-	## Equipped loadout always includes instant_restock with restock_circle_mult=0 —
-	## never multiply that in when the buff is off.
-	var dur := float(Tuning.restock_seconds(_agi_now()))
-	if buff_left("instant_restock") > 0.05:
-		var lv := 3
-		for sk in _loadout():
-			if str(sk.get("id", "")) == "instant_restock":
-				lv = int(sk.get("lv", 3))
-				break
-		var mult := float(Skills.restock_circle_mult(lv))
-		if mult <= 0.0:
-			dur = 0.0
-		else:
-			dur *= mult
-	else:
-		var restock_pct := 0.0
-		for sk in _loadout():
-			## Godot 4.7: String(null) throws — empty slots have no "kind".
-			if str(sk.get("kind", "")) == "passive":
-				restock_pct += float(sk.get("restock_pct", 0.0))
-		if restock_pct > 0.0:
-			dur /= 1.0 + restock_pct
-		dur = maxf(dur, 0.05)
-	if dur <= 0.001:
-		hold_progress = 1.0
-	else:
-		hold_progress = minf(1.0, hold_progress + delta / dur)
-		if hold_progress < 1.0:
-			SfxBus.play_stock_loop()
-	if hold_progress >= 1.0:
-		## Client: Circle chrome only; Host applies shelf／inventory via interact intent.
-		if not _world_authority():
-			_spawn_fx("spray", target.global_position + Vector2(0, -20))
-			if dur <= 0.001:
-				SfxBus.play("sfx_shelf_stock_instant")
-			else:
-				SfxBus.play("sfx_shelf_stock_done")
-			hold_progress = 0.0
-			blocked_mismatch = false
-			_shelve_done = true
-			_interact_release(target)
-			return
-		var placed := int(target.call("add_items", sku, have))
-		if empty_shelf:
-			inventory.remove_focused(placed)
-		else:
-			inventory.remove_sku(sku, placed)
-		_spawn_fx("spray", target.global_position + Vector2(0, -20))
-		if dur <= 0.001:
-			SfxBus.play("sfx_shelf_stock_instant")
-		else:
-			SfxBus.play("sfx_shelf_stock_done")
-		log_line.emit(Loc.t("log.player.shelve", [Tuning.sku_name(sku), placed]))
-		var game_shelve := _game()
-		if placed > 0 and game_shelve != null and game_shelve.has_method("note_shelve"):
-			game_shelve.call("note_shelve", seat_id, String(sku), placed)
-		hold_progress = 0.0
-		blocked_mismatch = false
-		_shelve_done = true
-		_interact_release(target)
+	_work.tick_restock(delta)
 
 
 func _abort_manual_clean_for_monk() -> void:
@@ -3328,93 +3134,11 @@ func _tick_sweeping_monk(delta: float) -> void:
 
 
 func _clear_dirt_in_monk_range() -> void:
-	## Host authority — Client only shows tornado; dirt despawns via net agents.
-	if SessionService.is_networked() and SessionService.is_client():
-		return
-	var g := _game()
-	if g == null:
-		return
-	var dirts = g.get("_dirts")
-	if dirts == null:
-		return
-	var rsq := Skills.SWEEPING_MONK_RANGE_SQ
-	var hit: Array = []
-	for d in dirts:
-		if d == null or not is_instance_valid(d):
-			continue
-		## Skip nodes already queued for free this frame (avoid double note_clean).
-		if d.is_queued_for_deletion():
-			continue
-		if global_position.distance_squared_to(d.global_position) > rsq:
-			continue
-		hit.append(d)
-	for d in hit:
-		if d == null or not is_instance_valid(d) or d.is_queued_for_deletion():
-			continue
-		var at: Vector2 = d.global_position
-		var name := String(d.call("type_name")) if d.has_method("type_name") else Loc.t("dirt.generic")
-		if is_instance_valid(target) and target == d:
-			target = null
-			_long_committed = false
-			hold_progress = 0.0
-			_clear_clean_hint()
-		d.queue_free()
-		_spawn_fx("clean_spark", at)
-		SfxBus.play("sfx_clean_done")
-		if g:
-			g.note_clean()
-		log_line.emit(Loc.t("log.player.monk_clear", [name]))
+	_work.clear_dirt_in_monk_range()
 
 
 func _tick_clean(_delta: float) -> void:
-	if buff_left("sweeping_monk") > 0.05:
-		_abort_manual_clean_for_monk()
-		return
-	if not is_instance_valid(target) or _obj_str(target, "kind") != "dirt":
-		return
-	## Another seat already owns this dirt's clean cycle — do not wipe / steal it.
-	if target.has_method("is_clean_locked_by_other") and bool(target.call("is_clean_locked_by_other", seat_id)):
-		return
-	## Carry allowed; goods stay in hand while scrubbing.
-	var axis := _wiggle_axis()
-	if not _clean_hint:
-		_last_wiggle = axis
-	var travel := (axis - _last_wiggle).length()
-	_last_wiggle = axis
-	var needed := Tuning.CLEAN_WIGGLE_PER_SEC * Tuning.clean_seconds(_agi_now())
-	if needed <= 0.001:
-		hold_progress = 1.0
-	else:
-		var before := hold_progress
-		hold_progress = minf(1.0, hold_progress + travel / needed)
-		if hold_progress > before:
-			SfxBus.play_scrub()
-	if not _clean_hint:
-		_clean_hint = true
-		SfxBus.play("sfx_clean_start")
-		log_line.emit(Loc.t("log.player.clean_hint", [String(target.call("type_name"))]))
-	if not bool(target.call("set_cleaning", true, axis, hold_progress * 100.0, seat_id)):
-		## Lost the race to another seat this frame.
-		_clean_hint = false
-		_last_wiggle = Vector2.ZERO
-		return
-	if hold_progress >= 1.0:
-		var name := String(target.call("type_name"))
-		var spark_at := target.global_position
-		target.queue_free()
-		target = null
-		hold_progress = 0.0
-		_clean_hint = false
-		_last_wiggle = Vector2.ZERO
-		## Finished — leftover Interact hold is idle (same idea as shelve_done).
-		## Leaving `_long_committed` true made the next Cancel swallow instead of toss.
-		_long_committed = false
-		_spawn_fx("clean_spark", spark_at)
-		SfxBus.play("sfx_clean_done")
-		var game := _game()
-		if game:
-			game.note_clean(seat_id)
-		log_line.emit(Loc.t("log.player.clean_done", [name]))
+	_work.tick_clean(_delta)
 
 
 func _tick_drop() -> void:
@@ -3771,45 +3495,7 @@ func cast_skill_hotkey(slot: int) -> void:
 
 
 func _tick_triggers(delta: float) -> void:
-	## LT+RT ult chord only — RT no longer drives dash/run.
-	var tr := Controls.trigger_values_for(seat_id)
-	var lt := Controls.trigger_latched(tr.x, _lt_held)
-	var rt := Controls.trigger_latched(tr.y, _rt_held)
-	if lt and not _lt_held:
-		_lt_held = true
-		_lt_time = 0.0
-		_lt_fired = false
-	if rt and not _rt_held:
-		_rt_held = true
-		_rt_time = 0.0
-		_rt_fired = false
-	if lt:
-		_lt_time += delta
-	if rt:
-		_rt_time += delta
-	if lt and rt:
-		_trigger_chord_block = true
-		_both_trigger_time += delta
-		if not _ult_chord_active and not ult_prep and _both_trigger_time >= Skills.HOLD_MENU_SEC:
-			_on_ult_hold(true)
-			if ult_prep:
-				_ult_chord_active = true
-				_lt_fired = true
-				_rt_fired = true
-	else:
-		_both_trigger_time = 0.0
-	if not lt and _lt_held:
-		_lt_held = false
-	if not rt and _rt_held:
-		_rt_held = false
-	if not lt and not rt:
-		if _ult_chord_active:
-			_on_ult_hold(false)
-			_ult_chord_active = false
-		_trigger_chord_block = false
-		_both_trigger_time = 0.0
-		_lt_fired = false
-		_rt_fired = false
+	_work.tick_triggers(delta)
 
 
 func _close_bag_menu() -> void:
