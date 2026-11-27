@@ -52,6 +52,7 @@ var _rename_lower: bool = false
 ## Elite clerk detail focus id (prep elite_clerk page).
 var _elite_focus_id: String = ""
 var _branch_focus_id: String = ""
+var _branch_focus_post: String = ""
 var _rows: Array[Dictionary] = []
 var _qty_sku: String = ""
 var _qty_boxes: int = 1
@@ -1432,18 +1433,16 @@ func _activate() -> void:
 			_msg = ""
 			_show_page("elite_clerk")
 		"elite_toggle_duty":
-			state.toggle_elite_on_duty(String(arg))
-			_msg = ""
-			_refresh()
+			_elite_toggle_duty_or_confirm(String(arg))
 		"elite_toggle_role":
 			if arg is Dictionary:
-				var err_role := state.toggle_elite_role(String(arg.get("id", "")), String(arg.get("role", "")))
-				_msg = err_role
-			_refresh()
+				_elite_hq_edit_or_confirm(
+					String(arg.get("id", "")),
+					"elite_toggle_role",
+					{"id": String(arg.get("id", "")), "role": String(arg.get("role", ""))}
+				)
 		"elite_reg":
-			state.cycle_elite_register(String(arg))
-			_msg = ""
-			_refresh()
+			_elite_hq_edit_or_confirm(String(arg), "elite_reg", {"id": String(arg)})
 		"elite_upgrade":
 			var err_up := state.upgrade_elite_clerk(String(arg))
 			_msg = err_up if err_up != "" else Loc.t("prep.elite_clerk.upgraded")
@@ -1484,9 +1483,20 @@ func _activate() -> void:
 				if err_sale == "":
 					state.save_to_disk()
 			_refresh()
-		"branch_cycle_post":
+		"branch_open_post_pick":
 			if arg is Dictionary:
-				_branch_cycle_post(String(arg.get("theme_id", "")), String(arg.get("post", "")))
+				_branch_focus_id = String(arg.get("theme_id", _branch_focus_id))
+				_branch_focus_post = String(arg.get("post", ""))
+				_msg = ""
+				_show_page("branch_post_pick")
+		"branch_set_post":
+			if arg is Dictionary:
+				_branch_set_post_or_confirm(
+					String(arg.get("theme_id", "")),
+					String(arg.get("post", "")),
+					String(arg.get("kind", "")),
+					arg.get("id", "")
+				)
 		"noop":
 			pass
 		"try_open":
@@ -2111,57 +2121,148 @@ func _branch_cycle_policy(theme_id: String) -> void:
 	_refresh()
 
 
-func _branch_cycle_post(theme_id: String, post: String) -> void:
+func _elite_branch_place(eid: String) -> String:
+	var row: Dictionary = state.elite_clerk_row(eid)
+	if row.is_empty():
+		return Loc.t("prep.staff.place_off")
+	return PrepPages._elite_place_text(row)
+
+
+func _elite_has_branch_post(eid: String) -> bool:
+	var row: Dictionary = state.elite_clerk_row(eid)
+	return PrepPages._elite_assignment_dict(row) != null
+
+
+func _elite_toggle_duty_or_confirm(eid: String) -> void:
+	var row: Dictionary = state.elite_clerk_row(eid)
+	if row.is_empty():
+		return
+	var turning_on := not bool(row.get("on_duty", true))
+	if turning_on and _elite_has_branch_post(eid):
+		_popup_confirm(
+			Loc.t("prep.staff.confirm_recall_title"),
+			Loc.t("prep.staff.confirm_recall_body", [_elite_branch_place(eid)]),
+			{"action": "elite_recall_duty", "id": eid}
+		)
+		return
+	state.toggle_elite_on_duty(eid)
+	_msg = ""
+	state.save_to_disk()
+	_refresh()
+
+
+func _elite_hq_edit_or_confirm(eid: String, pending_action: String, payload: Dictionary) -> void:
+	if _elite_has_branch_post(eid):
+		var pending := payload.duplicate()
+		pending["action"] = pending_action
+		pending["recall_first"] = true
+		_popup_confirm(
+			Loc.t("prep.staff.confirm_recall_title"),
+			Loc.t("prep.staff.confirm_recall_body", [_elite_branch_place(eid)]),
+			pending
+		)
+		return
+	_apply_elite_hq_edit(pending_action, payload)
+
+
+func _apply_elite_hq_edit(pending_action: String, payload: Dictionary) -> void:
+	match pending_action:
+		"elite_toggle_role":
+			var err_role := state.toggle_elite_role(String(payload.get("id", "")), String(payload.get("role", "")))
+			_msg = err_role
+		"elite_reg":
+			state.cycle_elite_register(String(payload.get("id", "")))
+			_msg = ""
+		_:
+			return
+	state.save_to_disk()
+	_refresh()
+
+
+func _branch_assign_conflict_place(theme_id: String, post: String, kind: String, id_v: Variant) -> String:
+	var BranchRules = preload("res://scripts/session/branch_rules.gd")
+	var ThemeStoreSnapshot = preload("res://scripts/session/theme_store_snapshot.gd")
+	if kind == "elite":
+		var eid := String(id_v)
+		var row: Dictionary = state.elite_clerk_row(eid)
+		var asn = PrepPages._elite_assignment_dict(row)
+		if asn is Dictionary:
+			var at_tid := String(asn.get("theme_id", ""))
+			var at_post := String(asn.get("post", ""))
+			if at_tid == theme_id and at_post == post:
+				return ""
+			return PrepPages._elite_place_text(row)
+		if bool(row.get("on_duty", true)):
+			return Loc.t("prep.staff.place_hq")
+		return ""
+	if kind == "clerk":
+		var snap: Dictionary = ThemeStoreSnapshot.get_store_dict(state, theme_id)
+		var posts: Dictionary = BranchRules.normalize_posts(snap.get("branch_posts", null))
+		var occupied := PrepPages._branch_post_of_ref(posts, "clerk", str(int(id_v)))
+		if occupied == "" or occupied == post:
+			return ""
+		return Loc.t("prep.staff.place_branch", [
+			Loc.t(BranchRules.store_display_key(theme_id)),
+			Loc.t(BranchRules.post_label_key(occupied)),
+		])
+	return ""
+
+
+func _branch_set_post_or_confirm(theme_id: String, post: String, kind: String, id_v: Variant) -> void:
+	if kind == "":
+		_branch_set_post(theme_id, post, kind, id_v)
+		return
+	var conflict := _branch_assign_conflict_place(theme_id, post, kind, id_v)
+	if conflict != "":
+		var who := ""
+		if kind == "elite":
+			var EliteClerkCatalog = preload("res://scripts/session/elite_clerk_catalog.gd")
+			who = EliteClerkCatalog.display_name(String(id_v))
+		else:
+			who = Loc.t("prep.branch.post_clerk", [int(id_v) + 1])
+		_popup_confirm(
+			Loc.t("prep.staff.confirm_move_title"),
+			Loc.t("prep.staff.confirm_move_body", [who, conflict]),
+			{
+				"action": "branch_set_post",
+				"theme_id": theme_id,
+				"post": post,
+				"kind": kind,
+				"id": id_v,
+			}
+		)
+		return
+	_branch_set_post(theme_id, post, kind, id_v)
+
+
+func _branch_set_post(theme_id: String, post: String, kind: String, id_v: Variant) -> void:
 	var BranchRules = preload("res://scripts/session/branch_rules.gd")
 	var ThemeStoreSnapshot = preload("res://scripts/session/theme_store_snapshot.gd")
 	var snap: Dictionary = ThemeStoreSnapshot.get_store_dict(state, theme_id)
 	var posts: Dictionary = BranchRules.normalize_posts(snap.get("branch_posts", null))
-	var clerks_arr = snap.get("clerks", [])
-	var options: Array = [null]
-	if clerks_arr is Array:
-		for i in clerks_arr.size():
-			options.append({"kind": "clerk", "id": i})
-	for erow in state.elite_clerks:
-		var eid := String(erow.get("id", ""))
-		if eid == "":
-			continue
-		## Skip elites already on HQ duty (unless already assigned here).
-		var asn = erow.get("assignment", null)
-		var on_here := false
-		if asn is Dictionary and String(asn.get("theme_id", "")) == theme_id and String(asn.get("post", "")) == post:
-			on_here = true
-		if bool(erow.get("on_duty", false)) and not on_here:
-			continue
-		options.append({"kind": "elite", "id": eid})
-	var cur = posts.get(post, null)
-	var cur_i := 0
-	for i in options.size():
-		var opt = options[i]
-		if cur == null and opt == null:
-			cur_i = i
-			break
-		if cur is Dictionary and opt is Dictionary:
-			if String(cur.get("kind", "")) == String(opt.get("kind", "")) and str(cur.get("id", "")) == str(opt.get("id", "")):
-				cur_i = i
-				break
-	var nxt = options[(cur_i + 1) % options.size()]
-	## Clear previous occupant of this post.
 	var prev = posts.get(post, null)
 	if prev is Dictionary and String(prev.get("kind", "")) == "elite":
-		state.clear_elite_branch_assignment(String(prev.get("id", "")))
-	if nxt == null:
+		var prev_eid := String(prev.get("id", ""))
+		## Keep elite assignment if re-selecting the same elite onto this post.
+		if kind != "elite" or String(id_v) != prev_eid:
+			state.clear_elite_branch_assignment(prev_eid)
+	if kind == "":
 		posts[post] = null
 		snap["branch_posts"] = posts
 		ThemeStoreSnapshot.set_store_dict(state, theme_id, snap)
 		_msg = Loc.t("prep.branch.post_cleared", [Loc.t(BranchRules.post_label_key(post))])
-	elif String(nxt.get("kind", "")) == "clerk":
-		var err_c := state.assign_clerk_to_branch(theme_id, post, int(nxt.get("id", 0)))
+	elif kind == "clerk":
+		var err_c := state.assign_clerk_to_branch(theme_id, post, int(id_v))
 		_msg = err_c if err_c != "" else Loc.t("prep.branch.post_set")
-	else:
-		var err_e := state.assign_elite_to_branch(String(nxt.get("id", "")), theme_id, post)
+	elif kind == "elite":
+		var err_e := state.assign_elite_to_branch(String(id_v), theme_id, post)
 		_msg = err_e if err_e != "" else Loc.t("prep.branch.post_set")
+	else:
+		_msg = Loc.t("err.branch_bad_post")
+		_refresh()
+		return
 	state.save_to_disk()
-	_refresh()
+	_show_page("branch_posts")
 
 
 func _try_hire() -> void:
@@ -2236,6 +2337,26 @@ func _run_pending(pending: Dictionary) -> void:
 				_refresh()
 		"difficulty":
 			_apply_difficulty_prompt(pending, true)
+		"elite_recall_duty":
+			state.set_elite_on_duty(String(pending.get("id", "")), true)
+			_msg = Loc.t("prep.staff.recalled")
+			state.save_to_disk()
+			_refresh()
+		"elite_toggle_role":
+			if bool(pending.get("recall_first", false)):
+				state.set_elite_on_duty(String(pending.get("id", "")), true)
+			_apply_elite_hq_edit("elite_toggle_role", pending)
+		"elite_reg":
+			if bool(pending.get("recall_first", false)):
+				state.set_elite_on_duty(String(pending.get("id", "")), true)
+			_apply_elite_hq_edit("elite_reg", pending)
+		"branch_set_post":
+			_branch_set_post(
+				String(pending.get("theme_id", "")),
+				String(pending.get("post", "")),
+				String(pending.get("kind", "")),
+				pending.get("id", "")
+			)
 
 
 func _popup_info(title: String, body: String) -> void:

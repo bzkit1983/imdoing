@@ -352,7 +352,7 @@ log.player.restock_busy,補貨點使用中,Restock point busy,补货点使用中
 log.player.sku_list_hint,貨品清單 — 上下選擇，放手確定，B／; 取消,"SKU list — up/down, release confirm, B/; cancel",货品清单 — 上下选择，放手确定，B／; 取消,商品リスト — 上下で選択、放して確定、B／; でキャンセル
 log.player.cooked_hint,熟食加工 — 上下選食譜，左右選魚（須已投料），放手開始，B／; 取消,"Cooked craft — up/down recipe, left/right fish (deposit first), release to start, B/; cancel",熟食加工 — 上下选食谱，左右选鱼（须已投料），放手开始，B／; 取消,惣菜づくり — 上下でレシピ、左右で魚（先に材料投入）、放して開始、B／; でキャンセル
 log.player.cooked_busy,熟食檔使用中,Cooked stall busy,熟食档使用中,惣菜屋台使用中
-log.player.cooked_start,開始製作 %s…,Cooking %s…,开始制作 %s…,%s を調理中…
+log.player.cooked_start,開始製作 %s…（不可移動；B／; 取消）,Cooking %s… (rooted; B/; cancel),开始制作 %s…（不可移动；B／; 取消）,%s を調理中…（移動不可・B／; でキャンセル）
 log.player.cooked_done,熟食完成，已放到檔面／倉庫。,Cooked food ready — on stall face or in stock.,熟食完成，已放到档面／仓库。,惣菜完成。屋台か倉庫へ。
 log.player.cooked_cancel,取消製作，原料已退回檔內。,Craft cancelled — ingredients returned to stall.,取消制作，原料已退回档内。,調理キャンセル。材料を屋台に戻しました。
 log.player.cooked_deposit,投入原料 %s ×%d,Deposit ingredient %s ×%d,投入原料 %s ×%d,材料投入 %s ×%d

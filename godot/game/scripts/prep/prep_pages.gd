@@ -44,6 +44,8 @@ static func parent_page(page: String) -> String:
 			return "branches"
 		"branch_buy", "branch_sale", "branch_posts":
 			return "branch"
+		"branch_post_pick":
+			return "branch_posts"
 		"hub_char", "hub_goods", "hub_shop", "hub_sys", "clerks", "confirm", "elite_test", "rating_history", "lobby", "lan_join", "steam_join", "tasks", "home", "branches":
 			if in_room_lobby and page != "lobby" and page != "lan_join" and page != "steam_join" and page != "confirm":
 				return "lobby"
@@ -297,6 +299,8 @@ static func fill(menu: CanvasLayer, page: String) -> void:
 			_branch_sale(menu)
 		"branch_posts":
 			_branch_posts(menu)
+		"branch_post_pick":
+			_branch_post_pick(menu)
 		"skill_pick":
 			pass
 		_:
@@ -1377,10 +1381,33 @@ static func _clerks(menu: CanvasLayer) -> void:
 		var c: Dictionary = menu.state.clerks[i]
 		var role_id := String(c["role"])
 		var role := _role_label(role_id)
-		menu._add(Loc.t("prep.hire.clerk_row", [i + 1, role, int(c["register"]) + 1]), "role", i)
+		menu._add(
+			Loc.t("prep.hire.clerk_row_place", [
+				i + 1,
+				Loc.t("prep.staff.place_hq"),
+				role,
+				int(c["register"]) + 1,
+			]),
+			"role",
+			i
+		)
 		if role_id == "cashier":
 			menu._add(Loc.t("prep.hire.reassign"), "reg", i)
 		menu._add(Loc.t("prep.hire.fire", [(i + 1)]), "fire", i)
+	## Roster view: elites also listed with store／post so HQ staff page shows everyone.
+	if not menu.state.elite_clerks.is_empty():
+		menu._add(Loc.t("prep.staff.elite_header"), "noop", null)
+		var EliteClerkCatalog = load("res://scripts/session/elite_clerk_catalog.gd")
+		for row in menu.state.elite_clerks:
+			var eid := String(row.get("id", ""))
+			menu._add(
+				Loc.t("prep.staff.elite_row", [
+					EliteClerkCatalog.display_name(eid),
+					_elite_place_text(row),
+				]),
+				"elite_open_detail",
+				eid
+			)
 	menu._add(Loc.t("prep.back"), "go", parent_page("clerks"))
 
 
@@ -1395,10 +1422,10 @@ static func _elite_clerks(menu: CanvasLayer) -> void:
 		for row in menu.state.elite_clerks:
 			var eid := String(row.get("id", ""))
 			var lv := int(row.get("level", 1))
-			var duty := Loc.t("prep.elite_clerks.on_duty" if bool(row.get("on_duty", true)) else "prep.elite_clerks.off_duty")
+			var place := _elite_place_text(row)
 			var roles_txt := _elite_roles_text(row.get("roles", []))
 			menu._add(
-				Loc.t("prep.elite_clerks.row", [EliteClerkCatalog.display_name(eid), lv, duty, roles_txt]),
+				Loc.t("prep.elite_clerks.row", [EliteClerkCatalog.display_name(eid), lv, place, roles_txt]),
 				"elite_open_detail",
 				eid
 			)
@@ -1415,6 +1442,30 @@ static func _elite_roles_text(raw) -> String:
 	if parts.is_empty():
 		return Loc.t("prep.elite_clerks.no_roles")
 	return ", ".join(parts)
+
+
+static func _elite_assignment_dict(row: Dictionary) -> Variant:
+	var raw = row.get("assignment", null)
+	if raw == null or not (raw is Dictionary):
+		return null
+	var theme_id := String(raw.get("theme_id", ""))
+	var post := String(raw.get("post", ""))
+	if theme_id == "" or post == "":
+		return null
+	return {"theme_id": theme_id, "post": post}
+
+
+static func _elite_place_text(row: Dictionary) -> String:
+	var BranchRules = preload("res://scripts/session/branch_rules.gd")
+	var asn = _elite_assignment_dict(row)
+	if asn is Dictionary:
+		return Loc.t("prep.staff.place_branch", [
+			Loc.t(BranchRules.store_display_key(String(asn.get("theme_id", "")))),
+			Loc.t(BranchRules.post_label_key(String(asn.get("post", "")))),
+		])
+	if bool(row.get("on_duty", true)):
+		return Loc.t("prep.staff.place_hq")
+	return Loc.t("prep.staff.place_off")
 
 
 static func _elite_clerk_detail(menu: CanvasLayer) -> void:
@@ -1445,6 +1496,7 @@ static func _elite_clerk_detail(menu: CanvasLayer) -> void:
 		_elite_roles_text(row.get("roles", [])),
 		EliteClerkCatalog.max_posts(eid),
 	])
+	info = Loc.t("prep.staff.place_line", [_elite_place_text(row)]) + "\n" + info
 	if menu._msg != "":
 		info = menu._pair(info, menu._msg)
 	menu._info.text = info
@@ -1452,6 +1504,8 @@ static func _elite_clerk_detail(menu: CanvasLayer) -> void:
 		"prep.elite_clerk.toggle_duty_off" if bool(row.get("on_duty", true))
 		else "prep.elite_clerk.toggle_duty_on"
 	)
+	if _elite_assignment_dict(row) != null and not bool(row.get("on_duty", true)):
+		duty_label = Loc.t("prep.elite_clerk.recall_hq")
 	menu._add(duty_label, "elite_toggle_duty", eid)
 	for role_id in EliteClerkCatalog.allowed_roles(eid):
 		var roles: Array = []
@@ -1876,7 +1930,86 @@ static func _branch_posts(menu: CanvasLayer) -> void:
 				who = Loc.t("prep.branch.post_clerk", [int(ref.get("id", 0)) + 1])
 		menu._add(
 			Loc.t("prep.branch.post_row", [Loc.t(BranchRules.post_label_key(post)), who]),
-			"branch_cycle_post",
+			"branch_open_post_pick",
 			{"theme_id": tid, "post": post}
 		)
 	menu._add(Loc.t("prep.back"), "go", "branch")
+
+
+static func _branch_post_pick(menu: CanvasLayer) -> void:
+	var BranchRules = preload("res://scripts/session/branch_rules.gd")
+	var ThemeStoreSnapshot = preload("res://scripts/session/theme_store_snapshot.gd")
+	var EliteClerkCatalog = preload("res://scripts/session/elite_clerk_catalog.gd")
+	var tid := String(menu.get("_branch_focus_id"))
+	var post := String(menu.get("_branch_focus_post"))
+	var snap: Dictionary = ThemeStoreSnapshot.get_store_dict(menu.state, tid)
+	var posts: Dictionary = BranchRules.normalize_posts(snap.get("branch_posts", null))
+	var cur = posts.get(post, null)
+	var store_name := Loc.t(BranchRules.store_display_key(tid))
+	menu._title.text = Loc.t(
+		"prep.branch.post_pick_title",
+		[Loc.t(BranchRules.post_label_key(post))]
+	)
+	menu._info.text = Loc.t("prep.branch.post_pick_info")
+	var empty_mark := "○ "
+	if cur == null:
+		empty_mark = "✓ "
+	menu._add(
+		empty_mark + Loc.t("prep.branch.post_empty"),
+		"branch_set_post",
+		{"theme_id": tid, "post": post, "kind": "", "id": ""}
+	)
+	menu._add(Loc.t("prep.staff.branch_clerk_header"), "noop", null)
+	var clerks_arr = snap.get("clerks", [])
+	if clerks_arr is Array:
+		if clerks_arr.is_empty():
+			menu._add(Loc.t("prep.staff.branch_clerk_empty"), "noop", null)
+		for i in clerks_arr.size():
+			var occupied := _branch_post_of_ref(posts, "clerk", str(i))
+			var mark := "○ "
+			if cur is Dictionary and String(cur.get("kind", "")) == "clerk" and int(cur.get("id", -1)) == i:
+				mark = "✓ "
+			var place := Loc.t("prep.staff.place_unassigned")
+			if occupied != "":
+				place = Loc.t("prep.staff.place_branch", [
+					store_name,
+					Loc.t(BranchRules.post_label_key(occupied)),
+				])
+			var label := Loc.t("prep.branch.post_pick_row", [
+				Loc.t("prep.branch.post_clerk", [i + 1]),
+				place,
+			])
+			menu._add(
+				mark + label,
+				"branch_set_post",
+				{"theme_id": tid, "post": post, "kind": "clerk", "id": i}
+			)
+	menu._add(Loc.t("prep.staff.elite_header"), "noop", null)
+	if menu.state.elite_clerks.is_empty():
+		menu._add(Loc.t("prep.elite_clerks.empty"), "noop", null)
+	for erow in menu.state.elite_clerks:
+		var eid := String(erow.get("id", ""))
+		if eid == "":
+			continue
+		var mark_e := "○ "
+		if cur is Dictionary and String(cur.get("kind", "")) == "elite" and String(cur.get("id", "")) == eid:
+			mark_e = "✓ "
+		var label_e := Loc.t("prep.branch.post_pick_row", [
+			EliteClerkCatalog.display_name(eid),
+			_elite_place_text(erow),
+		])
+		menu._add(
+			mark_e + label_e,
+			"branch_set_post",
+			{"theme_id": tid, "post": post, "kind": "elite", "id": eid}
+		)
+	menu._add(Loc.t("prep.back"), "go", "branch_posts")
+
+
+static func _branch_post_of_ref(posts: Dictionary, kind: String, id_s: String) -> String:
+	var BranchRules = preload("res://scripts/session/branch_rules.gd")
+	for p in BranchRules.POST_IDS:
+		var ref = posts.get(p, null)
+		if ref is Dictionary and String(ref.get("kind", "")) == kind and str(ref.get("id", "")) == id_s:
+			return String(p)
+	return ""

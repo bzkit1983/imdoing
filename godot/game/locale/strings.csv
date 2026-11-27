@@ -696,6 +696,7 @@ prep.role.restock,補貨,Restock,补货,補充
 prep.role.security,保安,Security,保安,警備
 prep.role.cleaner,清潔,Cleaner,清洁,清掃
 prep.hire.clerk_row,店員%d　%s　收銀機 %d　（確定切崗位）,Clerk %d  %s  reg %d  (confirm swap),店员%d　%s　收银机 %d　（确定切岗位）,店員%d　%s　レジ %d　（確定で役割切替）
+prep.hire.clerk_row_place,店員%d　%s　%s　收銀機 %d　（確定切崗位）,Clerk %d  %s  %s  reg %d  (confirm swap),店员%d　%s　%s　收银机 %d　（确定切岗位）,店員%d　%s　%s　レジ %d　（確定で役割切替）
 prep.hire.reassign,　改派收銀機,  Reassign register,　改派收银机,　レジを再割当
 prep.hire.fire,　解僱店員%d,  Fire clerk %d,　解雇店员%d,　店員%dを解雇
 prep.open.wage_info,開工扣工資 $%d。結算時營業額入帳；若營業額低於本輪進貨成本會標虧損，遊戲繼續。,Wages $%d at open. Revenue posts at settle; loss flag if below stock cost — run continues.,开工扣工资 $%d。结算时营业额入账；若营业额低于本轮进货成本会标亏损，游戏继续。,開店時に賃金 $%d を差し引きます。精算時に売上が入金；売上が今回の仕入コスト未満なら赤字表示、ゲームは続行。
@@ -820,13 +821,32 @@ prep.branch.sale_row,%s　%s,%s · %s,%s　%s,%s　%s
 prep.branch.sale_on,可售,On,可售,販売中
 prep.branch.sale_off,停售,Off,停售,販売停止
 prep.branch.posts_title,分店崗位,Branch posts,分店岗位,支店配置
-prep.branch.posts_info,點選循環：空 → 一般雇員 → 精英 → 空。無店長＝當日停業。,Tap to cycle: empty → hiree → elite → empty. No manager = closed that day.,點選循環：空 → 一般雇员 → 精英 → 空。无店长＝当日停业。,タップで循環：空→一般→エリート→空。店長なし＝その日休業。
+prep.branch.posts_info,點選崗位後從清單指派店員。無店長＝當日停業。,Tap a post to pick staff. No manager = closed that day.,点选岗位后从清单指派店员。无店长＝当日停业。,配置を選んで店員を割り当て。店長なし＝その日休業。
 prep.branch.post_row,%s　%s,%s · %s,%s　%s,%s　%s
 prep.branch.post_empty,（空）, (empty),（空）,（空）
 prep.branch.post_clerk,雇員 #%d,Hiree #%d,雇员 #%d,店員 #%d
+prep.branch.post_pick_title,指派：%s,Assign: %s,指派：%s,割当：%s
+prep.branch.post_pick_info,顯示全部店員與所在店鋪／崗位。已有崗位者改派前會再確認。,Shows all staff with store/post. Reassigning occupied staff asks for confirm.,显示全部店员与所在店铺／岗位。已有岗位者改派前会再确认。,全員の店舗／配置を表示。既に配置がある人は確認後に移す。
+prep.branch.post_pick_row,%s　%s,%s · %s,%s　%s,%s　%s
+prep.branch.post_pick_elsewhere,%s（目前：%s）,%s (now: %s),%s（目前：%s）,%s（現在：%s）
+prep.branch.post_pick_other_branch,%s（其他分店：%s）,%s (other branch: %s),%s（其他分店：%s）,%s（他支店：%s）
 prep.branch.policy_set,模式改為 %s。,Policy set to %s.,模式改为 %s。,模式を %s に変更。
 prep.branch.post_cleared,已清空崗位：%s,Cleared post: %s,已清空岗位：%s,配置を解除：%s
 prep.branch.post_set,崗位已更新。,Post updated.,岗位已更新。,配置を更新しました。
+prep.staff.place_hq,本店出勤,HQ on duty,本店出勤,本店出勤
+prep.staff.place_off,休息,Off duty,休息,休憩
+prep.staff.place_unassigned,未指派,Unassigned,未指派,未割当
+prep.staff.place_branch,%s　%s,%s · %s,%s　%s,%s　%s
+prep.staff.place_line,所在：%s,Location: %s,所在：%s,所在：%s
+prep.staff.elite_header,—— 精英店員 ——,—— Elite staff ——,—— 精英店员 ——,—— エリート店員 ——
+prep.staff.elite_row,%s　%s,%s · %s,%s　%s,%s　%s
+prep.staff.branch_clerk_header,—— 分店雇員 ——,—— Branch hirees ——,—— 分店雇员 ——,—— 支店の一般店員 ——
+prep.staff.branch_clerk_empty,（此分店尚無一般雇員）, (no hirees at this branch),（此分店尚无一般雇员）,（この支店に一般店員はいません）
+prep.staff.confirm_recall_title,調回本店？,Recall to HQ?,调回本店？,本店へ戻す？
+prep.staff.confirm_recall_body,目前在：%s\n確定調回本店並取消分店工作？,Now at: %s\nRecall to HQ and clear branch work?,目前在：%s\n确定调回本店并取消分店工作？,現在：%s\n本店へ戻し、支店の仕事を取り消しますか？
+prep.staff.confirm_move_title,改派到分店？,Move to branch?,改派到分店？,支店へ移す？
+prep.staff.confirm_move_body,%s 目前在：%s\n確定改派到此分店崗位？,%s is at: %s\nAssign to this branch post?,%s 目前在：%s\n确定改派到此分店岗位？,%s は現在：%s\nこの支店配置へ移しますか？
+prep.staff.recalled,已調回本店並取消分店工作。,Recalled to HQ; branch work cleared.,已调回本店并取消分店工作。,本店へ戻し、支店の仕事を取り消しました。
 err.branch_store_missing,找不到分店快照：%s,Branch store missing: %s,找不到分店快照：%s,支店スナップショットがありません：%s
 err.branch_bad_post,無效崗位。,Invalid post.,无效岗位。,無効な配置です。
 err.branch_bad_clerk,無效雇員編號。,Invalid clerk index.,无效雇员编号。,無効な店員番号です。
@@ -1099,6 +1119,7 @@ prep.elite_clerks.debug_all_owned,目錄內精英已全部解鎖,All catalog eli
 prep.elite_clerk.detail_info,%s\n等級 %d／%d　STR %d　AGI %d　INT %d\n固有技能：%s\n%s\n崗位：%s（最多 %d）,%s\nLevel %d/%d  STR %d  AGI %d  INT %d\nInherent skill: %s\n%s\nPosts: %s (max %d),%s\n等级 %d／%d　STR %d　AGI %d　INT %d\n固有技能：%s\n%s\n岗位：%s（最多 %d）,%s\nレベル %d／%d　STR %d　AGI %d　INT %d\n固有スキル：%s\n%s\n役割：%s（最大 %d）
 prep.elite_clerk.toggle_duty_off,設為休息,Set off duty,设为休息,休憩にする
 prep.elite_clerk.toggle_duty_on,設為出勤,Set on duty,设为出勤,出勤にする
+prep.elite_clerk.recall_hq,調回本店（取消分店工作）,Recall to HQ (clear branch),调回本店（取消分店工作）,本店へ戻す（支店解除）
 prep.elite_clerk.role_on,✓ 崗位：%s（確定取消）,✓ Post: %s (confirm to remove),✓ 岗位：%s（确定取消）,✓ 役割：%s（確定で解除）
 prep.elite_clerk.role_off,○ 崗位：%s（確定加入）,○ Post: %s (confirm to add),○ 岗位：%s（确定加入）,○ 役割：%s（確定で追加）
 prep.elite_clerk.reassign,改派收銀機（目前 #%d）,Reassign register (now #%d),改派收银机（目前 #%d）,レジ再割当（現在 #%d）

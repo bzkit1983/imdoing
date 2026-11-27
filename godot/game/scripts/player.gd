@@ -1432,7 +1432,8 @@ func _physics_process(delta: float) -> void:
 	if controls_locally() and _round_active() and not _asking_early():
 		_tick_triggers(delta)
 	## Skill / ult / checkout dir modes: hard-stop so held WASD cannot coast.
-	if _in_dir_mode() or _move_locked_until_neutral:
+	## Cooked craft also roots the player until done or cancel.
+	if _in_dir_mode() or _move_locked_until_neutral or _cooked_craft_stall != null:
 		_running = false
 		if not _dashing and _slip_left <= 0.0:
 			velocity = Vector2.ZERO
@@ -1731,6 +1732,9 @@ func _move_axis() -> Vector2:
 		return Vector2.ZERO
 	if _stun_left > 0.0 or _slip_left > 0.0 or _fighting or _shelving() or _cleaning():
 		return Vector2.ZERO
+	## Cooked craft Circle: lock feet; cancel key refunds pantry (not move).
+	if _cooked_craft_stall != null:
+		return Vector2.ZERO
 	## Charging restock SKU list (before `_restock_picking`): freeze walk but do not
 	## arm the neutral latch — short-tap pulls while holding a direction must resume.
 	if (
@@ -1847,6 +1851,8 @@ func _dash_dir_input() -> Vector2:
 
 func _try_dash() -> void:
 	if _dashing or _fighting or _stun_left > 0.0 or _slip_left > 0.0:
+		return
+	if _cooked_craft_stall != null:
 		return
 	_dash_guest_done = false
 	var free_stam := _dasher_active()
@@ -3414,11 +3420,7 @@ func _tick_cooked_craft(delta: float) -> void:
 		_cooked_craft_stall = null
 		hold_progress = 0.0
 		return
-	## Move cancels craft and refunds ingredients.
-	var move := _move_vector() + stick_axis
-	if move.length() >= Controls.MOVE_DEADZONE:
-		_cancel_cooked_craft()
-		return
+	## Movement is locked while crafting; cancel key calls `_cancel_cooked_craft`.
 	if _cooked_craft_stall.has_method("craft_progress"):
 		hold_progress = float(_cooked_craft_stall.call("craft_progress"))
 	if _cooked_craft_stall.has_method("tick_craft") and bool(_cooked_craft_stall.call("tick_craft", delta)):
