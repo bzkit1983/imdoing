@@ -17,6 +17,7 @@ const TossControllerScript = preload("res://scripts/player/toss_controller.gd")
 const FightControllerScript = preload("res://scripts/player/fight_controller.gd")
 const SkillCasterScript = preload("res://scripts/player/skill_caster.gd")
 const CheckoutControllerScript = preload("res://scripts/player/checkout_controller.gd")
+const InteractControllerScript = preload("res://scripts/player/interact_controller.gd")
 const WorkTickerScript = preload("res://scripts/player/work_ticker.gd")
 const InputControllerScript = preload("res://scripts/player/input_controller.gd")
 const BagCasterScript = preload("res://scripts/player/bag_caster.gd")
@@ -287,6 +288,7 @@ var _toss = TossControllerScript.new()
 var _fight_ctrl = FightControllerScript.new()
 var _skills = SkillCasterScript.new()
 var _checkout = CheckoutControllerScript.new()
+var _interact = InteractControllerScript.new()
 var _work = WorkTickerScript.new()
 var _input_ctrl = InputControllerScript.new()
 var _bags
@@ -349,6 +351,7 @@ func _ready() -> void:
 	_fight_ctrl.bind(self)
 	_skills.bind(self)
 	_checkout.bind(self)
+	_interact.bind(self)
 	_work.bind(self)
 	_input_ctrl.bind(self)
 	_bags = BagCasterScript.new(self)
@@ -1775,53 +1778,7 @@ func _shelf_can_take_carried(shelf: Node2D) -> bool:
 
 
 func _preview_target() -> Node2D:
-	var turret := _usable_turret()
-	if turret != null:
-		return turret
-	var thief := _nearest_active_thief()
-	if thief != null:
-		return thief
-	var stocked := _nearest_stocked_shelf()
-	if stocked != null:
-		return stocked
-	var restock := _nearest_kind("restock")
-	if restock != null:
-		return restock
-	var tank := _nearest_kind("fish_tank")
-	if tank != null:
-		return tank
-	var cooked := _nearest_kind("cooked_stall")
-	if cooked != null and (_cooked_stall_craftable(cooked) or _cooked_deposit_sku() != ""):
-		return cooked
-	var ops := _nearest_kind("ops_item")
-	if ops != null:
-		return ops
-	var drop := _nearest_kind("drop")
-	if drop != null:
-		return drop
-	match _long_kind():
-		"dirt":
-			return _nearest_kind("dirt")
-		"guest":
-			var guests := _faced_guests()
-			return guests[0] if not guests.is_empty() else null
-		"shelf":
-			return _nearest_kind("shelf")
-		"cashier":
-			return _nearest_kind("cashier")
-		"self_cashier":
-			return _nearest_repairable_self_cashier()
-		"fish_tank":
-			return _nearest_kind("fish_tank")
-		"cooked_stall":
-			return _nearest_kind("cooked_stall")
-	var sco := _nearest_repairable_self_cashier()
-	if sco != null:
-		return sco
-	var portal := _nearest_usable_portal()
-	if portal != null:
-		return portal
-	return null
+	return _interact.preview_target()
 
 
 func _nearest_repairable_self_cashier() -> Node2D:
@@ -1843,104 +1800,11 @@ func _nearest_repairable_self_cashier() -> Node2D:
 
 
 func _release_interact() -> void:
-	if is_instance_valid(_lock_node) and _obj_str(_lock_node, "kind") in ["shelf_cannon", "kind_cannon"]:
-		_interact_release_held()
-	if _restock_aborted:
-		_restock_aborted = false
-		_restock_picking = false
-		_restock_hold = 0.0
-		return
-	if _cooked_aborted:
-		_cooked_aborted = false
-		_cooked_picking = false
-		_cooked_hold = 0.0
-		return
-	if _fighting or _long_committed or _deliver_done or _shelve_done or _restock_picking or _cooked_picking:
-		if _restock_picking and target != null and _obj_str(target, "kind") in ["restock", "fish_tank"]:
-			if _world_authority():
-				var sku := String(target.call("commit_pick"))
-				SfxBus.play("sfx_box_sku_confirm")
-				var set_key := (
-					"log.player.fish_set"
-					if _obj_str(target, "kind") == "fish_tank"
-					else "log.player.restock_set"
-				)
-				log_line.emit(Loc.t(set_key, [Tuning.sku_name(sku)]))
-			else:
-				## Client: close local pick chrome; Host commits via restock_commit intent.
-				pending_restock_commit = true
-				target.picking = false
-				SfxBus.play("sfx_box_sku_confirm")
-		elif _cooked_picking and target != null and _obj_str(target, "kind") == "cooked_stall":
-			_commit_cooked_craft()
-		_restock_picking = false
-		_restock_hold = 0.0
-		_cooked_picking = false
-		_cooked_hold = 0.0
-		return
-	_do_short_interact()
-	_restock_picking = false
-	_restock_hold = 0.0
-	_cooked_picking = false
-	_cooked_hold = 0.0
+	_interact.release_interact()
 
 
-## Tap: thief (already grabbed), else one piece off a stocked shelf, else a restock box, else ops item / floor box.
 func _do_short_interact() -> void:
-	var turret := _usable_turret()
-	if turret != null:
-		if _interact_try(turret):
-			if _obj_str(turret, "kind") == "universal_cannon" and not turret.retrieve_to(self):
-				log_line.emit(Loc.t("cannon.take_failed"))
-			_interact_release(turret)
-		return
-	if _nearest_active_thief() != null:
-		return
-	var shelf := _nearest_stocked_shelf()
-	if shelf != null:
-		_take_shelf_piece(shelf)
-		return
-	var restock := _nearest_kind("restock")
-	if restock != null:
-		target = restock
-		_pickup_used = false
-		_try_pickup()
-		return
-	var tank := _nearest_kind("fish_tank")
-	if tank != null:
-		target = tank
-		_pickup_used = false
-		_try_pickup()
-		return
-	var stall := _nearest_kind("cooked_stall")
-	if stall != null and _cooked_deposit_sku() != "":
-		_deposit_to_cooked_stall(stall)
-		return
-	var ops := _nearest_kind("ops_item")
-	if ops != null:
-		target = ops
-		_pickup_used = false
-		_tick_ops_item()
-		return
-	var drop := _nearest_kind("drop")
-	if drop != null:
-		target = drop
-		_pickup_used = false
-		_tick_drop()
-		return
-	if is_instance_valid(_self_repair_reg):
-		_try_self_cashier_repair_hit()
-		return
-	var broken_sco := _nearest_repairable_self_cashier()
-	if broken_sco != null:
-		_try_self_cashier_repair_begin(broken_sco)
-		return
-	var portal := _nearest_usable_portal()
-	if portal != null:
-		_try_portal_teleport(portal)
-		return
-	if _store_open() and not inventory.is_empty() and not _faced_guests().is_empty():
-		log_line.emit(Loc.t("log.player.hold_deliver_hint"))
+	_interact.do_short_interact()
 
 
 func _try_self_cashier_repair_begin(reg: Node2D) -> void:
@@ -2030,38 +1894,7 @@ func _guest_wants_carried(guest: Node) -> bool:
 
 
 func _give_guest(guest: Node) -> int:
-	if guest == null or not guest.has_method("accept_toss_box"):
-		return 0
-	var before := 0
-	if guest.get("shopping") != null:
-		before = int((guest.shopping as Array).size())
-	var given := 0
-	var seen := {}
-	var wants: Array[String] = []
-	for s in guest.shopping:
-		var sku := String(s)
-		if seen.has(sku):
-			continue
-		seen[sku] = true
-		wants.append(sku)
-	for sku in wants:
-		if guest.has_method("can_receive_delivery") and not bool(guest.call("can_receive_delivery")):
-			break
-		var need := 0
-		for s in guest.shopping:
-			if String(s) == sku:
-				need += 1
-		var n := mini(need, inventory.count_of(sku))
-		if n <= 0:
-			continue
-		var taken := int(guest.call("accept_toss_box", sku, n))
-		if taken > 0:
-			inventory.remove_sku(sku, taken)
-			given += taken
-	## Perfect deliver: cleared remaining list in this burst (any count ≥1).
-	if given > 0 and before >= 1 and guest.shopping.is_empty():
-		guest.set_meta("combo_cleared_n", before)
-	return given
+	return _interact.give_guest(guest)
 
 
 func _begin_must_deliver_aim(sk: Dictionary) -> void:
@@ -2133,66 +1966,7 @@ func _cast_harvest_chives(lv: int) -> bool:
 func _cast_force_sell(lv: int) -> bool:
 	return _skills.cast_force_sell(lv)
 func _hand_deliver(guests: Array, penalize_miss: bool) -> int:
-	## §8.2: Client chrome only — Host applies delivery via interact intent.
-	if not _world_authority():
-		return 0
-	var total := 0
-	var nearest: Node = null
-	var locked: Array = []
-	var boss_rejected := false
-	for guest in guests:
-		if guest == null or not is_instance_valid(guest):
-			continue
-		if not guest.has_method("can_receive_delivery") or not bool(guest.call("can_receive_delivery")):
-			continue
-		## A7 L — hand delivery target.
-		if not _interact_try(guest):
-			continue
-		locked.append(guest)
-		if nearest == null:
-			nearest = guest
-		## Boss 序4／序5 hand rules (all-at-once / toss-only).
-		if guest.get("is_boss") == true:
-			var game_b := _game()
-			if game_b != null and game_b.has_method("boss_hand_deliver"):
-				var r: Dictionary = game_b.call("boss_hand_deliver", self, guest)
-				if bool(r.get("handled", false)):
-					var g := int(r.get("given", 0))
-					total += g
-					if g <= 0:
-						boss_rejected = true
-					continue
-		total += _give_guest(guest)
-	if total > 0:
-		SfxBus.play("sfx_box_hit_guest_ok")
-		log_line.emit(Loc.t("log.player.deliver_n", [total]))
-		_deliver_pose_left = 0.4
-		_note_delivery_combo(guests, total)
-		for g in locked:
-			_interact_release(g)
-		return total
-	if boss_rejected:
-		var game_r := _game()
-		if game_r != null:
-			game_r.combo_break_personal(seat_id)
-		for g in locked:
-			_interact_release(g)
-		return 0
-	if penalize_miss and nearest != null and nearest.has_method("apply_toss_reject"):
-		nearest.call("apply_toss_reject", "")
-		SfxBus.play("sfx_box_hit_guest_reject")
-		if nearest.get("temp_clerk"):
-			log_line.emit(Loc.t("log.player.wrong_temp"))
-		else:
-			log_line.emit(Loc.t("log.player.wrong_dissat"))
-	var game := _game()
-	if game != null:
-		game.combo_break_personal(seat_id)
-	for g in locked:
-		_interact_release(g)
-	return 0
-
-
+	return _interact.hand_deliver(guests, penalize_miss)
 ## Boss reject: slide 3 body lengths away, then stun (no carry dump — goods already scattered).
 func apply_boss_bump(away_from: Vector2) -> void:
 	var dir := global_position - away_from
@@ -2304,43 +2078,7 @@ func _glow_host_now() -> Node2D:
 
 ## True when pressing interact would start a real action on this node.
 func _interact_available(node: Node2D) -> bool:
-	var kind := _obj_str(node, "kind")
-	if kind in ["universal_cannon", "shelf_cannon", "kind_cannon"]:
-		return node.available_for(self)
-	if kind == "thief":
-		## Carry allowed; goods stay in hand during the fight.
-		return node.has_method("is_active_thief") and bool(node.call("is_active_thief"))
-	if kind == "shelf":
-		return _shelf_interactable(node)
-	if kind == "restock":
-		return _restock_interactable(node)
-	if kind == "fish_tank":
-		return true
-	if kind == "cooked_stall":
-		return _cooked_stall_interactable(node)
-	if kind == "drop":
-		var n := _obj_int(node, "count")
-		return n > 0 and inventory.count() + n <= carry_cap()
-	if kind == "ops_item":
-		return OpsItems.first_empty_slot(ops_bag) >= 0 and String(node.get("item_id")) != ""
-	if kind == "dirt":
-		## Carry allowed; goods stay in hand while cleaning.
-		return true
-	if kind == "cashier":
-		return node.has_method("ready_customer") and node.call("ready_customer") != null
-	if kind == "self_cashier":
-		if node.has_method("can_repair") and bool(node.call("can_repair")):
-			return true
-		return bool(node.get("_repairing")) and int(node.get("_repair_seat")) == seat_id
-	if kind == "portal":
-		return _portal_interactable(node)
-	if kind == "elite" or kind == "":
-		if not _store_open() or inventory.is_empty():
-			return false
-		if not node.has_method("can_receive_delivery"):
-			return false
-		return bool(node.call("can_receive_delivery"))
-	return false
+	return _interact.interact_available(node)
 
 
 func _portal_interactable(node: Node2D) -> bool:
@@ -2929,37 +2667,7 @@ func _cooked_deposit_sku() -> String:
 
 
 func _deposit_to_cooked_stall(stall: Node2D) -> void:
-	if stall == null or not is_instance_valid(stall) or bool(stall.get("crafting")):
-		return
-	var id := _cooked_deposit_sku()
-	if id == "":
-		return
-	if not _world_authority():
-		SfxBus.play("sfx_box_pull")
-		return
-	if not stall.has_method("add_ingredient") or not stall.has_method("can_accept_ingredient"):
-		return
-	if not bool(stall.call("can_accept_ingredient", id, 1)):
-		SfxBus.play("sfx_box_pull_fail")
-		log_line.emit(Loc.t("log.player.cooked_pantry_full"))
-		return
-	var room := 1
-	if stall.get("pantry_capacity") != null and stall.has_method("pantry_total"):
-		room = maxi(0, int(stall.get("pantry_capacity")) - int(stall.call("pantry_total")))
-	var want := mini(_manual_pickup_limit(), mini(inventory.count_of(id), room))
-	if want <= 0:
-		SfxBus.play("sfx_box_pull_fail")
-		log_line.emit(Loc.t("log.player.cooked_pantry_full"))
-		return
-	var taken := int(stall.call("add_ingredient", id, want))
-	if taken <= 0:
-		SfxBus.play("sfx_box_pull_fail")
-		log_line.emit(Loc.t("log.player.cooked_pantry_full"))
-		return
-	inventory.remove_sku(id, taken)
-	_spawn_fx("spray", stall.global_position + Vector2(0, -20))
-	SfxBus.play("sfx_shelf_stock_done")
-	log_line.emit(Loc.t("log.player.cooked_deposit", [Tuning.sku_name(id), taken]))
+	_interact.deposit_to_cooked_stall(stall)
 
 
 func _tick_cooked_pick(delta: float) -> void:
@@ -3057,39 +2765,7 @@ func _abort_restock_pick() -> void:
 
 
 func _try_pickup() -> void:
-	if _pickup_used:
-		return
-	_pickup_used = true
-	var room := maxi(0, carry_cap() - inventory.count())
-	if room <= 0:
-		SfxBus.play("sfx_box_pull_fail")
-		log_line.emit(Loc.t("log.player.carry_need", [inventory.count(), carry_cap()]))
-		return
-	## §8.2: Client must not declare warehouse consume — Host owns stock.
-	if not _world_authority():
-		SfxBus.play("sfx_box_pull")
-		return
-	var sku := String(target.call("selected_sku"))
-	var requested := mini(_manual_pickup_limit(), room)
-	var taken := int(target.call("take_pieces", requested))
-	if taken <= 0:
-		SfxBus.play("sfx_box_pull_fail")
-		var empty_key := (
-			"log.player.fish_empty"
-			if _obj_str(target, "kind") == "fish_tank"
-			else "log.player.restock_empty"
-		)
-		log_line.emit(Loc.t(empty_key, [Tuning.sku_name(sku)]))
-		return
-	inventory.take_pieces(sku, taken)
-	_spawn_fx("suck", target.global_position)
-	SfxBus.play("sfx_box_pull")
-	var pull_key := (
-		"log.player.fish_pull"
-		if _obj_str(target, "kind") == "fish_tank"
-		else "log.player.pull_instant"
-	)
-	log_line.emit(Loc.t(pull_key, [Tuning.sku_name(sku), taken]))
+	_interact.try_pickup()
 
 
 func _tick_restock(delta: float) -> void:
