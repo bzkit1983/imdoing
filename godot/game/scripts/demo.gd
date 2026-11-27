@@ -30,6 +30,7 @@ const RatingRules = preload("res://scripts/session/rating_rules.gd")
 const FloorTilesScript = preload("res://scripts/floor_tiles.gd")
 const ProductVersion = preload("res://scripts/product_version.gd")
 const DaySettle = preload("res://scripts/host/day_settle.gd")
+const BranchSettle = preload("res://scripts/host/branch_settle.gd")
 const WorldBuildScript = preload("res://scripts/host/world_build.gd")
 const BgmBusScript = preload("res://scripts/bgm_bus.gd")
 const NetWorldScript = preload("res://scripts/host/net_world.gd")
@@ -3248,6 +3249,8 @@ func _finish_day() -> void:
 		revenue, served, thieves_caught, cleaned, _skip_xp, elite_served, shared_xp, ops_rating
 	)
 	var grade: int = int(result.get("grade", 0))
+	## Branch abstract settle in the same closeout flow (before save).
+	var branch_pack: Dictionary = BranchSettle.settle_all(state)
 	var guest_pack: Dictionary = DaySettle.persist_guest_xp(shared_xp, grade)
 	var guest_xp_line: String = String(guest_pack["guest_xp_line"])
 	var guest_ups: int = int(guest_pack["guest_ups"])
@@ -3315,13 +3318,19 @@ func _finish_day() -> void:
 			var tlines: PackedStringArray = _tasks.closeout_lines(0)
 			if not tlines.is_empty():
 				tasks_body = "\n".join(tlines)
+		var branch_body := ""
+		if bool(branch_pack.get("unlocked", false)):
+			branch_body = String(branch_pack.get("body", ""))
+		elif state.has_method("branch_system_unlocked") and state.branch_system_unlocked():
+			branch_body = String(branch_pack.get("body", ""))
 		_hud.set_closeout_panels(
 			DaySettle.closeout_body(
 				head, loss, revenue, state.money, int(result["spent"]), served, angry_left,
 				stolen_count, stolen_value, thieves_caught, thieves_escaped,
 				xp_line, save_line, grade_line, kind_cannon_closeout_text(seat_n)
 			),
-			tasks_body
+			tasks_body,
+			branch_body
 		)
 	## Prep will check difficulty suggestion after closeout returns.
 

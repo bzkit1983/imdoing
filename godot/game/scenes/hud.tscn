@@ -451,3 +451,31 @@ size_flags_vertical = 3
 theme_override_colors/font_color = Color(0.97, 0.96, 0.93, 1)
 text = "Day settled"
 autowrap_mode = 3
+
+[node name="BranchCard" type="PanelContainer" parent="Root/Closeout/Margin/Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+visible = false
+
+[node name="CardMargin" type="MarginContainer" parent="Root/Closeout/Margin/Columns/BranchCard"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 12
+
+[node name="BranchCol" type="VBoxContainer" parent="Root/Closeout/Margin/Columns/BranchCard/CardMargin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="BranchHeader" type="Label" parent="Root/Closeout/Margin/Columns/BranchCard/CardMargin/BranchCol"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.83, 0.37, 1)
+text = "Branches"
+
+[node name="BranchText" type="Label" parent="Root/Closeout/Margin/Columns/BranchCard/CardMargin/BranchCol"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.97, 0.96, 0.93, 1)
+text = ""
+autowrap_mode = 3

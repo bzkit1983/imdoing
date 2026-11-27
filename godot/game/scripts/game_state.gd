@@ -14,8 +14,11 @@ const XpRules = preload("res://scripts/session/xp_rules.gd")
 ## 7+: unlocked_skus / unlocked_furniture / prologue_boss_unlocked (content gates).
 ## 8+: fish_stock / fishing_taro_played (theme_historic fish tank).
 ## 9+: elite_clerks (named upgradeable staff; see eliteclerk.md).
-const SAVE_VERSION := 9
+## 10+: branch / theme stores (active_theme_id, theme_stores, origin_store, elite assignment).
+const SAVE_VERSION := 10
 const EliteClerkCatalog = preload("res://scripts/session/elite_clerk_catalog.gd")
+const BranchRules = preload("res://scripts/session/branch_rules.gd")
+const ThemeStoreSnapshot = preload("res://scripts/session/theme_store_snapshot.gd")
 const LIGHT_ULTIMATE := "let_there_be_light"
 const RatingRules = preload("res://scripts/session/rating_rules.gd")
 
@@ -36,6 +39,8 @@ const SCENARIO_PROLOGUE := 8
 const SCENARIO_HISTORIC_COOKED := 9
 ## Test: elite-clerk ops-day on 安桃山 blueprint (scenario 9 layout + full catalog unlocked).
 const SCENARIO_ELITE_CLERK := 10
+## Test: branch-store vertical slice — HQ theme_historic, branch origin.
+const SCENARIO_BRANCH := 11
 
 const CELL := 64.0
 const WAGE := 100
@@ -135,8 +140,16 @@ var shop_scale: int = 1
 var grid_w: int = 10
 var grid_h: int = 10
 var clerks: Array[Dictionary] = []
-## Owned elite clerks: {id, level, on_duty, roles, register, source}. See eliteclerk.md.
+## Owned elite clerks: {id, level, on_duty, roles, register, source, assignment?}. See eliteclerk.md.
 var elite_clerks: Array[Dictionary] = []
+## Branch / theme-store model (branchstore.md). Shared money stays top-level.
+var active_theme_id: String = BranchRules.ORIGIN_ID
+var themes_cleared: Array = []
+var theme_stores: Dictionary = {}
+var origin_store: Dictionary = {}
+## Live HQ policy / posts (mirrored into active ThemeStoreDict on write-back).
+var policy: String = BranchRules.POLICY_BALANCED
+var branch_posts: Dictionary = BranchRules.empty_posts()
 ## Selected set, mirrored for older readers. Source of truth is skill_sets.
 var slots: Array[String] = ["", "", "", "", ""]
 var ult_id: String = "the_world"
@@ -218,6 +231,12 @@ func apply_scenario(id: int) -> void:
 	unlocked_skus.clear()
 	unlocked_furniture.clear()
 	prologue_boss_unlocked = false
+	active_theme_id = BranchRules.ORIGIN_ID
+	themes_cleared.clear()
+	theme_stores.clear()
+	origin_store.clear()
+	policy = BranchRules.POLICY_BALANCED
+	branch_posts = BranchRules.empty_posts()
 	_install_new_game_sets()
 	match id:
 		2:
@@ -240,6 +259,9 @@ func apply_scenario(id: int) -> void:
 		SCENARIO_ELITE_CLERK:
 			## 精英店員營運日測試（藍本同劇本4；目錄全員 debug 解鎖）。
 			_scenario_elite_clerk()
+		SCENARIO_BRANCH:
+			## 分店垂直切片：本店安桃山、分店起源。
+			_scenario_branch()
 		SCENARIO_PROLOGUE:
 			_scenario_prologue()
 		_:
@@ -252,6 +274,8 @@ func apply_scenario(id: int) -> void:
 		_finalize_elite_clerk_scenario()
 	elif scenario == SCENARIO_HISTORIC_COOKED:
 		_finalize_historic_cooked_scenario()
+	elif scenario == SCENARIO_BRANCH:
+		_finalize_branch_scenario()
 
 
 func is_boss_test_scenario() -> bool:
@@ -262,9 +286,17 @@ func is_prologue_story_scenario() -> bool:
 	return scenario == SCENARIO_PROLOGUE
 
 
-## 安桃山 place shell／熟食閘（劇本9、10）。
+## 安桃山 place shell／熟食閘（劇本9、10、11）。
 func uses_historic_place_scenario() -> bool:
-	return scenario == SCENARIO_HISTORIC_COOKED or scenario == SCENARIO_ELITE_CLERK
+	return (
+		scenario == SCENARIO_HISTORIC_COOKED
+		or scenario == SCENARIO_ELITE_CLERK
+		or scenario == SCENARIO_BRANCH
+	)
+
+
+func branch_system_unlocked() -> bool:
+	return BranchRules.is_unlocked(themes_cleared)
 
 
 func _grant_initial_goods() -> void:
@@ -718,6 +750,68 @@ func _scenario_elite_clerk() -> void:
 		if i >= 0:
 			## 多數 level_max＝10；個別（如 kiko＝8）夾在目錄上限。
 			elite_clerks[i]["level"] = EliteClerkCatalog.level_max(id)
+
+
+## Scenario 11：分店垂直切片。本店＝安桃山（theme_historic）；分店＝起源店。
+func _scenario_branch() -> void:
+	## HQ shop = historic cooked blueprint (same as scenario 9).
+	_scenario_historic_cooked()
+	active_theme_id = "theme_historic"
+	themes_cleared = ["theme_historic"]
+	policy = BranchRules.POLICY_BALANCED
+	branch_posts = BranchRules.empty_posts()
+	## Origin branch: small operable shop with stock + one hiree as manager.
+	var origin := ThemeStoreSnapshot.default_theme_store()
+	origin["shop_scale"] = 2
+	origin["grid_w"] = 10
+	origin["grid_h"] = 10
+	origin["shop_rating"] = 2
+	origin["policy"] = BranchRules.POLICY_BALANCED
+	origin["developed"] = {"can": true, "snack": true, "drink": true}
+	origin["for_sale"] = {"can": true, "snack": true, "drink": true}
+	origin["stock"] = {
+		"can": 8,
+		"snack": 8,
+		"drink": 8,
+	}
+	origin["owned"] = {
+		"cashier": 1,
+		"restock_dry": 1,
+		"shelf_dry_8": 2,
+	}
+	origin["placed"] = [
+		{"type": "cashier", "x": 4, "y": 4, "rot": 0, "w": 2, "h": 1},
+		{"type": "restock_dry", "x": 1, "y": 2, "rot": 0, "w": 2, "h": 2, "default_sku": "snack"},
+		{"type": "shelf_dry_8", "x": 4, "y": 2, "rot": 0, "w": 2, "h": 1},
+		{"type": "shelf_dry_8", "x": 6, "y": 2, "rot": 0, "w": 2, "h": 1},
+	]
+	origin["clerks"] = [
+		{"role": "cashier", "register": 0},
+		{"role": "restock", "register": 0},
+	]
+	origin["branch_posts"] = {
+		"manager": {"kind": "clerk", "id": 0},
+		"cashier": null,
+		"restock": {"kind": "clerk", "id": 1},
+		"cleaner": null,
+		"security": null,
+	}
+	origin_store = origin
+	## Unlock one elite for Prep assignment tests (off HQ duty).
+	unlock_elite_clerk("yayoi", "debug")
+	var yi := _elite_index("yayoi")
+	if yi >= 0:
+		elite_clerks[yi]["on_duty"] = false
+		elite_clerks[yi]["level"] = EliteClerkCatalog.level_max("yayoi")
+
+
+func _finalize_branch_scenario() -> void:
+	## Mirror scenario 9 finalize for HQ sell flags, then snapshot HQ.
+	_finalize_historic_cooked_scenario()
+	theme_stores["theme_historic"] = ThemeStoreSnapshot.pack_from_state(self)
+	## origin_store already baked in _scenario_branch.
+	active_theme_id = "theme_historic"
+	ThemeStoreSnapshot.hydrate_into_state(self, theme_stores["theme_historic"])
 
 
 ## Scenario 7：劇本4 藍本；收起普通收銀機，門口下一台自助收銀機。無收銀店員（自助機不可綁）。
@@ -1614,6 +1708,7 @@ func unlock_elite_clerk(elite_id: String, source: String = "event") -> String:
 		"roles": EliteClerkCatalog.default_roles(id),
 		"register": 0,
 		"source": String(source),
+		"assignment": null,
 	})
 	return ""
 
@@ -1648,6 +1743,10 @@ func set_elite_on_duty(elite_id: String, on: bool) -> void:
 	var i := _elite_index(elite_id)
 	if i < 0:
 		return
+	if on and _elite_assignment(elite_clerks[i]) != null:
+		## Mutual exclusion: clear branch assignment when reporting to HQ.
+		elite_clerks[i]["assignment"] = null
+		_clear_elite_from_branch_posts(String(elite_clerks[i].get("id", "")))
 	elite_clerks[i]["on_duty"] = on
 
 
@@ -1655,7 +1754,206 @@ func toggle_elite_on_duty(elite_id: String) -> void:
 	var i := _elite_index(elite_id)
 	if i < 0:
 		return
-	elite_clerks[i]["on_duty"] = not bool(elite_clerks[i].get("on_duty", true))
+	set_elite_on_duty(elite_id, not bool(elite_clerks[i].get("on_duty", true)))
+
+
+func _elite_assignment(row: Dictionary) -> Variant:
+	var raw = row.get("assignment", null)
+	if raw == null:
+		return null
+	if not (raw is Dictionary):
+		return null
+	var theme_id := String(raw.get("theme_id", ""))
+	var post := String(raw.get("post", ""))
+	if theme_id == "" or post == "":
+		return null
+	return {"theme_id": theme_id, "post": post}
+
+
+func _clear_elite_from_branch_posts(elite_id: String) -> void:
+	var eid := String(elite_id)
+	_clear_elite_posts_in_store(origin_store, eid)
+	if theme_stores is Dictionary:
+		for tid in theme_stores.keys():
+			var snap = theme_stores[tid]
+			if snap is Dictionary:
+				_clear_elite_posts_in_store(snap, eid)
+				theme_stores[tid] = snap
+	## Also clear live HQ posts if mirrored.
+	for post in BranchRules.POST_IDS:
+		var ref = branch_posts.get(post, null)
+		if ref is Dictionary and String(ref.get("kind", "")) == "elite" and String(ref.get("id", "")) == eid:
+			branch_posts[post] = null
+
+
+func _clear_elite_posts_in_store(snap: Dictionary, elite_id: String) -> void:
+	var posts = snap.get("branch_posts", null)
+	if not (posts is Dictionary):
+		return
+	for post in BranchRules.POST_IDS:
+		var ref = posts.get(post, null)
+		if ref is Dictionary and String(ref.get("kind", "")) == "elite" and String(ref.get("id", "")) == elite_id:
+			posts[post] = null
+	snap["branch_posts"] = posts
+
+
+## Assign elite to a branch post. Clears HQ on_duty. Returns error string or "".
+func assign_elite_to_branch(elite_id: String, theme_id: String, post: String) -> String:
+	var i := _elite_index(elite_id)
+	if i < 0:
+		return Loc.t("err.elite_clerk_not_owned")
+	var tid := String(theme_id)
+	var p := String(post)
+	if not BranchRules.POST_IDS.has(p):
+		return Loc.t("err.branch_bad_post")
+	if tid != BranchRules.ORIGIN_ID and not theme_stores.has(tid):
+		if tid == String(active_theme_id):
+			pass
+		else:
+			return Loc.t("err.branch_store_missing", [tid])
+	## Clear previous assignment / posts for this elite.
+	_clear_elite_from_branch_posts(String(elite_clerks[i].get("id", "")))
+	elite_clerks[i]["on_duty"] = false
+	elite_clerks[i]["assignment"] = {"theme_id": tid, "post": p}
+	_set_branch_post(tid, p, {"kind": "elite", "id": String(elite_clerks[i].get("id", ""))})
+	return ""
+
+
+func clear_elite_branch_assignment(elite_id: String) -> void:
+	var i := _elite_index(elite_id)
+	if i < 0:
+		return
+	_clear_elite_from_branch_posts(String(elite_clerks[i].get("id", "")))
+	elite_clerks[i]["assignment"] = null
+
+
+func _set_branch_post(theme_id: String, post: String, ref: Variant) -> void:
+	var tid := String(theme_id)
+	if tid == String(active_theme_id) or (tid == BranchRules.ORIGIN_ID and String(active_theme_id) == BranchRules.ORIGIN_ID):
+		## If targeting the live HQ store, update live posts too.
+		if tid == String(active_theme_id):
+			branch_posts[post] = ref
+	var snap: Dictionary
+	if tid == BranchRules.ORIGIN_ID:
+		snap = ThemeStoreSnapshot.normalize_theme_store(origin_store)
+		var posts: Dictionary = BranchRules.normalize_posts(snap.get("branch_posts", null))
+		## Vacate post if occupied by someone else.
+		posts[post] = ref
+		snap["branch_posts"] = posts
+		origin_store = snap
+	else:
+		snap = ThemeStoreSnapshot.get_store_dict(self, tid)
+		if snap.is_empty():
+			return
+		var posts2: Dictionary = BranchRules.normalize_posts(snap.get("branch_posts", null))
+		posts2[post] = ref
+		snap["branch_posts"] = posts2
+		theme_stores[tid] = snap
+
+
+## Assign a regular clerk index from that store's clerks[] to a branch post.
+func assign_clerk_to_branch(theme_id: String, post: String, clerk_index: int) -> String:
+	var tid := String(theme_id)
+	var p := String(post)
+	if not BranchRules.POST_IDS.has(p):
+		return Loc.t("err.branch_bad_post")
+	var snap: Dictionary = ThemeStoreSnapshot.get_store_dict(self, tid)
+	if snap.is_empty() and tid != String(active_theme_id):
+		return Loc.t("err.branch_store_missing", [tid])
+	if tid == String(active_theme_id):
+		snap = ThemeStoreSnapshot.pack_from_state(self)
+	var clerks_arr = snap.get("clerks", [])
+	if not (clerks_arr is Array) or clerk_index < 0 or clerk_index >= clerks_arr.size():
+		return Loc.t("err.branch_bad_clerk")
+	## Clear this clerk from other posts in the same store.
+	var posts: Dictionary = BranchRules.normalize_posts(snap.get("branch_posts", null))
+	for op in BranchRules.POST_IDS:
+		var ref = posts.get(op, null)
+		if ref is Dictionary and String(ref.get("kind", "")) == "clerk" and int(ref.get("id", -1)) == clerk_index:
+			posts[op] = null
+	posts[p] = {"kind": "clerk", "id": clerk_index}
+	snap["branch_posts"] = posts
+	ThemeStoreSnapshot.set_store_dict(self, tid, snap)
+	if tid == String(active_theme_id):
+		branch_posts = posts
+	return ""
+
+
+func set_branch_policy(theme_id: String, new_policy: String) -> void:
+	var tid := String(theme_id)
+	var p := BranchRules.normalize_policy(new_policy)
+	if tid == String(active_theme_id):
+		policy = p
+	var snap: Dictionary = ThemeStoreSnapshot.get_store_dict(self, tid)
+	if snap.is_empty() and tid != String(active_theme_id):
+		return
+	if tid == String(active_theme_id):
+		snap = ThemeStoreSnapshot.pack_from_state(self)
+	snap["policy"] = p
+	ThemeStoreSnapshot.set_store_dict(self, tid, snap)
+
+
+func buy_branch_stock(theme_id: String, sku: String, pieces: int) -> String:
+	var tid := String(theme_id)
+	if tid == String(active_theme_id):
+		return buy_stock(sku, pieces)
+	var snap: Dictionary = ThemeStoreSnapshot.get_store_dict(self, tid)
+	if snap.is_empty():
+		return Loc.t("err.branch_store_missing", [tid])
+	var developed = snap.get("developed", {})
+	var for_sale = snap.get("for_sale", {})
+	var stock = snap.get("stock", {})
+	if not (developed is Dictionary) or not bool(developed.get(sku, false)):
+		return Loc.t("err.not_developed")
+	if Tuning.is_craft_only(sku):
+		return Loc.t("err.craft_only")
+	if for_sale is Dictionary and for_sale.has(sku) and not bool(for_sale[sku]):
+		return Loc.t("err.not_for_sale")
+	pieces = clampi(pieces, 1, Tuning.RESTOCK_PIECES)
+	var cost := Tuning.cost_for_pieces(sku, pieces)
+	if money < cost:
+		return Loc.t("err.funds")
+	money -= cost
+	if not (stock is Dictionary):
+		stock = {}
+	stock[sku] = int(stock.get(sku, 0)) + pieces
+	snap["stock"] = stock
+	ThemeStoreSnapshot.set_store_dict(self, tid, snap)
+	return ""
+
+
+func set_branch_for_sale(theme_id: String, sku: String, on: bool) -> String:
+	var tid := String(theme_id)
+	if tid == String(active_theme_id):
+		for_sale[sku] = on
+		_ensure_one_for_sale()
+		return ""
+	var snap: Dictionary = ThemeStoreSnapshot.get_store_dict(self, tid)
+	if snap.is_empty():
+		return Loc.t("err.branch_store_missing", [tid])
+	var developed = snap.get("developed", {})
+	var fs = snap.get("for_sale", {})
+	if not (developed is Dictionary) or not bool(developed.get(sku, false)):
+		return Loc.t("err.not_developed")
+	if not (fs is Dictionary):
+		fs = {}
+	fs[sku] = on
+	## Keep at least one sellable.
+	var any_on := false
+	for s in developed.keys():
+		var sid := String(s)
+		if not bool(developed[s]):
+			continue
+		if Tuning.is_craft_only(sid):
+			continue
+		if not fs.has(sid) or bool(fs[sid]):
+			any_on = true
+			break
+	if not any_on:
+		fs[sku] = true
+	snap["for_sale"] = fs
+	ThemeStoreSnapshot.set_store_dict(self, tid, snap)
+	return ""
 
 
 func toggle_elite_role(elite_id: String, role: String) -> String:
@@ -2223,14 +2521,26 @@ func to_dict() -> Dictionary:
 		if raw_roles is Array:
 			for r in raw_roles:
 				roles_out.append(String(r))
-		elite_list.append({
+		var elite_row := {
 			"id": String(e.get("id", "")),
 			"level": int(e.get("level", 1)),
 			"on_duty": bool(e.get("on_duty", true)),
 			"roles": roles_out,
 			"register": int(e.get("register", 0)),
 			"source": String(e.get("source", "")),
-		})
+		}
+		var asn = _elite_assignment(e)
+		if asn != null:
+			elite_row["assignment"] = asn
+		else:
+			elite_row["assignment"] = null
+		elite_list.append(elite_row)
+	var themes_cleared_out: Array = []
+	for t in themes_cleared:
+		themes_cleared_out.append(String(t))
+	var theme_stores_out: Dictionary = {}
+	for tid in theme_stores.keys():
+		theme_stores_out[String(tid)] = ThemeStoreSnapshot.normalize_theme_store(theme_stores[tid])
 	return {
 		"version": SAVE_VERSION,
 		"scenario": scenario,
@@ -2285,6 +2595,12 @@ func to_dict() -> Dictionary:
 		"task_test_seed": task_test_seed,
 		"tutorial_progress": tutorial_progress.duplicate(true),
 		"tutorial_skipped": tutorial_skipped,
+		"active_theme_id": String(active_theme_id) if active_theme_id != "" else BranchRules.ORIGIN_ID,
+		"themes_cleared": themes_cleared_out,
+		"theme_stores": theme_stores_out,
+		"origin_store": ThemeStoreSnapshot.normalize_theme_store(origin_store) if not origin_store.is_empty() else {},
+		"policy": BranchRules.normalize_policy(policy),
+		"branch_posts": BranchRules.normalize_posts(branch_posts),
 	}
 
 
@@ -2391,13 +2707,18 @@ func from_dict(data: Dictionary) -> String:
 			if not EliteClerkCatalog.exists(eid):
 				continue
 			var lv := clampi(int(e.get("level", 1)), 1, EliteClerkCatalog.level_max(eid))
+			var on_duty := bool(e.get("on_duty", true))
+			var asn = _elite_assignment({"assignment": e.get("assignment", null)})
+			if on_duty:
+				asn = null
 			elite_clerks.append({
 				"id": eid,
 				"level": lv,
-				"on_duty": bool(e.get("on_duty", true)),
+				"on_duty": on_duty,
 				"roles": _normalize_elite_roles(eid, e.get("roles", [])),
 				"register": maxi(0, int(e.get("register", 0))),
 				"source": String(e.get("source", "")),
+				"assignment": asn,
 			})
 	var loaded_slots: Array[String] = ["", "", "", "", ""]
 	var raw_slots = data.get("slots", [])
@@ -2469,6 +2790,29 @@ func from_dict(data: Dictionary) -> String:
 			if trow is Dictionary:
 				tutorial_progress[String(tid)] = (trow as Dictionary).duplicate(true)
 	tutorial_skipped = bool(data.get("tutorial_skipped", false))
+	## v10+ branch / theme stores (missing ⇒ single-store legacy).
+	active_theme_id = String(data.get("active_theme_id", BranchRules.ORIGIN_ID))
+	if active_theme_id == "":
+		active_theme_id = BranchRules.ORIGIN_ID
+	themes_cleared.clear()
+	var raw_cleared = data.get("themes_cleared", [])
+	if raw_cleared is Array:
+		for t in raw_cleared:
+			var ts := String(t)
+			if ts != "" and not themes_cleared.has(ts):
+				themes_cleared.append(ts)
+	theme_stores.clear()
+	var raw_stores = data.get("theme_stores", {})
+	if raw_stores is Dictionary:
+		for tid in raw_stores.keys():
+			theme_stores[String(tid)] = ThemeStoreSnapshot.normalize_theme_store(raw_stores[tid])
+	var raw_origin = data.get("origin_store", {})
+	if raw_origin is Dictionary and not raw_origin.is_empty():
+		origin_store = ThemeStoreSnapshot.normalize_theme_store(raw_origin)
+	else:
+		origin_store = {}
+	policy = BranchRules.normalize_policy(String(data.get("policy", BranchRules.POLICY_BALANCED)))
+	branch_posts = BranchRules.normalize_posts(data.get("branch_posts", null))
 	_grant_initial_goods()
 	_ensure_one_for_sale()
 	return ""

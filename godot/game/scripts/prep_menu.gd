@@ -51,6 +51,7 @@ var _rename_draft: String = ""
 var _rename_lower: bool = false
 ## Elite clerk detail focus id (prep elite_clerk page).
 var _elite_focus_id: String = ""
+var _branch_focus_id: String = ""
 var _rows: Array[Dictionary] = []
 var _qty_sku: String = ""
 var _qty_boxes: int = 1
@@ -959,6 +960,9 @@ func _activate_locked_row(row: Dictionary) -> void:
 	if action == "tut_furn_cap":
 		_popup_info(Loc.t("tut.gate.title"), Loc.t("tut.prep.restrict.furn_cap"))
 		return
+	if action == "go" and String(row.get("arg", "")) == "branches":
+		_popup_info(Loc.t("prep.branch.title"), Loc.t("prep.branch.locked"))
+		return
 	if tutorial_prep_restricts():
 		_popup_info(Loc.t("tut.gate.title"), Loc.t("tut.prep.restrict.hub"))
 		return
@@ -1448,6 +1452,41 @@ func _activate() -> void:
 			_refresh()
 		"elite_debug_unlock":
 			_elite_debug_unlock_next()
+		"branch_open":
+			_branch_focus_id = String(arg)
+			_msg = ""
+			_show_page("branch")
+		"branch_cycle_policy":
+			_branch_cycle_policy(String(arg))
+		"branch_buy_stock":
+			if arg is Dictionary:
+				var err_buy := state.buy_branch_stock(
+					String(arg.get("theme_id", "")),
+					String(arg.get("sku", "")),
+					16
+				)
+				_msg = err_buy if err_buy != "" else Loc.t("prep.branch.bought")
+				if err_buy == "":
+					state.save_to_disk()
+			_refresh()
+		"branch_toggle_sale":
+			if arg is Dictionary:
+				var tid_sale := String(arg.get("theme_id", ""))
+				var sku_sale := String(arg.get("sku", ""))
+				var ThemeStoreSnapshot = preload("res://scripts/session/theme_store_snapshot.gd")
+				var snap_sale: Dictionary = ThemeStoreSnapshot.get_store_dict(state, tid_sale)
+				var fs = snap_sale.get("for_sale", {})
+				var cur_on := true
+				if fs is Dictionary and fs.has(sku_sale):
+					cur_on = bool(fs[sku_sale])
+				var err_sale := state.set_branch_for_sale(tid_sale, sku_sale, not cur_on)
+				_msg = err_sale
+				if err_sale == "":
+					state.save_to_disk()
+			_refresh()
+		"branch_cycle_post":
+			if arg is Dictionary:
+				_branch_cycle_post(String(arg.get("theme_id", "")), String(arg.get("post", "")))
 		"noop":
 			pass
 		"try_open":
@@ -2054,6 +2093,74 @@ func _elite_debug_unlock_next() -> void:
 		_refresh()
 		return
 	_msg = Loc.t("prep.elite_clerks.debug_all_owned")
+	_refresh()
+
+
+func _branch_cycle_policy(theme_id: String) -> void:
+	var BranchRules = preload("res://scripts/session/branch_rules.gd")
+	var ThemeStoreSnapshot = preload("res://scripts/session/theme_store_snapshot.gd")
+	var snap: Dictionary = ThemeStoreSnapshot.get_store_dict(state, theme_id)
+	var cur := BranchRules.normalize_policy(String(snap.get("policy", BranchRules.POLICY_BALANCED)))
+	var idx := BranchRules.POLICY_IDS.find(cur)
+	if idx < 0:
+		idx = 0
+	var nxt := BranchRules.POLICY_IDS[(idx + 1) % BranchRules.POLICY_IDS.size()]
+	state.set_branch_policy(theme_id, nxt)
+	_msg = Loc.t("prep.branch.policy_set", [Loc.t(BranchRules.policy_label_key(nxt))])
+	state.save_to_disk()
+	_refresh()
+
+
+func _branch_cycle_post(theme_id: String, post: String) -> void:
+	var BranchRules = preload("res://scripts/session/branch_rules.gd")
+	var ThemeStoreSnapshot = preload("res://scripts/session/theme_store_snapshot.gd")
+	var snap: Dictionary = ThemeStoreSnapshot.get_store_dict(state, theme_id)
+	var posts: Dictionary = BranchRules.normalize_posts(snap.get("branch_posts", null))
+	var clerks_arr = snap.get("clerks", [])
+	var options: Array = [null]
+	if clerks_arr is Array:
+		for i in clerks_arr.size():
+			options.append({"kind": "clerk", "id": i})
+	for erow in state.elite_clerks:
+		var eid := String(erow.get("id", ""))
+		if eid == "":
+			continue
+		## Skip elites already on HQ duty (unless already assigned here).
+		var asn = erow.get("assignment", null)
+		var on_here := false
+		if asn is Dictionary and String(asn.get("theme_id", "")) == theme_id and String(asn.get("post", "")) == post:
+			on_here = true
+		if bool(erow.get("on_duty", false)) and not on_here:
+			continue
+		options.append({"kind": "elite", "id": eid})
+	var cur = posts.get(post, null)
+	var cur_i := 0
+	for i in options.size():
+		var opt = options[i]
+		if cur == null and opt == null:
+			cur_i = i
+			break
+		if cur is Dictionary and opt is Dictionary:
+			if String(cur.get("kind", "")) == String(opt.get("kind", "")) and str(cur.get("id", "")) == str(opt.get("id", "")):
+				cur_i = i
+				break
+	var nxt = options[(cur_i + 1) % options.size()]
+	## Clear previous occupant of this post.
+	var prev = posts.get(post, null)
+	if prev is Dictionary and String(prev.get("kind", "")) == "elite":
+		state.clear_elite_branch_assignment(String(prev.get("id", "")))
+	if nxt == null:
+		posts[post] = null
+		snap["branch_posts"] = posts
+		ThemeStoreSnapshot.set_store_dict(state, theme_id, snap)
+		_msg = Loc.t("prep.branch.post_cleared", [Loc.t(BranchRules.post_label_key(post))])
+	elif String(nxt.get("kind", "")) == "clerk":
+		var err_c := state.assign_clerk_to_branch(theme_id, post, int(nxt.get("id", 0)))
+		_msg = err_c if err_c != "" else Loc.t("prep.branch.post_set")
+	else:
+		var err_e := state.assign_elite_to_branch(String(nxt.get("id", "")), theme_id, post)
+		_msg = err_e if err_e != "" else Loc.t("prep.branch.post_set")
+	state.save_to_disk()
 	_refresh()
 
 

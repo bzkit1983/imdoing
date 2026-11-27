@@ -4,15 +4,15 @@
 - 工程活線：`godot/game`（見 `docs/versioning.md`）
 - 實作：`game_state.gd` 的 `to_dict`／`from_dict`／`save_to_disk`／`load_from_disk`
 - I/O 經 Autoload **`PlatformServices`**（Desktop：`scripts/platform/desktop_platform.gd` → `user://save.json`）
-- **劇情選章（EA 要做／尚未實作）：** 2026-11-27 起，EA 進程需要存 `story_slot`、`active_theme_id`、`themes_cleared[]`、`theme_run_flags` 等（形狀見 `storysystem.md` §存檔欄位）。落地時再升 `SAVE_VERSION`（現行 9 不足涵蓋選章）並在本檔補**官方劇情欄**。序章內容閘欄位已在 `SAVE_VERSION` 7。**已決（2026-11-27，Jackson）：** 開發／測試／劇本存檔**不轉入正式發行版**（不做產品級遷移）。現有全部劇本皆測試沙盒。完整十章其餘槽位可後加
-- **分店／主題店（EA 打完安桃山後可開／尚未實作）：** `theme_stores`、`origin_store`、精英 `assignment`、每店獨立 `shop_rating`；**共用**頂層 `money`。形狀見 [`branchstore.md`](branchstore.md)；由分店專職 issue 落地
+- **劇情選章（EA 要做／尚未實作）：** 2026-11-27 起，EA 進程需要存 `story_slot`、`theme_run_flags` 等（形狀見 `storysystem.md` §存檔欄位）。`active_theme_id`／`themes_cleared` 已隨分店垂直切片進 `SAVE_VERSION` 10；完整選章狀態機仍未做。序章內容閘欄位已在 `SAVE_VERSION` 7。**已決（2026-11-27，Jackson）：** 開發／測試／劇本存檔**不轉入正式發行版**（不做產品級遷移）。現有全部劇本皆測試沙盒。完整十章其餘槽位可後加
+- **分店／主題店（垂直切片已接／正式選章未接）：** `SAVE_VERSION` **10**：`theme_stores`、`origin_store`、`active_theme_id`、`themes_cleared`、每店 `policy`／`branch_posts`、精英 `assignment`、每店獨立 `shop_rating`；**共用**頂層 `money`。測試劇本 11。形狀見 [`branchstore.md`](branchstore.md)
 - **免費 Demo 存檔（2026-11-27 已決／尚未實作）：** Demo 進度**不轉入**付費 EA。Demo 組建須用**獨立的 `user://` 路徑或槽，或明確標記**，讓付費 EA 不會載入或覆寫該檔；Cloud 亦須分開。精確檔名在實作時補本節（現行 EA 本體仍為 `user://save.json`）。見 [`steam-productization.md`](../alpha/steam-productization.md)
 
 
 # 路徑與格式
 
 - 本機檔：`user://save.json`（**店主＋店舖**完整進度）
-- JSON 物件。頂層必有整數欄 **`version`**（與產品 SemVer tag 分開；目前實作 `SAVE_VERSION = 9`：含精英店員 `elite_clerks` 等；見 `docs/versioning.md`／`game_state.gd`）
+- JSON 物件。頂層必有整數欄 **`version`**（與產品 SemVer tag 分開；目前實作 `SAVE_VERSION = 10`：含分店／主題店快照等；見 `docs/versioning.md`／`game_state.gd`）
 - `version` 過新：拒絕載入並提示更新遊戲。之後升版時在此檔補 migration 規則
 
 `game_state.gd` 現行升版與 migration：
@@ -28,11 +28,12 @@
 | 7 | 內容閘：`unlocked_skus`、`unlocked_furniture`、`prologue_boss_unlocked`（舊檔由等級表＋已開發重建） |
 | 8 | 魚缸／釣魚：`fish_stock`、`fishing_taro_played` |
 | 9 | 精英店員 `elite_clerks` |
+| 10 | 分店／主題店：`active_theme_id`、`themes_cleared`、`theme_stores`、`origin_store`、`policy`／`branch_posts`；精英 `assignment`（舊檔缺欄＝單店／空快照） |
 
 ## 訪客角色槽（本機雙人 M1）
 
 - 用途：本機 coop 的 P2 **只含角色進度**（無店舖／資金／倉庫／擺放）。規則見 `multiplayer.md` §11.2。
-- 路徑：`user://guest_slots.json`（經 `PlatformServices` `read`／`write`／`has`／`delete_guest_slots`）。獨立檔，自有 `version` 欄（目前為 1），與店主存檔的 `SAVE_VERSION`（目前 9）分開，不因此升主存檔版號。
+- 路徑：`user://guest_slots.json`（經 `PlatformServices` `read`／`write`／`has`／`delete_guest_slots`）。獨立檔，自有 `version` 欄（目前為 1），與店主存檔的 `SAVE_VERSION`（目前 10）分開，不因此升主存檔版號。
 - 上限 **3** 槽。可從店主**複製**等級／能力／技能／`tint`／`skin_id`／`unlocked_skins`，或新建空白；外觀細節見 [`appearance.md`](appearance.md)。
 - JSON：`{ "version": 1, "slots": [ dict|{}, … ] }`；角色 dict 含 `xp`／`level`／`unspent`／`base_*`／`*_stat`／`slots`／`ult_id`／`skill_sets`／`flags`／`tint`／`skin_id`／`unlocked_skins`／`display_name`；設計另加 **`support_rating`**（支援別店評價，見 `ratingsystem.md`）（**無** money／stock／layout／`shop_rating`）。
 - 日結：店主檔寫資金＋平分後 XP＋Host 商店評價／評級歷史；選中槽寫入訪客 XP（平分公式見 multiplayer §11.7）與 `support_rating` 更新。清除主存檔時一併 `delete_guest_slots`。
@@ -76,11 +77,11 @@
 - **商品培養（`SAVE_VERSION` ≥5）：** `cultivation`（待領批次）
 - **創世問答（`SAVE_VERSION` ≥6）：** `light_quiz_passed`
 - **魚缸／釣魚（`SAVE_VERSION` ≥8）：** `fish_stock`、`fishing_taro_played`（見 [`fishingtaro.md`](fishingtaro.md)）
-- **精英店員（`SAVE_VERSION` ≥9）：** `elite_clerks` 陣列；每項 `id`／`level`／`on_duty`／`roles`／`register`／`source`。另占欄、不扣日薪；見 [`eliteclerk.md`](eliteclerk.md)。**設計擴欄：** `assignment{theme_id, post}` 與本店 `on_duty` 互斥（分店派駐）  
+- **精英店員（`SAVE_VERSION` ≥9）：** `elite_clerks` 陣列；每項 `id`／`level`／`on_duty`／`roles`／`register`／`source`。另占欄、不扣日薪；見 [`eliteclerk.md`](eliteclerk.md)。**`SAVE_VERSION` ≥10：** `assignment{theme_id, post}` 與本店 `on_duty` 互斥（分店派駐）  
 - 外觀：`tint`、`skin_id`、`unlocked_skins`（空＝全開）。見 [`appearance.md`](appearance.md)  
 - 當日進貨支出累計、上一局是否虧損、升級備註  
-- **評價／難度（`SAVE_VERSION` ≥3）：** `shop_rating`（商店評價，下限 0）、`rating_history`（最近最多 30 筆日結評級）、`difficulty`（easy／normal／hard，見 `difficulty.md`）、`last_ops_rating`／`last_grade`、`difficulty_prompt_acked`。規則見 `ratingsystem.md`。**設計多店：** 每間主題店自有評價欄；頂層／本店 hydrate 後的 `shop_rating`＝當前本店  
-- **分店（設計／未實作）：** `theme_stores`、`origin_store`、`policy`／`branch_posts`；細節 [`branchstore.md`](branchstore.md)  
+- **評價／難度（`SAVE_VERSION` ≥3）：** `shop_rating`（商店評價，下限 0）、`rating_history`（最近最多 30 筆日結評級）、`difficulty`（easy／normal／hard，見 `difficulty.md`）、`last_ops_rating`／`last_grade`、`difficulty_prompt_acked`。規則見 `ratingsystem.md`。**多店：** 每間主題店自有評價欄；頂層／本店 hydrate 後的 `shop_rating`＝當前本店  
+- **分店（`SAVE_VERSION` ≥10）：** `active_theme_id`、`themes_cleared`、`theme_stores`、`origin_store`、`policy`／`branch_posts`；細節 [`branchstore.md`](branchstore.md)  
 
 
 訪客槽另可含 **`support_rating`**（支援別店評價；見 `ratingsystem.md`／`multiplayer.md`）。

@@ -95,6 +95,12 @@ static func _draw(id: String) -> ImageTexture:
 		"rating":
 			_star(img, 48, 48, 30, Color("f4d35e"))
 			_disk(img, 48, 48, 10, Color("1c241f"))
+		"branch":
+			_tri_roof(img)
+			_box(img, 14, 42, 30, 34, Color("3d5a46"))
+			_box(img, 50, 48, 30, 28, Color("5a655e"))
+			_box(img, 22, 54, 10, 14, Color("f4d35e"))
+			_box(img, 58, 58, 10, 12, Color("f4d35e"))
 		"fishing_taro":
 			_disk(img, 48, 58, 28, Color("2a7bb0"))
 			_box(img, 18, 22, 8, 40, Color("8b5a2b"))
