@@ -6,7 +6,7 @@
 - **對照：** `docs/alpha/tech-review-v0.1.md`、`docs/systemdesign/ecosystem.md`、`docs/systemdesign/playerexport.md`、`docs/systemdesign/control.md`、`docs/systemdesign/savesystem.md`、`docs/systemdesign/pausemenu.md`、`godot/game/scripts/platform_services.gd`
 - **本機 vs 網上工程缺口：** [`docs/alpha/multiplayer-local-vs-online-gap.md`](../alpha/multiplayer-local-vs-online-gap.md)（2026-11-22；契約×活線對照，非玩法規格）
 - **產出／更新：** 2026-11-05（初稿＋§10 拍板＋§11 M1）；**2026-11-09 定稿 §12 M2 LAN**；**2026-11-10 claim2／M2.1～M2.9**；**2026-11-10 定稿 §13 M3 Steam（含 Win／Linux／macOS depot）**；**2026-11-11 §13.4 驗收通過**；**2026-11-14 §13.6 邀請免手打 Lobby ID**；**2026-11-14 §12.10 日結後留房連開**；**2026-11-15 §8.4 Client 表現與網頻**
-- **免費 Demo／專用多人（2026-11-27，方向待設計）：** 免費 Demo **暫時不含**本檔現行本機／LAN／Steam 日循環多人。可能另開**固定地圖／場景、開局即可用中期技能**的專用多人體驗（尚未拍板）。見 [`steam-productization.md`](../alpha/steam-productization.md)
+- **免費 Demo／專用多人（2026-11-27，方向待設計）：** 免費 Demo **暫時不含**本檔現行本機／LAN／Steam 日循環多人。可能另開**固定地圖／場景、開局即可用中期技能**的專用多人體驗（尚未拍板）。見 #167、[`steam-productization.md`](../alpha/steam-productization.md)
 
 
 ---
