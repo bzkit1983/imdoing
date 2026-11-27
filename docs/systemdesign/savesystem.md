@@ -4,7 +4,7 @@
 - 工程活線：`godot/game`（見 `docs/versioning.md`）
 - 實作：`game_state.gd` 的 `to_dict`／`from_dict`／`save_to_disk`／`load_from_disk`
 - I/O 經 Autoload **`PlatformServices`**（Desktop：`scripts/platform/desktop_platform.gd` → `user://save.json`）
-- **劇情選章（設計先行／未實作）：** 將來需存 `story_slot`、`active_theme_id`、`themes_cleared[]`、`theme_run_flags` 等（形狀見 `storysystem.md` §存檔欄位）；落地時升 `SAVE_VERSION` 並在本檔補 migration
+- **劇情選章（設計先行／未實作）：** 十章選章仍需存 `story_slot`、`active_theme_id`、`themes_cleared[]`、`theme_run_flags` 等（形狀見 `storysystem.md` §存檔欄位）；落地時再升 `SAVE_VERSION` 並在本檔補 migration。序章內容閘欄位已在 `SAVE_VERSION` 7（見上表），不代表選章 runtime 已做
 - **分店／主題店（設計先行／未實作）：** `theme_stores`、`origin_store`、精英 `assignment`、每店獨立 `shop_rating`；**共用**頂層 `money`。形狀見 [`branchstore.md`](branchstore.md)
 
 # 路徑與格式

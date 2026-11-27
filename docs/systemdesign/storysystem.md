@@ -2,7 +2,7 @@
 
 - 此檔案定義**劇情模式框架**（進程槽、主題選章、解鎖權威、與任務／成長系統的關係）
 - **不含**劇本對話、角色設定、具體任務文案；各章／主題細節見 [`story/`](story/)
-- **閘門：** 本檔與 `story/`＝**設計先行**。**活線未做**；Steam EA／現行產品**不做**章節 runtime（見 [`docs/versioning.md`](../versioning.md)）。貢獻者勿開敘事 PR，除非 milestone 改 EA 範圍或 Beta 旗標。
+- **閘門：** 本檔與 `story/` 的**十章選章／`story_slot` 狀態機／分店 runtime**仍為設計先行，活線未做。Steam EA 已拍板範圍仍是純日循環、不做完整章節 runtime（見 [`docs/versioning.md`](../versioning.md)）。惟活線已有可玩片段：劇本 **8** 序章內容閘與經濟、劇本 **6** 頭目戰測試。**序章是否計入 EA 交負責人決定，本檔不預先拍板。** 貢獻者勿把完整章節 runtime／`StoryDirector` 當成已核准的 EA 工單，除非 milestone 改範圍或開 Beta 旗標。
 - 概念沙盒（已被本選章框架取代方向）：[`docs/concepts/ten-chapter-growth-blueprint.md`](../concepts/ten-chapter-growth-blueprint.md)
 - 任務條件語意：[`tasksystem.md`](tasksystem.md)；劇情 pack stub：[`taskcontent-story-stub.md`](taskcontent-story-stub.md)
 - 事件修飾器表：[`eventsystem.md`](eventsystem.md)（占位；**不**排活線）
@@ -15,7 +15,7 @@
 | 框架結構（本章） | **產品規格開檔（設計）** — 選章＋破局 |
 | 各章／主題內容／事件／劇本 | 開檔 stub，詳情後補 |
 | 期望 EXP／資金／技能／開發規模等數字 | 產品建議見 `story/growth-*.md`；實作前可再調 |
-| 活線實作 | **未做／EA 不做**（見 `docs/beta/design.md`、`docs/versioning.md`） |
+| 活線實作 | **部分已接：** 劇本 8 序章內容閘／經濟（`SAVE_VERSION` ≥7；`ST-PROLOGUE-MONEY`）、劇本 6 頭目戰測試。**未做：** 十章選章、`story_slot` 狀態機、分店 runtime。序章是否計入 EA **尚未決定**（見 `docs/beta/design.md`、`docs/versioning.md`） |
 
 # 進程模型（slot × theme）
 
@@ -160,7 +160,7 @@
 | `theme_stores`／`origin_store` | 可選主題店／起源店完整快照；見 [`branchstore.md`](branchstore.md) |
 | `money`（頂層共用） | 本店與分店共用資金；分店不另設資金欄 |
 
-精確 schema 與 `SAVE_VERSION` 升級：待實作時改 `savesystem.md`。分店欄位細節見 `branchstore.md`。
+十章選章欄位的精確 schema 與再升 `SAVE_VERSION`：待 `story_slot` runtime 實作時改 `savesystem.md`。序章內容閘欄位（`unlocked_skus`／`unlocked_furniture`／`prologue_boss_unlocked`）已在 `SAVE_VERSION` 7。分店欄位細節見 `branchstore.md`。
 
 # 頭目（框架定義）
 

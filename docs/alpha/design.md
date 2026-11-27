@@ -55,7 +55,7 @@
 - **已寫進長線或工程：** 存檔／暫停／操作／字串表／準備 UI／工程路徑／事件 SFX 音量／BGM Bus＋音量（見 `pausemenu.md`、`soundeffects.md`、`bgm.md`、`implementation-status.md`）。**教學框架**已落地（`tutorial.md`；劇本 5 鏈見 `implementation-status.md`）。
 - **仍缺（玩法／產品；對齊 tech-review H）：** 技能演出期間能否操作、外觀配置仍只有一句。正式 App ID 仍 Open；Cloud／成就 API 已接；**H2 設定頁＋首日引導已落地**（見 [`steam-productization.md`](steam-productization.md)）。
 - **EA 範圍（H3 已拍板，2026-11-18）：** Steam Early Access／現行產品以**純日循環**為準；**不做**失敗／過關／提早關店敘事層（可重玩當日與資金保留仍依現有結算）。敘事／事件表留待 Beta（見 `docs/beta/design.md`、`docs/versioning.md`）。
-- **劇情框架閘門（N1）：** `storysystem.md`／`story/`＝設計文件；**活線未接**。準備回合／HUD／任務板仍服務日循環，不是章節狀態機。事件占位 [`eventsystem.md`](../systemdesign/eventsystem.md) 不排活線。
+- **劇情框架閘門（N1）：** `storysystem.md`／`story/` 的十章選章／章節狀態機仍是設計文件，活線未接。準備回合／HUD／任務板仍以日循環為主。活線已有劇本 8 序章內容閘／經濟與劇本 6 頭目測試；**序章是否計入 EA 尚未決定**。事件占位 [`eventsystem.md`](../systemdesign/eventsystem.md) 不排活線。
 
 ---
 

@@ -3,7 +3,7 @@
 - 章 id：`prologue`
 - 劇情 pack 前綴：`ST-PROLOGUE-###`
 - 框架總則：[`../storysystem.md`](../storysystem.md)
-- **狀態：** 進程主線已定（不含劇情）；劇本／事件文案後補
+- **狀態：** 進程主線已定（不含劇情）；劇本／事件文案後補。**活線：** 劇本 8 已接內容閘與經濟（`ST-PROLOGUE-MONEY`）。通關後進第 1 章的選章／`story_slot` runtime 仍未做。是否計入 EA 尚未決定
 - 經濟／規模：[`growth-economy.md`](growth-economy.md)；交叉：[`progression-crossref.md`](progression-crossref.md)
 
 # 概念（框架）
