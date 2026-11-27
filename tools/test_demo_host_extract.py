@@ -38,6 +38,11 @@ need(
     and "_cooked_world.bind(self)" in DEMO,
     "demo binds host modules",
 )
+DAY_BEGIN = (ROOT / "godot/game/scripts/host/day_begin.gd").read_text(encoding="utf-8")
+## Typed Array[int] on demo — bare host.seat_* = [] crashes at begin_day.
+need("host.seat_cleaned.clear()" in DAY_BEGIN, "day_begin clears typed seat_cleaned")
+need("host.seat_cleaned = []" not in DAY_BEGIN, "day_begin must not assign bare [] to seat_cleaned")
+need("host.seat_served = []" not in DAY_BEGIN, "day_begin must not assign bare [] to seat_served")
 need("_net.connect_session()" in DEMO, "net session connect from demo ready")
 need("func build_furniture(" in WORLD and "func build_floor(" in WORLD, "world_build furniture/floor")
 need("func register_net_agent(" in NET and "func apply_agent_spawn_payload(" in NET, "net_world agent sync")
