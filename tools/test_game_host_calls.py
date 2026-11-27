@@ -17,6 +17,7 @@ HOT = [
     "godot/game/scripts/player/fight_controller.gd",
     "godot/game/scripts/player/skill_caster.gd",
     "godot/game/scripts/player/toss_controller.gd",
+    "godot/game/scripts/player/input_controller.gd",
 ]
 
 errs: list[str] = []

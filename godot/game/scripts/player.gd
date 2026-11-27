@@ -17,6 +17,7 @@ const TossControllerScript = preload("res://scripts/player/toss_controller.gd")
 const FightControllerScript = preload("res://scripts/player/fight_controller.gd")
 const SkillCasterScript = preload("res://scripts/player/skill_caster.gd")
 const CheckoutControllerScript = preload("res://scripts/player/checkout_controller.gd")
+const InputControllerScript = preload("res://scripts/player/input_controller.gd")
 const BagCasterScript = preload("res://scripts/player/bag_caster.gd")
 const CarryCasterScript = preload("res://scripts/player/carry_caster.gd")
 const FloorBarsScript = preload("res://scripts/player/player_floor_bars.gd")
@@ -285,6 +286,7 @@ var _toss = TossControllerScript.new()
 var _fight_ctrl = FightControllerScript.new()
 var _skills = SkillCasterScript.new()
 var _checkout = CheckoutControllerScript.new()
+var _input_ctrl = InputControllerScript.new()
 var _bags
 var _carries
 var _floor_bars: Node2D
@@ -345,6 +347,7 @@ func _ready() -> void:
 	_fight_ctrl.bind(self)
 	_skills.bind(self)
 	_checkout.bind(self)
+	_input_ctrl.bind(self)
 	_bags = BagCasterScript.new(self)
 	_bags.ensure_menu()
 	_carries = CarryCasterScript.new(self)
@@ -881,164 +884,11 @@ func role_status_text() -> String:
 
 
 func set_hold(action: String, pressed: bool) -> void:
-	## LAN Host applies intents every tick as levels — must edge-trigger.
-	## Otherwise interact=false spam calls _do_short_interact every frame (auto-loot).
-	match action:
-		"interact":
-			if _interact_ignore_until_up:
-				if pressed:
-					return
-				_interact_ignore_until_up = false
-				_j_held = false
-				_j_time = 0.0
-				_long_committed = false
-				_deliver_done = false
-				_shelve_done = false
-				_checkout_hold_idle = false
-				## Do not short-interact on the release that ends the latch.
-				return
-			if _fighting:
-				## Keep `_j_held` truthful during mash so fight-end knows if the
-				## physical Interact is still down (vs already released).
-				if pressed:
-					if not _fight_release:
-						_fight_tap()
-					_fight_release = true
-					_j_held = true
-				else:
-					_fight_release = false
-					_j_held = false
-				return
-			if pressed:
-				if _j_held:
-					return
-				_j_held = true
-				_j_time = 0.0
-				_long_committed = false
-				_deliver_done = false
-				_shelve_done = false
-				_checkout_hold_idle = false
-				_restock_hold = 0.0
-				_restock_aborted = false
-				_pickup_used = false
-				_no_queue_logged = false
-			else:
-				if not _j_held:
-					return
-				## `_release_interact` still needs `_long_committed` to skip short-take.
-				_release_interact()
-				_j_held = false
-				## Action finished / released — clear so a later short Cancel can toss.
-				## (Clean/deliver used to leave `_long_committed` stuck until next Interact.)
-				_long_committed = false
-				_deliver_done = false
-				_shelve_done = false
-				_checkout_hold_idle = false
-				_reset_hold()
-				_pickup_used = false
-				_no_queue_logged = false
-		"dash":
-			if command_lock or skill_menu_open or bag_menu_open or carry_menu_open or ult_prep or _fighting:
-				return
-			if pressed:
-				if _k_held:
-					return
-				_k_held = true
-				_k_time = 0.0
-				_k_run_committed = false
-			else:
-				if not _k_held:
-					return
-				## 輕放＝衝刺；已過門檻／committed 的這次按鍵不再補衝（起跑不會先衝一記）。
-				if not _k_run_committed and not _running and _k_time < Tuning.RUN_HOLD_THRESHOLD:
-					_try_dash()
-				_k_held = false
-				_k_run_committed = false
-				_running = false
-		"skill":
-			## LB → carry-select hold (expand strip; X/B cycle).
-			if pressed and _carry_select_held:
-				return
-			_on_carry_select_hold(pressed)
-		"bag_menu":
-			## RB → skill ring long-press (action name historical).
-			if pressed and _l_held:
-				return
-			_on_skill_hold(pressed)
-		"carry_menu":
-			## Face Y / U spare in ops.
-			return
-		"ult":
-			## Keyboard K / touch ult button. Xbox pad uses LT+RT chord instead.
-			## Edge-only: repeat ult=true intents must not re-fire prep.
-			if pressed and _u_held:
-				return
-			if pressed:
-				_ult_chord_active = false
-			_on_ult_hold(pressed)
-		"cancel":
-			if pressed:
-				if _cancel_held:
-					return
-				_cancel_held = true
-				_cancel_time = 0.0
-				_cancel_drop_ready = false
-				_cancel_dropped = false
-				_cancel_drop_dir = Vector2.ZERO
-				_cancel_swallowed = false
-				## Seed facing immediately so a standing short-tap still has a toss dir.
-				_sample_cancel_drop_dir()
-				_cancel_input()
-			else:
-				if not _cancel_held:
-					return
-				_cancel_held = false
-				_on_cancel_release()
+	_input_ctrl.set_hold(action, pressed)
 
 
 func move_state() -> String:
-	if _stun_left > 0.0:
-		return Loc.t("hud.move.stun")
-	if _slip_left > 0.0:
-		return Loc.t("hud.move.slip")
-	## Aim prep locks move; short-toss pause is a brief hitch (reuse drop_aim copy).
-	if _toss_move_pause_left > 0.0:
-		return Loc.t("hud.move.drop_aim")
-	if _cancel_drop_ready and _cancel_held and not _cancel_dropped:
-		return Loc.t("hud.move.drop_aim")
-	if _cancel_held and not _cancel_dropped:
-		return Loc.t("hud.move.drop_aim")
-	if ult_prep:
-		return Loc.t("hud.move.ult_cmd")
-	if _must_deliver_aim:
-		return Loc.t("hud.move.must_deliver")
-	if _magneto_aim:
-		return Loc.t("hud.move.magneto")
-	if skill_menu_open:
-		return Loc.t("hud.move.skill_menu")
-	if bag_menu_open:
-		return Loc.t("hud.move.bag_menu")
-	if carry_menu_open:
-		return Loc.t("hud.move.carry_menu")
-	if _restock_picking:
-		return Loc.t("hud.move.pick_sku")
-	if _cooked_picking:
-		return Loc.t("hud.move.cooked_craft")
-	if _cooked_craft_stall != null:
-		return Loc.t("hud.move.cooked_busy")
-	if _cleaning():
-		return Loc.t("hud.move.clean")
-	if _fighting:
-		return Loc.t("hud.move.fight")
-	if command_lock:
-		return Loc.t("hud.move.checkout_cmd")
-	if _dashing:
-		return "DASH"
-	if _running and velocity.length() > 8.0:
-		return "RUN"
-	if velocity.length() > 8.0:
-		return "WALK"
-	return "IDLE"
+	return _input_ctrl.move_state()
 
 
 func speed_mult() -> float:
@@ -1142,67 +992,7 @@ func _cashier_has_ready(reg: Node) -> bool:
 
 
 func _input(event: InputEvent) -> void:
-	if event.is_echo():
-		return
-	if not controls_locally():
-		return
-	## Let TutorialModal own A／方向 while explain pages are up.
-	var game_freeze = _game()
-	if (
-		game_freeze != null
-		and game_freeze.has_method("tutorial_freezes_play")
-		and bool(game_freeze.tutorial_freezes_play())
-	):
-		return
-	if not Controls.event_for_seat(event, seat_id):
-		return
-	# Early-close dialog and closeout own confirm / cancel.
-	if _asking_early():
-		return
-	if not _round_active() and (event.is_action(Controls.INTERACT) or event.is_action(Controls.CANCEL)):
-		return
-	# Discrete directions only here; analog stick uses _poll_stick_cardinal.
-	# Mode-steal: while command mode open, D-PAD / arrows (bag_slot_*) feed QTEs
-	# — not bag use (see Controls.dir_from_event + _bag_use_suppressed).
-	if _in_dir_mode() and event.is_pressed() and (
-		event is InputEventKey or event is InputEventJoypadButton
-	):
-		var dir := Controls.dir_from_event(event)
-		if dir >= 0:
-			_try_dir(dir)
-			get_viewport().set_input_as_handled()
-			return
-	## D-Pad / arrows → ops bag slots (free ops only; suppressed in dir mode).
-	if event.is_pressed() and (event is InputEventKey or event is InputEventJoypadButton):
-		var bag_slot := Controls.bag_slot_from_event(event)
-		if bag_slot >= 0:
-			if _try_use_ops_bag_slot(bag_slot):
-				get_viewport().set_input_as_handled()
-				return
-	## LB carry-select borrows X / B (dash / cancel).
-	if _carry_select_on and event.is_pressed() and (event is InputEventKey or event is InputEventJoypadButton):
-		if event.is_action_pressed(Controls.DASH):
-			_cycle_carry_focus(-1)
-			get_viewport().set_input_as_handled()
-			return
-		if event.is_action_pressed(Controls.CANCEL):
-			_cycle_carry_focus(1)
-			get_viewport().set_input_as_handled()
-			return
-	for action in Controls.HOLD_ACTIONS:
-		if event.is_action(action) and (event is InputEventKey or event is InputEventJoypadButton):
-			## While carry-select, borrow dash/cancel presses; always forward releases
-			## so sticky B drop-aim / X run holds can clear.
-			if _carry_select_on and (action == Controls.DASH or action == Controls.CANCEL):
-				if not event.is_pressed():
-					set_hold(action, false)
-				get_viewport().set_input_as_handled()
-				return
-			set_hold(action, event.is_pressed())
-			get_viewport().set_input_as_handled()
-			return
-	if event.is_pressed() and (event is InputEventKey or event is InputEventJoypadButton):
-		_handle_hotkey_actions(event)
+	_input_ctrl.input(event)
 
 
 func _begin_drop_aim() -> void:
@@ -1286,56 +1076,7 @@ func _on_piece_drop_landed() -> void:
 func _drop_dir_label(dir: Vector2) -> String:
 	return _toss.drop_dir_label(dir)
 func _cancel_input() -> void:
-	var used := _fighting or _stun_left > 0.0 or _slip_left > 0.0 or _long_committed or command_lock
-	if is_instance_valid(_self_repair_reg):
-		_end_self_cashier_repair()
-		used = true
-	if _restock_picking:
-		_abort_restock_pick()
-		_restock_aborted = true
-		_j_held = false
-		log_line.emit(Loc.t("log.player.cancel_pick"))
-		used = true
-	if _cooked_picking:
-		_abort_cooked_pick()
-		_cooked_aborted = true
-		_j_held = false
-		log_line.emit(Loc.t("log.player.cancel_pick"))
-		used = true
-	if _cooked_craft_stall != null:
-		_cancel_cooked_craft()
-		used = true
-	if _must_deliver_aim:
-		_cancel_must_deliver_aim()
-		used = true
-	if _magneto_aim:
-		_cancel_magneto_aim()
-		used = true
-	if skill_menu_open or _l_held or _skill_latch:
-		_close_skill_menu()
-		SfxBus.play("sfx_skill_menu_cancel")
-		log_line.emit(Loc.t("log.player.cancel_skill_menu"))
-		used = true
-	if bag_menu_open or _bag_held:
-		_close_bag_menu()
-		SfxBus.play("sfx_skill_menu_cancel")
-		used = true
-	if carry_menu_open or _carry_held:
-		_close_carry_menu()
-		SfxBus.play("sfx_skill_menu_cancel")
-		used = true
-	if _carry_select_on or _carry_select_held:
-		_carry_select_held = false
-		_end_carry_select()
-		used = true
-	if ult_prep:
-		_on_ult_hold(false)
-		used = true
-	if _j_held:
-		set_hold("interact", false)
-		used = true
-	if used:
-		_cancel_swallowed = true
+	_input_ctrl.cancel_input()
 
 
 func _physics_process(delta: float) -> void:
@@ -1725,50 +1466,7 @@ func _wiggle_axis() -> Vector2:
 
 
 func _move_axis() -> Vector2:
-	## Long-press drop aim only — in-flight boxes do not block walk.
-	if _cancel_drop_ready:
-		return Vector2.ZERO
-	## Short toss hitch: keep feet planted briefly so walk does not overtake the box.
-	if _toss_move_pause_left > 0.0:
-		return Vector2.ZERO
-	if _elite_focus_left > 0.0 or _portal_beam_left > 0.0:
-		return Vector2.ZERO
-	if _stun_left > 0.0 or _slip_left > 0.0 or _fighting or _shelving() or _cleaning():
-		return Vector2.ZERO
-	## Cooked craft Circle: lock feet; cancel key refunds pantry (not move).
-	if _cooked_craft_stall != null:
-		return Vector2.ZERO
-	## Charging restock SKU list (before `_restock_picking`): freeze walk but do not
-	## arm the neutral latch — short-tap pulls while holding a direction must resume.
-	if (
-		_j_held
-		and not _restock_picking
-		and is_instance_valid(target)
-		and _obj_str(target, "kind") in ["restock", "fish_tank"]
-	):
-		return Vector2.ZERO
-	if (
-		_j_held
-		and not _cooked_picking
-		and is_instance_valid(target)
-		and _obj_str(target, "kind") == "cooked_stall"
-	):
-		return Vector2.ZERO
-	if _in_dir_mode():
-		## Arm latch: skill menu / ult / checkout / restock pick consume move_* .
-		_move_locked_until_neutral = true
-		return Vector2.ZERO
-	var v := _move_vector() + stick_axis
-	if _move_locked_until_neutral:
-		if v.length() < Controls.MOVE_DEADZONE:
-			_move_locked_until_neutral = false
-		else:
-			return Vector2.ZERO
-	if v.length() < Controls.MOVE_DEADZONE:
-		return Vector2.ZERO
-	if v.length_squared() > 1.0:
-		v = v.normalized()
-	return v
+	return _input_ctrl.move_axis()
 
 
 func _poll_stick_cardinal() -> void:
