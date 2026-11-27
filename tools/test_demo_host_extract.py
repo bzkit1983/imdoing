@@ -26,6 +26,10 @@ need(
 )
 need("NetDayChromeScript" in DEMO and "_day_chrome.bind(self)" in DEMO, "demo preloads／binds net_day_chrome")
 need("BossWorldScript" in DEMO and "_boss_world.bind(self)" in DEMO, "demo preloads／binds boss_world")
+need("DayBeginScript" in DEMO and "_day_begin.bind(self)" in DEMO, "demo preloads／binds day_begin")
+need("EarlyCloseScript" in DEMO and "_early_close.bind(self)" in DEMO, "demo preloads／binds early_close")
+need("_day_begin.begin_day(" in DEMO, "demo delegates begin_day")
+need("_early_close.consider_early_close(" in DEMO, "demo delegates early-close consider")
 need("_world_spawn.tick_ambient(" in DEMO, "demo delegates ambient spawn tick")
 need(
     "_world_build.bind(self)" in DEMO

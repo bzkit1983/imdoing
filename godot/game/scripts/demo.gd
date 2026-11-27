@@ -43,6 +43,8 @@ const WorldSpawnScript = preload("res://scripts/host/world_spawn.gd")
 const TossWorldScript = preload("res://scripts/host/toss_world.gd")
 const CookedWorldScript = preload("res://scripts/host/cooked_world.gd")
 const BossWorldScript = preload("res://scripts/host/boss_world.gd")
+const DayBeginScript = preload("res://scripts/host/day_begin.gd")
+const EarlyCloseScript = preload("res://scripts/host/early_close.gd")
 const NetPresentationScript = preload("res://scripts/session/net_presentation.gd")
 const TaskCatalog = preload("res://scripts/session/task_catalog.gd")
 const TaskTrackerScript = preload("res://scripts/session/task_tracker.gd")
@@ -198,6 +200,8 @@ var _world_spawn = WorldSpawnScript.new()
 var _toss_world = TossWorldScript.new()
 var _cooked_world = CookedWorldScript.new()
 var _boss_world = BossWorldScript.new()
+var _day_begin = DayBeginScript.new()
+var _early_close = EarlyCloseScript.new()
 
 
 func _ready() -> void:
@@ -229,6 +233,8 @@ func _ready() -> void:
 	_toss_world.bind(self)
 	_cooked_world.bind(self)
 	_boss_world.bind(self)
+	_day_begin.bind(self)
+	_early_close.bind(self)
 	_net.connect_session()
 	_day_chrome.connect_session()
 	if not SessionService.carry_state_received.is_connected(_on_carry_state_received):
@@ -296,228 +302,7 @@ func refresh_world_dev_labels() -> void:
 
 
 func _begin_day() -> void:
-	_clear_self_service_operation()
-	if _prep:
-		_prep.set_process_unhandled_input(false)
-	if _pause and _pause.has_method("close_menu"):
-		_pause.close_menu()
-	## Safety: leftover tree pause must never carry into ops.
-	if get_tree() != null and get_tree().paused:
-		get_tree().paused = false
-	## Client applies host world snapshot before building the floor.
-	## Stash home save first — live `state` becomes Host shop for presentation only.
-	if SessionService.is_client():
-		if state != null:
-			SessionService.stash_client_home_save(state.to_dict())
-		var snap: Dictionary = SessionService.take_pending_day_snapshot()
-		var world = snap.get("world", {})
-		if world is Dictionary and not world.is_empty():
-			var err := state.from_dict(world)
-			if err != "":
-				push_warning("client day snapshot failed: %s" % err)
-	_clear_world()
-	_early_closed = false
-	_skip_xp = 0
-	revenue = 0
-	served = 0
-	elite_served = 0
-	_elite_zoom_queue.clear()
-	_elite_zoom_busy = false
-	angry_left = 0
-	ops_rating = RatingRules.OPS_START
-	stolen_count = 0
-	stolen_value = 0
-	thieves_caught = 0
-	thieves_escaped = 0
-	kind_converted_total = 0
-	cleaned = 0
-	var sn := maxi(1, SeatTable.seat_count)
-	seat_cleaned = []
-	seat_served = []
-	seat_caught = []
-	seat_elite = []
-	seat_kind_converted = []
-	for _i in sn:
-		seat_cleaned.append(0)
-		seat_served.append(0)
-		seat_caught.append(0)
-		seat_elite.append(0)
-		seat_kind_converted.append(0)
-	_settled = false
-	_closeout_ready_msec = 0
-	real_time = 0.0
-	game_hours = Tuning.GAME_START_HOUR
-	hud_rev = 0
-	phase = "restock"
-	_boss_world.clear()
-	if state != null and state.has_method("is_boss_test_scenario") and bool(state.is_boss_test_scenario()):
-		_boss_world.configure("alien_tycoon")
-	_net_pres.clear()
-	_owned_host_pose.clear()
-	_net_accum = 0.0
-	_agent_xform_accum = 0.0
-	var ComboState = preload("res://scripts/session/combo_state.gd")
-	_combo = ComboState.new()
-	_combo.reset(SeatTable.seat_count)
-	_setup_day_tasks()
-	if _tutorial != null:
-		_tutorial.setup(state)
-		if not _tutorial.progress_changed.is_connected(_on_tutorial_progress):
-			_tutorial.progress_changed.connect(_on_tutorial_progress)
-		## Do not open／pause mid-build — wait until world／HUD exist (see end of _begin_day).
-	var il := get_node_or_null("/root/InteractLock")
-	if il != null and il.has_method("clear"):
-		il.clear()
-	_sfx_phase = "restock"
-	SfxBus.play("sfx_phase_restock")
-	var bgm_op := BgmBusScript.bus()
-	if bgm_op:
-		bgm_op.play_operation(true)
-	_spawn_in = 2.0
-	clear_guest_dusk()
-	_clear_three_volley()
-	_dirt_spawn_in = dirt_spawn_interval()
-	_thief_spawn_in = state.thief_spawn_first()
-	_ops_item_spawn_in = OpsItems.SPAWN_FIRST_SEC
-	_ops_items.clear()
-	FLOOR_SIZE = Vector2(state.grid_w, state.grid_h) * StateScript.CELL
-	_world = Node2D.new()
-	_world.name = "World"
-	_world.y_sort_enabled = true
-	add_child(_world)
-	move_child(_world, 0)
-	_floor()
-	_walls_and_door()
-	var nodes: Array[Node2D] = []
-	_build_furniture(nodes)
-	pathfinder = PathfinderScript.new()
-	pathfinder.setup(FLOOR_ORIGIN, FLOOR_SIZE, _obstacles)
-	_customers = Node2D.new()
-	_customers.name = "Customers"
-	_customers.y_sort_enabled = true
-	_world.add_child(_customers)
-	_players.clear()
-	var spawn0 := FLOOR_ORIGIN + Vector2(FLOOR_SIZE.x * 0.5, FLOOR_SIZE.y - 80)
-	for seat in SeatTable.seat_ids():
-		var stats_src = state if seat == 0 else SeatTable.sheet_of(seat)
-		if stats_src == null:
-			stats_src = load("res://scripts/session/character_sheet.gd").from_game_state(state)
-			SeatTable.set_sheet(seat, stats_src)
-		## Bind guest_stats only for this machine's claim2 seat (local_index 1), not global seat 1.
-		if SeatTable.seat_owned_locally(seat) and SeatTable.local_index_of(seat) == 1 and SeatTable.guest_stats == null:
-			SeatTable.guest_stats = stats_src
-		var spawn := spawn0 + Vector2(40.0 * float(seat), 0.0)
-		_spawn_seated_player(seat, stats_src, nodes, spawn)
-	_player = _players[0] if not _players.is_empty() else null
-	## Soft collision exceptions between all seated players.
-	for i in _players.size():
-		for j in range(i + 1, _players.size()):
-			var a: CharacterBody2D = _players[i]
-			var b: CharacterBody2D = _players[j]
-			if a and b:
-				a.add_collision_exception_with(b)
-				b.add_collision_exception_with(a)
-	## Local seat for HUD／camera／prompts (Client is often seat 1+, not seat 0).
-	for p in _players:
-		if p != null and SeatTable.seat_owned_locally(int(p.seat_id)):
-			_player = p
-			break
-	var cam := Camera2D.new()
-	cam.zoom = Vector2(Tuning.CAMERA_ZOOM, Tuning.CAMERA_ZOOM)
-	cam.position_smoothing_enabled = true
-	cam.position_smoothing_speed = 7.5
-	if _player:
-		_player.add_child(cam)
-		cam.make_current()
-	for p in _players:
-		if p != null:
-			p.camera = cam
-	if not PlatformServices.camera_view_changed.is_connected(_on_camera_view_changed):
-		PlatformServices.camera_view_changed.connect(_on_camera_view_changed)
-	apply_camera_view()
-	_hud = preload("res://scenes/hud.tscn").instantiate()
-	add_child(_hud)
-	## setup binds every seat in `_players` (right panes + cast/log); primary = local seat.
-	_hud.setup(self, _player)
-	_bind_player_task_signals()
-	var pad = preload("res://scripts/touch_pad.gd").new()
-	pad.name = "TouchPad"
-	add_child(pad)
-	pad.visible = InputMode.show_vj()
-	pad.stick_changed.connect(func(axis: Vector2) -> void:
-		var lp := _local_touch_player()
-		if lp:
-			lp.stick_axis = axis
-	)
-	pad.hold_changed.connect(func(action: String, pressed: bool) -> void:
-		if _early_open and pressed:
-			if action == "interact":
-				if _early_focus == 0:
-					_confirm_early_close()
-				else:
-					_decline_early_close()
-			elif action == "cancel":
-				_decline_early_close()
-			return
-		if phase == "closed" and pressed and (action == "interact" or action == "cancel"):
-			if _closeout_input_ready():
-				_return_to_prep()
-			return
-		var lp2 := _local_touch_player()
-		if lp2:
-			lp2.set_hold(action, pressed)
-	)
-	pad.skill_hotkey.connect(func(slot: int) -> void:
-		var lp3 := _local_touch_player()
-		if lp3 and lp3.has_method("cast_skill_hotkey"):
-			lp3.call("cast_skill_hotkey", slot)
-	)
-	if not InputMode.show_vj_changed.is_connected(_on_show_vj_changed):
-		InputMode.show_vj_changed.connect(_on_show_vj_changed)
-	if not InputMode.clear_virtual_holds.is_connected(_clear_virtual_holds):
-		InputMode.clear_virtual_holds.connect(_clear_virtual_holds)
-	## Clients skip clerk/dirt AI seeds — host owns world agents (§12 / listen-server).
-	if _tutorial != null and is_instance_valid(_tutorial) and _tutorial.has_method("clear_runtime_flags"):
-		## Clear before dirt seed so `dirt_present` is re-armed for this day only.
-		_tutorial.clear_runtime_flags()
-	if SessionService.is_server() or SessionService.is_local_transport():
-		_spawn_clerks()
-		if _boss_world.should_spawn_open_dirt():
-			for i in Tuning.dirt_start(_play_easy()):
-				_try_spawn_dirt()
-		if _hud != null and _hud.has_method("setup_boss_progress") and _boss_world.is_active():
-			_hud.call("setup_boss_progress", _boss_world.progress_total())
-		## Align client shelf／warehouse／carry／prompt presentation after world exists (M2.4／M2.6／M2.9).
-		if SessionService.is_networked() and SessionService.is_server():
-			_dump_all_stock()
-			_dump_all_carry()
-			_dump_all_prompt()
-			_broadcast_day_hud_state()
-			_dump_all_skill_cds()
-	else:
-		## Apply spawn／flight／state RPCs that raced ahead of world build (M2.2～M2.9).
-		_flush_pending_agent_spawns()
-		_flush_pending_flights()
-		_flush_pending_agent_states()
-		_flush_pending_stock_states()
-		_flush_pending_carry_states()
-		_flush_pending_prompt_states()
-		_day_chrome.flush_pending_day_hud_states()
-		_day_chrome.flush_pending_day_clock_states()
-		_day_chrome.flush_pending_skill_cd_states()
-	## Ops tutorial after world／HUD exist (director survives _clear_world).
-	if _tutorial != null and is_instance_valid(_tutorial):
-		_tutorial.call_deferred("consider_ops")
-	## Boss day: restock foreshadow dialog after HUD／world ready.
-	if _boss_world != null and _boss_world.is_active():
-		call_deferred("_boss_run_restock_intro")
-
-
-func _local_touch_player() -> CharacterBody2D:
-	for p in _players:
-		if p != null and is_instance_valid(p) and SeatTable.seat_owned_locally(int(p.seat_id)):
-			return p
-	return _player
+	_day_begin.begin_day()
 
 
 func _clear_world() -> void:
@@ -1558,194 +1343,27 @@ func _on_pause_end_day() -> void:
 
 
 func _consider_early_close() -> bool:
-	## §8.1: only Host evaluates early-close (Client clock is presentation-only).
-	if SessionService.is_networked() and SessionService.is_client():
-		return false
-	if not _restocks_cleared() or not _registers_idle():
-		_early_latched = false
-		return false
-	if _early_latched:
-		return false
-	_show_early_dialog()
-	_day_chrome.broadcast_day_clock_state(true)
-	return true
-
-
-func _restocks_cleared() -> bool:
-	if _player == null or state == null:
-		return false
-	var saw := false
-	for n in _player.interactables:
-		if n == null or not is_instance_valid(n):
-			continue
-		if str(n.get("kind")) != "restock":
-			continue
-		saw = true
-		if not n.has_method("skus"):
-			return false
-		for sku in n.skus():
-			if int(state.stock.get(sku, 0)) > 0:
-				return false
-	return saw
-
-
-func _registers_idle() -> bool:
-	for c in all_registers():
-		if c != null and is_instance_valid(c) and c.queue.size() > 0:
-			return false
-	return true
+	return _early_close.consider_early_close()
 
 
 func _show_early_dialog() -> void:
-	_early_open = true
-	_early_focus = 0
-	SfxBus.play("sfx_early_close_ask")
-	if _player and _player.has_method("set_hold"):
-		_player.set_hold("interact", false)
-		_player.set_hold("cancel", false)
-		_player.set_hold("dash", false)
-		_player.set_hold("skill", false)
-		_player.set_hold("bag_menu", false)
-		_player.set_hold("ult", false)
-	if _early_layer != null and is_instance_valid(_early_layer):
-		_early_layer.visible = true
-		_paint_early_focus()
-		return
-	var layer := CanvasLayer.new()
-	layer.layer = 50
-	add_child(layer)
-	var shade := ColorRect.new()
-	shade.color = Color(0, 0, 0, 0.55)
-	shade.mouse_filter = Control.MOUSE_FILTER_STOP
-	layer.add_child(shade)
-	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var card := ColorRect.new()
-	card.color = Color("1c241f")
-	card.position = Vector2(240, 150)
-	card.size = Vector2(800, 420)
-	layer.add_child(card)
-	var title := Label.new()
-	title.text = Loc.t("early.title")
-	title.position = Vector2(36, 28)
-	title.size = Vector2(720, 56)
-	UiFont.apply_label(title, 36)
-	title.add_theme_color_override("font_color", Color("f4d35e"))
-	card.add_child(title)
-	var body := Label.new()
-	body.text = Loc.t("early.body")
-	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	body.position = Vector2(36, 108)
-	body.size = Vector2(720, 110)
-	UiFont.apply_label(body, 26)
-	body.add_theme_color_override("font_color", Color("f4f1ea"))
-	card.add_child(body)
-	var hint := Label.new()
-	hint.text = Loc.t("early.hint")
-	hint.position = Vector2(36, 228)
-	hint.size = Vector2(720, 40)
-	UiFont.apply_label(hint, 22)
-	hint.add_theme_color_override("font_color", Color("c8c2b4"))
-	card.add_child(hint)
-	_early_yes = _early_choice(Loc.t("early.yes"), Vector2(36, 290), _confirm_early_close)
-	_early_no = _early_choice(Loc.t("early.no"), Vector2(400, 290), _decline_early_close)
-	card.add_child(_early_yes)
-	card.add_child(_early_no)
-	_early_layer = layer
-	_paint_early_focus()
-
-
-func _early_choice(text: String, at: Vector2, cb: Callable) -> Button:
-	var btn := Button.new()
-	btn.text = text
-	btn.position = at
-	btn.size = Vector2(360, 88)
-	btn.focus_mode = Control.FOCUS_NONE
-	UiFont.apply_button(btn, 22)
-	btn.pressed.connect(cb)
-	return btn
-
-
-func _paint_early_focus() -> void:
-	_style_early_btn(_early_yes, _early_focus == 0)
-	_style_early_btn(_early_no, _early_focus == 1)
-
-
-func _style_early_btn(btn: Button, on: bool) -> void:
-	if btn == null:
-		return
-	var box := StyleBoxFlat.new()
-	box.bg_color = Color("f4d35e") if on else Color("24302a")
-	box.set_corner_radius_all(10)
-	for state_name in ["normal", "hover", "pressed", "focus"]:
-		btn.add_theme_stylebox_override(state_name, box)
-	btn.add_theme_color_override("font_color", Color("1c241f") if on else Color("f4f1ea"))
+	_early_close.show_early_dialog()
 
 
 func _early_input(event: InputEvent) -> void:
-	if event.is_echo():
-		get_viewport().set_input_as_handled()
-		return
-	var early_dir := Controls.dir_from_event(event)
-	if not (
-		early_dir == 2
-		or early_dir == 3
-		or event.is_action(Controls.INTERACT)
-		or event.is_action(Controls.CANCEL)
-	):
-		return
-	var press := event.is_pressed()
-	get_viewport().set_input_as_handled()
-	if not press:
-		return
-	if early_dir == 2:
-		_early_focus = 0
-		_paint_early_focus()
-	elif early_dir == 3:
-		_early_focus = 1
-		_paint_early_focus()
-	elif event.is_action_pressed(Controls.INTERACT):
-		if _early_focus == 0:
-			_confirm_early_close()
-		else:
-			_decline_early_close()
-	elif event.is_action_pressed(Controls.CANCEL):
-		_decline_early_close()
+	_early_close.early_input(event)
 
 
 func _confirm_early_close() -> void:
-	## Same Host-only gate as skip_operate / pause end-day.
-	if SessionService.is_networked() and not SessionService.request_end_day():
-		return
-	if _tutorial != null and _tutorial.blocks_settle():
-		_decline_early_close()
-		return
-
-	if not _early_open:
-		return
-	_hide_early_dialog()
-	_early_closed = true
-	clear_guest_dusk()
-	phase = "closed"
-	game_hours = Tuning.CLOSE_HOUR
-	_day_chrome.broadcast_day_clock_state(true)
-	_finish_day()
+	_early_close.confirm_early_close()
 
 
 func _decline_early_close() -> void:
-	if SessionService.is_networked() and SessionService.is_client():
-		## Client mirrors Host chrome only — cannot dismiss Host prompt.
-		return
-	if not _early_open:
-		return
-	_early_latched = true
-	_hide_early_dialog()
-	_day_chrome.broadcast_day_clock_state(true)
+	_early_close.decline_early_close()
 
 
 func _hide_early_dialog() -> void:
-	_early_open = false
-	if _early_layer != null and is_instance_valid(_early_layer):
-		_early_layer.visible = false
+	_early_close.hide_early_dialog()
 
 
 ## Boss dialog／zoom: stop guests／clerks／clones／players (world clock also frozen).
