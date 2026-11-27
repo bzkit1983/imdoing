@@ -2,7 +2,7 @@
 
 - 此檔案定義**劇情模式框架**（進程槽、主題選章、解鎖權威、與任務／成長系統的關係）
 - **不含**劇本對話、角色設定、具體任務文案；各章／主題細節見 [`story/`](story/)
-- **閘門：** 本檔與 `story/` 的**十章選章／`story_slot` 狀態機／分店 runtime**仍為設計先行，活線未做。Steam EA 已拍板範圍仍是純日循環、不做完整章節 runtime（見 [`docs/versioning.md`](../versioning.md)）。惟活線已有可玩片段：劇本 **8** 序章內容閘與經濟、劇本 **6** 頭目戰測試。**序章是否計入 EA 交負責人決定，本檔不預先拍板。** 貢獻者勿把完整章節 runtime／`StoryDirector` 當成已核准的 EA 工單，除非 milestone 改範圍或開 Beta 旗標。
+- **閘門／EA 範圍（2026-11-27，Jackson）：** EA 進程＝序章 → 第1章 → 第2章（破局）→ 自選一章（**只有安桃山可選**）；取代「EA＝純日循環」。見 [`docs/versioning.md`](../versioning.md)。EA 所需的 `story_slot` 狀態機與選章（僅安桃山）是已核准範圍。**完整十章選章、終章／後日談、分店 runtime、事件系統**仍為設計先行，預設不排 EA 活線（分店／事件是否為 EA 章節所必需，尚未確定）。活線已有：劇本 **8** 序章內容閘與經濟、劇本 **6** 頭目戰測試、劇本 **9／10** 安桃山測試沙盒。
 - 概念沙盒（已被本選章框架取代方向）：[`docs/concepts/ten-chapter-growth-blueprint.md`](../concepts/ten-chapter-growth-blueprint.md)
 - 任務條件語意：[`tasksystem.md`](tasksystem.md)；劇情 pack stub：[`taskcontent-story-stub.md`](taskcontent-story-stub.md)
 - 事件修飾器表：[`eventsystem.md`](eventsystem.md)（占位；**不**排活線）
@@ -15,7 +15,7 @@
 | 框架結構（本章） | **產品規格開檔（設計）** — 選章＋破局 |
 | 各章／主題內容／事件／劇本 | 開檔 stub，詳情後補 |
 | 期望 EXP／資金／技能／開發規模等數字 | 產品建議見 `story/growth-*.md`；實作前可再調 |
-| 活線實作 | **部分已接：** 劇本 8 序章內容閘／經濟（`SAVE_VERSION` ≥7；`ST-PROLOGUE-MONEY`）、劇本 6 頭目戰測試。**未做：** 十章選章、`story_slot` 狀態機、分店 runtime。序章是否計入 EA **尚未決定**（見 `docs/beta/design.md`、`docs/versioning.md`） |
+| 活線實作 | **部分已接：** 劇本 8 序章內容閘／經濟（`SAVE_VERSION` ≥7；`ST-PROLOGUE-MONEY`）、劇本 6 頭目戰測試、劇本 9／10 安桃山玩法沙盒。**未做（現屬 EA 要做）：** `story_slot` 狀態機、第1／2章內容、僅安桃山的選章畫面、選章存檔欄。**仍暫緩：** 其餘五主題、終章／後日談、分店 runtime、事件系統 |
 
 # 進程模型（slot × theme）
 
@@ -62,7 +62,20 @@
 
 ## 選章／回訪／終章閘
 
-- **選章：** 第2章通關後，自六可選主題中選一未完成者 → 綁定下一空槽（`chapter_03`…`chapter_08`）→ 跑該主題主線＋頭目 → 標記 `themes_cleared`
+### EA 進程（2026-11-27）
+
+完整模型仍是十章＋六可選主題（見上表）。**Early Access 只做到：**
+
+| 順序 | `story_slot`／主題 | 內容狀態 | 活線現況 |
+|------|-------------------|----------|----------|
+| 1 | `prologue` | 進程主線已定（不含對白）；見 [`story/prologue.md`](story/prologue.md) | 劇本 8 內容閘／經濟已接 |
+| 2 | `chapter_01` | 概念開檔；任務閾值／對白／頭目 **TBD**；見 [`story/chapter-01.md`](story/chapter-01.md) | 未做 |
+| 3 | `chapter_02`＋固定 `theme_break` | 概念開檔；破局演出／對白／頭目 **TBD**；見 [`story/chapter-02.md`](story/chapter-02.md)、[`story/themes/theme-break.md`](story/themes/theme-break.md) | 未做 |
+| 4 | 自選一章：僅 `theme_historic`（安桃山） | 玩法／id 已定稿；劇本／頭目細則後補；見 [`story/themes/theme-historic.md`](story/themes/theme-historic.md) | 劇本 9／10＝測試沙盒，非正式選章 |
+
+安桃山**不是**固定章號；依本檔選章模型，破局後綁入下一空槽。EA 預期先綁 `chapter_03`（第一個可選槽），其餘 `chapter_04`…`chapter_08`、另五主題與終章在 EA **不開放**（終章閘仍是六主題全清，EA 打完安桃山後怎麼收束見文末開放問題）。
+
+- **選章：** 第2章通關後，自六可選主題中選一未完成者 → 綁定下一空槽（`chapter_03`…`chapter_08`）→ 跑該主題主線＋頭目 → 標記 `themes_cleared`。**EA：** 選單只列出安桃山。
 - **回訪：** 主線進行中可進入**已完成**主題，補未完成事件／任務或重玩；**不**另開進程槽；**不**重複發「首次主題通關」解鎖（重玩報酬另表後補）
 - **終章閘：** 可選六主題皆在 `themes_cleared` 才開 `finale`
 - **推進：** 完成該槽／主題**主線劇情任務鏈**（及頭目）→ `advance_story`（選章態或下一槽）
@@ -160,7 +173,20 @@
 | `theme_stores`／`origin_store` | 可選主題店／起源店完整快照；見 [`branchstore.md`](branchstore.md) |
 | `money`（頂層共用） | 本店與分店共用資金；分店不另設資金欄 |
 
-十章選章欄位的精確 schema 與再升 `SAVE_VERSION`：待 `story_slot` runtime 實作時改 `savesystem.md`。序章內容閘欄位（`unlocked_skus`／`unlocked_furniture`／`prologue_boss_unlocked`）已在 `SAVE_VERSION` 7。分店欄位細節見 `branchstore.md`。
+EA 落地 `story_slot` runtime 時須升 `SAVE_VERSION` 並在 `savesystem.md` 補 migration（序章內容閘欄位已在 `SAVE_VERSION` 7，不足涵蓋選章）。分店欄位細節見 `branchstore.md`（預設仍暫緩）。
+
+# 開放問題（交負責人，2026-11-27）
+
+1. 新檔如何進入 EA 劇情：預設序章（劇本 8），或先問教學（劇本 5）／劇情？與現有教學鏈關係？
+2. 破局後是否固定綁 `chapter_03`？其餘 4–8 槽在 EA 是否完全隱藏？
+3. 打完安桃山之後 EA 怎麼收束（回訪／日循環／停在選章）？不開終章？
+4. 破局敘事是否仍「打開六主題」，只是 UI 只給安桃山；或文案也改成只開安桃山？
+5. 分店規格寫「清完第一個可選主題後解鎖」。EA 只有安桃山一間可選主題，打完後要不要分店？預設暫緩。
+6. 第1／2章開檔提到事件任務。EA 是否需要事件 runtime，或只用劇情任務 pack 推進？預設事件暫緩。
+7. 劇本 9／10 是否維持 `TEST_TOOLS` 沙盒，與 EA 安桃山正章分開？
+8. 舊存檔（無 `story_slot`）如何遷移？
+9. 2026-11-18「不做失敗／過關敘事層」是否隨章節一併放寬（失敗擋推進 A／D→C）？
+
 
 # 頭目（框架定義）
 

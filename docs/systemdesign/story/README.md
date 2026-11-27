@@ -2,7 +2,7 @@
 
 框架總則：[`../storysystem.md`](../storysystem.md)
 
-> **十章選章／章節 runtime：設計先行、活線未做。** 序章內容閘與經濟（劇本 8）及頭目戰測試（劇本 6）已在活線；本目錄其餘章／主題檔仍是規格與成長分析。EA 已拍板範圍＝純日循環；**序章是否計入 EA 尚未決定**（見 [`../storysystem.md`](../storysystem.md)、[`docs/versioning.md`](../../versioning.md)）。勿把完整選章 runtime 當已核准工單。  
+> **EA 範圍（2026-11-27，Jackson）：** 序章 → 第1章 → 第2章（破局）→ 自選一章（只有安桃山可選）。完整十章／其餘五主題／終章仍是設計先行。序章內容閘與經濟（劇本 8）及頭目戰測試（劇本 6）已在活線；第1／2章與選章 runtime **尚未實作**（現屬已核准的 EA 工單）。安桃山玩法／id 見 [`themes/theme-historic.md`](themes/theme-historic.md)；劇本 9／10 為測試沙盒。見 [`../storysystem.md`](../storysystem.md)、[`docs/versioning.md`](../../versioning.md)。  
 > **進程模型：** `story_slot`（序／1／2／槽3–8／終／後日談）× `theme_id`（破局固定＋六可選）。第 3–8 章檔＝**進程槽模板**，內容讀主題檔。
 
 | 檔案 | 章／用途 |

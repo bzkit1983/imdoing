@@ -1,7 +1,7 @@
 # 事件系統（占位）
 
 - **狀態：** 開檔占位；**不排活線實作**（tech-review v0.3 **N2**）
-- **產品範圍：** Steam EA／現行產品＝**純日循環**；完整事件表留 Beta（見 [`docs/versioning.md`](../versioning.md)、[`docs/beta/design.md`](../beta/design.md)）
+- **產品範圍：** Steam EA 劇情進程見 [`docs/versioning.md`](../versioning.md)（2026-11-27：序章→第1／2章→安桃山）。**完整事件表預設仍留 Beta、不排 EA 活線**。第1／2章開檔提到事件任務，是否改為 EA 必需，尚未確定（見 `storysystem.md` 開放問題）。
 - **對照：** 劇情框架 [`storysystem.md`](storysystem.md)；任務條件 [`tasksystem.md`](tasksystem.md)；事件 pack stub [`taskcontent-event-stub.md`](taskcontent-event-stub.md)
 
 # 本檔要定義什麼（之後再填）
@@ -12,7 +12,7 @@
 | 修飾器 | 流量／污物／小偷／價格／任務條件等短時修正 |
 | 與任務關係 | 一次性事件任務 vs 期間限定可重覆 |
 | 與劇情關係 | 章節事件 vs 日常營運事件；解鎖權威仍歸劇情／任務 |
-| 活線邊界 | EA 不做；開 runtime 前須過 versioning 閘門 |
+| 活線邊界 | 預設 EA 不做事件 runtime；若章節內容必須用事件任務，須另作決議後才開 |
 
 # 明確不做（現在）
 

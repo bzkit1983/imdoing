@@ -2,11 +2,11 @@
 
 - `theme_id`：`theme_historic`
 - 劇情 pack 前綴：`ST-HISTORIC-###`
-- 角色：可選主題（填入 story_slot 3–8）
+- 角色：可選主題（填入 story_slot 3–8）。**EA（2026-11-27）：** 破局後唯一可選的主題
 - 框架總則：[`../../storysystem.md`](../../storysystem.md)
 - 專檔：[`../../cookedfoodsystem.md`](../../cookedfoodsystem.md)、[`../../fishingtaro.md`](../../fishingtaro.md)
 - 經濟／貨束：[`../growth-economy.md`](../growth-economy.md) §4.2／§7
-- **狀態：** 玩法＋id 合約定稿；劇本對話／頭目細則後補
+- **狀態：** 玩法＋id 合約定稿；劇本對話／頭目細則後補（**TBD**）。活線劇本 9（熟食檔測試）／劇本 10（精英店員測試）是安桃山布局**沙盒**，不是本主題選章 runtime
 
 # 概念
 

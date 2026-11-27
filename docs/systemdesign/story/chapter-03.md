@@ -5,6 +5,7 @@
 - 劇情 pack：主題側 `ST-<THEME>-###`（見 [`themes/`](themes/)）；本槽無獨立世界 pack
 - 框架總則：[`../storysystem.md`](../storysystem.md)
 - **狀態：** 進程槽模板；主題詳情見主題檔
+- **EA（2026-11-27）：** 此槽是破局後第一個可選槽。EA 預期把唯一可選主題安桃山（`theme_historic`）綁在這裡；其餘可選主題不進 EA。此假設待確認
 
 # 概念（框架）
 

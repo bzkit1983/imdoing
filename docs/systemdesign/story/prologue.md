@@ -3,12 +3,12 @@
 - 章 id：`prologue`
 - 劇情 pack 前綴：`ST-PROLOGUE-###`
 - 框架總則：[`../storysystem.md`](../storysystem.md)
-- **狀態：** 進程主線已定（不含劇情）；劇本／事件文案後補。**活線：** 劇本 8 已接內容閘與經濟（`ST-PROLOGUE-MONEY`）。通關後進第 1 章的選章／`story_slot` runtime 仍未做。是否計入 EA 尚未決定
+- **狀態：** 進程主線已定（不含劇情）；劇本／事件文案後補。**EA（2026-11-27）：** 序章是 EA 進程起點。**活線：** 劇本 8 已接內容閘與經濟（`ST-PROLOGUE-MONEY`）。通關後進第 1 章的 `story_slot` runtime 仍未做
 - 經濟／規模：[`growth-economy.md`](growth-economy.md)；交叉：[`progression-crossref.md`](progression-crossref.md)
 
 # 概念（框架）
 
-序章＝**新手教學向進程槽**＋順利營運入門（可含包裝式操作任務）。選章／破局尚未開放。
+序章＝**新手教學向進程槽**＋順利營運入門（可含包裝式操作任務）。選章／破局在第2章通關後才開放（EA 僅安桃山可選）。
 
 - 不計劇本內容時：以劇情任務帶玩家一步步完成基本商店設置與營運
 - 另有**小型事件任務**解鎖基本類型的**初階技能**（具體技能 id 待技能分析）

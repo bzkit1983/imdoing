@@ -51,7 +51,7 @@
 | 已處理 | 規則含糊 | 全體集資「一半客人」沒有選法 | LV1 只處理排隊。LV2、LV3 都不含離開中客人和小偷。略過指令與 Circle，馬上收錢。已拿走的貨按售價全額入帳；未買完的貨不入帳、不白送，客人當已付款離開。 | playerultimateskills.md, cashiersystem.md |
 | 已處理 | 規則含糊 | 全體集資 LV2 一半怎樣取 | 單數向上取整。已拿走件數最多的客人優先。件數相同時，銷售金額最高者優先。件數和金額都相同時，不滿度較高者優先。不滿度也相同時，隨意選一位。 | playerultimateskills.md |
 | 已處理 | 規則含糊 | 衝刺撞飛客人與尋路互相打架 | 衝刺撞客人：Screen KO 飛起再**原地落地**（不離店）；停止 2 秒；+50 不滿（基值；禮貌衝撞則 +0）；購物車貨品原地掉落；**購物清單不變**（不重抽），已取貨放回清單後從頭尋貨。路人擁擠：玩家 3 身位內有客人／小偷 → 移速 ×0.5＋頭頂「唔該借借⋯」。小偷被衝刺撞飛或貨箱砸中都**算抓住**。 | playermovement.md, customer.md, playerpassiveskills.md, thiefsystem.md, ecosystem.md |
-| P1 | 缺檔／缺系統 | 劇情框架已開、事件層與章詳設仍缺 | 框架：`storysystem.md`＋`story/`。活線已有劇本 8 序章內容閘／經濟與劇本 6 頭目測試；十章選章／`story_slot` runtime 仍未做。事件占位：`eventsystem.md`（**不**排活線）。仍缺各章劇本／事件內容表、失敗擋推進 UX。經驗是否從事件／劇情增減見 `story/progression-crossref.md`。EA 已拍板＝純日循環；序章是否計入尚未決定。 | storysystem.md, eventsystem.md, story/, gameconcept.md, playerlevel.md, ecosystem.md, ratingsystem.md, tasksystem.md |
+| P1 | 缺檔／缺系統 | 劇情框架已開、事件層與章詳設仍缺 | 框架：`storysystem.md`＋`story/`。**EA（2026-11-27）：** 序章→第1章→第2章破局→自選安桃山。活線已有劇本 8 序章內容閘／經濟與劇本 6 頭目測試；`story_slot`／第1／2章／選章 runtime 仍未做（現屬 EA 要做）。事件占位：`eventsystem.md`（預設仍不排活線，是否必需尚未確定）。第1／2章與破局／安桃山對白、頭目細則仍為開檔 **TBD**。 | storysystem.md, eventsystem.md, story/, gameconcept.md, playerlevel.md, ecosystem.md, ratingsystem.md, tasksystem.md |
 | 已處理 | 缺檔／缺系統 | 任務系統無設計檔 | 已有 `tasksystem.md`＋測試／stub 內容檔；活線已接 catalog／tracker／HUD／教學與序章 pack（見該檔「活線摘要」）。報酬與店鋪任務解鎖細節標 Beta。 | tasksystem.md, taskcontent-ops-test.md, docs/beta/design.md |
 | 已處理 | 規則含糊 | 幫忙取貨與 COMBO | 活線已改：每成功交付 +1、失誤個人 RESET；完美交付＝清單一次交清（見 `fetchcombo.md`／`tasksystem.md`）。 | fetchcombo.md, tasksystem.md, gameconcept.md |
 | Beta | 未定數值 | 客人流量幾乎沒有長線數值 | 留待 Beta 設計，見 `docs/beta/design.md`。有清單上限 15、逗留 1 秒、思考 3 秒。抽出件數交給各 Demo。沒有生成間隔、在店人數上限、客人類別移速表。找不到貨長線點數未定（Demo v0.3 為 +18）。麻煩客人行為已寫進 `elitecustomer.md` 並落地；仍欠劇情 LV 解鎖／事件表。 | customer.md, elitecustomer.md, gameconcept.md |
@@ -69,7 +69,7 @@
 | 已處理 | 缺檔／缺系統 | 存檔 | 已有 `savesystem.md`：`user://save.json` + `version`；關店與準備結束寫入。活線已實作。 | savesystem.md, storepreparationphase.md, storeoperationphase.md |
 | 已處理 | 規則含糊 | 操作是否綁死鍵位 | 長線以 InputMap 為準（`control.md`）；預設仍 WASD／Xbox。活線 Autoload `Controls`。 | control.md |
 | 已處理 | 缺檔／缺系統 | 暫停選單／掛起 | 已有 `pausemenu.md`；活線接 `PlatformServices` suspend／resume。 | pausemenu.md, storeoperationphase.md, savesystem.md |
-| Alpha | 缺檔／缺系統 | HUD 以外的介面層空白 | 存檔／InputMap／暫停／字串表已補。暫停選單已有**事件 SFX 開／關與聲量**；**BGM Bus＋音量**已有；**教學框架**已落地（首日打磨仍開）。仍缺：完整設定頁、技能演出期間能否操作。失敗／過關敘事＝**EA 不做**（見 `versioning.md`）。 | storeoperationphase.md, playerskills.md, control.md, playersetup.md, pausemenu.md, tutorial.md |
+| Alpha | 缺檔／缺系統 | HUD 以外的介面層空白 | 存檔／InputMap／暫停／字串表已補。暫停選單已有**事件 SFX 開／關與聲量**；**BGM Bus＋音量**已有；**教學框架**已落地（首日打磨仍開）。仍缺：完整設定頁、技能演出期間能否操作。失敗／過關敘事層是否隨 2026-11-27 章節進程一併放寬，尚未另作決議（見 `versioning.md`）。 | storeoperationphase.md, playerskills.md, control.md, playersetup.md, pausemenu.md, tutorial.md |
 | Alpha | 用詞／錯字 | 用詞與錯字會改規則解讀 | 留待 Alpha 改回原檔，見 `docs/alpha/design.md`。以為→以下；三能種力值；奧義「技令」；衝刺句子斷掉。 | storeoperationphase.md, gameconcept.md, playerultimateskills.md, playermovement.md |
 | 已處理 | 缺字型字元 | 善良的炮／三段火槍陣缺字 | 2026-11-18 以 Noto Sans CJK **JP** 來源重跑 `tools/fonts/subset_notosans_tc.py`；`NotoSansTC-Game.ttf` 已含「善良的炮三段火槍陣枪阵銃斉」。 | playeractiveskills.md, playerultimateskills.md, `docs/alpha/fonts-subset.md` |
 | 已處理 | 缺字型字元 | 西客炮／源頭減廢／有糧出無汗出／我說有光就有光 | 2026-11-21 以 JP Regular／Bold／Black 重跑 `tools/fonts/subset_notosans_tc.py`（含 main 新奧義字）；三款 `NotoSansTC-Game*.ttf` cmap 已含目標字。 | playeractiveskills.md, playerpassiveskills.md, playerultimateskills.md, `docs/alpha/fonts-subset.md` |
@@ -78,7 +78,7 @@
 
 經營回合與準備回合的主循環已有拆檔（含清潔、小偷、採購、店舖設計、店員）。下列主題被點名，但沒有對應設計，或檔案仍是一句。
 
-- **循環與進度：** 劇情／事件內容表、過關與失敗、技能解鎖表。~~劇情框架~~ 見 `storysystem.md`（十章選章未做；序章內容閘與頭目測試已在活線）。~~事件占位~~ 見 `eventsystem.md`（不排活線）。~~評價／經營值~~ 見 `ratingsystem.md`（難度 stub 見 `difficulty.md`）。~~存檔~~ 見 `savesystem.md`。~~暫停／掛起~~ 見 `pausemenu.md`。~~任務條件語意~~ 見 `tasksystem.md`（catalog／tracker 已接；報酬／事件全表仍缺）
+- **循環與進度：** 劇情／事件內容表、過關與失敗、技能解鎖表。~~劇情框架~~ 見 `storysystem.md`（EA 進程已拍板；`story_slot`／第1／2章／選章 runtime 未做；序章內容閘與頭目測試已在活線）。~~事件占位~~ 見 `eventsystem.md`（不排活線）。~~評價／經營值~~ 見 `ratingsystem.md`（難度 stub 見 `difficulty.md`）。~~存檔~~ 見 `savesystem.md`。~~暫停／掛起~~ 見 `pausemenu.md`。~~任務條件語意~~ 見 `tasksystem.md`（catalog／tracker 已接；報酬／事件全表仍缺）
 - **店內系統：** 冰櫃與凍櫃的操作差異。幫忙取貨與 COMBO：`fetchcombo.md` 現行；任務新語意待對齊活線
 - **幾乎是空檔：** 角色導出的連線與檔案留待 Alpha。Voxel 初模和給設計師加細節的規矩在 `docs/alpha/voxel-v0.1.md`。外觀配置只有一句
 - **多人連線：** 設計見 [`docs/systemdesign/multiplayer.md`](systemdesign/multiplayer.md)（§10／§11／§12／§13）。**M2 首刀～M2.9 已交**；**M3 §13.4 已驗收**（2026-11-11）。下一步：正式 App ID／Cloud／成就，與 **M4** Web。交叉：`savesystem.md`／`pausemenu.md`／`control.md`。**本機 vs 網上工程缺口**（權威／Intent／驗收未勾）：[`docs/alpha/multiplayer-local-vs-online-gap.md`](alpha/multiplayer-local-vs-online-gap.md)
