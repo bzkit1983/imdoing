@@ -17,6 +17,7 @@ const TossControllerScript = preload("res://scripts/player/toss_controller.gd")
 const FightControllerScript = preload("res://scripts/player/fight_controller.gd")
 const SkillCasterScript = preload("res://scripts/player/skill_caster.gd")
 const CheckoutControllerScript = preload("res://scripts/player/checkout_controller.gd")
+const FrameTickerScript = preload("res://scripts/player/frame_ticker.gd")
 const PlayerViewScript = preload("res://scripts/player/player_view.gd")
 const InteractControllerScript = preload("res://scripts/player/interact_controller.gd")
 const WorkTickerScript = preload("res://scripts/player/work_ticker.gd")
@@ -289,6 +290,7 @@ var _toss = TossControllerScript.new()
 var _fight_ctrl = FightControllerScript.new()
 var _skills = SkillCasterScript.new()
 var _checkout = CheckoutControllerScript.new()
+var _frame = FrameTickerScript.new()
 var _view = PlayerViewScript.new()
 var _interact = InteractControllerScript.new()
 var _work = WorkTickerScript.new()
@@ -335,50 +337,8 @@ func _move_vector() -> Vector2:
 
 
 func _ready() -> void:
-	motion_mode = MOTION_MODE_FLOATING
-	stamina = stamina_max_now()
-	_circle = CircleScript.new()
-	add_child(_circle)
-	_prompt = PromptScript.new()
-	add_child(_prompt)
-	_menu = MenuScript.new()
-	add_child(_menu)
-	var stack := BoxStackScript.new()
-	stack.position = Vector2(0, -6)
-	stack.setup(inventory)
-	add_child(stack)
-	if inventory.has_signal("changed"):
-		inventory.changed.connect(_mark_hud_dirty)
-	_toss.bind(self)
-	_fight_ctrl.bind(self)
-	_skills.bind(self)
-	_checkout.bind(self)
-	_view.bind(self)
-	_interact.bind(self)
-	_work.bind(self)
-	_input_ctrl.bind(self)
-	_bags = BagCasterScript.new(self)
-	_bags.ensure_menu()
-	_carries = CarryCasterScript.new(self)
-	_carries.ensure_menu()
-	_floor_bars = FloorBarsScript.new()
-	_floor_bars.setup(self)
-	add_child(_floor_bars)
-	_carry_strip = CarryStripScript.new()
-	_carry_strip.setup(self)
-	add_child(_carry_strip)
-	_bag_diamond = BagDiamondScript.new()
-	_bag_diamond.setup(self)
-	add_child(_bag_diamond)
-	_skill_pips = SkillPipsScript.new()
-	_skill_pips.setup(self)
-	add_child(_skill_pips)
-	_setup_drop_aim()
-	_setup_must_deliver_ring()
-	_setup_magneto_ring()
-	_setup_monk_tornado()
-	_setup_crowd_say()
-	_refresh_passive_checkout()
+	_frame.bind(self)
+	_frame.ready()
 
 
 func _setup_crowd_say() -> void:
@@ -910,14 +870,6 @@ func _crowd_near_fallback() -> bool:
 	return false
 
 
-func _sync_crowd_say() -> void:
-	## Hide during dash so「唔該借借」is not mistaken for a failed 衝刺交付.
-	var on := (not _dashing) and _crowd_near()
-	if on and not _crowd_active:
-		SfxBus.play("sfx_move_crowd")
-	_crowd_active = on
-	if _crowd_say:
-		_crowd_say.visible = on
 
 
 func _shelving() -> bool:
@@ -1053,141 +1005,7 @@ func _cancel_input() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if is_net_puppet():
-		## Presentation only — Host already wrote facing／position; still refresh Vox.
-		velocity = Vector2.ZERO
-		if _net_puppet_pos == Vector2.INF:
-			_net_puppet_moving = false
-		else:
-			_net_puppet_moving = global_position.distance_squared_to(_net_puppet_pos) > 2.25
-		_net_puppet_pos = global_position
-		_sync_interact_glow()
-		_update_visuals()
-		return
-	if SeatTable.is_frozen(seat_id):
-		velocity = Vector2.ZERO
-		_sync_interact_glow()
-		_update_visuals()
-		return
-	## Tutorial explain modal — freeze local play without get_tree().paused.
-	if game != null and game.has_method("tutorial_freezes_play") and bool(game.tutorial_freezes_play()):
-		velocity = Vector2.ZERO
-		_sync_interact_glow()
-		_update_visuals()
-		return
-	if _asking_early():
-		velocity = Vector2.ZERO
-		_sync_interact_glow()
-		return
-	if _elite_focus_left > 0.0:
-		_elite_focus_left = maxf(0.0, _elite_focus_left - delta)
-		velocity = Vector2.ZERO
-		_tick_buffs(delta)
-		_tick_status(delta)
-		_tick_camera_shake(delta)
-		_sync_interact_glow()
-		return
-	if _portal_beam_left > 0.0:
-		_tick_portal_beam(delta)
-		velocity = Vector2.ZERO
-		_tick_buffs(delta)
-		_tick_status(delta)
-		_tick_camera_shake(delta)
-		_sync_interact_glow()
-		_update_visuals()
-		return
-	if has_meta("boss_cutscene_lock"):
-		velocity = Vector2.ZERO
-		_tick_buffs(delta)
-		_tick_status(delta)
-		_tick_camera_shake(delta)
-		_sync_interact_glow()
-		_update_visuals()
-		return
-	_tick_buffs(delta)
-	_tick_status(delta)
-	if _cast_pose_left > 0.0:
-		_cast_pose_left = maxf(0.0, _cast_pose_left - delta)
-	if _deliver_pose_left > 0.0:
-		_deliver_pose_left = maxf(0.0, _deliver_pose_left - delta)
-	command_lock = (
-		(_long_committed and _j_held and is_instance_valid(target) and _obj_str(target, "kind") == "cashier")
-		or is_instance_valid(_self_repair_reg)
-	) and not skill_menu_open and not ult_prep
-	if not command_lock and not ult_prep:
-		_prompt.active = false
-	## Dash/run via InputMap (face X / Space) — no RT dash.
-	if _k_held and not _cancel_held and not _cancel_drop_ready and not command_lock and not skill_menu_open and not bag_menu_open and not carry_menu_open and not ult_prep and not _fighting and _stun_left <= 0.0 and _slip_left <= 0.0:
-		_k_time += delta
-		if _k_time >= Tuning.RUN_HOLD_THRESHOLD:
-			_running = _dasher_active() or stamina > 1.0
-			_k_run_committed = true
-	if _cancel_held:
-		_tick_cancel_hold(delta)
-	if _toss_move_pause_left > 0.0:
-		_toss_move_pause_left = maxf(0.0, _toss_move_pause_left - delta)
-		_running = false
-		if not _dashing and _slip_left <= 0.0:
-			velocity = Vector2.ZERO
-	## Long-press aim only: freeze locomotion. In-flight boxes do not lock move.
-	if _cancel_drop_ready and _slip_left <= 0.0:
-		_running = false
-		_dashing = false
-		velocity = Vector2.ZERO
-	_tick_carry_select(delta)
-	if _l_held and _sick_left <= 0.0 and _stun_left <= 0.0:
-		if _skills != null and _skills.has_method("tick_hold_open"):
-			_skills.tick_hold_open(delta)
-		else:
-			_l_time += delta
-	_tick_skill_right_stick()
-	if _bags != null:
-		_bags.tick(delta)
-	if _carries != null:
-		_carries.tick(delta)
-	## Pad LT/RT ult chord only on locally owned seats.
-	if controls_locally() and _round_active() and not _asking_early():
-		_tick_triggers(delta)
-	## Skill / ult / checkout dir modes: hard-stop so held WASD cannot coast.
-	## Cooked craft also roots the player until done or cancel.
-	if _in_dir_mode() or _move_locked_until_neutral or _cooked_craft_stall != null:
-		_running = false
-		if not _dashing and _slip_left <= 0.0:
-			velocity = Vector2.ZERO
-	if _fighting:
-		velocity = Vector2.ZERO
-	elif _slip_left > 0.0:
-		_tick_slip(delta)
-	elif _dashing:
-		_tick_dash(delta)
-	else:
-		_tick_move(delta)
-	_poll_stick_cardinal()
-	_regen(delta)
-	_update_target()
-	_tick_cooked_craft(delta)
-	_tick_action(delta)
-	_tick_sweeping_monk(delta)
-	_sync_interact_glow()
-	if _circle:
-		## Clean uses dirt StickHint (blue meter + stick), not the yellow hold Circle.
-		if _cleaning():
-			_circle.progress = 0.0
-			_circle.blocked = false
-		else:
-			_circle.progress = hold_progress
-			_circle.blocked = blocked_mismatch
-	if _menu:
-		## Host／他機 seat：邏輯可開選單瞄準，但不畫 radial（避免殘留 P2 選單）。
-		_menu.open = skill_menu_open and controls_locally()
-		if skill_menu_open and controls_locally():
-			var mfp := "%s|%s" % [str(_cd), str(_loadout())]
-			if mfp != _menu_fp:
-				_menu_fp = mfp
-				_menu.set_slots(_loadout(), _cd)
-	_sync_crowd_say()
-	_update_visuals()
-	_emit_stats_if_changed()
+	_frame.physics_process(delta)
 
 
 func _obj_str(node: Object, prop: String) -> String:
@@ -1307,38 +1125,6 @@ func _cust_move_pct(skill_id: String) -> float:
 	return 0.0
 
 
-func _tick_buffs(delta: float) -> void:
-	var gone: Array[String] = []
-	for id in _buffs.keys():
-		_buffs[id] = float(_buffs[id]) - delta
-		if float(_buffs[id]) <= 0.0:
-			gone.append(String(id))
-	var changed := not gone.is_empty()
-	for id in gone:
-		if id == "the_world":
-			SfxBus.play("sfx_ult_the_world_end")
-		if id == "senior_cashier":
-			_senior_cashier_lv = 0
-		if id == "checkout_rush":
-			_checkout_rush_lv = 0
-		if id == "sweeping_monk":
-			_sync_monk_tornado(false)
-		_buffs.erase(id)
-	for id in _cd.keys():
-		_cd[id] = maxf(0.0, float(_cd[id]) - delta)
-	var keep_q: Array[String] = []
-	for id in _cust_speed_q:
-		if _buffs.has(id):
-			keep_q.append(id)
-	if keep_q.size() != _cust_speed_q.size():
-		changed = true
-	_cust_speed_q = keep_q
-	if changed or not _buff_cache_valid:
-		_cached_clock = _world_clock_now()
-		_cached_cust_mult = _customer_move_mult_now()
-		_buff_cache_valid = true
-	clock_scale = _cached_clock
-	customer_move_mult = _cached_cust_mult
 
 
 
@@ -1347,29 +1133,6 @@ func _move_axis() -> Vector2:
 	return _input_ctrl.move_axis()
 
 
-func _poll_stick_cardinal() -> void:
-	# Analog only (touch stick / left stick). Discrete move_* taps are handled in _input.
-	# Host remote seats: use intent remote_move (M2.5) — no local stick on this machine.
-	if not _in_dir_mode():
-		_cardinal_armed = true
-		return
-	var v: Vector2
-	if SessionService.is_networked() and SessionService.is_server() and not controls_locally():
-		v = remote_move
-	else:
-		v = stick_axis + _joy_stick_vector()
-	if v.length() < 0.42:
-		_cardinal_armed = true
-		return
-	if not _cardinal_armed:
-		return
-	_cardinal_armed = false
-	var dir := 0
-	if absf(v.x) > absf(v.y):
-		dir = 3 if v.x > 0.0 else 2
-	else:
-		dir = 1 if v.y > 0.0 else 0
-	_try_dir(dir)
 
 
 func _joy_stick_vector() -> Vector2:
@@ -1381,37 +1144,6 @@ func _joy_stick_vector() -> Vector2:
 	return v
 
 
-func _tick_move(delta: float) -> void:
-	var axis := _move_axis()
-	if axis != Vector2.ZERO:
-		facing = axis
-		if _j_held and not command_lock and not _shelving() and not _cleaning():
-			_reset_hold()
-	if _can_slip():
-		_begin_slip()
-		return
-	var want_run := _running and axis != Vector2.ZERO
-	var free_stam := _dasher_active()
-	if want_run and not free_stam:
-		if stamina <= 0.0:
-			want_run = false
-			_running = false
-		else:
-			stamina = maxf(0.0, stamina - Tuning.RUN_STAMINA_PER_SEC * delta)
-			_regen_delay = Tuning.STAMINA_REGEN_DELAY
-	var walk := Tuning.WALK_SPEED * Tuning.PLAYER_MOVE_MULT * speed_mult()
-	var target_speed := walk * (Tuning.RUN_SPEED_MULT if want_run else 1.0)
-	var speed_cap := Tuning.WALK_SPEED * Tuning.PLAYER_MOVE_MULT * Tuning.SPEED_MAX_MULT
-	target_speed = clampf(target_speed, Tuning.SPEED_FLOOR, speed_cap)
-	if axis == Vector2.ZERO:
-		velocity = velocity.move_toward(Vector2.ZERO, walk * 8.0 * delta)
-	else:
-		velocity = axis * target_speed
-		if velocity.length() > 8.0:
-			SfxBus.play_foot(want_run)
-			if inventory.count() > carry_cap():
-				SfxBus.play_overcarry()
-	move_and_slide()
 
 
 func _dasher_active() -> bool:
@@ -1455,20 +1187,6 @@ func _try_dash() -> void:
 	_reset_hold()
 
 
-func _tick_dash(delta: float) -> void:
-	_dash_from = global_position
-	_dash_left -= delta
-	var speed := Tuning.DASH_DISTANCE / Tuning.DASH_TIME
-	velocity = _dash_dir * speed
-	move_and_slide()
-	_try_dash_thief()
-	if _can_slip():
-		_dashing = false
-		_begin_slip()
-		return
-	if _dash_left <= 0.0:
-		_dashing = false
-		velocity *= 0.35
 
 
 ## True if `pos` is within dash hit range of the current dash segment (_dash_from → global_position).
@@ -1506,18 +1224,6 @@ func _begin_slip() -> void:
 	log_line.emit(Loc.t("log.player.slip"))
 
 
-func _tick_slip(delta: float) -> void:
-	_slip_left -= delta
-	var dist := Tuning.SLIP_BODY_LENGTHS * Tuning.BODY_LENGTH
-	var dir := facing
-	if dir.length_squared() < 0.01:
-		dir = Vector2.RIGHT
-	velocity = dir.normalized() * (dist / Tuning.SLIP_TIME)
-	move_and_slide()
-	if _slip_left <= 0.0:
-		velocity = Vector2.ZERO
-		_stun_left = _stun_pending
-		SfxBus.play("sfx_move_stun")
 
 
 func _drop_top_box(toss_dir: Vector2 = Vector2.ZERO, lock_until_land: bool = true) -> void:
@@ -1525,30 +1231,8 @@ func _drop_top_box(toss_dir: Vector2 = Vector2.ZERO, lock_until_land: bool = tru
 
 func _on_drop_flight_done() -> void:
 	_toss.on_drop_flight_done()
-func _tick_status(delta: float) -> void:
-	if _stun_left > 0.0:
-		_stun_left = maxf(0.0, _stun_left - delta)
-		velocity = Vector2.ZERO
-	if _sick_left > 0.0:
-		_sick_left = maxf(0.0, _sick_left - delta)
-	if _has_dirt_type(Tuning.DIRT_VOMIT) and not _has_flag("ignore_vomit_sick"):
-		if _sick_left <= 0.0:
-			log_line.emit(Loc.t("log.player.vomit"))
-		_sick_left = Tuning.SICK_SEC
-	if _has_dirt_type(Tuning.DIRT_TRASH) and not _has_flag("ignore_trash_stamina"):
-		stamina = maxf(0.0, stamina - Tuning.TRASH_STAMINA_PER_SEC * delta)
-		_regen_delay = Tuning.STAMINA_REGEN_DELAY
-	if _wave_vfx_cd > 0.0:
-		_wave_vfx_cd = maxf(0.0, _wave_vfx_cd - delta)
 
 
-func _regen(delta: float) -> void:
-	if _dashing or _slip_left > 0.0 or (_running and _move_axis() != Vector2.ZERO) or (_has_dirt_type(Tuning.DIRT_TRASH) and not _has_flag("ignore_trash_stamina")):
-		return
-	if _regen_delay > 0.0:
-		_regen_delay -= delta
-		return
-	stamina = minf(stamina_max_now(), stamina + Tuning.STAMINA_REGEN_PER_SEC * delta)
 
 
 func _kind_of(node: Object) -> StringName:
@@ -2137,28 +1821,6 @@ func _glow_span(node: Node2D) -> Vector2:
 	return span * GLOW_SPAN_SCALE
 
 
-func _update_target() -> void:
-	if _fighting:
-		return
-	## Aim / slip / held interact: keep the action target (no full rescan).
-	## In-flight toss does not freeze target scan.
-	if _j_held or _cancel_drop_ready or _slip_left > 0.0 or is_instance_valid(_self_repair_reg):
-		return
-	var best := _preview_target()
-	if target != best:
-		if _restock_picking and target != null and _obj_str(target, "kind") in ["restock", "fish_tank"]:
-			target.call("abort_pick")
-		if _cooked_picking and target != null and _obj_str(target, "kind") == "cooked_stall":
-			if target.has_method("abort_pick"):
-				target.call("abort_pick")
-		_restock_picking = false
-		_restock_hold = 0.0
-		_cooked_picking = false
-		_cooked_hold = 0.0
-		_reset_hold()
-		_pickup_used = false
-		_hud_dirty = true
-	target = best
 
 
 func _tick_action(delta: float) -> void:
@@ -2604,14 +2266,6 @@ func _sync_monk_tornado(force_on: bool = false) -> void:
 	_monk_tornado.visible = on
 
 
-func _tick_sweeping_monk(delta: float) -> void:
-	if buff_left("sweeping_monk") <= 0.05:
-		_sync_monk_tornado(false)
-		return
-	_sync_monk_tornado(true)
-	if _monk_tornado != null:
-		_monk_tornado.rotation += delta * 7.5
-	_clear_dirt_in_monk_range()
 
 
 func _clear_dirt_in_monk_range() -> void:

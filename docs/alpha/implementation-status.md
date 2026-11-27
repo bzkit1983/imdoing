@@ -81,7 +81,7 @@
 
 | 檔 | 行數 | 備註 |
 | --- | ---: | --- |
-| `player.gd` | **4795** | 合併閘監視檔；勿再吞控制器 |
+| `player.gd` | **2893** | #175 拆到 `player/*` 後；合併閘監視檔，勿再吞控制器 |
 | `demo.gd` | **3986** | 預算 ≤ 4000（`monolith-merge-gate.md`／`test_demo_host_extract.py`） |
 | `prep_menu.gd` | 3265 | |
 | `game_state.gd` | 2748 | |

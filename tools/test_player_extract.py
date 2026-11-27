@@ -12,6 +12,7 @@ INPUT = (ROOT / "godot/game/scripts/player/input_controller.gd").read_text(encod
 WORK = (ROOT / "godot/game/scripts/player/work_ticker.gd").read_text(encoding="utf-8")
 INTERACT = (ROOT / "godot/game/scripts/player/interact_controller.gd").read_text(encoding="utf-8")
 VIEW = (ROOT / "godot/game/scripts/player/player_view.gd").read_text(encoding="utf-8")
+FRAME = (ROOT / "godot/game/scripts/player/frame_ticker.gd").read_text(encoding="utf-8")
 
 errs: list[str] = []
 
@@ -29,14 +30,16 @@ need("InputControllerScript" in PLAYER, "player preloads input_controller")
 need("WorkTickerScript" in PLAYER, "player preloads work_ticker")
 need("InteractControllerScript" in PLAYER, "player preloads interact_controller")
 need("PlayerViewScript" in PLAYER, "player preloads player_view")
-need("_toss.bind(self)" in PLAYER, "player binds toss")
-need("_fight_ctrl.bind(self)" in PLAYER, "player binds fight")
-need("_skills.bind(self)" in PLAYER, "player binds skills")
-need("_checkout.bind(self)" in PLAYER, "player binds checkout")
-need("_input_ctrl.bind(self)" in PLAYER, "player binds input")
-need("_work.bind(self)" in PLAYER, "player binds work")
-need("_interact.bind(self)" in PLAYER, "player binds interact")
-need("_view.bind(self)" in PLAYER, "player binds view")
+need("FrameTickerScript" in PLAYER, "player preloads frame_ticker")
+need("_frame.bind(self)" in PLAYER, "player binds frame ticker before ready")
+need("host._toss.bind(host)" in FRAME, "startup binds toss")
+need("host._fight_ctrl.bind(host)" in FRAME, "startup binds fight")
+need("host._skills.bind(host)" in FRAME, "startup binds skills")
+need("host._checkout.bind(host)" in FRAME, "startup binds checkout")
+need("host._input_ctrl.bind(host)" in FRAME, "startup binds input")
+need("host._work.bind(host)" in FRAME, "startup binds work")
+need("host._interact.bind(host)" in FRAME, "startup binds interact")
+need("host._view.bind(host)" in FRAME, "startup binds view")
 
 need("extends RefCounted" in TOSS and "func bind(" in TOSS, "toss is host-bound RefCounted")
 need("extends RefCounted" in FIGHT and "func bind(" in FIGHT, "fight is host-bound RefCounted")
@@ -46,6 +49,7 @@ need("extends RefCounted" in INPUT and "func bind(" in INPUT, "input is host-bou
 need("extends RefCounted" in WORK and "func bind(" in WORK, "work is host-bound RefCounted")
 need("extends RefCounted" in INTERACT and "func bind(" in INTERACT, "interact is host-bound RefCounted")
 need("extends RefCounted" in VIEW and "func bind(" in VIEW, "view is host-bound RefCounted")
+need("extends RefCounted" in FRAME and "func bind(" in FRAME, "frame ticker is host-bound RefCounted")
 
 need("func launch_piece_toss(" in TOSS and "func toss_top_piece(" in TOSS, "toss launch/toss_top")
 need("func play_ko_sequence(" in FIGHT and "func end_fight(" in FIGHT, "fight KO/end")
@@ -56,6 +60,7 @@ need("func tick_action(" in WORK and "func tick_restock(" in WORK and "func tick
 need("func do_short_interact(" in INTERACT and "func hand_deliver(" in INTERACT and "func try_pickup(" in INTERACT, "interact actions")
 need("func update_visuals(" in VIEW and "func emit_stats_if_changed(" in VIEW and "func role_status_text(" in VIEW, "view status/visuals")
 need("func try_dash_hits(" in FIGHT, "dash hits live on fight controller")
+need("func physics_process(" in FRAME and "func ready(" in FRAME and "func tick_move(" in FRAME, "frame owns startup and physics ticks")
 
 # Facades remain on player (call sites / puppets keep working).
 need("func _launch_piece_toss(" in PLAYER, "launch facade on player")
@@ -74,9 +79,11 @@ need("_interact.hand_deliver(" in PLAYER and "func _hand_deliver(" in PLAYER, "d
 need("_interact.do_short_interact(" in PLAYER, "short interact delegates")
 need("_view.update_visuals(" in PLAYER and "func role_status_text(" in PLAYER, "view facades stay on player")
 need("_fight_ctrl.try_dash_hits(" in PLAYER and "func _try_dash_hits(" in PLAYER, "dash-hit facade stays on player")
+need("_frame.physics_process(" in PLAYER and "func _physics_process(" in PLAYER, "physics facade stays on player")
+need("_frame.ready(" in PLAYER and "func _ready(" in PLAYER, "ready facade stays on player")
 
 # Parse hazards learned from F1 / F2 rewrites.
-_HOSTED = (TOSS, SKILL, CHECKOUT, INPUT, FIGHT, WORK, INTERACT, VIEW)
+_HOSTED = (TOSS, SKILL, CHECKOUT, INPUT, FIGHT, WORK, INTERACT, VIEW, FRAME)
 need(all("var host.name" not in src for src in _HOSTED), "no mangled var host.name")
 need(all("for host." not in src for src in _HOSTED), "no for host._i rewrite")
 need(all("Callable(host, \"host." not in src for src in _HOSTED), "Callable method names not double-prefixed")
