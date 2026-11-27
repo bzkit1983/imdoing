@@ -36,9 +36,9 @@
 
 | | |
 | --- | --- |
-| **現行產品 SemVer** | **`v1.5.0`**（中期美術：非玩家體素、補貨架高度對齊貨架、具象貨品圖、技能臨時圖、準備回合排版。不是最終美術定案。見 `systemdesign/art-interim-v1.5.md`）。上一錨點 **`v1.4.0`**（全單位改「件」）。字串與 `VERSION`、`project.godot`、`product_version.gd` 對齊。`SAVE_VERSION` **現行 9**（與 SemVer **分開**；見 `game_state.gd`／[`savesystem.md`](systemdesign/savesystem.md)）。`v1.5.0` 發佈時存檔格式為 4，其後同產品字串內升至 9（5 商品培養、6 創世問答、7 序章內容閘、8 魚缸／釣魚、9 精英店員）。Git tag `v1.5.0` 已打在 `main`；功能分支不打 tag。 |
+| **現行產品 SemVer** | **`v1.5.0`**（中期美術：非玩家體素、補貨架高度對齊貨架、具象貨品圖、技能臨時圖、準備回合排版。不是最終美術定案。見 `systemdesign/art-interim-v1.5.md`）。上一錨點 **`v1.4.0`**（全單位改「件」）。字串與 `VERSION`、`project.godot`、`product_version.gd` 對齊。`SAVE_VERSION` **現行 10**（與 SemVer **分開**；見 `game_state.gd`／[`savesystem.md`](systemdesign/savesystem.md)）。`v1.5.0` 發佈時存檔格式為 4，其後同產品字串內升至 10（5 商品培養、6 創世問答、7 序章內容閘、8 魚缸／釣魚、9 精英店員、10 分店／主題店）。Git tag `v1.5.0` 已打在 `main`；功能分支不打 tag。 |
 | 對齊字串 | repo 根目錄 [`VERSION`](../VERSION)；`godot/game/project.godot` `config/version`；`scripts/product_version.gd`；Windows 匯出 `export_presets.cfg` |
-| 存檔格式版 | `game_state.SAVE_VERSION`（整數，與 SemVer **分開**；**現行 9**，演進見 [`savesystem.md`](systemdesign/savesystem.md)） |
+| 存檔格式版 | `game_state.SAVE_VERSION`（整數，與 SemVer **分開**；**現行 10**，演進見 [`savesystem.md`](systemdesign/savesystem.md)） |
 | 查詢 | `git tag -l 'v*'` · `git describe --tags --exact-match`（恰在 tag 上時） · `git rev-parse v1.1.0^{}` |
 
 誰改號：負責人依下方 SemVer 規則決定後，在 `main` **打／推 tag**，並同步改 `VERSION` 與上表字串（同一 PR 或發佈當下）。合併功能 PR **不會**自動升版。

@@ -76,10 +76,13 @@ var _bag_fp := ""
 @onready var _close: PanelContainer = $Root/Closeout
 @onready var _close_tasks_card: PanelContainer = $Root/Closeout/Margin/Columns/TasksCard
 @onready var _close_settle_card: PanelContainer = $Root/Closeout/Margin/Columns/SettleCard
+@onready var _close_branch_card: PanelContainer = $Root/Closeout/Margin/Columns/BranchCard
 @onready var _close_tasks_header: Label = $Root/Closeout/Margin/Columns/TasksCard/CardMargin/TasksCol/TasksHeader
 @onready var _close_tasks: Label = $Root/Closeout/Margin/Columns/TasksCard/CardMargin/TasksCol/TasksText
 @onready var _close_settle_header: Label = $Root/Closeout/Margin/Columns/SettleCard/CardMargin/SettleCol/SettleHeader
 @onready var _close_text: Label = $Root/Closeout/Margin/Columns/SettleCard/CardMargin/SettleCol/CloseText
+@onready var _close_branch_header: Label = $Root/Closeout/Margin/Columns/BranchCard/CardMargin/BranchCol/BranchHeader
+@onready var _close_branch_text: Label = $Root/Closeout/Margin/Columns/BranchCard/CardMargin/BranchCol/BranchText
 var _closeout_styled: bool = false
 var _stamina_low_paint: bool = false
 ## Boss-day progress (HP-like) + dialog overlay.
@@ -649,8 +652,8 @@ func show_closeout() -> void:
 	])
 
 
-## Left = task results; right = day settle body.
-func set_closeout_panels(settle_body: String, tasks_body: String = "") -> void:
+## Left = task results; middle = day settle; optional right = branch settle.
+func set_closeout_panels(settle_body: String, tasks_body: String = "", branch_body: String = "") -> void:
 	_set_closeout_visible(true)
 	if _close_tasks_header:
 		_close_tasks_header.text = Loc.t("settle.tasks_header")
@@ -659,6 +662,14 @@ func set_closeout_panels(settle_body: String, tasks_body: String = "") -> void:
 	if _close_tasks:
 		_close_tasks.text = tasks_body if tasks_body.strip_edges() != "" else Loc.t("settle.tasks_empty")
 	_close_text.text = settle_body
+	var show_branch := branch_body.strip_edges() != ""
+	if _close_branch_card:
+		_close_branch_card.visible = show_branch
+	if show_branch:
+		if _close_branch_header:
+			_close_branch_header.text = Loc.t("settle.branch_header")
+		if _close_branch_text:
+			_close_branch_text.text = branch_body
 
 
 func _process(delta: float) -> void:

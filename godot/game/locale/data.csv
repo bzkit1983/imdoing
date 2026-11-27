@@ -247,6 +247,22 @@ settle.test_bonus,（含測試 +%d）,(incl. test +%d),（含测试 +%d）,（�
 settle.saved,已寫入存檔,Saved,已写入存档,セーブ書き込み済み
 settle.save_fail_prefix,存檔失敗：,Save failed: ,存档失败：,セーブ失敗：
 settle.host_xp,店主經驗 +%d%s　%s,Host XP +%d%s  %s,店主经验 +%d%s　%s,店主経験値 +%d%s　%s
+settle.branch_header,分店,Branches,分店,支店
+settle.branch.locked,分店系統尚未解鎖。,Branch system locked.,分店系统尚未解锁。,支店システムは未解放です。
+settle.branch.empty,沒有可結算的分店。,No branches to settle.,没有可结算的分店。,精算する支店はありません。
+settle.branch.row_closed,%s　停業（%s）　模式 %s,%s · closed (%s) · policy %s,%s　停业（%s）　模式 %s,%s　休業（%s）　模式 %s
+settle.branch.row_open,%s　營運　模式 %s\n補貨 $%d　日薪 $%d　營業額 $%d\n營運點 %d　%s　評價 %d→%d,%s · open · policy %s\nRestock $%d · wages $%d · revenue $%d\nOps %d · %s · rating %d→%d,%s　营运　模式 %s\n补货 $%d　日薪 $%d　营业额 $%d\n营运点 %d　%s　评价 %d→%d,%s　営業　模式 %s\n補充 $%d　日給 $%d　売上 $%d\n営業点 %d　%s　評価 %d→%d
+settle.branch.reason.no_manager,無店長,no manager,无店长,店長なし
+branch.store.origin,起源店,Origin store,起源店,起源店
+branch.store.theme_historic,安桃山店,Antaoshan store,安桃山店,安桃山店
+branch.policy.high_pressure,高壓銷售,High pressure,高壓銷售,ハード販売
+branch.policy.balanced,標準營運,Balanced,标准营运,バランス
+branch.policy.customer_first,客人優先,Customer first,客人优先,お客さん優先
+branch.post.manager,店長,Manager,店长,店長
+branch.post.cashier,收銀,Cashier,收银,レジ
+branch.post.restock,補貨,Restock,补货,補充
+branch.post.cleaner,清潔,Cleaner,清洁,清掃
+branch.post.security,保安,Security,保安,警備
 settle.split_xp,平分經驗 +%d%s　店主 %s%s,Split XP +%d%s  host %s%s,平分经验 +%d%s　店主 %s%s,経験値分配 +%d%s　店主 %s%s
 log.demo.chives,割韭菜 ×%d,Harvest chives ×%d,割韭菜 ×%d,ネギ刈り ×%d
 log.demo.chives_cash,割韭菜 ×%d — $%d,Harvest chives ×%d — $%d,割韭菜 ×%d — $%d,ネギ刈り ×%d — $%d

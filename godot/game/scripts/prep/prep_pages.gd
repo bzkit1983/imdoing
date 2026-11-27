@@ -38,7 +38,13 @@ static func parent_page(page: String) -> String:
 			return "elite_clerks"
 		"elite_clerks":
 			return "clerks"
-		"hub_char", "hub_goods", "hub_shop", "hub_sys", "clerks", "confirm", "elite_test", "rating_history", "lobby", "lan_join", "steam_join", "tasks", "home":
+		"branches":
+			return "home"
+		"branch":
+			return "branches"
+		"branch_buy", "branch_sale", "branch_posts":
+			return "branch"
+		"hub_char", "hub_goods", "hub_shop", "hub_sys", "clerks", "confirm", "elite_test", "rating_history", "lobby", "lan_join", "steam_join", "tasks", "home", "branches":
 			if in_room_lobby and page != "lobby" and page != "lan_join" and page != "steam_join" and page != "confirm":
 				return "lobby"
 			return "home"
@@ -281,6 +287,16 @@ static func fill(menu: CanvasLayer, page: String) -> void:
 			_tasks(menu)
 		"test_tasks":
 			_test_tasks(menu)
+		"branches":
+			_branches(menu)
+		"branch":
+			_branch_detail(menu)
+		"branch_buy":
+			_branch_buy(menu)
+		"branch_sale":
+			_branch_sale(menu)
+		"branch_posts":
+			_branch_posts(menu)
 		"skill_pick":
 			pass
 		_:
@@ -363,6 +379,7 @@ static func _scenario(menu: CanvasLayer) -> void:
 		menu._add(Loc.t("prep.scenario.s7"), "sc", 7)
 		menu._add(Loc.t("prep.scenario.s9"), "sc", menu.state.SCENARIO_HISTORIC_COOKED)
 		menu._add(Loc.t("prep.scenario.s10"), "sc", menu.state.SCENARIO_ELITE_CLERK)
+		menu._add(Loc.t("prep.scenario.s11"), "sc", menu.state.SCENARIO_BRANCH)
 
 
 static func _in_room_lobby() -> bool:
@@ -422,6 +439,11 @@ static func _home(menu: CanvasLayer) -> void:
 		menu._add_hub(
 			Loc.t("prep.hub.tasks"), "go", "tasks", "tasks",
 			menu.tutorial_home_hub_locked("tasks")
+		)
+		var branch_locked := not menu.state.branch_system_unlocked()
+		menu._add_hub(
+			Loc.t("prep.hub.branch"), "go", "branches", "branch",
+			branch_locked or menu.tutorial_home_hub_locked("branches")
 		)
 		if menu.can_access_cultivation():
 			menu._hub_cols = 4
@@ -1717,3 +1739,144 @@ static func _kind_label(kind: String) -> String:
 			return Loc.t("prep.kind.ult")
 		_:
 			return kind
+
+
+static func _branches(menu: CanvasLayer) -> void:
+	var BranchRules = preload("res://scripts/session/branch_rules.gd")
+	var ThemeStoreSnapshot = preload("res://scripts/session/theme_store_snapshot.gd")
+	menu._title.text = Loc.t("prep.branch.title")
+	if not menu.state.branch_system_unlocked():
+		menu._info.text = Loc.t("prep.branch.locked")
+		menu._add(Loc.t("prep.back"), "go", "home")
+		return
+	var ids: Array[String] = ThemeStoreSnapshot.branch_candidate_ids(menu.state)
+	menu._info.text = Loc.t("prep.branch.info", [ids.size()])
+	if ids.is_empty():
+		menu._add(Loc.t("prep.branch.empty"), "noop", null)
+	else:
+		for tid in ids:
+			var snap: Dictionary = ThemeStoreSnapshot.get_store_dict(menu.state, tid)
+			var posts: Dictionary = BranchRules.normalize_posts(snap.get("branch_posts", null))
+			var has_mgr := BranchRules.has_manager(posts)
+			var status := Loc.t("prep.branch.status_ready" if has_mgr else "prep.branch.status_closed")
+			var policy := Loc.t(BranchRules.policy_label_key(String(snap.get("policy", BranchRules.POLICY_BALANCED))))
+			menu._add(
+				Loc.t("prep.branch.row", [Loc.t(BranchRules.store_display_key(tid)), status, policy]),
+				"branch_open",
+				tid
+			)
+	menu._add(Loc.t("prep.back"), "go", "home")
+
+
+static func _branch_detail(menu: CanvasLayer) -> void:
+	var BranchRules = preload("res://scripts/session/branch_rules.gd")
+	var ThemeStoreSnapshot = preload("res://scripts/session/theme_store_snapshot.gd")
+	var tid := String(menu.get("_branch_focus_id"))
+	var snap: Dictionary = ThemeStoreSnapshot.get_store_dict(menu.state, tid)
+	if snap.is_empty():
+		menu._title.text = Loc.t("prep.branch.title")
+		menu._info.text = Loc.t("err.branch_store_missing", [tid])
+		menu._add(Loc.t("prep.back"), "go", "branches")
+		return
+	var posts: Dictionary = BranchRules.normalize_posts(snap.get("branch_posts", null))
+	var policy := BranchRules.normalize_policy(String(snap.get("policy", BranchRules.POLICY_BALANCED)))
+	menu._title.text = Loc.t(BranchRules.store_display_key(tid))
+	menu._info.text = Loc.t("prep.branch.detail_info", [
+		Loc.t(BranchRules.policy_label_key(policy)),
+		Loc.t("prep.branch.status_ready" if BranchRules.has_manager(posts) else "prep.branch.status_closed"),
+		int(snap.get("shop_rating", 0)),
+		int(snap.get("shop_scale", 1)),
+	])
+	menu._add(Loc.t("prep.branch.cycle_policy", [Loc.t(BranchRules.policy_label_key(policy))]), "branch_cycle_policy", tid)
+	menu._add(Loc.t("prep.branch.open_posts"), "go", "branch_posts")
+	menu._add(Loc.t("prep.branch.open_buy"), "go", "branch_buy")
+	menu._add(Loc.t("prep.branch.open_sale"), "go", "branch_sale")
+	menu._add(Loc.t("prep.back"), "go", "branches")
+
+
+static func _branch_buy(menu: CanvasLayer) -> void:
+	var ThemeStoreSnapshot = preload("res://scripts/session/theme_store_snapshot.gd")
+	var tid := String(menu.get("_branch_focus_id"))
+	var snap: Dictionary = ThemeStoreSnapshot.get_store_dict(menu.state, tid)
+	menu._title.text = Loc.t("prep.branch.buy_title")
+	menu._info.text = Loc.t("prep.branch.buy_info", [menu.state.money])
+	var developed = snap.get("developed", {})
+	var for_sale = snap.get("for_sale", {})
+	var stock = snap.get("stock", {})
+	var any := false
+	if developed is Dictionary:
+		var skus: Array = developed.keys()
+		skus.sort()
+		for sku_raw in skus:
+			var sku := String(sku_raw)
+			if not bool(developed.get(sku, false)):
+				continue
+			if Tuning.is_craft_only(sku):
+				continue
+			if for_sale is Dictionary and for_sale.has(sku) and not bool(for_sale[sku]):
+				continue
+			any = true
+			var have := int(stock.get(sku, 0)) if stock is Dictionary else 0
+			var unit := Tuning.cost_for_pieces(sku, 1)
+			menu._add(
+				Loc.t("prep.branch.buy_row", [Tuning.sku_name(sku) if Tuning.has_method("sku_name") else sku, have, unit]),
+				"branch_buy_stock",
+				{"theme_id": tid, "sku": sku}
+			)
+	if not any:
+		menu._add(Loc.t("prep.branch.buy_empty"), "noop", null)
+	menu._add(Loc.t("prep.back"), "go", "branch")
+
+
+static func _branch_sale(menu: CanvasLayer) -> void:
+	var ThemeStoreSnapshot = preload("res://scripts/session/theme_store_snapshot.gd")
+	var tid := String(menu.get("_branch_focus_id"))
+	var snap: Dictionary = ThemeStoreSnapshot.get_store_dict(menu.state, tid)
+	menu._title.text = Loc.t("prep.branch.sale_title")
+	menu._info.text = Loc.t("prep.branch.sale_info")
+	var developed = snap.get("developed", {})
+	var for_sale = snap.get("for_sale", {})
+	if developed is Dictionary:
+		var skus: Array = developed.keys()
+		skus.sort()
+		for sku_raw in skus:
+			var sku := String(sku_raw)
+			if not bool(developed.get(sku, false)):
+				continue
+			if Tuning.is_craft_only(sku):
+				continue
+			var on := true
+			if for_sale is Dictionary and for_sale.has(sku):
+				on = bool(for_sale[sku])
+			var flag := Loc.t("prep.branch.sale_on" if on else "prep.branch.sale_off")
+			menu._add(
+				Loc.t("prep.branch.sale_row", [sku, flag]),
+				"branch_toggle_sale",
+				{"theme_id": tid, "sku": sku}
+			)
+	menu._add(Loc.t("prep.back"), "go", "branch")
+
+
+static func _branch_posts(menu: CanvasLayer) -> void:
+	var BranchRules = preload("res://scripts/session/branch_rules.gd")
+	var ThemeStoreSnapshot = preload("res://scripts/session/theme_store_snapshot.gd")
+	var EliteClerkCatalog = preload("res://scripts/session/elite_clerk_catalog.gd")
+	var tid := String(menu.get("_branch_focus_id"))
+	var snap: Dictionary = ThemeStoreSnapshot.get_store_dict(menu.state, tid)
+	var posts: Dictionary = BranchRules.normalize_posts(snap.get("branch_posts", null))
+	menu._title.text = Loc.t("prep.branch.posts_title")
+	menu._info.text = Loc.t("prep.branch.posts_info")
+	for post in BranchRules.POST_IDS:
+		var ref = posts.get(post, null)
+		var who := Loc.t("prep.branch.post_empty")
+		if ref is Dictionary:
+			if String(ref.get("kind", "")) == "elite":
+				who = EliteClerkCatalog.display_name(String(ref.get("id", "")))
+			elif String(ref.get("kind", "")) == "clerk":
+				who = Loc.t("prep.branch.post_clerk", [int(ref.get("id", 0)) + 1])
+		menu._add(
+			Loc.t("prep.branch.post_row", [Loc.t(BranchRules.post_label_key(post)), who]),
+			"branch_cycle_post",
+			{"theme_id": tid, "post": post}
+		)
+	menu._add(Loc.t("prep.back"), "go", "branch")

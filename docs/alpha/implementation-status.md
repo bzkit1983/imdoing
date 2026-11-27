@@ -73,7 +73,7 @@
 | 序章內容閘／經濟（劇本 8） | **`docs/systemdesign/story/prologue.md`**、`taskcontent-story-stub.md`、`storysystem.md` | **已實作**（2026-11-25）。`GameState.SCENARIO_PROLOGUE = 8`：LV1、$2500、空店、內容閘（`unlocked_*`／`prologue_boss_unlocked`，`SAVE_VERSION` ≥7）；任務 pack `ST-PROLOGUE-MONEY`。**2026-11-27 起列入 EA 起點**；通關後進第1章的 runtime 仍未做 |
 | 安桃山熟食檔＋釣魚（劇本 9） | **`docs/systemdesign/cookedfoodsystem.md`**、`fishingtaro.md`、`storepreparationphase.md` | **已實作**（2026-11-25）。`theme_historic` 熟食檔與釣魚太郎；劇本 9 藍本同劇本 4；`SAVE_VERSION` ≥8（`fish_stock`／`fishing_taro_played`） |
 | 精英店員（劇本 10） | **`docs/systemdesign/eliteclerk.md`**、`storepreparationphase.md`、`savesystem.md` | **已實作**（2026-11-26，#146）。Prep UI＋多崗位；`SAVE_VERSION` 9（`elite_clerks`）。劇本 10＝安桃山布局營運日測試，目錄全員 debug 滿級 |
-| 分店系統（設計） | **`docs/systemdesign/branchstore.md`** | **僅設計開檔**；活線未做。**2026-11-27 已決：EA 打完安桃山後可開分店**（不再整體暫緩） |
+| 分店系統（垂直切片） | **`docs/systemdesign/branchstore.md`**；`savesystem.md` | **`SAVE_VERSION` 10**＋劇本 11：主題店快照、Prep 分店、背景結算、日結分店欄。起源店可作分店背景營運。正式選章 runtime 仍未做 |
 | Ambient Peek 操作層 | **`docs/systemdesign/player-context-ui.md`**、`control.md` | **已實作**（2026-11-23）。背包菱形、持物條、技能環；#144／#145 |
 | 其他 11-20～11-27 同期落地 | 各技能／小遊戲／多人檔 | 商品 XP 曲線 LV99 與店規模 S1–S6（#140）；培養預覽；收銀對決／Dasher／快吞包對決／Metal Rush 等小遊戲；網上 Host 權威修復（#143）；本地 vs 網上缺口文件（#142）；手掣／鍵盤短按徑向重綁 |
 

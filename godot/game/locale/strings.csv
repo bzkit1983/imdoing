@@ -353,6 +353,7 @@ prep.scenario.s6,劇本6　頭目戰　藍本同劇本4（測試）,Scenario 6 �
 prep.scenario.s7,劇本7　新商店物品測試　藍本同劇本4　自助收銀×1（測試）,Scenario 7 · New furniture test · same as 4 · 1 self-checkout (test),剧本7　新商店物品测试　蓝本同剧本4　自助收银×1（测试）,シナリオ7　新店舗アイテムテスト　シナリオ4構成　セルフレジ×1（テスト）
 prep.scenario.s9,劇本9　安桃山時代　熟食檔測試　藍本同劇本4　米／醬油／零食＋熟食　魚缸　無凍櫃／傳送門　收銀×1,Scenario 9 · Antaoshan · cooked-stall test · same as 4 · grain/soy/snack+cooked · fish tank · no freezer/portals · 1 register,剧本9　安桃山时代　熟食档测试　蓝本同剧本4　米／酱油／零食＋熟食　鱼缸　无冻柜／传送门　收银×1,シナリオ9　安桃山時代　惣菜屋台テスト　シナリオ4構成　米／醤油／おやつ＋惣菜　水槽　冷凍／ポータルなし　レジ×1
 prep.scenario.s10,劇本10　精英店員營運日測試　安桃山　18×13　乾／凍／冰＋熟食／魚缸　傳送門右上↔右下　全員滿級（測試）,Scenario 10 · Elite-clerk ops-day · Antaoshan · 18×13 · dry/frozen/ice+cooked/fish · portals top-right↔bottom-right · max-LV roster (test),剧本10　精英店员营运日测试　安桃山　18×13　干／冻／冰＋熟食／鱼缸　传送门右上↔右下　全员满级（测试）,シナリオ10　エリート店員営業日テスト　安桃山　18×13　乾／冷凍／アイス＋惣菜／水槽　ポータル右上↔右下　全員最大LV（テスト）
+prep.scenario.s11,劇本11　分店測試　本店安桃山＋分店起源　已解鎖背景營運,Scenario 11 · Branch test · HQ Antaoshan + origin branch · background ops unlocked,剧本11　分店测试　本店安桃山＋分店起源　已解锁背景营运,シナリオ11　支店テスト　本店＝安桃山＋支店＝起源　背景営業解除済み
 prep.scenario.s1,劇本1　從新開始　資金 $10000　LV1　空店,Scenario 1 · Fresh start · $10000 · LV1 · empty,剧本1　从新开始　资金 $10000　LV1　空店,シナリオ1　新規スタート　資金 $10000　LV1　空き店
 prep.scenario.s2,劇本2　LV5　資金 $10000　店規模 2　1 名店員,Scenario 2 · LV5 · $10000 · scale 2 · 1 clerk,剧本2　LV5　资金 $10000　店规模 2　1 名店员,シナリオ2　LV5　資金 $10000　店規模 2　店員 1名
 prep.scenario.s3,劇本3　LV10　資金 $99999　三圍 30　店規模 3　2 名店員,Scenario 3 · LV10 · $99999 · stats 30 · scale 3 · 2 clerks,剧本3　LV10　资金 $99999　三围 30　店规模 3　2 名店员,シナリオ3　LV10　資金 $99999　三能力 30　店規模 3　店員 2名
@@ -795,6 +796,40 @@ prep.msg.locked_title,尚未開放,Locked,尚未开放,未開放
 prep.msg.confirm_btn,確定,OK,确定,OK
 prep.ult.empty,空,Empty,空,空
 prep.hub.tasks,任務,Tasks,任务,タスク
+prep.hub.branch,分店,Branches,分店,支店
+prep.branch.title,分店管理,Branch stores,分店管理,支店管理
+prep.branch.locked,清完第一個可選主題後解鎖分店。,Clear your first optional theme to unlock branches.,清完第一个可选主题后解锁分店。,最初の選択テーマをクリアすると支店が解放されます。
+prep.branch.info,可管理分店 %d 間。選一間設定模式、崗位與貨品。,%d branch store(s). Pick one to set policy, posts, and goods.,可管理分店 %d 间。选一间设定模式、岗位与货品。,管理できる支店は %d 店。模式・配置・商品を設定。
+prep.branch.empty,目前沒有可管理的分店。,No manageable branches yet.,目前没有可管理的分店。,管理できる支店はまだありません。
+prep.branch.row,%s　%s　模式：%s,%s · %s · policy: %s,%s　%s　模式：%s,%s　%s　模式：%s
+prep.branch.status_ready,可營運,Ready,可营运,営業可
+prep.branch.status_closed,停業（無店長）,Closed (no manager),停业（无店长）,休業（店長なし）
+prep.branch.detail_info,模式 %s　%s　評價 %d　規模 LV%d,Policy %s · %s · rating %d · scale LV%d,模式 %s　%s　评价 %d　规模 LV%d,模式 %s　%s　評価 %d　規模 LV%d
+prep.branch.cycle_policy,切換模式（現：%s）,Cycle policy (now: %s),切换模式（现：%s）,模式切替（現在：%s）
+prep.branch.open_posts,崗位指派,Assign posts,岗位指派,配置
+prep.branch.open_buy,分店採購,Branch procurement,分店采购,支店仕入れ
+prep.branch.open_sale,售賣設定,For-sale settings,售卖设定,販売設定
+prep.branch.buy_title,分店採購,Branch buy,分店采购,支店仕入れ
+prep.branch.buy_info,共用資金 $%d　點選購入 16 件（不足則失敗）。,Shared funds $%d · tap to buy 16 pcs (fails if short).,共用资金 $%d　点选购入 16 件（不足则失败）。,共有資金 $%d　タップで 16 個購入（不足なら失敗）。
+prep.branch.buy_row,%s　庫存 %d　單價 $%d,%s · stock %d · unit $%d,%s　库存 %d　单价 $%d,%s　在庫 %d　単価 $%d
+prep.branch.buy_empty,沒有可採購的開售貨品。,No sellable SKUs to buy.,没有可采购的开售货品。,仕入れ可能な販売中SKUがありません。
+prep.branch.bought,已採購。,Purchased.,已采购。,仕入れ完了。
+prep.branch.sale_title,分店售賣,Branch for-sale,分店售卖,支店販売
+prep.branch.sale_info,至少保留一項可售。,Keep at least one sellable SKU.,至少保留一项可售。,販売中を最低1つ残してください。
+prep.branch.sale_row,%s　%s,%s · %s,%s　%s,%s　%s
+prep.branch.sale_on,可售,On,可售,販売中
+prep.branch.sale_off,停售,Off,停售,販売停止
+prep.branch.posts_title,分店崗位,Branch posts,分店岗位,支店配置
+prep.branch.posts_info,點選循環：空 → 一般雇員 → 精英 → 空。無店長＝當日停業。,Tap to cycle: empty → hiree → elite → empty. No manager = closed that day.,點選循環：空 → 一般雇员 → 精英 → 空。无店长＝当日停业。,タップで循環：空→一般→エリート→空。店長なし＝その日休業。
+prep.branch.post_row,%s　%s,%s · %s,%s　%s,%s　%s
+prep.branch.post_empty,（空）, (empty),（空）,（空）
+prep.branch.post_clerk,雇員 #%d,Hiree #%d,雇员 #%d,店員 #%d
+prep.branch.policy_set,模式改為 %s。,Policy set to %s.,模式改为 %s。,模式を %s に変更。
+prep.branch.post_cleared,已清空崗位：%s,Cleared post: %s,已清空岗位：%s,配置を解除：%s
+prep.branch.post_set,崗位已更新。,Post updated.,岗位已更新。,配置を更新しました。
+err.branch_store_missing,找不到分店快照：%s,Branch store missing: %s,找不到分店快照：%s,支店スナップショットがありません：%s
+err.branch_bad_post,無效崗位。,Invalid post.,无效岗位。,無効な配置です。
+err.branch_bad_clerk,無效雇員編號。,Invalid clerk index.,无效雇员编号。,無効な店員番号です。
 prep.home.test_tasks,測試任務,Test tasks,测试任务,テストタスク
 prep.tasks.title,任務,Tasks,任务,タスク
 prep.tasks.info,營業日 %d　掛載：%s,Ops day %d · attach: %s,营业日 %d　挂载：%s,営業日 %d　設定：%s
