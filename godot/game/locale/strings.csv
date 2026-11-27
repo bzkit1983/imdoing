@@ -1070,3 +1070,19 @@ prep.elite_clerk.reassign,改派收銀機（目前 #%d）,Reassign register (now
 prep.elite_clerk.upgrade,升級（$%d）,Upgrade ($%d),升级（$%d）,レベルアップ（$%d）
 prep.elite_clerk.upgrade_max,已達等級上限,Max level reached,已达等级上限,レベル上限
 prep.elite_clerk.upgraded,升級成功,Upgraded,升级成功,レベルアップ成功
+prep.hoop_trial.level_0,新人試投,First toss,新人试投,はじめての投球
+prep.hoop_trial.level_1,貨架骨牌,Shelf dominoes,货架骨牌,棚ドミノ
+prep.hoop_trial.level_2,埋單先好走,Pay before you go,付完钱再走,会計してから帰ってね
+prep.hoop_trial.goal_0,補滿兩個貨架，送貨畀一位客人。,Stock two shelves and serve one customer.,补满两个货架，送货给一位顾客。,棚を2台補充し、お客さん1人に商品を届けよう。
+prep.hoop_trial.goal_1,補滿兩個貨架，送貨畀兩位客人，再用罐頭截住小偷。,Stock two shelves and serve two customers. Stop the thief with a can.,补满两个货架，送货给两位顾客，再用罐头截住小偷。,棚を2台補充し、お客さん2人に商品を届け、缶詰で泥棒を止めよう。
+prep.hoop_trial.goal_2,送貨畀客人，用罐頭截住小偷。留意貨架摺角，最後一發可雙投。,Serve the customer and stop the thief with a can. Watch for a folded shelf corner. The last shot tosses two items.,送货给顾客，用罐头截住小偷。留意货架折角，最后一发可双投。,商品を届け、缶詰で泥棒を止めよう。棚の折れ目に注目。最後の一投は2品同時。
+prep.hoop_trial.status,%s｜剩餘 %d 發｜最大連鎖 %d,%s · Shots %d · Best chain %d,%s｜剩余 %d 发｜最大连锁 %d,%s｜残り%d投｜最大連鎖%d
+prep.hoop_trial.controls,拉後放手／↑↓＋Space／左搖桿＋A｜換貨 Tab／X・第二款 Q／RB・重試 R／Y・取消 C／B,Drag back and release / ↑↓ + Space / left stick + A · Ammo Tab/X · Second Q/RB · Retry R/Y · Cancel C/B,向后拉再松手／↑↓＋Space／左摇杆＋A｜换货 Tab／X・第二款 Q／RB・重试 R／Y・取消 C／B,引いて離す／↑↓＋Space／左スティック＋A｜弾 Tab／X・2品目 Q／RB・再挑戦 R／Y・取消 C／B
+prep.hoop_trial.ammo,貨品：%s,Item: %s,商品：%s,商品：%s
+prep.hoop_trial.second,第二款：%s,Second item: %s,第二款：%s,2品目：%s
+prep.hoop_trial.retry,重試本關,Retry stage,重试本关,この面をやり直す
+prep.hoop_trial.next,下一關,Next stage,下一关,次の面へ
+prep.hoop_trial.new,再玩三關,Play again,再玩三关,最初から遊ぶ
+prep.hoop_trial.win,完成 3／3 關！剩餘 %d 發，最大連鎖 %d。,Cleared 3/3 stages! %d shots left · Best chain %d.,完成 3／3 关！剩余 %d 发，最大连锁 %d。,3/3面クリア！残り%d投｜最大連鎖%d。
+prep.hoop_trial.failed,冇貨啦！可以即刻重試本關。,Out of items! Retry this stage.,没货了！可以马上重试本关。,商品切れ！この面をすぐにやり直せます。
+prep.hoop_trial.reveal,紙板跌低！小偷拎起佢，仲扮緊貨架。,The cardboard fell! The thief picked it up and is still pretending to be a shelf.,纸板倒了！小偷捡起来，还在假装货架。,段ボールが倒れた！泥棒は拾って、まだ棚のふりをしている。

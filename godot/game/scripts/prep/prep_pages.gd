@@ -207,6 +207,7 @@ static func fill(menu: CanvasLayer, page: String) -> void:
 			menu._add_hub(Loc.t("skill.dasher.name"), "dasher_trial", null, "skills")
 			menu._add_hub(Loc.t("skill.checkout_rush.name"), "cashier_duel", null, "skills")
 			menu._add_hub(Loc.t("prep.bun_duel.title"), "bun_duel", null, "skills")
+			menu._add_hub(Loc.t("skill.hoop_ace.name"), "hoop_ace_trial", null, "skills")
 			menu._add_hub(Loc.t("prep.metal_trial.title"), "metal_rush_trial", null, "skills")
 			menu._add_hub(Loc.t("prep.fishing_taro.title"), "fishing_taro", null, "fishing_taro")
 			if int(menu.state.owned.get("fish_tank", 0)) > 0:

@@ -12,6 +12,7 @@ const PrepPages = preload("res://scripts/prep/prep_pages.gd")
 const DasherTrial = preload("res://scenes/dasher_trial.tscn")
 const CashierDuel = preload("res://scenes/cashier_duel.tscn")
 const BunDuel = preload("res://scenes/bun_duel.tscn")
+const HoopAceTrial = preload("res://scenes/hoop_ace_trial.tscn")
 const SwissLungTrial = preload("res://scenes/swiss_lung_trial.tscn")
 const FishingTaroScript = preload("res://scripts/prep/fishing_taro.gd")
 const FishTankGalleryArt = preload("res://scripts/prep/fish_tank_gallery_art.gd")
@@ -1268,6 +1269,16 @@ func _activate() -> void:
 					host.add_child(fish_game)
 				else:
 					add_child(fish_game)
+		"hoop_ace_trial":
+			if can_access_cultivation():
+				var trial := HoopAceTrial.instantiate()
+				trial.exited.connect(_return_from_prep_minigame)
+				var host := get_parent()
+				hide()
+				if host != null:
+					host.add_child(trial)
+				else:
+					add_child(trial)
 		"cultivate_material":
 			_cultivation_slots[_cultivation_slot] = String(arg)
 			_show_page("cultivate")
