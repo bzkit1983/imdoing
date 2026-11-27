@@ -175,7 +175,7 @@
 | `theme_stores`／`origin_store` | 可選主題店／起源店完整快照；見 [`branchstore.md`](branchstore.md) |
 | `money`（頂層共用） | 本店與分店共用資金；分店不另設資金欄 |
 
-EA 落地 `story_slot` runtime 時須升 `SAVE_VERSION` 並在 `savesystem.md` 補官方劇情欄（序章內容閘欄位已在 `SAVE_VERSION` 7，不足涵蓋選章）。**詮釋（尚未另確認）：** 現有劇本／測試存檔無需遷移保證。分店欄位細節見 `branchstore.md`（EA 打完安桃山後可開，由分店專職 issue 落地）。
+EA 落地 `story_slot` runtime 時須升 `SAVE_VERSION` 並在 `savesystem.md` 補官方劇情欄（序章內容閘欄位已在 `SAVE_VERSION` 7，不足涵蓋選章）。**已決（2026-11-27，Jackson）：** 開發／測試／劇本存檔不轉入正式發行版。分店欄位細節見 `branchstore.md`（EA 打完安桃山後可開，由分店專職 issue 落地）。
 
 # 開放問題（交負責人，2026-11-27）
 
@@ -186,7 +186,7 @@ EA 落地 `story_slot` runtime 時須升 `SAVE_VERSION` 並在 `savesystem.md` �
 5. ~~打完安桃山要不要分店？~~ **已決：** 可開分店。
 6. ~~第1／2章要不要事件？~~ **已決：** 要事件系統。
 7. ~~劇本 9／10 是否維持沙盒？~~ **已決：** 現有**全部**劇本皆為測試沙盒，與正式劇情入口分開。
-8. ~~舊存檔如何遷移？~~ **詮釋（尚未另確認）：** 既有劇本／開發測試存檔無需遷移保證；官方劇情欄仍須為正式新檔定義 `story_slot` schema。
+8. ~~舊存檔如何遷移？~~ **已決（2026-11-27，Jackson）：** 開發／測試／劇本存檔**不轉入正式發行版**。官方劇情欄仍須為正式新檔定義 `story_slot` schema。
 9. ~~是否放寬「不做失敗敘事」？~~ **已決（2026-11-27，放寬 11-18 H3）：** 失敗可擋事件或劇情任務（變相擋推進），**不擋營運日結算**。
 10. ~~免費 Demo 存檔能否轉入付費 EA？~~ **已決（2026-11-27）：不轉入**；Demo 須獨立存檔路徑／槽或標記。見 `savesystem.md`／`steam-productization.md`。
 11. 免費 Demo 是否參加 Steam Next Fest、以及付費 EA 發售日是否排在某一屆結束之後？**尚未另作檔期決議。** 官方規則：已進 EA 即失去資格。摘要見 `steam-productization.md`。
