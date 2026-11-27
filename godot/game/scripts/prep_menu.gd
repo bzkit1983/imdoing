@@ -2101,10 +2101,10 @@ func _branch_cycle_policy(theme_id: String) -> void:
 	var ThemeStoreSnapshot = preload("res://scripts/session/theme_store_snapshot.gd")
 	var snap: Dictionary = ThemeStoreSnapshot.get_store_dict(state, theme_id)
 	var cur := BranchRules.normalize_policy(String(snap.get("policy", BranchRules.POLICY_BALANCED)))
-	var idx := BranchRules.POLICY_IDS.find(cur)
+	var idx: int = BranchRules.POLICY_IDS.find(cur)
 	if idx < 0:
 		idx = 0
-	var nxt := BranchRules.POLICY_IDS[(idx + 1) % BranchRules.POLICY_IDS.size()]
+	var nxt: String = String(BranchRules.POLICY_IDS[(idx + 1) % BranchRules.POLICY_IDS.size()])
 	state.set_branch_policy(theme_id, nxt)
 	_msg = Loc.t("prep.branch.policy_set", [Loc.t(BranchRules.policy_label_key(nxt))])
 	state.save_to_disk()

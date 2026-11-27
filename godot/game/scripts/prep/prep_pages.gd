@@ -440,7 +440,7 @@ static func _home(menu: CanvasLayer) -> void:
 			Loc.t("prep.hub.tasks"), "go", "tasks", "tasks",
 			menu.tutorial_home_hub_locked("tasks")
 		)
-		var branch_locked := not menu.state.branch_system_unlocked()
+		var branch_locked: bool = not bool(menu.state.branch_system_unlocked())
 		menu._add_hub(
 			Loc.t("prep.hub.branch"), "go", "branches", "branch",
 			branch_locked or menu.tutorial_home_hub_locked("branches")
@@ -1819,7 +1819,7 @@ static func _branch_buy(menu: CanvasLayer) -> void:
 			var have := int(stock.get(sku, 0)) if stock is Dictionary else 0
 			var unit := Tuning.cost_for_pieces(sku, 1)
 			menu._add(
-				Loc.t("prep.branch.buy_row", [Tuning.sku_name(sku) if Tuning.has_method("sku_name") else sku, have, unit]),
+				Loc.t("prep.branch.buy_row", [Tuning.sku_name(sku), have, unit]),
 				"branch_buy_stock",
 				{"theme_id": tid, "sku": sku}
 			)
