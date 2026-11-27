@@ -4,8 +4,8 @@
 - 內容組合流水號見：`taskcontent-ops-test.md`、`taskcontent-event-stub.md`、`taskcontent-story-stub.md`
 - 劇情框架（選章＋破局；`story_slot` × `theme_id`）與開檔：`storysystem.md`、`story/`、`story/themes/`
 - 評價條件語意見 `ratingsystem.md`；生態系統進度欄見 `ecosystem.md`
-- 事件規則修飾器屬事件系統（`eventsystem.md` 待建）；本檔只消費任務條件列
-- 工程活線尚未實作；掛點見文末
+- 事件規則修飾器屬事件系統（`eventsystem.md` 占位、不排活線）；本檔只消費任務條件列
+- 工程活線已接 catalog／tracker／HUD／教學與序章 pack；細節與未做項見文末「活線摘要」
 
 # 三種任務
 
