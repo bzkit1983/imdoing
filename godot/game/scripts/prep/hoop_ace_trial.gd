@@ -99,6 +99,9 @@ func _refresh(_locale: String = "") -> void:
 	var level_name := Loc.t(COPY + "level_%d" % board.level)
 	status.text = Loc.t(COPY + "status", [level_name, board.shots, board.best])
 	controls.text = Loc.t(COPY + "goal_%d" % board.level) + "\n" + Loc.t(COPY + "controls")
+	controls.text += "\n" + Loc.t(COPY + "match_ammo")
+	if board.level > 0:
+		controls.text += "\n" + Loc.t(COPY + "armor")
 	choice.text = Loc.t(COPY + "ammo", [Loc.t("sku." + SKUS[sku])])
 	board.preview_sku = sku
 	board.queue_redraw()
@@ -205,6 +208,8 @@ func _input(event: InputEvent) -> void:
 	elif event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
 			_cancel()
+		elif event.button_index == MOUSE_BUTTON_LEFT and event.pressed and not board.settled and Rect2(Vector2.ZERO, Board.SIZE).has_point(_board_point(event.position)):
+			board.activate_power()
 		elif event.button_index == MOUSE_BUTTON_LEFT and event.pressed and board.settled and not board.won and board.shots > 0 and _board_point(event.position).distance_to(Board.ORIGIN) < 28.0:
 			dragging = true
 			_drag_to(event.position)
@@ -223,6 +228,8 @@ func _input(event: InputEvent) -> void:
 				else:
 					arrows.erase(event.keycode)
 			KEY_SPACE: _charge(event.pressed)
+			KEY_F:
+				if event.pressed: board.activate_power()
 			KEY_TAB:
 				if event.pressed: _cycle()
 			KEY_Q:
@@ -254,6 +261,7 @@ func _input(event: InputEvent) -> void:
 				JOY_BUTTON_X: _cycle()
 				JOY_BUTTON_Y: _retry()
 				JOY_BUTTON_RIGHT_SHOULDER: _cycle_second()
+				JOY_BUTTON_LEFT_SHOULDER: board.activate_power()
 				_: return
 	else:
 		return

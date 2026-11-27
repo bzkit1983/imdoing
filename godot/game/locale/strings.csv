@@ -1073,11 +1073,13 @@ prep.elite_clerk.upgraded,升級成功,Upgraded,升级成功,レベルアップ�
 prep.hoop_trial.level_0,新人試投,First toss,新人试投,はじめての投球
 prep.hoop_trial.level_1,貨架骨牌,Shelf dominoes,货架骨牌,棚ドミノ
 prep.hoop_trial.level_2,埋單先好走,Pay before you go,付完钱再走,会計してから帰ってね
-prep.hoop_trial.goal_0,補滿兩個貨架，送貨畀一位客人。,Stock two shelves and serve one customer.,补满两个货架，送货给一位顾客。,棚を2台補充し、お客さん1人に商品を届けよう。
-prep.hoop_trial.goal_1,補滿兩個貨架，送貨畀兩位客人，再用罐頭截住小偷。,Stock two shelves and serve two customers. Stop the thief with a can.,补满两个货架，送货给两位顾客，再用罐头截住小偷。,棚を2台補充し、お客さん2人に商品を届け、缶詰で泥棒を止めよう。
-prep.hoop_trial.goal_2,送貨畀客人，用罐頭截住小偷。留意貨架摺角，最後一發可雙投。,Serve the customer and stop the thief with a can. Watch for a folded shelf corner. The last shot tosses two items.,送货给顾客，用罐头截住小偷。留意货架折角，最后一发可双投。,商品を届け、缶詰で泥棒を止めよう。棚の折れ目に注目。最後の一投は2品同時。
+prep.hoop_trial.goal_0,打倒兩座塔樓同截住小偷。,Knock down both towers and stop the thief.,打倒两座塔楼并截住小偷。,塔を2つ倒して泥棒を止めよう。
+prep.hoop_trial.goal_1,打倒三座塔樓同截住小偷。試吓撞出骨牌連鎖。,Knock down all three towers and stop the thief. Try a domino chain.,打倒三座塔楼并截住小偷。试试触发连锁反应。,塔を3つ倒して泥棒を止めよう。ドミノ連鎖も狙おう。
+prep.hoop_trial.armor,金屬塔要用罐頭炸三次。黃格代表剩餘耐久。,Metal towers take three can blasts. Yellow marks show the remaining hits.,金属塔要用罐头炸三次。黄格表示剩余耐久。,金属の塔は缶詰の爆発3回で倒せます。黄色の目盛りは残り耐久です。
+prep.hoop_trial.match_ammo,橙色塔用罐頭・黃色塔用零食・藍色塔用支裝凍飲。,Orange towers take cans · Yellow towers take snacks · Blue towers take bottled drinks.,橙色塔用罐头・黄色塔用零食・蓝色塔用支装冻饮。,オレンジの塔は缶詰・黄色はスナック・青はボトル飲料。
+prep.hoop_trial.goal_2,打倒兩座塔樓同截住小偷。留意紙板摺角，最後一發可雙投。,Knock down both towers and stop the thief. Watch for cardboard folds. The last shot tosses two items.,打倒两座塔楼并截住小偷。留意纸板折角，最后一发可双投。,塔を2つ倒して泥棒を止めよう。段ボールの折れ目に注目。最後の一投は2品同時。
 prep.hoop_trial.status,%s｜剩餘 %d 發｜最大連鎖 %d,%s · Shots %d · Best chain %d,%s｜剩余 %d 发｜最大连锁 %d,%s｜残り%d投｜最大連鎖%d
-prep.hoop_trial.controls,拉後放手／↑↓＋Space／左搖桿＋A｜換貨 Tab／X・第二款 Q／RB・重試 R／Y・取消 C／B,Drag back and release / ↑↓ + Space / left stick + A · Ammo Tab/X · Second Q/RB · Retry R/Y · Cancel C/B,向后拉再松手／↑↓＋Space／左摇杆＋A｜换货 Tab／X・第二款 Q／RB・重试 R／Y・取消 C／B,引いて離す／↑↓＋Space／左スティック＋A｜弾 Tab／X・2品目 Q／RB・再挑戦 R／Y・取消 C／B
+prep.hoop_trial.controls,拉後放手投擲／↑↓＋Space／左搖桿＋A｜飛行中點場內／F／LB 發動：罐頭爆炸・零食散彈・凍飲自動穿透｜換貨 Tab／X・第二款 Q／RB・重試 R／Y・取消 C／B,Drag and release / ↑↓ + Space / left stick + A · In flight: click the board / F / LB · Can explodes · Snack scatters · Drink always pierces · Ammo Tab/X · Second Q/RB · Retry R/Y · Cancel C/B,向后拉再松手投掷／↑↓＋Space／左摇杆＋A｜飞行中点击场内／F／LB 发动：罐头爆炸・零食散弹・冻饮自动穿透｜换货 Tab／X・第二款 Q／RB・重试 R／Y・取消 C／B,引いて離す／↑↓＋Space／左スティック＋A｜飛行中に盤面クリック／F／LB：缶詰は爆発・スナックは拡散・冷飲料は自動貫通｜弾 Tab／X・2品目 Q／RB・再挑戦 R／Y・取消 C／B
 prep.hoop_trial.ammo,貨品：%s,Item: %s,商品：%s,商品：%s
 prep.hoop_trial.second,第二款：%s,Second item: %s,第二款：%s,2品目：%s
 prep.hoop_trial.retry,重試本關,Retry stage,重试本关,この面をやり直す
