@@ -8,6 +8,7 @@ DOC = (ROOT / "docs/systemdesign/customerdelivery.md").read_text(encoding="utf-8
 VER = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
 PV = (ROOT / "godot/game/scripts/product_version.gd").read_text(encoding="utf-8")
 PLAYER = (ROOT / "godot/game/scripts/player.gd").read_text(encoding="utf-8")
+FIGHT = (ROOT / "godot/game/scripts/player/fight_controller.gd").read_text(encoding="utf-8")
 
 errs: list[str] = []
 
@@ -27,7 +28,7 @@ need("短按取消" in DOC and "只補 1 件" in DOC, "single-piece toss")
 need("不再歸零" in DOC and "仍扣 **50**" in DOC, "box dissatisfaction and dash stamina")
 need("不再另外加不滿" in DOC and "每一記衝刺都算" in DOC, "dash-delivery window")
 need("衝刺交付" in DOC and "親手交付" in DOC, "core flows")
-need("dash_deliver" in PLAYER and "func _hand_deliver" in PLAYER, "player implements delivery")
+need("dash_deliver" in FIGHT and "func _hand_deliver" in PLAYER and "_fight_ctrl.try_dash_hits(" in PLAYER, "player implements delivery")
 need("func _toss_top_piece" in PLAYER, "single-piece toss")
 SKILLS = (ROOT / "godot/game/scripts/skills.gd").read_text(encoding="utf-8")
 dash_skill = re.search(r'\{"id": "dash_deliver",[^\n]+', SKILLS)

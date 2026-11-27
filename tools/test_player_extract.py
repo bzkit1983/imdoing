@@ -11,6 +11,7 @@ CHECKOUT = (ROOT / "godot/game/scripts/player/checkout_controller.gd").read_text
 INPUT = (ROOT / "godot/game/scripts/player/input_controller.gd").read_text(encoding="utf-8")
 WORK = (ROOT / "godot/game/scripts/player/work_ticker.gd").read_text(encoding="utf-8")
 INTERACT = (ROOT / "godot/game/scripts/player/interact_controller.gd").read_text(encoding="utf-8")
+VIEW = (ROOT / "godot/game/scripts/player/player_view.gd").read_text(encoding="utf-8")
 
 errs: list[str] = []
 
@@ -27,6 +28,7 @@ need("CheckoutControllerScript" in PLAYER, "player preloads checkout_controller"
 need("InputControllerScript" in PLAYER, "player preloads input_controller")
 need("WorkTickerScript" in PLAYER, "player preloads work_ticker")
 need("InteractControllerScript" in PLAYER, "player preloads interact_controller")
+need("PlayerViewScript" in PLAYER, "player preloads player_view")
 need("_toss.bind(self)" in PLAYER, "player binds toss")
 need("_fight_ctrl.bind(self)" in PLAYER, "player binds fight")
 need("_skills.bind(self)" in PLAYER, "player binds skills")
@@ -34,6 +36,7 @@ need("_checkout.bind(self)" in PLAYER, "player binds checkout")
 need("_input_ctrl.bind(self)" in PLAYER, "player binds input")
 need("_work.bind(self)" in PLAYER, "player binds work")
 need("_interact.bind(self)" in PLAYER, "player binds interact")
+need("_view.bind(self)" in PLAYER, "player binds view")
 
 need("extends RefCounted" in TOSS and "func bind(" in TOSS, "toss is host-bound RefCounted")
 need("extends RefCounted" in FIGHT and "func bind(" in FIGHT, "fight is host-bound RefCounted")
@@ -42,6 +45,7 @@ need("extends RefCounted" in CHECKOUT and "func bind(" in CHECKOUT, "checkout is
 need("extends RefCounted" in INPUT and "func bind(" in INPUT, "input is host-bound RefCounted")
 need("extends RefCounted" in WORK and "func bind(" in WORK, "work is host-bound RefCounted")
 need("extends RefCounted" in INTERACT and "func bind(" in INTERACT, "interact is host-bound RefCounted")
+need("extends RefCounted" in VIEW and "func bind(" in VIEW, "view is host-bound RefCounted")
 
 need("func launch_piece_toss(" in TOSS and "func toss_top_piece(" in TOSS, "toss launch/toss_top")
 need("func play_ko_sequence(" in FIGHT and "func end_fight(" in FIGHT, "fight KO/end")
@@ -50,6 +54,8 @@ need("func tick_cashier(" in CHECKOUT and "func try_dir(" in CHECKOUT, "checkout
 need("func set_hold(" in INPUT and "func move_axis(" in INPUT and "func input(" in INPUT, "input hold/move/input")
 need("func tick_action(" in WORK and "func tick_restock(" in WORK and "func tick_clean(" in WORK, "work ticks")
 need("func do_short_interact(" in INTERACT and "func hand_deliver(" in INTERACT and "func try_pickup(" in INTERACT, "interact actions")
+need("func update_visuals(" in VIEW and "func emit_stats_if_changed(" in VIEW and "func role_status_text(" in VIEW, "view status/visuals")
+need("func try_dash_hits(" in FIGHT, "dash hits live on fight controller")
 
 # Facades remain on player (call sites / puppets keep working).
 need("func _launch_piece_toss(" in PLAYER, "launch facade on player")
@@ -66,9 +72,11 @@ need("_work.tick_action(" in PLAYER and "_work.tick_clean(" in PLAYER, "work tic
 need("func _tick_action(" in PLAYER and "func _tick_triggers(" in PLAYER, "work facades stay on player")
 need("_interact.hand_deliver(" in PLAYER and "func _hand_deliver(" in PLAYER, "deliver facade stays on player")
 need("_interact.do_short_interact(" in PLAYER, "short interact delegates")
+need("_view.update_visuals(" in PLAYER and "func role_status_text(" in PLAYER, "view facades stay on player")
+need("_fight_ctrl.try_dash_hits(" in PLAYER and "func _try_dash_hits(" in PLAYER, "dash-hit facade stays on player")
 
 # Parse hazards learned from F1 / F2 rewrites.
-_HOSTED = (TOSS, SKILL, CHECKOUT, INPUT, FIGHT, WORK, INTERACT)
+_HOSTED = (TOSS, SKILL, CHECKOUT, INPUT, FIGHT, WORK, INTERACT, VIEW)
 need(all("var host.name" not in src for src in _HOSTED), "no mangled var host.name")
 need(all("for host." not in src for src in _HOSTED), "no for host._i rewrite")
 need(all("Callable(host, \"host." not in src for src in _HOSTED), "Callable method names not double-prefixed")

@@ -17,6 +17,7 @@ const TossControllerScript = preload("res://scripts/player/toss_controller.gd")
 const FightControllerScript = preload("res://scripts/player/fight_controller.gd")
 const SkillCasterScript = preload("res://scripts/player/skill_caster.gd")
 const CheckoutControllerScript = preload("res://scripts/player/checkout_controller.gd")
+const PlayerViewScript = preload("res://scripts/player/player_view.gd")
 const InteractControllerScript = preload("res://scripts/player/interact_controller.gd")
 const WorkTickerScript = preload("res://scripts/player/work_ticker.gd")
 const InputControllerScript = preload("res://scripts/player/input_controller.gd")
@@ -288,6 +289,7 @@ var _toss = TossControllerScript.new()
 var _fight_ctrl = FightControllerScript.new()
 var _skills = SkillCasterScript.new()
 var _checkout = CheckoutControllerScript.new()
+var _view = PlayerViewScript.new()
 var _interact = InteractControllerScript.new()
 var _work = WorkTickerScript.new()
 var _input_ctrl = InputControllerScript.new()
@@ -351,6 +353,7 @@ func _ready() -> void:
 	_fight_ctrl.bind(self)
 	_skills.bind(self)
 	_checkout.bind(self)
+	_view.bind(self)
 	_interact.bind(self)
 	_work.bind(self)
 	_input_ctrl.bind(self)
@@ -850,43 +853,7 @@ func store_status_text() -> String:
 
 
 func role_status_text() -> String:
-	var bits: PackedStringArray = []
-	bits.append("STR%d AGI%d INT%d" % [_stat_base("str"), _stat_base("agi"), _stat_base("int")])
-	if _buffs.has("carry_boost"):
-		bits.append(Loc.t("hud.status.carry", [_buffs["carry_boost"]]))
-	if _buffs.has("move_boost"):
-		bits.append(Loc.t("hud.status.move", [_buffs["move_boost"]]))
-	if _buffs.has("instant_restock"):
-		bits.append(Loc.t("hud.status.instant", [_buffs["instant_restock"]]))
-	if _buffs.has("shelf_sniper"):
-		bits.append(Loc.t("hud.status.sniper_shelf", [_buffs["shelf_sniper"]]))
-	if _buffs.has("guest_sniper"):
-		bits.append(Loc.t("hud.status.sniper_guest", [_buffs["guest_sniper"]]))
-	if _buffs.has("thief_sniper"):
-		bits.append(Loc.t("hud.status.sniper_thief", [_buffs["thief_sniper"]]))
-	if _buffs.has("dash_deliver"):
-		bits.append(Loc.t("hud.status.dash_deliver", [_buffs["dash_deliver"]]))
-	if _buffs.has("dasher"):
-		bits.append("Dasher %.0fs" % _buffs["dasher"])
-	if _buffs.has("senior_cashier"):
-		bits.append(Loc.t("hud.status.senior", [_buffs["senior_cashier"]]))
-	if _buffs.has("checkout_rush"):
-		bits.append(Loc.t("hud.status.checkout_rush", [_buffs["checkout_rush"]]))
-	if _buffs.has("hoop_ace"):
-		bits.append(Loc.t("hud.status.hoop", [_buffs["hoop_ace"]]))
-	if _buffs.has("sweeping_monk"):
-		bits.append(Loc.t("hud.status.monk", [_buffs["sweeping_monk"]]))
-	if _sick_left > 0.0:
-		bits.append(Loc.t("hud.status.sick", [_sick_left]))
-	if _fighting:
-		bits.append(Loc.t("hud.status.fighting"))
-	if _stun_left > 0.0:
-		bits.append(Loc.t("hud.status.down", [_stun_left]))
-	if _checkout_prefill_charge > 0:
-		bits.append(Loc.t("hud.status.checkout_prefill", [_checkout_prefill_charge]))
-	elif _checkout_prefill_n_equipped() > 0:
-		bits.append(Loc.t("hud.status.checkout_prefill_ready", [_checkout_prefill_n_equipped()]))
-	return Loc.t("hud.status.prefix_role") + " ".join(bits)
+	return _view.role_status_text()
 
 
 func set_hold(action: String, pressed: bool) -> void:
@@ -1238,100 +1205,12 @@ func _obj_float(node: Object, prop: String) -> float:
 	return float(v) if v != null else 0.0
 
 
-func _target_detail_fp(node: Node2D) -> String:
-	if node == null or not is_instance_valid(node):
-		return "-"
-	var k := _obj_str(node, "kind")
-	var tinfo := "%s:%d" % [k, node.get_instance_id()]
-	match k:
-		"restock":
-			var pick = node.call("selected_sku") if node.has_method("selected_sku") else ""
-			tinfo += ":%s" % (str(pick) if pick != null else "")
-		"dirt":
-			var dname = node.call("type_name") if node.has_method("type_name") else ""
-			tinfo += ":%s" % (str(dname) if dname != null else "")
-		"universal_cannon", "shelf_cannon", "kind_cannon":
-			tinfo += ":%s" % str(node.ammo)
-		"drop":
-			tinfo += ":%s:%d" % [_obj_str(node, "sku"), _obj_int(node, "count")]
-		"shelf":
-			var cap := _obj_int(node, "capacity")
-			if cap <= 0:
-				cap = Tuning.SHELF_CAP
-			tinfo += ":%s:%d:%d" % [_obj_str(node, "sku"), _obj_int(node, "count"), cap]
-		"thief":
-			tinfo += ":%.0f:%.1f" % [_obj_float(node, "fight_hp"), _obj_float(node, "fight_left")]
-		"", "elite":
-			tinfo += ":guest"
-	return tinfo
 
 
-func _hud_fingerprint() -> String:
-	## Assumes cheap HUD caches were refreshed by _emit_stats_if_changed.
-	var inv_bits: PackedStringArray = []
-	for g in inventory.grouped():
-		inv_bits.append("%s:%d" % [String(g["id"]), int(g["count"])])
-	return "%s|%.2f|%.2f|%d|%s@%d|%.2f|%s|%s" % [
-		_hud_move,
-		_hud_stam,
-		_hud_stam_max,
-		_hud_carry,
-		",".join(inv_bits),
-		int(inventory.focus_index) if inventory != null else -1,
-		_hud_hold,
-		str(_hud_blocked),
-		_hud_target_detail,
-	]
 
 
 func _emit_stats_if_changed() -> void:
-	## Cheap dirty gate — avoid inventory.grouped() / string join when nothing changed.
-	var inv_rev: int = int(inventory.revision) if inventory != null else 0
-	var move := move_state()
-	var stam := snappedf(stamina, 0.25)
-	var stam_max := snappedf(stamina_max_now(), 0.25)
-	var carry := int(carry_cap())
-	var hold := snappedf(hold_progress, 0.01)
-	var tid: int = target.get_instance_id() if is_instance_valid(target) else 0
-	var need := _hud_dirty
-	if inv_rev != _hud_inv_rev:
-		need = true
-	elif move != _hud_move:
-		need = true
-	elif not is_equal_approx(stam, _hud_stam):
-		need = true
-	elif not is_equal_approx(stam_max, _hud_stam_max):
-		need = true
-	elif carry != _hud_carry:
-		need = true
-	elif not is_equal_approx(hold, _hud_hold):
-		need = true
-	elif blocked_mismatch != _hud_blocked:
-		need = true
-	elif tid != _hud_target_id:
-		need = true
-	elif tid != 0:
-		var detail := _target_detail_fp(target)
-		if detail != _hud_target_detail:
-			need = true
-			_hud_target_detail = detail
-	if not need:
-		return
-	_hud_inv_rev = inv_rev
-	_hud_move = move
-	_hud_stam = stam
-	_hud_stam_max = stam_max
-	_hud_carry = carry
-	_hud_hold = hold
-	_hud_blocked = blocked_mismatch
-	_hud_target_id = tid
-	_hud_target_detail = _target_detail_fp(target) if tid != 0 else "-"
-	_hud_dirty = false
-	var fp := _hud_fingerprint()
-	if fp == _hud_fp:
-		return
-	_hud_fp = fp
-	stats_changed.emit()
+	_view.emit_stats_if_changed()
 
 
 func _enqueue_cust_speed(skill_id: String) -> void:
@@ -2521,81 +2400,7 @@ func _try_dash_thief() -> void:
 
 
 func _try_dash_hits() -> void:
-	var g := _game()
-	if g == null:
-		return
-	_try_wave_dirt_vfx()
-	## Thieves first (caught).
-	if g:
-		for t in g.thieves():
-			if t == null or not is_instance_valid(t):
-				continue
-			if not bool(t.call("is_active_thief")):
-				continue
-			if not _dash_segment_hits(t.global_position):
-				continue
-			## Presentation thief: Host resolves dash KO from intents; local VFX only.
-			if _agent_is_net_puppet(t):
-				SfxBus.play("sfx_thief_dash_out")
-				log_line.emit(Loc.t("log.player.thief_dash"))
-				if _fighting and target == t:
-					_fight_ko = true
-					_net_ko_pending = true
-					_play_ko_sequence(t, "", _dash_dir, false)
-				return
-			t.call("dash_knock_away", _dash_dir)
-			if g:
-				g.record_caught(seat_id, "dash")
-			SfxBus.play("sfx_thief_dash_out")
-			log_line.emit(Loc.t("log.player.thief_dash"))
-			if _fighting:
-				_end_fight(false)
-			return
-	## One guest resolution per dash. 衝刺交付: prefer guests who want carried goods (near→far), not only nearest.
-	## Clones are after guests so 衝刺交付 never hands goods to a clone.
-	if not _dash_guest_done:
-		var guests := _dash_guests()
-		if not guests.is_empty():
-			if buff_left("dash_deliver") > 0.0:
-				var deliver_targets: Array = []
-				for guest in guests:
-					if guest == null or not is_instance_valid(guest):
-						continue
-					if not guest.has_method("can_receive_delivery") or not bool(guest.call("can_receive_delivery")):
-						continue
-					if not _guest_wants_carried(guest):
-						continue
-					deliver_targets.append(guest)
-				if not deliver_targets.is_empty():
-					var gave := _hand_deliver(deliver_targets, false)
-					if gave > 0:
-						_dash_guest_done = true
-						log_line.emit(Loc.t("log.player.dash_deliver", [gave]))
-						return
-			var nearest: Node = guests[0]
-			_dash_guest_done = true
-			var add := 0.0 if _has_flag("polite_dash") else Tuning.DASH_GUEST_DISSAT
-			if g:
-				g.play_ko_banner()
-			if nearest.has_method("dash_knock_guest"):
-				nearest.call("dash_knock_guest", add)
-			if add > 0.0:
-				g.note_dash_guest(self)
-			SfxBus.play("sfx_ko_guest_dash")
-			log_line.emit(Loc.t("log.player.dash_guest") if add > 0.0 else Loc.t("log.player.dash_polite"))
-			return
-	if _dash_guest_done:
-		return
-	var clone := _dash_clone()
-	if clone == null:
-		return
-	_dash_guest_done = true
-	if g:
-		g.play_ko_banner()
-	if clone.has_method("dash_knock"):
-		clone.call("dash_knock")
-	SfxBus.play("sfx_ko_guest_dash")
-	log_line.emit(Loc.t("log.player.dash_clone"))
+	_fight_ctrl.try_dash_hits()
 
 
 func _try_wave_dirt_vfx() -> void:
@@ -3350,90 +3155,12 @@ func _handle_hotkey_actions(event: InputEvent) -> void:
 			return
 
 
-func _visual_anim() -> String:
-	var mid := _model_id if _model_id != "" else appearance_skin_id()
-	if _stun_left > 0.0:
-		return "down"
-	if _slip_left > 0.0:
-		return "slip"
-	if _cast_pose_left > 0.0 and Vox.has_anim(mid, "cast"):
-		return "cast"
-	if _deliver_pose_left > 0.0 and Vox.has_anim(mid, "deliver"):
-		return "deliver"
-	if _fighting:
-		return "fight"
-	if _cleaning():
-		return "clean"
-	if command_lock:
-		return "checkout"
-	if _shelving():
-		return "restock"
-	if _dashing:
-		return "dash"
-	var moving := velocity.length() > 8.0
-	## Puppets zero velocity — walk from Host pose delta instead.
-	if is_net_puppet():
-		moving = _net_puppet_moving
-	if _running and moving and not is_net_puppet():
-		return "run"
-	if moving:
-		if not inventory.is_empty() and Vox.has_anim(mid, "walk_carry"):
-			return "walk_carry"
-		return "walk"
-	return "idle"
 
 
 func _update_visuals() -> void:
-	if _arrow:
-		## Tip is authored toward +Y (south); rotate so tip matches facing.
-		_arrow.rotation = facing.angle() - PI / 2.0
-	if _body == null:
-		return
-	_model_id = appearance_skin_id()
-	var anim := _visual_anim()
-	var prev_face := int(_body.get_meta("vox_anim_facing", -1)) if _body is AnimatedSprite2D else -1
-	var face_k := Vox.k_from_facing_stable(facing, prev_face) if _body is AnimatedSprite2D else Vox.k_from_facing(facing)
-	var anim_key := "%s_%s_%d_%.2f" % [_model_id, anim, face_k, 1.25 if _running else 1.0]
-	if _body is AnimatedSprite2D:
-		if anim_key != _shown_anim:
-			_shown_anim = anim_key
-			var spd := 1.25 if _running else 1.0
-			Vox.play_anim(_body as AnimatedSprite2D, _model_id, anim, facing, spd)
-	elif _body is Sprite2D:
-		Vox.apply(_body as Sprite2D, _model_id, face_k)
-	var status := Color.WHITE
-	if ult_prep:
-		status = Color(1.0, 0.45, 0.4)
-	elif skill_menu_open:
-		status = Color(0.65, 0.9, 1.0)
-	elif command_lock:
-		status = Color(1.0, 0.9, 0.55)
-	elif _dashing:
-		status = Color(1.0, 0.92, 0.45)
-	elif _running:
-		status = Color(0.7, 1.0, 0.85)
-	elif _fighting:
-		status = Color(1.0, 0.45, 0.4)
-	elif _stun_left > 0.0:
-		status = Color(0.85, 0.7, 1.0)
-	elif on_dirt():
-		status = Color(0.75, 0.62, 0.45)
-	var appear := _appearance_tint()
-	var tint := Color(appear.r * status.r, appear.g * status.g, appear.b * status.b, 1.0)
-	if tint != _shown_tint:
-		_shown_tint = tint
-		_body.modulate = tint
+	_view.update_visuals()
 
 
-func _appearance_tint() -> Color:
-	if stats == null:
-		return Color.WHITE
-	if stats.has_method("appearance_tint"):
-		return stats.appearance_tint()
-	if "tint" in stats:
-		const CharacterSheet = preload("res://scripts/session/character_sheet.gd")
-		return CharacterSheet.tint_color(int(stats.tint))
-	return Color.WHITE
 
 
 func _usable_cannon() -> Node2D:
