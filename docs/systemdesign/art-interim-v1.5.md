@@ -2,7 +2,7 @@
 
 - 狀態：測試期可讀、可整套換皮。這一版不是最終美術定案。
 - 工程活線：`godot/game`。高解析度合約見 `docs/alpha/voxel-hires-scale-plan.md`。貨品圖示契約見 `ops-sku-icon-ui.md`。
-- 產品字串：`v1.5.0`。存檔格式不升（`SAVE_VERSION` 維持 4）。Git tag `v1.5.0` 在合併進 `main` 之後打，功能分支本身不打 tag。
+- 產品字串：`v1.5.0`。**發佈當時**存檔格式不升（`SAVE_VERSION` 維持 4）。Git tag `v1.5.0` 已打在 `main`；功能分支本身不打 tag。其後存檔已升至 **`SAVE_VERSION` 9**（與本中期美術錨點分開；見 [`savesystem.md`](savesystem.md)、[`versioning.md`](../versioning.md)）。
 
 ## 範圍
 

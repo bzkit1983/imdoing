@@ -20,9 +20,9 @@
 
 | | |
 | --- | --- |
-| **現行產品 SemVer** | **`v1.5.0`**（中期美術：非玩家體素、補貨架高度對齊貨架、具象貨品圖、技能臨時圖、準備回合排版。不是最終美術定案。見 `systemdesign/art-interim-v1.5.md`）。上一錨點 **`v1.4.0`**（全單位改「件」）。字串與 `VERSION`、`project.godot`、`product_version.gd` 對齊。`SAVE_VERSION` 維持 4（本輪不升）。Git tag `v1.5.0` 在合併進 `main` 之後打，功能分支不打 tag。 |
+| **現行產品 SemVer** | **`v1.5.0`**（中期美術：非玩家體素、補貨架高度對齊貨架、具象貨品圖、技能臨時圖、準備回合排版。不是最終美術定案。見 `systemdesign/art-interim-v1.5.md`）。上一錨點 **`v1.4.0`**（全單位改「件」）。字串與 `VERSION`、`project.godot`、`product_version.gd` 對齊。`SAVE_VERSION` **現行 9**（與 SemVer **分開**；見 `game_state.gd`／[`savesystem.md`](systemdesign/savesystem.md)）。`v1.5.0` 發佈時存檔格式為 4，其後同產品字串內升至 9（5 商品培養、6 創世問答、7 序章內容閘、8 魚缸／釣魚、9 精英店員）。Git tag `v1.5.0` 已打在 `main`；功能分支不打 tag。 |
 | 對齊字串 | repo 根目錄 [`VERSION`](../VERSION)；`godot/game/project.godot` `config/version`；`scripts/product_version.gd`；Windows 匯出 `export_presets.cfg` |
-| 存檔格式版 | `game_state.SAVE_VERSION`（整數，與 SemVer **分開**） |
+| 存檔格式版 | `game_state.SAVE_VERSION`（整數，與 SemVer **分開**；**現行 9**，演進見 [`savesystem.md`](systemdesign/savesystem.md)） |
 | 查詢 | `git tag -l 'v*'` · `git describe --tags --exact-match`（恰在 tag 上時） · `git rev-parse v1.1.0^{}` |
 
 誰改號：負責人依下方 SemVer 規則決定後，在 `main` **打／推 tag**，並同步改 `VERSION` 與上表字串（同一 PR 或發佈當下）。合併功能 PR **不會**自動升版。
@@ -33,7 +33,7 @@
 
 | 層 | 記在哪 | 用途 |
 | --- | --- | --- |
-| **產品版本** | Git tag / GitHub Release（現行為字串 `v1.2.0`；上一已發佈 tag 為 `v1.1.0`） | 給玩家、商店、Pages 連結看的號 |
+| **產品版本** | Git tag / GitHub Release（現行為字串 `v1.5.0`；origin 已發佈的 `v*` tag 為 `v1.0.0`、`v1.1.0`、`v1.5.0`） | 給玩家、商店、Pages 連結看的號 |
 | **活工程** | 單一目錄 `godot/game` | 唯一持續改的 Godot 專案 |
 | **歷史快照** | 凍結目錄 + tag | 可重播舊體驗，但**不再開新功能** |
 
@@ -153,7 +153,7 @@ v1.0 Milestone 建議直接收錄 `docs/alpha/tech-review-v0.1.md` §6 跟進清
 2. ~~建立 `godot/game`（自 `alpha_v0_1` 複製一次）~~ **已做**；`demo_v0_*`／`alpha_v0_1` 已放 `FROZEN.md`，見 `godot/README.md`。  
 3. 把 tech-review §6 checklist 建成 Issues，全掛 Milestone `v1.0`。  
 4. ~~存檔~~ **已做**；~~InputMap~~ **已做**（Autoload `Controls`）；~~`PlatformServices` stub~~ **已做**；~~暫停選單＋掛起鉤子~~ **已做**；~~Win／Linux／macOS 匯出預設~~ **已做**（`docs/alpha/export-presets.md`）；~~字串表 i18n~~ **已做**（`docs/alpha/i18n.md`）；~~主機商務評估~~ **已做**（`docs/alpha/console-business.md`）；~~Godot／middleware 釘版~~ **已做**（`docs/alpha/godot-middleware-pin.md`：桌面 4.7，主機對齊 W4 表）；~~M3 Steam §13.4 驗收~~ **已做**（2026-11-11）。接著：正式 App ID／Cloud／內容與 v1.0 里程碑收尾等。
-5. ~~Web 匯出到 Pages `docs/play/`~~ **已做**（持續以 Pages PR 刷新 `docs/play/`）。~~打 `v1.0.0`~~ **已做**（2026-10-22 重錨；其後約 PR #21–#39）。~~打 `v1.1.0`~~ **已做**（2026-10-22：錨在含 Runtime P1＋P2 熱路徑優化的 `main`／PR #42；版號字串同步本檔與 `VERSION`）。其後活線熱修仍掛在已發佈的 `v1.1.0` tag 之後。**v1.2.0**（2026-10-26 起）：產品字串改為 `1.2.0`；客人貨品交付（`customerdelivery.md`）已實作；其後同版字串內再加自訂技能組、互動發光、三招狙擊手（貨架／客人／小偷；同時生效優先序小偷 → 客人 → 貨架）。未另打 `v1.2.0` Git tag。~~打 `v1.3.0`~~ **已做**（2026-11-02：改「件」單位前的可玩錨點）。~~升 `v1.4.0`~~ **已做**（全單位改「件」：倉庫／採購／執貨／負重／掉貨／退倉；`SAVE_VERSION` 2）。~~打 `v1.5.0`~~ **已做**（中期美術，見 `systemdesign/art-interim-v1.5.md`：非玩家 Q 版、地板牆污物、貨品同一剪影、技能臨時圖、準備回合排版。產品字串 `1.5.0`；`SAVE_VERSION` 維持 4。tag 錨在 #134 合併後的 `main`）。
+5. ~~Web 匯出到 Pages `docs/play/`~~ **已做**（持續以 Pages PR 刷新 `docs/play/`）。~~打 `v1.0.0`~~ **已做**（2026-10-22 重錨；其後約 PR #21–#39）。~~打 `v1.1.0`~~ **已做**（2026-10-22：錨在含 Runtime P1＋P2 熱路徑優化的 `main`／PR #42；版號字串同步本檔與 `VERSION`）。其後活線熱修仍掛在已發佈的 `v1.1.0` tag 之後。**v1.2.0**（2026-10-26 起）：產品字串改為 `1.2.0`；客人貨品交付（`customerdelivery.md`）已實作；其後同版字串內再加自訂技能組、互動發光、三招狙擊手（貨架／客人／小偷；同時生效優先序小偷 → 客人 → 貨架）。未另打 `v1.2.0` Git tag。~~升產品字串 `v1.3.0`~~ **已做**（2026-11-02：改「件」單位前的可玩錨點；origin **未見** `v1.3.0` Git tag）。~~升 `v1.4.0`~~ **已做**（全單位改「件」：倉庫／採購／執貨／負重／掉貨／退倉；當時 `SAVE_VERSION` 2；origin **未見** `v1.4.0` Git tag）。~~打 `v1.5.0`~~ **已做**（中期美術，見 `systemdesign/art-interim-v1.5.md`：非玩家 Q 版、地板牆污物、貨品同一剪影、技能臨時圖、準備回合排版。產品字串 `1.5.0`；**發佈當時** `SAVE_VERSION` 維持 4。tag 錨在 #134 合併後的 `main`）。其後產品字串仍為 `1.5.0`，存檔格式已升至 **`SAVE_VERSION` 9**（見 `savesystem.md`）。
 
 長線設計對應：存檔 → `savesystem.md`；操作 → `control.md`；準備／營運回合已交叉連到上述檔。
 

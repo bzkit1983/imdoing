@@ -13,10 +13,24 @@
 - JSON 物件。頂層必有整數欄 **`version`**（與產品 SemVer tag 分開；目前實作 `SAVE_VERSION = 9`：含精英店員 `elite_clerks` 等；見 `docs/versioning.md`／`game_state.gd`）
 - `version` 過新：拒絕載入並提示更新遊戲。之後升版時在此檔補 migration 規則
 
+`game_state.gd` 現行升版與 migration：
+
+| `SAVE_VERSION` | 新增／語意 |
+| --- | --- |
+| 1 | 初版存檔形狀（當時含技能組等欄，不另升版） |
+| 2 | `stock` 改為**件**；載入 v1 時各 SKU 箱數 ×4 |
+| 3 | 評價／難度：`shop_rating`、`rating_history`、`difficulty`、`last_ops_rating`／`last_grade`、`difficulty_prompt_acked` |
+| 4 | 任務：`day_index`、`active_tasks_by_seat`、測試任務選擇 |
+| 5 | 待領商品培養 `cultivation` |
+| 6 | 創世問答 `light_quiz_passed` |
+| 7 | 內容閘：`unlocked_skus`、`unlocked_furniture`、`prologue_boss_unlocked`（舊檔由等級表＋已開發重建） |
+| 8 | 魚缸／釣魚：`fish_stock`、`fishing_taro_played` |
+| 9 | 精英店員 `elite_clerks` |
+
 ## 訪客角色槽（本機雙人 M1）
 
 - 用途：本機 coop 的 P2 **只含角色進度**（無店舖／資金／倉庫／擺放）。規則見 `multiplayer.md` §11.2。
-- 路徑：`user://guest_slots.json`（經 `PlatformServices` `read`／`write`／`has`／`delete_guest_slots`；與店主 `SAVE_VERSION=2` 分開，不升主存檔版號）。
+- 路徑：`user://guest_slots.json`（經 `PlatformServices` `read`／`write`／`has`／`delete_guest_slots`）。獨立檔，自有 `version` 欄（目前為 1），與店主存檔的 `SAVE_VERSION`（目前 9）分開，不因此升主存檔版號。
 - 上限 **3** 槽。可從店主**複製**等級／能力／技能／`tint`／`skin_id`／`unlocked_skins`，或新建空白；外觀細節見 [`appearance.md`](appearance.md)。
 - JSON：`{ "version": 1, "slots": [ dict|{}, … ] }`；角色 dict 含 `xp`／`level`／`unspent`／`base_*`／`*_stat`／`slots`／`ult_id`／`skill_sets`／`flags`／`tint`／`skin_id`／`unlocked_skins`／`display_name`；設計另加 **`support_rating`**（支援別店評價，見 `ratingsystem.md`）（**無** money／stock／layout／`shop_rating`）。
 - 日結：店主檔寫資金＋平分後 XP＋Host 商店評價／評級歷史；選中槽寫入訪客 XP（平分公式見 multiplayer §11.7）與 `support_rating` 更新。清除主存檔時一併 `delete_guest_slots`。
@@ -55,7 +69,11 @@
 - 劇本、資金、經驗、等級、未分配點數  
 - STR／AGI／INT 與劇本基底  
 - 已開發貨、**可售旗標**（`for_sale`；缺省＝可售；至少一項可售）、倉庫**件數**、已購傢俬、店舖擺放、店規模與格線（活線＝單店頂層欄；設計多店時上述店舖欄進 `theme_stores`／`origin_store`，見 [`branchstore.md`](branchstore.md)）  
-- 店員崗位、技能裝備格、奧義。另有五組 `skill_sets` 和選中編號 `skill_set_index`（`SAVE_VERSION` 仍是 1）。`slots`／`ult_id` 是目前選中那一組的副本。每組可另存 `levels`（Dark Side、多重影分身準備頁選等；沒選預設 LV3）。見 `customizedskillset.md`、`darkside.md`、`shadowclone.md`  
+- 店員崗位、技能裝備格、奧義。另有五組 `skill_sets` 和選中編號 `skill_set_index`（此欄自 `SAVE_VERSION` 1 起即寫入，當時不升版）。`slots`／`ult_id` 是目前選中那一組的副本。每組可另存 `levels`（Dark Side、多重影分身準備頁選等；沒選預設 LV3）。見 `customizedskillset.md`、`darkside.md`、`shadowclone.md`  
+- **內容閘（`SAVE_VERSION` ≥7）：** `unlocked_skus`、`unlocked_furniture`、`prologue_boss_unlocked`（序章／劇本 8；見 [`story/prologue.md`](story/prologue.md)）
+- **商品培養（`SAVE_VERSION` ≥5）：** `cultivation`（待領批次）
+- **創世問答（`SAVE_VERSION` ≥6）：** `light_quiz_passed`
+- **魚缸／釣魚（`SAVE_VERSION` ≥8）：** `fish_stock`、`fishing_taro_played`（見 [`fishingtaro.md`](fishingtaro.md)）
 - **精英店員（`SAVE_VERSION` ≥9）：** `elite_clerks` 陣列；每項 `id`／`level`／`on_duty`／`roles`／`register`／`source`。另占欄、不扣日薪；見 [`eliteclerk.md`](eliteclerk.md)。**設計擴欄：** `assignment{theme_id, post}` 與本店 `on_duty` 互斥（分店派駐）  
 - 外觀：`tint`、`skin_id`、`unlocked_skins`（空＝全開）。見 [`appearance.md`](appearance.md)  
 - 當日進貨支出累計、上一局是否虧損、升級備註  
