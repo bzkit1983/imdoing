@@ -43,14 +43,17 @@ def main() -> int:
         # constants use ACTION := "name"
         assert re.search(rf':= "{action}"', controls), f"const for {action}"
     player = (GAME / "scripts" / "player.gd").read_text(encoding="utf-8")
-    assert "Controls.INTERACT" in player
+    player_input = (GAME / "scripts" / "player" / "input_controller.gd").read_text(encoding="utf-8")
+    ## Interact edges live on the input controller; player keeps the _input facade.
+    assert "Controls.INTERACT" in player_input
+    assert "func _input(" in player and "_input_ctrl.input(" in player
     ## Seat-aware helpers (local coop / net); bare move_vector() is not used on player.
     assert "Controls.move_vector_for(seat_id)" in player
     assert "Controls.stick_vector_for(seat_id)" in player
-    assert "KEY_J" not in player
-    assert "JOY_BUTTON_A" not in player
+    assert "KEY_J" not in player and "KEY_J" not in player_input
+    assert "JOY_BUTTON_A" not in player and "JOY_BUTTON_A" not in player_input
     assert "get_joy_axis(0" not in controls
-    assert "get_joy_axis(0" not in player
+    assert "get_joy_axis(0" not in player and "get_joy_axis(0" not in player_input
     assert "JOY_ALL_DEVICES" in controls
     assert "ev.device = JOY_ALL_DEVICES" in controls
     assert "get_connected_joypads" in controls

@@ -4,6 +4,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PLAYER = (ROOT / "godot/game/scripts/player.gd").read_text(encoding="utf-8")
+INPUT = (ROOT / "godot/game/scripts/player/input_controller.gd").read_text(encoding="utf-8")
 TOSS = (ROOT / "godot/game/scripts/player/toss_controller.gd").read_text(encoding="utf-8")
 RESTOCK = (ROOT / "godot/game/scripts/restock_point.gd").read_text(encoding="utf-8")
 CUSTOMER = (ROOT / "godot/game/scripts/customer.gd").read_text(encoding="utf-8")
@@ -28,8 +29,10 @@ need("host._toss_move_pause_left" in pause, "piece toss arms _toss_move_pause_le
 need("host.velocity = Vector2.ZERO" in pause, "piece toss clears velocity on pause")
 landed = TOSS[TOSS.find("func on_piece_drop_landed"):TOSS.find("\nfunc ", TOSS.find("func on_piece_drop_landed") + 1)]
 need("host._piece_flights" in landed or "_piece_flights" in landed, "landing tracks in-flight piece count")
-move_axis = PLAYER[PLAYER.find("func _move_axis"):PLAYER.find("\nfunc ", PLAYER.find("func _move_axis") + 1)]
+move_at = INPUT.find("func move_axis")
+move_axis = INPUT[move_at:INPUT.find("\nfunc ", move_at + 1) if INPUT.find("\nfunc ", move_at + 1) != -1 else len(INPUT)]
 need("_toss_move_pause_left" in move_axis, "move axis honors the toss move pause")
+need("func _move_axis(" in PLAYER and "_input_ctrl.move_axis(" in PLAYER, "player facades move_axis")
 need("func _toss_top_piece" in PLAYER and "_toss.toss_top_piece" in PLAYER, "player still facades toss_top_piece")
 need("func _list_anchor" in RESTOCK, "restock list anchors near the player")
 need("get_visible_rect" in RESTOCK, "restock list clamps into the viewport")

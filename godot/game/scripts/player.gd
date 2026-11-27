@@ -17,6 +17,11 @@ const TossControllerScript = preload("res://scripts/player/toss_controller.gd")
 const FightControllerScript = preload("res://scripts/player/fight_controller.gd")
 const SkillCasterScript = preload("res://scripts/player/skill_caster.gd")
 const CheckoutControllerScript = preload("res://scripts/player/checkout_controller.gd")
+const FrameTickerScript = preload("res://scripts/player/frame_ticker.gd")
+const PlayerViewScript = preload("res://scripts/player/player_view.gd")
+const InteractControllerScript = preload("res://scripts/player/interact_controller.gd")
+const WorkTickerScript = preload("res://scripts/player/work_ticker.gd")
+const InputControllerScript = preload("res://scripts/player/input_controller.gd")
 const BagCasterScript = preload("res://scripts/player/bag_caster.gd")
 const CarryCasterScript = preload("res://scripts/player/carry_caster.gd")
 const FloorBarsScript = preload("res://scripts/player/player_floor_bars.gd")
@@ -285,6 +290,11 @@ var _toss = TossControllerScript.new()
 var _fight_ctrl = FightControllerScript.new()
 var _skills = SkillCasterScript.new()
 var _checkout = CheckoutControllerScript.new()
+var _frame = FrameTickerScript.new()
+var _view = PlayerViewScript.new()
+var _interact = InteractControllerScript.new()
+var _work = WorkTickerScript.new()
+var _input_ctrl = InputControllerScript.new()
 var _bags
 var _carries
 var _floor_bars: Node2D
@@ -327,46 +337,8 @@ func _move_vector() -> Vector2:
 
 
 func _ready() -> void:
-	motion_mode = MOTION_MODE_FLOATING
-	stamina = stamina_max_now()
-	_circle = CircleScript.new()
-	add_child(_circle)
-	_prompt = PromptScript.new()
-	add_child(_prompt)
-	_menu = MenuScript.new()
-	add_child(_menu)
-	var stack := BoxStackScript.new()
-	stack.position = Vector2(0, -6)
-	stack.setup(inventory)
-	add_child(stack)
-	if inventory.has_signal("changed"):
-		inventory.changed.connect(_mark_hud_dirty)
-	_toss.bind(self)
-	_fight_ctrl.bind(self)
-	_skills.bind(self)
-	_checkout.bind(self)
-	_bags = BagCasterScript.new(self)
-	_bags.ensure_menu()
-	_carries = CarryCasterScript.new(self)
-	_carries.ensure_menu()
-	_floor_bars = FloorBarsScript.new()
-	_floor_bars.setup(self)
-	add_child(_floor_bars)
-	_carry_strip = CarryStripScript.new()
-	_carry_strip.setup(self)
-	add_child(_carry_strip)
-	_bag_diamond = BagDiamondScript.new()
-	_bag_diamond.setup(self)
-	add_child(_bag_diamond)
-	_skill_pips = SkillPipsScript.new()
-	_skill_pips.setup(self)
-	add_child(_skill_pips)
-	_setup_drop_aim()
-	_setup_must_deliver_ring()
-	_setup_magneto_ring()
-	_setup_monk_tornado()
-	_setup_crowd_say()
-	_refresh_passive_checkout()
+	_frame.bind(self)
+	_frame.ready()
 
 
 func _setup_crowd_say() -> void:
@@ -841,204 +813,15 @@ func store_status_text() -> String:
 
 
 func role_status_text() -> String:
-	var bits: PackedStringArray = []
-	bits.append("STR%d AGI%d INT%d" % [_stat_base("str"), _stat_base("agi"), _stat_base("int")])
-	if _buffs.has("carry_boost"):
-		bits.append(Loc.t("hud.status.carry", [_buffs["carry_boost"]]))
-	if _buffs.has("move_boost"):
-		bits.append(Loc.t("hud.status.move", [_buffs["move_boost"]]))
-	if _buffs.has("instant_restock"):
-		bits.append(Loc.t("hud.status.instant", [_buffs["instant_restock"]]))
-	if _buffs.has("shelf_sniper"):
-		bits.append(Loc.t("hud.status.sniper_shelf", [_buffs["shelf_sniper"]]))
-	if _buffs.has("guest_sniper"):
-		bits.append(Loc.t("hud.status.sniper_guest", [_buffs["guest_sniper"]]))
-	if _buffs.has("thief_sniper"):
-		bits.append(Loc.t("hud.status.sniper_thief", [_buffs["thief_sniper"]]))
-	if _buffs.has("dash_deliver"):
-		bits.append(Loc.t("hud.status.dash_deliver", [_buffs["dash_deliver"]]))
-	if _buffs.has("dasher"):
-		bits.append("Dasher %.0fs" % _buffs["dasher"])
-	if _buffs.has("senior_cashier"):
-		bits.append(Loc.t("hud.status.senior", [_buffs["senior_cashier"]]))
-	if _buffs.has("checkout_rush"):
-		bits.append(Loc.t("hud.status.checkout_rush", [_buffs["checkout_rush"]]))
-	if _buffs.has("hoop_ace"):
-		bits.append(Loc.t("hud.status.hoop", [_buffs["hoop_ace"]]))
-	if _buffs.has("sweeping_monk"):
-		bits.append(Loc.t("hud.status.monk", [_buffs["sweeping_monk"]]))
-	if _sick_left > 0.0:
-		bits.append(Loc.t("hud.status.sick", [_sick_left]))
-	if _fighting:
-		bits.append(Loc.t("hud.status.fighting"))
-	if _stun_left > 0.0:
-		bits.append(Loc.t("hud.status.down", [_stun_left]))
-	if _checkout_prefill_charge > 0:
-		bits.append(Loc.t("hud.status.checkout_prefill", [_checkout_prefill_charge]))
-	elif _checkout_prefill_n_equipped() > 0:
-		bits.append(Loc.t("hud.status.checkout_prefill_ready", [_checkout_prefill_n_equipped()]))
-	return Loc.t("hud.status.prefix_role") + " ".join(bits)
+	return _view.role_status_text()
 
 
 func set_hold(action: String, pressed: bool) -> void:
-	## LAN Host applies intents every tick as levels — must edge-trigger.
-	## Otherwise interact=false spam calls _do_short_interact every frame (auto-loot).
-	match action:
-		"interact":
-			if _interact_ignore_until_up:
-				if pressed:
-					return
-				_interact_ignore_until_up = false
-				_j_held = false
-				_j_time = 0.0
-				_long_committed = false
-				_deliver_done = false
-				_shelve_done = false
-				_checkout_hold_idle = false
-				## Do not short-interact on the release that ends the latch.
-				return
-			if _fighting:
-				## Keep `_j_held` truthful during mash so fight-end knows if the
-				## physical Interact is still down (vs already released).
-				if pressed:
-					if not _fight_release:
-						_fight_tap()
-					_fight_release = true
-					_j_held = true
-				else:
-					_fight_release = false
-					_j_held = false
-				return
-			if pressed:
-				if _j_held:
-					return
-				_j_held = true
-				_j_time = 0.0
-				_long_committed = false
-				_deliver_done = false
-				_shelve_done = false
-				_checkout_hold_idle = false
-				_restock_hold = 0.0
-				_restock_aborted = false
-				_pickup_used = false
-				_no_queue_logged = false
-			else:
-				if not _j_held:
-					return
-				## `_release_interact` still needs `_long_committed` to skip short-take.
-				_release_interact()
-				_j_held = false
-				## Action finished / released — clear so a later short Cancel can toss.
-				## (Clean/deliver used to leave `_long_committed` stuck until next Interact.)
-				_long_committed = false
-				_deliver_done = false
-				_shelve_done = false
-				_checkout_hold_idle = false
-				_reset_hold()
-				_pickup_used = false
-				_no_queue_logged = false
-		"dash":
-			if command_lock or skill_menu_open or bag_menu_open or carry_menu_open or ult_prep or _fighting:
-				return
-			if pressed:
-				if _k_held:
-					return
-				_k_held = true
-				_k_time = 0.0
-				_k_run_committed = false
-			else:
-				if not _k_held:
-					return
-				## 輕放＝衝刺；已過門檻／committed 的這次按鍵不再補衝（起跑不會先衝一記）。
-				if not _k_run_committed and not _running and _k_time < Tuning.RUN_HOLD_THRESHOLD:
-					_try_dash()
-				_k_held = false
-				_k_run_committed = false
-				_running = false
-		"skill":
-			## LB → carry-select hold (expand strip; X/B cycle).
-			if pressed and _carry_select_held:
-				return
-			_on_carry_select_hold(pressed)
-		"bag_menu":
-			## RB → skill ring long-press (action name historical).
-			if pressed and _l_held:
-				return
-			_on_skill_hold(pressed)
-		"carry_menu":
-			## Face Y / U spare in ops.
-			return
-		"ult":
-			## Keyboard K / touch ult button. Xbox pad uses LT+RT chord instead.
-			## Edge-only: repeat ult=true intents must not re-fire prep.
-			if pressed and _u_held:
-				return
-			if pressed:
-				_ult_chord_active = false
-			_on_ult_hold(pressed)
-		"cancel":
-			if pressed:
-				if _cancel_held:
-					return
-				_cancel_held = true
-				_cancel_time = 0.0
-				_cancel_drop_ready = false
-				_cancel_dropped = false
-				_cancel_drop_dir = Vector2.ZERO
-				_cancel_swallowed = false
-				## Seed facing immediately so a standing short-tap still has a toss dir.
-				_sample_cancel_drop_dir()
-				_cancel_input()
-			else:
-				if not _cancel_held:
-					return
-				_cancel_held = false
-				_on_cancel_release()
+	_input_ctrl.set_hold(action, pressed)
 
 
 func move_state() -> String:
-	if _stun_left > 0.0:
-		return Loc.t("hud.move.stun")
-	if _slip_left > 0.0:
-		return Loc.t("hud.move.slip")
-	## Aim prep locks move; short-toss pause is a brief hitch (reuse drop_aim copy).
-	if _toss_move_pause_left > 0.0:
-		return Loc.t("hud.move.drop_aim")
-	if _cancel_drop_ready and _cancel_held and not _cancel_dropped:
-		return Loc.t("hud.move.drop_aim")
-	if _cancel_held and not _cancel_dropped:
-		return Loc.t("hud.move.drop_aim")
-	if ult_prep:
-		return Loc.t("hud.move.ult_cmd")
-	if _must_deliver_aim:
-		return Loc.t("hud.move.must_deliver")
-	if _magneto_aim:
-		return Loc.t("hud.move.magneto")
-	if skill_menu_open:
-		return Loc.t("hud.move.skill_menu")
-	if bag_menu_open:
-		return Loc.t("hud.move.bag_menu")
-	if carry_menu_open:
-		return Loc.t("hud.move.carry_menu")
-	if _restock_picking:
-		return Loc.t("hud.move.pick_sku")
-	if _cooked_picking:
-		return Loc.t("hud.move.cooked_craft")
-	if _cooked_craft_stall != null:
-		return Loc.t("hud.move.cooked_busy")
-	if _cleaning():
-		return Loc.t("hud.move.clean")
-	if _fighting:
-		return Loc.t("hud.move.fight")
-	if command_lock:
-		return Loc.t("hud.move.checkout_cmd")
-	if _dashing:
-		return "DASH"
-	if _running and velocity.length() > 8.0:
-		return "RUN"
-	if velocity.length() > 8.0:
-		return "WALK"
-	return "IDLE"
+	return _input_ctrl.move_state()
 
 
 func speed_mult() -> float:
@@ -1087,14 +870,6 @@ func _crowd_near_fallback() -> bool:
 	return false
 
 
-func _sync_crowd_say() -> void:
-	## Hide during dash so「唔該借借」is not mistaken for a failed 衝刺交付.
-	var on := (not _dashing) and _crowd_near()
-	if on and not _crowd_active:
-		SfxBus.play("sfx_move_crowd")
-	_crowd_active = on
-	if _crowd_say:
-		_crowd_say.visible = on
 
 
 func _shelving() -> bool:
@@ -1142,67 +917,7 @@ func _cashier_has_ready(reg: Node) -> bool:
 
 
 func _input(event: InputEvent) -> void:
-	if event.is_echo():
-		return
-	if not controls_locally():
-		return
-	## Let TutorialModal own A／方向 while explain pages are up.
-	var game_freeze = _game()
-	if (
-		game_freeze != null
-		and game_freeze.has_method("tutorial_freezes_play")
-		and bool(game_freeze.tutorial_freezes_play())
-	):
-		return
-	if not Controls.event_for_seat(event, seat_id):
-		return
-	# Early-close dialog and closeout own confirm / cancel.
-	if _asking_early():
-		return
-	if not _round_active() and (event.is_action(Controls.INTERACT) or event.is_action(Controls.CANCEL)):
-		return
-	# Discrete directions only here; analog stick uses _poll_stick_cardinal.
-	# Mode-steal: while command mode open, D-PAD / arrows (bag_slot_*) feed QTEs
-	# — not bag use (see Controls.dir_from_event + _bag_use_suppressed).
-	if _in_dir_mode() and event.is_pressed() and (
-		event is InputEventKey or event is InputEventJoypadButton
-	):
-		var dir := Controls.dir_from_event(event)
-		if dir >= 0:
-			_try_dir(dir)
-			get_viewport().set_input_as_handled()
-			return
-	## D-Pad / arrows → ops bag slots (free ops only; suppressed in dir mode).
-	if event.is_pressed() and (event is InputEventKey or event is InputEventJoypadButton):
-		var bag_slot := Controls.bag_slot_from_event(event)
-		if bag_slot >= 0:
-			if _try_use_ops_bag_slot(bag_slot):
-				get_viewport().set_input_as_handled()
-				return
-	## LB carry-select borrows X / B (dash / cancel).
-	if _carry_select_on and event.is_pressed() and (event is InputEventKey or event is InputEventJoypadButton):
-		if event.is_action_pressed(Controls.DASH):
-			_cycle_carry_focus(-1)
-			get_viewport().set_input_as_handled()
-			return
-		if event.is_action_pressed(Controls.CANCEL):
-			_cycle_carry_focus(1)
-			get_viewport().set_input_as_handled()
-			return
-	for action in Controls.HOLD_ACTIONS:
-		if event.is_action(action) and (event is InputEventKey or event is InputEventJoypadButton):
-			## While carry-select, borrow dash/cancel presses; always forward releases
-			## so sticky B drop-aim / X run holds can clear.
-			if _carry_select_on and (action == Controls.DASH or action == Controls.CANCEL):
-				if not event.is_pressed():
-					set_hold(action, false)
-				get_viewport().set_input_as_handled()
-				return
-			set_hold(action, event.is_pressed())
-			get_viewport().set_input_as_handled()
-			return
-	if event.is_pressed() and (event is InputEventKey or event is InputEventJoypadButton):
-		_handle_hotkey_actions(event)
+	_input_ctrl.input(event)
 
 
 func _begin_drop_aim() -> void:
@@ -1286,194 +1001,15 @@ func _on_piece_drop_landed() -> void:
 func _drop_dir_label(dir: Vector2) -> String:
 	return _toss.drop_dir_label(dir)
 func _cancel_input() -> void:
-	var used := _fighting or _stun_left > 0.0 or _slip_left > 0.0 or _long_committed or command_lock
-	if is_instance_valid(_self_repair_reg):
-		_end_self_cashier_repair()
-		used = true
-	if _restock_picking:
-		_abort_restock_pick()
-		_restock_aborted = true
-		_j_held = false
-		log_line.emit(Loc.t("log.player.cancel_pick"))
-		used = true
-	if _cooked_picking:
-		_abort_cooked_pick()
-		_cooked_aborted = true
-		_j_held = false
-		log_line.emit(Loc.t("log.player.cancel_pick"))
-		used = true
-	if _cooked_craft_stall != null:
-		_cancel_cooked_craft()
-		used = true
-	if _must_deliver_aim:
-		_cancel_must_deliver_aim()
-		used = true
-	if _magneto_aim:
-		_cancel_magneto_aim()
-		used = true
-	if skill_menu_open or _l_held or _skill_latch:
-		_close_skill_menu()
-		SfxBus.play("sfx_skill_menu_cancel")
-		log_line.emit(Loc.t("log.player.cancel_skill_menu"))
-		used = true
-	if bag_menu_open or _bag_held:
-		_close_bag_menu()
-		SfxBus.play("sfx_skill_menu_cancel")
-		used = true
-	if carry_menu_open or _carry_held:
-		_close_carry_menu()
-		SfxBus.play("sfx_skill_menu_cancel")
-		used = true
-	if _carry_select_on or _carry_select_held:
-		_carry_select_held = false
-		_end_carry_select()
-		used = true
-	if ult_prep:
-		_on_ult_hold(false)
-		used = true
-	if _j_held:
-		set_hold("interact", false)
-		used = true
-	if used:
-		_cancel_swallowed = true
+	_input_ctrl.cancel_input()
 
 
 func _physics_process(delta: float) -> void:
-	if is_net_puppet():
-		## Presentation only — Host already wrote facing／position; still refresh Vox.
-		velocity = Vector2.ZERO
-		if _net_puppet_pos == Vector2.INF:
-			_net_puppet_moving = false
-		else:
-			_net_puppet_moving = global_position.distance_squared_to(_net_puppet_pos) > 2.25
-		_net_puppet_pos = global_position
-		_sync_interact_glow()
-		_update_visuals()
-		return
-	if SeatTable.is_frozen(seat_id):
-		velocity = Vector2.ZERO
-		_sync_interact_glow()
-		_update_visuals()
-		return
-	## Tutorial explain modal — freeze local play without get_tree().paused.
-	if game != null and game.has_method("tutorial_freezes_play") and bool(game.tutorial_freezes_play()):
-		velocity = Vector2.ZERO
-		_sync_interact_glow()
-		_update_visuals()
-		return
-	if _asking_early():
-		velocity = Vector2.ZERO
-		_sync_interact_glow()
-		return
-	if _elite_focus_left > 0.0:
-		_elite_focus_left = maxf(0.0, _elite_focus_left - delta)
-		velocity = Vector2.ZERO
-		_tick_buffs(delta)
-		_tick_status(delta)
-		_tick_camera_shake(delta)
-		_sync_interact_glow()
-		return
-	if _portal_beam_left > 0.0:
-		_tick_portal_beam(delta)
-		velocity = Vector2.ZERO
-		_tick_buffs(delta)
-		_tick_status(delta)
-		_tick_camera_shake(delta)
-		_sync_interact_glow()
-		_update_visuals()
-		return
-	if has_meta("boss_cutscene_lock"):
-		velocity = Vector2.ZERO
-		_tick_buffs(delta)
-		_tick_status(delta)
-		_tick_camera_shake(delta)
-		_sync_interact_glow()
-		_update_visuals()
-		return
-	_tick_buffs(delta)
-	_tick_status(delta)
-	if _cast_pose_left > 0.0:
-		_cast_pose_left = maxf(0.0, _cast_pose_left - delta)
-	if _deliver_pose_left > 0.0:
-		_deliver_pose_left = maxf(0.0, _deliver_pose_left - delta)
-	command_lock = (
-		(_long_committed and _j_held and is_instance_valid(target) and _obj_str(target, "kind") == "cashier")
-		or is_instance_valid(_self_repair_reg)
-	) and not skill_menu_open and not ult_prep
-	if not command_lock and not ult_prep:
-		_prompt.active = false
-	## Dash/run via InputMap (face X / Space) — no RT dash.
-	if _k_held and not _cancel_held and not _cancel_drop_ready and not command_lock and not skill_menu_open and not bag_menu_open and not carry_menu_open and not ult_prep and not _fighting and _stun_left <= 0.0 and _slip_left <= 0.0:
-		_k_time += delta
-		if _k_time >= Tuning.RUN_HOLD_THRESHOLD:
-			_running = _dasher_active() or stamina > 1.0
-			_k_run_committed = true
-	if _cancel_held:
-		_tick_cancel_hold(delta)
-	if _toss_move_pause_left > 0.0:
-		_toss_move_pause_left = maxf(0.0, _toss_move_pause_left - delta)
-		_running = false
-		if not _dashing and _slip_left <= 0.0:
-			velocity = Vector2.ZERO
-	## Long-press aim only: freeze locomotion. In-flight boxes do not lock move.
-	if _cancel_drop_ready and _slip_left <= 0.0:
-		_running = false
-		_dashing = false
-		velocity = Vector2.ZERO
-	_tick_carry_select(delta)
-	if _l_held and _sick_left <= 0.0 and _stun_left <= 0.0:
-		if _skills != null and _skills.has_method("tick_hold_open"):
-			_skills.tick_hold_open(delta)
-		else:
-			_l_time += delta
-	_tick_skill_right_stick()
-	if _bags != null:
-		_bags.tick(delta)
-	if _carries != null:
-		_carries.tick(delta)
-	## Pad LT/RT ult chord only on locally owned seats.
-	if controls_locally() and _round_active() and not _asking_early():
-		_tick_triggers(delta)
-	## Skill / ult / checkout dir modes: hard-stop so held WASD cannot coast.
-	## Cooked craft also roots the player until done or cancel.
-	if _in_dir_mode() or _move_locked_until_neutral or _cooked_craft_stall != null:
-		_running = false
-		if not _dashing and _slip_left <= 0.0:
-			velocity = Vector2.ZERO
-	if _fighting:
-		velocity = Vector2.ZERO
-	elif _slip_left > 0.0:
-		_tick_slip(delta)
-	elif _dashing:
-		_tick_dash(delta)
-	else:
-		_tick_move(delta)
-	_poll_stick_cardinal()
-	_regen(delta)
-	_update_target()
-	_tick_cooked_craft(delta)
-	_tick_action(delta)
-	_tick_sweeping_monk(delta)
-	_sync_interact_glow()
-	if _circle:
-		## Clean uses dirt StickHint (blue meter + stick), not the yellow hold Circle.
-		if _cleaning():
-			_circle.progress = 0.0
-			_circle.blocked = false
-		else:
-			_circle.progress = hold_progress
-			_circle.blocked = blocked_mismatch
-	if _menu:
-		## Host／他機 seat：邏輯可開選單瞄準，但不畫 radial（避免殘留 P2 選單）。
-		_menu.open = skill_menu_open and controls_locally()
-		if skill_menu_open and controls_locally():
-			var mfp := "%s|%s" % [str(_cd), str(_loadout())]
-			if mfp != _menu_fp:
-				_menu_fp = mfp
-				_menu.set_slots(_loadout(), _cd)
-	_sync_crowd_say()
-	_update_visuals()
-	_emit_stats_if_changed()
+	_frame.physics_process(delta)
+
+
+func _update_target() -> void:
+	_frame.update_target()
 
 
 func _obj_str(node: Object, prop: String) -> String:
@@ -1491,100 +1027,12 @@ func _obj_float(node: Object, prop: String) -> float:
 	return float(v) if v != null else 0.0
 
 
-func _target_detail_fp(node: Node2D) -> String:
-	if node == null or not is_instance_valid(node):
-		return "-"
-	var k := _obj_str(node, "kind")
-	var tinfo := "%s:%d" % [k, node.get_instance_id()]
-	match k:
-		"restock":
-			var pick = node.call("selected_sku") if node.has_method("selected_sku") else ""
-			tinfo += ":%s" % (str(pick) if pick != null else "")
-		"dirt":
-			var dname = node.call("type_name") if node.has_method("type_name") else ""
-			tinfo += ":%s" % (str(dname) if dname != null else "")
-		"universal_cannon", "shelf_cannon", "kind_cannon":
-			tinfo += ":%s" % str(node.ammo)
-		"drop":
-			tinfo += ":%s:%d" % [_obj_str(node, "sku"), _obj_int(node, "count")]
-		"shelf":
-			var cap := _obj_int(node, "capacity")
-			if cap <= 0:
-				cap = Tuning.SHELF_CAP
-			tinfo += ":%s:%d:%d" % [_obj_str(node, "sku"), _obj_int(node, "count"), cap]
-		"thief":
-			tinfo += ":%.0f:%.1f" % [_obj_float(node, "fight_hp"), _obj_float(node, "fight_left")]
-		"", "elite":
-			tinfo += ":guest"
-	return tinfo
 
 
-func _hud_fingerprint() -> String:
-	## Assumes cheap HUD caches were refreshed by _emit_stats_if_changed.
-	var inv_bits: PackedStringArray = []
-	for g in inventory.grouped():
-		inv_bits.append("%s:%d" % [String(g["id"]), int(g["count"])])
-	return "%s|%.2f|%.2f|%d|%s@%d|%.2f|%s|%s" % [
-		_hud_move,
-		_hud_stam,
-		_hud_stam_max,
-		_hud_carry,
-		",".join(inv_bits),
-		int(inventory.focus_index) if inventory != null else -1,
-		_hud_hold,
-		str(_hud_blocked),
-		_hud_target_detail,
-	]
 
 
 func _emit_stats_if_changed() -> void:
-	## Cheap dirty gate — avoid inventory.grouped() / string join when nothing changed.
-	var inv_rev: int = int(inventory.revision) if inventory != null else 0
-	var move := move_state()
-	var stam := snappedf(stamina, 0.25)
-	var stam_max := snappedf(stamina_max_now(), 0.25)
-	var carry := int(carry_cap())
-	var hold := snappedf(hold_progress, 0.01)
-	var tid: int = target.get_instance_id() if is_instance_valid(target) else 0
-	var need := _hud_dirty
-	if inv_rev != _hud_inv_rev:
-		need = true
-	elif move != _hud_move:
-		need = true
-	elif not is_equal_approx(stam, _hud_stam):
-		need = true
-	elif not is_equal_approx(stam_max, _hud_stam_max):
-		need = true
-	elif carry != _hud_carry:
-		need = true
-	elif not is_equal_approx(hold, _hud_hold):
-		need = true
-	elif blocked_mismatch != _hud_blocked:
-		need = true
-	elif tid != _hud_target_id:
-		need = true
-	elif tid != 0:
-		var detail := _target_detail_fp(target)
-		if detail != _hud_target_detail:
-			need = true
-			_hud_target_detail = detail
-	if not need:
-		return
-	_hud_inv_rev = inv_rev
-	_hud_move = move
-	_hud_stam = stam
-	_hud_stam_max = stam_max
-	_hud_carry = carry
-	_hud_hold = hold
-	_hud_blocked = blocked_mismatch
-	_hud_target_id = tid
-	_hud_target_detail = _target_detail_fp(target) if tid != 0 else "-"
-	_hud_dirty = false
-	var fp := _hud_fingerprint()
-	if fp == _hud_fp:
-		return
-	_hud_fp = fp
-	stats_changed.emit()
+	_view.emit_stats_if_changed()
 
 
 func _enqueue_cust_speed(skill_id: String) -> void:
@@ -1681,119 +1129,14 @@ func _cust_move_pct(skill_id: String) -> float:
 	return 0.0
 
 
-func _tick_buffs(delta: float) -> void:
-	var gone: Array[String] = []
-	for id in _buffs.keys():
-		_buffs[id] = float(_buffs[id]) - delta
-		if float(_buffs[id]) <= 0.0:
-			gone.append(String(id))
-	var changed := not gone.is_empty()
-	for id in gone:
-		if id == "the_world":
-			SfxBus.play("sfx_ult_the_world_end")
-		if id == "senior_cashier":
-			_senior_cashier_lv = 0
-		if id == "checkout_rush":
-			_checkout_rush_lv = 0
-		if id == "sweeping_monk":
-			_sync_monk_tornado(false)
-		_buffs.erase(id)
-	for id in _cd.keys():
-		_cd[id] = maxf(0.0, float(_cd[id]) - delta)
-	var keep_q: Array[String] = []
-	for id in _cust_speed_q:
-		if _buffs.has(id):
-			keep_q.append(id)
-	if keep_q.size() != _cust_speed_q.size():
-		changed = true
-	_cust_speed_q = keep_q
-	if changed or not _buff_cache_valid:
-		_cached_clock = _world_clock_now()
-		_cached_cust_mult = _customer_move_mult_now()
-		_buff_cache_valid = true
-	clock_scale = _cached_clock
-	customer_move_mult = _cached_cust_mult
 
 
-func _wiggle_axis() -> Vector2:
-	## Clean: left stick / touch VJ / WASD (D-PAD stays bag — opsitems.md).
-	## Same sources as drop aim / walk; `_move_vector` also feeds remote_move on Host.
-	var v := _move_vector() + stick_axis
-	if v.length_squared() > 1.0:
-		v = v.normalized()
-	return v
 
 
 func _move_axis() -> Vector2:
-	## Long-press drop aim only — in-flight boxes do not block walk.
-	if _cancel_drop_ready:
-		return Vector2.ZERO
-	## Short toss hitch: keep feet planted briefly so walk does not overtake the box.
-	if _toss_move_pause_left > 0.0:
-		return Vector2.ZERO
-	if _elite_focus_left > 0.0 or _portal_beam_left > 0.0:
-		return Vector2.ZERO
-	if _stun_left > 0.0 or _slip_left > 0.0 or _fighting or _shelving() or _cleaning():
-		return Vector2.ZERO
-	## Cooked craft Circle: lock feet; cancel key refunds pantry (not move).
-	if _cooked_craft_stall != null:
-		return Vector2.ZERO
-	## Charging restock SKU list (before `_restock_picking`): freeze walk but do not
-	## arm the neutral latch — short-tap pulls while holding a direction must resume.
-	if (
-		_j_held
-		and not _restock_picking
-		and is_instance_valid(target)
-		and _obj_str(target, "kind") in ["restock", "fish_tank"]
-	):
-		return Vector2.ZERO
-	if (
-		_j_held
-		and not _cooked_picking
-		and is_instance_valid(target)
-		and _obj_str(target, "kind") == "cooked_stall"
-	):
-		return Vector2.ZERO
-	if _in_dir_mode():
-		## Arm latch: skill menu / ult / checkout / restock pick consume move_* .
-		_move_locked_until_neutral = true
-		return Vector2.ZERO
-	var v := _move_vector() + stick_axis
-	if _move_locked_until_neutral:
-		if v.length() < Controls.MOVE_DEADZONE:
-			_move_locked_until_neutral = false
-		else:
-			return Vector2.ZERO
-	if v.length() < Controls.MOVE_DEADZONE:
-		return Vector2.ZERO
-	if v.length_squared() > 1.0:
-		v = v.normalized()
-	return v
+	return _input_ctrl.move_axis()
 
 
-func _poll_stick_cardinal() -> void:
-	# Analog only (touch stick / left stick). Discrete move_* taps are handled in _input.
-	# Host remote seats: use intent remote_move (M2.5) — no local stick on this machine.
-	if not _in_dir_mode():
-		_cardinal_armed = true
-		return
-	var v: Vector2
-	if SessionService.is_networked() and SessionService.is_server() and not controls_locally():
-		v = remote_move
-	else:
-		v = stick_axis + _joy_stick_vector()
-	if v.length() < 0.42:
-		_cardinal_armed = true
-		return
-	if not _cardinal_armed:
-		return
-	_cardinal_armed = false
-	var dir := 0
-	if absf(v.x) > absf(v.y):
-		dir = 3 if v.x > 0.0 else 2
-	else:
-		dir = 1 if v.y > 0.0 else 0
-	_try_dir(dir)
 
 
 func _joy_stick_vector() -> Vector2:
@@ -1805,37 +1148,6 @@ func _joy_stick_vector() -> Vector2:
 	return v
 
 
-func _tick_move(delta: float) -> void:
-	var axis := _move_axis()
-	if axis != Vector2.ZERO:
-		facing = axis
-		if _j_held and not command_lock and not _shelving() and not _cleaning():
-			_reset_hold()
-	if _can_slip():
-		_begin_slip()
-		return
-	var want_run := _running and axis != Vector2.ZERO
-	var free_stam := _dasher_active()
-	if want_run and not free_stam:
-		if stamina <= 0.0:
-			want_run = false
-			_running = false
-		else:
-			stamina = maxf(0.0, stamina - Tuning.RUN_STAMINA_PER_SEC * delta)
-			_regen_delay = Tuning.STAMINA_REGEN_DELAY
-	var walk := Tuning.WALK_SPEED * Tuning.PLAYER_MOVE_MULT * speed_mult()
-	var target_speed := walk * (Tuning.RUN_SPEED_MULT if want_run else 1.0)
-	var speed_cap := Tuning.WALK_SPEED * Tuning.PLAYER_MOVE_MULT * Tuning.SPEED_MAX_MULT
-	target_speed = clampf(target_speed, Tuning.SPEED_FLOOR, speed_cap)
-	if axis == Vector2.ZERO:
-		velocity = velocity.move_toward(Vector2.ZERO, walk * 8.0 * delta)
-	else:
-		velocity = axis * target_speed
-		if velocity.length() > 8.0:
-			SfxBus.play_foot(want_run)
-			if inventory.count() > carry_cap():
-				SfxBus.play_overcarry()
-	move_and_slide()
 
 
 func _dasher_active() -> bool:
@@ -1879,20 +1191,6 @@ func _try_dash() -> void:
 	_reset_hold()
 
 
-func _tick_dash(delta: float) -> void:
-	_dash_from = global_position
-	_dash_left -= delta
-	var speed := Tuning.DASH_DISTANCE / Tuning.DASH_TIME
-	velocity = _dash_dir * speed
-	move_and_slide()
-	_try_dash_thief()
-	if _can_slip():
-		_dashing = false
-		_begin_slip()
-		return
-	if _dash_left <= 0.0:
-		_dashing = false
-		velocity *= 0.35
 
 
 ## True if `pos` is within dash hit range of the current dash segment (_dash_from → global_position).
@@ -1930,18 +1228,6 @@ func _begin_slip() -> void:
 	log_line.emit(Loc.t("log.player.slip"))
 
 
-func _tick_slip(delta: float) -> void:
-	_slip_left -= delta
-	var dist := Tuning.SLIP_BODY_LENGTHS * Tuning.BODY_LENGTH
-	var dir := facing
-	if dir.length_squared() < 0.01:
-		dir = Vector2.RIGHT
-	velocity = dir.normalized() * (dist / Tuning.SLIP_TIME)
-	move_and_slide()
-	if _slip_left <= 0.0:
-		velocity = Vector2.ZERO
-		_stun_left = _stun_pending
-		SfxBus.play("sfx_move_stun")
 
 
 func _drop_top_box(toss_dir: Vector2 = Vector2.ZERO, lock_until_land: bool = true) -> void:
@@ -1949,30 +1235,8 @@ func _drop_top_box(toss_dir: Vector2 = Vector2.ZERO, lock_until_land: bool = tru
 
 func _on_drop_flight_done() -> void:
 	_toss.on_drop_flight_done()
-func _tick_status(delta: float) -> void:
-	if _stun_left > 0.0:
-		_stun_left = maxf(0.0, _stun_left - delta)
-		velocity = Vector2.ZERO
-	if _sick_left > 0.0:
-		_sick_left = maxf(0.0, _sick_left - delta)
-	if _has_dirt_type(Tuning.DIRT_VOMIT) and not _has_flag("ignore_vomit_sick"):
-		if _sick_left <= 0.0:
-			log_line.emit(Loc.t("log.player.vomit"))
-		_sick_left = Tuning.SICK_SEC
-	if _has_dirt_type(Tuning.DIRT_TRASH) and not _has_flag("ignore_trash_stamina"):
-		stamina = maxf(0.0, stamina - Tuning.TRASH_STAMINA_PER_SEC * delta)
-		_regen_delay = Tuning.STAMINA_REGEN_DELAY
-	if _wave_vfx_cd > 0.0:
-		_wave_vfx_cd = maxf(0.0, _wave_vfx_cd - delta)
 
 
-func _regen(delta: float) -> void:
-	if _dashing or _slip_left > 0.0 or (_running and _move_axis() != Vector2.ZERO) or (_has_dirt_type(Tuning.DIRT_TRASH) and not _has_flag("ignore_trash_stamina")):
-		return
-	if _regen_delay > 0.0:
-		_regen_delay -= delta
-		return
-	stamina = minf(stamina_max_now(), stamina + Tuning.STAMINA_REGEN_PER_SEC * delta)
 
 
 func _kind_of(node: Object) -> StringName:
@@ -2081,53 +1345,7 @@ func _shelf_can_take_carried(shelf: Node2D) -> bool:
 
 
 func _preview_target() -> Node2D:
-	var turret := _usable_turret()
-	if turret != null:
-		return turret
-	var thief := _nearest_active_thief()
-	if thief != null:
-		return thief
-	var stocked := _nearest_stocked_shelf()
-	if stocked != null:
-		return stocked
-	var restock := _nearest_kind("restock")
-	if restock != null:
-		return restock
-	var tank := _nearest_kind("fish_tank")
-	if tank != null:
-		return tank
-	var cooked := _nearest_kind("cooked_stall")
-	if cooked != null and (_cooked_stall_craftable(cooked) or _cooked_deposit_sku() != ""):
-		return cooked
-	var ops := _nearest_kind("ops_item")
-	if ops != null:
-		return ops
-	var drop := _nearest_kind("drop")
-	if drop != null:
-		return drop
-	match _long_kind():
-		"dirt":
-			return _nearest_kind("dirt")
-		"guest":
-			var guests := _faced_guests()
-			return guests[0] if not guests.is_empty() else null
-		"shelf":
-			return _nearest_kind("shelf")
-		"cashier":
-			return _nearest_kind("cashier")
-		"self_cashier":
-			return _nearest_repairable_self_cashier()
-		"fish_tank":
-			return _nearest_kind("fish_tank")
-		"cooked_stall":
-			return _nearest_kind("cooked_stall")
-	var sco := _nearest_repairable_self_cashier()
-	if sco != null:
-		return sco
-	var portal := _nearest_usable_portal()
-	if portal != null:
-		return portal
-	return null
+	return _interact.preview_target()
 
 
 func _nearest_repairable_self_cashier() -> Node2D:
@@ -2149,104 +1367,11 @@ func _nearest_repairable_self_cashier() -> Node2D:
 
 
 func _release_interact() -> void:
-	if is_instance_valid(_lock_node) and _obj_str(_lock_node, "kind") in ["shelf_cannon", "kind_cannon"]:
-		_interact_release_held()
-	if _restock_aborted:
-		_restock_aborted = false
-		_restock_picking = false
-		_restock_hold = 0.0
-		return
-	if _cooked_aborted:
-		_cooked_aborted = false
-		_cooked_picking = false
-		_cooked_hold = 0.0
-		return
-	if _fighting or _long_committed or _deliver_done or _shelve_done or _restock_picking or _cooked_picking:
-		if _restock_picking and target != null and _obj_str(target, "kind") in ["restock", "fish_tank"]:
-			if _world_authority():
-				var sku := String(target.call("commit_pick"))
-				SfxBus.play("sfx_box_sku_confirm")
-				var set_key := (
-					"log.player.fish_set"
-					if _obj_str(target, "kind") == "fish_tank"
-					else "log.player.restock_set"
-				)
-				log_line.emit(Loc.t(set_key, [Tuning.sku_name(sku)]))
-			else:
-				## Client: close local pick chrome; Host commits via restock_commit intent.
-				pending_restock_commit = true
-				target.picking = false
-				SfxBus.play("sfx_box_sku_confirm")
-		elif _cooked_picking and target != null and _obj_str(target, "kind") == "cooked_stall":
-			_commit_cooked_craft()
-		_restock_picking = false
-		_restock_hold = 0.0
-		_cooked_picking = false
-		_cooked_hold = 0.0
-		return
-	_do_short_interact()
-	_restock_picking = false
-	_restock_hold = 0.0
-	_cooked_picking = false
-	_cooked_hold = 0.0
+	_interact.release_interact()
 
 
-## Tap: thief (already grabbed), else one piece off a stocked shelf, else a restock box, else ops item / floor box.
 func _do_short_interact() -> void:
-	var turret := _usable_turret()
-	if turret != null:
-		if _interact_try(turret):
-			if _obj_str(turret, "kind") == "universal_cannon" and not turret.retrieve_to(self):
-				log_line.emit(Loc.t("cannon.take_failed"))
-			_interact_release(turret)
-		return
-	if _nearest_active_thief() != null:
-		return
-	var shelf := _nearest_stocked_shelf()
-	if shelf != null:
-		_take_shelf_piece(shelf)
-		return
-	var restock := _nearest_kind("restock")
-	if restock != null:
-		target = restock
-		_pickup_used = false
-		_try_pickup()
-		return
-	var tank := _nearest_kind("fish_tank")
-	if tank != null:
-		target = tank
-		_pickup_used = false
-		_try_pickup()
-		return
-	var stall := _nearest_kind("cooked_stall")
-	if stall != null and _cooked_deposit_sku() != "":
-		_deposit_to_cooked_stall(stall)
-		return
-	var ops := _nearest_kind("ops_item")
-	if ops != null:
-		target = ops
-		_pickup_used = false
-		_tick_ops_item()
-		return
-	var drop := _nearest_kind("drop")
-	if drop != null:
-		target = drop
-		_pickup_used = false
-		_tick_drop()
-		return
-	if is_instance_valid(_self_repair_reg):
-		_try_self_cashier_repair_hit()
-		return
-	var broken_sco := _nearest_repairable_self_cashier()
-	if broken_sco != null:
-		_try_self_cashier_repair_begin(broken_sco)
-		return
-	var portal := _nearest_usable_portal()
-	if portal != null:
-		_try_portal_teleport(portal)
-		return
-	if _store_open() and not inventory.is_empty() and not _faced_guests().is_empty():
-		log_line.emit(Loc.t("log.player.hold_deliver_hint"))
+	_interact.do_short_interact()
 
 
 func _try_self_cashier_repair_begin(reg: Node2D) -> void:
@@ -2336,38 +1461,7 @@ func _guest_wants_carried(guest: Node) -> bool:
 
 
 func _give_guest(guest: Node) -> int:
-	if guest == null or not guest.has_method("accept_toss_box"):
-		return 0
-	var before := 0
-	if guest.get("shopping") != null:
-		before = int((guest.shopping as Array).size())
-	var given := 0
-	var seen := {}
-	var wants: Array[String] = []
-	for s in guest.shopping:
-		var sku := String(s)
-		if seen.has(sku):
-			continue
-		seen[sku] = true
-		wants.append(sku)
-	for sku in wants:
-		if guest.has_method("can_receive_delivery") and not bool(guest.call("can_receive_delivery")):
-			break
-		var need := 0
-		for s in guest.shopping:
-			if String(s) == sku:
-				need += 1
-		var n := mini(need, inventory.count_of(sku))
-		if n <= 0:
-			continue
-		var taken := int(guest.call("accept_toss_box", sku, n))
-		if taken > 0:
-			inventory.remove_sku(sku, taken)
-			given += taken
-	## Perfect deliver: cleared remaining list in this burst (any count ≥1).
-	if given > 0 and before >= 1 and guest.shopping.is_empty():
-		guest.set_meta("combo_cleared_n", before)
-	return given
+	return _interact.give_guest(guest)
 
 
 func _begin_must_deliver_aim(sk: Dictionary) -> void:
@@ -2439,66 +1533,7 @@ func _cast_harvest_chives(lv: int) -> bool:
 func _cast_force_sell(lv: int) -> bool:
 	return _skills.cast_force_sell(lv)
 func _hand_deliver(guests: Array, penalize_miss: bool) -> int:
-	## §8.2: Client chrome only — Host applies delivery via interact intent.
-	if not _world_authority():
-		return 0
-	var total := 0
-	var nearest: Node = null
-	var locked: Array = []
-	var boss_rejected := false
-	for guest in guests:
-		if guest == null or not is_instance_valid(guest):
-			continue
-		if not guest.has_method("can_receive_delivery") or not bool(guest.call("can_receive_delivery")):
-			continue
-		## A7 L — hand delivery target.
-		if not _interact_try(guest):
-			continue
-		locked.append(guest)
-		if nearest == null:
-			nearest = guest
-		## Boss 序4／序5 hand rules (all-at-once / toss-only).
-		if guest.get("is_boss") == true:
-			var game_b := _game()
-			if game_b != null and game_b.has_method("boss_hand_deliver"):
-				var r: Dictionary = game_b.call("boss_hand_deliver", self, guest)
-				if bool(r.get("handled", false)):
-					var g := int(r.get("given", 0))
-					total += g
-					if g <= 0:
-						boss_rejected = true
-					continue
-		total += _give_guest(guest)
-	if total > 0:
-		SfxBus.play("sfx_box_hit_guest_ok")
-		log_line.emit(Loc.t("log.player.deliver_n", [total]))
-		_deliver_pose_left = 0.4
-		_note_delivery_combo(guests, total)
-		for g in locked:
-			_interact_release(g)
-		return total
-	if boss_rejected:
-		var game_r := _game()
-		if game_r != null:
-			game_r.combo_break_personal(seat_id)
-		for g in locked:
-			_interact_release(g)
-		return 0
-	if penalize_miss and nearest != null and nearest.has_method("apply_toss_reject"):
-		nearest.call("apply_toss_reject", "")
-		SfxBus.play("sfx_box_hit_guest_reject")
-		if nearest.get("temp_clerk"):
-			log_line.emit(Loc.t("log.player.wrong_temp"))
-		else:
-			log_line.emit(Loc.t("log.player.wrong_dissat"))
-	var game := _game()
-	if game != null:
-		game.combo_break_personal(seat_id)
-	for g in locked:
-		_interact_release(g)
-	return 0
-
-
+	return _interact.hand_deliver(guests, penalize_miss)
 ## Boss reject: slide 3 body lengths away, then stun (no carry dump — goods already scattered).
 func apply_boss_bump(away_from: Vector2) -> void:
 	var dir := global_position - away_from
@@ -2610,43 +1645,7 @@ func _glow_host_now() -> Node2D:
 
 ## True when pressing interact would start a real action on this node.
 func _interact_available(node: Node2D) -> bool:
-	var kind := _obj_str(node, "kind")
-	if kind in ["universal_cannon", "shelf_cannon", "kind_cannon"]:
-		return node.available_for(self)
-	if kind == "thief":
-		## Carry allowed; goods stay in hand during the fight.
-		return node.has_method("is_active_thief") and bool(node.call("is_active_thief"))
-	if kind == "shelf":
-		return _shelf_interactable(node)
-	if kind == "restock":
-		return _restock_interactable(node)
-	if kind == "fish_tank":
-		return true
-	if kind == "cooked_stall":
-		return _cooked_stall_interactable(node)
-	if kind == "drop":
-		var n := _obj_int(node, "count")
-		return n > 0 and inventory.count() + n <= carry_cap()
-	if kind == "ops_item":
-		return OpsItems.first_empty_slot(ops_bag) >= 0 and String(node.get("item_id")) != ""
-	if kind == "dirt":
-		## Carry allowed; goods stay in hand while cleaning.
-		return true
-	if kind == "cashier":
-		return node.has_method("ready_customer") and node.call("ready_customer") != null
-	if kind == "self_cashier":
-		if node.has_method("can_repair") and bool(node.call("can_repair")):
-			return true
-		return bool(node.get("_repairing")) and int(node.get("_repair_seat")) == seat_id
-	if kind == "portal":
-		return _portal_interactable(node)
-	if kind == "elite" or kind == "":
-		if not _store_open() or inventory.is_empty():
-			return false
-		if not node.has_method("can_receive_delivery"):
-			return false
-		return bool(node.call("can_receive_delivery"))
-	return false
+	return _interact.interact_available(node)
 
 
 func _portal_interactable(node: Node2D) -> bool:
@@ -2826,131 +1825,10 @@ func _glow_span(node: Node2D) -> Vector2:
 	return span * GLOW_SPAN_SCALE
 
 
-func _update_target() -> void:
-	if _fighting:
-		return
-	## Aim / slip / held interact: keep the action target (no full rescan).
-	## In-flight toss does not freeze target scan.
-	if _j_held or _cancel_drop_ready or _slip_left > 0.0 or is_instance_valid(_self_repair_reg):
-		return
-	var best := _preview_target()
-	if target != best:
-		if _restock_picking and target != null and _obj_str(target, "kind") in ["restock", "fish_tank"]:
-			target.call("abort_pick")
-		if _cooked_picking and target != null and _obj_str(target, "kind") == "cooked_stall":
-			if target.has_method("abort_pick"):
-				target.call("abort_pick")
-		_restock_picking = false
-		_restock_hold = 0.0
-		_cooked_picking = false
-		_cooked_hold = 0.0
-		_reset_hold()
-		_pickup_used = false
-		_hud_dirty = true
-	target = best
 
 
 func _tick_action(delta: float) -> void:
-	blocked_mismatch = false
-	if _fighting:
-		_tick_fight(delta)
-		return
-	if _stun_left > 0.0 or _slip_left > 0.0:
-		if is_instance_valid(target) and _obj_str(target, "kind") == "dirt":
-			target.call("set_cleaning", false, Vector2.ZERO, 0.0, seat_id)
-		return
-	if not _j_held:
-		hold_progress = 0.0
-		_clear_clean_hint()
-		return
-	_j_time += delta
-	var turret := _usable_turret()
-	if _j_held and is_instance_valid(_lock_node) and _obj_str(_lock_node, "kind") in ["universal_cannon", "shelf_cannon", "kind_cannon"]:
-		turret = _lock_node as Node2D
-	if is_instance_valid(_lock_node) and _obj_str(_lock_node, "kind") in ["universal_cannon", "shelf_cannon", "kind_cannon"] and _lock_node != turret:
-		_interact_release_held()
-		hold_progress = 0.0
-		_pickup_used = false
-	if turret != null:
-		target = turret
-		if not _interact_try(turret):
-			hold_progress = 0.0
-			return
-		if _j_time >= Tuning.SKU_PICK_HOLD:
-			_long_committed = true
-			_tick_cannon(delta, turret)
-		return
-	## Sticky long actions: a passing thief (or other higher-priority target)
-	## must not yank checkout / clean / shelve mid-hold. Thief still wins when
-	## *starting* an Interact press (`playeraction.md` priority).
-	if _long_committed and is_instance_valid(target):
-		match _obj_str(target, "kind"):
-			"cashier":
-				_tick_cashier(delta)
-				return
-			"dirt":
-				_tick_clean(delta)
-				return
-			"shelf":
-				if _shelve_done:
-					_long_committed = false
-				else:
-					_tick_restock(delta)
-					return
-	if not _long_committed and not _restock_picking and not _cooked_picking:
-		var thief := _nearest_active_thief()
-		if thief != null:
-			target = thief
-			_begin_fight()
-			return
-	var long_kind := _long_kind()
-	if long_kind == "restock" or long_kind == "fish_tank":
-		target = _nearest_kind(long_kind)
-		_tick_sku_pick(delta)
-		return
-	if long_kind == "cooked_stall":
-		target = _nearest_kind("cooked_stall")
-		_tick_cooked_pick(delta)
-		return
-	if _j_time < Tuning.SKU_PICK_HOLD:
-		return
-	match long_kind:
-		"dirt":
-			_long_committed = true
-			target = _nearest_kind("dirt")
-			_tick_clean(delta)
-		"guest":
-			var guests := _faced_guests()
-			if not guests.is_empty():
-				target = guests[0]
-			## One hand-deliver per Interact hold; leftover hold is idle.
-			if _deliver_done:
-				_long_committed = false
-			else:
-				_long_committed = true
-				_deliver_done = true
-				_hand_deliver(guests, true)
-		"shelf":
-			target = _nearest_kind("shelf")
-			## Hold past a finished Circle is "not released yet", not a new stock attempt.
-			if _shelve_done:
-				_long_committed = false
-			else:
-				_long_committed = true
-				_tick_restock(delta)
-		"cashier":
-			target = _nearest_kind("cashier")
-			## Hold with no payable guest: walk free. A ready guest resumes checkout.
-			if _checkout_hold_idle:
-				if _cashier_has_ready(target):
-					_checkout_hold_idle = false
-					_long_committed = true
-					_tick_cashier(delta)
-				else:
-					_long_committed = false
-			else:
-				_long_committed = true
-				_tick_cashier(delta)
+	_work.tick_action(delta)
 
 
 func _begin_fight() -> void:
@@ -3188,81 +2066,7 @@ func _try_dash_thief() -> void:
 
 
 func _try_dash_hits() -> void:
-	var g := _game()
-	if g == null:
-		return
-	_try_wave_dirt_vfx()
-	## Thieves first (caught).
-	if g:
-		for t in g.thieves():
-			if t == null or not is_instance_valid(t):
-				continue
-			if not bool(t.call("is_active_thief")):
-				continue
-			if not _dash_segment_hits(t.global_position):
-				continue
-			## Presentation thief: Host resolves dash KO from intents; local VFX only.
-			if _agent_is_net_puppet(t):
-				SfxBus.play("sfx_thief_dash_out")
-				log_line.emit(Loc.t("log.player.thief_dash"))
-				if _fighting and target == t:
-					_fight_ko = true
-					_net_ko_pending = true
-					_play_ko_sequence(t, "", _dash_dir, false)
-				return
-			t.call("dash_knock_away", _dash_dir)
-			if g:
-				g.record_caught(seat_id, "dash")
-			SfxBus.play("sfx_thief_dash_out")
-			log_line.emit(Loc.t("log.player.thief_dash"))
-			if _fighting:
-				_end_fight(false)
-			return
-	## One guest resolution per dash. 衝刺交付: prefer guests who want carried goods (near→far), not only nearest.
-	## Clones are after guests so 衝刺交付 never hands goods to a clone.
-	if not _dash_guest_done:
-		var guests := _dash_guests()
-		if not guests.is_empty():
-			if buff_left("dash_deliver") > 0.0:
-				var deliver_targets: Array = []
-				for guest in guests:
-					if guest == null or not is_instance_valid(guest):
-						continue
-					if not guest.has_method("can_receive_delivery") or not bool(guest.call("can_receive_delivery")):
-						continue
-					if not _guest_wants_carried(guest):
-						continue
-					deliver_targets.append(guest)
-				if not deliver_targets.is_empty():
-					var gave := _hand_deliver(deliver_targets, false)
-					if gave > 0:
-						_dash_guest_done = true
-						log_line.emit(Loc.t("log.player.dash_deliver", [gave]))
-						return
-			var nearest: Node = guests[0]
-			_dash_guest_done = true
-			var add := 0.0 if _has_flag("polite_dash") else Tuning.DASH_GUEST_DISSAT
-			if g:
-				g.play_ko_banner()
-			if nearest.has_method("dash_knock_guest"):
-				nearest.call("dash_knock_guest", add)
-			if add > 0.0:
-				g.note_dash_guest(self)
-			SfxBus.play("sfx_ko_guest_dash")
-			log_line.emit(Loc.t("log.player.dash_guest") if add > 0.0 else Loc.t("log.player.dash_polite"))
-			return
-	if _dash_guest_done:
-		return
-	var clone := _dash_clone()
-	if clone == null:
-		return
-	_dash_guest_done = true
-	if g:
-		g.play_ko_banner()
-	if clone.has_method("dash_knock"):
-		clone.call("dash_knock")
-	SfxBus.play("sfx_ko_guest_dash")
-	log_line.emit(Loc.t("log.player.dash_clone"))
+	_fight_ctrl.try_dash_hits()
 
 
 func _try_wave_dirt_vfx() -> void:
@@ -3334,37 +2138,7 @@ func _cooked_deposit_sku() -> String:
 
 
 func _deposit_to_cooked_stall(stall: Node2D) -> void:
-	if stall == null or not is_instance_valid(stall) or bool(stall.get("crafting")):
-		return
-	var id := _cooked_deposit_sku()
-	if id == "":
-		return
-	if not _world_authority():
-		SfxBus.play("sfx_box_pull")
-		return
-	if not stall.has_method("add_ingredient") or not stall.has_method("can_accept_ingredient"):
-		return
-	if not bool(stall.call("can_accept_ingredient", id, 1)):
-		SfxBus.play("sfx_box_pull_fail")
-		log_line.emit(Loc.t("log.player.cooked_pantry_full"))
-		return
-	var room := 1
-	if stall.get("pantry_capacity") != null and stall.has_method("pantry_total"):
-		room = maxi(0, int(stall.get("pantry_capacity")) - int(stall.call("pantry_total")))
-	var want := mini(_manual_pickup_limit(), mini(inventory.count_of(id), room))
-	if want <= 0:
-		SfxBus.play("sfx_box_pull_fail")
-		log_line.emit(Loc.t("log.player.cooked_pantry_full"))
-		return
-	var taken := int(stall.call("add_ingredient", id, want))
-	if taken <= 0:
-		SfxBus.play("sfx_box_pull_fail")
-		log_line.emit(Loc.t("log.player.cooked_pantry_full"))
-		return
-	inventory.remove_sku(id, taken)
-	_spawn_fx("spray", stall.global_position + Vector2(0, -20))
-	SfxBus.play("sfx_shelf_stock_done")
-	log_line.emit(Loc.t("log.player.cooked_deposit", [Tuning.sku_name(id), taken]))
+	_interact.deposit_to_cooked_stall(stall)
 
 
 func _tick_cooked_pick(delta: float) -> void:
@@ -3462,134 +2236,11 @@ func _abort_restock_pick() -> void:
 
 
 func _try_pickup() -> void:
-	if _pickup_used:
-		return
-	_pickup_used = true
-	var room := maxi(0, carry_cap() - inventory.count())
-	if room <= 0:
-		SfxBus.play("sfx_box_pull_fail")
-		log_line.emit(Loc.t("log.player.carry_need", [inventory.count(), carry_cap()]))
-		return
-	## §8.2: Client must not declare warehouse consume — Host owns stock.
-	if not _world_authority():
-		SfxBus.play("sfx_box_pull")
-		return
-	var sku := String(target.call("selected_sku"))
-	var requested := mini(_manual_pickup_limit(), room)
-	var taken := int(target.call("take_pieces", requested))
-	if taken <= 0:
-		SfxBus.play("sfx_box_pull_fail")
-		var empty_key := (
-			"log.player.fish_empty"
-			if _obj_str(target, "kind") == "fish_tank"
-			else "log.player.restock_empty"
-		)
-		log_line.emit(Loc.t(empty_key, [Tuning.sku_name(sku)]))
-		return
-	inventory.take_pieces(sku, taken)
-	_spawn_fx("suck", target.global_position)
-	SfxBus.play("sfx_box_pull")
-	var pull_key := (
-		"log.player.fish_pull"
-		if _obj_str(target, "kind") == "fish_tank"
-		else "log.player.pull_instant"
-	)
-	log_line.emit(Loc.t(pull_key, [Tuning.sku_name(sku), taken]))
+	_interact.try_pickup()
 
 
 func _tick_restock(delta: float) -> void:
-	if inventory.is_empty():
-		log_line.emit(Loc.t("log.player.empty_hands_shelf"))
-		_j_held = false
-		return
-	if not is_instance_valid(target) or not target.has_method("can_accept"):
-		hold_progress = 0.0
-		return
-	var sku := _shelve_sku_for(target)
-	var empty_shelf := true
-	if target.has_method("occupied_sku"):
-		empty_shelf = String(target.call("occupied_sku")) == ""
-	else:
-		empty_shelf = _obj_int(target, "count") <= 0 or _obj_str(target, "sku") == ""
-	var have := inventory.count_of(sku) if sku != "" else 0
-	## A2 L — shelf stocking Circle.
-	if not _interact_try(target):
-		log_line.emit(Loc.t("log.player.shelf_busy"))
-		hold_progress = 0.0
-		return
-	if sku == "" or have <= 0 or not bool(target.call("can_accept", sku)):
-		if _obj_int(target, "count") >= _obj_int(target, "capacity"):
-			SfxBus.play("sfx_shelf_stock_blocked")
-			log_line.emit(Loc.t("log.player.shelf_full"))
-			_j_held = false
-			_reset_hold()
-			return
-		if not blocked_mismatch:
-			SfxBus.play("sfx_shelf_stock_blocked")
-		blocked_mismatch = true
-		hold_progress = 0.0
-		return
-	## Duration: AGI baseline only. Instant ONLY while 瞬間補貨 buff is active.
-	## Equipped loadout always includes instant_restock with restock_circle_mult=0 —
-	## never multiply that in when the buff is off.
-	var dur := float(Tuning.restock_seconds(_agi_now()))
-	if buff_left("instant_restock") > 0.05:
-		var lv := 3
-		for sk in _loadout():
-			if str(sk.get("id", "")) == "instant_restock":
-				lv = int(sk.get("lv", 3))
-				break
-		var mult := float(Skills.restock_circle_mult(lv))
-		if mult <= 0.0:
-			dur = 0.0
-		else:
-			dur *= mult
-	else:
-		var restock_pct := 0.0
-		for sk in _loadout():
-			## Godot 4.7: String(null) throws — empty slots have no "kind".
-			if str(sk.get("kind", "")) == "passive":
-				restock_pct += float(sk.get("restock_pct", 0.0))
-		if restock_pct > 0.0:
-			dur /= 1.0 + restock_pct
-		dur = maxf(dur, 0.05)
-	if dur <= 0.001:
-		hold_progress = 1.0
-	else:
-		hold_progress = minf(1.0, hold_progress + delta / dur)
-		if hold_progress < 1.0:
-			SfxBus.play_stock_loop()
-	if hold_progress >= 1.0:
-		## Client: Circle chrome only; Host applies shelf／inventory via interact intent.
-		if not _world_authority():
-			_spawn_fx("spray", target.global_position + Vector2(0, -20))
-			if dur <= 0.001:
-				SfxBus.play("sfx_shelf_stock_instant")
-			else:
-				SfxBus.play("sfx_shelf_stock_done")
-			hold_progress = 0.0
-			blocked_mismatch = false
-			_shelve_done = true
-			_interact_release(target)
-			return
-		var placed := int(target.call("add_items", sku, have))
-		if empty_shelf:
-			inventory.remove_focused(placed)
-		else:
-			inventory.remove_sku(sku, placed)
-		_spawn_fx("spray", target.global_position + Vector2(0, -20))
-		if dur <= 0.001:
-			SfxBus.play("sfx_shelf_stock_instant")
-		else:
-			SfxBus.play("sfx_shelf_stock_done")
-		log_line.emit(Loc.t("log.player.shelve", [Tuning.sku_name(sku), placed]))
-		var game_shelve := _game()
-		if placed > 0 and game_shelve != null and game_shelve.has_method("note_shelve"):
-			game_shelve.call("note_shelve", seat_id, String(sku), placed)
-		hold_progress = 0.0
-		blocked_mismatch = false
-		_shelve_done = true
-		_interact_release(target)
+	_work.tick_restock(delta)
 
 
 func _abort_manual_clean_for_monk() -> void:
@@ -3619,104 +2270,14 @@ func _sync_monk_tornado(force_on: bool = false) -> void:
 	_monk_tornado.visible = on
 
 
-func _tick_sweeping_monk(delta: float) -> void:
-	if buff_left("sweeping_monk") <= 0.05:
-		_sync_monk_tornado(false)
-		return
-	_sync_monk_tornado(true)
-	if _monk_tornado != null:
-		_monk_tornado.rotation += delta * 7.5
-	_clear_dirt_in_monk_range()
 
 
 func _clear_dirt_in_monk_range() -> void:
-	## Host authority — Client only shows tornado; dirt despawns via net agents.
-	if SessionService.is_networked() and SessionService.is_client():
-		return
-	var g := _game()
-	if g == null:
-		return
-	var dirts = g.get("_dirts")
-	if dirts == null:
-		return
-	var rsq := Skills.SWEEPING_MONK_RANGE_SQ
-	var hit: Array = []
-	for d in dirts:
-		if d == null or not is_instance_valid(d):
-			continue
-		## Skip nodes already queued for free this frame (avoid double note_clean).
-		if d.is_queued_for_deletion():
-			continue
-		if global_position.distance_squared_to(d.global_position) > rsq:
-			continue
-		hit.append(d)
-	for d in hit:
-		if d == null or not is_instance_valid(d) or d.is_queued_for_deletion():
-			continue
-		var at: Vector2 = d.global_position
-		var name := String(d.call("type_name")) if d.has_method("type_name") else Loc.t("dirt.generic")
-		if is_instance_valid(target) and target == d:
-			target = null
-			_long_committed = false
-			hold_progress = 0.0
-			_clear_clean_hint()
-		d.queue_free()
-		_spawn_fx("clean_spark", at)
-		SfxBus.play("sfx_clean_done")
-		if g:
-			g.note_clean()
-		log_line.emit(Loc.t("log.player.monk_clear", [name]))
+	_work.clear_dirt_in_monk_range()
 
 
 func _tick_clean(_delta: float) -> void:
-	if buff_left("sweeping_monk") > 0.05:
-		_abort_manual_clean_for_monk()
-		return
-	if not is_instance_valid(target) or _obj_str(target, "kind") != "dirt":
-		return
-	## Another seat already owns this dirt's clean cycle — do not wipe / steal it.
-	if target.has_method("is_clean_locked_by_other") and bool(target.call("is_clean_locked_by_other", seat_id)):
-		return
-	## Carry allowed; goods stay in hand while scrubbing.
-	var axis := _wiggle_axis()
-	if not _clean_hint:
-		_last_wiggle = axis
-	var travel := (axis - _last_wiggle).length()
-	_last_wiggle = axis
-	var needed := Tuning.CLEAN_WIGGLE_PER_SEC * Tuning.clean_seconds(_agi_now())
-	if needed <= 0.001:
-		hold_progress = 1.0
-	else:
-		var before := hold_progress
-		hold_progress = minf(1.0, hold_progress + travel / needed)
-		if hold_progress > before:
-			SfxBus.play_scrub()
-	if not _clean_hint:
-		_clean_hint = true
-		SfxBus.play("sfx_clean_start")
-		log_line.emit(Loc.t("log.player.clean_hint", [String(target.call("type_name"))]))
-	if not bool(target.call("set_cleaning", true, axis, hold_progress * 100.0, seat_id)):
-		## Lost the race to another seat this frame.
-		_clean_hint = false
-		_last_wiggle = Vector2.ZERO
-		return
-	if hold_progress >= 1.0:
-		var name := String(target.call("type_name"))
-		var spark_at := target.global_position
-		target.queue_free()
-		target = null
-		hold_progress = 0.0
-		_clean_hint = false
-		_last_wiggle = Vector2.ZERO
-		## Finished — leftover Interact hold is idle (same idea as shelve_done).
-		## Leaving `_long_committed` true made the next Cancel swallow instead of toss.
-		_long_committed = false
-		_spawn_fx("clean_spark", spark_at)
-		SfxBus.play("sfx_clean_done")
-		var game := _game()
-		if game:
-			game.note_clean(seat_id)
-		log_line.emit(Loc.t("log.player.clean_done", [name]))
+	_work.tick_clean(_delta)
 
 
 func _tick_drop() -> void:
@@ -4073,45 +2634,7 @@ func cast_skill_hotkey(slot: int) -> void:
 
 
 func _tick_triggers(delta: float) -> void:
-	## LT+RT ult chord only — RT no longer drives dash/run.
-	var tr := Controls.trigger_values_for(seat_id)
-	var lt := Controls.trigger_latched(tr.x, _lt_held)
-	var rt := Controls.trigger_latched(tr.y, _rt_held)
-	if lt and not _lt_held:
-		_lt_held = true
-		_lt_time = 0.0
-		_lt_fired = false
-	if rt and not _rt_held:
-		_rt_held = true
-		_rt_time = 0.0
-		_rt_fired = false
-	if lt:
-		_lt_time += delta
-	if rt:
-		_rt_time += delta
-	if lt and rt:
-		_trigger_chord_block = true
-		_both_trigger_time += delta
-		if not _ult_chord_active and not ult_prep and _both_trigger_time >= Skills.HOLD_MENU_SEC:
-			_on_ult_hold(true)
-			if ult_prep:
-				_ult_chord_active = true
-				_lt_fired = true
-				_rt_fired = true
-	else:
-		_both_trigger_time = 0.0
-	if not lt and _lt_held:
-		_lt_held = false
-	if not rt and _rt_held:
-		_rt_held = false
-	if not lt and not rt:
-		if _ult_chord_active:
-			_on_ult_hold(false)
-			_ult_chord_active = false
-		_trigger_chord_block = false
-		_both_trigger_time = 0.0
-		_lt_fired = false
-		_rt_fired = false
+	_work.tick_triggers(delta)
 
 
 func _close_bag_menu() -> void:
@@ -4290,90 +2813,12 @@ func _handle_hotkey_actions(event: InputEvent) -> void:
 			return
 
 
-func _visual_anim() -> String:
-	var mid := _model_id if _model_id != "" else appearance_skin_id()
-	if _stun_left > 0.0:
-		return "down"
-	if _slip_left > 0.0:
-		return "slip"
-	if _cast_pose_left > 0.0 and Vox.has_anim(mid, "cast"):
-		return "cast"
-	if _deliver_pose_left > 0.0 and Vox.has_anim(mid, "deliver"):
-		return "deliver"
-	if _fighting:
-		return "fight"
-	if _cleaning():
-		return "clean"
-	if command_lock:
-		return "checkout"
-	if _shelving():
-		return "restock"
-	if _dashing:
-		return "dash"
-	var moving := velocity.length() > 8.0
-	## Puppets zero velocity — walk from Host pose delta instead.
-	if is_net_puppet():
-		moving = _net_puppet_moving
-	if _running and moving and not is_net_puppet():
-		return "run"
-	if moving:
-		if not inventory.is_empty() and Vox.has_anim(mid, "walk_carry"):
-			return "walk_carry"
-		return "walk"
-	return "idle"
 
 
 func _update_visuals() -> void:
-	if _arrow:
-		## Tip is authored toward +Y (south); rotate so tip matches facing.
-		_arrow.rotation = facing.angle() - PI / 2.0
-	if _body == null:
-		return
-	_model_id = appearance_skin_id()
-	var anim := _visual_anim()
-	var prev_face := int(_body.get_meta("vox_anim_facing", -1)) if _body is AnimatedSprite2D else -1
-	var face_k := Vox.k_from_facing_stable(facing, prev_face) if _body is AnimatedSprite2D else Vox.k_from_facing(facing)
-	var anim_key := "%s_%s_%d_%.2f" % [_model_id, anim, face_k, 1.25 if _running else 1.0]
-	if _body is AnimatedSprite2D:
-		if anim_key != _shown_anim:
-			_shown_anim = anim_key
-			var spd := 1.25 if _running else 1.0
-			Vox.play_anim(_body as AnimatedSprite2D, _model_id, anim, facing, spd)
-	elif _body is Sprite2D:
-		Vox.apply(_body as Sprite2D, _model_id, face_k)
-	var status := Color.WHITE
-	if ult_prep:
-		status = Color(1.0, 0.45, 0.4)
-	elif skill_menu_open:
-		status = Color(0.65, 0.9, 1.0)
-	elif command_lock:
-		status = Color(1.0, 0.9, 0.55)
-	elif _dashing:
-		status = Color(1.0, 0.92, 0.45)
-	elif _running:
-		status = Color(0.7, 1.0, 0.85)
-	elif _fighting:
-		status = Color(1.0, 0.45, 0.4)
-	elif _stun_left > 0.0:
-		status = Color(0.85, 0.7, 1.0)
-	elif on_dirt():
-		status = Color(0.75, 0.62, 0.45)
-	var appear := _appearance_tint()
-	var tint := Color(appear.r * status.r, appear.g * status.g, appear.b * status.b, 1.0)
-	if tint != _shown_tint:
-		_shown_tint = tint
-		_body.modulate = tint
+	_view.update_visuals()
 
 
-func _appearance_tint() -> Color:
-	if stats == null:
-		return Color.WHITE
-	if stats.has_method("appearance_tint"):
-		return stats.appearance_tint()
-	if "tint" in stats:
-		const CharacterSheet = preload("res://scripts/session/character_sheet.gd")
-		return CharacterSheet.tint_color(int(stats.tint))
-	return Color.WHITE
 
 
 func _usable_cannon() -> Node2D:

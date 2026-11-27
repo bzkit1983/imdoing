@@ -240,3 +240,81 @@ func end_fight(_won: bool) -> void:
 	var game = host._game()
 	if game != null:
 		game.notify_camera_priority_idle()
+
+
+func try_dash_hits() -> void:
+	var g: Node = host._game()
+	if g == null:
+		return
+	host._try_wave_dirt_vfx()
+	## Thieves first (caught).
+	if g:
+		for t in g.thieves():
+			if t == null or not is_instance_valid(t):
+				continue
+			if not bool(t.call("is_active_thief")):
+				continue
+			if not host._dash_segment_hits(t.global_position):
+				continue
+			## Presentation thief: Host resolves dash KO from intents; local VFX only.
+			if host._agent_is_net_puppet(t):
+				SfxBus.play("sfx_thief_dash_out")
+				host.log_line.emit(Loc.t("log.player.thief_dash"))
+				if host._fighting and host.target == t:
+					host._fight_ko = true
+					host._net_ko_pending = true
+					host._play_ko_sequence(t, "", host._dash_dir, false)
+				return
+			t.call("dash_knock_away", host._dash_dir)
+			if g:
+				g.record_caught(host.seat_id, "dash")
+			SfxBus.play("sfx_thief_dash_out")
+			host.log_line.emit(Loc.t("log.player.thief_dash"))
+			if host._fighting:
+				host._end_fight(false)
+			return
+	## One guest resolution per dash. 衝刺交付: prefer guests who want carried goods (near→far), not only nearest.
+	## Clones are after guests so 衝刺交付 never hands goods to a clone.
+	if not host._dash_guest_done:
+		var guests: Array = host._dash_guests()
+		if not guests.is_empty():
+			if host.buff_left("dash_deliver") > 0.0:
+				var deliver_targets: Array = []
+				for guest in guests:
+					if guest == null or not is_instance_valid(guest):
+						continue
+					if not guest.has_method("can_receive_delivery") or not bool(guest.call("can_receive_delivery")):
+						continue
+					if not host._guest_wants_carried(guest):
+						continue
+					deliver_targets.append(guest)
+				if not deliver_targets.is_empty():
+					var gave: int = host._hand_deliver(deliver_targets, false)
+					if gave > 0:
+						host._dash_guest_done = true
+						host.log_line.emit(Loc.t("log.player.dash_deliver", [gave]))
+						return
+			var nearest: Node = guests[0]
+			host._dash_guest_done = true
+			var add: float = 0.0 if host._has_flag("polite_dash") else Tuning.DASH_GUEST_DISSAT
+			if g:
+				g.play_ko_banner()
+			if nearest.has_method("dash_knock_guest"):
+				nearest.call("dash_knock_guest", add)
+			if add > 0.0:
+				g.note_dash_guest(host)
+			SfxBus.play("sfx_ko_guest_dash")
+			host.log_line.emit(Loc.t("log.player.dash_guest") if add > 0.0 else Loc.t("log.player.dash_polite"))
+			return
+	if host._dash_guest_done:
+		return
+	var clone: Node = host._dash_clone()
+	if clone == null:
+		return
+	host._dash_guest_done = true
+	if g:
+		g.play_ko_banner()
+	if clone.has_method("dash_knock"):
+		clone.call("dash_knock")
+	SfxBus.play("sfx_ko_guest_dash")
+	host.log_line.emit(Loc.t("log.player.dash_clone"))
