@@ -2,7 +2,7 @@
 
 框架總則：[`../storysystem.md`](../storysystem.md)
 
-> **EA 範圍（2026-11-27，Jackson）：** 付費 Steam EA＝序章 → 第1章 → 第2章（破局）→ 自選一章（只有安桃山可選）。**免費 Demo**＝序章 + 第1章（第1章通關後停下）。完整十章／其餘五主題／終章仍是設計先行。序章內容閘與經濟（劇本 8）及頭目戰測試（劇本 6）已在活線；第1／2章、選章 runtime 與 Demo 組建 **尚未實作**（現屬已核准範圍）。安桃山玩法／id 見 [`themes/theme-historic.md`](themes/theme-historic.md)；劇本 9／10 為測試沙盒。見 [`../storysystem.md`](../storysystem.md)、[`docs/versioning.md`](../../versioning.md)。  
+> **EA 範圍（2026-11-27，Jackson）：** 付費 Steam EA＝序章 → 第1章 → 第2章（破局）→ 自選一章（只有安桃山可選）。**免費 Demo**＝序章 + 第1章＋教學（劇本 5；第1章通關後停下；暫不含多人；存檔不轉入 EA）。完整十章／其餘五主題／終章仍是設計先行。序章內容閘與經濟（劇本 8）及頭目戰測試（劇本 6）已在活線；第1／2章、選章 runtime 與 Demo 組建 **尚未實作**（現屬已核准範圍）。安桃山玩法／id 見 [`themes/theme-historic.md`](themes/theme-historic.md)；劇本 9／10 為測試沙盒。見 [`../storysystem.md`](../storysystem.md)、[`docs/versioning.md`](../../versioning.md)。  
 > **進程模型：** `story_slot`（序／1／2／槽3–8／終／後日談）× `theme_id`（破局固定＋六可選）。第 3–8 章檔＝**進程槽模板**，內容讀主題檔。
 
 | 檔案 | 章／用途 |
