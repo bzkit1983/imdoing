@@ -4,7 +4,7 @@
 - 內容組合流水號見：`taskcontent-ops-test.md`、`taskcontent-event-stub.md`、`taskcontent-story-stub.md`
 - 劇情框架（選章＋破局；`story_slot` × `theme_id`）與開檔：`storysystem.md`、`story/`、`story/themes/`
 - 評價條件語意見 `ratingsystem.md`；生態系統進度欄見 `ecosystem.md`
-- 事件規則修飾器屬事件系統（`eventsystem.md` 占位、不排活線）；本檔只消費任務條件列
+- 事件規則修飾器屬事件系統（`eventsystem.md`；第1／2章所需 runtime 已列入 EA）；本檔只消費任務條件列
 - 工程活線已接 catalog／tracker／HUD／教學與序章 pack；細節與未做項見文末「活線摘要」
 
 # 三種任務
@@ -12,7 +12,7 @@
 | 種類 | `kind` | 來源 | 生命週期 | 失敗後果 |
 | --- | --- | --- | --- | --- |
 | 營運任務 | `ops` | 設計師按商店／進度編排；測試可用生成器 | 當日或跨日累計；每營運回合 0～不設限條 | 不擋劇情 |
-| 事件任務 | `event` | 事件觸發（進度／條件／可控隨機） | 隨事件清單；可疊加或替換當日條件 | 不擋劇情（與劇情分開） |
+| 事件任務 | `event` | 事件觸發（進度／條件／可控隨機） | 隨事件清單；可疊加或替換當日條件 | **2026-11-27：** 失敗可令該事件（及相依劇情任務）無法達成，變相擋推進；**不擋營運日結算** |
 | 劇情任務 | `story` | 主線綁定 | 做完一次即完結並推進劇情 | **失敗擋劇情推進**（日常＝軟擋 A；頭目＝D→C；見 `storysystem.md`、`story/progression-crossref.md` §6.1） |
 
 營運任務根據範圍在同一個或跨營運回合達成；以玩家完成為準（seat 規則見下）。

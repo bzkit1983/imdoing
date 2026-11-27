@@ -1,7 +1,7 @@
 # 事件系統（占位）
 
-- **狀態：** 開檔占位；**不排活線實作**（tech-review v0.3 **N2**）
-- **產品範圍：** Steam EA 劇情進程見 [`docs/versioning.md`](../versioning.md)（2026-11-27：序章→第1／2章→安桃山）。**完整事件表預設仍留 Beta、不排 EA 活線**。第1／2章開檔提到事件任務，是否改為 EA 必需，尚未確定（見 `storysystem.md` 開放問題）。
+- **狀態：** 開檔占位；完整事件表仍後補。**2026-11-27 已決：第1章與第2章需要事件系統**，改列入 EA 活線（不再整體暫緩）。tech-review v0.3 曾標 N2 不排活線，已被本決議取代。
+- **產品範圍：** Steam EA 劇情進程見 [`docs/versioning.md`](../versioning.md)（序章→第1／2章→安桃山）。第1／2章所需事件 runtime 屬 EA；完整事件表仍留 Beta。失敗可令事件或劇情任務無法達成（變相擋推進），但不擋營運日結算。
 - **對照：** 劇情框架 [`storysystem.md`](storysystem.md)；任務條件 [`tasksystem.md`](tasksystem.md)；事件 pack stub [`taskcontent-event-stub.md`](taskcontent-event-stub.md)
 
 # 本檔要定義什麼（之後再填）

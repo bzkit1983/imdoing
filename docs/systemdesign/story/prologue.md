@@ -3,16 +3,16 @@
 - 章 id：`prologue`
 - 劇情 pack 前綴：`ST-PROLOGUE-###`
 - 框架總則：[`../storysystem.md`](../storysystem.md)
-- **狀態：** 進程主線已定（不含劇情）；劇本／事件文案後補。**EA（2026-11-27）：** 序章是付費 EA 與免費 Demo 的進程起點。Demo 另含教學（劇本 5）。**活線：** 劇本 8 已接內容閘與經濟（`ST-PROLOGUE-MONEY`）。通關後進第 1 章的 `story_slot` runtime 仍未做
+- **狀態：** 進程主線已定（不含劇情）；劇本／事件文案後補。**EA（2026-11-27）：** 序章是付費 EA 與免費 Demo 的進程起點。正式開局直接進劇情模式，**體驗式教學織入進程**（不是劇本 5）。**活線：** 劇本 8 已接內容閘與經濟（`ST-PROLOGUE-MONEY`），本身是測試入口。通關後進第 1 章的 `story_slot` runtime 仍未做
 - 經濟／規模：[`growth-economy.md`](growth-economy.md)；交叉：[`progression-crossref.md`](progression-crossref.md)
 
 # 概念（框架）
 
-序章＝**新手教學向進程槽**＋順利營運入門（可含包裝式操作任務）。選章／破局在第2章通關後才開放（EA 僅安桃山可選）。
+序章＝**新手教學向進程槽**＋順利營運入門（可含包裝式操作任務）。選章／破局在第2章通關後才開放（EA 選章顯示其他主題，只能選安桃山）。
 
 - 不計劇本內容時：以劇情任務帶玩家一步步完成基本商店設置與營運
 - 另有**小型事件任務**解鎖基本類型的**初階技能**（具體技能 id 待技能分析）
-- **教學系統分開：** [`../tutorial.md`](../tutorial.md) 與序章**不合併**；Lesson／步驟／條件等**可重用**到序章任務（或序章引用教學已完成標記）。見 [`progression-crossref.md`](progression-crossref.md) §6
+- **教學（2026-11-27 更新）：** 正式／EA／Demo 改為**邊玩邊學的體驗式教學**，織入正式劇情（細節待設計）。現有 [`../tutorial.md`](../tutorial.md) 框架／Lesson **可作素材重用**，但官方教學不是劇本 5，也不是與序章並行的另一條開局。見 [`progression-crossref.md`](progression-crossref.md) §6
 - 進程：通關後進入 [`chapter-01.md`](chapter-01.md)（仍直線，無選章）
 - **解鎖規則：** 等級從不直接解鎖；任務發**可開發／可購入資格**，仍付開發費／傢俬價。未解鎖 SKU／傢俬在 Prep **不顯示**
 

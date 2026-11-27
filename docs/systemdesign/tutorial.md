@@ -6,11 +6,12 @@
 - 文案：`Loc`（`tut.*`／`pause.tutorial.*`；見 `docs/alpha/i18n.md`）
 - 營運任務交叉：`tasksystem.md`（教學不走 `task_test_mode`）
 - 暫停重溫：`pausemenu.md`
-- 劇本入口：
-  - **產品（H2）：** 無存檔進入劇本頁時，先問「開始教學」→ `apply_scenario(5)`，或「跳過教學」→ `apply_scenario(1)`＋`tutorial_skipped`
+- **正式／EA／Demo（2026-11-27）：** 官方組建**沒有劇本選擇**；開始遊戲直接進入正式劇情，並以**邊玩邊學的體驗式教學**織入進程。官方教學**不是**劇本 5。本檔現有框架／Lesson／步驟條件**可作素材重用**；體驗式教學細節待設計。
+- 現行活線／測試入口（非正式開局）：
+  - **產品（H2，現行測試流程）：** 無存檔進入劇本頁時，先問「開始教學」→ `apply_scenario(5)`，或「跳過教學」→ `apply_scenario(1)`＋`tutorial_skipped`
   - **測試工具：** 清單仍可另列劇本 5（`ProductVersion.test_tools_enabled()`）
-- **跳過：** 劇本頁拒絕；或教學模態「跳過教學」／強制頁 `cancel` → `TutorialDirector.skip_campaign()`（標全部課 `done`＋`tutorial_skipped`，寫存檔）
-- **產品化（H2 Done）：** 框架＋劇本 5 鏈＋新檔入場／跳過；驗收見 [`docs/alpha/steam-productization.md`](../alpha/steam-productization.md)
+- **跳過（現行測試流程）：** 劇本頁拒絕；或教學模態「跳過教學」／強制頁 `cancel` → `TutorialDirector.skip_campaign()`（標全部課 `done`＋`tutorial_skipped`，寫存檔）
+- **產品化（H2 Done＝現行測試教學鏈）：** 框架＋劇本 5 鏈＋新檔入場／跳過。正式體驗式教學尚未取代此入口；見 [`docs/alpha/steam-productization.md`](../alpha/steam-productization.md)
 
 ## 範圍
 

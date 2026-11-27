@@ -1,7 +1,7 @@
 # 分店系統
 
 - 此檔定義**分店系統**（主題店快照、本店／分店切換、分店設置、背景營運結算、日結分頁）
-- **狀態：** 設計先行（產品規格開檔）。**活線未做**。`story_slot` × `theme_id` runtime 已列入 EA（見 [`storysystem.md`](storysystem.md)），但**分店本身預設仍不排 EA 活線**。規格寫「清完第一個可選主題後解鎖」；EA 只有安桃山一間可選主題，打完後是否需要分店，尚未確定。
+- **狀態：** 設計先行（產品規格開檔）。**活線未做**。**2026-11-27 已決：EA 打完安桃山（第一個可選主題）後可開分店**，不再整體暫緩。規格仍寫「清完第一個可選主題後解鎖」，與本決議一致。見 [`storysystem.md`](storysystem.md)。
 - 交叉：[`ecosystem.md`](ecosystem.md)、[`savesystem.md`](savesystem.md)、[`ratingsystem.md`](ratingsystem.md)、[`clerksystem.md`](clerksystem.md)、[`eliteclerk.md`](eliteclerk.md)、[`storepreparationphase.md`](storepreparationphase.md)、[`storeoperationphase.md`](storeoperationphase.md)、[`procurement.md`](procurement.md)、[`story/progression-crossref.md`](story/progression-crossref.md)
 
 # 分店定義

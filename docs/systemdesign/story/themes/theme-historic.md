@@ -2,7 +2,7 @@
 
 - `theme_id`：`theme_historic`
 - 劇情 pack 前綴：`ST-HISTORIC-###`
-- 角色：可選主題（填入 story_slot 3–8）。**EA（2026-11-27）：** 破局後唯一可選的主題
+- 角色：可選主題（填入 story_slot 3–8）。**EA（2026-11-27）：** 破局後唯一可選的主題（選章畫面仍顯示其他主題，但鎖定）。打完後可開分店並續日循環（進度上限 TBD）
 - 框架總則：[`../../storysystem.md`](../../storysystem.md)
 - 專檔：[`../../cookedfoodsystem.md`](../../cookedfoodsystem.md)、[`../../fishingtaro.md`](../../fishingtaro.md)
 - 經濟／貨束：[`../growth-economy.md`](../growth-economy.md) §4.2／§7

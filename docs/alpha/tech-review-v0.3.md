@@ -6,7 +6,7 @@
 - **並行證據：** [`runtime-perf-audit.md`](runtime-perf-audit.md) · [`implementation-status.md`](implementation-status.md) · [`systemdesign-gaps.md`](../systemdesign-gaps.md) · [`steam-productization.md`](steam-productization.md) · [`storysystem.md`](../systemdesign/storysystem.md)
 - **目標平台：** Steam · Nintendo Switch · Xbox（及現行 Web 試玩）
 - **性質：** 工程＋產品可交付性評估；**非**玩法規格。玩法仍以 `docs/systemdesign/` 為準。
-- **後續勘誤（2026-11-27，不改本審查當日分數與行數）：** Q1 的 `godot-checks` job **從未進入** [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)（§7 已註明需 `workflow` scope 才能推）。現行 CI 只有 `static-tests`（`tools/run_ci_static.py`）；`tools/run_godot_checks.py` 可本地跑，見 [`ci-local.md`](ci-local.md)。另：本 tip 時 `SAVE_VERSION` 為 4，其後已升至 9；序章內容閘與頭目測試其後已進活線。同日稍後 Jackson 決議：遊戲先以**付費 Steam EA** 上市，進程＝序章→第1章→第2章（破局）→自選一章（只有安桃山可選）；**免費 Demo**＝序章＋第1章。此決議**取代**本審查所依據的 H3「EA＝純日循環」（見 [`docs/versioning.md`](../versioning.md)、[`implementation-status.md`](implementation-status.md)）。
+- **後續勘誤（2026-11-27，不改本審查當日分數與行數）：** Q1 的 `godot-checks` job **從未進入** [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)（§7 已註明需 `workflow` scope 才能推）。現行 CI 只有 `static-tests`（`tools/run_ci_static.py`）；`tools/run_godot_checks.py` 可本地跑，見 [`ci-local.md`](ci-local.md)。另：本 tip 時 `SAVE_VERSION` 為 4，其後已升至 9；序章內容閘與頭目測試其後已進活線。同日稍後 Jackson 決議：遊戲先以**付費 Steam EA** 上市，進程＝序章→第1章→第2章（破局）→自選一章（只有安桃山可選）；**免費 Demo**＝序章＋第1章。此決議**取代**本審查所依據的 H3「EA＝純日循環」（見 [`docs/versioning.md`](../versioning.md)、[`implementation-status.md`](implementation-status.md)）。同日稍後再決：正式／EA／Demo 無劇本選擇、教學改為劇情內體驗式；第1／2章要事件系統；打完安桃山後可開分店並續日循環；失敗可擋事件／劇情任務、不擋日結算。
 
 ## 總評
 

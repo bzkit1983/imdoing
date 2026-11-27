@@ -4,7 +4,7 @@
 - 用途：把近期工程變更連回長線／Alpha 設計檔，方便查「文件寫在哪、程式改哪」
 - 版控：`docs/versioning.md` · 技術評估：`docs/alpha/tech-review-v0.3.md`（現行；v0.2 §7 多數已勾見 [`tech-review-v0.2.md`](tech-review-v0.2.md)；v0.1 §6 見 [`tech-review-v0.1.md`](tech-review-v0.1.md)） · 缺口：`docs/systemdesign-gaps.md` · 執行期優化：`docs/alpha/runtime-perf-audit.md`
 - **美術：** v1.5.0 中期規格見 [`art-interim-v1.5.md`](../systemdesign/art-interim-v1.5.md)；**放置／換皮暫交美術成員**（工程維持插座與契約，不改玩法距離／COST／碰撞）
-- **EA 範圍（2026-11-27，Jackson；取代 H3「純日循環」）：** 付費 Steam EA＝序章 → 第1章 → 第2章（破局）→ 自選一章（只有安桃山可選）。**免費 Demo**＝序章 + 第1章＋教學（劇本 5），第1章通關後停下；暫不含多人；存檔不轉入 EA。見 `versioning.md`／`storysystem.md`／`steam-productization.md`。活線已有序章內容閘（劇本 8）與頭目測試（劇本 6）；第1／2章、選章 runtime 與 Demo 組建尚未做
+- **EA 範圍（2026-11-27，Jackson；取代 H3「純日循環」）：** 付費 Steam EA＝序章 → 第1章 → 第2章（破局）→ 自選一章（只有安桃山可選；選章顯示其他主題但鎖定）。**免費 Demo**＝序章 + 第1章＋**劇情內體驗式教學**（**不是**劇本 5），第1章通關後停下；暫不含多人；存檔不轉入 EA。正式組建無劇本選擇。第1／2章要事件系統；打完安桃山後可開分店並續日循環（上限 TBD）。失敗可擋事件／劇情任務、不擋日結算。見 `versioning.md`／`storysystem.md`／`steam-productization.md`。活線已有測試入口：序章內容閘（劇本 8）與頭目測試（劇本 6）；第1／2章、選章 runtime、事件／分店與 Demo 組建尚未做
 
 | 變更 | 長線／Alpha 文件 | 工程 |
 | --- | --- | --- |
@@ -59,9 +59,9 @@
 | 網上權威修復（1／2／3／5） | 同上 §7；`session_service`／`demo`／`player`／`seat_table`／`interact_lock` | **已修**：Host 時鐘＋early-close 閘；Client 禁庫存／交付突變；Intent aim／toss／restock；`guest_stats`＝local_index 1。COMBO HUD 暫緩另設計 |
 | 中期美術 v1.5.0 | **`docs/systemdesign/art-interim-v1.5.md`**；`voxel-hires-scale-plan.md`；`ops-sku-icon-ui.md` | 非玩家體素、補貨架高度、SKU／技能／prep 圖示、地板牆污物；玩家四套 Look／CELL／碰撞／技能數值凍結。**放置／換皮暫交美術**；工程驗收見 art-interim「美術放置驗收清單」 |
 | 收銀取消 Circle＋INT／技能重做（2026-11-18） | **`cashiersystem.md`**、`playerstats.md`、`playeractiveskills.md`、`playerpassiveskills.md`；日誌 [`Bzho_log/20261118_….md`](../Bzho_log/20261118_收銀取消Circle與INT技能重做.md) | 指令完成即入帳（無 Loading Circle）；INT 減次數＋親收加錢；`checkout_rush`／`checkout_speed`／`senior_cashier` 重做；店員／影分身／Dark Side 就緒即收 |
-| EA 範圍聲明 | **`docs/versioning.md`**；`docs/alpha/design.md`；`storysystem.md`；`steam-productization.md` | **2026-11-27 已拍板（Jackson）：** 先以**付費 Steam EA** 上市，進程＝序章 → 第1章 → 第2章（破局）→ 自選一章（只有安桃山）。**免費 Demo**＝序章 + 第1章＋教學（劇本 5）；暫不含多人；**存檔不轉入 EA**。取代 2026-11-18 H3「純日循環」。其餘五主題／終章／事件表／分店預設留 Beta。Demo 組建（內容閘、獨立 App ID、分離存檔、結束畫面導流）尚未做 |
-| 劇情模式框架 | **`docs/systemdesign/storysystem.md`**；`story/`；`docs/beta/design.md` | **設計：** 十章選章＋成長三分析＋失敗擋 UX。**EA 要做：** 序章（已有劇本 8 閘／經濟）＋第1章＋第2章破局＋僅安桃山選章＋`story_slot` 狀態機。**仍未做（屬 EA）：** 狀態機、第1／2章內容、選章畫面與存檔欄。**仍暫緩：** 其餘五主題、終章、分店、事件系統 |
-| 事件系統占位（N2） | **`docs/systemdesign/eventsystem.md`** | **占位開檔；預設仍不排 EA 活線**（第1／2章若必須用事件任務，待負責人確認） |
+| EA 範圍聲明 | **`docs/versioning.md`**；`docs/alpha/design.md`；`storysystem.md`；`steam-productization.md` | **2026-11-27 已拍板（Jackson）：** 先以**付費 Steam EA** 上市，進程＝序章 → 第1章 → 第2章（破局）→ 自選一章（只有安桃山；選章顯示其他主題但鎖定）。**免費 Demo**＝序章 + 第1章＋劇情內體驗式教學（不是劇本 5）；暫不含多人；**存檔不轉入 EA**。正式組建無劇本選擇。第1／2章要事件；打完安桃山可開分店並續日循環。失敗可擋事件／劇情任務、不擋日結算（放寬 H3）。其餘五主題／終章／完整事件表留 Beta。Demo 組建尚未做 |
+| 劇情模式框架 | **`docs/systemdesign/storysystem.md`**；`story/`；`docs/beta/design.md` | **設計：** 十章選章＋成長三分析＋失敗擋 UX（2026-11-27：可擋事件／劇情任務、不擋日結算）。**EA 要做：** 官方開局（無劇本選擇＋體驗式教學）＋序章（活線劇本 8 閘／經濟為測試入口）＋第1章＋第2章破局（含事件）＋顯示六主題但僅安桃山可選＋`story_slot` 狀態機＋打完安桃山後分店與續日循環。**仍未做（屬 EA）。仍暫緩：** 其餘五主題活線正文、終章 |
+| 事件系統占位（N2） | **`docs/systemdesign/eventsystem.md`** | **2026-11-27 已決：第1／2章需要事件系統**（改列入 EA）。完整事件表仍後補。活線未做 |
 | CJK 字型子集（M2） | **`docs/alpha/fonts-subset.md`** | 2026-11-21 重跑 Regular／Bold／Black（西客炮／源頭減廢／有糧出…） |
 | 效能基線 J1（O1） | **`docs/alpha/perf-baseline-j1.md`** | 空店＋桌面 `--load` 滿店 15／分身 3；Deck 待測 |
 | CI 靜態（G1）＋本地閘門 | **`.github/workflows/ci.yml`** 僅 `static-tests`（`python3 tools/run_ci_static.py`）；[`ci-local.md`](ci-local.md) | `tools/run_godot_checks.py` 可本地跑（shelf_sniper／interact_glow／difficulty），**尚未**成為 workflow job（Q1 的 `godot-checks` 因 `workflow` scope 未推入）。2026-11-27 已加 pre-push hook |
@@ -73,7 +73,7 @@
 | 序章內容閘／經濟（劇本 8） | **`docs/systemdesign/story/prologue.md`**、`taskcontent-story-stub.md`、`storysystem.md` | **已實作**（2026-11-25）。`GameState.SCENARIO_PROLOGUE = 8`：LV1、$2500、空店、內容閘（`unlocked_*`／`prologue_boss_unlocked`，`SAVE_VERSION` ≥7）；任務 pack `ST-PROLOGUE-MONEY`。**2026-11-27 起列入 EA 起點**；通關後進第1章的 runtime 仍未做 |
 | 安桃山熟食檔＋釣魚（劇本 9） | **`docs/systemdesign/cookedfoodsystem.md`**、`fishingtaro.md`、`storepreparationphase.md` | **已實作**（2026-11-25）。`theme_historic` 熟食檔與釣魚太郎；劇本 9 藍本同劇本 4；`SAVE_VERSION` ≥8（`fish_stock`／`fishing_taro_played`） |
 | 精英店員（劇本 10） | **`docs/systemdesign/eliteclerk.md`**、`storepreparationphase.md`、`savesystem.md` | **已實作**（2026-11-26，#146）。Prep UI＋多崗位；`SAVE_VERSION` 9（`elite_clerks`）。劇本 10＝安桃山布局營運日測試，目錄全員 debug 滿級 |
-| 分店系統（設計） | **`docs/systemdesign/branchstore.md`** | **僅設計開檔**（2026-11-27）；活線未做。EA 預設仍暫緩；規格寫清完第一個可選主題後解鎖，EA 只有安桃山，是否必需尚未確定 |
+| 分店系統（設計） | **`docs/systemdesign/branchstore.md`** | **僅設計開檔**；活線未做。**2026-11-27 已決：EA 打完安桃山後可開分店**（不再整體暫緩） |
 | Ambient Peek 操作層 | **`docs/systemdesign/player-context-ui.md`**、`control.md` | **已實作**（2026-11-23）。背包菱形、持物條、技能環；#144／#145 |
 | 其他 11-20～11-27 同期落地 | 各技能／小遊戲／多人檔 | 商品 XP 曲線 LV99 與店規模 S1–S6（#140）；培養預覽；收銀對決／Dasher／快吞包對決／Metal Rush 等小遊戲；網上 Host 權威修復（#143）；本地 vs 網上缺口文件（#142）；手掣／鍵盤短按徑向重綁 |
 
