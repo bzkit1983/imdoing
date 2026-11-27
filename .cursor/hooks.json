@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "hooks": {
+    "afterFileEdit": [
+      {
+        "command": ".cursor/hooks/ci_static_gate.py"
+      }
+    ],
+    "afterShellExecution": [
+      {
+        "command": ".cursor/hooks/ci_static_gate.py",
+        "matcher": "run_ci_static"
+      }
+    ],
+    "stop": [
+      {
+        "command": ".cursor/hooks/ci_static_gate.py",
+        "loop_limit": 1
+      }
+    ]
+  }
+}

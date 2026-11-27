@@ -26,7 +26,7 @@
 - `tools/test_demo_host_extract.py`：L1 模組 preload／bind／`demo.gd` 行數預算  
 - `tools/test_player_extract.py`：`cast_slot`／`cast_ultimate` 仍在編排器  
 
-合併前建議跑：`python3 tools/run_ci_static.py`
+合併前必須跑：`python3 tools/run_ci_static.py`（與 GitHub CI 相同；本地 hook 見 [`ci-local.md`](ci-local.md)）
 
 ## 不要做的事
 

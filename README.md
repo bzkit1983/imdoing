@@ -8,6 +8,8 @@ Repository for game project
 
 **Coding agents（任何工具）：** 先讀根目錄 [`AGENTS.md`](AGENTS.md)；多語言內容流程見 [`agents/skills/i18n-content/SKILL.md`](agents/skills/i18n-content/SKILL.md)。
 
+**本地 CI（減少遠端 FAIL）：** push 前跑 `python3 tools/run_ci_static.py`。啟用 pre-push：`git config core.hooksPath tools/githooks`（見 [`docs/alpha/ci-local.md`](docs/alpha/ci-local.md)）。
+
 **產品版：** `v1.5.0`（中期美術；見 [`VERSION`](VERSION)、[`docs/versioning.md`](docs/versioning.md)、[`docs/systemdesign/art-interim-v1.5.md`](docs/systemdesign/art-interim-v1.5.md)；上一錨點 `v1.4.0`）  
 **網頁試玩：** https://bzkit1983.github.io/imdoing/play/
 

@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Block push unless the same suite as GitHub Actions CI passes.
+# Escape hatch: SKIP_CI_HOOK=1 git push
+set -euo pipefail
+
+# Drain refs from stdin (git pre-push protocol).
+while read -r _remote_ref _local_sha _remote_ref2 _remote_sha; do
+  :
+done || true
+
+if [[ "${SKIP_CI_HOOK:-}" == "1" ]]; then
+  echo "pre-push: SKIP_CI_HOOK=1 — skipping tools/run_ci_static.py"
+  exit 0
+fi
+
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+
+echo "pre-push: running python3 tools/run_ci_static.py (mirrors GitHub CI)"
+if ! python3 tools/run_ci_static.py; then
+  echo ""
+  echo "pre-push: CI static suite FAILED — push blocked."
+  echo "Fix the failures above, or emergency skip with: SKIP_CI_HOOK=1 git push"
+  exit 1
+fi
+
+exit 0
