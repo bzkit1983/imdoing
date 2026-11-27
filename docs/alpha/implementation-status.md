@@ -1,10 +1,10 @@
 # Alpha → v1 實作對照（設計已落地項）
 
-- 對照日：2026-11-20（含 PR #3–#117 等；多人 **M1～M2.9 已落地**；**§13 M3 Steam 已驗收**；產品 **v1.5.0** 中期美術；收銀取消 Circle／INT 技能重做；劇情框架設計開檔）
+- 對照日：2026-11-27（`origin/main` @ `c8c778e`；含 PR #3–#146 等；多人 **M1～M2.9 已落地**；**§13 M3 Steam 已驗收**；產品 **v1.5.0** 中期美術；`SAVE_VERSION` **9**；收銀取消 Circle／INT 技能重做；11-20 之後見下表新增列）
 - 用途：把近期工程變更連回長線／Alpha 設計檔，方便查「文件寫在哪、程式改哪」
 - 版控：`docs/versioning.md` · 技術評估：`docs/alpha/tech-review-v0.3.md`（現行；v0.2 §7 多數已勾見 [`tech-review-v0.2.md`](tech-review-v0.2.md)；v0.1 §6 見 [`tech-review-v0.1.md`](tech-review-v0.1.md)） · 缺口：`docs/systemdesign-gaps.md` · 執行期優化：`docs/alpha/runtime-perf-audit.md`
 - **美術：** v1.5.0 中期規格見 [`art-interim-v1.5.md`](../systemdesign/art-interim-v1.5.md)；**放置／換皮暫交美術成員**（工程維持插座與契約，不改玩法距離／COST／碰撞）
-- **EA 範圍：** 純日循環；不做失敗／過關敘事（H3 已拍板；見 `versioning.md`／`design.md`）
+- **EA 範圍：** H3 已拍板＝純日循環、不做失敗／過關敘事（見 `versioning.md`／`design.md`）。活線其後已有序章內容閘（劇本 8）與頭目測試（劇本 6）；**序章是否計入 EA 尚未決定**，見 `storysystem.md`
 
 | 變更 | 長線／Alpha 文件 | 工程 |
 | --- | --- | --- |
@@ -59,13 +59,34 @@
 | 網上權威修復（1／2／3／5） | 同上 §7；`session_service`／`demo`／`player`／`seat_table`／`interact_lock` | **已修**：Host 時鐘＋early-close 閘；Client 禁庫存／交付突變；Intent aim／toss／restock；`guest_stats`＝local_index 1。COMBO HUD 暫緩另設計 |
 | 中期美術 v1.5.0 | **`docs/systemdesign/art-interim-v1.5.md`**；`voxel-hires-scale-plan.md`；`ops-sku-icon-ui.md` | 非玩家體素、補貨架高度、SKU／技能／prep 圖示、地板牆污物；玩家四套 Look／CELL／碰撞／技能數值凍結。**放置／換皮暫交美術**；工程驗收見 art-interim「美術放置驗收清單」 |
 | 收銀取消 Circle＋INT／技能重做（2026-11-18） | **`cashiersystem.md`**、`playerstats.md`、`playeractiveskills.md`、`playerpassiveskills.md`；日誌 [`Bzho_log/20261118_….md`](../Bzho_log/20261118_收銀取消Circle與INT技能重做.md) | 指令完成即入帳（無 Loading Circle）；INT 減次數＋親收加錢；`checkout_rush`／`checkout_speed`／`senior_cashier` 重做；店員／影分身／Dark Side 就緒即收 |
-| EA 範圍聲明（H3） | **`docs/versioning.md`**；`docs/alpha/design.md`；tech-review v0.2 H3／v0.3 | **已拍板：** Steam EA／現行＝純日循環；不做失敗／過關／提早關店敘事；敘事／事件留 Beta（劇情框架見 `storysystem.md`，活線未做） |
-| 劇情模式框架（設計） | **`docs/systemdesign/storysystem.md`**；`story/`；`docs/beta/design.md` | **設計開檔**（十章＋成長三分析＋失敗擋 UX）；**活線未實作**；見 tech-review v0.3 N1 |
+| EA 範圍聲明（H3） | **`docs/versioning.md`**；`docs/alpha/design.md`；tech-review v0.2 H3／v0.3 | **已拍板：** Steam EA／現行＝純日循環；不做失敗／過關／提早關店敘事；事件表留 Beta。十章選章／章節 runtime 仍未做。序章內容閘已進活線；**是否計入 EA 交負責人決定**（見 `storysystem.md`） |
+| 劇情模式框架 | **`docs/systemdesign/storysystem.md`**；`story/`；`docs/beta/design.md` | **設計：** 十章選章＋成長三分析＋失敗擋 UX。**活線已接：** 劇本 8 序章內容閘／經濟（`ST-PROLOGUE-MONEY`；`SAVE_VERSION` ≥7）、劇本 6 頭目戰測試。**仍未做：** 十章選章、`story_slot` 狀態機、分店 runtime。序章是否計入 EA 尚未決定 |
 | 事件系統占位（N2） | **`docs/systemdesign/eventsystem.md`** | **占位開檔；不排活線** |
 | CJK 字型子集（M2） | **`docs/alpha/fonts-subset.md`** | 2026-11-21 重跑 Regular／Bold／Black（西客炮／源頭減廢／有糧出…） |
 | 效能基線 J1（O1） | **`docs/alpha/perf-baseline-j1.md`** | 空店＋桌面 `--load` 滿店 15／分身 3；Deck 待測 |
-| CI Godot 可選（Q1） | **`.github/workflows/ci.yml`** `godot-checks`；`tools/run_godot_checks.py` | shelf_sniper／interact_glow／difficulty；`continue-on-error` |
+| CI 靜態（G1）＋本地閘門 | **`.github/workflows/ci.yml`** 僅 `static-tests`（`python3 tools/run_ci_static.py`）；[`ci-local.md`](ci-local.md) | `tools/run_godot_checks.py` 可本地跑（shelf_sniper／interact_glow／difficulty），**尚未**成為 workflow job（Q1 的 `godot-checks` 因 `workflow` scope 未推入）。2026-11-27 已加 pre-push hook |
 | Steam Cloud／成就接線（H1 半程） | **`docs/alpha/steam-productization.md`**；`godotsteam-setup.md` | `steam_platform.gd`：`fileWrite`／`fileRead`／`setAchievement`＋`storeStats`；正式 App ID 仍 Open（480） |
 | 完整設定頁＋首日引導（H2） | **`docs/alpha/steam-productization.md`**；`pausemenu.md`；`tutorial.md` | 暫停「設定」子選單＋準備「系統工具→設定」；新檔開始／跳過教學；`tutorial_skipped`＋模態跳過；暫停可重溫 |
+| 傳送門 | **`docs/systemdesign/shopitem.md`**、`shopsetup.md` | **已實作**（2026-11-24）。成對 `portal`＋`pair_id`；光束傳送；測試 VOX 圖與 Prep 圖示。測試版可授予最多 4 端；序章／教學不加 |
+| 自助收銀修理（劇本 7） | **`docs/systemdesign/cashiersystem.md`**、`shopitem.md`、`storepreparationphase.md` | **已實作**（2026-11-24）。傢俬 `self_cashier` 耐久／修理迴圈；劇本 7 藍本＝劇本 4，門口一台自助機、無收銀店員 |
+| 頭目戰測試（劇本 6） | **`docs/systemdesign/bossbattle.md`**、`bosses/alien_tycoon.md` | **已實作**（2026-11-21）。選劇本 6 後「開始營運」進入頭目日，測外星大土豪 |
+| 序章內容閘／經濟（劇本 8） | **`docs/systemdesign/story/prologue.md`**、`taskcontent-story-stub.md`、`storysystem.md` | **已實作**（2026-11-25）。`GameState.SCENARIO_PROLOGUE = 8`：LV1、$2500、空店、內容閘（`unlocked_*`／`prologue_boss_unlocked`，`SAVE_VERSION` ≥7）；任務 pack `ST-PROLOGUE-MONEY`。十章選章仍未做；**是否計入 EA 尚未決定** |
+| 安桃山熟食檔＋釣魚（劇本 9） | **`docs/systemdesign/cookedfoodsystem.md`**、`fishingtaro.md`、`storepreparationphase.md` | **已實作**（2026-11-25）。`theme_historic` 熟食檔與釣魚太郎；劇本 9 藍本同劇本 4；`SAVE_VERSION` ≥8（`fish_stock`／`fishing_taro_played`） |
+| 精英店員（劇本 10） | **`docs/systemdesign/eliteclerk.md`**、`storepreparationphase.md`、`savesystem.md` | **已實作**（2026-11-26，#146）。Prep UI＋多崗位；`SAVE_VERSION` 9（`elite_clerks`）。劇本 10＝安桃山布局營運日測試，目錄全員 debug 滿級 |
+| 分店系統（設計） | **`docs/systemdesign/branchstore.md`** | **僅設計開檔**（2026-11-27）；活線未做 |
+| Ambient Peek 操作層 | **`docs/systemdesign/player-context-ui.md`**、`control.md` | **已實作**（2026-11-23）。背包菱形、持物條、技能環；#144／#145 |
+| 其他 11-20～11-27 同期落地 | 各技能／小遊戲／多人檔 | 商品 XP 曲線 LV99 與店規模 S1–S6（#140）；培養預覽；收銀對決／Dasher／快吞包對決／Metal Rush 等小遊戲；網上 Host 權威修復（#143）；本地 vs 網上缺口文件（#142）；手掣／鍵盤短按徑向重綁 |
 
-仍缺（非 §6）：完整設定頁、**第一日引導打磨**（教學框架已落地）、技能演出鎖輸入、正式 App ID／Cloud／成就、M4 Web——見 `docs/alpha/design.md`、`multiplayer.md` §13／§15。本機／網上權威缺口見 [`multiplayer-local-vs-online-gap.md`](multiplayer-local-vs-online-gap.md)（修 bug 另 PR）。事件 SFX／BGM 音量已在暫停選單（BGM 亦在準備系統工具）。prep UI 已拆為 `scenes/prep_menu.tscn` + `scripts/prep/`。**教學框架**已落地（`docs/systemdesign/tutorial.md`）；劇本 5 開局鏈已有 prep 購入家具／採購罐頭／店鋪設計／角色能力配點／裝備技能／開發商品／採購新貨／擴充商店物品／擴充店鋪設計／第二台收銀機／招募店員（教學鏈終點）與 ops 上架／清潔／收銀／捉小偷／客人交付／完成一日／空貨架提示／第二日使用技能／第三日評價點數（OP-TUT-001 練習＋完美交付 tip）。
+## 巨石行數（2026-11-27 重數，`godot/game/scripts/`）
+
+| 檔 | 行數 | 備註 |
+| --- | ---: | --- |
+| `player.gd` | **4795** | 合併閘監視檔；勿再吞控制器 |
+| `demo.gd` | **3986** | 預算 ≤ 4000（`monolith-merge-gate.md`／`test_demo_host_extract.py`） |
+| `prep_menu.gd` | 3265 | |
+| `game_state.gd` | 2748 | |
+| `customer.gd` | 2737 | |
+| `hud.gd` | 1469 | |
+| `skill_caster.gd` | 407 | 編排器預算 ~400 |
+
+仍缺（非 §6）：**第一日引導打磨**（教學框架與設定頁已落地）、技能演出鎖輸入、正式 App ID／Cloud／成就、M4 Web、把 `run_godot_checks.py` 真正加進 CI——見 `docs/alpha/design.md`、`multiplayer.md` §13／§15。本機／網上權威缺口見 [`multiplayer-local-vs-online-gap.md`](multiplayer-local-vs-online-gap.md)（修 bug 另 PR）。事件 SFX／BGM 音量已在暫停選單（BGM 亦在準備系統工具）。prep UI 已拆為 `scenes/prep_menu.tscn` + `scripts/prep/`。**教學框架**已落地（`docs/systemdesign/tutorial.md`）；劇本 5 開局鏈已有 prep 購入家具／採購罐頭／店鋪設計／角色能力配點／裝備技能／開發商品／採購新貨／擴充商店物品／擴充店鋪設計／第二台收銀機／招募店員（教學鏈終點）與 ops 上架／清潔／收銀／捉小偷／客人交付／完成一日／空貨架提示／第二日使用技能／第三日評價點數（OP-TUT-001 練習＋完美交付 tip）。
