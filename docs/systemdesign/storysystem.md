@@ -73,7 +73,7 @@
 | 3 | `chapter_02`＋固定 `theme_break` | 概念開檔；破局演出／對白／頭目 **TBD**；見 [`story/chapter-02.md`](story/chapter-02.md)、[`story/themes/theme-break.md`](story/themes/theme-break.md) | 未做 | ✓ | — |
 | 4 | 自選一章：僅 `theme_historic`（安桃山） | 玩法／id 已定稿；劇本／頭目細則後補；見 [`story/themes/theme-historic.md`](story/themes/theme-historic.md) | 劇本 9／10＝測試沙盒，非正式選章 | ✓ | — |
 
-**免費 Demo（2026-11-27）：** 只含序章＋第1章，與付費 EA 同一套內容到第1章結束。第1章通關後必須停住（內容閘），不進破局、選章或安桃山；商店頁應能導向付費 EA／願望單（文案與檔期 TBD）。
+**免費 Demo（2026-11-27）：** 只含序章＋第1章，並含**教學（劇本 5）**；與付費 EA 同一套內容到第1章結束。第1章通關後必須停住（內容閘），不進破局、選章或安桃山。**暫不含多人。Demo 存檔不轉入 EA。** 結束畫面導流與 Next Fest 見 [`steam-productization.md`](../alpha/steam-productization.md)。
 
 安桃山**不是**固定章號；依本檔選章模型，破局後綁入下一空槽。EA 預期先綁 `chapter_03`（第一個可選槽），其餘 `chapter_04`…`chapter_08`、另五主題與終章在 EA **不開放**（終章閘仍是六主題全清，EA 打完安桃山後怎麼收束見文末開放問題）。
 
@@ -188,8 +188,8 @@ EA 落地 `story_slot` runtime 時須升 `SAVE_VERSION` 並在 `savesystem.md` �
 7. 劇本 9／10 是否維持 `TEST_TOOLS` 沙盒，與 EA 安桃山正章分開？
 8. 舊存檔（無 `story_slot`）如何遷移？
 9. 2026-11-18「不做失敗／過關敘事層」是否隨章節一併放寬（失敗擋推進 A／D→C）？
-10. 免費 Demo 存檔能否轉入付費 EA（同一 Steam 帳、Cloud／本機）？不能的話如何提示？
-11. 免費 Demo 是否參加 Steam Next Fest？檔期與付費 EA 上市的先後？
+10. ~~免費 Demo 存檔能否轉入付費 EA？~~ **已決（2026-11-27）：不轉入**；Demo 須獨立存檔路徑／槽或標記。見 `savesystem.md`／`steam-productization.md`。
+11. 免費 Demo 是否參加 Steam Next Fest、以及付費 EA 發售日是否排在某一屆結束之後？**尚未另作檔期決議。** 官方規則：已進 EA 即失去資格。摘要見 `steam-productization.md`。
 12. 免費 Demo 與付費 EA 是否必須使用**不同** Steam App ID（慣例如此；正式 ID 皆尚未取得）？
 
 

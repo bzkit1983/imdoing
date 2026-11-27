@@ -6,6 +6,8 @@
 - I/O 經 Autoload **`PlatformServices`**（Desktop：`scripts/platform/desktop_platform.gd` → `user://save.json`）
 - **劇情選章（EA 要做／尚未實作）：** 2026-11-27 起，EA 進程需要存 `story_slot`、`active_theme_id`、`themes_cleared[]`、`theme_run_flags` 等（形狀見 `storysystem.md` §存檔欄位）。落地時再升 `SAVE_VERSION`（現行 9 不足涵蓋選章）並在本檔補 migration。序章內容閘欄位已在 `SAVE_VERSION` 7。完整十章其餘槽位與分店欄仍可後加；分店預設暫緩
 - **分店／主題店（設計先行／未實作）：** `theme_stores`、`origin_store`、精英 `assignment`、每店獨立 `shop_rating`；**共用**頂層 `money`。形狀見 [`branchstore.md`](branchstore.md)
+- **免費 Demo 存檔（2026-11-27 已決／尚未實作）：** Demo 進度**不轉入**付費 EA。Demo 組建須用**獨立的 `user://` 路徑或槽，或明確標記**，讓付費 EA 不會載入或覆寫該檔；Cloud 亦須分開。精確檔名在實作時補本節（現行 EA 本體仍為 `user://save.json`）。見 [`steam-productization.md`](../alpha/steam-productization.md)
+
 
 # 路徑與格式
 

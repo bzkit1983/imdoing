@@ -4,7 +4,7 @@
 - 用途：把近期工程變更連回長線／Alpha 設計檔，方便查「文件寫在哪、程式改哪」
 - 版控：`docs/versioning.md` · 技術評估：`docs/alpha/tech-review-v0.3.md`（現行；v0.2 §7 多數已勾見 [`tech-review-v0.2.md`](tech-review-v0.2.md)；v0.1 §6 見 [`tech-review-v0.1.md`](tech-review-v0.1.md)） · 缺口：`docs/systemdesign-gaps.md` · 執行期優化：`docs/alpha/runtime-perf-audit.md`
 - **美術：** v1.5.0 中期規格見 [`art-interim-v1.5.md`](../systemdesign/art-interim-v1.5.md)；**放置／換皮暫交美術成員**（工程維持插座與契約，不改玩法距離／COST／碰撞）
-- **EA 範圍（2026-11-27，Jackson；取代 H3「純日循環」）：** 付費 Steam EA＝序章 → 第1章 → 第2章（破局）→ 自選一章（只有安桃山可選）。**免費 Demo**＝序章 + 第1章（第1章通關後停下）。見 `versioning.md`／`storysystem.md`／`steam-productization.md`。活線已有序章內容閘（劇本 8）與頭目測試（劇本 6）；第1／2章、選章 runtime 與 Demo 組建尚未做
+- **EA 範圍（2026-11-27，Jackson；取代 H3「純日循環」）：** 付費 Steam EA＝序章 → 第1章 → 第2章（破局）→ 自選一章（只有安桃山可選）。**免費 Demo**＝序章 + 第1章＋教學（劇本 5），第1章通關後停下；暫不含多人；存檔不轉入 EA。見 `versioning.md`／`storysystem.md`／`steam-productization.md`。活線已有序章內容閘（劇本 8）與頭目測試（劇本 6）；第1／2章、選章 runtime 與 Demo 組建尚未做
 
 | 變更 | 長線／Alpha 文件 | 工程 |
 | --- | --- | --- |
@@ -59,7 +59,7 @@
 | 網上權威修復（1／2／3／5） | 同上 §7；`session_service`／`demo`／`player`／`seat_table`／`interact_lock` | **已修**：Host 時鐘＋early-close 閘；Client 禁庫存／交付突變；Intent aim／toss／restock；`guest_stats`＝local_index 1。COMBO HUD 暫緩另設計 |
 | 中期美術 v1.5.0 | **`docs/systemdesign/art-interim-v1.5.md`**；`voxel-hires-scale-plan.md`；`ops-sku-icon-ui.md` | 非玩家體素、補貨架高度、SKU／技能／prep 圖示、地板牆污物；玩家四套 Look／CELL／碰撞／技能數值凍結。**放置／換皮暫交美術**；工程驗收見 art-interim「美術放置驗收清單」 |
 | 收銀取消 Circle＋INT／技能重做（2026-11-18） | **`cashiersystem.md`**、`playerstats.md`、`playeractiveskills.md`、`playerpassiveskills.md`；日誌 [`Bzho_log/20261118_….md`](../Bzho_log/20261118_收銀取消Circle與INT技能重做.md) | 指令完成即入帳（無 Loading Circle）；INT 減次數＋親收加錢；`checkout_rush`／`checkout_speed`／`senior_cashier` 重做；店員／影分身／Dark Side 就緒即收 |
-| EA 範圍聲明 | **`docs/versioning.md`**；`docs/alpha/design.md`；`storysystem.md`；`steam-productization.md` | **2026-11-27 已拍板（Jackson）：** 先以**付費 Steam EA** 上市，進程＝序章 → 第1章 → 第2章（破局）→ 自選一章（只有安桃山）。**免費 Demo**＝序章 + 第1章。取代 2026-11-18 H3「純日循環」。其餘五主題／終章／事件表／分店預設留 Beta。Demo 組建（內容閘、獨立 App ID、存檔轉入、商店導流）尚未做 |
+| EA 範圍聲明 | **`docs/versioning.md`**；`docs/alpha/design.md`；`storysystem.md`；`steam-productization.md` | **2026-11-27 已拍板（Jackson）：** 先以**付費 Steam EA** 上市，進程＝序章 → 第1章 → 第2章（破局）→ 自選一章（只有安桃山）。**免費 Demo**＝序章 + 第1章＋教學（劇本 5）；暫不含多人；**存檔不轉入 EA**。取代 2026-11-18 H3「純日循環」。其餘五主題／終章／事件表／分店預設留 Beta。Demo 組建（內容閘、獨立 App ID、分離存檔、結束畫面導流）尚未做 |
 | 劇情模式框架 | **`docs/systemdesign/storysystem.md`**；`story/`；`docs/beta/design.md` | **設計：** 十章選章＋成長三分析＋失敗擋 UX。**EA 要做：** 序章（已有劇本 8 閘／經濟）＋第1章＋第2章破局＋僅安桃山選章＋`story_slot` 狀態機。**仍未做（屬 EA）：** 狀態機、第1／2章內容、選章畫面與存檔欄。**仍暫緩：** 其餘五主題、終章、分店、事件系統 |
 | 事件系統占位（N2） | **`docs/systemdesign/eventsystem.md`** | **占位開檔；預設仍不排 EA 活線**（第1／2章若必須用事件任務，待負責人確認） |
 | CJK 字型子集（M2） | **`docs/alpha/fonts-subset.md`** | 2026-11-21 重跑 Regular／Bold／Black（西客炮／源頭減廢／有糧出…） |
