@@ -1008,6 +1008,10 @@ func _physics_process(delta: float) -> void:
 	_frame.physics_process(delta)
 
 
+func _update_target() -> void:
+	_frame.update_target()
+
+
 func _obj_str(node: Object, prop: String) -> String:
 	var v = node.get(prop)
 	return str(v) if v != null else ""

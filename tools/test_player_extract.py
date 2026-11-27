@@ -80,6 +80,7 @@ need("_interact.do_short_interact(" in PLAYER, "short interact delegates")
 need("_view.update_visuals(" in PLAYER and "func role_status_text(" in PLAYER, "view facades stay on player")
 need("_fight_ctrl.try_dash_hits(" in PLAYER and "func _try_dash_hits(" in PLAYER, "dash-hit facade stays on player")
 need("_frame.physics_process(" in PLAYER and "func _physics_process(" in PLAYER, "physics facade stays on player")
+need("func _update_target(" in PLAYER and "_frame.update_target(" in PLAYER, "update_target facade stays on player")
 need("_frame.ready(" in PLAYER and "func _ready(" in PLAYER, "ready facade stays on player")
 
 # Parse hazards learned from F1 / F2 rewrites.
