@@ -194,7 +194,25 @@ static func _lock_info(menu: CanvasLayer, width: float, height: float) -> void:
 	menu._info.size = Vector2(width, height)
 
 
+static func is_branch_page(page: String) -> bool:
+	return page == "branches" or page == "branch" or page.begins_with("branch_")
+
+
+## Remote sessions (Host and Client) keep branch prep closed this round.
+static func branch_entry_blocked() -> bool:
+	return SessionService.is_networked()
+
+
+static func _branch_mp_blocked(menu: CanvasLayer) -> void:
+	menu._title.text = Loc.t("prep.branch.title")
+	menu._info.text = Loc.t("prep.branch.mp_locked")
+	menu._add(Loc.t("prep.back"), "go", "home")
+
+
 static func fill(menu: CanvasLayer, page: String) -> void:
+	if is_branch_page(page) and branch_entry_blocked():
+		_branch_mp_blocked(menu)
+		return
 	match page:
 		"scenario":
 			_scenario(menu)
@@ -444,7 +462,10 @@ static func _home(menu: CanvasLayer) -> void:
 			Loc.t("prep.hub.tasks"), "go", "tasks", "tasks",
 			menu.tutorial_home_hub_locked("tasks")
 		)
-		var branch_locked: bool = not bool(menu.state.branch_system_unlocked())
+		var branch_locked: bool = (
+			not bool(menu.state.branch_system_unlocked())
+			or branch_entry_blocked()
+		)
 		menu._add_hub(
 			Loc.t("prep.hub.branch"), "go", "branches", "branch",
 			branch_locked or menu.tutorial_home_hub_locked("branches")
