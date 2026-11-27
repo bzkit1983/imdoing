@@ -59,6 +59,8 @@
 
 解鎖後，準備回合新增入口「**分店**」（建議 home 獨立圖塊；亦可掛 `hub_shop` 下）。選一間非本店的已開主題店後，簡易設定：
 
+**多人：** 多人進行中（`SessionService.is_networked()`，含 Host 與 Client）先關閉 Prep 分店入口（圖塊鎖定，且不可直接進入分店頁）。分店×多人仍本輪不做。
+
 ## 在店貨品（採購）
 
 - 對該分店倉庫採購已開發且該店開售的 SKU
@@ -216,13 +218,15 @@ ops_points = ops_points × rating_mult
 - 營業額（入共用資金）
 - 估得營運點 → 評級文案
 - 該店商店評價：結算前 → 後
+- **淨利**（獨立一行，僅營運中的店）：`revenue − 實付日薪 − 自動補貨`
+- **部分發薪**：應付日薪 > 實付時另標（日薪／實付）；不可只把應付覆寫成實付而無法辨識
 - （可選）店長／崗位摘要
 
 無分店或未解鎖：分頁隱藏或顯示鎖定說明。
 
 # 存檔欄位（設計意圖）
 
-落地時升 `SAVE_VERSION` 並在 [`savesystem.md`](savesystem.md) 補 migration。建議形狀：
+落地時升 `SAVE_VERSION` 並在 [`savesystem.md`](savesystem.md) 補 migration（**活線已是 10**；選章 `story_slot` 再升，本輪不升）。建議形狀：
 
 ## 頂層（共用）
 
@@ -278,6 +282,7 @@ ops_points = ops_points × rating_mult
 
 - `on_duty == true`（本店出勤）時 `assignment` 必須為 null／缺省
 - `assignment` 非空時不可本店出勤
+- 本店生成：`on_duty_elite_clerks()`（HQ `spawn_clerks`）跳過帶有效 `assignment` 的精英；即使 `on_duty` 誤為 true 也不在本店出場
 - 同一 `elite_clerk_id` 只能佔一個分店崗位
 
 # 與其他系統
@@ -289,7 +294,7 @@ ops_points = ops_points × rating_mult
 | 評價 | 每店獨立；難度建議只看本店 |
 | 一般雇員 | 每店各自；分店背景用抽象能力，不跑 `clerk.gd` |
 | 精英店員 | 全域擁有＋互斥派駐 |
-| 多人 | **本輪不做**分店 × 訪客互動 |
+| 多人 | **本輪不做**分店 × 訪客互動。多人進行中（含 Host）先關閉 Prep 分店入口 |
 | 活線 | 垂直切片（快照／Prep／背景結算／日結／劇本 11）；正式選章 runtime 另 issue |
 
 # 明確不做（本規格版）

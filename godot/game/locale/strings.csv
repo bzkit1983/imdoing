@@ -800,6 +800,7 @@ prep.hub.tasks,任務,Tasks,任务,タスク
 prep.hub.branch,分店,Branches,分店,支店
 prep.branch.title,分店管理,Branch stores,分店管理,支店管理
 prep.branch.locked,清完第一個可選主題後解鎖分店。,Clear your first optional theme to unlock branches.,清完第一个可选主题后解锁分店。,最初の選択テーマをクリアすると支店が解放されます。
+prep.branch.mp_locked,多人進行中，分店設定暫不開放。,Branch setup is closed during multiplayer.,多人进行中，分店设置暂不开放。,マルチプレイ中は支店設定を使えません。
 prep.branch.info,可管理分店 %d 間。選一間設定模式、崗位與貨品。,%d branch store(s). Pick one to set policy, posts, and goods.,可管理分店 %d 间。选一间设定模式、岗位与货品。,管理できる支店は %d 店。模式・配置・商品を設定。
 prep.branch.empty,目前沒有可管理的分店。,No manageable branches yet.,目前没有可管理的分店。,管理できる支店はまだありません。
 prep.branch.row,%s　%s　模式：%s,%s · %s · policy: %s,%s　%s　模式：%s,%s　%s　模式：%s

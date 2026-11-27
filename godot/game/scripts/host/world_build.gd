@@ -358,10 +358,16 @@ func spawn_clerks() -> void:
 func _spawn_elite_clerks(start_i: int, skip_cashier: bool) -> void:
 	var EliteClerkCatalog = load("res://scripts/session/elite_clerk_catalog.gd")
 	var Skills = load("res://scripts/skills.gd")
+	var BranchState = load("res://scripts/session/branch_state.gd")
 	var i := start_i
 	var origin: Vector2 = host.FLOOR_ORIGIN
 	var floor_size: Vector2 = host.FLOOR_SIZE
 	for row in host.state.on_duty_elite_clerks():
+		## Branch posts never spawn on the HQ floor, even if on_duty was left true.
+		if row is Dictionary and BranchState != null:
+			var posted: Dictionary = row
+			if BranchState.elite_assignment(posted) != null:
+				continue
 		var eid := String(row.get("id", ""))
 		if eid == "" or EliteClerkCatalog == null or not EliteClerkCatalog.exists(eid):
 			continue

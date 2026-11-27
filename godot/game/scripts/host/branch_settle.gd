@@ -64,6 +64,7 @@ static func settle_one(state, theme_id: String) -> Dictionary:
 		"policy": policy,
 		"status": "closed",
 		"restock_spent": 0,
+		"wage_owed": 0,
 		"wage_spent": 0,
 		"revenue": 0,
 		"ops_points": 0,
@@ -75,11 +76,12 @@ static func settle_one(state, theme_id: String) -> Dictionary:
 	if not BranchRules.has_manager(posts):
 		base_row["reason"] = "no_manager"
 		return base_row
-	## Auto-restock then abstract ops.
+	## Auto-restock then abstract ops. Keep owed wages distinct from the amount paid.
 	var restock_spent := _auto_restock(state, snap)
-	var wage_spent := _clerk_wage(snap, posts)
-	if wage_spent > 0:
-		var pay := mini(wage_spent, int(state.money))
+	var wage_owed := _clerk_wage(snap, posts)
+	var wage_spent := 0
+	if wage_owed > 0:
+		var pay := mini(wage_owed, int(state.money))
 		state.money -= pay
 		wage_spent = pay
 	var stats := _post_stats(state, snap, posts)
@@ -134,6 +136,7 @@ static func settle_one(state, theme_id: String) -> Dictionary:
 		"policy": policy,
 		"status": "open",
 		"restock_spent": restock_spent,
+		"wage_owed": wage_owed,
 		"wage_spent": wage_spent,
 		"revenue": revenue,
 		"ops_points": ops_i,
@@ -160,18 +163,35 @@ static func format_closeout_body(rows: Array) -> String:
 			lines.append(Loc.t("settle.branch.row_closed", [title, reason_txt, policy]))
 			continue
 		var grade_key := RatingRules.grade_label_key(int(r.get("grade", 0)))
+		var restock_i := int(r.get("restock_spent", 0))
+		var paid_i := int(r.get("wage_spent", 0))
+		var owed_i := int(r.get("wage_owed", paid_i))
+		var revenue_i := int(r.get("revenue", 0))
 		lines.append(Loc.t("settle.branch.row_open", [
 			title,
 			policy,
-			int(r.get("restock_spent", 0)),
-			int(r.get("wage_spent", 0)),
-			int(r.get("revenue", 0)),
+			restock_i,
+			paid_i,
+			revenue_i,
 			int(r.get("ops_points", 0)),
 			Loc.t(grade_key),
 			int(r.get("shop_before", 0)),
 			int(r.get("shop_after", 0)),
 		]))
+		## One net line per operating store: revenue − wages paid − restock.
+		lines.append(Loc.t("settle.branch.net", [revenue_i - paid_i - restock_i]))
+		if paid_i < owed_i:
+			lines.append(Loc.t("settle.branch.partial_wage", [owed_i, paid_i]))
 	return "\n".join(lines)
+
+
+## HUD branch panel. Empty when the system is locked (same gate demo used to inline).
+static func closeout_panel_body(pack: Dictionary, state) -> String:
+	if bool(pack.get("unlocked", false)):
+		return String(pack.get("body", ""))
+	if state != null and state.has_method("branch_system_unlocked") and state.branch_system_unlocked():
+		return String(pack.get("body", ""))
+	return ""
 
 
 static func _auto_restock(state, snap: Dictionary) -> int:

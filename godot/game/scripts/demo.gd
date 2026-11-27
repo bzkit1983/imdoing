@@ -3318,11 +3318,6 @@ func _finish_day() -> void:
 			var tlines: PackedStringArray = _tasks.closeout_lines(0)
 			if not tlines.is_empty():
 				tasks_body = "\n".join(tlines)
-		var branch_body := ""
-		if bool(branch_pack.get("unlocked", false)):
-			branch_body = String(branch_pack.get("body", ""))
-		elif state.has_method("branch_system_unlocked") and state.branch_system_unlocked():
-			branch_body = String(branch_pack.get("body", ""))
 		_hud.set_closeout_panels(
 			DaySettle.closeout_body(
 				head, loss, revenue, state.money, int(result["spent"]), served, angry_left,
@@ -3330,7 +3325,7 @@ func _finish_day() -> void:
 				xp_line, save_line, grade_line, kind_cannon_closeout_text(seat_n)
 			),
 			tasks_body,
-			branch_body
+			BranchSettle.closeout_panel_body(branch_pack, state)
 		)
 	## Prep will check difficulty suggestion after closeout returns.
 

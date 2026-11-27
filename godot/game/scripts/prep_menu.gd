@@ -497,6 +497,9 @@ func can_access_cultivation() -> bool:
 
 
 func _show_page(page: String) -> void:
+	var branch_mp_blocked: bool = PrepPages.is_branch_page(page) and PrepPages.branch_entry_blocked()
+	if branch_mp_blocked:
+		page = "home"
 	if page in ["hub_minigames", "cultivate", "cultivate_pick", "cultivate_rewards", "light_intro", "light_outro", "light_quiz", "fish_tank_gallery"] and not can_access_cultivation():
 		page = "home"
 	if page not in ["cultivate", "cultivate_pick", "cultivate_rewards"]:
@@ -536,6 +539,8 @@ func _show_page(page: String) -> void:
 	_index = 0
 	_open_focus = -1
 	_msg = ""
+	if branch_mp_blocked:
+		_msg = Loc.t("prep.branch.mp_locked")
 	_qty_sku = ""
 	_on_size_btns = false
 	if page != "layout":
@@ -962,7 +967,8 @@ func _activate_locked_row(row: Dictionary) -> void:
 		_popup_info(Loc.t("tut.gate.title"), Loc.t("tut.prep.restrict.furn_cap"))
 		return
 	if action == "go" and String(row.get("arg", "")) == "branches":
-		_popup_info(Loc.t("prep.branch.title"), Loc.t("prep.branch.locked"))
+		var branch_key: String = "prep.branch.mp_locked" if PrepPages.branch_entry_blocked() else "prep.branch.locked"
+		_popup_info(Loc.t("prep.branch.title"), Loc.t(branch_key))
 		return
 	if tutorial_prep_restricts():
 		_popup_info(Loc.t("tut.gate.title"), Loc.t("tut.prep.restrict.hub"))
