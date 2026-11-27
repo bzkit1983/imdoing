@@ -44,7 +44,7 @@ func tick_cashier(_delta: float) -> void:
 		host._request_prompt_broadcast()
 		return
 	## Boss multi-wave: finish one wave → cutscene／next wave instead of pay.
-	var game_w := host._game()
+	var game_w: Node = host._game()
 	if cust.get("is_boss") == true and game_w != null and game_w.has_method("boss_on_checkout_wave_done"):
 		if bool(game_w.call("boss_on_checkout_wave_done", cust)):
 			host.seq_index = 0
@@ -72,11 +72,11 @@ func ensure_seq(cust) -> void:
 		## Client LAN: wait for Host absolute seq — never dual-randi (M2.9).
 		if SessionService.is_networked() and SessionService.is_client():
 			return
-		var n := Tuning.checkout_command_count(cust.cart.size(), host._int_now())
-		var game_n := host._game()
+		var n: int = Tuning.checkout_command_count(cust.cart.size(), host._int_now())
+		var game_n: Node = host._game()
 		## Boss absolute wave counts (no INT reduce / later prefill).
 		if cust.get("is_boss") == true and game_n != null and game_n.has_method("boss_checkout_wave_count"):
-			var wave_n := int(game_n.call("boss_checkout_wave_count", cust))
+			var wave_n: int = int(game_n.call("boss_checkout_wave_count", cust))
 			if wave_n > 0:
 				n = wave_n
 		cust.set_meta("checkout_seq_init", true)
@@ -91,7 +91,7 @@ func ensure_seq(cust) -> void:
 		host.log_line.emit(Loc.t("log.player.checkout_cmds", [n, cust.cart.size()]))
 		## Perfect-chain prefill: drop first N arrows (only remainder shown); keep full for miss restore.
 		## Boss waves: never prefill.
-		var pref := 0 if cust.get("is_boss") == true else mini(host._checkout_prefill_charge, seq.size())
+		var pref: int = 0 if cust.get("is_boss") == true else mini(host._checkout_prefill_charge, seq.size())
 		if cust.get("is_boss") != true:
 			host._checkout_prefill_charge = 0
 		else:
@@ -215,7 +215,7 @@ func try_dir(dir: int) -> void:
 			_:
 				return
 		var CarryMenu = preload("res://scripts/carry_menu.gd")
-		var count := host.inventory.grouped().size() if host.inventory != null else 0
+		var count: int = host.inventory.grouped().size() if host.inventory != null else 0
 		var cslot: int = CarryMenu.aim_from_stick(cstick, count)
 		if cslot < 0:
 			return
@@ -286,12 +286,12 @@ func finish_checkout(cust) -> void:
 	var dual_guest = null if cust.get("is_boss") == true else peek_senior_dual_guest(reg, cust)
 	var base: int = int(cust.call("payout_total")) if cust.has_method("payout_total") else int(cust.call("cart_total"))
 	var from_elite: bool = cust.get("is_elite") == true
-	var perfect := not host._checkout_had_miss
+	var perfect: bool = not host._checkout_had_miss
 	## Grade hook for future rhythm FX (Good/Great/Perfect visuals).
 	host._last_checkout_grade = "perfect" if perfect else "ok"
-	var amount := Tuning.checkout_revenue_amount(base, host._int_now(), perfect, host._checkout_rush_bonus_now())
+	var amount: int = Tuning.checkout_revenue_amount(base, host._int_now(), perfect, host._checkout_rush_bonus_now())
 	## paid signal → demo._on_paid; pass elite via game helper when connected.
-	var game := host._game()
+	var game: Node = host._game()
 	if game != null:
 		game._on_paid(amount, from_elite, host.seat_id, host, perfect, cust, true)
 	else:
@@ -377,8 +377,8 @@ func try_senior_dual_checkout(reg, nxt) -> void:
 	var base: int = int(nxt.call("payout_total")) if nxt.has_method("payout_total") else int(nxt.call("cart_total"))
 	var from_elite: bool = nxt.get("is_elite") == true
 	## Dual guest: INT + rush money OK; never Perfect ×1.05 / perfect rating.
-	var amount := Tuning.checkout_revenue_amount(base, host._int_now(), false, host._checkout_rush_bonus_now())
-	var game := host._game()
+	var amount: int = Tuning.checkout_revenue_amount(base, host._int_now(), false, host._checkout_rush_bonus_now())
+	var game: Node = host._game()
 	if game != null:
 		game._on_paid(amount, from_elite, host.seat_id, host, false, nxt, true)
 	else:

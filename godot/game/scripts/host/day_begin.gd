@@ -32,7 +32,7 @@ func begin_day() -> void:
 		var snap: Dictionary = SessionService.take_pending_day_snapshot()
 		var world = snap.get("world", {})
 		if world is Dictionary and not world.is_empty():
-			var err := host.state.from_dict(world)
+			var err: String = host.state.from_dict(world)
 			if err != "":
 				push_warning("client day snapshot failed: %s" % err)
 	host._clear_world()
@@ -117,7 +117,7 @@ func begin_day() -> void:
 	host._customers.y_sort_enabled = true
 	host._world.add_child(host._customers)
 	host._players.clear()
-	var spawn0 := host.FLOOR_ORIGIN + Vector2(host.FLOOR_SIZE.x * 0.5, host.FLOOR_SIZE.y - 80)
+	var spawn0: Vector2 = host.FLOOR_ORIGIN + Vector2(host.FLOOR_SIZE.x * 0.5, host.FLOOR_SIZE.y - 80)
 	for seat in SeatTable.seat_ids():
 		var stats_src = host.state if seat == 0 else SeatTable.sheet_of(seat)
 		if stats_src == null:
@@ -126,7 +126,7 @@ func begin_day() -> void:
 		## Bind guest_stats only for this machine's claim2 seat (local_index 1), not global seat 1.
 		if SeatTable.seat_owned_locally(seat) and SeatTable.local_index_of(seat) == 1 and SeatTable.guest_stats == null:
 			SeatTable.guest_stats = stats_src
-		var spawn := spawn0 + Vector2(40.0 * float(seat), 0.0)
+		var spawn: Vector2 = spawn0 + Vector2(40.0 * float(seat), 0.0)
 		host._spawn_seated_player(seat, stats_src, nodes, spawn)
 	host._player = host._players[0] if not host._players.is_empty() else null
 	## Soft collision exceptions between all seated players.
