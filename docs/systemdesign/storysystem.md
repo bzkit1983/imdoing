@@ -2,7 +2,7 @@
 
 - 此檔案定義**劇情模式框架**（進程槽、主題選章、解鎖權威、與任務／成長系統的關係）
 - **不含**劇本對話、角色設定、具體任務文案；各章／主題細節見 [`story/`](story/)
-- **閘門／EA 範圍（2026-11-27，Jackson）：** EA 進程＝序章 → 第1章 → 第2章（破局）→ 自選一章（**只有安桃山可選**）；取代「EA＝純日循環」。見 [`docs/versioning.md`](../versioning.md)。EA 所需的 `story_slot` 狀態機與選章（僅安桃山）是已核准範圍。**完整十章選章、終章／後日談、分店 runtime、事件系統**仍為設計先行，預設不排 EA 活線（分店／事件是否為 EA 章節所必需，尚未確定）。活線已有：劇本 **8** 序章內容閘與經濟、劇本 **6** 頭目戰測試、劇本 **9／10** 安桃山測試沙盒。
+- **閘門／EA 範圍（2026-11-27，Jackson）：** EA 進程＝序章 → 第1章 → 第2章（破局）→ 自選一章（**只有安桃山可選**）；取代「EA＝純日循環」。同日另決：遊戲**先以付費 Steam EA 上市**；**免費 Demo**＝EA 的子集（**序章 + 第1章**，第1章通關後停下）。見 [`docs/versioning.md`](../versioning.md)。EA 所需的 `story_slot` 狀態機與選章（僅安桃山）是已核准範圍。**完整十章選章、終章／後日談、分店 runtime、事件系統**仍為設計先行，預設不排 EA 活線（分店／事件是否為 EA 章節所必需，尚未確定）。活線已有：劇本 **8** 序章內容閘與經濟、劇本 **6** 頭目戰測試、劇本 **9／10** 安桃山測試沙盒。
 - 概念沙盒（已被本選章框架取代方向）：[`docs/concepts/ten-chapter-growth-blueprint.md`](../concepts/ten-chapter-growth-blueprint.md)
 - 任務條件語意：[`tasksystem.md`](tasksystem.md)；劇情 pack stub：[`taskcontent-story-stub.md`](taskcontent-story-stub.md)
 - 事件修飾器表：[`eventsystem.md`](eventsystem.md)（占位；**不**排活線）
@@ -64,14 +64,16 @@
 
 ### EA 進程（2026-11-27）
 
-完整模型仍是十章＋六可選主題（見上表）。**Early Access 只做到：**
+完整模型仍是十章＋六可選主題（見上表）。**付費 Early Access 只做到：**
 
-| 順序 | `story_slot`／主題 | 內容狀態 | 活線現況 |
-|------|-------------------|----------|----------|
-| 1 | `prologue` | 進程主線已定（不含對白）；見 [`story/prologue.md`](story/prologue.md) | 劇本 8 內容閘／經濟已接 |
-| 2 | `chapter_01` | 概念開檔；任務閾值／對白／頭目 **TBD**；見 [`story/chapter-01.md`](story/chapter-01.md) | 未做 |
-| 3 | `chapter_02`＋固定 `theme_break` | 概念開檔；破局演出／對白／頭目 **TBD**；見 [`story/chapter-02.md`](story/chapter-02.md)、[`story/themes/theme-break.md`](story/themes/theme-break.md) | 未做 |
-| 4 | 自選一章：僅 `theme_historic`（安桃山） | 玩法／id 已定稿；劇本／頭目細則後補；見 [`story/themes/theme-historic.md`](story/themes/theme-historic.md) | 劇本 9／10＝測試沙盒，非正式選章 |
+| 順序 | `story_slot`／主題 | 內容狀態 | 活線現況 | 付費 EA | 免費 Demo |
+|------|-------------------|----------|----------|:------:|:---------:|
+| 1 | `prologue` | 進程主線已定（不含對白）；見 [`story/prologue.md`](story/prologue.md) | 劇本 8 內容閘／經濟已接 | ✓ | ✓ |
+| 2 | `chapter_01` | 概念開檔；任務閾值／對白／頭目 **TBD**；見 [`story/chapter-01.md`](story/chapter-01.md) | 未做 | ✓ | ✓（Demo 終點） |
+| 3 | `chapter_02`＋固定 `theme_break` | 概念開檔；破局演出／對白／頭目 **TBD**；見 [`story/chapter-02.md`](story/chapter-02.md)、[`story/themes/theme-break.md`](story/themes/theme-break.md) | 未做 | ✓ | — |
+| 4 | 自選一章：僅 `theme_historic`（安桃山） | 玩法／id 已定稿；劇本／頭目細則後補；見 [`story/themes/theme-historic.md`](story/themes/theme-historic.md) | 劇本 9／10＝測試沙盒，非正式選章 | ✓ | — |
+
+**免費 Demo（2026-11-27）：** 只含序章＋第1章，與付費 EA 同一套內容到第1章結束。第1章通關後必須停住（內容閘），不進破局、選章或安桃山；商店頁應能導向付費 EA／願望單（文案與檔期 TBD）。
 
 安桃山**不是**固定章號；依本檔選章模型，破局後綁入下一空槽。EA 預期先綁 `chapter_03`（第一個可選槽），其餘 `chapter_04`…`chapter_08`、另五主題與終章在 EA **不開放**（終章閘仍是六主題全清，EA 打完安桃山後怎麼收束見文末開放問題）。
 
@@ -186,6 +188,9 @@ EA 落地 `story_slot` runtime 時須升 `SAVE_VERSION` 並在 `savesystem.md` �
 7. 劇本 9／10 是否維持 `TEST_TOOLS` 沙盒，與 EA 安桃山正章分開？
 8. 舊存檔（無 `story_slot`）如何遷移？
 9. 2026-11-18「不做失敗／過關敘事層」是否隨章節一併放寬（失敗擋推進 A／D→C）？
+10. 免費 Demo 存檔能否轉入付費 EA（同一 Steam 帳、Cloud／本機）？不能的話如何提示？
+11. 免費 Demo 是否參加 Steam Next Fest？檔期與付費 EA 上市的先後？
+12. 免費 Demo 與付費 EA 是否必須使用**不同** Steam App ID（慣例如此；正式 ID 皆尚未取得）？
 
 
 # 頭目（框架定義）

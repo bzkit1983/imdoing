@@ -54,7 +54,7 @@
 
 - **已寫進長線或工程：** 存檔／暫停／操作／字串表／準備 UI／工程路徑／事件 SFX 音量／BGM Bus＋音量（見 `pausemenu.md`、`soundeffects.md`、`bgm.md`、`implementation-status.md`）。**教學框架**已落地（`tutorial.md`；劇本 5 鏈見 `implementation-status.md`）。
 - **仍缺（玩法／產品；對齊 tech-review H）：** 技能演出期間能否操作、外觀配置仍只有一句。正式 App ID 仍 Open；Cloud／成就 API 已接；**H2 設定頁＋首日引導已落地**（見 [`steam-productization.md`](steam-productization.md)）。
-- **EA 範圍（2026-11-27，Jackson；取代 2026-11-18 H3「純日循環」）：** 日循環仍然是基礎循環；劇情進程＝**序章 → 第1章 → 第2章（破局）→ 自選一章（只有安桃山可選）**。其餘五主題、終章、完整事件表留 Beta。H3「不做失敗／過關敘事層」是否一併放寬尚未另作決議（見 `docs/versioning.md`、`docs/beta/design.md`）。
+- **EA 範圍（2026-11-27，Jackson；取代 2026-11-18 H3「純日循環」）：** 日循環仍然是基礎循環；劇情進程＝**序章 → 第1章 → 第2章（破局）→ 自選一章（只有安桃山可選）**。同日另決：遊戲**先以付費 Steam EA 上市**；**免費 Demo**＝EA 的子集（**序章 + 第1章**，第1章通關後停下）。其餘五主題、終章、完整事件表留 Beta。H3「不做失敗／過關敘事層」是否一併放寬尚未另作決議（見 `docs/versioning.md`、`docs/beta/design.md`、[`steam-productization.md`](steam-productization.md)）。
 - **劇情框架閘門（N1）：** EA 所需的 `story_slot` 狀態機、第1／2章與僅安桃山選章現為已核准範圍，活線尚未接上（除劇本 8 序章內容閘／經濟、劇本 6 頭目測試、劇本 9／10 安桃山沙盒）。完整十章仍是設計文件。事件占位 [`eventsystem.md`](../systemdesign/eventsystem.md) 與分店預設仍不排 EA 活線（是否為上述章節所必需尚未確定）。
 
 ---

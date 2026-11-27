@@ -1,6 +1,6 @@
 # Steam 產品化衝刺（H1–H3）
 
-- 對照日：2026-11-18
+- 對照日：2026-11-27（H3／付費 EA／免費 Demo 範圍已更新；H1 App ID 仍開）
 - 活線：`godot/game`
 - tech-review：[`tech-review-v0.3.md`](tech-review-v0.3.md)（H1 仍開）；細節拍板見 [`tech-review-v0.2.md`](tech-review-v0.2.md) §7 H1–H3
 - GodotSteam 接入：[`godotsteam-setup.md`](godotsteam-setup.md)
@@ -10,7 +10,8 @@
 
 | 項 | 狀態 | 說明 |
 | --- | --- | --- |
-| **H3** EA 範圍聲明 | **已更新（2026-11-27）** | 原 H3＝純日循環。現決議：序章 → 第1章 → 第2章（破局）→ 自選一章（只有安桃山可選）。見 `versioning.md` |
+| **H3** EA 範圍聲明 | **已更新（2026-11-27）** | 付費 Steam EA：序章 → 第1章 → 第2章（破局）→ 自選一章（只有安桃山）。免費 Demo＝序章 + 第1章。見 `versioning.md` |
+| **免費 Demo 組建** | **Open** | 第1章結束內容閘、獨立 Steam Demo App ID／匯出、商店頁導流；存檔轉入 EA 與 Next Fest 檔期尚未決定 |
 | **H1** Cloud／成就 API | **接線已落地** | `steam_platform.gd`：本機寫入後 `fileWrite`；冷啟可 `fileRead`；`setAchievement`＋`storeStats` |
 | **H1** 正式 App ID | **Open** | 現仍測試 **480**；需 Steam Direct 正式 ID 後改下列檔 |
 | **H2** 完整設定頁 | **Done** | 暫停「設定」子選單＋準備「系統工具→設定」；寫入既有 `user://settings.cfg` |
@@ -59,5 +60,8 @@
 
 2026-11-18 原拍板（純日循環、敘事留 Beta）已被 **2026-11-27 Jackson 決議**取代。
 
-**範圍內：** 日循環、技能、評價、教學框架、中期美術、多人至 M3；劇情進程＝序章 → 第1章 → 第2章（破局）→ 自選一章（只有安桃山可選）。  
-**範圍外：** 其餘五主題、終章／後日談、完整事件表、技能解鎖表、長線流量定稿、分店（預設暫緩）。
+**付費 Steam Early Access（先上市）：** 日循環、技能、評價、教學框架、中期美術、多人至 M3；劇情進程＝序章 → 第1章 → 第2章（破局）→ 自選一章（只有安桃山可選）。正式 App ID 仍 Open（現為測試 480，見上方 H1）。
+
+**免費 Demo（EA 的子集）：** 只含**序章 + 第1章**。第1章通關後必須停下，不進破局／選章／安桃山。需獨立 Steam Demo App／組建設定（正式 Demo App ID 尚未取得；勿把 Demo 綁死在 480 或尚未核發的 EA App ID）。商店頁應導向付費 EA 與願望單。Demo 存檔能否轉入付費 EA、是否參加 Steam Next Fest，**尚未決定**。
+
+**範圍外（兩者都不做）：** 其餘五主題、終章／後日談、完整事件表、技能解鎖表、長線流量定稿、分店（預設暫緩）。

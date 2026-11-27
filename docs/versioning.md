@@ -12,13 +12,15 @@
 ## Early Access／現行產品範圍（2026-11-27 更新）
 
 - **2026-11-27 決議（Jackson）：** EA 劇情進程＝**序章 → 第1章 → 第2章（破局）→ 自選一章（EA 期間只有安桃山可選）**。此決議**取代** 2026-11-18 H3「EA＝純日循環、不做章節 runtime」。
-- **範圍內：** 可連線的動作經營**日循環**（準備 → 補貨 → 營運 → 結算）、技能、評價、教學框架、中期美術、Steam／LAN／本機多人（至 M3）；以及上列 EA 劇情進程（對照見 [`storysystem.md`](systemdesign/storysystem.md)）：
+- **同日決議（Jackson）：** 遊戲**先以付費 Steam Early Access 上市**（劇情範圍同上）。另定義**免費 Demo**，範圍是付費 EA 的子集＝**序章 + 第1章**（第1章通關後停下，不進破局／選章／安桃山）。Demo 存檔能否轉入付費 EA、Steam Next Fest 檔期等尚未決定。
+- **範圍內（付費 EA）：** 可連線的動作經營**日循環**（準備 → 補貨 → 營運 → 結算）、技能、評價、教學框架、中期美術、Steam／LAN／本機多人（至 M3）；以及上列 EA 劇情進程（對照見 [`storysystem.md`](systemdesign/storysystem.md)）：
   - 序章＝`prologue`（活線劇本 **8** `SCENARIO_PROLOGUE`；內容閘／經濟已接，對白後補）
   - 第1章＝`chapter_01`（概念開檔，內容 **TBD**）
   - 第2章（破局）＝`chapter_02`＋固定主題 `theme_break`（概念開檔，內容 **TBD**）
   - 自選一章＝可選主題 `theme_historic`（安桃山；玩法／id 已定稿，劇本／頭目細則後補）。依現有選章模型，破局後綁入下一空槽（`chapter_03`…`chapter_08`）。EA 預期先綁 `chapter_03`，待確認。劇本 **9／10** 是安桃山玩法**測試沙盒**，不是選章 runtime。
-- **範圍外（EA 不做；留 Beta／之後）：** 其餘五個可選主題、終章／後日談、完整十章選章、完整事件表、技能解鎖表、長線流量定稿、分店 runtime（預設暫緩；是否為上述章節所必需尚未確定）。可重玩當日與資金保留仍依現有結算規則。2026-11-18 H3「不做失敗／過關／提早關店敘事層」有沒有隨章節進程一併放寬，**尚未另作決議**；章內失敗擋推進設計見 `storysystem.md`（細則 TBD）。
-- **劇情閘門（N1）：** EA 所需的 `story_slot` 狀態機、僅安桃山的選章畫面、第1／2章內容，現為**已核准的 EA 範圍**（實作另開 issue）。完整十章、分店、事件系統仍設計先行，**預設不排 EA 活線**。勿把其餘主題／終章／`EventDirector`／分店背景營運當成已核准工單。
+- **免費 Demo：** 僅序章＋第1章（與付費 EA 共用同一套內容至第1章結束）。商店頁／願望單導流、獨立 Steam Demo App ID 與匯出設定見 [`steam-productization.md`](alpha/steam-productization.md)；實作另開 issue。
+- **範圍外（EA 與 Demo 都不做；留 Beta／之後）：** 其餘五個可選主題、終章／後日談、完整十章選章、完整事件表、技能解鎖表、長線流量定稿、分店 runtime（預設暫緩；是否為 EA 章節所必需尚未確定）。可重玩當日與資金保留仍依現有結算規則。2026-11-18 H3「不做失敗／過關／提早關店敘事層」有沒有隨章節進程一併放寬，**尚未另作決議**；章內失敗擋推進設計見 `storysystem.md`（細則 TBD）。
+- **劇情閘門（N1）：** EA 所需的 `story_slot` 狀態機、僅安桃山的選章畫面、第1／2章內容，現為**已核准的 EA 範圍**（實作另開 issue）。Demo 另需第1章結束後的內容閘（不進第2章）。完整十章、分店、事件系統仍設計先行，**預設不排 EA 活線**。勿把其餘主題／終章／`EventDirector`／分店背景營運當成已核准工單。
 - 對照：[`docs/alpha/design.md`](alpha/design.md)、[`docs/alpha/tech-review-v0.3.md`](alpha/tech-review-v0.3.md)（H3 原文見 [`tech-review-v0.2.md`](alpha/tech-review-v0.2.md)；已被本決議取代）、[`docs/beta/design.md`](beta/design.md)。
 
 ## 現在的產品版

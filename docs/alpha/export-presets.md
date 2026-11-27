@@ -14,6 +14,8 @@
 | **Linux** | Linux | `desktop`, `steam_candidate`, `net_steam` | `build/linux/imdoing.x86_64` |
 | **macOS** | macOS | `desktop`, `steam_candidate`, `net_steam` | `build/macos/imdoing.app` |
 
+免費 Steam Demo 的獨立匯出預設／App ID **尚未建立**（2026-11-27 已拍板 Demo 範圍＝序章＋第1章；見 [`steam-productization.md`](steam-productization.md)、[`docs/versioning.md`](../versioning.md)）。
+
 - 架構：Win／Linux **x86_64**；macOS **universal**（arm64 + x86_64）  
 - `embed_pck=false`：可執行檔與 `.pck` 分開，方便 Steam depot 分層更新  
 - 排除：`fonts/source/*`（完整 Noto 重建用，不進包）  
