@@ -51,12 +51,13 @@ func begin_day() -> void:
 	host.thieves_escaped = 0
 	host.kind_converted_total = 0
 	host.cleaned = 0
-	var sn := maxi(1, SeatTable.seat_count)
-	host.seat_cleaned = []
-	host.seat_served = []
-	host.seat_caught = []
-	host.seat_elite = []
-	host.seat_kind_converted = []
+	var sn: int = maxi(1, SeatTable.seat_count)
+	## Typed Array[int] on demo — bare [] assignment fails at runtime through host.
+	host.seat_cleaned.clear()
+	host.seat_served.clear()
+	host.seat_caught.clear()
+	host.seat_elite.clear()
+	host.seat_kind_converted.clear()
 	for _i in sn:
 		host.seat_cleaned.append(0)
 		host.seat_served.append(0)
