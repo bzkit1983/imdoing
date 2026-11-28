@@ -5,7 +5,7 @@ GitHub Actions：
 | Job | 指令 | 何時 |
 | --- | --- | --- |
 | `static-tests`（必過） | `python3 tools/run_ci_static.py` | 每個 PR／`main` push |
-| `godot-checks`（Q1／#154） | 下載 Godot **4.7.2-stable** 後跑 `python3 tools/run_godot_checks.py` | 同上；無頭跑 shelf_sniper／interact_glow／difficulty |
+| `godot-checks`（Q1／#154＋R1／#149） | 下載 Godot **4.7.2-stable** 後跑 `run_godot_checks.py`＋`run_ops_checks.py` | 同上 |
 
 見 [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)。
 
@@ -17,11 +17,13 @@ python3 tools/run_ci_static.py
 
 ## 無頭 Godot（需本機 4.7.x）
 GODOT=/path/to/Godot python3 tools/run_godot_checks.py
+GODOT=/path/to/Godot python3 tools/run_ops_checks.py
 ## macOS 預設也可：
-##   GODOT=/Applications/Godot.app/Contents/MacOS/Godot python3 tools/run_godot_checks.py
+##   GODOT=/Applications/Godot.app/Contents/MacOS/Godot python3 tools/run_ops_checks.py
 ```
 
-`run_godot_checks.py` 只收穩定的三支 wrapper；skill_cast／shadow_clone／dark_side 等需 bind 修復後才會加入。
+- `run_godot_checks.py`：Q1 三支（shelf_sniper／interact_glow／difficulty）；skill_cast／shadow_clone／dark_side 等需 bind 修復後才會加入。
+- `run_ops_checks.py`：R1／#149 營運回歸（portal／cooked／fishing／self_cashier／elite clerk＋既有 self_checkout／self_service_operation）。
 
 ## pre-push hook
 

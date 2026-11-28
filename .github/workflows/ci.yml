@@ -84,3 +84,4 @@ jobs:
           set -euo pipefail
           "$GODOT" --version
           python3 tools/run_godot_checks.py
+          python3 tools/run_ops_checks.py

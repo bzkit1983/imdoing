@@ -19,10 +19,17 @@ TOOLS = ROOT / "tools"
 ## Need a Godot binary. Skipped unless RUN_GODOT_TESTS=1 and GODOT=… (or macOS app).
 ## Default CI stays Python-only so PRs do not need a Godot install.
 GODOT_REQUIRED = {
+    "test_cooked_stall.py",
     "test_dark_side.py",
     "test_difficulty.py",
+    "test_elite_clerk_ops.py",
     "test_guest_sniper.py",
     "test_interact_glow.py",
+    "test_ops_fishing.py",
+    "test_portal_pair.py",
+    "test_self_cashier_furniture.py",
+    "test_self_checkout.py",
+    "test_self_service_operation.py",
     "test_shadow_clone.py",
     "test_shelf_sniper.py",
     "test_skill_cast.py",

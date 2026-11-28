@@ -233,7 +233,7 @@ v0.3 及格線：`demo` ≤~3900 ✅（3608）；新技能不堆 `skill_caster` 
 
 ### 本輪新增
 
-- [ ] **R1** 營運回歸：精英店員、熟食檔、釣魚、傳送門、自助收銀、節點生命週期 — #149（本週 #177 動到互動／熟食檔，更需要）
+- [x] **R1** 營運回歸：精英店員、熟食檔、釣魚、傳送門、自助收銀、節點生命週期 — #149（`tools/run_ops_checks.py`：7 支無頭 wrapper；進 `godot-checks` job）
 - [ ] **S1** PR #176 殘留點（branch_state 私有 API、多人結算守衛、`$-120`、`world_build` 精英檢查重複）— **尚無 issue**（#174 已關）；須由 Jackson 決定是否開票
 - [ ] **T1** `monolith-merge-gate.md` 擴充到 `game_state`／`prep_menu`／`prep_pages`／`customer`，並對齊 `runtime-perf-audit.md`／`appearance.md` 舊函式位置 — **尚無 issue**（純文件，可直接做）
 - [ ] **U1–U7** EA／Demo 骨幹：#161 章節機、#162 第1章、#163 第2章、#164 選章、#165 存檔欄與 SAVE_VERSION、#166 Demo 組建、#172 事件系統（P0）

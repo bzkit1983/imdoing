@@ -64,7 +64,7 @@
 | 事件系統占位（N2） | **`docs/systemdesign/eventsystem.md`** | **2026-11-27 已決：第1／2章需要事件系統**（改列入 EA）。完整事件表仍後補。活線未做 |
 | CJK 字型子集（M2） | **`docs/alpha/fonts-subset.md`** | 2026-11-21 重跑 Regular／Bold／Black（西客炮／源頭減廢／有糧出…） |
 | 效能基線 J1（O1） | **`docs/alpha/perf-baseline-j1.md`** | 空店＋桌面 `--load` 滿店 15／分身 3；Deck 待測 |
-| CI 靜態（G1）＋無頭 Godot（Q1／#154）＋本地閘門 | **`.github/workflows/ci.yml`**：`static-tests`＋`godot-checks`；[`ci-local.md`](ci-local.md) | `godot-checks` 下載 Godot 4.7.2-stable，跑 `tools/run_godot_checks.py`（shelf_sniper／interact_glow／difficulty）。2026-11-27 已加 pre-push hook（僅靜態） |
+| CI 靜態（G1）＋無頭 Godot（Q1／#154＋R1／#149）＋本地閘門 | **`.github/workflows/ci.yml`**：`static-tests`＋`godot-checks`；[`ci-local.md`](ci-local.md) | `godot-checks`＝`run_godot_checks.py`（Q1 三支）＋`run_ops_checks.py`（portal／cooked／fishing／self_cashier／elite＋self_checkout／self_service）。2026-11-27 已加 pre-push hook（僅靜態） |
 | Steam Cloud／成就接線（H1 半程） | **`docs/alpha/steam-productization.md`**；`godotsteam-setup.md` | `steam_platform.gd`：`fileWrite`／`fileRead`／`setAchievement`＋`storeStats`；正式 App ID 仍 Open（480） |
 | 完整設定頁＋首日引導（H2） | **`docs/alpha/steam-productization.md`**；`pausemenu.md`；`tutorial.md` | 暫停「設定」子選單＋準備「系統工具→設定」；新檔開始／跳過教學；`tutorial_skipped`＋模態跳過；暫停可重溫 |
 | 傳送門 | **`docs/systemdesign/shopitem.md`**、`shopsetup.md` | **已實作**（2026-11-24）。成對 `portal`＋`pair_id`；光束傳送；測試 VOX 圖與 Prep 圖示。測試版可授予最多 4 端；序章／教學不加 |
