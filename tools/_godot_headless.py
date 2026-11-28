@@ -1,6 +1,7 @@
 """Shared helper: copy a tools/*_check.gd into godot/game and run headless."""
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 import sys
@@ -9,6 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 GAME = ROOT / "godot" / "game"
 TOOLS = Path(__file__).resolve().parent
+STEAM_LINUX64 = GAME / "addons" / "godotsteam" / "linux64"
 CANDIDATES = [
 	Path("/tmp/godot-setup/Godot_v4.7.2-stable_linux.x86_64"),
 	Path("/usr/local/bin/godot"),
@@ -17,6 +19,9 @@ CANDIDATES = [
 
 
 def godot_bin() -> Path | None:
+	env = os.environ.get("GODOT", "").strip()
+	if env and Path(env).is_file():
+		return Path(env)
 	for path in CANDIDATES:
 		if path.is_file():
 			return path
@@ -24,7 +29,51 @@ def godot_bin() -> Path | None:
 	return Path(found) if found else None
 
 
-def run_check(stem: str, ok_token: str, timeout: int = 60) -> int:
+def _run_env() -> dict[str, str]:
+	env = os.environ.copy()
+	if STEAM_LINUX64.is_dir():
+		prev = env.get("LD_LIBRARY_PATH", "")
+		env["LD_LIBRARY_PATH"] = str(STEAM_LINUX64) + (os.pathsep + prev if prev else "")
+	return env
+
+
+def ensure_project_imported(binary: str | Path, timeout: int = 1200) -> int:
+	"""Cold CI checkouts have no godot/game/.godot — import once before wrappers.
+
+	Without this, the first headless scene run burns a short timeout on ~10k
+	asset imports and fails spuriously on Actions.
+	"""
+	imported = GAME / ".godot" / "imported"
+	if imported.is_dir() and any(imported.iterdir()):
+		return 0
+	print("==> godot --import (warm .godot)")
+	try:
+		proc = subprocess.run(
+			[str(binary), "--headless", "--path", str(GAME), "--import"],
+			cwd=ROOT,
+			text=True,
+			capture_output=True,
+			check=False,
+			timeout=timeout,
+			env=_run_env(),
+		)
+	except subprocess.TimeoutExpired:
+		print("FAIL godot import: timeout")
+		return 1
+	## Import logs are huge — keep a short tail for CI diagnosis.
+	tail = (proc.stderr or "")[-4000:]
+	if tail.strip():
+		sys.stderr.write(tail)
+		if not tail.endswith("\n"):
+			sys.stderr.write("\n")
+	if proc.returncode != 0:
+		print(f"FAIL godot import: exit {proc.returncode}")
+		return 1
+	print("OK godot import")
+	return 0
+
+
+def run_check(stem: str, ok_token: str, timeout: int = 180) -> int:
 	"""stem e.g. `portal_pair` → tools/portal_pair_check.gd → OK portal pair."""
 	binary = godot_bin()
 	if binary is None:
@@ -49,17 +98,22 @@ def run_check(stem: str, ok_token: str, timeout: int = 60) -> int:
 			capture_output=True,
 			check=False,
 			timeout=timeout,
+			env=_run_env(),
 		)
 	finally:
 		dest.unlink(missing_ok=True)
 		scene.unlink(missing_ok=True)
 		Path(str(dest) + ".uid").unlink(missing_ok=True)
-	sys.stdout.write(proc.stdout)
-	sys.stderr.write(proc.stderr)
-	if "SCRIPT ERROR" in (proc.stderr or ""):
-		print(f"FAIL {stem} runner: SCRIPT ERROR in stderr")
+	sys.stdout.write(proc.stdout or "")
+	sys.stderr.write(proc.stderr or "")
+	## Steam／RID noise can print SCRIPT ERROR on Linux CI even when the check OK'd.
+	if ok_token not in (proc.stdout or ""):
+		if "SCRIPT ERROR" in (proc.stderr or ""):
+			print(f"FAIL {stem} runner: SCRIPT ERROR in stderr (no OK token)")
+		else:
+			print(f"FAIL {stem} runner", proc.returncode)
 		return 1
-	if proc.returncode != 0 or ok_token not in proc.stdout:
+	if proc.returncode != 0:
 		print(f"FAIL {stem} runner", proc.returncode)
 		return 1
 	return 0

@@ -16,6 +16,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 TOOLS = ROOT / "tools"
+sys.path.insert(0, str(TOOLS))
+from _godot_headless import ensure_project_imported  # noqa: E402
+
 
 ## Keep this list short — CI optional job budget.
 ## Prefer wrappers that still pass after host／skill_caster extracts.
@@ -52,6 +55,12 @@ def main() -> int:
 		shim.unlink()
 	shim.symlink_to(godot)
 	env["PATH"] = str(shim_dir) + os.pathsep + env.get("PATH", "")
+	steam_linux = ROOT / "godot" / "game" / "addons" / "godotsteam" / "linux64"
+	if steam_linux.is_dir():
+		prev = env.get("LD_LIBRARY_PATH", "")
+		env["LD_LIBRARY_PATH"] = str(steam_linux) + (os.pathsep + prev if prev else "")
+	if ensure_project_imported(godot) != 0:
+		return 1
 	failed: list[str] = []
 	for name in CHECKS:
 		path = TOOLS / name

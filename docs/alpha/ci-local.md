@@ -5,7 +5,7 @@ GitHub Actions：
 | Job | 指令 | 何時 |
 | --- | --- | --- |
 | `static-tests`（必過） | `python3 tools/run_ci_static.py` | 每個 PR／`main` push |
-| `godot-checks`（Q1／#154＋R1／#149） | 下載 Godot **4.7.2-stable** 後跑 `run_godot_checks.py`＋`run_ops_checks.py` | 同上 |
+| `godot-checks`（Q1／#154＋R1／#149） | 下載 Godot **4.7.2-stable** 後跑 `run_godot_checks.py`＋`run_ops_checks.py`（runner 內會 `--import` 暖機） | 同上 |
 
 見 [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)。
 
