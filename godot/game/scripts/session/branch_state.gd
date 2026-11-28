@@ -52,7 +52,7 @@ static func clear_elite_posts_in_store(snap: Dictionary, elite_id: String) -> vo
 
 ## Assign elite to a branch post. Clears HQ on_duty. Returns error string or "".
 static func assign_elite_to_branch(state, elite_id: String, theme_id: String, post: String) -> String:
-	var i := int(state._elite_index(elite_id))
+	var i := _elite_index_of(state, elite_id)
 	if i < 0:
 		return Loc.t("err.elite_clerk_not_owned")
 	var tid := String(theme_id)
@@ -73,11 +73,25 @@ static func assign_elite_to_branch(state, elite_id: String, theme_id: String, po
 
 
 static func clear_elite_branch_assignment(state, elite_id: String) -> void:
-	var i := int(state._elite_index(elite_id))
+	var i := _elite_index_of(state, elite_id)
 	if i < 0:
 		return
 	clear_elite_from_branch_posts(state, String(state.elite_clerks[i].get("id", "")))
 	state.elite_clerks[i]["assignment"] = null
+
+
+## Prefer GameState.elite_index；fallback scan if a stub state is passed in tests.
+static func _elite_index_of(state, elite_id: String) -> int:
+	if state != null and state.has_method("elite_index"):
+		return int(state.elite_index(elite_id))
+	var id := String(elite_id)
+	var rows = state.elite_clerks if state != null else []
+	if not (rows is Array):
+		return -1
+	for i in rows.size():
+		if String(rows[i].get("id", "")) == id:
+			return i
+	return -1
 
 
 static func set_branch_post(state, theme_id: String, post: String, ref: Variant) -> void:
@@ -179,7 +193,7 @@ static func set_branch_for_sale(state, theme_id: String, sku: String, on: bool) 
 	var tid := String(theme_id)
 	if tid == String(state.active_theme_id):
 		state.for_sale[sku] = on
-		state._ensure_one_for_sale()
+		state.ensure_one_for_sale()
 		return ""
 	var snap: Dictionary = ThemeStoreSnapshot.get_store_dict(state, tid)
 	if snap.is_empty():

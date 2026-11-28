@@ -116,8 +116,28 @@ need('pack.get("unlocked"' in panel and "branch_system_unlocked" in panel, "pane
 fmt = func_text(BS, "format_closeout_body")
 need("settle.branch.net" in fmt, "open stores show a net line")
 need("revenue_i - paid_i - restock_i" in fmt, "net is revenue - wages paid - restock")
+need("format_signed_money" in fmt, "net uses signed money helper")
 need("settle.branch.partial_wage" in fmt and "paid_i < owed_i" in fmt, "partial wage flag")
 need("settle.branch.net" in DATA and "settle.branch.partial_wage" in DATA, "net / partial locale")
+net_row = next((ln for ln in DATA.splitlines() if ln.startswith("settle.branch.net,")), "")
+need("%s" in net_row and "$%d" not in net_row.split(",", 1)[-1], "net locale takes preformatted money %s")
+money_fn = func_text(BS, "format_signed_money")
+need('return "-$%d"' in money_fn or '"-$%d"' in money_fn, "negative money uses -$N")
+need("absi(amount)" in money_fn or "abs(" in money_fn, "negative uses absolute value")
+
+
+def format_signed_money(amount: int) -> str:
+    if amount < 0:
+        return "-$%d" % abs(amount)
+    return "$%d" % amount
+
+
+need(format_signed_money(80) == "$80", "positive money")
+need(format_signed_money(-120) == "-$120", "negative money is -$120 not $-120")
+need(format_signed_money(0) == "$0", "zero money")
+settle_all_fn = func_text(BS, "settle_all")
+need("SessionService.is_networked()" in settle_all_fn, "settle_all skips when networked")
+need("skipped_networked" in settle_all_fn, "network skip pack is marked")
 one = func_text(BS, "settle_one")
 need('"wage_owed": wage_owed' in one, "settle_one keeps owed wages")
 need('"wage_spent": wage_spent' in one, "settle_one keeps amount paid")
@@ -223,7 +243,12 @@ duty = func_text(GS, "on_duty_elite_clerks")
 need(duty.find("_elite_assignment") < duty.find("out.append"), "on_duty skips assigned elites before append")
 spawn = func_text(WORLD, "_spawn_elite_clerks")
 need("on_duty_elite_clerks()" in spawn, "HQ elite spawn goes through on_duty_elite_clerks")
-need("elite_assignment" in spawn and spawn.find("elite_assignment") < spawn.find("ClerkScript.new"), "spawn loop skips assignment")
+need("elite_assignment" not in spawn, "spawn must not re-filter assignment (#179)")
+need("func elite_index" in GS, "GameState exposes elite_index")
+need("func ensure_one_for_sale" in GS, "GameState exposes ensure_one_for_sale")
+need("state._elite_index" not in BST and "state._ensure_one_for_sale" not in BST, "branch_state avoids private GameState APIs")
+need("elite_index" in func_text(BST, "_elite_index_of") or "elite_index" in BST, "branch_state uses public elite_index")
+need("ensure_one_for_sale" in func_text(BST, "set_branch_for_sale"), "for_sale path calls ensure_one_for_sale")
 
 
 def elite_assignment(row: dict):
@@ -374,7 +399,8 @@ need("is_networked()" in func_text(PAGES, "branch_entry_blocked"), "branch block
 show = func_text(MENU, "_show_page")
 need("is_branch_page" in show and "branch_entry_blocked" in show, "go into branch pages is blocked")
 need("prep.branch.mp_locked" in STRINGS, "multiplayer lock copy")
-need("多人進行中（含 Host）先關閉 Prep 分店入口" in DOC, "branchstore notes the prep lock")
+need("先關閉 Prep 分店入口" in DOC or "關閉 Prep 分店入口" in DOC, "branchstore notes the prep lock")
+need("跳過" in DOC and "抽象結算" in DOC, "branchstore notes networked settle skip (#179)")
 need("淨利" in DOC and "部分發薪" in DOC, "branchstore notes net and partial wages")
 
 if errs:

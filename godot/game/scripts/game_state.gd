@@ -1685,12 +1685,17 @@ func cycle_register(index: int) -> void:
 	clerks[index]["register"] = (int(clerks[index]["register"]) + 1) % n
 
 
+## Public index into `elite_clerks` (−1 if not owned). Prefer this over private `_elite_index`.
+func elite_index(elite_id: String) -> int:
+	return _elite_index(elite_id)
+
+
 func has_elite_clerk(elite_id: String) -> bool:
-	return _elite_index(elite_id) >= 0
+	return elite_index(elite_id) >= 0
 
 
 func elite_clerk_row(elite_id: String) -> Dictionary:
-	var i := _elite_index(elite_id)
+	var i := elite_index(elite_id)
 	if i < 0:
 		return {}
 	return elite_clerks[i]
@@ -2309,6 +2314,11 @@ func _default_for_sale_for_developed() -> void:
 
 
 ## Never leave developed shops with an empty sellable pool.
+## Public for branch／prep callers; keeps at least one sellable when possible.
+func ensure_one_for_sale() -> void:
+	_ensure_one_for_sale()
+
+
 func _ensure_one_for_sale() -> void:
 	_default_for_sale_for_developed()
 	if not developed.is_empty() and sellable().is_empty():

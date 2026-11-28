@@ -253,7 +253,7 @@ settle.branch.empty,沒有可結算的分店。,No branches to settle.,没有可
 settle.branch.row_closed,%s　停業（%s）　模式 %s,%s · closed (%s) · policy %s,%s　停业（%s）　模式 %s,%s　休業（%s）　模式 %s
 settle.branch.row_open,%s　營運　模式 %s\n補貨 $%d　日薪 $%d　營業額 $%d\n營運點 %d　%s　評價 %d→%d,%s · open · policy %s\nRestock $%d · wages $%d · revenue $%d\nOps %d · %s · rating %d→%d,%s　营运　模式 %s\n补货 $%d　日薪 $%d　营业额 $%d\n营运点 %d　%s　评价 %d→%d,%s　営業　模式 %s\n補充 $%d　日給 $%d　売上 $%d\n営業点 %d　%s　評価 %d→%d
 settle.branch.reason.no_manager,無店長,no manager,无店长,店長なし
-settle.branch.net,淨利 $%d,Net $%d,净利 $%d,純利 $%d
+settle.branch.net,淨利 %s,Net %s,净利 %s,純利 %s
 settle.branch.partial_wage,部分發薪（日薪 $%d／實付 $%d）,Partial wages (owed $%d / paid $%d),部分发薪（日薪 $%d／实付 $%d）,一部支給（日給 $%d／実支払 $%d）
 branch.store.origin,起源店,Origin store,起源店,起源店
 branch.store.theme_historic,安桃山店,Antaoshan store,安桃山店,安桃山店

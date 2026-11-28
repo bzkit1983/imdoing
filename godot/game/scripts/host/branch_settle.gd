@@ -10,7 +10,19 @@ const Tuning = preload("res://scripts/tuning.gd")
 
 ## Run after HQ `state.settle(...)`, before `save_to_disk()`.
 ## Returns {unlocked, rows, total_revenue, total_restock, total_wage, body}.
+## Networked sessions skip abstract branch settle (Prep entry already locked; full
+## branch×multiplayer is #167). Host and clients stay consistent by not mutating.
 static func settle_all(state) -> Dictionary:
+	if SessionService.is_networked():
+		return {
+			"unlocked": false,
+			"rows": [],
+			"total_revenue": 0,
+			"total_restock": 0,
+			"total_wage": 0,
+			"body": "",
+			"skipped_networked": true,
+		}
 	var unlocked := BranchRules.is_unlocked(state.themes_cleared if "themes_cleared" in state else [])
 	var rows: Array = []
 	var total_revenue := 0
@@ -179,10 +191,18 @@ static func format_closeout_body(rows: Array) -> String:
 			int(r.get("shop_after", 0)),
 		]))
 		## One net line per operating store: revenue − wages paid − restock.
-		lines.append(Loc.t("settle.branch.net", [revenue_i - paid_i - restock_i]))
+		## Money arg is preformatted so negatives read as `-$120`, not `$-120`.
+		lines.append(Loc.t("settle.branch.net", [format_signed_money(revenue_i - paid_i - restock_i)]))
 		if paid_i < owed_i:
 			lines.append(Loc.t("settle.branch.partial_wage", [owed_i, paid_i]))
 	return "\n".join(lines)
+
+
+## `$120` / `-$120` — avoids locale `淨利 $%d` rendering `淨利 $-120`.
+static func format_signed_money(amount: int) -> String:
+	if amount < 0:
+		return "-$%d" % absi(amount)
+	return "$%d" % amount
 
 
 ## HUD branch panel. Empty when the system is locked (same gate demo used to inline).
