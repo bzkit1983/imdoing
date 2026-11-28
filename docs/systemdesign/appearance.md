@@ -40,10 +40,12 @@
 
 # 執行期
 
-- 開局 spawn：`demo` 用 sheet／`GameState.appearance_skin_id()` 建 `Vox.animated`
-- `player._model_id`：`play_anim`／`apply` 全走此 ID；色調仍 `_appearance_tint()` → `modulate`
+- 開局 spawn：`demo` 用 sheet／`GameState.appearance_skin_id()`（或 seat sheet 同等 API）建 `Vox.animated`
+- 模型 ID：狀態仍在 `player._model_id`（`appearance_skin_id()` 正規化）；**每幀播放**由 `player/player_view.gd` `update_visuals` 呼叫 `Vox.play_anim`／`Vox.apply`
+- 色調：`player_view.appearance_tint()` → 與狀態色相乘後寫 `_body.modulate`（host 快取 `_shown_tint`）
 - 影分身：`clone_snapshot` 帶 `skin_id`；`shadow_clone` 跟 snapshot，不寫死 `player`
 - 只在準備回合寫檔；營業中不換造型
+- 抽出對照：[`monolith-merge-gate.md`](../alpha/monolith-merge-gate.md)／[`runtime-perf-audit.md`](../alpha/runtime-perf-audit.md) Path remapping（#175）
 
 # UI
 

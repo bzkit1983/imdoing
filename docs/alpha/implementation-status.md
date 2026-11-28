@@ -39,7 +39,7 @@
 | 小偷打擊 KO／連打晃動／近遠散落 | **`docs/systemdesign/thiefsystem.md`**、`playermovement.md` | `player.gd` fight／KO；`demo.spawn_loot_scatter`；`Tuning.LOOT_SCATTER_*`／`FIGHT_*` |
 | 離店途中仍可抓／砸／撞；出口才計被偷＋橫幅 | **`docs/systemdesign/thiefsystem.md`**、`storeoperationphase.md` | `is_active_thief` 含 LEAVE；`_finish_thief_exit`；`show_stolen_banner`／`demo.stolen_banner` |
 | 客人離店不卡門 | **`docs/systemdesign/customer.md`** | leave `collision_mask=0`；`exit_pos` 在 pathfinder 內；門檻／逾時 despawn |
-| 技術審查與跟進清單 | `docs/alpha/tech-review-v0.1.md`；v0.2；**現行** [`tech-review-v0.3.md`](tech-review-v0.3.md) | 非玩法規格；v0.1 §6 已勾完；v0.2 F–J 多數已勾；**v0.3 L1–L4 已勾**（巨石再抽／skill 分族／UI 瘦身／[`monolith-merge-gate.md`](monolith-merge-gate.md)）；H1／K1 仍開 |
+| 技術審查與跟進清單 | v0.1–v0.3；**現行** [`tech-review-v0.4.md`](tech-review-v0.4.md) | 非玩法規格；L1–L4／Q1／R1／S1／**T1** 已勾（門禁擴充見 [`monolith-merge-gate.md`](monolith-merge-gate.md)）；H1／K1 與 U 系列仍開 |
 | Runtime P1＋P2 熱路徑優化 | **`docs/alpha/runtime-perf-audit.md`**（文末 P1／P2 DONE） | `player`/`customer`/`demo`/`pathfinder`/`inventory`/`box_stack`/`floor_tiles`／`cashier`／`clerk`／`hud`／`drop_flight`；A* 預算、髒 HUD、地板單節點、佇列索引、dirt 網格 |
 | 客人貨品交付（v1.2.0） | **`docs/systemdesign/customerdelivery.md`** | **已實作**。貨架短按 1 件、長按親手交付（近的先、每件 −15）、方向＋短按丟一件、整箱改每件 −15、主動技衝刺交付（COST 1、5 秒） |
 | 自訂技能組合 | **`docs/systemdesign/customizedskillset.md`**、`playersetup.md` | **已實作**。五組預存、準備時可改未選用組、改完立刻寫檔、營運中鎖定。自訂名稱只准 10 個英文字母。角色整備入口「裝備技能」不顯示 COST；各組列表仍顯示 |
@@ -77,16 +77,17 @@
 | Ambient Peek 操作層 | **`docs/systemdesign/player-context-ui.md`**、`control.md` | **已實作**（2026-11-23）。背包菱形、持物條、技能環；#144／#145 |
 | 其他 11-20～11-27 同期落地 | 各技能／小遊戲／多人檔 | 商品 XP 曲線 LV99 與店規模 S1–S6（#140）；培養預覽；收銀對決／Dasher／快吞包對決／Metal Rush 等小遊戲；網上 Host 權威修復（#143）；本地 vs 網上缺口文件（#142）；手掣／鍵盤短按徑向重綁 |
 
-## 巨石行數（2026-11-27 重數，`godot/game/scripts/`）
+## 巨石行數（2026-11-28 T1 重數，`godot/game/scripts/`）
 
-| 檔 | 行數 | 備註 |
-| --- | ---: | --- |
-| `player.gd` | **2897** | #175 拆到 `player/*` 後；合併閘監視檔，勿再吞控制器 |
-| `demo.gd` | **3986** | 預算 ≤ 4000（`monolith-merge-gate.md`／`test_demo_host_extract.py`） |
-| `prep_menu.gd` | 3265 | |
-| `game_state.gd` | 2748 | |
-| `customer.gd` | 2737 | |
-| `hud.gd` | 1469 | |
-| `skill_caster.gd` | 407 | 編排器預算 ~400 |
+| 檔 | 行數 | 合併閘水位 | 備註 |
+| --- | ---: | ---: | --- |
+| `demo.gd` | **3608** | ≤ ~4000 | `host/*` 抽出後 |
+| `player.gd` | **2897** | ≤ ~3000 | #175 → `player/*` |
+| `prep_menu.gd` | **3510** | ≤ ~3600 | 新頁進 `prep/` |
+| `game_state.gd` | **2949** | ≤ ~3000 | 分店／精英優先 `session/*` |
+| `customer.gd` | **2737** | ≤ ~2800 | 新 AI 勿再堆本體 |
+| `prep/prep_pages.gd` | **2036** | ≤ ~2100 | 再拆 `prep/<page>_*` |
+| `hud.gd` | 1469 | — | 未進閘 |
+| `skill_caster.gd` | 407 | ~400 編排器 | 族模組另檔 |
 
 仍缺（非 §6）：**第一日引導打磨**（教學框架與設定頁已落地）、技能演出鎖輸入、正式 App ID／Cloud／成就、M4 Web——見 `docs/alpha/design.md`、`multiplayer.md` §13／§15。`run_godot_checks.py` 已進 CI `godot-checks`（#154／Q1）。本機／網上權威缺口見 [`multiplayer-local-vs-online-gap.md`](multiplayer-local-vs-online-gap.md)（修 bug 另 PR）。事件 SFX／BGM 音量已在暫停選單（BGM 亦在準備系統工具）。prep UI 已拆為 `scenes/prep_menu.tscn` + `scripts/prep/`。**教學框架**已落地（`docs/systemdesign/tutorial.md`）；劇本 5 開局鏈已有 prep 購入家具／採購罐頭／店鋪設計／角色能力配點／裝備技能／開發商品／採購新貨／擴充商店物品／擴充店鋪設計／第二台收銀機／招募店員（教學鏈終點）與 ops 上架／清潔／收銀／捉小偷／客人交付／完成一日／空貨架提示／第二日使用技能／第三日評價點數（OP-TUT-001 練習＋完美交付 tip）。

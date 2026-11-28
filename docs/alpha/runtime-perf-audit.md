@@ -2,13 +2,28 @@
 
 - **Tip audited:** `origin/main` @ `19261b595861d6ccd7fffc3dec86724d9278fbab` (v1.0 living line; Align design docs with toss restock and box-hit KO. #40)
 - **Date:** 2026-10-22
-- **Scope:** Hot paths in `player.gd`, `customer.gd`, `demo.gd`, `pathfinder.gd`, `hud.gd`, `voxel_sprite.gd`, `loc.gd` (plus closely coupled `box_stack.gd` / `cashier.gd` / `clerk.gd` / `drop_flight.gd` / `inventory.gd`)
+- **Scope:** Hot paths in `player.gd`, `customer.gd`, `demo.gd`, `pathfinder.gd`, `hud.gd`, `voxel_sprite.gd`, `loc.gd`（審計當日；其後 #148／#175 已抽出，見下「Path remapping」）
 - **Floor:** Switch 1 as performance target (see `docs/alpha/tech-review-v0.1.md` §3)
 - **Scale today:** guest cap 10–15 (`game_state.guest_cap`), thief cap 2, dirt cap 6; path grid ~1.2k–4.5k cells depending on shop LV
+- **Path remapping（T1／2026-11-28）：** 下方 Findings 內的**行號仍為 2026-10-22 審計快照**，勿當現行導航；實作／回歸請用下表模組。合併門禁見 [`monolith-merge-gate.md`](monolith-merge-gate.md)。
 
 **結論（中）：** 先前 P0（HUD 髒寫入、貨架 SKU 索引、CJK 字型子集、SpriteFrames cache）已落地；本 tip **無新 P0**。**P1（7）與 P2（13）已全部實作**於 `cursor/runtime-perf-opts-cba4`（見文末 DONE 表）。後續可選：完整 `GameSession` 型別 facade、drop-flight 物件池。
 
 Findings below are the pre-fix audit record; status rows mark what shipped.
+
+---
+
+## Path remapping（#148／#175 後）
+
+| 審計當時（`player.gd`／`demo.gd`） | 現行落點 |
+| --- | --- |
+| `player._physics_process` 主循環 | `player.gd` 薄委託 → `player/frame_ticker.gd` `physics_process` |
+| `player._update_target` 互動掃描 | `frame_ticker.update_target`；距離／facing 輔助 `player/interact_scan.gd` |
+| `player._hud_fingerprint`／`_emit_stats_if_changed` | `player/player_view.gd` `hud_fingerprint`／`emit_stats_if_changed` |
+| `player._update_visuals`／tint | `player_view.update_visuals`／`appearance_tint`（host 仍持 `_model_id`） |
+| `player` 互動／結帳／工作／輸入／投擲／戰鬥 | `player/interact_controller`／`checkout_controller`／`work_ticker`／`input_controller`／`toss_controller`／`fight_controller` |
+| `demo` 日結／日開始／分店結算 | `host/day_settle.gd`／`host/day_begin.gd`／`host/branch_settle.gd`（demo 仍掛線） |
+| `demo` 技能／ops／spawn／toss 世界效果 | `host/skill_*`／`ops_world`／`world_spawn`／`toss_world` 等（見 L1） |
 
 ---
 
@@ -362,16 +377,19 @@ func _draw() -> void:
 
 ## Evidence map (quick)
 
-| Area | File lines (approx.) |
-| --- | --- |
-| Player physics hub | `player.gd` 600–647 |
-| Interactables | `player.gd` 999–1033; `demo.gd` 1004–1014 |
-| Customer AI + labels | `customer.gd` 170–233, 379–413, 697–770 |
-| Spawn / thieves / shelf index / toss | `demo.gd` 557–724, 792–815, 1017–1177 |
-| Pathfinder | `pathfinder.gd` entire |
-| HUD dirty | `hud.gd` 91–99, 155–258 |
-| Frames cache | `voxel_sprite.gd` 11, 112–148 |
-| Font subset | `ui_font.gd` 7; `docs/alpha/fonts-subset.md` |
+審計當日行號（2026-10-22）。**現行**請對照上文 Path remapping。
+
+| Area | 審計當日（約） | 現行（T1） |
+| --- | --- | --- |
+| Player physics hub | `player.gd` 600–647 | `player/frame_ticker.gd`（`player.gd` 僅委託） |
+| Interactables | `player.gd` 999–1033；`demo.gd` 1004–1014 | `frame_ticker.update_target`＋`interact_scan.gd`；demo 互動表仍在 host／demo |
+| HUD fingerprint | `player.gd` 650–689 | `player/player_view.gd` |
+| Customer AI + labels | `customer.gd` 170–233, 379–413, 697–770 | 仍主要在 `customer.gd`（T1 水位 ≤~2800） |
+| Spawn / thieves / shelf index / toss | `demo.gd` 557–724, 792–815, 1017–1177 | 部分已進 `host/*`；其餘仍 demo |
+| Pathfinder | `pathfinder.gd` entire | 未搬 |
+| HUD dirty | `hud.gd` 91–99, 155–258 | 未搬 |
+| Frames cache | `voxel_sprite.gd` 11, 112–148 | 未搬 |
+| Font subset | `ui_font.gd` 7; `docs/alpha/fonts-subset.md` | 未搬 |
 
 ---
 

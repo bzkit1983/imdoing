@@ -8,7 +8,7 @@ This file is the **vendor-neutral entry point** for Cursor, Claude Code, Codex, 
 - Design docs under `docs/systemdesign/` stay **Chinese-first**. Do not translate design markdown into other languages.
 - 新小遊戲及現有小遊戲大改版，設計與評審須對照[小遊戲設計原則](docs/systemdesign/minigame-design.md)。
 - Player-facing strings belong in locale CSV tables, not as hard-coded display text in `.gd` / `.tscn`.
-- Growing `demo.gd`／`player.gd`／`skill_caster.gd`: follow [`docs/alpha/monolith-merge-gate.md`](docs/alpha/monolith-merge-gate.md) (new world/skill logic goes in `host/` or `player/skill_*_caster.gd`).
+- Growing `demo.gd`／`player.gd`／`skill_caster.gd`／`game_state.gd`／`prep_menu.gd`／`prep_pages.gd`／`customer.gd`: follow [`docs/alpha/monolith-merge-gate.md`](docs/alpha/monolith-merge-gate.md)（世界／技能 → `host/`／`player/skill_*_caster.gd`；分店／Prep 頁 → `session/`／`prep/`）。
 - After changing `godot/game/**`, `tools/test_*.py`, locale CSV, anim／props manifests, or InputMap／`project.godot`／controls: **before claiming done or suggesting push**, run `python3 tools/run_ci_static.py` and fix any FAIL (same gate as GitHub CI). Local hook bootstrap: [`docs/alpha/ci-local.md`](docs/alpha/ci-local.md).
 
 ## Skills (read when relevant)
