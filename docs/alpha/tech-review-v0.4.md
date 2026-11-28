@@ -21,7 +21,7 @@ v0.3 的 L1–L4（`demo`／`skill_caster`／UI 瘦身＋合併門禁）**已兌
 | 平台／上架 | 持平 | 決議更清楚（EA／Demo／Next Fest），執行為零：**App ID 仍 480** |
 | 遊戲設計標準 | 內容加厚，EA 路徑未落地 | 序章／頭目日／小遊戲／精英店員／分店切片進活線；難度倍率、事件系統、章節機未做 |
 | 多人 | 略降 | 修了 Host 權威（#143）但已決議延後重設計（#167）；分店結算未對多人設守衛 |
-| 工程信頼 | 略降 | CI 仍只有 `static-tests`；`godot-checks` 未進 `ci.yml`；本週數次解析／型別錯誤靠實跑才發現 |
+| 工程信頼 | 略降→補 | 審查當日 CI 只有 `static-tests`；**Q1／#154 其後已加 `godot-checks`**；本週數次解析／型別錯誤曾靠實跑才發現 |
 
 ### 分數卡（業界獨立／中小型工作室標尺 · 10 分制）
 
@@ -229,7 +229,7 @@ v0.3 及格線：`demo` ≤~3900 ✅（3608）；新技能不堆 `skill_caster` 
 
 - [ ] **H1** 正式 Steam App ID（仍 480）— #152（含 Cloud／成就煙測、關閉 `TEST_TOOLS`）
 - [ ] **K1** 主機帳號／釘版重查 — #155（含 Deck／Switch 滿載基線）
-- [ ] **Q1** 無頭 Godot 檢查進 CI — #154（`run_godot_checks.py` 在，但 `ci.yml` 無 job；需 `workflow` scope）
+- [x] **Q1** 無頭 Godot 檢查進 CI — #154（`.github/workflows/ci.yml` `godot-checks`：Godot 4.7.2-stable＋`run_godot_checks.py`）
 
 ### 本輪新增
 

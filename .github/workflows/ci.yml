@@ -25,3 +25,62 @@ jobs:
 
       - name: Run static test suite
         run: python3 tools/run_ci_static.py
+
+  ## Optional headless Godot wrappers (tech-review Q1 / #154).
+  ## Keep CHECKS in tools/run_godot_checks.py short; unstable harnesses stay out.
+  godot-checks:
+    name: godot headless (Q1)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      GODOT_VERSION: "4.7.2-stable"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Godot runtime libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libfontconfig1 \
+            libgl1 \
+            libx11-6 \
+            libxcursor1 \
+            libxext6 \
+            libxi6 \
+            libxinerama1 \
+            libxrandr2 \
+            libxrender1
+
+      - name: Cache Godot ${{ env.GODOT_VERSION }}
+        id: cache-godot
+        uses: actions/cache@v4
+        with:
+          path: /tmp/godot-setup
+          key: godot-${{ runner.os }}-${{ env.GODOT_VERSION }}-linux.x86_64
+
+      - name: Download Godot ${{ env.GODOT_VERSION }}
+        if: steps.cache-godot.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          name="Godot_v${GODOT_VERSION}_linux.x86_64"
+          url="https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/${name}.zip"
+          mkdir -p /tmp/godot-setup
+          curl -fsSL -o /tmp/godot.zip "$url"
+          unzip -qo /tmp/godot.zip -d /tmp/godot-setup
+          chmod +x "/tmp/godot-setup/${name}"
+          rm -f /tmp/godot.zip
+          test -x "/tmp/godot-setup/${name}"
+
+      - name: Run Godot headless checks
+        env:
+          GODOT: /tmp/godot-setup/Godot_v4.7.2-stable_linux.x86_64
+        run: |
+          set -euo pipefail
+          "$GODOT" --version
+          python3 tools/run_godot_checks.py
